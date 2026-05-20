@@ -14379,6 +14379,60 @@
         },
         "required": ["chart_type"]
       },
+      "WidgetOptionsScatter": {
+        "type": "object",
+        "description": "Options for a scatter plot widget (type=chart, chart_type=scatter). Same data structure as bar chart.",
+        "properties": {
+          "chart_type": { "type": "string", "enum": ["scatter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
+          "data": {
+            "type": "object",
+            "properties": {
+              "x_axis": {
+                "type": "object",
+                "properties": {
+                  "field_id": { "type": "string" },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"] },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" },
+                  "category_limit": { "type": "number" }
+                },
+                "required": ["field_id"]
+              },
+              "y_axis": {
+                "type": "object",
+                "properties": {
+                  "start_at_zero": { "type": "boolean" },
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field_id": { "type": "string" },
+                        "aggregation": { "type": "string" }
+                      },
+                      "required": ["field_id", "aggregation"]
+                    }
+                  },
+                  "group_by": { "type": ["string", "null"] }
+                }
+              }
+            }
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_value_in_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+            }
+          }
+        },
+        "required": ["chart_type"]
+      },
       "WidgetOptionsText": {
         "type": "object",
         "description": "Options for a text widget (type=text). Formatting is nested inside appearance.",
@@ -14455,6 +14509,7 @@
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
@@ -14565,6 +14620,7 @@
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
@@ -14609,6 +14665,7 @@
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]

@@ -142,6 +142,25 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 commentsDrawer.value = true
 
+const route = useRoute()
+
+// Deep-links like ?rowId=2&commentId=… should surface the Comments tab so the
+// linked comment is visible. SidebarComments handles the scroll/highlight +
+// URL cleanup itself, but only once it's actually mounted — which happens
+// only when activityExpanded is true and the tab is 'comments'.
+// Watch commentId too so clicking another notification while the panel is
+// already open also flips to Comments.
+watch(
+  [isOpen, () => route.query.commentId],
+  ([open, commentId]) => {
+    if (open && commentId) {
+      activeActivityTab.value = 'comments'
+      activityExpanded.value = true
+    }
+  },
+  { immediate: true },
+)
+
 watch([() => activityExpanded.value, () => activeActivityTab.value], async ([expanded, tab]) => {
   if (!isOpen.value || !expanded || !primaryKey.value) return
 

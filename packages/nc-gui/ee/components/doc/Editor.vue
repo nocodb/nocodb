@@ -977,8 +977,8 @@ const toggleCommentsPanel = () => {
 }
 
 // --- History modal state ---
-// Notion-style single modal containing both the version list (right pane)
-// and the diff viewer (left pane). No sidebar — opening the menu item just
+// Single modal containing both the version list (right pane) and the
+// diff viewer (left pane). No sidebar — opening the menu item just
 // flips this flag.
 const isHistoryModalOpen = ref(false)
 
@@ -1255,7 +1255,7 @@ const _tiptapEditor = useEditor({
         return true
       }
 
-      // Progressive select-all (Notion-like):
+      // Progressive select-all:
       // 1st Cmd+A → select all text in the current block
       // 2nd Cmd+A → select entire document (default ProseMirror behavior)
       if (event.key === 'a' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey) {
@@ -2775,7 +2775,7 @@ defineExpose({ editor })
               <div ref="editorContentRef" class="relative">
                 <EditorContent :editor="editor" @click="onEditorClick" />
 
-                <!-- Link hover preview (Notion-style) -->
+                <!-- Link hover preview -->
                 <div
                   v-if="isLinkHoverVisible && !isLinkEditOpen"
                   :style="linkHoverStyle"
@@ -2935,7 +2935,7 @@ defineExpose({ editor })
             </template>
           </div>
 
-          <!-- Sub documents — direct children of the current doc, rendered after content (Notion-style) -->
+          <!-- Sub documents — direct children of the current doc, rendered after content -->
           <DocSubDocumentsList v-if="isLoaded" :doc-id="docId" :base-id="base?.id" />
         </div>
 
@@ -3047,7 +3047,7 @@ defineExpose({ editor })
          branch when activeDocument is set. -->
     <LazyDlgShareAndCollaborateView v-if="!embedded && !isCellMode" />
 
-    <!-- History modal: revision list + diff viewer in one surface. -->
+    <!-- History modal: list + diff viewer in one surface. -->
     <DocHistoryModal v-if="!isCellMode" v-model:visible="isHistoryModalOpen" :doc-id="docId" />
   </div>
 </template>
@@ -3248,7 +3248,7 @@ defineExpose({ editor })
   }
 }
 
-// --- Link hover preview (Notion-style) ---
+// --- Link hover preview ---
 .nc-link-hover-preview {
   display: flex;
   align-items: center;

@@ -5,9 +5,9 @@ import BasePage from '../../../Base';
 /**
  * Page object for the doc revision history flow.
  *
- * Notion-style single modal: a list pane on the right + a diff viewer
- * pane on the left, with Restore + diff controls in the modal header.
- * Restore confirms via NcConfirmModal.
+ * Single modal: a list pane on the right + a diff viewer pane on the left,
+ * with Restore + diff controls in the modal header. Restore confirms via
+ * NcConfirmModal.
  */
 export class DocsHistoryPage extends BasePage {
   readonly openedPage: DocsOpenedPagePage;

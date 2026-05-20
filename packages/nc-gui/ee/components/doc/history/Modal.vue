@@ -116,9 +116,9 @@ async function onRestore() {
     @update:visible="(v: boolean) => emit('update:visible', v)"
     @cancel="onClose"
   >
-    <!-- Notion-style: two panes inside the modal body, no shared header bar.
-         Each pane carries its own chrome — the LEFT pane is just the doc
-         preview (which provides its own title), the RIGHT pane has its own
+    <!-- Two panes inside the modal body, no shared header bar. Each pane
+         carries its own chrome — the LEFT pane is just the doc preview
+         (which provides its own title), the RIGHT pane has its own
          "Version history" header and footer with action buttons. -->
     <div class="nc-doc-history-body flex h-full overflow-hidden">
       <!-- Viewer pane. Body is constrained to the live doc-editor's

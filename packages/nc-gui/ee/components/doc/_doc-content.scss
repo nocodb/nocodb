@@ -28,7 +28,7 @@
   }
 
   // Dark mode: pastel highlight backgrounds are barely visible on dark bg.
-  // Use dark text so the coloured mark creates readable contrast (like Notion).
+  // Use dark text so the coloured mark creates readable contrast.
   // Hardcoded because all semantic text tokens map to light colours in dark mode.
   html.dark & mark[data-color] {
     color: #1f2937;
@@ -538,7 +538,7 @@
     }
   }
 
-  // Links — neutral color with subtle underline (Notion-style)
+  // Links — neutral color with subtle underline
   a {
     color: inherit;
     text-decoration: underline;
@@ -547,7 +547,7 @@
     text-underline-offset: 3px;
   }
 
-  // Strikethrough — grey text and line (like Outline)
+  // Strikethrough — grey text and line
   s,
   del {
     color: var(--nc-content-gray-disabled);

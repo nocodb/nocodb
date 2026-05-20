@@ -37,9 +37,8 @@ watch(docId, (next) => {
   if (next) loadAndAutoSelect(next)
 })
 
-// Format like "May 19th, 7:10 AM" — matches the Outline reference. We avoid
-// pulling a date-fns dependency: vanilla Intl handles the time, and the
-// ordinal day suffix is one tiny helper.
+// Format like "May 19th, 7:10 AM". We avoid pulling a date-fns dependency:
+// vanilla Intl handles the time, and the ordinal day suffix is one tiny helper.
 function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd']
   const v = n % 100

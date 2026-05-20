@@ -1,7 +1,7 @@
 import path from 'path';
 import Url from 'url';
 import { Readable } from 'stream';
-import { AppEvents, PublicAttachmentScope } from 'nocodb-sdk';
+import { AppEvents, OperationSource, PublicAttachmentScope } from 'nocodb-sdk';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import mime from 'mime/lite';
@@ -10,7 +10,7 @@ import PQueue from 'p-queue';
 import axios from 'axios';
 import hash from 'object-hash';
 import moment from 'moment';
-import { useAgent } from 'request-filtering-agent';
+import { getFilteredAgents } from '~/utils/ssrf';
 import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -296,8 +296,7 @@ export class AttachmentsService {
           if (!url.startsWith('data:')) {
             response = await axios.head(url, {
               maxRedirects: 5,
-              httpAgent: useAgent(url),
-              httpsAgent: useAgent(url),
+              ...getFilteredAgents({ url, source: OperationSource.ATTACHMENTS }),
             });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];

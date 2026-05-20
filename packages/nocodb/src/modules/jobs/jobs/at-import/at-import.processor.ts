@@ -2,6 +2,7 @@ import moment from 'moment';
 import {
   AuditV1OperationTypes,
   generateUniqueCopyName,
+  OperationSource,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
@@ -33,7 +34,6 @@ import {
 } from '~/utils';
 import { type Base, Model, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
-import { OperationSource } from '~/helpers/columnHelpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';

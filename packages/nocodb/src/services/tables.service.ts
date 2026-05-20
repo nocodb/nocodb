@@ -20,6 +20,7 @@ import type {
   ColumnType,
   NcApiVersion,
   NormalColumnRequestType,
+  OperationSource,
   TableReqType,
   TableType,
   UserType,

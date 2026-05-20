@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { hasInputCalls, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
-import { useAgent } from 'request-filtering-agent';
+import { hasInputCalls, NOCO_SERVICE_USERS, OperationSource, ServiceUserType } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ncIsNullOrUndefined } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
@@ -13,6 +12,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { Filter } from '~/models';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -168,12 +168,8 @@ export class WebhookInvoker {
           }, {})
         : {},
       withCredentials: true,
-      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' &&
-      !ncIsNullOrUndefined(url)
-        ? {
-            httpAgent: useAgent(url),
-            httpsAgent: useAgent(url),
-          }
+      ...(!ncIsNullOrUndefined(url)
+        ? getFilteredAgents({ url, source: OperationSource.HOOKS })
         : {}),
       timeout: 30 * 1000,
     };

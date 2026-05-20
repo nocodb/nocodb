@@ -51,6 +51,9 @@ export const useDocRevisions = createSharedComposable(() => {
   // the chronologically prior revision; the basis selector + highlight toggle
   // were dropped from the UI in favor of a single canonical view.
   const comparisonContent = ref<Record<string, any> | null>(null)
+  // Title of the chronologically prior revision — surfaced so the H1 in the
+  // preview pane can render a word-level rename diff (parity with body diff).
+  const comparisonTitle = ref<string | null>(null)
 
   // Step-through nav state. `diffChangeCount` is written by the Viewer
   // whenever the diff is recomputed; `currentChangeIndex` is driven by
@@ -159,21 +162,25 @@ export const useDocRevisions = createSharedComposable(() => {
   async function refreshComparisonContent() {
     if (!selectedRevisionId.value) {
       comparisonContent.value = null
+      comparisonTitle.value = null
       return
     }
     const compareId = resolveComparisonRevisionId(selectedRevisionId.value)
     if (!compareId) {
       comparisonContent.value = null
+      comparisonTitle.value = null
       return
     }
     const rev = await fetchRevisionContent(compareId)
     comparisonContent.value = rev?.content ?? null
+    comparisonTitle.value = rev?.title ?? null
   }
 
   async function selectRevision(revisionId: string | null) {
     selectedRevisionId.value = revisionId
     selectedRevisionContent.value = null
     comparisonContent.value = null
+    comparisonTitle.value = null
     diffChangeCount.value = 0
     currentChangeIndex.value = 0
 
@@ -232,6 +239,7 @@ export const useDocRevisions = createSharedComposable(() => {
     selectedRevisionId.value = null
     selectedRevisionContent.value = null
     comparisonContent.value = null
+    comparisonTitle.value = null
     diffChangeCount.value = 0
     currentChangeIndex.value = 0
   }
@@ -246,6 +254,7 @@ export const useDocRevisions = createSharedComposable(() => {
     isLoadingSelected,
     isRestoring,
     comparisonContent,
+    comparisonTitle,
     diffChangeCount,
     currentChangeIndex,
     loadRevisions,

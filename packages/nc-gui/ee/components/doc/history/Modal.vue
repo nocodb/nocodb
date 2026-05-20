@@ -18,6 +18,7 @@ const {
   isLoadingSelected,
   isRestoring,
   comparisonContent,
+  comparisonTitle,
   diffChangeCount,
   currentChangeIndex,
   revisions,
@@ -27,10 +28,88 @@ const {
   reset,
 } = useDocRevisions()
 
+interface TitleSeg {
+  type: 'eq' | 'ins' | 'del'
+  text: string
+}
+
+// Word-level LCS diff. Whitespace is preserved as its own token so renames
+// like "Foo Bar" → "Foo" don't leave an orphaned space behind. Adjacent
+// segments of the same type are coalesced into a single span so the
+// insert / strikethrough decorations render continuously across word
+// boundaries instead of breaking at every space.
+function diffTitleSegments(prev: string, next: string): TitleSeg[] {
+  const a = prev.split(/(\s+)/).filter((t) => t !== '')
+  const b = next.split(/(\s+)/).filter((t) => t !== '')
+  const n = a.length
+  const m = b.length
+  const dp: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0))
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
+    }
+  }
+  const raw: TitleSeg[] = []
+  let i = 0
+  let j = 0
+  while (i < n && j < m) {
+    if (a[i] === b[j]) {
+      raw.push({ type: 'eq', text: a[i] })
+      i++
+      j++
+    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+      raw.push({ type: 'del', text: a[i] })
+      i++
+    } else {
+      raw.push({ type: 'ins', text: b[j] })
+      j++
+    }
+  }
+  while (i < n) raw.push({ type: 'del', text: a[i++] })
+  while (j < m) raw.push({ type: 'ins', text: b[j++] })
+
+  // Coalesce runs. Also fold whitespace-only `eq` tokens that sit between
+  // two same-type non-eq tokens into that surrounding type — keeps strike
+  // / highlight continuous when only the inner words changed.
+  const out: TitleSeg[] = []
+  for (let k = 0; k < raw.length; k++) {
+    const seg = raw[k]
+    const isWhitespaceEq = seg.type === 'eq' && /^\s+$/.test(seg.text)
+    const prev = out[out.length - 1]
+    const nextSeg = raw[k + 1]
+    if (
+      isWhitespaceEq &&
+      prev &&
+      nextSeg &&
+      prev.type !== 'eq' &&
+      prev.type === nextSeg.type
+    ) {
+      prev.text += seg.text
+      continue
+    }
+    if (prev && prev.type === seg.type) {
+      prev.text += seg.text
+    } else {
+      out.push({ ...seg })
+    }
+  }
+  return out
+}
+
 // Header metadata for the viewer pane. Mirrors the doc-editor's title strip:
 // title prominently, then a subtle line with "Current version · Author" or
 // "Edited/Restored by Author on <date>".
 const headerTitle = computed(() => selectedRevisionContent.value?.title || 'Untitled')
+
+// When the prior revision's title differs from the selected revision's title,
+// surface the rename inline so the user can see what changed at this step
+// (parity with the body diff orientation: prior → selected).
+const titleSegments = computed<TitleSeg[]>(() => {
+  const prev = comparisonTitle.value
+  const next = headerTitle.value
+  if (!prev || prev === next) return [{ type: 'eq', text: next }]
+  return diffTitleSegments(prev, next)
+})
 
 const headerSubtitle = computed(() => {
   const rev = selectedRevisionContent.value
@@ -143,10 +222,16 @@ async function onRestore() {
           </span>
         </div>
         <div v-else class="max-w-[772px] mx-auto px-10 py-8">
-          <!-- Document header — title + meta about the previewed version. -->
+          <!-- Document header — title + meta about the previewed version.
+               If the title was renamed at this revision, render the diff
+               inline using the same insert/delete classes as the body. -->
           <div class="mb-6">
-            <h1 class="text-3xl font-semibold text-nc-content-gray leading-tight m-0">
-              {{ headerTitle }}
+            <h1 class="nc-doc-history-title text-3xl font-semibold text-nc-content-gray leading-tight m-0">
+              <template v-for="(seg, i) in titleSegments" :key="i">
+                <span v-if="seg.type === 'ins'" class="nc-doc-history-diff-insert">{{ seg.text }}</span>
+                <span v-else-if="seg.type === 'del'" class="nc-doc-history-diff-delete">{{ seg.text }}</span>
+                <template v-else>{{ seg.text }}</template>
+              </template>
             </h1>
             <div class="text-sm text-nc-content-gray-muted mt-2">{{ headerSubtitle }}</div>
           </div>
@@ -228,3 +313,25 @@ async function onRestore() {
     </div>
   </NcModal>
 </template>
+
+<style lang="scss" scoped>
+// Title-level diff treatment — mirrors the body-diff colours from Viewer.vue
+// so a rename reads with the same visual language as content insertions and
+// deletions. Padding is slightly looser to suit the 30px title type.
+.nc-doc-history-title {
+  .nc-doc-history-diff-insert {
+    background-color: rgba(34, 197, 94, 0.18);
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+
+  .nc-doc-history-diff-delete {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: var(--nc-content-gray-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--nc-content-gray-disabled);
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+}
+</style>

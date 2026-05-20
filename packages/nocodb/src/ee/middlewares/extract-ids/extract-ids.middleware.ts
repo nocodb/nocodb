@@ -200,6 +200,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         base_id: req.ncBaseId,
         api_version: req.ncApiVersion,
         socket_id: req.ncSocketId,
+        tab_id: req.ncTabId,
         nc_site_url: req.ncSiteUrl,
       };
 
@@ -1311,6 +1312,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: req.ncBaseId,
       api_version: context.api_version,
       socket_id: req.headers['xc-socket-id'],
+      tab_id: req.ncTabId,
       nc_site_url: req.ncSiteUrl,
       timezone: context.timezone,
       schema_locked: req.ncSchemaLocked || false,

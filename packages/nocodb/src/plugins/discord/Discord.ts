@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
+import { getFilteredAgents } from '~/utils/ssrf';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
 
 export default class Discord implements IWebhookNotificationAdapter {
@@ -13,10 +14,7 @@ export default class Discord implements IWebhookNotificationAdapter {
         return await axios.post(
           webhook_url,
           { content },
-          {
-            httpAgent: useAgent(webhook_url),
-            httpsAgent: useAgent(webhook_url),
-          },
+          getFilteredAgents({ url: webhook_url, source: OperationSource.PLUGINS }),
         );
       } catch (e) {
         console.log(e);

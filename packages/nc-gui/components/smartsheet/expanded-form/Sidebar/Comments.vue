@@ -51,6 +51,16 @@ const commentInputRef = ref<any>()
 
 const comment = ref('')
 
+// Holds the deep-linked commentId for the lifetime of the current row's
+// comment session. Side-panel mode triggers loadComments twice (via
+// triggerRowLoad AND the activity-tab watcher), which toggles
+// isCommentsLoading on/off and unmounts+remounts the wrapper element.
+// On remount, the URL has already been stripped of `commentId`, so we
+// need our own copy to know whether to anchor on the deep-link or fall
+// back to bottom-scroll. Cleared when the user posts a comment or
+// switches rows (primaryKey changes).
+const deepLinkCommentId = ref<string | null>(null)
+
 const router = useRouter()
 
 const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
@@ -76,6 +86,10 @@ const saveComment = async () => {
       comment.value = comment.value.slice(0, -2)
     }
   }
+
+  // User is posting — drop any pending deep-link so the scroll watchers
+  // scroll to their new comment at the bottom instead of jumping back.
+  deepLinkCommentId.value = null
 
   isCommentMode.value = true
 
@@ -116,11 +130,16 @@ const saveComment = async () => {
 const copyComment = async (comment: CommentType) => {
   const viewId = activeView.value?.fk_model_id === meta.value?.id ? activeView.value?.id : undefined
 
+  // Mirror copy-record-URL: include &path=… so the link still resolves when
+  // the source view is grouped (without it the deep-link can't open the row
+  // in another tab).
+  const pathParam = route.query?.path ? `&path=${route.query.path}` : ''
+
   await copy(
     encodeURI(
       `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
         viewId ? `/${viewId}` : ''
-      }?rowId=${primaryKey.value}&commentId=${comment.id}`,
+      }?rowId=${primaryKey.value}&commentId=${comment.id}${pathParam}`,
     ),
   )
 }
@@ -134,6 +153,40 @@ function scrollToComment(commentId: string) {
     })
   }
 }
+
+function tryScrollToDeepLinkComment(): boolean {
+  const id = deepLinkCommentId.value
+  if (!id) return false
+  const el = document.querySelector(`.${id}`)
+  if (!el) return false
+  scrollToComment(id)
+  hoveredCommentId.value = id
+  onClickOutside(el as HTMLDivElement, handleResetHoverEffect)
+  return true
+}
+
+// Capture commentId from the URL into our own ref before stripping it,
+// so subsequent wrapper remounts (caused by isCommentsLoading toggles)
+// still know there's a deep-link in progress. Also fires when the user
+// clicks another notification while the panel is already open.
+watch(
+  () => route.query.commentId,
+  (newId) => {
+    if (!newId) return
+    deepLinkCommentId.value = newId as string
+    // Preserve `path` so the group context survives a reload after the
+    // comment deep-link is consumed; only commentId needs to be stripped.
+    const { commentId: _drop, ...rest } = router.currentRoute.value.query
+    router.push({ query: rest })
+  },
+  { immediate: true },
+)
+
+// Reset deep-link state when row changes so a new row defaults back to
+// the usual scroll-to-bottom behavior on first open.
+watch(primaryKey, () => {
+  deepLinkCommentId.value = null
+})
 
 function onCancel(e: KeyboardEvent) {
   if (!isEditing.value) return
@@ -213,25 +266,20 @@ function handleResetHoverEffect() {
   hoveredCommentId.value = null
 }
 
-watch(commentsWrapperEl, () => {
+watch(commentsWrapperEl, (el) => {
+  if (!el) return
   setTimeout(() => {
     nextTick(() => {
-      const query = router.currentRoute.value.query
-      const commentId = query.commentId
-      if (commentId) {
-        router.push({
-          query: {
-            rowId: query.rowId,
-          },
-        })
-        scrollToComment(commentId as string)
-
-        hoveredCommentId.value = commentId as string
-
-        onClickOutside(document.querySelector(`.${hoveredCommentId.value}`)! as HTMLDivElement, handleResetHoverEffect)
-      } else {
-        scrollComments()
+      // Deep-link in progress (initial mount OR remount after the loader
+      // toggled) — anchor on the linked comment. If the comment isn't in
+      // the DOM yet, the length watcher will retry once comments load.
+      // Either way, skip the bottom-scroll so we don't jump away from the
+      // linked comment.
+      if (deepLinkCommentId.value) {
+        tryScrollToDeepLinkComment()
+        return
       }
+      scrollComments()
     })
   }, 100)
 })
@@ -297,6 +345,12 @@ watch(
   () => comments.value?.length,
   () => {
     nextTick(() => {
+      // Deep-link target still in scope (only cleared on user post / row
+      // change) — keep anchoring on it rather than snapping to bottom.
+      if (deepLinkCommentId.value) {
+        tryScrollToDeepLinkComment()
+        return
+      }
       scrollComments()
     })
   },

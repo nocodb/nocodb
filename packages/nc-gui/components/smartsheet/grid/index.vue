@@ -405,13 +405,27 @@ watch(
       // restore both the row AND its group scope — without it prev/next would
       // walk across all groups instead of the user's group.
       const pathParam = routeQuery.value.path as string | undefined
-      const path = pathParam
+      let path = pathParam
         ? pathParam
             .split('-')
             .map(Number)
             .filter((n) => !Number.isNaN(n))
         : []
-      const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+      let idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+
+      // Comment-mention notifications produce URLs like `?rowId=…&commentId=…`
+      // with no `path` — the notification can't know which view/group the user
+      // was in when the comment was written. Fall back to a cross-group lookup
+      // so the panel still opens scoped to the correct group instead of
+      // landing index-less (which breaks prev/next + the canvas highlight).
+      if (idx === -1 && !pathParam) {
+        const location = expandedFormPanelRowNavigator.value?.findRowLocation?.(rowId)
+        if (location) {
+          idx = location.index
+          path = location.path
+        }
+      }
+
       expandedFormPanelStore!.openPanel(
         { row: {}, oldRow: {}, rowMeta: {} } as Row,
         idx >= 0 ? idx : undefined,
@@ -477,6 +491,24 @@ watch(
         })
         .finally(clearSyncingRoute)
     }
+  },
+)
+
+// Sync `path` to the URL when activePath changes without activeRowId
+// changing — i.e. the path-less deep-link recovery flow updated the group
+// scope after the row's group cache loaded. Without this the URL stays as
+// `?rowId=X` and a refresh would replay the entire recovery dance instead
+// of resolving the group directly.
+watch(
+  () => expandedFormPanelStore?.activePath.value,
+  (newPath) => {
+    if (!isExpandedFormPanelOpen.value) return
+    if (isSyncingPanelRoute.value) return
+    const path = newPath ?? []
+    const pathStr = path.length === 0 ? undefined : path.join('-')
+    if ((routeQuery.value.path ?? undefined) === pathStr) return
+    setSyncingRoute()
+    router.push({ query: { ...routeQuery.value, path: pathStr } }).finally(clearSyncingRoute)
   },
 )
 
@@ -562,6 +594,29 @@ expandedFormPanelRowNavigator.value = {
     }
     return pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
   },
+  findRowLocation: (rowId: string) => {
+    const cols = meta.value?.columns as ColumnType[] | undefined
+    if (!cols) return null
+    if (isInfiniteScrollingEnabled.value) {
+      for (const [idx, row] of cachedRows.value) {
+        if (extractPkFromRow(row.row, cols) === rowId) return { index: idx, path: [] }
+      }
+      for (const [key, cache] of groupDataCache.value) {
+        for (const [idx, row] of cache.cachedRows.value) {
+          if (extractPkFromRow(row.row, cols) === rowId) {
+            const path = key
+              .split('-')
+              .map(Number)
+              .filter((n) => !Number.isNaN(n))
+            return { index: idx, path }
+          }
+        }
+      }
+      return null
+    }
+    const idx = pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
+    return idx >= 0 ? { index: idx, path: [] } : null
+  },
 }
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
@@ -602,13 +657,16 @@ watch(
 
     // Skip the initial async load. At mount gridViewCols is empty so groupBy is
     // []; once the persisted view config arrives, groupBy transitions to its real
-    // value. If a deep link (?rowId=X&path=A-B) opened the panel with a path
-    // matching the just-loaded structure, the path was authored against this very
-    // structure and is still valid — don't tear it down. User-initiated changes
-    // still close because either oldKey is non-empty or the depth no longer matches.
+    // value. Two deep-link shapes need to survive that transition:
+    //   - `?rowId=X&path=A-B` — path matches the just-loaded depth (matched).
+    //   - `?rowId=X&commentId=Y` (comment-mention notifications) — URL carries
+    //     no path at all, so the panel opened with activePath=[]. The path
+    //     will be recovered later when the row's group cache loads; closing
+    //     here would strip rowId from the URL before that ever happens.
+    // User-initiated group changes still close because oldKey is non-empty.
     const newDepth = newKey ? newKey.split('|').length : 0
     const panelDepth = expandedFormPanelStore.activePath.value?.length ?? 0
-    if (!oldKey && panelDepth > 0 && panelDepth === newDepth) return
+    if (!oldKey && (panelDepth === 0 || panelDepth === newDepth)) return
 
     expandedFormPanelStore.closePanel()
   },
@@ -640,6 +698,21 @@ const resolveActiveRowIndex = () => {
     const path = expandedFormPanelStore.activePath.value
     const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
     if (idx === -1) {
+      // Path-less deep-link recovery: if a comment-mention notification
+      // opened the panel without group context (activePath=[]), the row
+      // won't be in the root cache. Before closing, try a cross-group
+      // lookup — the right group cache may have just loaded.
+      if ((path ?? []).length === 0) {
+        const location = expandedFormPanelRowNavigator.value?.findRowLocation?.(rowId)
+        if (location) {
+          expandedFormPanelStore.activePath.value = location.path
+          expandedFormPanelStore.activeRowIndex.value = location.index
+          return
+        }
+        // No recovery yet — leave the panel open; another data event
+        // will retry. Avoids closing on a transient empty-cache state.
+        return
+      }
       expandedFormPanelStore.closePanel()
     } else if (idx !== expandedFormPanelStore.activeRowIndex.value) {
       expandedFormPanelStore.activeRowIndex.value = idx
@@ -649,7 +722,29 @@ const resolveActiveRowIndex = () => {
 
 watch(() => cachedRows.value.size, resolveActiveRowIndex)
 
+// Group caches live behind a shallowRef (`groupDataCache`) — internal Map
+// mutations don't trigger reactivity, so the cachedRows-only watch above
+// never fires in group-by mode. Hook into the grid event bus so the
+// path-less deep-link recovery path in resolveActiveRowIndex retries as
+// each group's data lands.
+const panelGroupPathRecoveryListener = (event: SmartsheetStoreEvents) => {
+  if (
+    event !== SmartsheetStoreEvents.TRIGGER_RE_RENDER &&
+    event !== SmartsheetStoreEvents.GROUP_BY_RELOAD &&
+    event !== SmartsheetStoreEvents.DATA_RELOAD
+  ) {
+    return
+  }
+  if (!expandedFormPanelStore?.isOpen.value) return
+  if ((expandedFormPanelStore.activePath.value ?? []).length > 0) return
+  if (!isGroupBy.value) return
+  resolveActiveRowIndex()
+}
+
+eventBus.on(panelGroupPathRecoveryListener)
+
 onBeforeUnmount(() => {
+  eventBus.off(panelGroupPathRecoveryListener)
   if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
 })
 

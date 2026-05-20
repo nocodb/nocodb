@@ -202,6 +202,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         socket_id: req.ncSocketId,
         tab_id: req.ncTabId,
         nc_site_url: req.ncSiteUrl,
+        permissions: [],
       };
 
       let view;
@@ -1317,6 +1318,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       timezone: context.timezone,
       schema_locked: req.ncSchemaLocked || false,
       is_api_token: req.user?.is_api_token,
+      permissions: [],
       ...(params.publicDataUuid ||
       params.sharedViewUuid ||
       params.sharedBaseUuid ||

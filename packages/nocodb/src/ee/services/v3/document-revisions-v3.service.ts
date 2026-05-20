@@ -22,9 +22,8 @@ export class DocumentRevisionsV3Service {
   constructor(protected readonly documentsService: DocumentsService) {}
 
   /**
-   * List revisions for a doc, newest first. Paginated via `before` (a
-   * created_at ISO cursor — returned as `next_cursor` when more pages exist).
-   * Content is not included in list items.
+   * List revisions for a doc, newest first. `before` is an opaque cursor
+   * round-tripped from `nextCursor`. Content is not included in list items.
    */
   async list(
     context: NcContext,
@@ -53,7 +52,9 @@ export class DocumentRevisionsV3Service {
 
     const hasMore = rows.length > limit;
     const page = hasMore ? rows.slice(0, limit) : rows;
-    const nextCursor = hasMore ? page[page.length - 1].created_at ?? '' : '';
+    const nextCursor = hasMore
+      ? DocRevision.encodeCursor(page[page.length - 1])
+      : '';
 
     return {
       list: page.map(toDocumentRevisionV3ListItem),

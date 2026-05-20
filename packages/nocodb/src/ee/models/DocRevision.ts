@@ -20,6 +20,19 @@ function getCoalesceWindowMs(): number {
     : DEFAULT_COALESCE_WINDOW_MS;
 }
 
+function decodeCursor(
+  cursor?: string,
+): { created_at: string; id: string } | null {
+  if (!cursor) return null;
+  const sep = cursor.indexOf('|');
+  // Treat malformed cursors as "first page" rather than erroring.
+  if (sep <= 0 || sep === cursor.length - 1) return null;
+  return {
+    created_at: cursor.slice(0, sep),
+    id: cursor.slice(sep + 1),
+  };
+}
+
 export default class DocRevision implements DocumentRevisionType {
   id?: string;
   fk_doc_id?: string;
@@ -151,8 +164,9 @@ export default class DocRevision implements DocumentRevisionType {
   }
 
   /**
-   * List revisions for a doc, newest first. Paginated by created_at cursor.
-   * Content is NOT included in the response — use `get()` for full content.
+   * List revisions for a doc, newest first. Keyset paginated by
+   * `(created_at, id)` — `id` is a stable tiebreaker for same-second writes.
+   * Content is not included; use `get()` for the full payload.
    */
   static async list(
     context: NcContext,
@@ -161,35 +175,44 @@ export default class DocRevision implements DocumentRevisionType {
   ): Promise<DocRevision[]> {
     const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
 
-    const condition: Record<string, any> = { fk_doc_id: docId };
-    const xcCondition: Record<string, any> = {};
+    const query = Noco.ncDocsContent
+      .knex(MetaTable.DOC_REVISIONS)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .where('fk_doc_id', docId)
+      .orderBy([
+        { column: 'created_at', order: 'desc' },
+        { column: 'id', order: 'desc' },
+      ])
+      .limit(limit)
+      .select(
+        'id',
+        'fk_doc_id',
+        'version',
+        'title',
+        'created_by',
+        'source',
+        'created_at',
+      );
 
-    if (options.before) {
-      xcCondition.created_at = { lt: options.before };
+    const cursor = decodeCursor(options.before);
+    if (cursor) {
+      query.whereRaw('(??, ??) < (?, ?)', [
+        'created_at',
+        'id',
+        cursor.created_at,
+        cursor.id,
+      ]);
     }
 
-    const rows = await Noco.ncDocsContent.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.DOC_REVISIONS,
-      {
-        condition,
-        ...(options.before ? { xcCondition } : {}),
-        orderBy: { created_at: 'desc' },
-        limit,
-        fields: [
-          'id',
-          'fk_doc_id',
-          'version',
-          'title',
-          'created_by',
-          'source',
-          'created_at',
-        ],
-      },
-    );
-
+    const rows = await query;
     return rows.map((r) => new DocRevision(r));
+  }
+
+  /** Encode an opaque keyset cursor (`<created_at>|<id>`). */
+  static encodeCursor(row: { created_at?: string; id?: string }): string {
+    if (!row?.created_at || !row?.id) return '';
+    return `${row.created_at}|${row.id}`;
   }
 
   /**

@@ -1,5 +1,5 @@
 import * as nc_001_init from '~/meta/migrations/docs-content/nc_001_init';
-import * as nc_002_doc_revisions from '~/meta/migrations/doc-revisions/nc_001_init';
+import * as nc_002_doc_revisions from '~/meta/migrations/docs-content/nc_002_doc_revisions';
 
 export default class XcMigrationSourceDocsContent {
   public getMigrations(): Promise<any> {

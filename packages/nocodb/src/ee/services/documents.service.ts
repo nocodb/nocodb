@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import hash from 'object-hash';
 import {
   AppEvents,
   EventType,
@@ -676,9 +677,10 @@ export class DocumentsService extends DocumentsServiceCE {
 
     // Record a revision when content or title actually changed.
     // Coalescing (same author + within window) is handled inside DocRevision.record().
+    // Hash compare avoids materialising two ~5 MB JSON strings per save.
     const contentChanged =
       payload.content !== undefined &&
-      JSON.stringify(payload.content) !== JSON.stringify(existing.content);
+      hash(payload.content) !== hash(existing.content);
     const titleChanged =
       payload.title !== undefined && payload.title !== existing.title;
     if (contentChanged || titleChanged) {

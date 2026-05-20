@@ -153,12 +153,29 @@ export default class Noco extends NocoCE {
   }
 
   private static async migrateDocsContentFromMeta() {
-    // Content lives in nc_doc_content_v2 in the meta DB (split schema from
-    // day one). Copy rows from meta → satellite.
-    const hasContentTable = await this.ncMeta.knexConnection.schema.hasTable(
-      MetaTable.DOC_CONTENT,
-    );
-    if (!hasContentTable) return;
+    // Both tables are created in the meta DB by the v0 migrations. When
+    // NC_DOCS_DB is attached for the first time, copy them across so docs
+    // history doesn't split across two DBs.
+    await this.migrateDocsTableFromMeta({
+      table: MetaTable.DOC_CONTENT,
+      orderBy: 'fk_doc_id',
+      label: 'document content',
+    });
+    await this.migrateDocsTableFromMeta({
+      table: MetaTable.DOC_REVISIONS,
+      orderBy: 'id',
+      label: 'document revision',
+    });
+  }
+
+  private static async migrateDocsTableFromMeta(opts: {
+    table: MetaTable;
+    orderBy: string;
+    label: string;
+  }) {
+    const { table, orderBy, label } = opts;
+    const hasTable = await this.ncMeta.knexConnection.schema.hasTable(table);
+    if (!hasTable) return;
 
     const batchSize = 500;
     let offset = 0;
@@ -167,9 +184,9 @@ export default class Noco extends NocoCE {
 
     while (hasMoreRecords) {
       const batch = await this.ncMeta
-        .knexConnection(MetaTable.DOC_CONTENT)
+        .knexConnection(table)
         .select('*')
-        .orderBy('fk_doc_id', 'asc')
+        .orderBy(orderBy, 'asc')
         .limit(batchSize)
         .offset(offset);
 
@@ -178,20 +195,18 @@ export default class Noco extends NocoCE {
         break;
       }
 
-      await this.ncDocsContent
-        .knexConnection(MetaTable.DOC_CONTENT)
-        .insert(batch);
+      await this.ncDocsContent.knexConnection(table).insert(batch);
 
       processedCount += batch.length;
       offset += batchSize;
 
       if (processedCount % 10000 === 0) {
-        logger.log(`Migrated ${processedCount} document content records...`);
+        logger.log(`Migrated ${processedCount} ${label} records...`);
       }
 
       if (batch.length < batchSize) {
         logger.log(
-          `Migration of doc content completed. Migrated ${processedCount} records.`,
+          `Migration of ${label} completed. Migrated ${processedCount} records.`,
         );
         hasMoreRecords = false;
       }

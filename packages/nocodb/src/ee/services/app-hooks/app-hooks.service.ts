@@ -19,6 +19,9 @@ import type {
   DocumentCommentUpdateEvent,
   DocumentCreateEvent,
   DocumentDeleteEvent,
+  DocumentPublicShareCreateEvent,
+  DocumentPublicShareDeleteEvent,
+  DocumentPublicShareUpdateEvent,
   DocumentUpdateEvent,
   DocumentUserMentionEvent,
   FilterEvent,
@@ -550,6 +553,18 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.DOCUMENT_USER_MENTION,
     listener: (data: DocumentUserMentionEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE,
+    listener: (data: DocumentPublicShareCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_PUBLIC_SHARE_UPDATE,
+    listener: (data: DocumentPublicShareUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_PUBLIC_SHARE_DELETE,
+    listener: (data: DocumentPublicShareDeleteEvent) => void,
+  ): () => void;
 
   // Document Comment Events
   on(
@@ -1014,6 +1029,18 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.DOCUMENT_USER_MENTION,
     data: DocumentUserMentionEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE,
+    data: DocumentPublicShareCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_PUBLIC_SHARE_UPDATE,
+    data: DocumentPublicShareUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_PUBLIC_SHARE_DELETE,
+    data: DocumentPublicShareDeleteEvent,
   ): void;
 
   emit(

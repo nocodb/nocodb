@@ -33,6 +33,10 @@ export default class Document implements DocumentType {
     return null;
   }
 
+  public static async getMeta(..._args): Promise<Document | null> {
+    return null;
+  }
+
   public static async list(..._args) {
     return [];
   }
@@ -90,15 +94,23 @@ export default class Document implements DocumentType {
     return null;
   }
 
-  public static async getPublicInitialTree(..._args): Promise<any[]> {
-    return [];
-  }
-
   public static async getPublicChildren(..._args): Promise<any[]> {
     return [];
   }
 
-  public static async isInPublicScope(..._args): Promise<boolean> {
+  public static async getPublicLite(..._args): Promise<any | null> {
+    return null;
+  }
+
+  public static async hasVisibilityRestriction(..._args): Promise<boolean> {
     return false;
+  }
+
+  public static async getCachedShareScope(..._args): Promise<any | null> {
+    return null;
+  }
+
+  public static async invalidateShareCacheUpTree(..._args): Promise<void> {
+    return;
   }
 }

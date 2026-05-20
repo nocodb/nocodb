@@ -357,6 +357,10 @@ export enum AppEvents {
   DOCUMENT_DELETE = 'document.delete',
   DOCUMENT_USER_MENTION = 'document.user.mention',
 
+  DOCUMENT_PUBLIC_SHARE_CREATE = 'document.public_share.create',
+  DOCUMENT_PUBLIC_SHARE_UPDATE = 'document.public_share.update',
+  DOCUMENT_PUBLIC_SHARE_DELETE = 'document.public_share.delete',
+
   DOCUMENT_COMMENT_CREATE = 'document.comment.create',
   DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
   DOCUMENT_COMMENT_DELETE = 'document.comment.delete',

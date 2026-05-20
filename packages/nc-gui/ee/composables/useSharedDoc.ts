@@ -1,9 +1,27 @@
-import type { PublicDocChildNode, PublicDocChildrenResponse, PublicDocContentResponse, PublicDocMetaResponse } from 'nocodb-sdk'
+import type {
+  PublicDocChildNode,
+  PublicDocChildrenResponse,
+  PublicDocContentResponse,
+  PublicDocLiteNode,
+  PublicDocMetaResponse,
+} from 'nocodb-sdk'
+
+/**
+ * HTTP status read off a fetch error. Logging the status (rather than
+ * silently swallowing) lets the page distinguish revoke (404) from a
+ * transient server error or network blip without exposing the underlying
+ * error object to the user.
+ */
+function readErrorStatus(e: unknown): number | undefined {
+  const err = e as { response?: { status?: number }; status?: number; statusCode?: number } | null
+  return err?.response?.status ?? err?.status ?? err?.statusCode
+}
 
 /**
  * Public reader composable for shared docs. Sibling to useSharedView — owns:
  *   - initial manifest fetch (root + direct children)
  *   - lazy children fetch on sidebar expand
+ *   - lite ancestor lookup for the deep-link walker
  *   - per-doc content fetch on navigation
  *
  * Plain `ref` so each `/doc/<uuid>` page mount gets a fresh instance and two
@@ -28,6 +46,18 @@ export function useSharedDoc() {
 
   const baseUrl = computed(() => appInfo.value?.ncSiteUrl?.replace(/\/$/, '') ?? '')
 
+  const logFetchFailure = (where: string, e: unknown) => {
+    const status = readErrorStatus(e)
+    // 404 is expected (revoked / unknown UUID) — keep it on `info`. Other
+    // failures get `warn` so they're greppable in dev tools without
+    // tripping production noise filters.
+    if (status === 404) {
+      console.info(`[shared-doc] ${where} returned 404`, { status })
+    } else {
+      console.warn(`[shared-doc] ${where} failed`, { status, error: e })
+    }
+  }
+
   const loadMeta = async (uuid: string): Promise<boolean> => {
     isLoading.value = true
     try {
@@ -40,9 +70,10 @@ export function useSharedDoc() {
       loadingParentIds.value = new Set()
       notFound.value = false
       return true
-    } catch {
+    } catch (e) {
       // Revoked share, bad uuid, 5xx, network — surface the same generic
       // empty state shared-view uses instead of an infinite spinner.
+      logFetchFailure('loadMeta', e)
       notFound.value = true
       return false
     } finally {
@@ -57,7 +88,8 @@ export function useSharedDoc() {
       activeContent.value = res
       notFound.value = false
       return true
-    } catch {
+    } catch (e) {
+      logFetchFailure('loadDoc', e)
       notFound.value = true
       return false
     } finally {
@@ -68,8 +100,9 @@ export function useSharedDoc() {
   /**
    * Fetch direct children of `parentDocId` and merge them into `meta.tree`.
    * No-op if children for that parent are already loaded or currently
-   * loading. Errors are swallowed because expanding a node shouldn't tear
-   * down the page — the user just sees an empty branch.
+   * loading. Expansion failures keep the parent un-loaded so a future
+   * collapse+expand retries; the page-wide notFound state is intentionally
+   * not touched here — one branch failing shouldn't tear down the reader.
    */
   const loadChildren = async (uuid: string, parentDocId: string): Promise<void> => {
     if (!meta.value) return
@@ -89,10 +122,8 @@ export function useSharedDoc() {
         }
       }
       loadedParentIds.value = new Set([...loadedParentIds.value, parentDocId])
-    } catch {
-      // Leave the parent un-loaded so a future retry (e.g. collapse + expand)
-      // can re-fetch. Don't tip into the page-wide notFound state — one
-      // expansion failing is recoverable.
+    } catch (e) {
+      logFetchFailure('loadChildren', e)
     } finally {
       const next = new Set(loadingParentIds.value)
       next.delete(parentDocId)
@@ -104,8 +135,8 @@ export function useSharedDoc() {
   const areChildrenLoaded = (parentDocId: string) => loadedParentIds.value.has(parentDocId)
 
   /**
-   * Fetch a single doc's tree-shape metadata via `/content`, without touching
-   * `activeContent`. Mirrors the in-app `documentGet` call used inside
+   * Fetch a single doc's tree-shape metadata via the `/lite` endpoint
+   * (no content blob). Mirrors the in-app `documentGet` call used inside
    * `useDocumentsStore.expandToDocument` — the public reader uses this to
    * walk the parent chain on deep-link so the sidebar can pre-expand the
    * path to the active sub-document. Returns `null` on 404 / 5xx so callers
@@ -117,7 +148,7 @@ export function useSharedDoc() {
   const fetchDocInfo = async (uuid: string, docId: string): Promise<PublicDocChildNode | null> => {
     if (!meta.value) return null
     try {
-      const res = await $fetch<PublicDocContentResponse>(`${baseUrl.value}/api/v2/public/shared-doc/${uuid}/doc/${docId}/content`)
+      const res = await $fetch<PublicDocLiteNode>(`${baseUrl.value}/api/v2/public/shared-doc/${uuid}/doc/${docId}/lite`)
       const node: PublicDocChildNode = {
         id: res.id,
         title: res.title || 'Untitled',
@@ -132,7 +163,8 @@ export function useSharedDoc() {
         meta.value = { ...meta.value, tree: [...meta.value.tree, node] }
       }
       return node
-    } catch {
+    } catch (e) {
+      logFetchFailure('fetchDocInfo', e)
       return null
     }
   }

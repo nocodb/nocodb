@@ -87,6 +87,7 @@ export class DocumentsPostOperations
         }
         return await this.documentsV3Service.docShare(context, {
           docId: payload.docId,
+          req,
         });
       }
       case 'documentUnshare': {
@@ -95,6 +96,7 @@ export class DocumentsPostOperations
         }
         return await this.documentsV3Service.docUnshare(context, {
           docId: payload.docId,
+          req,
         });
       }
       case 'documentShareUpdate': {
@@ -103,7 +105,7 @@ export class DocumentsPostOperations
         }
         return await this.documentsV3Service.docShareUpdate(
           context,
-          { docId: payload.docId },
+          { docId: payload.docId, req },
           {
             ...('include_subtree' in payload && {
               include_subtree: payload.include_subtree,

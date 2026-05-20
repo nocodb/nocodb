@@ -1,14 +1,19 @@
-import path from 'path';
 import { Controller, Get, Header, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { PublicDocsService } from '~/ee/services/public-docs.service';
 import { AttachmentsService } from '~/services/attachments.service';
-import { PresignedUrl } from '~/models';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
+import { serveStoredAttachment } from '~/helpers/attachmentHelpers';
 import { NcContext } from '~/interface/config';
+
+/**
+ * Lifetime of an external-storage signed URL handed to anonymous public-share
+ * viewers. Matched to the browser Cache-Control window so a revoked share
+ * can no longer resolve files on the storage backend after the window
+ * elapses.
+ */
+const PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS = 5 * 60;
 
 /**
  * Public reader endpoints for shared docs. Mirrors PublicMetasController for
@@ -34,23 +39,9 @@ export class PublicDocsController {
     protected readonly attachmentsService: AttachmentsService,
   ) {}
 
-  /**
-   * Reject paths that escape the expected base directory via traversal segments.
-   * Mirrors AttachmentProxyController.sanitizeStoragePath — path.join normalises
-   * ".." but does NOT prevent escape, so we must verify the resolved path
-   * still starts with the expected prefix.
-   */
-  private sanitizeStoragePath(joined: string): string {
-    const resolved = path.resolve(joined);
-    const base = path.resolve('nc', 'uploads');
-    if (!resolved.startsWith(base + path.sep) && resolved !== base) {
-      throw new Error('Invalid attachment path');
-    }
-    return joined;
-  }
-
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/meta')
   @Header('X-Robots-Tag', 'noindex, nofollow')
+  @Header('Cache-Control', 'private, no-store')
   async docMetaGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,
@@ -60,6 +51,7 @@ export class PublicDocsController {
 
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/doc/:docId/content')
   @Header('X-Robots-Tag', 'noindex, nofollow')
+  @Header('Cache-Control', 'private, no-store')
   async docContentGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,
@@ -72,12 +64,32 @@ export class PublicDocsController {
   }
 
   /**
+   * Lite ancestor lookup. Returns sidebar-shape metadata (no content blob)
+   * for one doc inside the share — used by the deep-link walker to render
+   * intermediate breadcrumbs without firing /content for each ancestor.
+   */
+  @Get('/api/v2/public/shared-doc/:sharedDocUuid/doc/:docId/lite')
+  @Header('X-Robots-Tag', 'noindex, nofollow')
+  @Header('Cache-Control', 'private, no-store')
+  async docLiteGet(
+    @TenantContext() context: NcContext,
+    @Param('sharedDocUuid') sharedDocUuid: string,
+    @Param('docId') docId: string,
+  ) {
+    return await this.publicDocsService.docLiteGet(context, {
+      sharedDocUuid,
+      docId,
+    });
+  }
+
+  /**
    * Lazy children fetch — returns the direct children of `parentDocId`
    * inside the share. The reader sidebar calls this when the user expands
    * a node, mirroring the in-app `documentList(parent_id=docId)` pattern.
    */
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/children/:parentDocId')
   @Header('X-Robots-Tag', 'noindex, nofollow')
+  @Header('Cache-Control', 'private, no-store')
   async docChildrenGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,
@@ -112,84 +124,28 @@ export class PublicDocsController {
   }
 
   /**
-   * Stream the file or redirect to a signed URL on external storage. Mirrors
-   * AttachmentProxyController.serveAttachment — same storage abstraction, but
-   * we keep a local copy to avoid coupling the public controller to the
-   * authed one (different guards, different scope).
+   * Stream the file or redirect to a signed URL on external storage. Shares
+   * `serveStoredAttachment` with the authed proxy — same storage
+   * abstraction, different guard + cache policy.
    *
-   * Caching policy — `Cache-Control: private, max-age=300, must-revalidate`:
-   *   - `private` blocks shared caches (CDN, corporate proxy, ISP cache) from
-   *     storing responses keyed by the share URL. Industry standard for
-   *     short-lived, per-session resources (mirrors AWS / Azure signed-URL
-   *     guidance and the authed AttachmentProxyController on this codebase).
-   *   - `max-age=300` lets the browser absorb the burst of <img> requests a
-   *     page render fires without re-hitting the proxy.
-   *   - `must-revalidate` prevents stale-while-disconnected behaviour after
-   *     max-age, so revocation propagates through the browser cache at most
-   *     5 minutes after the share is disabled. Content already streamed to
-   *     disk cannot be revoked — see PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS
-   *     below for the matching signed-URL TTL on external storage.
+   * Cache policy `private, max-age=300, must-revalidate`:
+   *   - `private` blocks shared caches (CDN, corporate proxy) from storing
+   *     responses keyed by the share URL.
+   *   - `max-age=300` absorbs the burst of <img> requests a doc render
+   *     fires without re-hitting the proxy.
+   *   - `must-revalidate` propagates revocation through the browser cache
+   *     within 5 minutes after the share is disabled.
+   *
+   * Signed-URL TTL matches the cache window (5 min): once a signed URL
+   * leaves the proxy it can't be recalled, so the URL TTL caps the
+   * post-revocation window during which a viewer can still resolve the
+   * file directly from storage.
    */
-  private async serveAttachment(fileUrl: string, res: Response) {
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    const isExternalStorage =
-      typeof (storageAdapter as any).getSignedUrl === 'function';
-
-    if (isExternalStorage) {
-      const isUrl = /^https?:\/\//i.test(fileUrl);
-
-      let pathOrUrl = fileUrl;
-      if (!isUrl) {
-        const stripped = fileUrl.replace(/^download\//, '');
-        pathOrUrl = this.sanitizeStoragePath(
-          path.join('nc', 'uploads', stripped),
-        );
-      }
-
-      // Shorter expiry than the default 2h presigned TTL — once a signed URL
-      // leaves the proxy we can't recall it, so the URL itself caps the
-      // window during which a revoked share can still resolve the file on
-      // the storage backend. 15 minutes is short enough to bound that
-      // window and long enough that page navigation / image preloads inside
-      // a single session don't churn new signed URLs.
-      const signedUrl = await PresignedUrl.getSignedUrl({
-        pathOrUrl,
-        preview: true,
-        expireSeconds: PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS,
-      });
-
-      res.setHeader('Cache-Control', 'private, max-age=300, must-revalidate');
-      return res.redirect(302, signedUrl);
-    }
-
-    const stripped = fileUrl.replace(/^download\//, '');
-
-    try {
-      const file = await this.attachmentsService.getFile({
-        path: this.sanitizeStoragePath(path.join('nc', 'uploads', stripped)),
-      });
-
-      if (!(await localFileExists(file.path))) {
-        return res.status(404).send('File not found');
-      }
-
-      res.setHeader('Cache-Control', 'private, max-age=300, must-revalidate');
-
-      if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
-        res.sendFile(file.path);
-      } else {
-        res.download(file.path);
-      }
-    } catch {
-      res.status(404).send('Not found');
-    }
+  private serveAttachment(fileUrl: string, res: Response) {
+    return serveStoredAttachment(res, fileUrl, {
+      attachmentsService: this.attachmentsService,
+      signedUrlTtlSeconds: PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS,
+      cacheControl: 'private, max-age=300, must-revalidate',
+    });
   }
 }
-
-/**
- * Lifetime of an external-storage signed URL handed to anonymous public-share
- * viewers. Bounds the post-revocation window: after a share is disabled,
- * already-issued signed URLs continue to resolve directly against the
- * storage backend until they expire.
- */
-const PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS = 15 * 60;

@@ -3,11 +3,16 @@ import { PermissionEntity, PermissionKey } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
 import DocumentCE from 'src/models/Document';
-import { getDocShareMeta } from 'nocodb-sdk';
+import {
+  getDocShareMeta,
+  MAX_PUBLIC_SCOPE_WALK_DEPTH,
+  PUBLIC_SHARE_SCOPE_TTL_SECONDS,
+} from 'nocodb-sdk';
 import type {
   DocumentType,
   NcContext,
   PublicDocChildNode,
+  PublicDocLiteNode,
   PublicDocTreeNode,
 } from 'nocodb-sdk';
 import Noco from '~/Noco';
@@ -27,12 +32,24 @@ import { notDeletedXcCondition } from '~/utils/trashUtils';
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 /**
- * Defensive cap on the parent-chain walk used to validate that an arbitrary
- * docId is inside a public share. Real doc trees are nowhere near this deep;
- * the cap exists only to guarantee termination if a malformed cycle ever
- * makes it into the DB.
+ * Resolved share-scope payload. `reachableDocIds` is the precomputed set of
+ * docIds reachable through this share (excludes any subtree pruned by an
+ * explicit DOCUMENT_VISIBILITY restriction). Per-request scope checks
+ * consult this set instead of walking the parent chain.
+ *
+ * Mirrors the repo convention: the cache holds the **full** Document row so
+ * other consumers can read any field; the response builder in
+ * `PublicDocsService` projects to API shape at the response boundary.
+ *
+ * Redis serialization: `reachableDocIds` is persisted as `string[]` and
+ * reconstructed back to a Set on read.
  */
-const MAX_PUBLIC_SCOPE_WALK_DEPTH = 64;
+export interface CachedShareScope {
+  root: Document;
+  tree: PublicDocTreeNode[];
+  includeSubtree: boolean;
+  reachableDocIds: Set<string>;
+}
 
 /**
  * Data model for Documents (stored in nc_models_v2 with type='document').
@@ -821,7 +838,7 @@ export default class Document extends DocumentCE implements DocumentType {
 
   /** Lookup by public-share UUID (no auth context required — global bypass). */
   public static async getByUUID(
-    context: NcContext,
+    _context: NcContext,
     uuid: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Document | null> {
@@ -866,22 +883,14 @@ export default class Document extends DocumentCE implements DocumentType {
     // the user-facing flag (`has_visibility_permission`) maps 1:1 to the
     // explicit row, and the rule stays predictable: reset the doc's own
     // visibility to default, then share.
-    //
-    // Raw ncMeta query (no Permission model) is intentional — Permission
-    // already imports Document, so importing it back would close a
-    // circular reference. The lookup is one-shot per share toggle, so
-    // skipping the cached list is fine.
-    const visibilityPermission = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.PERMISSIONS,
-      {
-        entity: PermissionEntity.DOCUMENT,
-        entity_id: docId,
-        permission: PermissionKey.DOCUMENT_VISIBILITY,
-      },
-    );
-    if (visibilityPermission) {
+    if (
+      await this.hasVisibilityRestriction(
+        context.workspace_id,
+        context.base_id,
+        docId,
+        ncMeta,
+      )
+    ) {
       NcError.get(context).forbidden(
         'This document has custom visibility permissions. Reset visibility to default to enable public sharing.',
       );
@@ -930,6 +939,10 @@ export default class Document extends DocumentCE implements DocumentType {
       );
     }
 
+    // Set the per-base "has any share" flag so subsequent doc mutations
+    // know to invalidate share caches up the chain.
+    await this.setBaseHasShare(context, true);
+
     return fresh;
   }
 
@@ -967,6 +980,13 @@ export default class Document extends DocumentCE implements DocumentType {
       await NocoCache.del(context, `${CacheScope.DOCUMENT}:share:${doc.uuid}`);
     }
     await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+
+    // Clear the per-base "has any share" flag — next mutation re-checks
+    // from DB (lazy refill). Avoids a SELECT-COUNT here on the hot path;
+    // the flag goes through a momentary "we don't know" miss → DB check
+    // → cache refill cycle, which still short-circuits subsequent edits
+    // when no shares remain.
+    await NocoCache.del(context, this.baseSharesKey(context.base_id));
   }
 
   /**
@@ -1020,16 +1040,19 @@ export default class Document extends DocumentCE implements DocumentType {
   /**
    * Direct children of a doc, shaped for the public reader. Mirrors the
    * in-app `Document.listLite(parentId)` pattern — one level at a time, no
-   * recursion. The public reader uses this for both the initial tree (root
-   * + its children) and lazy expansion of any descendant on click.
+   * recursion.
    *
-   * Scope checks are the caller's responsibility — see
-   * `Document.isInPublicScope` before invoking this for a non-root parent.
+   * Visibility filtering is delegated to `reachableDocIds` — the cached
+   * descendant set computed once per share-scope cache fill. Pass the set
+   * from `getCachedShareScope`; children not in the set are silently
+   * dropped. When omitted, no visibility filtering is applied (caller is
+   * expected to gate access via scope.reachableDocIds elsewhere).
    */
   public static async getPublicChildren(
-    context: NcContext,
+    _context: NcContext,
     root: Document,
     parentDocId: string,
+    reachableDocIds?: Set<string>,
     ncMeta = Noco.ncMeta,
   ): Promise<Array<PublicDocChildNode>> {
     const rows = await ncMeta.metaList2(
@@ -1048,202 +1071,175 @@ export default class Document extends DocumentCE implements DocumentType {
       },
     );
 
-    // Drop children with explicit DOCUMENT_VISIBILITY permissions —
-    // they're excluded from the public share, and so are their
-    // descendants. The pruning happens naturally: the frontend only
-    // calls /children/:parentId once a node appears in the tree, and
-    // we never surface a restricted node here, so deeper levels are
-    // never requested. The corresponding `isInPublicScope` guard on
-    // /content + /attachment + /children prevents direct-URL bypass.
-    if (rows.length) {
-      const restricted = await this.restrictedDocIdsIn(
-        root,
-        rows.map((r: any) => r.id as string),
-        ncMeta,
-      );
-      if (restricted.size) {
-        for (let i = rows.length - 1; i >= 0; i--) {
-          if (restricted.has(rows[i].id as string)) rows.splice(i, 1);
-        }
-      }
-    }
+    const filtered = reachableDocIds
+      ? rows.filter((r: any) => reachableDocIds.has(r.id as string))
+      : rows;
 
-    return rows.map((c: any) => {
-      // metaList2 returns `meta` as a JSON string (raw column value); parse
-      // defensively so callers can read fields directly.
-      const meta =
-        typeof c.meta === 'string'
-          ? (() => {
-              try {
-                return JSON.parse(c.meta);
-              } catch {
-                return {};
-              }
-            })()
-          : c.meta ?? {};
+    return filtered.map((c: any) => {
+      // metaList2 returns raw rows; reuse `parseDocument` so the meta JSON
+      // is parsed the same way the rest of the model layer parses it.
+      const parsed = this.parseDocument({ ...c });
+      const meta = (parsed.meta as Record<string, any> | null) ?? {};
 
       return {
         id: c.id as string,
         title: (c.title as string) || 'Untitled',
         // Keep parent_id as-is. The share root is re-anchored to null in
-        // `getPublicInitialTree`, so direct children point to the root's id
-        // and the frontend tree walker (starts at parent_id=null → root →
+        // `buildShareScope`, so direct children point to the root's id and
+        // the frontend tree walker (starts at parent_id=null → root →
         // descendants) reconstructs the tree correctly without further
         // rewriting.
         parent_id: c.parent_id as string,
         order: (c.order as number) ?? 0,
         has_children: !!c.has_children,
-        icon: (meta as any)?.icon ?? null,
+        icon: meta?.icon ?? null,
       };
     });
   }
 
   /**
-   * Initial tree shown when the public reader page loads: root + its direct
-   * children. Deeper descendants are fetched lazily via `getPublicChildren`
-   * once the user expands a node. This matches the in-app sidebar shape so
-   * a viral public link can't fan out into thousands of pre-loaded nodes.
-   *
-   * When `meta.share.include_subtree` is false, only the root is returned.
+   * Lightweight ancestor lookup for the deep-link walker — same shape as a
+   * child node, no content blob. Used when the reader needs to render
+   * intermediate nodes on the parent chain without fetching their full
+   * ProseMirror content. Returns null if the doc isn't reachable through
+   * `scope` (callers should still treat null as 404).
    */
-  public static async getPublicInitialTree(
-    context: NcContext,
-    root: Document,
+  public static async getPublicLite(
+    scope: CachedShareScope,
+    docId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<Array<PublicDocTreeNode>> {
-    const rootNode: PublicDocTreeNode = {
-      id: root.id,
-      title: root.title || 'Untitled',
-      // Force the share root to the visible-tree root regardless of its DB
-      // parent_id, so descendants' parent_id chain stops here rather than
-      // leaking the doc's place under any non-shared ancestor.
-      parent_id: null,
-      order: root.order ?? 0,
-      has_children: !!root.has_children,
-      // Emoji / icon-name lives on doc.meta.icon — surface it so the
-      // shared sidebar + topbar render the same icon as the in-app editor.
-      icon: (root.meta as any)?.icon ?? null,
-    };
+  ): Promise<PublicDocLiteNode | null> {
+    if (!scope.reachableDocIds.has(docId)) return null;
+    const isRoot = docId === scope.root.id;
 
-    if (!getDocShareMeta(root.meta).include_subtree) return [rootNode];
-
-    const children = await this.getPublicChildren(
-      context,
-      root,
-      root.id,
-      ncMeta,
+    const row = await ncMeta.metaGet2(
+      scope.root.fk_workspace_id,
+      scope.root.base_id,
+      MetaTable.MODELS,
+      { id: docId, type: ModelTypes.DOCUMENT },
+      ['id', 'title', 'parent_id', 'order', 'has_children', 'meta'],
+      notDeletedXcCondition,
     );
-    return [rootNode, ...children];
+    if (!row) return null;
+
+    const parsed = this.parseDocument({ ...row });
+    const meta = (parsed.meta as Record<string, any> | null) ?? {};
+
+    return {
+      id: row.id as string,
+      title: (row.title as string) || 'Untitled',
+      // Re-anchor the share root to parent_id=null so the frontend tree
+      // walker stops at the share boundary instead of leaking the doc's
+      // position under a non-shared ancestor.
+      parent_id: isRoot ? null : (row.parent_id as string | null) ?? null,
+      order: (row.order as number) ?? 0,
+      has_children: !!row.has_children,
+      icon: meta?.icon ?? null,
+    };
   }
 
   /**
-   * Whether `docId` is reachable through the public share rooted at `root`.
+   * Whether `docId` has an explicit DOCUMENT_VISIBILITY permission row in
+   * the same base. Used both at share-toggle time (refuse to publish) and
+   * at request time (re-check the share root as the authoritative source).
    *
-   * Walks the parent_id chain bottom-up from `docId` until it hits the share
-   * root (in scope) or runs out of parents (out of scope). Used to validate
-   * `/content`, `/attachment`, and `/children/:parentId` requests against
-   * arbitrary attacker-supplied ids — without this check, anyone holding the
-   * share UUID could enumerate every doc in the base.
-   *
-   * Bounded to MAX_PUBLIC_SCOPE_WALK_DEPTH levels as a defensive guard
-   * against malformed cycles; legitimate doc trees are nowhere near that
-   * deep. Issues one metaGet2 per level (typically 1-5 queries for real
-   * docs).
+   * Raw ncMeta query (no Permission model) to avoid the circular import
+   * — Permission already imports Document.
    */
-  public static async isInPublicScope(
-    context: NcContext,
-    root: Document,
+  public static async hasVisibilityRestriction(
+    workspaceId: string,
+    baseId: string,
     docId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
-    if (docId === root.id) return true;
-
-    if (!getDocShareMeta(root.meta).include_subtree) return false;
-
-    // Collect the parent chain from docId up to (but not including) the
-    // share root. If we reach root via parent_id, the chain represents
-    // every ancestor of docId inside the share scope; we then verify
-    // none of them — including docId itself — carries an explicit
-    // DOCUMENT_VISIBILITY restriction. Without this check, the
-    // visibility filter in `getPublicChildren` only prevents the doc
-    // from appearing in the sidebar — anyone who knows or guesses its
-    // id can still hit /content, /attachment, or /children directly
-    // and read the restricted subtree (security finding B1).
-    const chain: string[] = [];
-    let cursor: string | null = docId;
-    for (let i = 0; i < MAX_PUBLIC_SCOPE_WALK_DEPTH && cursor; i++) {
-      chain.push(cursor);
-      const row = await ncMeta.metaGet2(
-        root.fk_workspace_id,
-        root.base_id,
-        MetaTable.MODELS,
-        { id: cursor, type: ModelTypes.DOCUMENT },
-        ['parent_id'],
-        notDeletedXcCondition,
-      );
-      if (!row) return false;
-      if (row.parent_id === root.id) {
-        const restricted = await this.restrictedDocIdsIn(root, chain, ncMeta);
-        return restricted.size === 0;
-      }
-      cursor = (row.parent_id as string | null) ?? null;
-    }
-    return false;
+    const row = await ncMeta.metaGet2(
+      workspaceId,
+      baseId,
+      MetaTable.PERMISSIONS,
+      {
+        entity: PermissionEntity.DOCUMENT,
+        entity_id: docId,
+        permission: PermissionKey.DOCUMENT_VISIBILITY,
+      },
+    );
+    return !!row;
   }
 
   /**
-   * Subset of `docIds` that carry an explicit `DOCUMENT_VISIBILITY`
-   * permission row in the same base. One small base-scoped query — used
-   * by both `isInPublicScope` (to reject restricted ancestors / docs on
-   * direct URL access) and `getPublicChildren` (to exclude restricted
-   * children from the public manifest).
+   * Per-base "has any shared doc" flag. Lets the doc-mutation path skip
+   * `invalidateShareCacheUpTree` entirely when no share exists in the
+   * base — the common case for most edits. Set on first `share()`,
+   * cleared by the share-cleanup pass on `unshare()` when the count
+   * drops to zero (or lazily recomputed on cache miss).
    *
-   * Raw ncMeta query (no Permission model) to avoid the circular import
-   * — Permission already imports Document. Permissions are base-scoped
-   * and cheap to list per call; if this becomes a hot path we can
-   * co-load into the share-scope cache.
+   * Key:  `${CacheScope.DOCUMENT}:base-has-shares:${baseId}`
+   * Value: '1' if at least one shared doc exists in the base; absent otherwise.
    */
-  private static async restrictedDocIdsIn(
-    root: Document,
-    docIds: string[],
-    ncMeta = Noco.ncMeta,
-  ): Promise<Set<string>> {
-    if (!docIds.length) return new Set();
-    const rows = await ncMeta.metaList2(
-      root.fk_workspace_id,
-      root.base_id,
-      MetaTable.PERMISSIONS,
-      {
-        condition: {
-          base_id: root.base_id,
-          entity: PermissionEntity.DOCUMENT,
-          permission: PermissionKey.DOCUMENT_VISIBILITY,
-        },
-        xcCondition: { entity_id: { in: docIds } },
-        fields: ['entity_id'],
-      },
+  private static baseSharesKey(baseId: string): string {
+    return `${CacheScope.DOCUMENT}:base-has-shares:${baseId}`;
+  }
+
+  private static async baseHasAnyShare(
+    context: NcContext,
+    ncMeta: typeof Noco.ncMeta,
+  ): Promise<boolean> {
+    const cached = await NocoCache.get(
+      context,
+      this.baseSharesKey(context.base_id),
+      CacheGetType.TYPE_OBJECT,
     );
-    return new Set(
-      (rows as Array<{ entity_id: string }>).map((p) => p.entity_id),
+    if (cached === '1') return true;
+    if (cached === '0') return false;
+
+    // Cache miss → resolve from DB and seed the flag for subsequent calls.
+    const row = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { type: ModelTypes.DOCUMENT },
+      ['id'],
+      { _and: [{ uuid: { neq: null } }, notDeletedXcCondition] },
+    );
+    const hasShare = !!row;
+    await NocoCache.set(
+      context,
+      this.baseSharesKey(context.base_id),
+      hasShare ? '1' : '0',
+    );
+    return hasShare;
+  }
+
+  private static async setBaseHasShare(
+    context: NcContext,
+    value: boolean,
+  ): Promise<void> {
+    await NocoCache.set(
+      context,
+      this.baseSharesKey(context.base_id),
+      value ? '1' : '0',
     );
   }
 
   /**
    * Walk up the parent chain from `startDocId` (inclusive) and invalidate the
-   * share-scope cache for every ancestor that has a `uuid` set. Called from
-   * the mutation paths (insert / update / move / softDelete) so a viewer of
-   * a shared root sees descendant additions, renames, moves, and deletions
-   * without needing the owner to disable/re-enable sharing.
+   * share-scope cache for every ancestor that has a `uuid` set. Public so
+   * cross-feature mutators (e.g. permission writes) can use the same
+   * invalidator; mutations inside the model use it directly.
+   *
+   * Short-circuits via `baseHasAnyShare` when no share exists in the base —
+   * the walk is otherwise pure overhead for the bulk of edits.
    *
    * Bounded to MAX_PUBLIC_SCOPE_WALK_DEPTH levels; legitimate doc trees never
    * come close. Issues one metaGet2 per level (typically 1–5 queries).
    */
-  private static async invalidateShareCacheUpTree(
+  public static async invalidateShareCacheUpTree(
     context: NcContext,
     startDocId: string | null,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     if (!startDocId) return;
+    if (!(await this.baseHasAnyShare(context, ncMeta))) return;
+
     let cursor: string | null = startDocId;
     for (let i = 0; i < MAX_PUBLIC_SCOPE_WALK_DEPTH && cursor; i++) {
       const row = await ncMeta.metaGet2(
@@ -1265,52 +1261,170 @@ export default class Document extends DocumentCE implements DocumentType {
   }
 
   /**
-   * Resolve the share root + initial visible tree (root + its direct
-   * children) for a UUID, cached.
+   * Compute the set of docIds reachable through the share rooted at
+   * `root` — BFS over all DOCUMENT rows in the base, pruning at restricted
+   * subtrees (any doc carrying an explicit DOCUMENT_VISIBILITY row blocks
+   * itself and its descendants).
+   *
+   * Two `metaList2` queries per cache fill (docs + permissions). Returns
+   * `{ root.id }` when `include_subtree` is false.
+   */
+  private static async computeReachableDocIds(
+    root: Document,
+    includeSubtree: boolean,
+    ncMeta: typeof Noco.ncMeta,
+  ): Promise<Set<string>> {
+    if (!includeSubtree) return new Set([root.id]);
+
+    const docs = await ncMeta.metaList2(
+      root.fk_workspace_id,
+      root.base_id,
+      MetaTable.MODELS,
+      {
+        condition: {
+          base_id: root.base_id,
+          type: ModelTypes.DOCUMENT,
+          deleted: false,
+        },
+        fields: ['id', 'parent_id'],
+      },
+    );
+
+    const restrictedRows = await ncMeta.metaList2(
+      root.fk_workspace_id,
+      root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: {
+          base_id: root.base_id,
+          entity: PermissionEntity.DOCUMENT,
+          permission: PermissionKey.DOCUMENT_VISIBILITY,
+        },
+        fields: ['entity_id'],
+      },
+    );
+    const restricted = new Set(
+      (restrictedRows as Array<{ entity_id: string }>).map((p) => p.entity_id),
+    );
+
+    // Build adjacency map and BFS from root, skipping restricted nodes.
+    const childrenByParent = new Map<string, string[]>();
+    for (const d of docs as Array<{ id: string; parent_id: string | null }>) {
+      if (!d.parent_id) continue;
+      let bucket = childrenByParent.get(d.parent_id);
+      if (!bucket) {
+        bucket = [];
+        childrenByParent.set(d.parent_id, bucket);
+      }
+      bucket.push(d.id);
+    }
+
+    const reachable = new Set<string>();
+    if (!restricted.has(root.id)) {
+      const queue: string[] = [root.id];
+      while (queue.length) {
+        const current = queue.shift()!;
+        reachable.add(current);
+        const children = childrenByParent.get(current);
+        if (!children) continue;
+        for (const childId of children) {
+          if (restricted.has(childId)) continue;
+          if (reachable.has(childId)) continue;
+          queue.push(childId);
+        }
+      }
+    }
+
+    return reachable;
+  }
+
+  /**
+   * Resolve the share root + initial visible tree + reachable descendant set
+   * for a UUID, cached.
    *
    * Cache key:  `${CacheScope.DOCUMENT}:share:${uuid}`
-   * Invalidated on:  share, unshare, updateShareSettings, and any
-   * insert / update / move / softDelete that touches a doc reachable from
-   * the share root (via `invalidateShareCacheUpTree`). Walking up the parent
-   * chain on every mutation is a few small metaGet2s — cheap next to a
-   * stale public manifest.
+   * Payload:    `{ root, tree, includeSubtree, reachableDocIds: string[] }`
+   * TTL:        `PUBLIC_SHARE_SCOPE_TTL_SECONDS` (defense-in-depth backstop).
    *
-   * Only the initial tree is cached — `/children/:parentId` requests hit
-   * the DB fresh so newly-added descendants appear without waiting for the
-   * cache to bust.
+   * Invalidated on:
+   *   - `share`, `unshare`, `updateShareSettings`
+   *   - any insert/update/move/softDelete that touches a doc reachable from
+   *     the share root (via `invalidateShareCacheUpTree`)
+   *   - DOCUMENT_VISIBILITY permission writes (PermissionsService hooks
+   *     `invalidateShareCacheUpTree` from the entity_id)
+   *
+   * The cached `reachableDocIds` set lets per-request scope checks
+   * (`/content`, `/attachment`, `/children`) skip the parent-chain walk —
+   * one in-memory Set lookup vs O(depth) DB round-trips.
    */
   public static async getCachedShareScope(
     context: NcContext,
     uuid: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<{
-    root: Document;
-    tree: Array<PublicDocTreeNode>;
-    includeSubtree: boolean;
-  } | null> {
+  ): Promise<CachedShareScope | null> {
     const key = `${CacheScope.DOCUMENT}:share:${uuid}`;
 
     const cached = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
     if (cached?.root) {
+      // Wrap the deserialised row back into a Document instance so callers
+      // can use methods + see typed properties identically to the freshly
+      // built case below.
       return {
         root: new Document(cached.root),
         tree: cached.tree ?? [],
         includeSubtree: !!cached.includeSubtree,
+        reachableDocIds: new Set<string>(cached.reachableDocIds ?? []),
       };
     }
 
     const root = await this.getByUUID(context, uuid, ncMeta);
     if (!root) return null;
 
-    const tree = await this.getPublicInitialTree(context, root, ncMeta);
     const includeSubtree = !!getDocShareMeta(root.meta).include_subtree;
-
-    await NocoCache.set(context, key, {
+    const reachableDocIds = await this.computeReachableDocIds(
       root,
-      tree,
       includeSubtree,
-    });
+      ncMeta,
+    );
 
-    return { root, tree, includeSubtree };
+    // Initial tree = root + direct children, intersected with the reachable
+    // set so restricted children never appear in the public sidebar.
+    const rootNode: PublicDocTreeNode = {
+      id: root.id,
+      title: root.title || 'Untitled',
+      parent_id: null,
+      order: root.order ?? 0,
+      has_children: !!root.has_children,
+      icon: (root.meta as any)?.icon ?? null,
+    };
+
+    const children = includeSubtree
+      ? await this.getPublicChildren(
+          context,
+          root,
+          root.id,
+          reachableDocIds,
+          ncMeta,
+        )
+      : [];
+    const tree: PublicDocTreeNode[] = [rootNode, ...children];
+
+    // Cache the full Document row — repo convention is to cache complete
+    // rows and project to response shape at the API boundary (see
+    // `PublicDocsService.docMetaGet`). `reachableDocIds` is serialised as a
+    // plain array; the Set is reconstructed on read.
+    await NocoCache.setExpiring(
+      context,
+      key,
+      {
+        root,
+        tree,
+        includeSubtree,
+        reachableDocIds: [...reachableDocIds],
+      },
+      PUBLIC_SHARE_SCOPE_TTL_SECONDS,
+    );
+
+    return { root, tree, includeSubtree, reachableDocIds };
   }
 }

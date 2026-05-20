@@ -195,15 +195,20 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         docId,
       })) as DocumentType
 
-      // Add a lite version (without content) to the store so activeDocument
-      // resolves and sidebar auto-expand works on page reload.
+      // Sync the freshly fetched doc back into the store so activeDocument
+      // resolves, sidebar auto-expand works, and stale fields (uuid,
+      // has_visibility_permission, meta.share.*, title, has_children) line
+      // up with the backend. Push as a lite row when the doc isn't yet in
+      // the store; patch in place via `applyDocPatch` when it already is.
       if (doc?.id) {
         const baseId = activeProjectId.value
         const baseDocs = documents.value.get(baseId) || []
+        const { content: _content, ...liteDoc } = doc
         if (!baseDocs.find((d) => d.id === doc.id)) {
-          const { content: _content, ...liteDoc } = doc
           baseDocs.push(liteDoc as DocumentType)
           documents.value.set(baseId, [...baseDocs])
+        } else {
+          applyDocPatch(baseId, doc.id, liteDoc as Partial<DocumentType>)
         }
       }
 

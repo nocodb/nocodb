@@ -1,71 +1,66 @@
 import { Injectable } from '@nestjs/common';
-import { PermissionEntity, PermissionKey } from 'nocodb-sdk';
 import type {
   PublicDocChildrenResponse,
   PublicDocContentResponse,
+  PublicDocLiteNode,
   PublicDocMetaResponse,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { CachedShareScope } from '~/ee/models/Document';
 import Document from '~/ee/models/Document';
 import { Base, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
 
 /**
  * Public-share reader for docs. Mirrors PublicMetasService for views — one
  * endpoint for the initial manifest, one for per-doc content, one for
- * lazy-loaded children when the user expands a node, and one for
- * attachments.
+ * lazy-loaded children when the user expands a node, one lite ancestor
+ * lookup for deep-link walks, and one for attachments.
  *
  * No auth context is required; the UUID is the bearer credential. Docs do
  * not support password protection. Access is gated by:
- *   1. UUID present on the share root (Document.getByUUID)
+ *   1. UUID present on the share root (Document.getByUUID).
  *   2. Subtree visibility — descendants only reachable if the share root has
  *      `meta.share.include_subtree = true`.
- *   3. Per-doc scope check — every /content, /attachment, and /children
- *      request validates that the requested docId is reachable through the
- *      share root via `Document.isInPublicScope` (parent-chain walk). The
- *      initial manifest is intentionally root + direct children only; a
- *      large doc tree never gets enumerated in one response.
+ *   3. Per-doc scope check — every /content, /attachment, /children, and
+ *      /lite request validates the requested docId against
+ *      `scope.reachableDocIds`, the cached precomputed descendant set
+ *      (excludes restricted subtrees).
  *
- * The (root, initial-tree) pair is cached via Document.getCachedShareScope.
- * Per-request scope checks hit the DB fresh so newly-added descendants
- * become reachable without waiting for the cache to bust.
+ * The scope (root + initial tree + reachable set) is cached via
+ * `Document.getCachedShareScope` with an explicit TTL backstop. Mutations
+ * on docs and DOCUMENT_VISIBILITY permission writes invalidate the cache
+ * through `invalidateShareCacheUpTree`.
  */
 @Injectable()
 export class PublicDocsService {
   /**
-   * Resolve access to a shared doc by UUID. All three public endpoints share
-   * this prelude — factor it once so the cached scope lookup happens
-   * uniformly, and so endpoint code can focus on its specific response shape.
+   * Resolve access to a shared doc by UUID. Shared prelude for every public
+   * endpoint — keeps the cache lookup uniform and endpoint code focused on
+   * response shape.
    *
-   * Re-validates root visibility on every request, bypassing the share-scope
-   * cache. `Document.share()` refuses when an explicit DOCUMENT_VISIBILITY
-   * row already exists on the root, but a row can be added AFTER the share
-   * is published. Cache invalidation on permission writes is best-effort
-   * (cross-feature coupling), so the check is repeated here as the
-   * authoritative source: if the root has custom visibility, the share is
-   * treated as if it doesn't exist. One small DB query per request,
-   * identical scope cost to `isInPublicScope`'s per-call visibility lookup.
+   * Re-validates root visibility on every request as the authoritative
+   * source. The cache builder already excludes a restricted root from
+   * `reachableDocIds`, so this is defense-in-depth — covers the (unlikely)
+   * race where a DOCUMENT_VISIBILITY write commits between cache fill and
+   * the next read, and TTL backstop catches any missed invalidator.
    */
-  private async resolveShareScope(context: NcContext, sharedDocUuid: string) {
+  private async resolveShareScope(
+    context: NcContext,
+    sharedDocUuid: string,
+  ): Promise<CachedShareScope> {
     const scope = await Document.getCachedShareScope(context, sharedDocUuid);
     if (!scope) {
       NcError.get(context).genericNotFound('Document', sharedDocUuid);
     }
 
-    const rootRestricted = await Noco.ncMeta.metaGet2(
-      scope.root.fk_workspace_id,
-      scope.root.base_id,
-      MetaTable.PERMISSIONS,
-      {
-        entity: PermissionEntity.DOCUMENT,
-        entity_id: scope.root.id,
-        permission: PermissionKey.DOCUMENT_VISIBILITY,
-      },
-    );
-    if (rootRestricted) {
+    if (
+      await Document.hasVisibilityRestriction(
+        scope.root.fk_workspace_id,
+        scope.root.base_id,
+        scope.root.id,
+      )
+    ) {
       NcError.get(context).genericNotFound('Document', sharedDocUuid);
     }
 
@@ -102,21 +97,17 @@ export class PublicDocsService {
     context: NcContext,
     param: { sharedDocUuid: string; docId: string },
   ): Promise<PublicDocContentResponse> {
-    const { root } = await this.resolveShareScope(context, param.sharedDocUuid);
+    const scope = await this.resolveShareScope(context, param.sharedDocUuid);
+    const { root, reachableDocIds } = scope;
 
-    // The share scope is the root + (optionally) its descendants. Anything
-    // outside that scope is not reachable through this UUID — even if the
-    // doc has its own share UUID elsewhere. The cached initial tree only
-    // covers root + direct children, so deeper docs go through a
-    // parent-chain walk to verify scope.
-    if (!(await Document.isInPublicScope(context, root, param.docId))) {
+    if (!reachableDocIds.has(param.docId)) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
-    // Fetch the doc — we need title + updated_at metadata in addition to the
-    // content blob. Use ncContext that points at the doc's home base; for
-    // public access we use the root's base context, which is the same base
-    // (docs share scope is always single-base).
+    // Use a base-scoped context for the content fetch — the middleware
+    // populates context.base_id from the share UUID, but the spread keeps
+    // the call site explicit about which base the doc lives in (public
+    // docs share scope is always single-base).
     const baseScopedCtx = {
       ...context,
       workspace_id: root.fk_workspace_id,
@@ -156,6 +147,25 @@ export class PublicDocsService {
   }
 
   /**
+   * Lite metadata for an ancestor on the deep-link walk. Same shape as a
+   * child node, no content blob. The reader uses this to render
+   * intermediate sidebar breadcrumbs without firing /content for every
+   * ancestor (whose ProseMirror blob it does not need).
+   */
+  async docLiteGet(
+    context: NcContext,
+    param: { sharedDocUuid: string; docId: string },
+  ): Promise<PublicDocLiteNode> {
+    const scope = await this.resolveShareScope(context, param.sharedDocUuid);
+
+    const node = await Document.getPublicLite(scope, param.docId);
+    if (!node) {
+      NcError.get(context).genericNotFound('Document', param.docId);
+    }
+    return node;
+  }
+
+  /**
    * Resolve an attachment (image / file) referenced by a public-share doc.
    * Returns the `file_url` (storage path) so the controller can stream the
    * file. UUID gates the access; `fileRefId` must be a FileReference owned
@@ -169,9 +179,12 @@ export class PublicDocsService {
       fileRefId: string;
     },
   ): Promise<{ fileUrl: string }> {
-    const { root } = await this.resolveShareScope(context, param.sharedDocUuid);
+    const { root, reachableDocIds } = await this.resolveShareScope(
+      context,
+      param.sharedDocUuid,
+    );
 
-    if (!(await Document.isInPublicScope(context, root, param.docId))) {
+    if (!reachableDocIds.has(param.docId)) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
@@ -206,19 +219,22 @@ export class PublicDocsService {
     context: NcContext,
     param: { sharedDocUuid: string; parentDocId: string },
   ): Promise<PublicDocChildrenResponse> {
-    const { root, includeSubtree } = await this.resolveShareScope(
-      context,
-      param.sharedDocUuid,
-    );
+    const { root, includeSubtree, reachableDocIds } =
+      await this.resolveShareScope(context, param.sharedDocUuid);
 
     if (!includeSubtree) {
       NcError.get(context).genericNotFound('Document', param.parentDocId);
     }
 
-    if (!(await Document.isInPublicScope(context, root, param.parentDocId))) {
+    if (!reachableDocIds.has(param.parentDocId)) {
       NcError.get(context).genericNotFound('Document', param.parentDocId);
     }
 
-    return await Document.getPublicChildren(context, root, param.parentDocId);
+    return await Document.getPublicChildren(
+      context,
+      root,
+      param.parentDocId,
+      reachableDocIds,
+    );
   }
 }

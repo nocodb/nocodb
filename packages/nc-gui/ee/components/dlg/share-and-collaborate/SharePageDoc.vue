@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getDocShareMeta } from 'nocodb-sdk'
+import { getDocShareMeta, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 const { dashboardUrl } = useDashboard()
 
@@ -30,9 +30,7 @@ const restrictedSharing = computed(() => isPrivateBase.value)
 // is purely UX so the toggle can be disabled up-front instead of failing
 // after the user clicks. Edit-only permissions don't block; only
 // visibility (`has_visibility_permission`) matters here.
-const isBlockedByVisibility = computed(
-  () => !!activeDocument.value?.has_visibility_permission,
-)
+const isBlockedByVisibility = computed(() => !!activeDocument.value?.has_visibility_permission)
 
 const isPublicShared = computed(() => {
   if (restrictedSharing.value) return false
@@ -131,9 +129,9 @@ const onResetVisibility = async () => {
       baseId,
       { operation: 'dropPermission' },
       {
-        entity: 'document',
+        entity: PermissionEntity.DOCUMENT,
         entity_id: docId,
-        permission: 'DOCUMENT_VISIBILITY',
+        permission: PermissionKey.DOCUMENT_VISIBILITY,
       },
     )
     $e('c:doc:share:visibility:reset')
@@ -213,11 +211,7 @@ watch(showShareModal, async (visible) => {
         data-testid="nc-share-doc-blocked-notice"
       >
         <GeneralIcon icon="info" class="flex-none !w-3.5 !h-3.5 mt-0.5" />
-        <i18n-t
-          keypath="msg.info.docShareBlockedByVisibility"
-          tag="div"
-          class="flex-1 text-bodySm"
-        >
+        <i18n-t keypath="msg.info.docShareBlockedByVisibility" tag="div" class="flex-1 text-bodySm">
           <template #resetVisibility>
             <a
               v-e="['c:doc:share:visibility:reset']"
@@ -259,12 +253,11 @@ watch(showShareModal, async (visible) => {
             />
           </div>
           <!-- Note: backend skips sub-pages (and their descendants) with
-               custom visibility permissions when subtree is on. Surface
-               that to the owner so the public manifest size isn't a
-               surprise. Sits inside the same panel so the relationship
-               is clear. -->
+               custom visibility permissions when subtree is on. Only
+               render when the doc actually has children — for a leaf
+               doc the subtree toggle is moot and the note is noise. -->
           <div
-            v-if="includeSubtree"
+            v-if="includeSubtree && !!activeDocument?.has_children"
             class="flex flex-row items-start gap-x-2 mt-2 text-nc-content-gray-subtle"
             data-testid="nc-share-doc-subtree-note"
           >

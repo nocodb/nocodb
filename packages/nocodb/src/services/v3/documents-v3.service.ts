@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getDocShareMeta } from 'nocodb-sdk';
+import { AppEvents, getDocShareMeta } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DocumentCreateV3Type,
@@ -14,6 +14,7 @@ import {
 } from '~/services/v3/documents-v3.types';
 import { DocumentsService } from '~/services/documents.service';
 import { Document } from '~/models';
+import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
@@ -177,34 +178,52 @@ export class DocumentsV3Service {
    */
   async docShare(
     context: NcContext,
-    param: { docId: string },
+    param: { docId: string; req: NcRequest },
   ): Promise<{ uuid: string; include_subtree: boolean }> {
     await assertNotSandbox(
       context,
       'Documents are not available in a sandbox.',
     );
     const doc = await Document.share(context, param.docId);
-    return {
+    const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
+
+    Noco.appHooksService.emit(AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE, {
+      context,
+      req: param.req,
+      docId: param.docId,
       uuid: doc.uuid!,
-      include_subtree: !!getDocShareMeta(doc.meta).include_subtree,
-    };
+      includeSubtree,
+    });
+
+    return { uuid: doc.uuid!, include_subtree: includeSubtree };
   }
 
   async docUnshare(
     context: NcContext,
-    param: { docId: string },
+    param: { docId: string; req: NcRequest },
   ): Promise<boolean> {
     await assertNotSandbox(
       context,
       'Documents are not available in a sandbox.',
     );
+    // Snapshot the uuid before clearing so the audit event records what was
+    // published, not the post-unshare null.
+    const pre = await Document.getMeta(context, param.docId);
     await Document.unshare(context, param.docId);
+
+    Noco.appHooksService.emit(AppEvents.DOCUMENT_PUBLIC_SHARE_DELETE, {
+      context,
+      req: param.req,
+      docId: param.docId,
+      uuid: pre?.uuid ?? null,
+    });
+
     return true;
   }
 
   async docShareUpdate(
     context: NcContext,
-    param: { docId: string },
+    param: { docId: string; req: NcRequest },
     body: { include_subtree?: boolean },
   ): Promise<{
     uuid: string | null;
@@ -215,9 +234,18 @@ export class DocumentsV3Service {
       'Documents are not available in a sandbox.',
     );
     const doc = await Document.updateShareSettings(context, param.docId, body);
-    return {
-      uuid: doc.uuid ?? null,
-      include_subtree: !!getDocShareMeta(doc.meta).include_subtree,
-    };
+    const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
+
+    if (doc.uuid) {
+      Noco.appHooksService.emit(AppEvents.DOCUMENT_PUBLIC_SHARE_UPDATE, {
+        context,
+        req: param.req,
+        docId: param.docId,
+        uuid: doc.uuid,
+        includeSubtree,
+      });
+    }
+
+    return { uuid: doc.uuid ?? null, include_subtree: includeSubtree };
   }
 }

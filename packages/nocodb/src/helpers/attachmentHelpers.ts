@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import type { Response } from 'express';
 import mime from 'mime/lite';
 import slash from 'slash';
 import { PublicAttachmentScope } from 'nocodb-sdk';
@@ -11,6 +12,9 @@ import type { Column } from '~/models';
 import { isSecureAttachmentEnabled } from '~/utils';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { PresignedUrl } from '~/models';
+import type { AttachmentsService } from '~/services/attachments.service';
 
 export const imageMimeTypes = [
   'image/aces',
@@ -281,3 +285,93 @@ export const constructFilePath = (
     storageDest: slash(path.join(destPath, param.fileName)),
   } as AttachmentFilePathConstructed;
 };
+
+/**
+ * Reject paths that escape `nc/uploads` via traversal segments. `path.join`
+ * normalises ".." but does not prevent the result from leaving the base
+ * directory — we resolve and verify the prefix explicitly.
+ */
+export function sanitizeAttachmentStoragePath(joined: string): string {
+  const resolved = path.resolve(joined);
+  const base = path.resolve('nc', 'uploads');
+  if (!resolved.startsWith(base + path.sep) && resolved !== base) {
+    throw new Error('Invalid attachment path');
+  }
+  return joined;
+}
+
+export interface ServeStoredAttachmentOptions {
+  /**
+   * External-storage signed URL TTL in seconds. Caps the post-revocation
+   * window — once a signed URL leaves the proxy it cannot be recalled, so
+   * the URL itself bounds how long a revoked share can still resolve the
+   * file. Defaults to the standard 5-min window.
+   */
+  signedUrlTtlSeconds?: number;
+  /** Cache-Control header value applied to both external + local responses. */
+  cacheControl: string;
+  /** Local-storage attachments resolver (NestJS service injected by caller). */
+  attachmentsService: Pick<AttachmentsService, 'getFile'>;
+}
+
+/**
+ * Stream a stored attachment to the client. Shared between the authed
+ * AttachmentProxy and the anonymous PublicDocs share — different guards,
+ * same storage abstraction. External storage → 302 to a short-lived signed
+ * URL; local storage → stream the file directly with the same path
+ * sanitisation guard.
+ */
+export async function serveStoredAttachment(
+  res: Response,
+  fileUrl: string,
+  opts: ServeStoredAttachmentOptions,
+): Promise<void | Response> {
+  const storageAdapter = await NcPluginMgrv2.storageAdapter();
+  const isExternalStorage =
+    typeof (storageAdapter as any).getSignedUrl === 'function';
+
+  if (isExternalStorage) {
+    const isUrl = /^https?:\/\//i.test(fileUrl);
+
+    let pathOrUrl = fileUrl;
+    if (!isUrl) {
+      const stripped = fileUrl.replace(/^download\//, '');
+      pathOrUrl = sanitizeAttachmentStoragePath(
+        path.join('nc', 'uploads', stripped),
+      );
+    }
+
+    const signedUrl = await PresignedUrl.getSignedUrl({
+      pathOrUrl,
+      preview: true,
+      ...(opts.signedUrlTtlSeconds !== undefined && {
+        expireSeconds: opts.signedUrlTtlSeconds,
+      }),
+    });
+
+    res.setHeader('Cache-Control', opts.cacheControl);
+    return res.redirect(302, signedUrl);
+  }
+
+  const stripped = fileUrl.replace(/^download\//, '');
+
+  try {
+    const file = await opts.attachmentsService.getFile({
+      path: sanitizeAttachmentStoragePath(path.join('nc', 'uploads', stripped)),
+    });
+
+    if (!(await localFileExists(file.path))) {
+      return res.status(404).send('File not found');
+    }
+
+    res.setHeader('Cache-Control', opts.cacheControl);
+
+    if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
+      res.sendFile(file.path);
+    } else {
+      res.download(file.path);
+    }
+  } catch {
+    res.status(404).send('Not found');
+  }
+}

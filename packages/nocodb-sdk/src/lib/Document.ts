@@ -88,6 +88,27 @@ export interface PublicDocChildNode extends PublicDocTreeNode {
 /** @deprecated Use {@link PublicDocTreeNode} or {@link PublicDocChildNode}. */
 export type PublicDocNode = PublicDocTreeNode;
 
+/**
+ * Lite ancestor node for the deep-link walker. Same shape as a tree node
+ * (parent_id may be null at the share root); used by the reader to render
+ * intermediate breadcrumbs without fetching the full ProseMirror content.
+ */
+export type PublicDocLiteNode = PublicDocTreeNode;
+
+/**
+ * Defensive cap on the parent-chain walk used by the share-cache invalidator.
+ * Real doc trees are nowhere near this deep; the cap exists only to guarantee
+ * termination if a malformed cycle ever makes it into the DB.
+ */
+export const MAX_PUBLIC_SCOPE_WALK_DEPTH = 64;
+
+/**
+ * TTL on the share-scope cache payload. Defense-in-depth backstop — explicit
+ * invalidation handles the normal case; the TTL bounds blast radius if any
+ * invalidator misses a cross-feature write.
+ */
+export const PUBLIC_SHARE_SCOPE_TTL_SECONDS = 300;
+
 /** Response shape for GET /api/v2/public/shared-doc/:uuid/meta */
 export interface PublicDocMetaResponse {
   /** Root doc (the one whose UUID was used to access the share). */

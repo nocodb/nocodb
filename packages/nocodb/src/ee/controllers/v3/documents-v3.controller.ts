@@ -138,9 +138,10 @@ export class DocumentsV3Controller {
   async docShare(
     @TenantContext() context: NcContext,
     @Param('docId') docId: string,
+    @Request() req: NcRequest,
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
-    return await this.documentsV3Service.docShare(context, { docId });
+    return await this.documentsV3Service.docShare(context, { docId, req });
   }
 
   @Patch(`${PREFIX_APIV3_DOCS}/:docId/share`)
@@ -150,11 +151,12 @@ export class DocumentsV3Controller {
     @Param('docId') docId: string,
     @Body()
     body: { include_subtree?: boolean },
+    @Request() req: NcRequest,
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
     return await this.documentsV3Service.docShareUpdate(
       context,
-      { docId },
+      { docId, req },
       body,
     );
   }
@@ -164,7 +166,8 @@ export class DocumentsV3Controller {
   async docUnshare(
     @TenantContext() context: NcContext,
     @Param('docId') docId: string,
+    @Request() req: NcRequest,
   ): Promise<boolean> {
-    return await this.documentsV3Service.docUnshare(context, { docId });
+    return await this.documentsV3Service.docUnshare(context, { docId, req });
   }
 }

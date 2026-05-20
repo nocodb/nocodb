@@ -6,8 +6,9 @@ import { MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 /**
- * Default coalesce window: revisions saved by the same author within this
- * window are merged into a single revision (the prior row is updated in place).
+ * Default inactivity window. The window slides: each save within this many ms
+ * of the previous one (by the same author + tab) extends the same revision
+ * row. A gap longer than the window starts a fresh row.
  */
 const DEFAULT_COALESCE_WINDOW_MS = 2 * 60 * 1000;
 
@@ -42,6 +43,7 @@ export default class DocRevision implements DocumentRevisionType {
   content?: Record<string, any>;
   title?: string;
   created_by?: string;
+  fk_tab_id?: string;
   source?: DocRevisionSource;
   created_at?: string;
   updated_at?: string;
@@ -51,16 +53,16 @@ export default class DocRevision implements DocumentRevisionType {
   }
 
   /**
-   * Record a revision for a document save.
+   * Record a revision for a document save. Returns the row id.
    *
-   * Coalescing: when the latest revision is by the same user and within the
-   * coalesce window, the prior row's content/title/version are updated in
-   * place. `created_at` is intentionally preserved so the timeline shows
-   * when the editing session began. Otherwise a new row is inserted.
+   * Coalescing: when the latest revision is by the same user + tab and the
+   * gap since its last save is shorter than the inactivity window, the prior
+   * row's content/title/version are updated in place. `created_at` is
+   * preserved (session start); `updated_at` advances. Otherwise a new row is
+   * inserted.
    *
-   * The caller is responsible for deciding whether a content change happened —
-   * this method always writes (insert or update). Callers should pass only
-   * when content or title actually changed.
+   * The caller decides whether content actually changed — `record` always
+   * writes.
    */
   static async record(
     context: NcContext,
@@ -72,7 +74,7 @@ export default class DocRevision implements DocumentRevisionType {
       createdBy: string;
       source?: DocRevisionSource;
     },
-  ): Promise<DocRevision> {
+  ): Promise<string> {
     const {
       docId,
       version,
@@ -84,30 +86,27 @@ export default class DocRevision implements DocumentRevisionType {
 
     const latest = await this.latestForDoc(context, docId);
 
-    const now = Date.now();
     const coalesceWindowMs = getCoalesceWindowMs();
+    // Sliding window — measured from latest.updated_at so an active editor's
+    // run-on session stays in one row until they go idle.
     const canCoalesce =
       latest &&
       latest.created_by === createdBy &&
+      latest.fk_tab_id === context.tab_id &&
       latest.source === DocRevisionSource.AUTO &&
       source === DocRevisionSource.AUTO &&
       coalesceWindowMs > 0 &&
-      now - new Date(latest.created_at!).getTime() < coalesceWindowMs;
+      Date.now() - new Date(latest.updated_at!).getTime() < coalesceWindowMs;
 
     if (canCoalesce) {
-      const updateObj = {
-        version,
-        title,
-        content,
-      };
       await Noco.ncDocsContent.metaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.DOC_REVISIONS,
-        prepareForDb(updateObj, ['content']),
+        prepareForDb({ version, title, content }, ['content']),
         { id: latest.id },
       );
-      return (await this.get(context, latest.id!))!;
+      return latest.id!;
     }
 
     const insertObj: Record<string, any> = {
@@ -119,6 +118,7 @@ export default class DocRevision implements DocumentRevisionType {
       content,
       title,
       created_by: createdBy,
+      fk_tab_id: context.tab_id,
       source,
     };
 
@@ -130,7 +130,7 @@ export default class DocRevision implements DocumentRevisionType {
       true, // ignoreIdGeneration — id is pre-generated above
     );
 
-    return (await this.get(context, insertObj.id))!;
+    return insertObj.id;
   }
 
   /**
@@ -155,8 +155,10 @@ export default class DocRevision implements DocumentRevisionType {
           'version',
           'title',
           'created_by',
+          'fk_tab_id',
           'source',
           'created_at',
+          'updated_at',
         ],
       },
     );
@@ -191,8 +193,10 @@ export default class DocRevision implements DocumentRevisionType {
         'version',
         'title',
         'created_by',
+        'fk_tab_id',
         'source',
         'created_at',
+        'updated_at',
       );
 
     const cursor = decodeCursor(options.before);

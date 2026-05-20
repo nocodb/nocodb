@@ -11,6 +11,9 @@ const up = async (knex: Knex) => {
     table.text('content');
     table.string('title', 255);
     table.string('created_by', 20);
+    // Per-tab UUID (x-nc-tab-id header) — discriminates same-author writes
+    // across browser tabs / devices so they don't coalesce into one row.
+    table.string('fk_tab_id', 36);
     table.string('source', 16).notNullable().defaultTo('auto');
     table.timestamps(true, true);
 

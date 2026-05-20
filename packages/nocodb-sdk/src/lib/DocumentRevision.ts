@@ -14,6 +14,7 @@ export interface DocumentRevisionType {
   content?: Record<string, any>;
   title?: string;
   created_by?: string;
+  fk_tab_id?: string;
   source?: DocRevisionSource;
   created_at?: string;
   updated_at?: string;

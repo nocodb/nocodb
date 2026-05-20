@@ -14429,6 +14429,14 @@
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
               "color_schema": { "type": "string", "enum": ["default", "custom"] }
             }
+          },
+          "permissions": {
+            "type": "object",
+            "description": "Per-widget permission flags.",
+            "properties": {
+              "allow_user_to_print": { "type": "boolean", "description": "Allow viewers to print the chart." },
+              "allow_users_to_view_records": { "type": "boolean", "description": "Allow viewers to drill into the underlying records." }
+            }
           }
         },
         "required": ["chart_type"]

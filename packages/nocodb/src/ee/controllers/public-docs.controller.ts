@@ -11,6 +11,14 @@ import { NcContext } from '~/interface/config';
 // share can still resolve files directly from storage.
 const PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS = 5 * 60;
 
+// CDN-absorbable cache for the JSON read endpoints. A viral share at 10k
+// rps lands on the origin only on cold/SWR refreshes (~10-100 rps),
+// keeping the meta DB out of the hot path. Trade-off: a revoked share
+// can resolve for up to max-age + stale-while-revalidate = 70s. Tighten
+// if instant revocation is required.
+const PUBLIC_DOC_JSON_CACHE_CONTROL =
+  'public, max-age=10, stale-while-revalidate=60';
+
 // Production deployments should set NC_SECURE_ATTACHMENTS=true so the
 // unauthenticated /download route is replaced by /dltemp (signed-only),
 // forcing all access through this UUID-gated proxy.
@@ -24,7 +32,7 @@ export class PublicDocsController {
 
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/meta')
   @Header('X-Robots-Tag', 'noindex, nofollow')
-  @Header('Cache-Control', 'private, no-store')
+  @Header('Cache-Control', PUBLIC_DOC_JSON_CACHE_CONTROL)
   async docMetaGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,
@@ -34,7 +42,7 @@ export class PublicDocsController {
 
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/doc/:docId/content')
   @Header('X-Robots-Tag', 'noindex, nofollow')
-  @Header('Cache-Control', 'private, no-store')
+  @Header('Cache-Control', PUBLIC_DOC_JSON_CACHE_CONTROL)
   async docContentGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,
@@ -48,7 +56,7 @@ export class PublicDocsController {
 
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/doc/:docId/lite')
   @Header('X-Robots-Tag', 'noindex, nofollow')
-  @Header('Cache-Control', 'private, no-store')
+  @Header('Cache-Control', PUBLIC_DOC_JSON_CACHE_CONTROL)
   async docLiteGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,
@@ -62,7 +70,7 @@ export class PublicDocsController {
 
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/children/:parentDocId')
   @Header('X-Robots-Tag', 'noindex, nofollow')
-  @Header('Cache-Control', 'private, no-store')
+  @Header('Cache-Control', PUBLIC_DOC_JSON_CACHE_CONTROL)
   async docChildrenGet(
     @TenantContext() context: NcContext,
     @Param('sharedDocUuid') sharedDocUuid: string,

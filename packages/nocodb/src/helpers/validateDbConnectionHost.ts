@@ -1,7 +1,9 @@
 import dns from 'dns/promises';
 import { isIP } from 'net';
 import ipaddr from 'ipaddr.js';
+import { OperationSource } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 /**
  * Reject database hosts that resolve to non-routable ranges (private,
@@ -9,12 +11,12 @@ import { NcError } from '~/helpers/catchError';
  * reserved). Handles IPv4-mapped IPv6 (`::ffff:a.b.c.d`) and unbracketed
  * IPv6 literals like `::1`.
  *
- * Set `NC_ALLOW_LOCAL_EXTERNAL_DBS=true` to trust the operator and bypass
- * the check (used by deployments that intentionally connect to localhost
- * or private-network databases).
+ * Set `NC_ALLOW_LOCAL_EXTERNAL_DBS=true` (or `NC_DISABLE_SSRF_PROTECTION=true`)
+ * to trust the operator and bypass the check — used by deployments that
+ * intentionally connect to localhost or private-network databases.
  */
 export async function validateDbConnectionHost(host: unknown): Promise<void> {
-  if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS === 'true') return;
+  if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS })) return;
   if (typeof host !== 'string' || host.length === 0) return;
 
   const trimmed = host.trim();

@@ -18,6 +18,7 @@ const { $api, $e } = useNuxtApp()
 const isUpdating = ref({
   public: false,
   subtree: false,
+  visibility: false,
 })
 
 const restrictedSharing = computed(() => isPrivateBase.value)
@@ -113,6 +114,38 @@ const toggleSubtree = async () => {
   }
 }
 
+// Drop the doc's explicit DOCUMENT_VISIBILITY row so the share toggle
+// becomes available again. Surfaced inline in the blocked-state notice
+// — the Share UI is Creator+ gated and dropPermission is Creator+, so
+// every user who can see this notice can also act on it.
+const onResetVisibility = async () => {
+  const docId = activeDocument.value?.id
+  const baseId = activeProjectId.value
+  if (!docId || !baseId || !activeWorkspaceId.value) return
+  if (isUpdating.value.visibility) return
+
+  isUpdating.value.visibility = true
+  try {
+    await $api.internal.postOperation(
+      activeWorkspaceId.value,
+      baseId,
+      { operation: 'dropPermission' },
+      {
+        entity: 'document',
+        entity_id: docId,
+        permission: 'DOCUMENT_VISIBILITY',
+      },
+    )
+    $e('c:doc:share:visibility:reset')
+    applyDocPatch(baseId, docId, { has_visibility_permission: false })
+    message.toast(t('msg.info.docShareVisibilityReset'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isUpdating.value.visibility = false
+  }
+}
+
 // Refresh the active doc whenever the share modal opens. Permissions can
 // change between when the doc was first loaded into the docs store and
 // when the user clicks Share — without this refresh, the toggle reads
@@ -150,18 +183,16 @@ watch(showShareModal, async (visible) => {
         <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}
         </div>
-        <NcTooltip
+        <!-- Disabled switch when blocked by custom visibility — no tooltip
+             because the inline notice below carries the same message (with
+             an actionable link), making a hover-only tooltip redundant. -->
+        <a-switch
           v-if="!restrictedSharing && isBlockedByVisibility"
-          :title="$t('msg.info.docShareBlockedByVisibility')"
-          placement="left"
-        >
-          <a-switch
-            :checked="false"
-            disabled
-            class="share-doc-toggle !mt-0.25"
-            data-testid="share-doc-toggle"
-          />
-        </NcTooltip>
+          :checked="false"
+          disabled
+          class="share-doc-toggle !mt-0.25"
+          data-testid="share-doc-toggle"
+        />
         <a-switch
           v-else-if="!restrictedSharing"
           v-e="['c:share:doc:enable:toggle']"
@@ -182,7 +213,22 @@ watch(showShareModal, async (visible) => {
         data-testid="nc-share-doc-blocked-notice"
       >
         <GeneralIcon icon="info" class="flex-none !w-3.5 !h-3.5 mt-0.5" />
-        <div class="flex-1 text-bodySm">{{ $t('msg.info.docShareBlockedByVisibility') }}</div>
+        <i18n-t
+          keypath="msg.info.docShareBlockedByVisibility"
+          tag="div"
+          class="flex-1 text-bodySm"
+        >
+          <template #resetVisibility>
+            <a
+              v-e="['c:doc:share:visibility:reset']"
+              class="text-nc-content-brand underline cursor-pointer"
+              :class="{ 'pointer-events-none opacity-60': isUpdating.visibility }"
+              data-testid="nc-share-doc-reset-visibility"
+              @click="onResetVisibility"
+              >{{ $t('labels.resetVisibilityToDefault') }}</a
+            >
+          </template>
+        </i18n-t>
       </div>
 
       <template v-if="isPublicShared">

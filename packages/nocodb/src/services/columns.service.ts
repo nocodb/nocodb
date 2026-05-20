@@ -78,7 +78,6 @@ import {
   generateFkName,
   getMMColumnNames,
   getRevType,
-  type OperationSource,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,

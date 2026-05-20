@@ -28,7 +28,6 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User } from '~/models';
 import type { NcRequest } from '~/interface/config';
-import type { OperationSource } from '~/helpers/columnHelpers';
 import { NcContext } from '~/interface/config';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';

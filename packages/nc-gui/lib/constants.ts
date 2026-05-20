@@ -73,11 +73,11 @@ export const NC_CLOUD_URL = 'https://app.nocodb.com'
 
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 
-// THROWAWAY (palette brainstorm): keeps default Brand list working and
-// adds a few candidate palettes + a lookup. Will be replaced by the
-// real palette schema after the design is approved.
+// Curated palettes keyed by the chart appearance.colorSchema enum value.
+// 'default' is the NocoDB brand palette (current product default).
+// 'custom' is reserved — when wired, it consumes appearance.customColorSchema.
 export const CHART_PALETTES: Record<string, string[]> = {
-  brand: [
+  default: [
     '#3366FF', '#36BFFF', '#22C7C9', '#22C55E',
     '#FFCD56', '#FFA94D', '#FF6B6B', '#FF6B9D',
     '#B388EB', '#7C8FFF', '#94A3B8', '#67E8F9',
@@ -109,7 +109,7 @@ export const CHART_PALETTES: Record<string, string[]> = {
 }
 
 export const CHART_PALETTE_OPTIONS = [
-  { label: 'Brand', value: 'brand', hint: 'cool-led', colors: CHART_PALETTES.brand },
+  { label: 'Default', value: 'default', hint: 'cool-led', colors: CHART_PALETTES.default },
   { label: 'Classic', value: 'classic', hint: 'balanced', colors: CHART_PALETTES.classic },
   { label: 'Vibrant', value: 'vibrant', hint: 'high-saturation', colors: CHART_PALETTES.vibrant },
   { label: 'Pastel', value: 'pastel', hint: 'soft', colors: CHART_PALETTES.pastel },
@@ -117,13 +117,13 @@ export const CHART_PALETTE_OPTIONS = [
   { label: 'Mono Blue', value: 'monoBlue', hint: 'sequential', colors: CHART_PALETTES.monoBlue },
 ]
 
-export const getChartColors = (palette?: string | null): string[] => {
-  return CHART_PALETTES[palette ?? 'brand'] ?? CHART_PALETTES.brand!
+export const getChartColors = (schema?: string | null): string[] => {
+  return CHART_PALETTES[schema ?? 'default'] ?? CHART_PALETTES.default!
 }
 
-// Brand palette kept as named export for existing consumers; new chart
-// code should call getChartColors(appearance.palette) instead.
-export const CHART_COLORS = CHART_PALETTES.brand!
+// Legacy named export kept for any remaining consumer; resolves to the
+// default (brand) palette. New chart code reads getChartColors(appearance.colorSchema).
+export const CHART_COLORS = CHART_PALETTES.default!
 
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'

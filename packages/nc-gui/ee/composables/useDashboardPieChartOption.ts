@@ -88,7 +88,7 @@ export function useDashboardPieChartOption(
     return configured
   })
 
-  const paletteColors = computed(() => getChartColors((chartConfig.value?.appearance as any)?.palette))
+  const paletteColors = computed(() => getChartColors(chartConfig.value?.appearance?.colorSchema))
 
   const processedData = computed(() => {
     const raw = widgetData.value?.data

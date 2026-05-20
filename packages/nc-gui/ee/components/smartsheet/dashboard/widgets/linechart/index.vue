@@ -124,7 +124,7 @@ const chartOption = computed<ECOption>(() => {
   const plotDataPoints = chartConfig.value?.appearance?.plotDataPoints ?? false
 
   return {
-    color: getChartColors((chartConfig.value?.appearance as any)?.palette),
+    color: getChartColors(chartConfig.value?.appearance?.colorSchema),
     tooltip: {
       trigger: 'axis',
       axisPointer: {

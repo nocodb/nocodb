@@ -38,7 +38,14 @@ interface PieChartAppearanceConfig {
   showCountInLegend: boolean;
   showPercentageOnChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
   customColorSchema: {
     color: string;
     label: string;
@@ -90,7 +97,14 @@ export interface BarChartAppearanceConfig {
   showCountInLegend: boolean;
   showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
 }
 
 export interface BarChartConfig extends BaseChartConfig {
@@ -108,7 +122,14 @@ export interface LineChartAppearanceConfig {
   showCountInLegend: boolean;
   showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
 }
 
 export interface LineChartConfig extends BaseChartConfig {
@@ -124,7 +145,14 @@ export interface ScatterPlotAppearanceConfig {
   showCountInLegend: boolean;
   showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
-  colorSchema: 'default' | 'custom';
+  colorSchema:
+    | 'default'
+    | 'classic'
+    | 'vibrant'
+    | 'pastel'
+    | 'earth'
+    | 'monoBlue'
+    | 'custom';
 }
 
 export interface ScatterPlotConfig extends BaseChartConfig {

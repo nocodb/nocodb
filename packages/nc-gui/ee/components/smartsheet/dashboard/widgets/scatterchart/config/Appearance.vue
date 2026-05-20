@@ -35,7 +35,7 @@ const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCoun
 
 const showValueInChart = ref(selectedWidget.value?.config?.appearance?.showValueInChart ?? true)
 
-const palette = ref((selectedWidget.value?.config?.appearance as any)?.palette ?? 'brand')
+const colorSchema = ref(selectedWidget.value?.config?.appearance?.colorSchema ?? 'default')
 
 const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
 
@@ -52,7 +52,7 @@ const handleChange = (type?: string, value?: any) => {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
     showValueInChart: showValueInChart.value,
-    palette: palette.value,
+    colorSchema: colorSchema.value,
   })
 }
 </script>
@@ -95,7 +95,7 @@ const handleChange = (type?: string, value?: any) => {
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Color palette</label>
-      <PalettePicker v-model="palette" preview="scatter" @change="handleChange()" />
+      <PalettePicker v-model="colorSchema" preview="scatter" @change="handleChange()" />
     </div>
 
     <div class="space-y-2">

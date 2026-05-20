@@ -121,7 +121,7 @@ const chartOption = computed<ECOption>(() => {
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
 
   return {
-    color: getChartColors((chartConfig.value?.appearance as any)?.palette),
+    color: getChartColors(chartConfig.value?.appearance?.colorSchema),
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {

@@ -14196,7 +14196,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_percentage_on_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] },
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] },
               "custom_color_schema": {
                 "type": "array",
                 "items": {
@@ -14250,7 +14250,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_percentage_on_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] },
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] },
               "custom_color_schema": {
                 "type": "array",
                 "items": {
@@ -14317,7 +14317,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_value_in_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] }
             }
           }
         },
@@ -14373,7 +14373,7 @@
               "show_count_in_legend": { "type": "boolean" },
               "show_value_in_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+              "color_schema": { "type": "string", "enum": ["default", "classic", "vibrant", "pastel", "earth", "monoBlue", "custom"] }
             }
           }
         },

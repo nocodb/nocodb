@@ -21,14 +21,14 @@ const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCoun
 
 const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart ?? true)
 
-const palette = ref((selectedWidget.value?.config?.appearance as any)?.palette ?? 'brand')
+const colorSchema = ref(selectedWidget.value?.config?.appearance?.colorSchema ?? 'default')
 
 const handleChange = () => {
   emit('update:appearance', {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
     showPercentageOnChart: showPercentageOnChart.value,
-    palette: palette.value,
+    colorSchema: colorSchema.value,
   })
 }
 </script>
@@ -51,7 +51,7 @@ const handleChange = () => {
     </div>
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Color palette</label>
-      <PalettePicker v-model="palette" preview="donut" @change="handleChange" />
+      <PalettePicker v-model="colorSchema" preview="donut" @change="handleChange" />
     </div>
 
     <div class="space-y-2">

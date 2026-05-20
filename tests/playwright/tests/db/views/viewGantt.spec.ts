@@ -435,7 +435,7 @@ test.describe('Gantt View', () => {
         fk_dependency_linkrow_field_id: predecessorsColId,
         dependency_linkrow_role: 'predecessors',
         dependency_connection_type: 'end-to-start',
-        dependency_buffer_type: 'business-days',
+        dependency_buffer_type: 'fixed',
         dependency_buffer_days: 5,
         include_weekends: false,
         is_active: true,

@@ -700,6 +700,7 @@ const showActivity = computed(() => {
           <SmartsheetExpandedFormMoreOptionsMenu
             :is-loading="isLoading"
             :view="view"
+            :row-id="primaryKey"
             compact
             @after-delete="closePanel"
             @duplicate-applied="onAfterDuplicate"

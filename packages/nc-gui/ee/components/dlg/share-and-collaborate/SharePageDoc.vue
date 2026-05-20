@@ -231,7 +231,13 @@ watch(showShareModal, async (visible) => {
         </i18n-t>
       </div>
 
-      <template v-if="isPublicShared">
+      <!-- A doc that was previously shared keeps its uuid even after a
+           visibility permission is added later, so `isPublicShared` alone
+           would still surface the URL / subtree section. Hide both while
+           visibility is restricted — the backend's request-time check
+           refuses to serve the URL anyway, so showing it would mislead
+           the owner into thinking the share is live. -->
+      <template v-if="isPublicShared && !isBlockedByVisibility">
         <div class="mt-0.5 border-t-1 border-nc-border-gray-light pt-3">
           <GeneralCopyUrl v-model:url="url" />
         </div>

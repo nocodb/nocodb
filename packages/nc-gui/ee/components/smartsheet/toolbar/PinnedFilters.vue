@@ -327,6 +327,12 @@ const selectDateSubOp = async (filter: FilterType, subOpValue: string) => {
   const newShape = getDateSubOpValueShape(subOpValue)
   filter.comparison_sub_op = subOpValue
   if (oldShape !== newShape) filter.value = null
+  // Reset the calendar's page-date when entering exactDate so we don't
+  // surface a stale date carried over from a previous sub-op (the picker
+  // would otherwise show the month derived from a number-of-days value).
+  if (newShape === 'exactDate' && oldShape !== 'exactDate') {
+    datePickerPageDate.value = dayjs()
+  }
   await saveFilter(filter)
 }
 
@@ -336,6 +342,21 @@ const updateDateValue = async (filter: FilterType, value: any) => {
   $e('a:filter-pinned:update-date-value')
   filter.value = value === '' || value === undefined ? null : value
   await saveFilter(filter)
+}
+
+/**
+ * Handle a date pick from the inline calendar (exactDate sub-op).
+ *
+ * NcDatePicker doesn't re-emit `update:pageDate` after the user picks a date —
+ * it mutates its internal `localPageDate` ref directly. As a result, the
+ * parent's `datePickerPageDate` ref stays stale, and on the next render the
+ * picker highlights the cell matching the old page-date rather than the
+ * newly stored `filter.value`. The Date cell editor works around this the
+ * same way, by manually keeping the page-date in sync with the picked date.
+ */
+const onExactDatePick = async (filter: FilterType, picked: dayjs.Dayjs | null | undefined) => {
+  if (picked) datePickerPageDate.value = dayjs(picked)
+  await updateDateValue(filter, picked ? dayjs(picked).format('YYYY-MM-DD') : null)
 }
 
 /**
@@ -437,11 +458,15 @@ const toggleDropdown = (filterId: string) => {
     openFilterId.value = null
   } else {
     openFilterId.value = filterId
-    // Seed the date picker page to the filter's stored date (or today) so the
-    // calendar opens on the relevant month when the user picks `exactDate`.
+    // Seed the date picker page so the calendar opens on the relevant month.
+    // Only parse `filter.value` as a date when the sub-op is `exactDate` —
+    // for numeric sub-ops the value is a number-of-days (e.g. `5`), and
+    // `dayjs(5)` would interpret that as a Unix-epoch millisecond timestamp
+    // and surface January 1970 when the user later switches to `exactDate`.
     const filter = pinnedFilters.value.find((f) => f.id === filterId)
     if (filter && isDateType(filter)) {
-      const seed = filter.value ? dayjs(filter.value as string) : null
+      const isExactDate = filter.comparison_sub_op === 'exactDate'
+      const seed = isExactDate && filter.value ? dayjs(filter.value as string) : null
       datePickerPageDate.value = seed && seed.isValid() ? seed : dayjs()
     }
   }
@@ -918,7 +943,7 @@ const unpinFilter = async (filter: FilterType) => {
                         :is-open="openFilterId === filter.id"
                         :type="getDatePickerType(filter)"
                         size="medium"
-                        @update:selected-date="(d: any) => updateDateValue(filter, d ? dayjs(d).format('YYYY-MM-DD') : null)"
+                        @update:selected-date="(d: any) => onExactDatePick(filter, d)"
                       />
                     </div>
                   </div>

@@ -2232,6 +2232,26 @@ defineExpose({ editor })
             <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
           </NcButton>
         </NcTooltip>
+        <!-- Share — icon-only mirror of the menu's Share item. Hoisted out
+             so the action is one click away (and discoverable) instead of
+             living behind the 3-dot menu. Same gate + telemetry + handler
+             as the menu entry, so the two stay aligned. -->
+        <NcTooltip
+          v-if="isCreatorOrAbove"
+          :title="$t('activity.share')"
+          placement="bottom"
+          class="flex"
+        >
+          <NcButton
+            v-e="['c:doc:share:open']"
+            size="small"
+            type="text"
+            data-testid="nc-doc-page-share-btn"
+            @click="openShareModal"
+          >
+            <GeneralIcon icon="ncShare" />
+          </NcButton>
+        </NcTooltip>
         <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
           <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
             <GeneralIcon icon="threeDotVertical" />
@@ -3365,7 +3385,10 @@ defineExpose({ editor })
 
 // Page actions — floats at top-right of editor area, outside scroll flow
 .nc-doc-page-menu {
-  @apply h-[var(--topbar-height)] flex items-center gap-2 absolute top-0 right-3 z-20;
+  // gap-0.5 (2px) keeps the action cluster tight now that Share has been
+  // promoted out of the menu — three icon buttons sit side-by-side in the
+  // topbar, gap-2 (8px) made the group feel sparse.
+  @apply h-[var(--topbar-height)] flex items-center gap-0.5 absolute top-0 right-3 z-20;
 }
 
 .nc-doc-page-menu-left {

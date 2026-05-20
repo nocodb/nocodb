@@ -58,7 +58,7 @@ const openFilterId = ref<string | null>(null)
 const searchQuery = ref('')
 
 /** Page date for the inline NcDatePicker — tracks which month is currently displayed */
-const datePagePageDate = ref<dayjs.Dayjs>(dayjs())
+const datePickerPageDate = ref<dayjs.Dayjs>(dayjs())
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -298,24 +298,42 @@ const saveFilter = useDebounceFn(async (filter: FilterType) => {
   }
 }, 500)
 
+/** `'month'` if the column's date_format is month-only (e.g. `YYYY-MM`), otherwise `'date'` */
+const getDatePickerType = (filter: FilterType): 'date' | 'month' => {
+  const dateFormat = parseProp(getColumn(filter)?.meta)?.date_format || ''
+  return isDateMonthFormat(dateFormat) ? 'month' : 'date'
+}
+
+/** Classify a sub-op by the shape of value it expects */
+const getDateSubOpValueShape = (subOp: string | null | undefined): 'numeric' | 'exactDate' | 'none' => {
+  if (!subOp) return 'none'
+  if (NUMERIC_DATE_SUB_OPS.includes(subOp)) return 'numeric'
+  if (subOp === 'exactDate') return 'exactDate'
+  return 'none'
+}
+
 /**
- * Switch the date sub-op (from the NcSelect dropdown). Always clear `value`
- * because each sub-op uses a different value shape (date string vs number
- * vs nothing). The outer pinned-filter dropdown stays open — user closes
- * it via X or click-outside.
+ * Switch the date sub-op (from the NcSelect dropdown). Preserve `value` when
+ * the new sub-op uses the same shape as the old one — switching between two
+ * numeric sub-ops (e.g. `pastNumberOfDays` ↔ `nextNumberOfDays`) shouldn't
+ * make the user re-enter the number. Clear when the shape changes
+ * (numeric ↔ exactDate ↔ valueless).
  */
 const selectDateSubOp = async (filter: FilterType, subOpValue: string) => {
   if (isLocked.value) return
   if (!subOpValue) return
   $e('a:filter-pinned:select-date-sub-op')
+  const oldShape = getDateSubOpValueShape(filter.comparison_sub_op)
+  const newShape = getDateSubOpValueShape(subOpValue)
   filter.comparison_sub_op = subOpValue
-  filter.value = null
+  if (oldShape !== newShape) filter.value = null
   await saveFilter(filter)
 }
 
 /** Update the date filter value (date string for exactDate, number for numeric sub-ops) */
 const updateDateValue = async (filter: FilterType, value: any) => {
   if (isLocked.value) return
+  $e('a:filter-pinned:update-date-value')
   filter.value = value === '' || value === undefined ? null : value
   await saveFilter(filter)
 }
@@ -424,7 +442,7 @@ const toggleDropdown = (filterId: string) => {
     const filter = pinnedFilters.value.find((f) => f.id === filterId)
     if (filter && isDateType(filter)) {
       const seed = filter.value ? dayjs(filter.value as string) : null
-      datePagePageDate.value = seed && seed.isValid() ? seed : dayjs()
+      datePickerPageDate.value = seed && seed.isValid() ? seed : dayjs()
     }
   }
   searchQuery.value = ''
@@ -852,6 +870,7 @@ const unpinFilter = async (filter: FilterType) => {
                     :disabled="isLocked"
                     hide-details
                     dropdown-class-name="nc-pinned-date-sub-op-dropdown"
+                    data-testid="nc-pinned-date-sub-op-select"
                     @change="(val: string) => selectDateSubOp(filter, val)"
                   >
                     <a-select-option v-for="subOp in getDateSubOpList(filter)" :key="subOp.value" :value="subOp.value">
@@ -880,23 +899,24 @@ const unpinFilter = async (filter: FilterType) => {
                   <div v-if="NUMERIC_DATE_SUB_OPS.includes(filter.comparison_sub_op)" class="px-3 py-2">
                     <a-input-number
                       :value="filter.value"
-                      :min="0"
+                      :min="1"
                       :controls="false"
                       :parser="(v: string) => (v || '').replace(/[^\d]/g, '')"
                       :placeholder="t('placeholder.variableValue')"
                       class="!w-full !rounded-lg"
                       :disabled="isLocked"
+                      data-testid="nc-pinned-date-numeric-input"
                       @keydown="onNumericKeydown"
                       @update:value="(v: any) => updateDateValue(filter, v)"
                     />
                   </div>
                   <div v-else-if="filter.comparison_sub_op === 'exactDate'" class="py-1">
-                    <div class="w-full nc-pinned-date-picker">
+                    <div class="w-full nc-pinned-date-picker" data-testid="nc-pinned-date-picker">
                       <NcDatePicker
-                        v-model:page-date="datePagePageDate"
+                        v-model:page-date="datePickerPageDate"
                         :selected-date="filter.value ? dayjs(filter.value as string) : null"
                         :is-open="openFilterId === filter.id"
-                        :type="isDateMonthFormat(parseProp(getColumn(filter)?.meta)?.date_format || '') ? 'month' : 'date'"
+                        :type="getDatePickerType(filter)"
                         size="medium"
                         @update:selected-date="(d: any) => updateDateValue(filter, d ? dayjs(d).format('YYYY-MM-DD') : null)"
                       />
@@ -1012,7 +1032,7 @@ const unpinFilter = async (filter: FilterType) => {
  * the month/year grid to shrink to its content. Force the inner wrapper to span 100%.
  */
 .nc-pinned-date-picker {
-  :deep(.rounded-y-xl) {
+  :deep(.nc-month-year-grid) {
     @apply max-w-full w-full;
   }
 }

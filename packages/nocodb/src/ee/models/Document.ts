@@ -1091,9 +1091,10 @@ export default class Document extends DocumentCE implements DocumentType {
     return { root, tree, includeSubtree };
   }
 
-  // Per-request reachability check — walks the parent chain from docId
-  // up to scope.root.id, rejecting if any node in the chain has a
-  // DOCUMENT_VISIBILITY restriction. Scales with depth, not base size.
+  // Per-request reachability check — resolves the parent chain from
+  // docId up to (but not including) scope.root.id via a recursive CTE,
+  // then rejects if any node in the chain has a DOCUMENT_VISIBILITY
+  // restriction. Two queries regardless of depth.
   public static async isReachable(
     scope: ShareScope,
     docId: string,
@@ -1102,36 +1103,53 @@ export default class Document extends DocumentCE implements DocumentType {
     if (!scope.includeSubtree) return docId === scope.root.id;
     if (docId === scope.root.id) return true;
 
-    const chain: string[] = [];
-    let cursor: string | null = docId;
-    let reachedRoot = false;
+    const knex = ncMeta.knexConnection;
+    const chainRows = (await knex
+      .withRecursive(
+        'doc_chain',
+        knex.raw(
+          `SELECT id, parent_id, 0 AS depth FROM ??
+              WHERE id = ?
+                AND type = ?
+                AND fk_workspace_id = ?
+                AND base_id = ?
+                AND (deleted = ? OR deleted IS NULL)
+            UNION ALL
+            SELECT m.id, m.parent_id, c.depth + 1 FROM ?? m
+              INNER JOIN doc_chain c ON m.id = c.parent_id
+              WHERE c.depth < ?
+                AND m.id != ?
+                AND m.type = ?
+                AND m.fk_workspace_id = ?
+                AND m.base_id = ?
+                AND (m.deleted = ? OR m.deleted IS NULL)`,
+          [
+            MetaTable.MODELS,
+            docId,
+            ModelTypes.DOCUMENT,
+            scope.root.fk_workspace_id,
+            scope.root.base_id,
+            false,
+            MetaTable.MODELS,
+            MAX_ANCESTOR_WALK_DEPTH,
+            scope.root.id,
+            ModelTypes.DOCUMENT,
+            scope.root.fk_workspace_id,
+            scope.root.base_id,
+            false,
+          ],
+        ),
+      )
+      .select('id', 'parent_id')
+      .from('doc_chain')) as Array<{ id: string; parent_id: string | null }>;
 
-    for (let depth = 0; depth < MAX_ANCESTOR_WALK_DEPTH && cursor; depth++) {
-      chain.push(cursor);
-
-      const row = await ncMeta.metaGet2(
-        scope.root.fk_workspace_id,
-        scope.root.base_id,
-        MetaTable.MODELS,
-        { id: cursor, type: ModelTypes.DOCUMENT },
-        ['parent_id'],
-        notDeletedXcCondition,
-      );
-      if (!row) return false;
-
-      const parentId = (row.parent_id as string | null) ?? null;
-      if (parentId === scope.root.id) {
-        reachedRoot = true;
-        break;
-      }
-      if (!parentId) return false;
-      cursor = parentId;
-    }
+    if (!chainRows.length) return false;
+    const reachedRoot = chainRows.some((r) => r.parent_id === scope.root.id);
     if (!reachedRoot) return false;
 
     // Single PERMISSIONS lookup for the whole chain (doc + every
     // intermediate ancestor). Root itself is already vetted by
-    // getShareScope, so it's not in `chain`.
+    // getShareScope, so it's not in the chain.
     const restrictedRows = await ncMeta.metaList2(
       scope.root.fk_workspace_id,
       scope.root.base_id,
@@ -1141,7 +1159,7 @@ export default class Document extends DocumentCE implements DocumentType {
           entity: PermissionEntity.DOCUMENT,
           permission: PermissionKey.DOCUMENT_VISIBILITY,
         },
-        xcCondition: { entity_id: { in: chain } },
+        xcCondition: { entity_id: { in: chainRows.map((r) => r.id) } },
         fields: ['entity_id'],
       },
     );

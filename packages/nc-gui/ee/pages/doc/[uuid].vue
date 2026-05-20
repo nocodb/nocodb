@@ -24,6 +24,7 @@ const { isDark } = useTheme()
 const { appInfo } = useGlobal()
 
 const uuid = computed(() => route.params.uuid as string)
+// eslint-disable-next-line @typescript-eslint/no-use-before-define
 const activeDocId = computed(() => (route.query.p as string) || meta.value?.root?.id)
 
 const {

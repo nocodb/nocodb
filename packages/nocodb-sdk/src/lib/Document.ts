@@ -49,7 +49,7 @@ export interface DocumentShareMeta {
  * repeating optional-chain + `as any` casts at each site.
  */
 export function getDocShareMeta(
-  meta?: Record<string, any> | null,
+  meta?: Record<string, any> | null
 ): DocumentShareMeta {
   const share = (meta as { share?: DocumentShareMeta } | null | undefined)
     ?.share;

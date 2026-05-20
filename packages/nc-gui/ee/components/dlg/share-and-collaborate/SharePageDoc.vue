@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getDocShareMeta, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, getDocShareMeta } from 'nocodb-sdk'
 
 const { dashboardUrl } = useDashboard()
 

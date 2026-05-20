@@ -208,6 +208,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
           baseDocs.push(liteDoc as DocumentType)
           documents.value.set(baseId, [...baseDocs])
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           applyDocPatch(baseId, doc.id, liteDoc as Partial<DocumentType>)
         }
       }

@@ -91,6 +91,7 @@ const openShareModal = () => {
   // (the menu is anchored to the topbar and would otherwise overlap the
   // upper-right of the modal). Matches the pattern used by the download /
   // full-width / delete handlers below.
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   isPageMenuOpen.value = false
   showShareModal.value = true
 }
@@ -2236,12 +2237,7 @@ defineExpose({ editor })
              so the action is one click away (and discoverable) instead of
              living behind the 3-dot menu. Same gate + telemetry + handler
              as the menu entry, so the two stay aligned. -->
-        <NcTooltip
-          v-if="isCreatorOrAbove"
-          :title="$t('activity.share')"
-          placement="bottom"
-          class="flex"
-        >
+        <NcTooltip v-if="isCreatorOrAbove" :title="$t('activity.share')" placement="bottom" class="flex">
           <NcButton
             v-e="['c:doc:share:open']"
             size="small"

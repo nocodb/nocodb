@@ -40,13 +40,14 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const BASE_HAS_SHARES_TTL_SECONDS = 60 * 60;
 
 /**
- * TTL (seconds) for the uuid → root-doc cache used by `extract-ids` to
- * resolve `base_id` on public-share requests. Short enough that a
- * still-shared doc moved across bases would re-resolve quickly (not a
- * supported flow today, but cheap insurance); long enough that the
- * resolver isn't a hot DB query.
+ * TTL (seconds) for the uuid → doc cache consulted by `extract-ids` on
+ * every public-share request. Mirrors the existing share patterns — View
+ * and Dashboard look up by uuid uncached today, but docs see the same
+ * uuid repeatedly while a user reads a shared page so caching pays off.
+ * Short enough that drift from a hand-edited DB row self-heals; long
+ * enough that the lookup isn't a hot DB query.
  */
-const UUID_TO_DOC_TTL_SECONDS = 60 * 60;
+const DOC_BY_UUID_TTL_SECONDS = 60 * 60;
 
 /**
  * Resolved share-scope payload. `reachableDocIds` is the precomputed set of
@@ -625,7 +626,7 @@ export default class Document extends DocumentCE implements DocumentType {
     // Drop the uuid → doc cache so the middleware doesn't keep resolving
     // base_id off a freshly-deleted row.
     if (pre?.uuid) {
-      await NocoCache.del('root', this.uuidToDocKey(pre.uuid as string));
+      await NocoCache.del('root', this.uuidCacheKey(pre.uuid as string));
     }
 
     // Remove from both individual cache and parent list
@@ -664,7 +665,7 @@ export default class Document extends DocumentCE implements DocumentType {
     );
 
     if (docUuid) {
-      await NocoCache.del('root', this.uuidToDocKey(docUuid));
+      await NocoCache.del('root', this.uuidCacheKey(docUuid));
     }
 
     const key = `${CacheScope.DOCUMENT}:${docId}`;
@@ -717,7 +718,7 @@ export default class Document extends DocumentCE implements DocumentType {
           context,
           `${CacheScope.DOCUMENT}:share:${child.uuid}`,
         );
-        await NocoCache.del('root', this.uuidToDocKey(child.uuid as string));
+        await NocoCache.del('root', this.uuidCacheKey(child.uuid as string));
       }
     }
   }
@@ -884,80 +885,48 @@ export default class Document extends DocumentCE implements DocumentType {
   // (originally added for view share). Sharing a doc reuses the column
   // directly — no migration needed. Docs do not support password protection.
 
-  /** Lookup by public-share UUID (no auth context required — global bypass). */
+  /**
+   * Lookup by public-share UUID (no auth context required — global bypass).
+   *
+   * Cached under the global `'root'` namespace because `extract-ids` calls
+   * this on every public-share request before it can derive `base_id`, so
+   * a workspace/base-scoped key would force the very DB lookup we want to
+   * avoid. Holds the full MODELS row — content lives in DOC_CONTENT and is
+   * fetched separately, so it never enters this cache.
+   */
   public static async getByUUID(
     _context: NcContext,
     uuid: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Document | null> {
-    const row = await ncMeta.metaGet2(
-      RootScopes.FULL_BYPASS,
-      RootScopes.FULL_BYPASS,
-      MetaTable.MODELS,
-      { uuid, type: ModelTypes.DOCUMENT },
-      undefined,
-      notDeletedXcCondition,
-    );
+    const key = this.uuidCacheKey(uuid);
 
-    if (!row) return null;
+    let row = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
+
+    if (!row) {
+      row = await ncMeta.metaGet2(
+        RootScopes.FULL_BYPASS,
+        RootScopes.FULL_BYPASS,
+        MetaTable.MODELS,
+        { uuid, type: ModelTypes.DOCUMENT },
+        undefined,
+        notDeletedXcCondition,
+      );
+
+      if (!row) return null;
+
+      await NocoCache.setExpiring('root', key, row, DOC_BY_UUID_TTL_SECONDS);
+    }
+
     return new Document(this.parseDocument(row));
   }
 
   /**
-   * Cache key for the uuid → doc-identity resolver used by `extract-ids` on
-   * public-share requests. Kept under the global `'root'` cache namespace
-   * because the middleware has no `base_id` yet — that's what it's trying
-   * to derive — so a workspace/base-scoped key would force the very DB
-   * lookup we're trying to avoid.
+   * Cache key for the uuid → doc lookup. Lives under the global `'root'`
+   * cache namespace — see `getByUUID` for the rationale.
    */
-  private static uuidToDocKey(uuid: string): string {
+  private static uuidCacheKey(uuid: string): string {
     return `${CacheScope.DOCUMENT}:uuid:${uuid}`;
-  }
-
-  /**
-   * Resolve the workspace/base/doc identity of a shared doc by UUID, cached
-   * under the global `'root'` namespace. Used by `extract-ids` middleware
-   * to populate `req.ncBaseId` before any context-scoped cache is reachable.
-   *
-   * Returns `null` if the uuid is unknown or the doc is soft-deleted. TTL
-   * is `UUID_TO_DOC_TTL_SECONDS`; explicit invalidation on share/unshare/
-   * cascade keeps the common case fast.
-   */
-  public static async resolveBaseByUUID(
-    uuid: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<{
-    id: string;
-    base_id: string;
-    fk_workspace_id: string;
-  } | null> {
-    const key = this.uuidToDocKey(uuid);
-    const cached = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
-    if (cached?.id) {
-      return {
-        id: cached.id,
-        base_id: cached.base_id,
-        fk_workspace_id: cached.fk_workspace_id,
-      };
-    }
-
-    const row = await ncMeta.metaGet2(
-      RootScopes.FULL_BYPASS,
-      RootScopes.FULL_BYPASS,
-      MetaTable.MODELS,
-      { uuid, type: ModelTypes.DOCUMENT },
-      ['id', 'base_id', 'fk_workspace_id'],
-      notDeletedXcCondition,
-    );
-    if (!row) return null;
-
-    const identity = {
-      id: row.id as string,
-      base_id: row.base_id as string,
-      fk_workspace_id: row.fk_workspace_id as string,
-    };
-    await NocoCache.setExpiring('root', key, identity, UUID_TO_DOC_TTL_SECONDS);
-    return identity;
   }
 
   /**
@@ -1042,19 +1011,6 @@ export default class Document extends DocumentCE implements DocumentType {
         context,
         `${CacheScope.DOCUMENT}:share:${fresh.uuid}`,
       );
-
-      // Seed the uuid → doc cache so the next public request resolves
-      // base_id from cache instead of an extract-ids DB round-trip.
-      await NocoCache.setExpiring(
-        'root',
-        this.uuidToDocKey(fresh.uuid),
-        {
-          id: fresh.id,
-          base_id: fresh.base_id,
-          fk_workspace_id: fresh.fk_workspace_id,
-        },
-        UUID_TO_DOC_TTL_SECONDS,
-      );
     }
 
     // Set the per-base "has any share" flag so subsequent doc mutations
@@ -1096,7 +1052,7 @@ export default class Document extends DocumentCE implements DocumentType {
     );
     if (doc?.uuid) {
       await NocoCache.del(context, `${CacheScope.DOCUMENT}:share:${doc.uuid}`);
-      await NocoCache.del('root', this.uuidToDocKey(doc.uuid));
+      await NocoCache.del('root', this.uuidCacheKey(doc.uuid));
     }
     await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
 

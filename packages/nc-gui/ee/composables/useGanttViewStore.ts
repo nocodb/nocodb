@@ -162,12 +162,12 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           fk_to_col: toCol,
           fk_dependency_col: depCol,
           // DateDependency only accepts hm/om/oo self-relations. For those
-          // shapes, nestedList returns the current row's CHILDREN. The dialog
-          // labels the field as a "Predecessor Link" and sets
-          // `dependency_linkrow_role = 'predecessors'`, but in practice users
-          // store successor-pointing values (Task-1.NextTask → Task-2). The
-          // cascade logic on the backend respects the role; the arrow render
-          // follows the observed data semantics (linked = successor).
+          // shapes, nestedList returns the current row's CHILDREN — and in
+          // practice users store successor-pointing values
+          // (Task-1.Successor → Task-2). The dialog labels the field as
+          // "Successor Link" to match. The arrow render follows the
+          // observed data semantics (linked child = successor) regardless
+          // of the dependency_linkrow_role flag.
           dependency_direction: 'successor',
           id: `${dep.fk_start_date_field_id}_${dep.fk_end_date_field_id ?? 'none'}`,
           is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),

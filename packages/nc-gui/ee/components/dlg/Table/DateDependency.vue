@@ -42,6 +42,12 @@ const defaultForm: DateDependencyReqType = {
   fk_end_date_field_id: null,
   fk_duration_field_id: null,
   fk_dependency_linkrow_field_id: null,
+  // The dialog labels the link slot "Successor Link" (en.json
+  // labels.dateDependency.linkRowField), so the role must default to
+  // 'successors' to match. The DB column default is still 'predecessors'
+  // for legacy reasons (nc_202603090002_date_dependency migration);
+  // sending an explicit role here makes new rules align with the label.
+  dependency_linkrow_role: 'successors',
   dependency_connection_type: 'end-to-start',
   dependency_buffer_type: 'none',
   dependency_buffer_days: 0,

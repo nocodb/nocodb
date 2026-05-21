@@ -92,6 +92,7 @@ export const ButtonCellRenderer: CellRenderer = {
       t,
       rowMeta,
       getColor,
+      isDark,
     } = props
 
     const isQueued = actionManager.isQueued(pk, column.id!)
@@ -177,7 +178,9 @@ export const ButtonCellRenderer: CellRenderer = {
     if (isHovered) props.setCursor('pointer')
 
     if (disabledState) {
-      ctx.globalAlpha = buttonMeta.theme === 'solid' ? 0.3 : 0.5
+      // Dark mode reads the alpha against a dark row bg, so the same 0.3 isn't
+      // enough visual contrast — drop it further for solid in dark mode.
+      ctx.globalAlpha = buttonMeta.theme === 'solid' ? (isDark ? 0.15 : 0.3) : 0.5
     }
 
     ctx.beginPath()
@@ -305,12 +308,7 @@ export const ButtonCellRenderer: CellRenderer = {
     // Copy-form-URL icon tooltip (OpenForm only) — only when the icon is
     // actually drawn (matches the render gate), so hovering empty space in a
     // disabled column doesn't surface a misleading tooltip.
-    if (
-      copyIconRect &&
-      mousePosition &&
-      !cellRenderStore?.copyIconHidden &&
-      isBoxHovered(copyIconRect, mousePosition)
-    ) {
+    if (copyIconRect && mousePosition && !cellRenderStore?.copyIconHidden && isBoxHovered(copyIconRect, mousePosition)) {
       tryShowTooltip({ rect: copyIconRect, mousePosition, text: t('activity.copyUrl') })
       return
     }

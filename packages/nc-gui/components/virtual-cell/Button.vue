@@ -165,15 +165,6 @@ const isLinkedFormViewShared = computed(() => {
   return !!linked?.uuid
 })
 
-// Tooltip shown when OpenForm is disabled because the viewer lacks dataEdit.
-// Suppressed in public shared views — everything is already gated there.
-const openFormNoEditPermissionTooltip = computed(() => {
-  if (column.value?.colOptions?.type !== ButtonActionsType.OpenForm) return ''
-  if (isPublic.value) return ''
-  if (isUIAllowed('dataEdit')) return ''
-  return t('msg.error.openFormButtonNoEditPermission')
-})
-
 const baseStore = useBase()
 const { getBaseType } = baseStore
 const { metas } = useMetas()
@@ -248,9 +239,7 @@ const componentProps = computed(() => {
           column.value?.id &&
           generatingColumnRows.value.includes(column.value.id)),
     }
-  }
-
-  else if (column.value.colOptions.type === ButtonActionsType.OpenForm) {
+  } else if (column.value.colOptions.type === ButtonActionsType.OpenForm) {
     return {
       disabled:
         filterDisabled ||
@@ -445,13 +434,13 @@ const triggerAction = async () => {
     :class="{
       'justify-center': isGrid && !isExpandedForm,
     }"
-    class="w-full flex items-center gap-1.5"
+    class="nc-virtual-cell-button w-full flex items-center gap-1.5"
   >
     <NcTooltip
       :disabled="
         isAiButtonType
           ? (isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')) && !filterDisabledTooltip
-          : !invalidUrlTooltip && !afterActionStatus?.tooltip && !filterDisabledTooltip && !openFormNoEditPermissionTooltip
+          : !invalidUrlTooltip && !afterActionStatus?.tooltip && !filterDisabledTooltip
       "
       class="flex"
     >
@@ -463,7 +452,7 @@ const triggerAction = async () => {
             ? aiIntegrations.length
               ? $t('tooltip.aiIntegrationReConfigure')
               : $t('tooltip.aiIntegrationAddAndReConfigure')
-            : openFormNoEditPermissionTooltip || afterActionStatus?.tooltip || invalidUrlTooltip
+            : afterActionStatus?.tooltip || invalidUrlTooltip
         }}
       </template>
       <component
@@ -507,13 +496,13 @@ const triggerAction = async () => {
       v-if="isOpenFormButton && !isPublic && !componentProps.disabled"
       ref="copyBtnRef"
       type="secondary"
-      size="xsmall"
+      :size="isExpandedForm ? 'small' : 'xsmall'"
       :bordered="true"
       :timeout="1200"
       class="nc-open-form-copy-btn flex-none"
       :class="{ 'nc-copy-hover-only': !isExpandedForm }"
       data-testid="nc-open-form-copy-url"
-      @click="handleCopyFormEditUrl"
+      @click.prevent="handleCopyFormEditUrl"
     />
   </div>
 </template>

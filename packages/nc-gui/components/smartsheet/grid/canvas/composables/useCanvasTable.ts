@@ -478,6 +478,10 @@ export function useCanvasTable({
           col: f,
           aiIntegrations: aiIntegrations.value,
           isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+          // Only the canvas passes this — disables OpenForm for viewers
+          // without flagging the column header as misconfigured (Menu.vue
+          // intentionally omits this param).
+          hasEditPermission: isDataEditAllowed.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
           views: tableViews,

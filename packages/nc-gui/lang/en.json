@@ -3941,7 +3941,6 @@
       "openFormButtonNoFormView": "No form view is linked to this button.",
       "openFormButtonFormDeleted": "The form view linked to this button no longer exists.",
       "openFormButtonFormUnshared": "The form view linked to this button is not shared publicly.",
-      "openFormButtonNoEditPermission": "You don't have permission to edit records in this table.",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",

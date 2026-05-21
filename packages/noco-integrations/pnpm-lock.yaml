@@ -8,7 +8,7 @@ overrides:
   tough-cookie@<4.1.3: '>=4.1.3'
   happy-dom@<15.10.2: '>=15.10.2'
   esbuild@<=0.24.2: '>=0.25.0'
-  axios@>=1.0.0 <1.15.2: '>=1.15.2'
+  axios@>=1.0.0 <1.16.0: '>=1.16.0'
   uuid@>=11.0.0 <11.1.1: ^11.1.1
   postcss@<8.5.10: '>=8.5.10'
 
@@ -144,7 +144,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -163,7 +163,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       '@types/node':
@@ -179,7 +179,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -198,7 +198,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       '@types/node':
@@ -214,7 +214,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -233,7 +233,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       mime:
         specifier: ^4.1.0
@@ -252,7 +252,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       typescript:
@@ -381,7 +381,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -400,7 +400,7 @@ importers:
         specifier: workspace:*
         version: link:../dropbox-auth
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       mime:
         specifier: ^4.1.0
@@ -419,7 +419,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       typescript:
@@ -435,7 +435,7 @@ importers:
         specifier: workspace:*
         version: link:../freshdesk-auth
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       typescript:
@@ -451,7 +451,7 @@ importers:
         specifier: ^11.0.3
         version: 11.0.3(@octokit/core@5.2.1)
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       octokit:
         specifier: 3.2.2
@@ -508,7 +508,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -568,7 +568,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       googleapis:
         specifier: ^169.0.0
@@ -606,7 +606,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -625,7 +625,7 @@ importers:
         specifier: workspace:*
         version: link:../google-drive-auth
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       mime:
         specifier: ^4.1.0
@@ -644,7 +644,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       googleapis:
         specifier: ^169.0.0
@@ -707,7 +707,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -739,7 +739,7 @@ importers:
         specifier: workspace:*
         version: link:../hubspot-auth
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       mime:
         specifier: ^4.1.0
@@ -758,7 +758,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -790,7 +790,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -809,7 +809,7 @@ importers:
         specifier: workspace:*
         version: link:../linear-auth
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       nocodb-sdk:
         specifier: file:../../../nocodb-sdk
@@ -831,7 +831,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -1007,7 +1007,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -1086,7 +1086,7 @@ importers:
         specifier: ^7.11.0
         version: 7.13.0
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -1178,7 +1178,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:
@@ -1197,7 +1197,7 @@ importers:
         specifier: workspace:*
         version: link:../zendesk-auth
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       typescript:
@@ -1210,7 +1210,7 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       rimraf:

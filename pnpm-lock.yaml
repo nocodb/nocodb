@@ -13,7 +13,7 @@ overrides:
   '@babel/traverse@<7.23.2': '>=7.23.2'
   ajv@<6.12.3: '>=6.12.3'
   axios@>=0.8.1 <0.28.0: '>=0.28.0'
-  axios@>=1.0.0 <1.15.2: '>=1.15.2'
+  axios@>=1.0.0 <1.16.0: '>=1.16.0'
   uuid@>=11.0.0 <11.1.1: ^11.1.1
   mermaid@>=11.0.0-alpha.1 <11.15.0: ^11.15.0
   next@<15.5.18: ^15.5.18
@@ -1024,7 +1024,7 @@ importers:
         specifier: ^2.2.7
         version: 2.2.7
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1(debug@4.4.1)
       bcryptjs:
         specifier: ^2.4.3
@@ -1544,7 +1544,7 @@ importers:
         specifier: ^8.3.4
         version: 8.3.4
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       chevrotain:
         specifier: ^10.5.0
@@ -1641,7 +1641,7 @@ importers:
   packages/nocodb-sdk-v2:
     dependencies:
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
     devDependencies:
       '@biomejs/biome':
@@ -1697,7 +1697,7 @@ importers:
         specifier: ^6.1.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.8.3)
       axios:
-        specifier: '>=1.15.2'
+        specifier: '>=1.16.0'
         version: 1.16.1
       dotenv:
         specifier: ^16.5.0
@@ -10106,7 +10106,7 @@ packages:
     resolution: {integrity: sha512-Y5hCGBguN+vuVYTZmdd/IMXLOdfS60zAmDmFYc4BKBcMUPZH1n4tdyDECCPjXm0bNT3ZRUy1xzTLGaUje8Xyaw==}
     peerDependencies:
       async-validator: ^4
-      axios: '>=1.15.2'
+      axios: '>=1.16.0'
       change-case: ^4
       drauu: ^0.3
       focus-trap: ^7
@@ -13569,15 +13569,6 @@ packages:
 
   focus-trap@7.5.4:
     resolution: {integrity: sha512-N7kHdlgsO/v+iD/dMoJKtsSqs5Dz/dXZVebRgJw23LDk+jMi/974zyiOYDziY2JPp8xivq9BmUGwIJMiuSBi7w==}
-
-  follow-redirects@1.15.11:
-    resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
 
   follow-redirects@1.16.0:
     resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
@@ -33798,7 +33789,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.8.3)
       '@typescript-eslint/utils': 6.21.0(eslint@8.57.1)(typescript@5.8.3)
-      debug: 4.4.1
+      debug: 4.4.3
       eslint: 8.57.1
       ts-api-utils: 1.0.2(typescript@5.8.3)
     optionalDependencies:
@@ -33830,7 +33821,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/visitor-keys': 6.21.0
-      debug: 4.4.1
+      debug: 4.4.3
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
@@ -38692,10 +38683,6 @@ snapshots:
       tabbable: 6.4.0
     optional: true
 
-  follow-redirects@1.15.11(debug@4.4.1):
-    optionalDependencies:
-      debug: 4.4.1
-
   follow-redirects@1.16.0: {}
 
   follow-redirects@1.16.0(debug@4.4.1):
@@ -39635,7 +39622,7 @@ snapshots:
   http-proxy@1.18.1(debug@4.4.1):
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.15.11(debug@4.4.1)
+      follow-redirects: 1.16.0(debug@4.4.1)
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug

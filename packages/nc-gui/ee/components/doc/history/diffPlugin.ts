@@ -61,6 +61,15 @@ export type DocDiffChange =
       tooltip: string
     }
   | {
+      type: 'format-node'
+      from: number
+      to: number
+      stepIndex: number
+      /** Tooltip text (e.g. "Marked complete") shown on hover via the
+       *  existing `data-nc-mark-diff` floating-tooltip plumbing. */
+      tooltip: string
+    }
+  | {
       type: 'delete'
       from: number
       to: number
@@ -253,6 +262,79 @@ function describeMarkDiff(
   })
 
   return parts.join(' · ')
+}
+
+/**
+ * Detect `taskItem` checkbox toggles between revisions. Like the mark diff,
+ * this is a same-content/different-attr change that `prosemirror-changeset`
+ * matches as unchanged (atoms and node attrs aren't compared by the
+ * library). We walk the stable gaps and pair task items at the same
+ * relative position; if their `checked` attr differs, emit a node-level
+ * decoration so the line picks up the amber wash on render.
+ *
+ * Why "stable gaps only": when text or structure inside a task line
+ * changed, the changeset already reports an insert / delete covering that
+ * range and the task item's position isn't reliably paired across the
+ * boundary. Restricting to stable gaps guarantees the position pairing
+ * is meaningful.
+ */
+function findTaskItemToggles(
+  fromDoc: PMNode,
+  toDoc: PMNode,
+  changeset: ChangeSet,
+): { from: number; to: number; tooltip: string }[] {
+  const sortedChanges = [...changeset.changes].sort((a, b) => a.fromB - b.fromB)
+  const gaps: { fromA: number; toA: number; fromB: number; toB: number }[] = []
+  let prevA = 0
+  let prevB = 0
+  for (const c of sortedChanges) {
+    if (c.fromA > prevA && c.fromB > prevB) {
+      gaps.push({ fromA: prevA, toA: c.fromA, fromB: prevB, toB: c.fromB })
+    }
+    prevA = c.toA
+    prevB = c.toB
+  }
+  if (fromDoc.content.size > prevA && toDoc.content.size > prevB) {
+    gaps.push({
+      fromA: prevA,
+      toA: fromDoc.content.size,
+      fromB: prevB,
+      toB: toDoc.content.size,
+    })
+  }
+
+  const out: { from: number; to: number; tooltip: string }[] = []
+
+  for (const gap of gaps) {
+    if (gap.toA - gap.fromA !== gap.toB - gap.fromB) continue
+    const offset = gap.fromB - gap.fromA
+
+    toDoc.nodesBetween(gap.fromB, gap.toB, (toNode, posB) => {
+      if (toNode.type.name !== 'taskItem') return true
+      // Look up the corresponding fromDoc node at the paired position.
+      // `nodeAt` returns the node that starts exactly at `pos` — for a
+      // stable gap that should be the same task item type.
+      const posA = posB - offset
+      if (posA < gap.fromA || posA >= gap.toA) return false
+      const fromNode = fromDoc.nodeAt(posA)
+      if (!fromNode || fromNode.type.name !== 'taskItem') return false
+
+      const toChecked = !!toNode.attrs.checked
+      const fromChecked = !!fromNode.attrs.checked
+      if (toChecked === fromChecked) return false
+
+      out.push({
+        from: posB,
+        to: posB + toNode.nodeSize,
+        tooltip: toChecked ? 'Marked complete' : 'Marked incomplete',
+      })
+      // Don't descend into children — nested task items would be picked up
+      // by the outer walk on their own.
+      return false
+    })
+  }
+
+  return out
 }
 
 /**
@@ -536,6 +618,21 @@ function findChanges(
   for (const range of formatRanges) {
     changes.push({
       type: 'format',
+      from: range.from,
+      to: range.to,
+      tooltip: range.tooltip,
+      stepIndex: steps.length,
+    })
+    steps.push({ from: range.from })
+  }
+
+  // Task-item checkbox toggles — node-level attr changes the changeset
+  // misses for the same reason as mark-only changes. Emits a format-node
+  // decoration that lights up the whole task line in amber.
+  const toggleRanges = findTaskItemToggles(fromDoc, toDoc, changeset)
+  for (const range of toggleRanges) {
+    changes.push({
+      type: 'format-node',
       from: range.from,
       to: range.to,
       tooltip: range.tooltip,
@@ -932,6 +1029,21 @@ function buildDecorations(
       // the OS-controlled `title` tooltip.
       decorations.push(
         Decoration.inline(change.from, change.to, {
+          class: isCurrent
+            ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current'
+            : 'nc-doc-history-diff-format',
+          'data-nc-mark-diff': change.tooltip,
+        }),
+      )
+      return
+    }
+
+    if (change.type === 'format-node') {
+      // Amber wash on a whole node (e.g., a task-item line whose `checked`
+      // attr flipped). Uses the same class so the floating tooltip handler
+      // in Viewer.vue picks it up via `closest()` like inline format diffs.
+      decorations.push(
+        Decoration.node(change.from, change.to, {
           class: isCurrent
             ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current'
             : 'nc-doc-history-diff-format',

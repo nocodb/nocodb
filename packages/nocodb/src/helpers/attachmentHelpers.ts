@@ -6,11 +6,15 @@ import { PublicAttachmentScope } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import moment from 'dayjs';
 import hash from 'object-hash';
+import type { Response } from 'express';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
-import { isSecureAttachmentEnabled } from '~/utils';
+import type { AttachmentsService } from '~/services/attachments.service';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { PresignedUrl } from '~/models';
+import { isSecureAttachmentEnabled } from '~/utils';
 
 export const imageMimeTypes = [
   'image/aces',
@@ -281,3 +285,78 @@ export const constructFilePath = (
     storageDest: slash(path.join(destPath, param.fileName)),
   } as AttachmentFilePathConstructed;
 };
+
+// path.join normalises ".." but doesn't prevent escape — verify explicitly.
+export function sanitizeAttachmentStoragePath(joined: string): string {
+  const resolved = path.resolve(joined);
+  const base = path.resolve('nc', 'uploads');
+  if (!resolved.startsWith(base + path.sep) && resolved !== base) {
+    throw new Error('Invalid attachment path');
+  }
+  return joined;
+}
+
+export interface ServeStoredAttachmentOptions {
+  // Caps how long a revoked share can still resolve the file once the
+  // signed URL has left the proxy. Defaults to 5 min.
+  signedUrlTtlSeconds?: number;
+  cacheControl: string;
+  attachmentsService: Pick<AttachmentsService, 'getFile'>;
+}
+
+// Shared between authed AttachmentProxy and anonymous PublicDocs share.
+// External storage → 302 to signed URL; local → stream directly.
+export async function serveStoredAttachment(
+  res: Response,
+  fileUrl: string,
+  opts: ServeStoredAttachmentOptions,
+): Promise<void | Response> {
+  const storageAdapter = await NcPluginMgrv2.storageAdapter();
+  const isExternalStorage =
+    typeof (storageAdapter as any).getSignedUrl === 'function';
+
+  if (isExternalStorage) {
+    const isUrl = /^https?:\/\//i.test(fileUrl);
+
+    let pathOrUrl = fileUrl;
+    if (!isUrl) {
+      const stripped = fileUrl.replace(/^download\//, '');
+      pathOrUrl = sanitizeAttachmentStoragePath(
+        path.join('nc', 'uploads', stripped),
+      );
+    }
+
+    const signedUrl = await PresignedUrl.getSignedUrl({
+      pathOrUrl,
+      preview: true,
+      ...(opts.signedUrlTtlSeconds !== undefined && {
+        expireSeconds: opts.signedUrlTtlSeconds,
+      }),
+    });
+
+    res.setHeader('Cache-Control', opts.cacheControl);
+    return res.redirect(302, signedUrl);
+  }
+
+  const stripped = fileUrl.replace(/^download\//, '');
+
+  try {
+    const file = await opts.attachmentsService.getFile({
+      path: sanitizeAttachmentStoragePath(path.join('nc', 'uploads', stripped)),
+    });
+
+    if (!(await localFileExists(file.path))) {
+      return res.status(404).send('File not found');
+    }
+
+    res.setHeader('Cache-Control', opts.cacheControl);
+
+    if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
+      res.sendFile(file.path);
+    } else {
+      res.download(file.path);
+    }
+  } catch {
+    res.status(404).send('Not found');
+  }
+}

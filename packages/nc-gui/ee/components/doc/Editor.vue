@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, PlanFeatureTypes, ProjectRoles, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -84,6 +84,24 @@ const { createDocument, deleteDocument, loadDocument, updateDocument } = documen
 const { $e } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 
+const { showShareModal } = storeToRefs(useShare())
+
+const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermissions } = useEeConfig()
+
+const openShareModal = () => {
+  // Close the page menu first so it doesn't sit behind the share dialog
+  // (the menu is anchored to the topbar and would otherwise overlap the
+  // upper-right of the modal). Matches the pattern used by the download /
+  // full-width / delete handlers below.
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  isPageMenuOpen.value = false
+  // Gate public-share behind license/plan: unlicensed On-Prem (and CE,
+  // which never reaches this since the button is hidden) routes to the
+  // upgrade modal instead of opening the share dialog.
+  if (showUpgradeToShareDoc()) return
+  showShareModal.value = true
+}
+
 const { isDark } = useTheme()
 
 const docColorVars = computed(() => buildColorCssVars(isDark.value))
@@ -103,11 +121,6 @@ const hasSubDocuments = computed(
 )
 
 const base = inject(ProjectInj, ref())
-
-const isCreatorOrAbove = computed(() => {
-  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
-  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
-})
 
 /**
  * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
@@ -1848,7 +1861,10 @@ const onDeletePage = () => {
 
 const onPagePermissions = () => {
   isPageMenuOpen.value = false
+
   if (!base.value?.id) return
+
+  if (showUpgradeToUseDocumentPermissions()) return
 
   const wsId = route.params.typeOrId
   navigateTo(`/${wsId}/${base.value.id}/settings/docs-permissions`)
@@ -2221,6 +2237,25 @@ defineExpose({ editor })
             <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
           </NcButton>
         </NcTooltip>
+        <!-- Share — icon-only mirror of the menu's Share item. Hoisted out
+             so the action is one click away (and discoverable) instead of
+             living behind the 3-dot menu. Same gate + telemetry + handler
+             as the menu entry, so the two stay aligned. -->
+        <NcTooltip v-if="isUIAllowed('documentCreate')" :title="$t('activity.share')" placement="bottom" class="flex">
+          <NcButton
+            v-e="['c:doc:share:open']"
+            size="small"
+            type="text"
+            data-testid="nc-doc-page-share-btn"
+            @click="(event) => { openShareModal(); (event.currentTarget as HTMLElement)?.blur() }"
+          >
+            <!-- Blur the button after opening the modal: Ant restores focus
+                 to the trigger when the modal closes, which leaves a blue
+                 focus-visible ring lingering on the icon. Pre-emptively
+                 dropping focus means there's nothing to restore to. -->
+            <GeneralIcon icon="ncShare" />
+          </NcButton>
+        </NcTooltip>
         <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
           <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
             <GeneralIcon icon="threeDotVertical" />
@@ -2230,6 +2265,19 @@ defineExpose({ editor })
               <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
                 <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
                 {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isUIAllowed('documentCreate')"
+                v-e="['c:doc:share:open']"
+                inner-class="w-full"
+                data-testid="nc-doc-page-share"
+                @click="openShareModal"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncShare" />
+                <span class="flex-1">
+                  {{ $t('activity.share') }}
+                </span>
+                <PaymentUpgradeBadge :feature-enabled-callback="() => !blockDocShare" class="-mr-1" remove-click />
               </NcMenuItem>
               <NcDivider />
               <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
@@ -2285,13 +2333,17 @@ defineExpose({ editor })
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
               </NcMenuItem>
               <NcMenuItem
-                v-if="isCreatorOrAbove"
+                v-if="isUIAllowed('documentCreate')"
                 v-e="['c:doc:permissions']"
                 data-testid="nc-doc-page-permissions"
+                inner-class="w-full"
                 @click="onPagePermissions"
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncLock" />
-                {{ $t('title.pagePermissions') }}
+                <span class="flex-1">
+                  {{ $t('title.pagePermissions') }}
+                </span>
+                <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
               </NcMenuItem>
               <NcDivider />
               <NcSubMenu key="download" variant="small">
@@ -2961,6 +3013,11 @@ defineExpose({ editor })
       @close="isCommentsPanelOpen = false"
       @clear-pending-selection="pendingInlineCommentSelection = null"
     />
+
+    <!-- Share modal mount point — keeps the share-and-collaborate dialog
+         available when the doc page is open. The dispatcher renders the doc
+         branch when activeDocument is set. -->
+    <LazyDlgShareAndCollaborateView v-if="!embedded && !isCellMode" />
   </div>
 </template>
 
@@ -3340,7 +3397,10 @@ defineExpose({ editor })
 
 // Page actions — floats at top-right of editor area, outside scroll flow
 .nc-doc-page-menu {
-  @apply h-[var(--topbar-height)] flex items-center gap-2 absolute top-0 right-3 z-20;
+  // gap-0.5 (2px) keeps the action cluster tight now that Share has been
+  // promoted out of the menu — three icon buttons sit side-by-side in the
+  // topbar, gap-2 (8px) made the group feel sparse.
+  @apply h-[var(--topbar-height)] flex items-center gap-0.5 absolute top-0 right-3 z-20;
 }
 
 .nc-doc-page-menu-left {

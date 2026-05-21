@@ -1,7 +1,16 @@
 import { ModelTypes } from 'nocodb-sdk';
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
+import { v4 as uuidv4 } from 'uuid';
 import DocumentCE from 'src/models/Document';
-import type { DocumentType, NcContext } from 'nocodb-sdk';
+import { getDocShareMeta } from 'nocodb-sdk';
+import type {
+  DocumentType,
+  NcContext,
+  PublicDocChildNode,
+  PublicDocLiteNode,
+  PublicDocTreeNode,
+} from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -9,41 +18,43 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { notDeletedXcCondition } from '~/utils/trashUtils';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
-/**
- * Data model for Documents (stored in nc_models_v2 with type='document').
- *
- * Document metadata lives in `nc_models_v2` (via ncMeta) while content
- * (ProseMirror JSON) lives in `nc_doc_content_v2` (via ncDocsContent).
- * When `NC_DOCS_DB` is not set, both resolve to the same meta connection.
- *
- * The DB column `doc_version` is mapped to `version` on the model/SDK side.
- *
- * JSON fields (content, meta) are stringified for DB storage and parsed on read
- * via `parseDocument()`. Cache invalidation uses `del` on update (not `update`) to
- * avoid storing stringified JSON in the cache layer.
- */
+const DOC_BY_UUID_TTL_SECONDS = 60 * 60;
+
+export interface ShareScope {
+  root: Document;
+  tree: PublicDocTreeNode[];
+  includeSubtree: boolean;
+}
+
+// Defensive cap on the ancestor walk in isReachable — guarantees
+// termination on a malformed parent chain. Document nesting in practice
+// is shallow.
+const MAX_ANCESTOR_WALK_DEPTH = 64;
+
+// Metadata lives in nc_models_v2; content (ProseMirror JSON) lives in
+// nc_doc_content_v2 — see Noco.ncDocsContent. `doc_version` column maps
+// to `version` on the model.
 export default class Document extends DocumentCE implements DocumentType {
   constructor(doc: Document | DocumentType) {
     super(doc);
     Object.assign(this, doc);
   }
 
-  /** Base condition to scope queries to documents only. */
   private static get typeCondition() {
     return { type: ModelTypes.DOCUMENT };
   }
 
-  /**
-   * Get document metadata only (no content). Safe to use inside transactions
-   * because it does not query the satellite docs-content DB.
-   */
+  // Metadata only — does not query the satellite docs-content DB, so safe
+  // inside transactions.
   public static async getMeta(
     context: NcContext,
     docId: string,
@@ -79,7 +90,6 @@ export default class Document extends DocumentCE implements DocumentType {
   ) {
     const doc = await this.getMeta(context, docId, ncMeta);
 
-    // Fetch content separately from content service
     if (doc) {
       const contentRow = await Noco.ncDocsContent.metaGet2(
         context.workspace_id,
@@ -94,12 +104,7 @@ export default class Document extends DocumentCE implements DocumentType {
     return doc;
   }
 
-  /**
-   * Full list — includes content fetched from the separate content table.
-   * Used for tests and bulk export. For sidebar use `listLite()` instead.
-   *
-   * @param parentId — `null` (default) for root documents, doc ID for children.
-   */
+  // Full list (with content). For sidebar use listLite() instead.
   public static async list(
     context: NcContext,
     baseId: string,
@@ -148,13 +153,9 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * Lightweight list for sidebar — excludes `content` to avoid
-   * transferring large ProseMirror JSON payloads.
-   *
-   * @param parentId — `null` for root documents, doc ID for children,
-   *   `undefined` to list all documents across all hierarchy levels.
-   */
+  // Sidebar list — strips `content` but keeps `uuid` so the share toggle
+  // state survives a sidebar refresh. parentId: null=root, string=children,
+  // undefined=all levels.
   public static async listLite(
     context: NcContext,
     baseId: string,
@@ -171,6 +172,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'parent_id',
       'has_children',
       'doc_version',
+      'uuid',
       'created_by',
       'updated_by',
       'created_at',
@@ -204,10 +206,6 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * Batch-fetch lightweight docs for multiple parent IDs in a single query.
-   * Used to check has_children visibility without N+1 listLite calls.
-   */
   public static async listLiteByParentIds(
     context: NcContext,
     baseId: string,
@@ -226,6 +224,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'parent_id',
       'has_children',
       'doc_version',
+      'uuid',
       'created_by',
       'updated_by',
       'created_at',
@@ -261,11 +260,8 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * List ALL documents for a base (lightweight — no content, no parent_id filter).
-   * Returns a flat list of every non-deleted doc. Used by the permissions
-   * settings page to render the full doc tree in a single request.
-   */
+  // Flat list of every non-deleted doc in a base (no content). Used by the
+  // permissions page to render the full doc tree in one request.
   public static async listAllLite(
     context: NcContext,
     baseId: string,
@@ -281,6 +277,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'parent_id',
       'has_children',
       'doc_version',
+      'uuid',
       'created_by',
       'updated_by',
       'created_at',
@@ -307,13 +304,8 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * Load the given docs (by id) with their content. Pagination is the
-   * caller's responsibility — pass a bounded slice of ids so only that
-   * slice's metadata + content is held in memory at a time. Used by export
-   * to stream through all documents in a base without buffering every
-   * ProseMirror payload at once.
-   */
+  // Pagination is the caller's responsibility — used by export to stream
+  // through docs without buffering every ProseMirror payload at once.
   public static async listWithContent(
     context: NcContext,
     docIds: string[],
@@ -488,11 +480,22 @@ export default class Document extends DocumentCE implements DocumentType {
       );
     }
 
-    // Invalidate cache — updateObj contains stringified JSON fields
-    // that would corrupt the cache if written directly.
-    // The subsequent get() will re-fetch from DB and cache the parsed result.
+    // Invalidate, don't update — updateObj has stringified JSON fields.
     const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.del(context, key);
+
+    // Drop the uuid→doc cache if this doc is publicly shared so public
+    // readers don't see stale title / meta / share settings until TTL.
+    const uuidRow = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { id: docId, ...this.typeCondition },
+      ['uuid'],
+    );
+    if (uuidRow?.uuid) {
+      await NocoCache.del('root', this.uuidCacheKey(uuidRow.uuid as string));
+    }
 
     return await this.get(context, docId, ncMeta);
   }
@@ -502,7 +505,15 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // Delete content row first
+    // Snapshot uuid before the row goes away.
+    const pre = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { id: docId, ...this.typeCondition },
+      ['uuid', 'parent_id'],
+    );
+
     await Noco.ncDocsContent.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -517,6 +528,10 @@ export default class Document extends DocumentCE implements DocumentType {
       { id: docId, ...this.typeCondition },
     );
 
+    if (pre?.uuid) {
+      await NocoCache.del('root', this.uuidCacheKey(pre.uuid as string));
+    }
+
     // Remove from both individual cache and parent list
     const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
@@ -529,14 +544,12 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // Read parent_id before deleting
     const doc = await this.get(context, docId, ncMeta);
     const parentId = doc?.parent_id;
+    const docUuid = doc?.uuid;
 
-    // Cascade: soft-delete all descendants first
     await this.cascadeSoftDelete(context, docId, ncMeta);
 
-    // Soft-delete the document itself
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
@@ -545,10 +558,13 @@ export default class Document extends DocumentCE implements DocumentType {
       { id: docId, ...this.typeCondition },
     );
 
+    if (docUuid) {
+      await NocoCache.del('root', this.uuidCacheKey(docUuid));
+    }
+
     const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
 
-    // Update parent's has_children if it no longer has active children
     if (parentId) {
       await this.refreshHasChildren(context, parentId, ncMeta);
     }
@@ -569,7 +585,8 @@ export default class Document extends DocumentCE implements DocumentType {
           deleted: false,
           ...this.typeCondition,
         },
-        fields: ['id'],
+        // uuid needed to drop the uuid→doc cache of shared descendants.
+        fields: ['id', 'uuid'],
       },
     );
 
@@ -586,6 +603,10 @@ export default class Document extends DocumentCE implements DocumentType {
 
       const key = `${CacheScope.DOCUMENT}:${child.id}`;
       await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
+
+      if (child.uuid) {
+        await NocoCache.del('root', this.uuidCacheKey(child.uuid as string));
+      }
     }
   }
 
@@ -658,6 +679,10 @@ export default class Document extends DocumentCE implements DocumentType {
     // Update has_children on old parent (may no longer have children)
     if (oldParentId && oldParentId !== targetParentId) {
       await this.refreshHasChildren(context, oldParentId, ncMeta);
+    }
+
+    if (doc?.uuid) {
+      await NocoCache.del('root', this.uuidCacheKey(doc.uuid));
     }
 
     return await this.get(context, docId, ncMeta);
@@ -735,5 +760,409 @@ export default class Document extends DocumentCE implements DocumentType {
       delete doc.doc_version;
     }
     return prepareForResponse(doc, ['meta', 'content']);
+  }
+
+  // --- Public share ---
+  // Reuses the existing uuid column on nc_models_v2 (added for view share).
+  // No password protection.
+
+  // Cached under 'root' scope because extract-ids has no base_id yet — that's
+  // what this lookup is for.
+  public static async getByUUID(
+    _context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Document | null> {
+    const key = this.uuidCacheKey(uuid);
+
+    let row = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
+
+    if (!row) {
+      row = await ncMeta.metaGet2(
+        RootScopes.FULL_BYPASS,
+        RootScopes.FULL_BYPASS,
+        MetaTable.MODELS,
+        { uuid, type: ModelTypes.DOCUMENT },
+        undefined,
+        notDeletedXcCondition,
+      );
+
+      if (!row) return null;
+
+      await NocoCache.setExpiring('root', key, row, DOC_BY_UUID_TTL_SECONDS);
+    }
+
+    return new Document(this.parseDocument(row));
+  }
+
+  private static uuidCacheKey(uuid: string): string {
+    return `${CacheScope.DOCUMENT}:uuid:${uuid}`;
+  }
+
+  // Idempotent + race-safe: the UPDATE filters on `uuid IS NULL` so
+  // concurrent shares can't clobber each other.
+  public static async share(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Document> {
+    const existing = await this.getMeta(context, docId, ncMeta);
+    if (!existing) NcError.get(context).genericNotFound('Document', docId);
+
+    // Public share would bypass an explicit DOCUMENT_VISIBILITY restriction.
+    // Only checks the doc's own row — inherited restrictions from ancestors
+    // map 1:1 to has_visibility_permission, which the UI also gates on.
+    if (
+      await this.hasVisibilityRestriction(
+        context.workspace_id,
+        context.base_id,
+        docId,
+        ncMeta,
+      )
+    ) {
+      NcError.get(context).forbidden(
+        'This document has custom visibility permissions. Reset visibility to default to enable public sharing.',
+      );
+    }
+
+    if (!existing.uuid) {
+      const uuid = uuidv4();
+      const currentMeta = existing.meta ?? {};
+      const currentShare = getDocShareMeta(currentMeta);
+      const nextMeta = {
+        ...currentMeta,
+        share: {
+          ...currentShare,
+          include_subtree: currentShare.include_subtree ?? true,
+        },
+      };
+
+      await ncMeta
+        .knexConnection(MetaTable.MODELS)
+        .where({
+          id: docId,
+          type: ModelTypes.DOCUMENT,
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+        })
+        .whereNull('uuid')
+        .update({
+          ...prepareForDb({ uuid, meta: nextMeta }, ['meta']),
+          updated_at: ncMeta.now(),
+        });
+
+      await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+    }
+
+    // Re-read so the returned doc reflects the winning uuid (ours, or a
+    // concurrent caller's if we lost the race).
+    const fresh = await this.getMeta(context, docId, ncMeta);
+    if (!fresh) NcError.get(context).genericNotFound('Document', docId);
+
+    return fresh;
+  }
+
+  public static async unshare(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const doc = await this.getMeta(context, docId, ncMeta);
+
+    const updateObj: Record<string, any> = { uuid: null };
+
+    // Drop meta.share so a future share() starts from the documented default.
+    if (doc?.meta && (doc.meta as any).share) {
+      const { share: _share, ...restMeta } = doc.meta as Record<string, any>;
+      Object.assign(updateObj, prepareForDb({ meta: restMeta }, ['meta']));
+    }
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      updateObj,
+      { id: docId, type: ModelTypes.DOCUMENT },
+    );
+    if (doc?.uuid) {
+      await NocoCache.del('root', this.uuidCacheKey(doc.uuid));
+    }
+    await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+  }
+
+  public static async updateShareSettings(
+    context: NcContext,
+    docId: string,
+    body: { include_subtree?: boolean },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Document> {
+    const doc = await this.getMeta(context, docId, ncMeta);
+    if (!doc) NcError.get(context).genericNotFound('Document', docId);
+    if (!doc.uuid) {
+      NcError.get(context).badRequest('Document is not shared');
+    }
+
+    const updateObj: Record<string, any> = {};
+
+    if (body.include_subtree !== undefined) {
+      const currentMeta = doc.meta ?? {};
+      const nextShare = {
+        ...getDocShareMeta(currentMeta),
+        include_subtree: !!body.include_subtree,
+      };
+      updateObj.meta = { ...currentMeta, share: nextShare };
+    }
+
+    if (Object.keys(updateObj).length > 0) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        prepareForDb(updateObj, ['meta']),
+        { id: docId, type: ModelTypes.DOCUMENT },
+      );
+      await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+      // Drop the uuid→doc cache so public readers pick up the new
+      // include_subtree on the next request instead of after TTL.
+      if (doc.uuid) {
+        await NocoCache.del('root', this.uuidCacheKey(doc.uuid as string));
+      }
+    }
+
+    return await this.getMeta(context, docId, ncMeta);
+  }
+
+  // Direct children for the public reader. Drops children that carry
+  // their own DOCUMENT_VISIBILITY row — the caller is expected to have
+  // already verified the parent is reachable via isReachable.
+  public static async getPublicChildren(
+    _context: NcContext,
+    root: Document,
+    parentDocId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Array<PublicDocChildNode>> {
+    const rows = await ncMeta.metaList2(
+      root.fk_workspace_id,
+      root.base_id,
+      MetaTable.MODELS,
+      {
+        condition: {
+          base_id: root.base_id,
+          type: ModelTypes.DOCUMENT,
+          parent_id: parentDocId,
+          deleted: false,
+        },
+        orderBy: { order: 'asc' },
+        fields: ['id', 'title', 'parent_id', 'order', 'has_children', 'meta'],
+      },
+    );
+
+    if (!rows.length) return [];
+
+    const restrictedRows = await ncMeta.metaList2(
+      root.fk_workspace_id,
+      root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: {
+          entity: PermissionEntity.DOCUMENT,
+          permission: PermissionKey.DOCUMENT_VISIBILITY,
+        },
+        xcCondition: {
+          entity_id: { in: rows.map((r: any) => r.id as string) },
+        },
+        fields: ['entity_id'],
+      },
+    );
+    const restricted = new Set(
+      (restrictedRows as Array<{ entity_id: string }>).map((p) => p.entity_id),
+    );
+
+    const filtered = rows.filter((r: any) => !restricted.has(r.id as string));
+
+    return filtered.map((c: any) => {
+      const parsed = this.parseDocument({ ...c });
+      const meta = (parsed.meta as Record<string, any> | null) ?? {};
+
+      return {
+        id: c.id as string,
+        title: (c.title as string) || 'Untitled',
+        parent_id: c.parent_id as string,
+        order: (c.order as number) ?? 0,
+        has_children: !!c.has_children,
+        icon: meta?.icon ?? null,
+      };
+    });
+  }
+
+  // Lightweight ancestor lookup for the deep-link walker. Returns null when
+  // the doc isn't reachable through `scope` (treat as 404).
+  public static async getPublicLite(
+    scope: ShareScope,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<PublicDocLiteNode | null> {
+    if (!(await this.isReachable(scope, docId, ncMeta))) return null;
+    const isRoot = docId === scope.root.id;
+
+    const row = await ncMeta.metaGet2(
+      scope.root.fk_workspace_id,
+      scope.root.base_id,
+      MetaTable.MODELS,
+      { id: docId, type: ModelTypes.DOCUMENT },
+      ['id', 'title', 'parent_id', 'order', 'has_children', 'meta'],
+      notDeletedXcCondition,
+    );
+    if (!row) return null;
+
+    const parsed = this.parseDocument({ ...row });
+    const meta = (parsed.meta as Record<string, any> | null) ?? {};
+
+    return {
+      id: row.id as string,
+      title: (row.title as string) || 'Untitled',
+      // Re-anchor the share root to null so the frontend tree walker stops
+      // at the share boundary.
+      parent_id: isRoot ? null : (row.parent_id as string | null) ?? null,
+      order: (row.order as number) ?? 0,
+      has_children: !!row.has_children,
+      icon: meta?.icon ?? null,
+    };
+  }
+
+  // Raw ncMeta query (no Permission model) to avoid the circular import.
+  public static async hasVisibilityRestriction(
+    workspaceId: string,
+    baseId: string,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const row = await ncMeta.metaGet2(
+      workspaceId,
+      baseId,
+      MetaTable.PERMISSIONS,
+      {
+        entity: PermissionEntity.DOCUMENT,
+        entity_id: docId,
+        permission: PermissionKey.DOCUMENT_VISIBILITY,
+      },
+    );
+    return !!row;
+  }
+
+  // Resolve the share scope for a UUID — lazy, not cached. Returns null
+  // when the uuid doesn't exist or its root has a DOCUMENT_VISIBILITY
+  // restriction (callers treat null as 404).
+  public static async getShareScope(
+    context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<ShareScope | null> {
+    const root = await this.getByUUID(context, uuid, ncMeta);
+    if (!root) return null;
+
+    if (
+      await this.hasVisibilityRestriction(
+        root.fk_workspace_id,
+        root.base_id,
+        root.id,
+        ncMeta,
+      )
+    ) {
+      return null;
+    }
+
+    const includeSubtree = !!getDocShareMeta(root.meta).include_subtree;
+
+    const rootNode: PublicDocTreeNode = {
+      id: root.id,
+      title: root.title || 'Untitled',
+      parent_id: null,
+      order: root.order ?? 0,
+      has_children: !!root.has_children,
+      icon: (root.meta as any)?.icon ?? null,
+    };
+
+    const children = includeSubtree
+      ? await this.getPublicChildren(context, root, root.id, ncMeta)
+      : [];
+    const tree: PublicDocTreeNode[] = [rootNode, ...children];
+
+    return { root, tree, includeSubtree };
+  }
+
+  // Per-request reachability check — resolves the parent chain from
+  // docId up to (but not including) scope.root.id via a recursive CTE,
+  // then rejects if any node in the chain has a DOCUMENT_VISIBILITY
+  // restriction. Two queries regardless of depth.
+  public static async isReachable(
+    scope: ShareScope,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!scope.includeSubtree) return docId === scope.root.id;
+    if (docId === scope.root.id) return true;
+
+    const knex = ncMeta.knexConnection;
+    const chainRows = (await knex
+      .withRecursive(
+        'doc_chain',
+        knex.raw(
+          `SELECT id, parent_id, 0 AS depth FROM ??
+              WHERE id = ?
+                AND type = ?
+                AND fk_workspace_id = ?
+                AND base_id = ?
+                AND (deleted = ? OR deleted IS NULL)
+            UNION ALL
+            SELECT m.id, m.parent_id, c.depth + 1 FROM ?? m
+              INNER JOIN doc_chain c ON m.id = c.parent_id
+              WHERE c.depth < ?
+                AND m.id != ?
+                AND m.type = ?
+                AND m.fk_workspace_id = ?
+                AND m.base_id = ?
+                AND (m.deleted = ? OR m.deleted IS NULL)`,
+          [
+            MetaTable.MODELS,
+            docId,
+            ModelTypes.DOCUMENT,
+            scope.root.fk_workspace_id,
+            scope.root.base_id,
+            false,
+            MetaTable.MODELS,
+            MAX_ANCESTOR_WALK_DEPTH,
+            scope.root.id,
+            ModelTypes.DOCUMENT,
+            scope.root.fk_workspace_id,
+            scope.root.base_id,
+            false,
+          ],
+        ),
+      )
+      .select('id', 'parent_id')
+      .from('doc_chain')) as Array<{ id: string; parent_id: string | null }>;
+
+    if (!chainRows.length) return false;
+    const reachedRoot = chainRows.some((r) => r.parent_id === scope.root.id);
+    if (!reachedRoot) return false;
+
+    // Single PERMISSIONS lookup for the whole chain (doc + every
+    // intermediate ancestor). Root itself is already vetted by
+    // getShareScope, so it's not in the chain.
+    const restrictedRows = await ncMeta.metaList2(
+      scope.root.fk_workspace_id,
+      scope.root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: {
+          entity: PermissionEntity.DOCUMENT,
+          permission: PermissionKey.DOCUMENT_VISIBILITY,
+        },
+        xcCondition: { entity_id: { in: chainRows.map((r) => r.id) } },
+        fields: ['entity_id'],
+      },
+    );
+    return restrictedRows.length === 0;
   }
 }

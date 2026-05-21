@@ -451,6 +451,27 @@ export interface DocumentUserMentionEvent extends NcBaseEvent {
   mentions: string[];
 }
 
+export interface DocumentPublicShareCreateEvent extends NcBaseEvent {
+  docId: string;
+  docTitle: string;
+  uuid: string;
+  includeSubtree: boolean;
+}
+
+export interface DocumentPublicShareUpdateEvent extends NcBaseEvent {
+  docId: string;
+  docTitle: string;
+  uuid: string;
+  includeSubtree: boolean;
+}
+
+export interface DocumentPublicShareDeleteEvent extends NcBaseEvent {
+  docId: string;
+  docTitle: string;
+  /** Previously-published UUID, captured for audit before clearing. */
+  uuid: string | null;
+}
+
 export interface DocumentCommentCreateEvent extends NcBaseEvent {
   comment: Record<string, any>;
   user: UserType;

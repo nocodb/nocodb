@@ -230,17 +230,32 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // Enrich with has_permissions flag (reuse pre-loaded permissions)
+    // Enrich with has_permissions + has_visibility_permission flags
+    // (reuse pre-loaded permissions). has_visibility_permission is the
+    // signal the share UI uses to disable the public-share toggle —
+    // tracked separately because edit-only permissions don't block
+    // public read.
     if (visibleDocs.length) {
       const docIdsWithPermissions = new Set(
         allPermissions
           .filter((p) => p.entity === PermissionEntity.DOCUMENT)
           .map((p) => p.entity_id),
       );
+      const docIdsWithVisibility = new Set(
+        allPermissions
+          .filter(
+            (p) =>
+              p.entity === PermissionEntity.DOCUMENT &&
+              p.permission === PermissionKey.DOCUMENT_VISIBILITY,
+          )
+          .map((p) => p.entity_id),
+      );
       for (const doc of visibleDocs) {
         (doc as DocumentType).has_permissions = docIdsWithPermissions.has(
           doc.id!,
         );
+        (doc as DocumentType).has_visibility_permission =
+          docIdsWithVisibility.has(doc.id!);
       }
     }
 
@@ -314,17 +329,29 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // Enrich with has_permissions flag
+    // Enrich with has_permissions + has_visibility_permission flags.
+    // See list() for why visibility is tracked separately.
     if (visibleDocs.length) {
       const docIdsWithPermissions = new Set(
         allPermissions
           .filter((p) => p.entity === PermissionEntity.DOCUMENT)
           .map((p) => p.entity_id),
       );
+      const docIdsWithVisibility = new Set(
+        allPermissions
+          .filter(
+            (p) =>
+              p.entity === PermissionEntity.DOCUMENT &&
+              p.permission === PermissionKey.DOCUMENT_VISIBILITY,
+          )
+          .map((p) => p.entity_id),
+      );
       for (const doc of visibleDocs) {
         (doc as DocumentType).has_permissions = docIdsWithPermissions.has(
           doc.id!,
         );
+        (doc as DocumentType).has_visibility_permission =
+          docIdsWithVisibility.has(doc.id!);
       }
     }
 
@@ -359,6 +386,18 @@ export class DocumentsService extends DocumentsServiceCE {
     // Enrich with comment count
     const counts = await Comment.docCommentsCount(context, [docId]);
     doc.comment_count = +(counts[0] as any)?.count || 0;
+
+    // Enrich with has_visibility_permission so the share UI can disable
+    // the public-share toggle when this doc has custom visibility set.
+    // Cheap lookup — Permission.getByEntity hits the base-scoped cached
+    // list, same list the rest of the service uses.
+    const visibilityPermission = await Permission.getByEntity(
+      context,
+      PermissionEntity.DOCUMENT,
+      docId,
+      PermissionKey.DOCUMENT_VISIBILITY,
+    );
+    (doc as DocumentType).has_visibility_permission = !!visibilityPermission;
 
     return doc;
   }

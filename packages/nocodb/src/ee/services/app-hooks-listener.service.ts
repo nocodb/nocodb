@@ -41,6 +41,9 @@ import type {
   DocumentCommentUpdatePayload,
   DocumentCreatePayload,
   DocumentDeletePayload,
+  DocumentPublicShareCreatePayload,
+  DocumentPublicShareDeletePayload,
+  DocumentPublicShareUpdatePayload,
   DocumentUpdatePayload,
   FilterCreatePayload,
   FilterDeletePayload,
@@ -159,6 +162,9 @@ import type {
   DocumentCommentUpdateEvent,
   DocumentCreateEvent,
   DocumentDeleteEvent,
+  DocumentPublicShareCreateEvent,
+  DocumentPublicShareDeleteEvent,
+  DocumentPublicShareUpdateEvent,
   DocumentUpdateEvent,
   FilterEvent,
   FilterUpdateEvent,
@@ -4849,6 +4855,65 @@ export class AppHooksListenerService
               details: {
                 document_title: param.doc.title ?? 'Untitled',
                 document_id: param.doc.id!,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE: {
+        const param = data as DocumentPublicShareCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentPublicShareCreatePayload>(
+            AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.docTitle,
+                document_id: param.docId,
+                uuid: param.uuid,
+                include_subtree: param.includeSubtree,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_PUBLIC_SHARE_UPDATE: {
+        const param = data as DocumentPublicShareUpdateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentPublicShareUpdatePayload>(
+            AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.docTitle,
+                document_id: param.docId,
+                uuid: param.uuid,
+                include_subtree: param.includeSubtree,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_PUBLIC_SHARE_DELETE: {
+        const param = data as DocumentPublicShareDeleteEvent;
+        // Skip the audit row when there was no published uuid — the unshare
+        // call was a no-op (revoking an already-revoked share).
+        if (!param.uuid) break;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentPublicShareDeletePayload>(
+            AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.docTitle,
+                document_id: param.docId,
+                uuid: param.uuid,
               },
             },
           ),

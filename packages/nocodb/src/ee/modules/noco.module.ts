@@ -93,6 +93,9 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 /* Documents V3 */
 import { DocumentsV3Controller } from '~/ee/controllers/v3/documents-v3.controller';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
+/* Documents — public share */
+import { PublicDocsController } from '~/ee/controllers/public-docs.controller';
+import { PublicDocsService } from '~/ee/services/public-docs.service';
 /* Workflows V3 */
 import { WorkflowsV3Controller } from '~/controllers/v3/workflows-v3.controller';
 import { WorkflowsV3Service } from '~/services/v3/workflows-v3.service';
@@ -339,6 +342,9 @@ export const nocoModuleEeMetadata = {
 
     /* Command Registry — registers all replay handlers + freezes registry on boot */
     OperationRegistryBootstrap,
+
+    /* Documents — public share */
+    PublicDocsService,
   ],
   controllers: [
     ActionsController,
@@ -381,6 +387,7 @@ export const nocoModuleEeMetadata = {
     DashboardsV3Controller,
 
     DocumentsV3Controller,
+    PublicDocsController,
     WorkflowsV3Controller,
 
     Datav3Controller,

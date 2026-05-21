@@ -195,15 +195,18 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         docId,
       })) as DocumentType
 
-      // Add a lite version (without content) to the store so activeDocument
-      // resolves and sidebar auto-expand works on page reload.
+      // Sync into the store as a lite row (or patch in place) so
+      // activeDocument resolves and stale fields refresh.
       if (doc?.id) {
         const baseId = activeProjectId.value
         const baseDocs = documents.value.get(baseId) || []
+        const { content: _content, ...liteDoc } = doc
         if (!baseDocs.find((d) => d.id === doc.id)) {
-          const { content: _content, ...liteDoc } = doc
           baseDocs.push(liteDoc as DocumentType)
           documents.value.set(baseId, [...baseDocs])
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          applyDocPatch(baseId, doc.id, liteDoc as Partial<DocumentType>)
         }
       }
 
@@ -696,6 +699,21 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   const allDocuments = ref<DocumentType[]>([])
 
   /**
+   * Patch a doc in the in-memory store without round-tripping through the
+   * backend. Used after operations whose result the backend has already
+   * applied — e.g. publishing a doc returns the assigned `uuid`, and we
+   * want the sidebar/share modal to reflect that immediately without a
+   * full reload. Same in-place mutation pattern as `updateDocument` uses
+   * for save responses, so reactivity stays scoped to changed fields.
+   */
+  const applyDocPatch = (baseId: string, docId: string, patch: Partial<DocumentType>) => {
+    const baseDocuments = documents.value.get(baseId) || []
+    const existing = baseDocuments.find((d) => d.id === docId)
+    if (!existing) return
+    Object.assign(existing, patch)
+  }
+
+  /**
    * Load ALL documents for a base in a single API call (flat list, no content).
    * Used by the permissions settings page to avoid recursive tree expansion.
    */
@@ -738,6 +756,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     moveDocument,
     getDocumentAncestors,
     refreshDocPermissions,
+    applyDocPatch,
   }
 })
 

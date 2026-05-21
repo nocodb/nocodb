@@ -12,17 +12,24 @@ import type {
 } from '~/utils/internal-type';
 import { NcError } from '~/helpers/catchError';
 import { DocumentsService } from '~/services/documents.service';
+import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
 
 @Injectable()
 export class DocumentsPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(protected readonly documentsService: DocumentsService) {}
+  constructor(
+    protected readonly documentsService: DocumentsService,
+    protected readonly documentsV3Service: DocumentsV3Service,
+  ) {}
   operations = [
     'documentCreate' as const,
     'documentUpdate' as const,
     'documentDelete' as const,
     'documentReorder' as const,
+    'documentShare' as const,
+    'documentUnshare' as const,
+    'documentShareUpdate' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -72,6 +79,38 @@ export class DocumentsPostOperations
             ...('parent_id' in payload && { parent_id: payload.parent_id }),
           },
           req,
+        );
+      }
+      case 'documentShare': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
+        return await this.documentsV3Service.docShare(context, {
+          docId: payload.docId,
+          req,
+        });
+      }
+      case 'documentUnshare': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
+        return await this.documentsV3Service.docUnshare(context, {
+          docId: payload.docId,
+          req,
+        });
+      }
+      case 'documentShareUpdate': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
+        return await this.documentsV3Service.docShareUpdate(
+          context,
+          { docId: payload.docId, req },
+          {
+            ...('include_subtree' in payload && {
+              include_subtree: payload.include_subtree,
+            }),
+          },
         );
       }
     }

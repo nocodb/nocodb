@@ -292,7 +292,8 @@
       "permissions": "Table & Field Permissions",
       "audit": "Workspace Audit",
       "privateBases": "Private Bases",
-      "ltarCustomDisplayValue": "Custom Display Value Field"
+      "ltarCustomDisplayValue": "Custom Display Value Field",
+      "publicDocShare": "Public Document Sharing"
     },
     "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
   },
@@ -672,7 +673,8 @@
     "embed": "Embed",
     "downloadAs": "Download as",
     "createdBy": "Created by",
-    "updatedBy": "Updated by"
+    "updatedBy": "Updated by",
+    "updated": "Updated"
   },
   "objects": {
     "script": "Script",
@@ -1369,6 +1371,8 @@
     "changePassword": "Change Password",
     "changeViewPassword": "Change View Password",
     "changeDashboardPassword": "Change Dashboard Password",
+    "includeSubPages": "Include sub-pages",
+    "resetVisibilityToDefault": "Reset visibility to default",
     "bookmarks": "Bookmarks",
     "bookmarkGroup": "Bookmark Group",
     "addToBookmarks": "Add to Bookmarks",
@@ -2860,6 +2864,7 @@
     "createView": "Create a View",
     "shareView": "Share View",
     "shareDashboard": "Share Dashboard",
+    "shareDoc": "Share Doc",
     "findRowByCodeScan": "Find record by scan",
     "fillByCodeScan": "Fill by scan",
     "listSharedView": "Shared View List",
@@ -3505,6 +3510,11 @@
     },
     "info": {
       "viewPasswordNotVisibleAfterSave": "For security, this password won't be shown again after saving. Make sure to store it somewhere safe.",
+      "docShareEnabled": "Public sharing enabled",
+      "docShareDisabled": "Public sharing disabled",
+      "docShareBlockedByVisibility": "Public sharing is unavailable while this document has custom visibility permissions. {resetVisibility}.",
+      "docShareVisibilityReset": "Visibility reset to default",
+      "docShareSubtreeExcludesRestricted": "Sub-pages with custom visibility permissions are not included in the public share.",
       "trashEmpty": "Trash is empty",
       "variableKeyImmutable": "Key cannot be changed after creation",
       "variableSetupHint": "Set values for the variables required by this base. Required fields must be configured for full functionality.",

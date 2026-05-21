@@ -211,7 +211,18 @@
     "c:doc:copy-link": "Copy document link",
     "c:doc:font:change": "Click change document font",
     "c:doc:full-width:toggle": "Click toggle full width",
-    "c:doc:presence:visibility:toggle": "Toggle document presence visibility"
+    "c:doc:permissions": "Click document permissions menu item in doc topbar kebab",
+    "c:doc:presence:visibility:toggle": "Toggle document presence visibility",
+    "c:doc:share:open": "Click share button in doc topbar or kebab",
+    "c:doc:share:enable:toggle": "Click the enable-public-viewing toggle in the share modal",
+    "c:doc:share:subtree:toggle": "Click the include-sub-pages toggle in the share modal",
+    "c:doc:share:visibility:reset": "Click the reset-visibility-to-default link in the share modal",
+    "c:doc:share:download:markdown": "Click download-as-markdown on the public shared doc reader",
+    "c:doc:share:sub-document:open": "Open a sub-document from the sub-documents panel on the public shared doc reader",
+    "a:doc:share:enable": "Public share enabled (after API succeeded)",
+    "a:doc:share:disable": "Public share disabled (after API succeeded)",
+    "a:doc:share:subtree:toggle": "Include-sub-pages toggled (after API succeeded)",
+    "a:doc:share:visibility:reset": "Document visibility permission reset to default (after API succeeded)"
   },
   "download": {
     "a:download:csv": "Download as CSV",

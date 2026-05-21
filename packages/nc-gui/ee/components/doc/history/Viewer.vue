@@ -178,11 +178,88 @@ watch(currentChangeIndex, (index) => {
 onBeforeUnmount(() => {
   editor.value?.destroy()
 })
+
+// ── Mark-diff tooltip ────────────────────────────────────────────────
+// Inline `format` decorations carry the human-readable diff (e.g. "Bold
+// added") in a `data-nc-mark-diff` attribute. Delegated mouseover/mouseout
+// on the viewer root turns that into a themed floating tooltip with no
+// native-hover delay. position is computed from the hovered span's bounding
+// rect — top-centred, 8px above, clamped to the viewport so a wide tooltip
+// near the edges doesn't clip.
+const viewerRoot = ref<HTMLElement | null>(null)
+const tooltipText = ref('')
+const tooltipX = ref(0)
+const tooltipY = ref(0)
+const tooltipVisible = ref(false)
+
+function updateTooltipPosition(el: HTMLElement) {
+  const rect = el.getBoundingClientRect()
+  // Center over the hovered span, anchor 8px above its top. The CSS uses
+  // translate(-50%, -100%) so (x, y) describes the bottom-center of the
+  // tooltip — keeping the maths simple here.
+  const margin = 8
+  const minX = 12
+  const maxX = window.innerWidth - 12
+  const x = Math.min(maxX, Math.max(minX, rect.left + rect.width / 2))
+  const y = Math.max(margin, rect.top - margin)
+  tooltipX.value = x
+  tooltipY.value = y
+}
+
+function onMouseOver(e: MouseEvent) {
+  // PM stacks marks as nested spans (e.g. `<span.nc-doc-history-diff-format>
+  // <strong>text</strong></span>`) so the mouseover fires with `e.target`
+  // pointing at the innermost element. `closest` walks up the ancestors to
+  // find the decoration span.
+  const span = (e.target as HTMLElement | null)?.closest?.(
+    '.nc-doc-history-diff-format',
+  ) as HTMLElement | null
+  if (!span) {
+    tooltipVisible.value = false
+    return
+  }
+  const text = span.getAttribute('data-nc-mark-diff')
+  if (!text) return
+  tooltipText.value = text
+  updateTooltipPosition(span)
+  tooltipVisible.value = true
+}
+
+function onMouseLeaveRoot() {
+  tooltipVisible.value = false
+}
+
+onMounted(() => {
+  const root = viewerRoot.value
+  if (!root) return
+  root.addEventListener('mouseover', onMouseOver)
+  // `mouseleave` doesn't bubble — needed in addition to mouseover so the
+  // tooltip disappears when the cursor exits the viewer entirely (otherwise
+  // it'd stick around because there's no final mouseover to clear it).
+  root.addEventListener('mouseleave', onMouseLeaveRoot)
+})
+
+onBeforeUnmount(() => {
+  const root = viewerRoot.value
+  if (!root) return
+  root.removeEventListener('mouseover', onMouseOver)
+  root.removeEventListener('mouseleave', onMouseLeaveRoot)
+})
 </script>
 
 <template>
-  <div class="nc-doc-history-viewer">
+  <div ref="viewerRoot" class="nc-doc-history-viewer">
     <EditorContent v-if="editor" :editor="editor" />
+    <Teleport to="body">
+      <div
+        v-show="tooltipVisible"
+        class="nc-doc-history-diff-tooltip"
+        :style="{ left: `${tooltipX}px`, top: `${tooltipY}px` }"
+        role="tooltip"
+      >
+        {{ tooltipText }}
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -196,6 +273,24 @@ onBeforeUnmount(() => {
 // `@import` is deprecated but still functional — see the note at the
 // matching import in Editor.vue for why we haven't switched to `@use` yet.
 @import '../_doc-content';
+
+// ── Mark-diff tooltip (teleported to body) ───────────────
+// Mirrors NcTooltip's `dark` variant — gray-800 fill, white text, rounded
+// corners, px-2 py-1 padding, drop shadow. `position: fixed` because we
+// pass viewport coordinates; styles intentionally live in the UN-scoped
+// block because the element is teleported to `document.body` and Vue's
+// scoped CSS attribute does not reliably propagate through `<Teleport>`.
+.nc-doc-history-diff-tooltip {
+  @apply fixed px-2 py-1 rounded-lg bg-gray-800 text-white text-xs whitespace-nowrap pointer-events-none;
+  // Above ant-design modals (1000) and tooltips (1070) so the floating
+  // diff tooltip is never clipped by the history-panel modal it lives inside.
+  z-index: 9999;
+  transform: translate(-50%, -100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+[theme='dark'] .nc-doc-history-diff-tooltip {
+  @apply bg-[#3a3f4b];
+}
 </style>
 
 <style lang="scss" scoped>

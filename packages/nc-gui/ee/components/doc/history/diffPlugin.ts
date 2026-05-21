@@ -51,7 +51,15 @@ export interface DocDiffState {
  */
 export type DocDiffChange =
   | { type: 'insert'; from: number; to: number; stepIndex: number }
-  | { type: 'format'; from: number; to: number; stepIndex: number }
+  | {
+      type: 'format'
+      from: number
+      to: number
+      stepIndex: number
+      /** Human-readable summary of which marks were added / removed / changed,
+       *  surfaced via a native `title` attribute on the decoration. */
+      tooltip: string
+    }
   | {
       type: 'delete'
       from: number
@@ -155,6 +163,66 @@ function fileAttachmentBadgeColor(ext: string): { bg: string; text: string } {
 }
 
 /**
+ * Friendly labels for common TipTap / ProseMirror mark types — used in the
+ * hover tooltip so the user sees "Bold added" instead of the schema name
+ * "bold added". Unknown marks fall back to a title-cased version of the
+ * schema name via `labelForMark`.
+ */
+const MARK_LABELS: Record<string, string> = {
+  bold: 'Bold',
+  italic: 'Italic',
+  strike: 'Strikethrough',
+  code: 'Code',
+  underline: 'Underline',
+  link: 'Link',
+  textStyle: 'Text style',
+  highlight: 'Highlight',
+  subscript: 'Subscript',
+  superscript: 'Superscript',
+}
+
+function labelForMark(name: string): string {
+  if (MARK_LABELS[name]) return MARK_LABELS[name]
+  // Schema names are usually camelCase — split on case boundaries so
+  // "fontFamily" reads as "Font family" in the tooltip rather than as
+  // a raw identifier.
+  return name
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim()
+}
+
+/**
+ * Build the hover-tooltip text for a mark-set diff at a single text range.
+ * Returns the empty string when the two sets are identical (caller treats
+ * that as "no diff at this position").
+ */
+function describeMarkDiff(
+  fromMarks: readonly Mark[],
+  toMarks: readonly Mark[],
+): string {
+  const fromMap = new Map(fromMarks.map((m) => [m.type.name, m]))
+  const toMap = new Map(toMarks.map((m) => [m.type.name, m]))
+
+  const parts: string[] = []
+
+  // Added or attribute-changed marks (type present in both with different
+  // attrs is reported as "changed" — useful for link href / colour swaps).
+  toMap.forEach((toMark, name) => {
+    const fromMark = fromMap.get(name)
+    if (!fromMark) parts.push(`${labelForMark(name)} added`)
+    else if (!fromMark.eq(toMark)) parts.push(`${labelForMark(name)} changed`)
+  })
+
+  // Marks present in the old version but gone in the new one.
+  fromMap.forEach((_m, name) => {
+    if (!toMap.has(name)) parts.push(`${labelForMark(name)} removed`)
+  })
+
+  return parts.join(' · ')
+}
+
+/**
  * Detect mark-only changes (bold/italic/strike/code/link/etc.) that the
  * changeset library misses. `prosemirror-changeset` matches inline tokens by
  * text content alone, so a run of text whose only difference between
@@ -164,14 +232,16 @@ function fileAttachmentBadgeColor(ext: string): { bg: string; text: string } {
  * Strategy: walk the gaps BETWEEN reported changes (where text content is
  * identical in both docs by definition) and, at each text-node boundary,
  * compare the mark sets at the corresponding positions. Adjacent text-node
- * boundaries with differing marks are merged into a single decoration so
- * the highlight reads as one continuous run.
+ * boundaries with the SAME mark-diff signature are merged into a single
+ * decoration so a long run of newly-bold text reads as one continuous
+ * highlight; boundaries with different diff signatures are kept separate
+ * so the per-range tooltip stays accurate.
  */
 function findFormatChanges(
   fromDoc: PMNode,
   toDoc: PMNode,
   changeset: ChangeSet,
-): { from: number; to: number }[] {
+): { from: number; to: number; tooltip: string }[] {
   // Compute "stable gaps" — ranges where text content matches between docs.
   // Each gap has equal byte length in A and B; offset = fromB - fromA is
   // constant across the gap.
@@ -195,7 +265,7 @@ function findFormatChanges(
     })
   }
 
-  const out: { from: number; to: number }[] = []
+  const out: { from: number; to: number; tooltip: string }[] = []
 
   for (const gap of gaps) {
     // Defensive: stable gaps must have equal-length spans in A and B.
@@ -206,11 +276,13 @@ function findFormatChanges(
     const offset = gap.fromB - gap.fromA
     let pendingFrom: number | null = null
     let pendingTo = 0
+    let pendingTooltip = ''
 
     const flush = () => {
       if (pendingFrom !== null) {
-        out.push({ from: pendingFrom, to: pendingTo })
+        out.push({ from: pendingFrom, to: pendingTo, tooltip: pendingTooltip })
         pendingFrom = null
+        pendingTooltip = ''
       }
     }
 
@@ -232,15 +304,28 @@ function findFormatChanges(
         const overlapEndB = fEnd + offset
 
         if (!Mark.sameSet(fromNode.marks, toNode.marks)) {
-          // Coalesce abutting mark-diff ranges into one decoration so the
-          // highlight reads as a single span rather than fragmenting at
-          // every text-node boundary.
-          if (pendingFrom !== null && pendingTo === overlapStartB) {
+          const tooltip = describeMarkDiff(fromNode.marks, toNode.marks)
+          // Defensive: `sameSet` is false but `describeMarkDiff` saw no
+          // user-visible delta (e.g., mark order changed but types + attrs
+          // are equivalent) — don't emit a tooltip-less decoration.
+          if (!tooltip) {
+            flush()
+            return false
+          }
+          // Coalesce only when the diff signature matches the previous run.
+          // Different mark deltas in abutting ranges keep distinct
+          // decorations so each tooltip describes its own range accurately.
+          if (
+            pendingFrom !== null
+            && pendingTo === overlapStartB
+            && pendingTooltip === tooltip
+          ) {
             pendingTo = overlapEndB
           } else {
             flush()
             pendingFrom = overlapStartB
             pendingTo = overlapEndB
+            pendingTooltip = tooltip
           }
         } else {
           flush()
@@ -420,6 +505,7 @@ function findChanges(
       type: 'format',
       from: range.from,
       to: range.to,
+      tooltip: range.tooltip,
       stepIndex: steps.length,
     })
     steps.push({ from: range.from })
@@ -741,12 +827,16 @@ function buildDecorations(
     if (change.type === 'format') {
       // Amber wash on text whose marks changed but whose content stayed put.
       // Distinct colour from green-insert keeps "newly added text" and
-      // "newly formatted text" visually separable.
+      // "newly formatted text" visually separable. The mark-diff summary is
+      // attached as a `data-*` attr (not `title`) — the Viewer renders a
+      // themed NocoDB-style tooltip from it on hover, which is snappier than
+      // the OS-controlled `title` tooltip.
       decorations.push(
         Decoration.inline(change.from, change.to, {
           class: isCurrent
             ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current'
             : 'nc-doc-history-diff-format',
+          'data-nc-mark-diff': change.tooltip,
         }),
       )
       return

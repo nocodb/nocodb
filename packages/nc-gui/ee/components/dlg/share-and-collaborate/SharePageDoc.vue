@@ -53,7 +53,7 @@ const toggleShare = async () => {
   try {
     if (isPublicShared.value) {
       await $api.internal.postOperation(activeWorkspaceId.value!, baseId, { operation: 'documentUnshare' }, { docId })
-      $e('c:doc:share:disable')
+      $e('a:doc:share:disable')
       applyDocPatch(baseId, docId, { uuid: null })
       message.toast(t('msg.info.docShareDisabled'))
     } else {
@@ -63,7 +63,7 @@ const toggleShare = async () => {
         { operation: 'documentShare' },
         { docId },
       )) as { uuid: string; include_subtree: boolean }
-      $e('c:doc:share:enable')
+      $e('a:doc:share:enable')
       const meta = {
         ...(activeDocument.value?.meta ?? {}),
         share: { include_subtree: res.include_subtree },
@@ -93,7 +93,7 @@ const toggleSubtree = async () => {
       { operation: 'documentShareUpdate' },
       { docId, include_subtree: nextValue },
     )
-    $e('c:doc:share:subtree:toggle', { include_subtree: nextValue })
+    $e('a:doc:share:subtree:toggle', { include_subtree: nextValue })
     const meta = {
       ...(activeDocument.value?.meta ?? {}),
       share: { ...getDocShareMeta(activeDocument.value?.meta), include_subtree: nextValue },
@@ -125,7 +125,7 @@ const onResetVisibility = async () => {
         permission: PermissionKey.DOCUMENT_VISIBILITY,
       },
     )
-    $e('c:doc:share:visibility:reset')
+    $e('a:doc:share:visibility:reset')
     applyDocPatch(baseId, docId, { has_visibility_permission: false })
     message.toast(t('msg.info.docShareVisibilityReset'))
   } catch (e: any) {
@@ -176,7 +176,7 @@ watch(showShareModal, async (visible) => {
         />
         <a-switch
           v-else-if="!restrictedSharing"
-          v-e="['c:share:doc:enable:toggle']"
+          v-e="['c:doc:share:enable:toggle']"
           :checked="isPublicShared"
           :loading="isUpdating.public"
           class="share-doc-toggle !mt-0.25"
@@ -220,7 +220,7 @@ watch(showShareModal, async (visible) => {
               {{ $t('labels.includeSubPages') }}
             </div>
             <a-switch
-              v-e="['c:share:doc:subtree:toggle']"
+              v-e="['c:doc:share:subtree:toggle']"
               :checked="includeSubtree"
               :loading="isUpdating.subtree"
               class="share-doc-subtree-toggle !mt-0.25"

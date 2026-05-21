@@ -183,6 +183,7 @@ export class DocumentsV3Service {
       context,
       req: param.req,
       docId: param.docId,
+      docTitle: doc.title ?? 'Untitled',
       uuid: doc.uuid!,
       includeSubtree,
     });
@@ -206,6 +207,7 @@ export class DocumentsV3Service {
       context,
       req: param.req,
       docId: param.docId,
+      docTitle: pre?.title ?? 'Untitled',
       uuid: pre?.uuid ?? null,
     });
 
@@ -232,6 +234,7 @@ export class DocumentsV3Service {
         context,
         req: param.req,
         docId: param.docId,
+        docTitle: doc.title ?? 'Untitled',
         uuid: doc.uuid,
         includeSubtree,
       });

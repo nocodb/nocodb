@@ -237,6 +237,10 @@ enum AuditV1OperationTypes {
   DOCUMENT_UPDATE = 'DOCUMENT_UPDATE',
   DOCUMENT_DELETE = 'DOCUMENT_DELETE',
 
+  DOCUMENT_PUBLIC_SHARE_CREATE = 'DOCUMENT_PUBLIC_SHARE_CREATE',
+  DOCUMENT_PUBLIC_SHARE_UPDATE = 'DOCUMENT_PUBLIC_SHARE_UPDATE',
+  DOCUMENT_PUBLIC_SHARE_DELETE = 'DOCUMENT_PUBLIC_SHARE_DELETE',
+
   DOCUMENT_COMMENT_CREATE = 'DOCUMENT_COMMENT_CREATE',
   DOCUMENT_COMMENT_UPDATE = 'DOCUMENT_COMMENT_UPDATE',
   DOCUMENT_COMMENT_DELETE = 'DOCUMENT_COMMENT_DELETE',
@@ -1346,6 +1350,26 @@ export interface DocumentDeletePayload {
   document_id: string;
 }
 
+export interface DocumentPublicShareCreatePayload {
+  document_title: string;
+  document_id: string;
+  uuid: string;
+  include_subtree: boolean;
+}
+
+export interface DocumentPublicShareUpdatePayload {
+  document_title: string;
+  document_id: string;
+  uuid: string;
+  include_subtree: boolean;
+}
+
+export interface DocumentPublicShareDeletePayload {
+  document_title: string;
+  document_id: string;
+  uuid: string;
+}
+
 export interface DocumentCommentCreatePayload {
   document_id: string;
   comment_id: string;
@@ -1838,6 +1862,18 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DOCUMENT_DELETE]: (
     audit: AuditV1<DocumentDeletePayload>
   ) => `Document '${audit.details.document_title}' has been deleted`,
+  [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_CREATE]: (
+    audit: AuditV1<DocumentPublicShareCreatePayload>
+  ) =>
+    `Public share enabled for document '${audit.details.document_title}'`,
+  [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_UPDATE]: (
+    audit: AuditV1<DocumentPublicShareUpdatePayload>
+  ) =>
+    `Public share updated for document '${audit.details.document_title}'`,
+  [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_DELETE]: (
+    audit: AuditV1<DocumentPublicShareDeletePayload>
+  ) =>
+    `Public share disabled for document '${audit.details.document_title}'`,
   [AuditV1OperationTypes.DOCUMENT_COMMENT_CREATE]: (
     audit: AuditV1<DocumentCommentCreatePayload>
   ) => `Comment added to document '${audit.details.document_id}'`,

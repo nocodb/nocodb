@@ -36,7 +36,7 @@ const { getColor } = useTheme()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { getPlanTitle, showEEFeatures } = useEeConfig()
+const { getPlanTitle, showEEFeatures, blockOpenForm, showUpgradeToUseOpenForm } = useEeConfig()
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
   useColumnCreateStoreOrThrow()
@@ -115,11 +115,15 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  {
-    icon: 'form',
-    label: t('labels.openForm'),
-    value: ButtonActionsType.OpenForm,
-  },
+  ...(isEeUI
+    ? [
+        {
+          icon: 'form',
+          label: t('labels.openForm'),
+          value: ButtonActionsType.OpenForm,
+        },
+      ]
+    : []),
 ])
 
 const supportedColumns = computed(
@@ -376,7 +380,18 @@ const selectIcon = (icon: string) => {
   isButtonIconDropdownOpen.value = false
 }
 
+// Last type before a type change — used to revert if the user picks a plan-gated type.
+const previousType = ref<string | undefined>(vModel.value.type)
+
 const handleUpdateActionType = () => {
+  // If user picked OpenForm but their plan doesn't allow it, revert and show the upgrade modal
+  if (vModel.value.type === ButtonActionsType.OpenForm && blockOpenForm.value) {
+    const prev = previousType.value
+    vModel.value.type = prev
+    showUpgradeToUseOpenForm()
+    return
+  }
+  previousType.value = vModel.value.type
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }

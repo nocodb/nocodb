@@ -234,6 +234,8 @@
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
+    "upgradeToUseOpenForm": "Upgrade to use Open Form button",
+    "upgradeToUseOpenFormSubtitle": "Upgrade to the {plan} plan to open a form view pre-filled with a specific record.",
     "upgradeToUseViewSections": "Upgrade to use view sections",
     "upgradeToUseViewSectionsSubtitle": "Upgrade to the {plan} plan to organize views into sections.",
     "upgradeToAccessViewSectionsSubtitle": "Upgrade to the {plan} plan to organize views into sections.",

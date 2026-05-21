@@ -73,16 +73,12 @@ const { viewsByTable } = storeToRefs(viewStore)
 // below is hidden today — there is no implicit authorization to warn about.
 // The computation is retained so the banner can be re-surfaced if shared-view
 // OpenForm is re-enabled.
-const openFormButtonsViaSharedForms = computed<
-  Array<{ buttonTitle: string; formTitle: string }>
->(() => {
+const openFormButtonsViaSharedForms = computed<Array<{ buttonTitle: string; formTitle: string }>>(() => {
   if (!activeView.value || activeView.value.type !== ViewTypes.GRID) return []
 
   const tableMeta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id as string)
   const buttonCols = (tableMeta?.columns ?? []).filter(
-    (c: ColumnType) =>
-      c.uidt === UITypes.Button &&
-      (c.colOptions as ButtonType | undefined)?.type === ButtonActionsType.OpenForm,
+    (c: ColumnType) => c.uidt === UITypes.Button && (c.colOptions as ButtonType | undefined)?.type === ButtonActionsType.OpenForm,
   )
   if (!buttonCols.length) return []
 
@@ -863,25 +859,24 @@ const copyCustomUrl = async (custUrl = '') => {
           Retained for future re-enable — today OpenForm is disabled in public
           shared views, so the banner stays hidden.
         -->
-        <div
+        <NcAlert
           v-if="false && openFormButtonsViaSharedForms.length"
-          class="mt-1 py-3 px-3 rounded-md border-1 border-nc-border-orange-medium bg-nc-bg-orange-extralight"
+          type="warning"
+          :message="$t('activity.warning')"
+          :description="
+            $t('msg.info.openFormShareWarning', {
+              forms: openFormButtonsViaSharedForms.map((e) => e.formTitle).join(', '),
+            })
+          "
+          class="mt-1 !p-3"
+          message-class="!text-bodyDefaultSm !text-nc-content-orange-dark"
+          description-class="!text-xs !text-nc-content-orange-dark"
           data-testid="nc-share-open-form-warning"
         >
-          <div class="flex items-start gap-2">
-            <GeneralIcon icon="alertTriangle" class="w-4 h-4 text-nc-content-orange-dark flex-none mt-0.5" />
-            <div class="flex flex-col gap-1 text-xs text-nc-content-orange-dark">
-              <span class="font-semibold">{{ $t('activity.warning') }}</span>
-              <span>
-                {{
-                  $t('msg.info.openFormShareWarning', {
-                    forms: openFormButtonsViaSharedForms.map((e) => e.formTitle).join(', '),
-                  })
-                }}
-              </span>
-            </div>
-          </div>
-        </div>
+          <template #icon>
+            <GeneralIcon icon="alertTriangle" class="nc-alert-icon" />
+          </template>
+        </NcAlert>
       </template>
     </div>
   </div>

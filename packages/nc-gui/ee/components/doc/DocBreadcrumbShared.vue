@@ -20,11 +20,16 @@ interface Props {
   activeTitle?: string
   tree: PublicDocTreeNode[]
   loadChildren: (uuid: string, parentDocId: string) => Promise<void> | void
+  /** Mirrors the share's include_subtree flag — when false, descendants are
+   *  not part of the share scope so the breadcrumb must not expose any
+   *  child-submenu affordances. */
+  includeSubtree?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   activeIcon: null,
   activeTitle: '',
+  includeSubtree: true,
 })
 
 const emit = defineEmits<{
@@ -48,13 +53,17 @@ const nodesById = computed(() => {
 // DocBreadcrumbMenuRow only read id, title, meta?.icon, parent_id, order,
 // and has_children, so this minimal shim keeps the existing components
 // untouched.
+// When the subtree isn't shared, descendants aren't fetched and aren't
+// navigable — force has_children to false so DocBreadcrumbMenuRow doesn't
+// render the submenu chevron + try to lazy-load children that will never
+// arrive.
 const toShim = (node: PublicDocTreeNode): DocumentType => ({
   id: node.id,
   title: node.title,
   meta: node.icon ? { icon: node.icon } : {},
   parent_id: node.parent_id,
   order: node.order,
-  has_children: node.has_children,
+  has_children: props.includeSubtree && node.has_children,
 })
 
 // Ancestors of the active doc — share-root → parent, excludes the active
@@ -118,6 +127,7 @@ const getSiblingsByParent = (parentId: string | null | undefined): DocumentType[
 }
 
 const getChildren = (docId: string): DocumentType[] => {
+  if (!props.includeSubtree) return []
   return props.tree
     .filter((n) => n.parent_id === docId)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -137,7 +147,20 @@ const parentSiblings = computed(() => (parentAncestor.value ? getSiblingsByParen
 const currentSiblings = computed(() => {
   if (!props.activeDocId) return []
   const active = nodesById.value.get(props.activeDocId)
-  return active ? getSiblingsByParent(active.parent_id) : []
+  if (!active) return []
+  const siblings = getSiblingsByParent(active.parent_id)
+  // Suppress the segment dropdown when there's nothing useful to navigate to:
+  // the only sibling is the active doc itself AND its children aren't
+  // navigable (subtree not shared OR the doc is a leaf). Otherwise the
+  // chevron opens a dropdown containing just the current page with no
+  // actionable submenu, which looks broken.
+  if (siblings.length <= 1) {
+    const only = siblings[0]
+    if (!only || only.id === props.activeDocId) {
+      if (!props.includeSubtree || !active.has_children) return []
+    }
+  }
+  return siblings
 })
 
 const isEllipsisOpen = ref(false)

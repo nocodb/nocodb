@@ -337,6 +337,7 @@ watch(
             :active-title="docTitle"
             :tree="renderableTree"
             :load-children="loadChildren"
+            :include-subtree="!!meta?.include_subtree"
             @select="navigateToDoc"
           />
         </div>

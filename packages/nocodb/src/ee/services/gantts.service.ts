@@ -13,7 +13,6 @@ import {
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { DateDependencyService } from '~/services/date-dependency.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
@@ -28,10 +27,7 @@ import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class GanttsService {
-  constructor(
-    private readonly appHooksService: AppHooksService,
-    private readonly dateDependencyService: DateDependencyService,
-  ) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   @TraceCommand(OperationName.ganttViewCreate)
   async ganttViewCreate(
@@ -59,6 +55,17 @@ export class GanttsService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.gantt,
     );
+
+    // Validate the optional per-view rule shape up-front so the create
+    // never lands halfway: the view + rule are written inline in
+    // View.insertMetaOnly (single switch arm, single ncMeta) and a bad
+    // body would otherwise produce an orphan view with no rule.
+    if (param.dependency) {
+      validatePayload(
+        'swagger.json#/components/schemas/DateDependencyReq',
+        param.dependency,
+      );
+    }
 
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
@@ -108,6 +115,14 @@ export class GanttsService {
           source_id: model.source_id,
           created_by: param.user?.id,
           owned_by: param.ownedBy || param.user?.id,
+          // Per-view DateDependency rule (Airtable-style: each Gantt owns
+          // its own start/end/dep config + cascade behavior). Sits next
+          // to the GanttView.insert under the same ncMeta — same shape
+          // as how Calendar passes calendar_range / Timeline passes
+          // timeline_range. When omitted, the view falls back to the
+          // table-level default rule (fk_gantt_view_id IS NULL) until
+          // the user configures one via the dialog.
+          dependency: param.dependency,
         },
         model,
         req: param.req,
@@ -123,18 +138,6 @@ export class GanttsService {
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
     );
-
-    // Create the per-view DateDependency rule (Airtable-style: each Gantt
-    // owns its own start / end / dep field selection + cascade behavior).
-    // Falls back to the table-level default rule when `dependency` is omitted.
-    if (param.dependency) {
-      await this.dateDependencyService.update(context, {
-        modelId: param.tableId,
-        ganttViewId: view.id,
-        body: param.dependency,
-        req: param.req,
-      });
-    }
 
     let owner = param.req.user;
 

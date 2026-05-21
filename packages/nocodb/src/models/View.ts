@@ -2996,6 +2996,7 @@ export default class View implements ViewType {
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
+          dependency?: Partial<DateDependency>;
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -3241,9 +3242,16 @@ export default class View implements ViewType {
       case ViewTypes.GANTT: {
         // Gantt resolves start/end/predecessor from a DateDependency rule
         // — either view-owned (fk_gantt_view_id = view.id) or the
-        // table-level default (fk_gantt_view_id IS NULL). Duplicate path
-        // must clone the source's per-view rule under the new view id
-        // so the duplicate lands fully configured.
+        // table-level default (fk_gantt_view_id IS NULL). Three create
+        // paths land here, only one of which lands a rule:
+        //  - duplicate of an existing Gantt → clone the source's rule
+        //  - fresh create with `dependency` payload → insert that rule
+        //  - either with no rule data → view falls back to the table-level
+        //    default until the user configures one via the dialog
+        // Sitting next to the GanttView.insert call (same ncMeta, same
+        // switch arm) mirrors how Calendar/Timeline insert their
+        // CalendarRange / TimelineRange — keeping the view + its config
+        // row in one place so the failure mode is symmetric.
         await GanttView.insert(
           context,
           {
@@ -3282,6 +3290,16 @@ export default class View implements ViewType {
               ncMeta,
             );
           }
+        } else if (view.dependency) {
+          await DateDependency.insert(
+            context,
+            {
+              ...view.dependency,
+              fk_model_id: view.fk_model_id,
+              fk_gantt_view_id: view_id,
+            },
+            ncMeta,
+          );
         }
 
         break;

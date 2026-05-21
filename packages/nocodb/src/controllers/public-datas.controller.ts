@@ -334,6 +334,25 @@ export class PublicDatasController {
     return response;
   }
 
+  @Post([
+    '/api/v2/public/shared-view/:sharedViewUuid/button/:columnId/edit-token/:rowId',
+  ])
+  @HttpCode(200)
+  async generatePublicFormEditToken(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+  ) {
+    return await this.publicDatasService.generatePublicFormEditToken(context, {
+      sharedViewUuid,
+      columnId,
+      rowId,
+      password: req.headers?.['xc-password'] as string,
+    });
+  }
+
   @Get(['/api/v2/public/shared-view/:sharedViewUuid/edit-row/:editToken'])
   async dataEditGet(
     @TenantContext() context: NcContext,

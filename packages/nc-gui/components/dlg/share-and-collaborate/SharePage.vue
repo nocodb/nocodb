@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
-import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, ViewTypes } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
+import { ButtonActionsType, NC_VIEW_PASSWORD_PROTECTED_SENTINEL, UITypes, ViewTypes } from 'nocodb-sdk'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -59,6 +59,43 @@ const isPublicShared = computed(() => {
   if (restrictedSharing.value) return false
 
   return !!activeView.value?.uuid
+})
+
+const { viewsByTable } = storeToRefs(viewStore)
+
+// Detect OpenForm buttons on the current table whose linked form views are
+// themselves publicly shared. When present on a grid that's being shared,
+// anyone with the grid link can edit rows through that form — we surface a
+// warning so the admin is aware of this implicit authorization.
+const openFormButtonsViaSharedForms = computed<
+  Array<{ buttonTitle: string; formTitle: string }>
+>(() => {
+  if (!activeView.value || activeView.value.type !== ViewTypes.GRID) return []
+
+  const tableMeta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id as string)
+  const buttonCols = (tableMeta?.columns ?? []).filter(
+    (c: ColumnType) =>
+      c.uidt === UITypes.Button &&
+      (c.colOptions as ButtonType | undefined)?.type === ButtonActionsType.OpenForm,
+  )
+  if (!buttonCols.length) return []
+
+  const viewsKey = `${activeView.value.base_id}:${activeView.value.fk_model_id}`
+  const tableViews = viewsByTable.value.get(viewsKey) ?? []
+
+  const entries: Array<{ buttonTitle: string; formTitle: string }> = []
+  for (const col of buttonCols) {
+    const formViewId = (col.colOptions as ButtonType).fk_form_view_id
+    if (!formViewId) continue
+    const linked = tableViews.find((v) => v.id === formViewId)
+    if (linked?.uuid) {
+      entries.push({
+        buttonTitle: col.title ?? '',
+        formTitle: linked.title ?? '',
+      })
+    }
+  }
+  return entries
 })
 
 const isReadOnly = computed(() => {
@@ -812,6 +849,30 @@ const copyCustomUrl = async (custUrl = '') => {
               <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
             </a-radio>
           </a-radio-group>
+        </div>
+
+        <!--
+          When the grid has OpenForm button columns whose linked form views
+          are also publicly shared, surface a warning that grants are implicit.
+        -->
+        <div
+          v-if="openFormButtonsViaSharedForms.length"
+          class="mt-1 py-3 px-3 rounded-md border-1 border-nc-border-orange-medium bg-nc-bg-orange-extralight"
+          data-testid="nc-share-open-form-warning"
+        >
+          <div class="flex items-start gap-2">
+            <GeneralIcon icon="alertTriangle" class="w-4 h-4 text-nc-content-orange-dark flex-none mt-0.5" />
+            <div class="flex flex-col gap-1 text-xs text-nc-content-orange-dark">
+              <span class="font-semibold">{{ $t('activity.warning') }}</span>
+              <span>
+                {{
+                  $t('msg.info.openFormShareWarning', {
+                    forms: openFormButtonsViaSharedForms.map((e) => e.formTitle).join(', '),
+                  })
+                }}
+              </span>
+            </div>
+          </div>
         </div>
       </template>
     </div>

@@ -29,6 +29,12 @@ const { isUIAllowed } = useRoles()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// In a shared-view context these identify the grid uuid + (optional) password
+// so OpenForm buttons can mint an edit token through the public endpoint.
+const { sharedView } = storeToRefs(useViewsStore())
+const sharedViewUuid = computed(() => sharedView.value?.uuid ?? null)
+const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
 const { $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -114,10 +120,13 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 
 // True only when the linked form view exists AND is publicly shared.
 // Invalid (deleted / unshared) linked form → button is disabled.
+// In public/shared context the views list isn't available to the client, so
+// we skip this check and let the backend gate instead.
 const isLinkedFormViewShared = computed(() => {
   if (column.value?.colOptions?.type !== ButtonActionsType.OpenForm) return true
   const formViewId = column.value.colOptions.fk_form_view_id
   if (!formViewId) return false
+  if (isPublic.value) return true
   const key = meta.value?.base_id && meta.value?.id ? `${meta.value.base_id}:${meta.value.id}` : ''
   if (!key) return true
   const views = viewsByTable.value.get(key) ?? []
@@ -276,19 +285,40 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      const result = await $api.internal.postOperation(
-        meta.value!.fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'formEditTokenGenerate',
-          columnId: column.value.id,
-          rowId: rowId!.value,
-        },
-        {},
-      )
+      let token: string | undefined
+      let viewUuid: string | undefined
 
-      if (result.token && result.viewUuid) {
-        const editUrl = `${location.origin}/nc/form/${result.viewUuid}?editRow=${encodeURIComponent(result.token)}`
+      if (isPublic.value && sharedViewUuid.value) {
+        const { data } = await $api.instance.post(
+          `/api/v2/public/shared-view/${sharedViewUuid.value}/button/${column.value.id}/edit-token/${encodeURIComponent(
+            rowId!.value,
+          )}`,
+          {},
+          {
+            headers: {
+              'xc-password': sharedViewPassword.value ?? '',
+            },
+          },
+        )
+        token = data?.token
+        viewUuid = data?.viewUuid
+      } else {
+        const result = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'formEditTokenGenerate',
+            columnId: column.value.id,
+            rowId: rowId!.value,
+          },
+          {},
+        )
+        token = result?.token
+        viewUuid = result?.viewUuid
+      }
+
+      if (token && viewUuid) {
+        const editUrl = `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
         window.open(editUrl, '_blank')
       }
 

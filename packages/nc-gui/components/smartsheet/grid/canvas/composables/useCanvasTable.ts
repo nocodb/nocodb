@@ -296,6 +296,22 @@ export function useCanvasTable({
     { immediate: true },
   )
 
+  const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
+  // When we're inside a shared grid view, let the ActionManager know so it can
+  // route OpenForm button clicks through the public edit-token endpoint.
+  watch(
+    [isPublicView, () => activeView.value?.uuid, sharedViewPassword],
+    ([isPublic, uuid, password]) => {
+      if (isPublic && uuid) {
+        actionManager.setPublicContext({ sharedViewUuid: uuid, password: password ?? '' })
+      } else {
+        actionManager.setPublicContext(null)
+      }
+    },
+    { immediate: true },
+  )
+
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
   const removeInlineAddRecord = computed(() => {
@@ -440,6 +456,7 @@ export function useCanvasTable({
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
           views: tableViews,
+          isPublicView: isPublicView.value,
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 

@@ -1,8 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
+  ButtonActionsType,
   extractFilterFromXwhere,
   NcBaseError,
   ncIsArray,
+  PlanFeatureTypes,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -13,6 +15,7 @@ import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
 import {
   Base,
+  ButtonColumn,
   Column,
   FormView,
   KanbanView,
@@ -21,7 +24,8 @@ import {
   View,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { verifyFormEditToken } from '~/helpers/formEditToken';
+import { checkForFeature } from '~/ee/helpers/paymentHelpers';
+import { generateFormEditToken, verifyFormEditToken } from '~/helpers/formEditToken';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
@@ -1600,6 +1604,98 @@ export class PublicDatasService {
     const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
 
     return data;
+  }
+
+  /**
+   * Mint a form-edit token for an OpenForm button clicked inside a public
+   * shared grid view. Validates that:
+   *  - the shared view exists, is a GRID, password (if set) matches
+   *  - the column belongs to the shared view's table, is a Button with
+   *    type=open_form, and its linked form view is itself publicly shared
+   *  - the row is visible through the shared grid view
+   *  - the workspace's plan allows FEATURE_OPEN_FORM_BUTTON
+   *
+   * Returns the same payload shape as the authenticated generateEditToken.
+   */
+  async generatePublicFormEditToken(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      columnId: string;
+      rowId: string;
+      password?: string;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.get(context).viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.get(context).notFound('Shared view is not a grid');
+    }
+
+    if (!(await View.verifyPassword(view, param.password))) {
+      return NcError.get(context).invalidSharedViewPassword();
+    }
+
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_OPEN_FORM_BUTTON);
+
+    const buttonCol = await ButtonColumn.read(context, param.columnId);
+
+    if (!buttonCol || buttonCol.type !== ButtonActionsType.OpenForm) {
+      NcError.get(context).badRequest('Column is not an OpenForm button');
+    }
+
+    if (buttonCol.fk_column_id) {
+      const columnMeta = await Column.get(context, {
+        colId: buttonCol.fk_column_id,
+      });
+      if (!columnMeta || columnMeta.fk_model_id !== view.fk_model_id) {
+        NcError.get(context).badRequest("Column doesn't belong to this view");
+      }
+    }
+
+    if (!buttonCol.fk_form_view_id) {
+      NcError.get(context).badRequest(
+        'No form view configured for this button',
+      );
+    }
+
+    const formView = await View.get(context, buttonCol.fk_form_view_id);
+
+    if (!formView) {
+      NcError.get(context).viewNotFound(buttonCol.fk_form_view_id);
+    }
+
+    if (!formView.uuid) {
+      NcError.get(context).badRequest(
+        'The form linked to this button must be shared publicly. Share the form view and try again.',
+      );
+    }
+
+    // Verify the row is actually visible through the shared grid view
+    const model = await Model.getByIdOrName(context, {
+      id: view.fk_model_id,
+    });
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+    const row = await baseModel.readByPk(param.rowId);
+    if (!row) {
+      NcError.get(context).recordNotFound(param.rowId);
+    }
+
+    const token = generateFormEditToken(
+      param.rowId,
+      param.columnId,
+      formView.uuid,
+    );
+
+    return { token, viewUuid: formView.uuid, isShared: true };
   }
 
   async dataEditGet(

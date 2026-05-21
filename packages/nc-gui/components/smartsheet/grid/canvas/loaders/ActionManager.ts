@@ -25,6 +25,9 @@ export class ActionManager {
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
   private baseInfo: { baseId: string; workspaceId: string } | null = null
+  // When the canvas is rendering a shared grid view, these identify the
+  // shared view for public-endpoint calls (e.g. OpenForm edit-token minting).
+  private publicContext: { sharedViewUuid: string; password?: string } | null = null
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -76,6 +79,10 @@ export class ActionManager {
 
   setBaseInfo(baseId: string, workspaceId: string) {
     this.baseInfo = { baseId, workspaceId }
+  }
+
+  setPublicContext(ctx: { sharedViewUuid: string; password?: string } | null) {
+    this.publicContext = ctx
   }
 
   private eventMap = {
@@ -409,21 +416,42 @@ export class ActionManager {
   }
 
   async resolveFormEditUrl(columnId: string, rowId: string): Promise<string | null> {
-    if (!this.baseInfo) throw new Error('Base information not available. Call setBaseInfo() first.')
+    let token: string | undefined
+    let viewUuid: string | undefined
 
-    const result = await this.api.internal.postOperation(
-      this.baseInfo.workspaceId,
-      this.baseInfo.baseId,
-      {
-        operation: 'formEditTokenGenerate',
-        columnId,
-        rowId,
-      },
-      {},
-    )
+    if (this.publicContext) {
+      // Shared grid view — mint via the public endpoint, no auth required.
+      const { data } = await this.api.instance.post(
+        `/api/v2/public/shared-view/${this.publicContext.sharedViewUuid}/button/${columnId}/edit-token/${encodeURIComponent(
+          rowId,
+        )}`,
+        {},
+        {
+          headers: {
+            'xc-password': this.publicContext.password ?? '',
+          },
+        },
+      )
+      token = data?.token
+      viewUuid = data?.viewUuid
+    } else {
+      if (!this.baseInfo) throw new Error('Base information not available. Call setBaseInfo() first.')
+      const result = await this.api.internal.postOperation(
+        this.baseInfo.workspaceId,
+        this.baseInfo.baseId,
+        {
+          operation: 'formEditTokenGenerate',
+          columnId,
+          rowId,
+        },
+        {},
+      )
+      token = result?.token
+      viewUuid = result?.viewUuid
+    }
 
-    if (result?.token && result.viewUuid) {
-      return `${location.origin}/nc/form/${result.viewUuid}?editRow=${encodeURIComponent(result.token)}`
+    if (token && viewUuid) {
+      return `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
     }
     return null
   }

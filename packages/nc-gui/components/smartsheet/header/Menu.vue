@@ -42,6 +42,7 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
     isNocoAiAvailable: isNocoAiAvailable.value,
     columns: meta.value?.columns as ColumnType[],
     views: tableViews,
+    isPublicView: isPublic.value,
   })
 })
 

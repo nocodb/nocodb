@@ -304,6 +304,7 @@ const isColumnInvalid = ({
   isNocoAiAvailable = false,
   columns = [],
   views = [],
+  isPublicView = false,
 }: {
   col: ColumnType
   aiIntegrations?: Partial<IntegrationType>[]
@@ -311,6 +312,9 @@ const isColumnInvalid = ({
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
   views?: ViewType[]
+  /** In a public shared view the client can't list views, so the "linked form
+   * view missing" detection must be skipped — backend will gate instead. */
+  isPublicView?: boolean
 }): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
@@ -350,7 +354,7 @@ const isColumnInvalid = ({
         if (!colOptions.fk_form_view_id) {
           result.isInvalid = true
           result.tooltip = 'msg.error.openFormButtonNoFormView'
-        } else {
+        } else if (!isPublicView) {
           const linkedView = views.find((v) => v.id === colOptions.fk_form_view_id)
           if (!linkedView) {
             result.isInvalid = true

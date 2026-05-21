@@ -1525,6 +1525,7 @@
       "bufferDaysHint": "Minimum number of days between linked records.",
       "includeWeekends": "Include weekends",
       "includeWeekendsHint": "When off, weekends (Sat/Sun) are skipped in all date calculations.",
+      "includeWeekendsDisabledHint": "Only applies when Duration, Scheduling Mode, or Buffer Days is configured.",
       "isActive": "Enable Date Dependencies",
       "fieldMapping": "Field Mapping",
       "propagationSection": "Row Propagation",

@@ -118,6 +118,19 @@ const cascadeAvailable = computed(() => {
   return s?.type === 'pg' || s?.type === 'mysql2'
 })
 
+// The Include Weekends toggle only affects working-day math, which kicks
+// in when Duration is set (start↔end conversion), Scheduling Mode is on
+// (cascade gap calculation), or a Buffer Days value is configured. With
+// none of those, the toggle is a no-op — disable it so users don't think
+// flipping it does something invisible.
+const includeWeekendsRelevant = computed(() => {
+  return (
+    !!form.fk_duration_field_id ||
+    (form.dependency_buffer_type && form.dependency_buffer_type !== 'none') ||
+    (form.dependency_buffer_days ?? 0) > 0
+  )
+})
+
 const connectionTypeOptions = computed(() => [
   {
     value: 'end-to-start',
@@ -463,15 +476,25 @@ watch(rule, () => {
             </div>
           </div>
 
-          <!-- Include Weekends -->
-          <div class="flex items-center gap-2 mb-4">
-            <NcSwitch v-model:checked="form.include_weekends" size="small" />
-            <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('labels.dateDependency.includeWeekends') }}</span>
-            <NcTooltip class="flex">
-              <template #title>{{ $t('labels.dateDependency.includeWeekendsHint') }}</template>
-              <GeneralIcon icon="info" class="text-nc-content-gray-subtle w-3.5 h-3.5 cursor-help" />
-            </NcTooltip>
-          </div>
+          <!-- Include Weekends — disabled unless Duration, Scheduling
+               Mode, or Buffer Days are configured (the three settings
+               whose math actually consults the weekend flag). When
+               disabled, hovering shows why so users aren't left guessing. -->
+          <NcTooltip :disabled="includeWeekendsRelevant" placement="top">
+            <template #title>{{ $t('labels.dateDependency.includeWeekendsDisabledHint') }}</template>
+            <div class="flex items-center gap-2 mb-4" :class="{ 'opacity-50': !includeWeekendsRelevant }">
+              <NcSwitch
+                v-model:checked="form.include_weekends"
+                size="small"
+                :disabled="!includeWeekendsRelevant"
+              />
+              <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('labels.dateDependency.includeWeekends') }}</span>
+              <NcTooltip class="flex">
+                <template #title>{{ $t('labels.dateDependency.includeWeekendsHint') }}</template>
+                <GeneralIcon icon="info" class="text-nc-content-gray-subtle w-3.5 h-3.5 cursor-help" />
+              </NcTooltip>
+            </div>
+          </NcTooltip>
 
           <!-- Row-to-row propagation — only when predecessor link selected -->
           <template v-if="form.fk_dependency_linkrow_field_id">

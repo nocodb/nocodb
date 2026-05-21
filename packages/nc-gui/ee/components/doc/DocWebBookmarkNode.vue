@@ -74,9 +74,13 @@ const refreshedImageUrl = ref<string | null>(null)
 
 const isRefreshingImage = ref(false)
 
-// One-shot guard for the resign-on-error flow. If the refreshed signed URL
-// also fails to load (auth flap, deleted storage object, CDN error), the
-// <img @error> handler must not loop back into another resign request.
+// Re-entry guard for the resign-on-error flow. Set before issuing a
+// webBookmarkResignImage call; cleared by <img @load> when the resulting
+// URL actually renders. If the refreshed URL fails to load (auth flap,
+// deleted storage object, CDN error), @error fires again and this flag
+// short-circuits to the no-image fallback instead of looping forever.
+// A later expiry — after the refreshed URL has rendered successfully —
+// passes this gate and gets its own resign attempt.
 const refreshAttempted = ref(false)
 
 const safeFavicon = computed(() => {
@@ -96,10 +100,11 @@ const safeImage = computed(() => {
  * The stored signed URL has a short TTL. When the <img> errors out, ask the
  * backend to re-sign the stable imagePath so the preview survives indefinitely.
  *
- * One refresh attempt per mounted card — if the re-signed URL also fails to
- * load, give up and show the no-image fallback. This prevents an infinite
- * resign loop when the underlying storage object is genuinely broken
- * (deleted, auth state stale, CDN serving 5xx, etc.).
+ * Re-entry is gated by `refreshAttempted`: set when a resign is issued,
+ * cleared by `onImageLoad` once the resulting URL actually renders. If the
+ * refreshed URL fails to load too, the flag stays set and we fall through
+ * to the no-image fallback — no infinite resign loop on broken storage.
+ * Later expiries (after a successful render) pass the gate freshly.
  */
 const onImageError = async () => {
   if (refreshAttempted.value || isRefreshingImage.value) {
@@ -135,6 +140,12 @@ const onImageError = async () => {
   } finally {
     isRefreshingImage.value = false
   }
+}
+
+const onImageLoad = () => {
+  // The currently-shown URL actually rendered — clear the one-shot guard so
+  // a future expiry (much later in the doc's life) can resign again.
+  refreshAttempted.value = false
 }
 
 const openUrl = () => {
@@ -204,6 +215,7 @@ const onCardClick = (e: MouseEvent) => {
           :src="safeImage"
           alt=""
           referrerpolicy="no-referrer"
+          @load="onImageLoad"
           @error="onImageError"
         />
       </div>

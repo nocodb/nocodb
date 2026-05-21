@@ -83,30 +83,28 @@ const selectedScript = ref<ScriptType>()
 // OpenForm validator below.
 const { viewsByTable } = storeToRefs(useViewsStore())
 
-/**
- * Returns `true` only when we can positively confirm the form view has no uuid.
- * If the view isn't in the store (e.g. not yet loaded, or a cross-table scenario)
- * we return `false` to skip the check — backend will still reject if it's really
- * unshared at mint time.
- */
-function isSelectedFormConfirmedUnshared(formViewId?: string | null) {
-  if (!formViewId || !meta?.value?.base_id || !meta.value.id) return false
+// Look up the selected form view from the store. The computed only re-evaluates
+// when the selected id, the table's view list, or that view's properties change —
+// no deep watch over the full viewsByTable map.
+const selectedFormView = computed(() => {
+  const formViewId = vModel.value?.fk_form_view_id
+  if (!formViewId || !meta?.value?.base_id || !meta.value.id) return undefined
   const key = `${meta.value.base_id}:${meta.value.id}`
-  const views = viewsByTable.value.get(key) ?? []
-  const view = views.find((v) => v.id === formViewId)
-  if (!view) return false
-  return !view.uuid
-}
+  return viewsByTable.value.get(key)?.find((v) => v.id === formViewId)
+})
+
+// `true` only when we can positively confirm the form view has no uuid.
+// If the view isn't in the store (not yet loaded, or a cross-table scenario)
+// we return `false` — backend will still reject at mint time if it's really unshared.
+const isSelectedFormUnshared = computed(() => !!selectedFormView.value && !selectedFormView.value.uuid)
 
 // Drive the EditOrAdd submit button's disabled state + tooltip from the
 // sharing status of the selected form view. Cleared on unmount so switching
 // to another column type doesn't leave Save stuck disabled.
 watch(
-  [() => vModel.value?.type, () => vModel.value?.fk_form_view_id, viewsByTable],
-  () => {
-    const isOpenForm = vModel.value?.type === ButtonActionsType.OpenForm
-    const confirmedUnshared = isSelectedFormConfirmedUnshared(vModel.value?.fk_form_view_id)
-    if (isOpenForm && confirmedUnshared) {
+  [() => vModel.value?.type, isSelectedFormUnshared],
+  ([type, unshared]) => {
+    if (type === ButtonActionsType.OpenForm && unshared) {
       disableSubmitBtn.value = true
       disableSubmitBtnReason.value = t('msg.info.formNotSharedEditNote')
     } else {
@@ -114,7 +112,7 @@ watch(
       disableSubmitBtnReason.value = ''
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 onUnmounted(() => {
@@ -277,7 +275,7 @@ const validators = {
           // Form must be shared publicly — the button URL flow only supports
           // UUID-scoped shared form views. Only block on a confirmed-unshared view;
           // if we can't tell (e.g. store not yet populated), the backend enforces.
-          if (isSelectedFormConfirmedUnshared(fk_form_view_id)) {
+          if (isSelectedFormUnshared.value) {
             reject(new Error(t('msg.info.formNotSharedEditNote')))
             return
           }

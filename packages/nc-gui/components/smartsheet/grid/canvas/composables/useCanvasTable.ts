@@ -242,7 +242,7 @@ export function useCanvasTable({
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring, blockOpenForm } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
@@ -482,6 +482,7 @@ export function useCanvasTable({
           // without flagging the column header as misconfigured (Menu.vue
           // intentionally omits this param).
           hasEditPermission: isDataEditAllowed.value,
+          isOpenFormFeatureBlocked: blockOpenForm.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
           views: tableViews,

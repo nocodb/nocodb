@@ -302,6 +302,7 @@ const isColumnInvalid = ({
   aiIntegrations = [],
   isReadOnly = false,
   hasEditPermission = true,
+  isOpenFormFeatureBlocked = false,
   isNocoAiAvailable = false,
   columns = [],
   views = [],
@@ -316,6 +317,11 @@ const isColumnInvalid = ({
    * used for column-header warnings should leave this default so the header
    * doesn't flag the column as misconfigured for permission-only gating. */
   hasEditPermission?: boolean
+  /** True when the workspace plan doesn't include FEATURE_OPEN_FORM_BUTTON.
+   * Same caller convention as `hasEditPermission` — only the canvas grid
+   * passes it so the button cell silently disables; the column header must
+   * not render a warning for a plan-only gate. */
+  isOpenFormFeatureBlocked?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
   views?: ViewType[]
@@ -361,6 +367,12 @@ const isColumnInvalid = ({
         if (!colOptions.fk_form_view_id) {
           result.isInvalid = true
           result.tooltip = 'msg.error.openFormButtonNoFormView'
+        } else if (isOpenFormFeatureBlocked && !isPublicView) {
+          // Plan doesn't include the feature — backend would 403 on mint.
+          // Silent disable; column header stays clean because Menu.vue
+          // intentionally doesn't pass `isOpenFormFeatureBlocked`.
+          result.isInvalid = true
+          result.ignoreTooltip = true
         } else if (!hasEditPermission && !isPublicView) {
           // Viewer/commenter can't mint an edit token (editor+ required).
           // Silent disable — column is valid, only this user can't use it.

@@ -38,7 +38,8 @@ const { getColor } = useTheme()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { getPlanTitle, showEEFeatures, blockOpenForm, showUpgradeToUseOpenForm } = useEeConfig()
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked, blockOpenForm, showUpgradeToUseOpenForm, showUpgradeToUseScripts } =
+  useEeConfig()
 
 const {
   isEdit,
@@ -70,7 +71,13 @@ const bases = useBases()
 const { openedProject } = storeToRefs(bases)
 
 if (showEEFeatures.value) {
-  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+  const prefetch: Promise<unknown>[] = [loadHooksList()]
+  // Scripts is an EE-gated feature — skip the `listScripts` API call on
+  // unlicensed on-prem (isEEFeatureBlocked=true) where it's disabled anyway.
+  if (!isEEFeatureBlocked.value) {
+    prefetch.push(loadScripts({ baseId: openedProject.value!.id, force: true }))
+  }
+  await Promise.all(prefetch)
 }
 
 const { activeBaseScripts } = toRefs(scriptStore)
@@ -149,7 +156,7 @@ const buttonTypes = computed(() => [
     value: ButtonActionsType.Webhook,
     icon: 'ncWebhook',
   },
-  ...(isAiButtonEnabled.value && showEEFeatures.value
+  ...(isAiButtonEnabled.value && !isEEFeatureBlocked.value
     ? [
         {
           icon: 'ncAutoAwesome',
@@ -166,10 +173,6 @@ const buttonTypes = computed(() => [
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
         },
-      ]
-    : []),
-  ...(isEeUI
-    ? [
         {
           icon: 'form',
           label: t('labels.openForm'),
@@ -456,6 +459,14 @@ const handleUpdateActionType = () => {
     showUpgradeToUseOpenForm()
     return
   }
+
+  if (vModel.value.type === ButtonActionsType.Script && isEEFeatureBlocked.value) {
+    const prev = previousType.value
+    vModel.value.type = prev
+    showUpgradeToUseScripts()
+    return
+  }
+
   previousType.value = vModel.value.type
   $e('c:button:action-type-change', { type: vModel.value.type })
   updateFieldName(true, undefined, true)
@@ -618,6 +629,17 @@ if (isEdit.value) {
                   <div class="flex-1">
                     {{ type.label }}
                   </div>
+                  <PaymentUpgradeBadge
+                    v-if="type.value === buttonActionsType.OpenForm && blockOpenForm"
+                    :plan-title="PlanTitles.PLUS"
+                    :feature="PlanFeatureTypes.FEATURE_OPEN_FORM_BUTTON"
+                    remove-click
+                  />
+                  <PaymentUpgradeBadge
+                    v-if="type.value === buttonActionsType.Script && isEEFeatureBlocked"
+                    :feature-enabled-callback="() => !isEEFeatureBlocked"
+                    remove-click
+                  />
                   <component
                     :is="iconMap.check"
                     v-if="vModel.type === type.value"
@@ -653,10 +675,7 @@ if (isEdit.value) {
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
-    <SmartsheetColumnButtonOptionsOpenForm
-      v-if="vModel?.type === buttonActionsType.OpenForm"
-      v-model:model-value="vModel"
-    />
+    <SmartsheetColumnButtonOptionsOpenForm v-if="vModel?.type === buttonActionsType.OpenForm" v-model:model-value="vModel" />
 
     <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">

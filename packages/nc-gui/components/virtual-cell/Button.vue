@@ -27,6 +27,8 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
+const { blockOpenForm } = useEeConfig()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 // In a shared-view context these identify the grid uuid + (optional) password
@@ -245,6 +247,9 @@ const componentProps = computed(() => {
         filterDisabled ||
         isLoading.value ||
         !column.value.colOptions.fk_form_view_id ||
+        // Plan doesn't include FEATURE_OPEN_FORM_BUTTON — backend would 403
+        // on mint. Disable silently; upsell is handled at column-config time.
+        blockOpenForm.value ||
         // Backend mints the edit token via `formEditTokenGenerate` (editor+).
         // Disable for viewers/commenters; tooltip explains why (see below).
         !isUIAllowed('dataEdit') ||

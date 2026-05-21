@@ -3221,6 +3221,8 @@
     "allowNegativeNumbers": "Allow negative numbers",
     "searchProjectTree": "Search tables",
     "searchFields": "Search fields",
+    "searchScripts": "Search scripts",
+    "searchWebhooks": "Search webhooks",
     "searchColumn": "Search {search} field",
     "searchApps": "Search apps",
     "searchModels": "Search models",

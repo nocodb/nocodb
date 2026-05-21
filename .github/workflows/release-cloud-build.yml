@@ -65,6 +65,8 @@ jobs:
         with:
           node-version: 24.14.0
           cache: 'pnpm'
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
       - name: Cache integration dists
         uses: actions/cache@v4
         with:

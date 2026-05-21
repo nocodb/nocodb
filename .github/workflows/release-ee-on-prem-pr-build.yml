@@ -87,6 +87,9 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
+
       # Resolve the single docker tag we will publish.
       # - Caller-supplied version (dispatch or workflow_call):    use as-is.
       # - PR labeled:                                             pr-<num>-<YYYY.MM.DD.HHMM>.

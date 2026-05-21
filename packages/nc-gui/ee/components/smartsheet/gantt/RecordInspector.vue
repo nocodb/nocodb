@@ -145,6 +145,22 @@ const saveDate = async (col: ColumnType | undefined | null, raw: string, kind: '
 const saveStart = () => saveDate(fromCol.value, startValue.value, 'start')
 const saveEnd = () => saveDate(toCol.value, endValue.value, 'end')
 
+// Clearing one of the two dates is the canonical way to convert a row to /
+// from a milestone (milestone = Start empty + End set). Without an inline
+// affordance, users have to expand the full record drawer to remove the date —
+// surprising in a panel whose own header already labels milestones.
+const clearStart = () => {
+  if (isPublic.value || !startValue.value) return
+  startValue.value = ''
+  saveStart()
+}
+
+const clearEnd = () => {
+  if (isPublic.value || !endValue.value) return
+  endValue.value = ''
+  saveEnd()
+}
+
 // --- Dependencies ---
 
 const pkCols = computed(() => (meta.value?.columns ?? []) as ColumnType[])
@@ -441,7 +457,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
+              class="nc-gantt-inspector-input group relative w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
               :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { '!border-nc-border-brand !shadow-selected': startOpen }]"
               :tabindex="isPublic ? -1 : 0"
               role="button"
@@ -453,6 +469,19 @@ const formatDisplay = (raw: string | null | undefined) => {
             >
               <span v-if="startDayjs">{{ formatDisplay(startValue) }}</span>
               <span v-else class="text-nc-content-gray-muted">–</span>
+              <button
+                v-if="startDayjs && !isPublic"
+                v-e="['c:gantt:inspector:clear-date', { field: 'start' }]"
+                type="button"
+                class="absolute right-1 top-1/2 transform -translate-y-1/2 hidden group-hover:flex items-center justify-center w-4 h-4 rounded bg-nc-bg-gray-extralight hover:bg-nc-bg-gray-light text-nc-content-gray-muted hover:text-nc-content-gray"
+                :aria-label="`Clear ${fromCol.title}`"
+                data-testid="nc-gantt-inspector-start-clear"
+                @click.stop="clearStart"
+                @keydown.enter.stop.prevent="clearStart"
+                @keydown.space.stop.prevent="clearStart"
+              >
+                <GeneralIcon icon="close" class="!w-3 !h-3" />
+              </button>
             </div>
             <template #overlay>
               <div class="w-[256px] bg-nc-bg-default rounded-md shadow-md">
@@ -481,7 +510,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
+              class="nc-gantt-inspector-input group relative w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
               :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { '!border-nc-border-brand !shadow-selected': endOpen }]"
               :tabindex="isPublic ? -1 : 0"
               role="button"
@@ -493,6 +522,19 @@ const formatDisplay = (raw: string | null | undefined) => {
             >
               <span v-if="endDayjs">{{ formatDisplay(endValue) }}</span>
               <span v-else class="text-nc-content-gray-muted">–</span>
+              <button
+                v-if="endDayjs && !isPublic"
+                v-e="['c:gantt:inspector:clear-date', { field: 'end' }]"
+                type="button"
+                class="absolute right-1 top-1/2 transform -translate-y-1/2 hidden group-hover:flex items-center justify-center w-4 h-4 rounded bg-nc-bg-gray-extralight hover:bg-nc-bg-gray-light text-nc-content-gray-muted hover:text-nc-content-gray"
+                :aria-label="`Clear ${toCol.title}`"
+                data-testid="nc-gantt-inspector-end-clear"
+                @click.stop="clearEnd"
+                @keydown.enter.stop.prevent="clearEnd"
+                @keydown.space.stop.prevent="clearEnd"
+              >
+                <GeneralIcon icon="close" class="!w-3 !h-3" />
+              </button>
             </div>
             <template #overlay>
               <div class="w-[256px] bg-nc-bg-default rounded-md shadow-md">

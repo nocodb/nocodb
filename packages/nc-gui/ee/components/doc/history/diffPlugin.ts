@@ -115,6 +115,27 @@ function atomIdentity(node: PMNode): string | null {
   if (type === 'embed') {
     return node.attrs.src ? `embed:${node.attrs.src}` : null
   }
+  if (type === 'inlineMath') {
+    const latex = (node.attrs.latex as string | undefined) ?? ''
+    return latex ? `inlineMath:${latex}` : null
+  }
+  if (type === 'mention') {
+    // Identity is the mentioned user — `id` is parsed back into an object
+    // (or kept as a string) by the UserMention extension. Use the user id
+    // when available, falling back to email so a mention round-tripped
+    // through a name-only legacy save still has a stable key.
+    const idAttr = node.attrs.id as
+      | string
+      | { id?: string; email?: string }
+      | null
+      | undefined
+    if (typeof idAttr === 'string' && idAttr) return `mention:${idAttr}`
+    if (idAttr && typeof idAttr === 'object') {
+      const key = idAttr.id || idAttr.email
+      if (key) return `mention:${key}`
+    }
+    return null
+  }
   return null
 }
 
@@ -182,8 +203,13 @@ const MARK_LABELS: Record<string, string> = {
   code: 'Code',
   underline: 'Underline',
   link: 'Link',
+  // textStyle is the TipTap built-in; textColor is this codebase's custom
+  // colour mark — both can show up depending on which extension wrote the
+  // mark. Map both for readable tooltips.
   textStyle: 'Text style',
+  textColor: 'Text colour',
   highlight: 'Highlight',
+  docComment: 'Comment',
   subscript: 'Subscript',
   superscript: 'Superscript',
 }
@@ -553,6 +579,22 @@ function stringifyInlineDeletionSlice(slice: Slice): string {
       if (node.type.name === 'inlineMath') {
         const latex = (node.attrs.latex as string | undefined) ?? ''
         out += `$${latex}$`
+      } else if (node.type.name === 'mention') {
+        // UserMention stores the display name on `label`, falling back to
+        // the parsed `data-id` object for legacy nodes saved before label
+        // was promoted to a top-level attr.
+        const idAttr = node.attrs.id as
+          | string
+          | { name?: string; email?: string }
+          | null
+          | undefined
+        const idObj = typeof idAttr === 'object' && idAttr !== null ? idAttr : null
+        const label =
+          (node.attrs.label as string | undefined)
+          ?? idObj?.name
+          ?? idObj?.email
+          ?? ''
+        out += `@${label}`
       } else {
         out += `[${node.type.name}]`
       }

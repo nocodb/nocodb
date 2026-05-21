@@ -1707,7 +1707,6 @@ watch(editor, (ed) => {
       }
 
       // Insert placeholder card immediately so user gets feedback
-      const insertPos = editor.state.selection.from
       editor.chain().focus().insertWebBookmark({ url, isLoading: true }).run()
 
       const settleNode = (patch: Record<string, any>) => {

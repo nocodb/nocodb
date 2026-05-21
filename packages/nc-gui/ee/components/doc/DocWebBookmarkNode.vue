@@ -221,12 +221,7 @@ const onCardClick = (e: MouseEvent) => {
       </div>
 
       <!-- Delete button — hover/selected only -->
-      <button
-        v-if="editor?.isEditable"
-        class="nc-web-bookmark-delete"
-        type="button"
-        @click.stop="deleteNode"
-      >
+      <button v-if="editor?.isEditable" class="nc-web-bookmark-delete" type="button" @click.stop="deleteNode">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -385,12 +380,7 @@ const onCardClick = (e: MouseEvent) => {
 .nc-web-bookmark-skeleton-desc {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--nc-bg-gray-light) 0%,
-    var(--nc-bg-gray-extralight) 50%,
-    var(--nc-bg-gray-light) 100%
-  );
+  background: linear-gradient(90deg, var(--nc-bg-gray-light) 0%, var(--nc-bg-gray-extralight) 50%, var(--nc-bg-gray-light) 100%);
   background-size: 200% 100%;
   animation: nc-web-bookmark-pulse 1.4s ease-in-out infinite;
 }

@@ -300,6 +300,11 @@ export function useCanvasTable({
 
   // When we're inside a shared grid view, let the ActionManager know so it can
   // route OpenForm button clicks through the public edit-token endpoint.
+  //
+  // NOTE: OpenForm buttons are currently force-disabled inside public shared
+  // views (see `isColumnInvalid` in `utils/columnUtils.ts`), so this wiring is
+  // effectively inert today. It is intentionally retained so a future product
+  // decision can re-enable shared-view OpenForm by flipping a single gate.
   watch(
     [isPublicView, () => activeView.value?.uuid, sharedViewPassword],
     ([isPublic, uuid, password]) => {

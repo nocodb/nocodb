@@ -334,6 +334,11 @@ export class PublicDatasController {
     return response;
   }
 
+  // NOTE: OpenForm buttons are currently disabled inside public shared views
+  // on the frontend (see `isColumnInvalid` in `nc-gui/utils/columnUtils.ts`),
+  // so this endpoint is not invoked today. Retained — with its full validation
+  // chain in the service layer — so shared-view OpenForm can be re-enabled by
+  // flipping the frontend gate without any backend change.
   @Post([
     '/api/v2/public/shared-view/:sharedViewUuid/button/:columnId/edit-token/:rowId',
   ])

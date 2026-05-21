@@ -354,7 +354,18 @@ const isColumnInvalid = ({
         if (!colOptions.fk_form_view_id) {
           result.isInvalid = true
           result.tooltip = 'msg.error.openFormButtonNoFormView'
-        } else if (!isPublicView) {
+        } else if (isPublicView) {
+          // Product decision: OpenForm buttons are disabled inside public shared
+          // views. Anonymous editing of existing records erodes per-seat pricing
+          // and breaks the audit trail. The plumbing (public edit-token endpoint,
+          // ActionManager.setPublicContext, resolveFormEditUrl public branch,
+          // isPublicView handling below) is retained so we can re-enable this
+          // path later — likely gated behind a paid external-collaborator SKU
+          // and an approval/update-request workflow. See also:
+          // `.claude/branches/shared-form-button/shared-view-edit-strategy.md`.
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else {
           const linkedView = views.find((v) => v.id === colOptions.fk_form_view_id)
           if (!linkedView) {
             result.isInvalid = true

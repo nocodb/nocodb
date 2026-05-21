@@ -81,6 +81,10 @@ export class ActionManager {
     this.baseInfo = { baseId, workspaceId }
   }
 
+  // NOTE: OpenForm buttons are currently disabled inside public shared views as
+  // a product decision (see `isColumnInvalid` in `utils/columnUtils.ts`), so
+  // this context is set but never acted on today. Retained so shared-view
+  // OpenForm can be re-enabled by flipping the `isColumnInvalid` gate.
   setPublicContext(ctx: { sharedViewUuid: string; password?: string } | null) {
     this.publicContext = ctx
   }
@@ -423,6 +427,11 @@ export class ActionManager {
    *  - Authenticated grid: call the internal `formEditTokenGenerate` op.
    * Returns null (no toast/window.open) when the backend can't mint a
    * token; callers fall back silently.
+   *
+   * NOTE: the `publicContext` branch below is currently dead code — OpenForm
+   * buttons are force-disabled in public shared views (see `isColumnInvalid`)
+   * so clicks never reach here when `publicContext` is set. The branch is
+   * retained for future re-enable of shared-view OpenForm.
    */
   async resolveFormEditUrl(columnId: string, rowId: string): Promise<string | null> {
     let token: string | undefined

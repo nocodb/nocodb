@@ -1616,6 +1616,12 @@ export class PublicDatasService {
    *  - the workspace's plan allows FEATURE_OPEN_FORM_BUTTON
    *
    * Returns the same payload shape as the authenticated generateEditToken.
+   *
+   * NOTE: currently unreachable from the frontend — OpenForm buttons are
+   * disabled in public shared views (see `isColumnInvalid` in
+   * `nc-gui/utils/columnUtils.ts`). The method + validation chain are
+   * retained so shared-view OpenForm can be re-enabled by flipping the
+   * frontend gate, with no backend change required.
    */
   async generatePublicFormEditToken(
     context: NcContext,

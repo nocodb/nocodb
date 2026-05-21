@@ -216,6 +216,12 @@ const componentProps = computed(() => {
         filterDisabled ||
         isLoading.value ||
         !column.value.colOptions.fk_form_view_id ||
+        // Product decision: OpenForm is disabled in public shared views —
+        // anonymous edits erode per-seat pricing and break audit trails.
+        // The `isPublic` branch in `triggerAction` below + the public
+        // edit-token plumbing are retained for a future re-enable (likely
+        // gated behind an external-collaborator SKU).
+        isPublic.value ||
         !isLinkedFormViewShared.value,
     }
   }
@@ -290,6 +296,9 @@ const triggerAction = async () => {
       let token: string | undefined
       let viewUuid: string | undefined
 
+      // NOTE: the `isPublic` branch below is currently unreachable — OpenForm
+      // buttons are force-disabled in public shared views (see componentProps
+      // above). Retained for future re-enable of shared-view OpenForm.
       if (isPublic.value && sharedViewUuid.value) {
         const { data } = await $api.instance.post(
           `/api/v2/public/shared-view/${sharedViewUuid.value}/button/${column.value.id}/edit-token/${encodeURIComponent(

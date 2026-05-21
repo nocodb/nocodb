@@ -67,6 +67,12 @@ const { viewsByTable } = storeToRefs(viewStore)
 // themselves publicly shared. When present on a grid that's being shared,
 // anyone with the grid link can edit rows through that form — we surface a
 // warning so the admin is aware of this implicit authorization.
+//
+// NOTE: OpenForm buttons are currently disabled inside public shared views
+// (see `isColumnInvalid` in `utils/columnUtils.ts`), so the warning banner
+// below is hidden today — there is no implicit authorization to warn about.
+// The computation is retained so the banner can be re-surfaced if shared-view
+// OpenForm is re-enabled.
 const openFormButtonsViaSharedForms = computed<
   Array<{ buttonTitle: string; formTitle: string }>
 >(() => {
@@ -854,9 +860,11 @@ const copyCustomUrl = async (custUrl = '') => {
         <!--
           When the grid has OpenForm button columns whose linked form views
           are also publicly shared, surface a warning that grants are implicit.
+          Retained for future re-enable — today OpenForm is disabled in public
+          shared views, so the banner stays hidden.
         -->
         <div
-          v-if="openFormButtonsViaSharedForms.length"
+          v-if="false && openFormButtonsViaSharedForms.length"
           class="mt-1 py-3 px-3 rounded-md border-1 border-nc-border-orange-medium bg-nc-bg-orange-extralight"
           data-testid="nc-share-open-form-warning"
         >

@@ -76,6 +76,83 @@ export const docDiffPluginKey = new PluginKey<DocDiffState>('docHistoryDiff')
 const ATOM_NODE_TYPES = new Set(['image', 'embed', 'fileAttachment'])
 
 /**
+ * Stable identity key for a media atom — used by the supplementary atom diff
+ * to detect swaps that `prosemirror-changeset` misses. The library's token
+ * comparison for atom nodes only checks node TYPE, not attrs, so two
+ * different file-attachments (or images, or embeds) at the same position
+ * get matched as equivalent. We supplement with a per-atom identity check
+ * keyed on the attr that uniquely identifies the file or URL.
+ *
+ * Returns `null` for atoms without a usable identity attr — those fall back
+ * to whatever the changeset reports, same as today.
+ */
+function atomIdentity(node: PMNode): string | null {
+  const type = node.type.name
+  if (type === 'image') {
+    const key = node.attrs.id || node.attrs.src
+    return key ? `image:${key}` : null
+  }
+  if (type === 'fileAttachment') {
+    return node.attrs.id ? `fileAttachment:${node.attrs.id}` : null
+  }
+  if (type === 'embed') {
+    return node.attrs.src ? `embed:${node.attrs.src}` : null
+  }
+  return null
+}
+
+/**
+ * Short uppercase extension label for a deleted attachment's badge.
+ * Mirrors `fileExtLabel` in `DocFileAttachmentNode.vue` so deleted
+ * attachments render the same badge as inserted ones.
+ */
+function fileExtLabel(fileName: string, fileType: string): string {
+  if (fileName) {
+    const parts = fileName.split('.')
+    if (parts.length > 1) return parts.pop()!.toUpperCase()
+  }
+  if (fileType) {
+    const sub = fileType.split('/')[1] || ''
+    const clean = sub
+      .replace(/^x-/, '')
+      .replace(/^vnd\.openxmlformats-officedocument\.\w+\./, '')
+      .replace(/^vnd\.ms-/, '')
+      .replace(/^vnd\./, '')
+    return clean.toUpperCase().slice(0, 6)
+  }
+  return 'FILE'
+}
+
+/**
+ * Badge background + text colour for a deleted attachment, keyed off the
+ * extension. Mirrors the live NodeView's palette so the diff viewer reads
+ * identically to the editor.
+ */
+function fileAttachmentBadgeColor(ext: string): { bg: string; text: string } {
+  const e = ext.toLowerCase()
+  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(e)) {
+    return { bg: '#dbeafe', text: '#2563eb' }
+  }
+  if (e === 'pdf') return { bg: '#fee2e2', text: '#dc2626' }
+  if (['xls', 'xlsx', 'csv', 'tsv', 'sheet'].includes(e)) {
+    return { bg: '#dcfce7', text: '#16a34a' }
+  }
+  if (['doc', 'docx', 'document', 'txt', 'rtf', 'md'].includes(e)) {
+    return { bg: '#dbeafe', text: '#2563eb' }
+  }
+  if (['ppt', 'pptx', 'presentation'].includes(e)) {
+    return { bg: '#ffedd5', text: '#ea580c' }
+  }
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(e)) {
+    return { bg: '#fef9c3', text: '#a16207' }
+  }
+  if (['js', 'ts', 'py', 'json', 'html', 'css', 'xml', 'yaml', 'yml'].includes(e)) {
+    return { bg: '#f3e8ff', text: '#7c3aed' }
+  }
+  return { bg: '#f3f4f6', text: '#6b7280' }
+}
+
+/**
  * Walk a ChangeSet against the (from, to) doc pair and produce both inserts
  * and deletes as navigable change-steps. Returns an empty array when:
  *   - the plugin is disabled
@@ -154,6 +231,79 @@ function findChanges(
 
     if (changes.length > before) steps.push({ from: change.fromB })
   }
+
+  // Supplementary atom diff — see `atomIdentity` for why this is needed.
+  // `prosemirror-changeset` matches atom leaf nodes by TYPE only, so a swap
+  // of one fileAttachment for another at the same position registers as
+  // "no change" even though their `id` attrs differ. We catch those swaps
+  // here by walking both docs for atoms with stable identity keys and
+  // emitting synthetic insert/delete entries for any orphan.
+  const collectAtoms = (doc: PMNode) => {
+    const map = new Map<string, { pos: number; node: PMNode }>()
+    doc.descendants((node, pos) => {
+      const key = atomIdentity(node)
+      if (key && !map.has(key)) map.set(key, { pos, node })
+      return true
+    })
+    return map
+  }
+  const fromAtoms = collectAtoms(fromDoc)
+  const toAtoms = collectAtoms(toDoc)
+
+  // Skip atoms whose position is already inside a changeset-reported range —
+  // avoids double-decorating when the standard diff did catch the change.
+  const positionInsideAnyChange = (
+    from: number,
+    to: number,
+    side: 'A' | 'B',
+  ) =>
+    changeset.changes.some((c) => {
+      const cFrom = side === 'A' ? c.fromA : c.fromB
+      const cTo = side === 'A' ? c.toA : c.toB
+      return from < cTo && to > cFrom
+    })
+
+  toAtoms.forEach((entry, key) => {
+    if (fromAtoms.has(key)) return
+    const { pos, node } = entry
+    const end = pos + node.nodeSize
+    if (positionInsideAnyChange(pos, end, 'B')) return
+    changes.push({
+      type: 'insert',
+      from: pos,
+      to: end,
+      stepIndex: steps.length,
+    })
+    steps.push({ from: pos })
+  })
+
+  fromAtoms.forEach((entry, key) => {
+    if (toAtoms.has(key)) return
+    const { pos: fromPos, node } = entry
+    const end = fromPos + node.nodeSize
+    if (positionInsideAnyChange(fromPos, end, 'A')) return
+    let slice: Slice
+    try {
+      slice = fromDoc.slice(fromPos, end)
+    } catch {
+      return
+    }
+    if (slice.content.size === 0) return
+    // Anchor the deletion widget at the same numeric position in toDoc,
+    // clamped — gives the user a visual indication near where the atom
+    // used to be. Imperfect when toDoc structure diverges heavily, but
+    // good enough for swaps where the surrounding doc is mostly stable.
+    const anchor = Math.min(fromPos, Math.max(0, toDoc.content.size - 1))
+    changes.push({
+      type: 'delete',
+      from: anchor,
+      to: anchor,
+      slice,
+      stepIndex: steps.length,
+    })
+    steps.push({ from: anchor })
+  })
+
   return { changes, steps }
 }
 
@@ -333,10 +483,49 @@ function rewriteDeletedAtoms(
   })
 
   // File attachments — bare `<div data-type="file-attachment">` from
-  // DOMSerializer. No NodeView runs, so we leave the empty div in place and
-  // let the placeholder `::before` rule render a label with the filename.
+  // DOMSerializer. We rebuild the NodeView's card DOM (badge + filename +
+  // size) so deleted attachments read the same as inserted ones — just with
+  // a red outline + grey strike instead of green. Without this they'd
+  // collapse to a zero-height div and the deletion would be invisible.
   const attachments = root.querySelectorAll('div[data-type="file-attachment"]')
   attachments.forEach((el) => {
+    const fileName = el.getAttribute('data-file-name') || 'Untitled'
+    const fileSizeStr = el.getAttribute('data-file-size')
+    const fileSize = fileSizeStr ? Number(fileSizeStr) : 0
+    const fileType = el.getAttribute('data-file-type') || ''
+
+    const ext = fileExtLabel(fileName, fileType)
+    const badge = fileAttachmentBadgeColor(ext)
+
+    const card = document.createElement('div')
+    card.className = 'nc-file-attachment-card'
+
+    const badgeEl = document.createElement('div')
+    badgeEl.className = 'nc-file-attachment-badge'
+    badgeEl.style.backgroundColor = badge.bg
+    badgeEl.style.color = badge.text
+    badgeEl.textContent = ext
+    card.appendChild(badgeEl)
+
+    const info = document.createElement('div')
+    info.className = 'nc-file-attachment-info'
+
+    const name = document.createElement('div')
+    name.className = 'nc-file-attachment-name'
+    name.setAttribute('title', fileName)
+    name.textContent = fileName
+    info.appendChild(name)
+
+    if (fileSize > 0) {
+      const size = document.createElement('div')
+      size.className = 'nc-file-attachment-size'
+      size.textContent = formatFileSize(fileSize)
+      info.appendChild(size)
+    }
+
+    card.appendChild(info)
+    el.replaceChildren(card)
+
     el.classList.add(deleteClass)
     if (isCurrent) el.classList.add(currentClass)
   })

@@ -263,43 +263,22 @@ onBeforeUnmount(() => {
   }
 
   // Deleted atom-leaf nodes (images, embeds, file attachments) get a red
-  // outline so deletion is unambiguous. Images render natively via a
-  // rewritten src; embeds are rebuilt into the same `.nc-embed-card` /
-  // iframe DOM the NodeView produces (so deleted videos still play, just
-  // with a red frame); file attachments fall back to a CSS placeholder
-  // since their NodeView card isn't worth reconstructing for a deleted row.
+  // outline so deletion is unambiguous. Each renders its native card via
+  // the partial styles in `_doc-content.scss`: images use a rewritten src,
+  // embeds rebuild the `.nc-embed-card` iframe DOM, file attachments
+  // rebuild the `.nc-file-attachment-card` badge + name + size structure.
   .nc-doc-history-diff-delete-atom .nc-doc-image,
-  .nc-doc-history-diff-delete-atom .nc-embed-card {
+  .nc-doc-history-diff-delete-atom .nc-embed-card,
+  .nc-doc-history-diff-delete-atom .nc-file-attachment-card {
     outline: 2px solid rgba(239, 68, 68, 0.5);
     outline-offset: 2px;
     border-radius: 4px;
     transition: outline-color 0.15s ease;
   }
   .nc-doc-history-diff-delete-atom-current .nc-doc-image,
-  .nc-doc-history-diff-delete-atom-current .nc-embed-card {
+  .nc-doc-history-diff-delete-atom-current .nc-embed-card,
+  .nc-doc-history-diff-delete-atom-current .nc-file-attachment-card {
     outline-color: rgba(239, 68, 68, 0.85);
-  }
-
-  // Placeholder for a deleted file attachment — shows the filename.
-  // (Embeds render the real tile and need no placeholder; images render
-  // the actual picture via the rewritten src.)
-  div[data-type='file-attachment'].nc-doc-history-diff-delete-atom {
-    display: block;
-    padding: 10px 14px;
-    background-color: rgba(239, 68, 68, 0.04);
-    border-radius: 4px;
-    color: var(--nc-content-gray-muted);
-    text-decoration: line-through;
-    text-decoration-color: var(--nc-content-gray-disabled);
-    outline: 2px solid rgba(239, 68, 68, 0.5);
-    outline-offset: 2px;
-  }
-  div[data-type='file-attachment'].nc-doc-history-diff-delete-atom-current {
-    outline-color: rgba(239, 68, 68, 0.85);
-  }
-  div[data-type='file-attachment'].nc-doc-history-diff-delete-atom::before {
-    content: 'Attachment: ' attr(data-file-name);
-    font-size: 13px;
   }
 }
 

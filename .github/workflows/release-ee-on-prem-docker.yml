@@ -66,8 +66,6 @@ jobs:
           echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
 
       # Clean npm configuration and install dependencies
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
       - name: Cache integration dists
         uses: actions/cache@v4
         with:

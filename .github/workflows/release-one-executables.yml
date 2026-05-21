@@ -43,9 +43,6 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
-      - name: Remove use-node-version from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
-
       - name: Install dependencies
         run: pnpm bootstrap
 

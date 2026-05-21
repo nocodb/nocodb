@@ -108,9 +108,6 @@ jobs:
           echo "PRIMARY_TAG=${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
           echo "Primary tag: ${PRIMARY_TAG}"
 
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
-
       - name: Cache integration dists
         uses: actions/cache@v4
         with:

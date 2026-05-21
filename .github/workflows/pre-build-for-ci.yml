@@ -36,9 +36,6 @@ jobs:
       - name: Set NC Edition
         run: export EE=true
 
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
-
       # ── UI build caching (hash nc-gui + SDK source + lockfile) ──
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5

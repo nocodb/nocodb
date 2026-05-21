@@ -72,9 +72,6 @@ jobs:
       - name: Set NC Edition
         run: export EE=true
 
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
-
       - name: Cache integrations (node_modules + dists)
         uses: actions/cache@v5
         with:

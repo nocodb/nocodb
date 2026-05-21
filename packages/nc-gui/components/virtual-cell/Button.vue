@@ -540,6 +540,8 @@ const triggerAction = async () => {
 }
 
 tr:hover .nc-open-form-copy-btn.nc-copy-hover-only,
+.nc-gallery-container .ant-card:hover .nc-open-form-copy-btn.nc-copy-hover-only,
+.nc-kanban-item:hover .nc-open-form-copy-btn.nc-copy-hover-only,
 .nc-data-cell:focus-within .nc-open-form-copy-btn.nc-copy-hover-only {
   opacity: 1;
   pointer-events: auto;

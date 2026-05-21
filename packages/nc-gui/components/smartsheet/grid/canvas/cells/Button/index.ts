@@ -8,8 +8,9 @@ const buttonMinWidth = 32
 const iconSize = 14
 const iconSpacing = 6
 
-const copyIconSize = 20
-const copyIconMargin = 4
+// Match the primary button's 24px height so the two sit on the same baseline.
+const copyIconSize = 24
+const copyIconMargin = 8
 
 // Computes button + optional copy-icon positions for a Button cell. Shared between render,
 // handleClick, and handleHover so all three agree on where the boxes live. Icon space is
@@ -228,22 +229,25 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.globalAlpha = 1
     }
 
-    // OpenForm: icon-only copy button adjacent to the main button, shown on row hover
+    // OpenForm: ghost copy glyph adjacent to the main button, shown on row hover.
+    // No default chrome — the icon owns the visual space. Hover adds a soft bg tint.
+    // Briefly swaps to a check after a successful copy as click feedback.
     if (isOpenForm && props.isRowHovered && copyIconRect && !disabled?.isInvalid) {
+      const justCopied = actionManager.isRecentlyCopied(pk, column.id!)
       renderIconButton(ctx, {
         buttonX: copyIconRect.x,
         buttonY: copyIconRect.y,
         buttonSize: copyIconSize,
         borderRadius: 6,
         iconData: {
-          size: 12,
-          xOffset: 4,
-          yOffset: 4,
+          size: 14,
+          xOffset: 5,
+          yOffset: 5,
           color: getColor(themeV4Colors.gray['700']),
         },
         mousePosition,
         spriteLoader,
-        icon: 'ncCopy',
+        icon: justCopied ? 'ncCheck' : 'ncCopy',
         background: getColor(themeV4Colors.base.white),
         borderColor: getColor(themeV4Colors.gray['200']),
         hoveredBackground: getColor(themeV4Colors.gray['100']),
@@ -271,6 +275,7 @@ export const ButtonCellRenderer: CellRenderer = {
         const url = await actionManager.resolveFormEditUrl(column.columnObj.id!, pk)
         if (!url) throw new Error('Could not resolve form URL')
         await navigator.clipboard.writeText(url)
+        actionManager.markRecentlyCopied(pk, column.columnObj.id!)
         message.toast(t('msg.info.copiedToClipboard'))
       } catch (e: any) {
         message.error(e?.message || t('msg.error.copyToClipboardError'))

@@ -47,6 +47,10 @@ export class ActionManager {
   private cellUpdates = new Map<string, CellUpdate>()
   private activeBulkExecs = new Map<string, boolean>()
   private bulkRowStates = new Map<string, BulkRowState>()
+  // Short-lived map of cells that just had their OpenForm URL copied, so the
+  // canvas can swap the copy glyph for a check for ~1s as click feedback.
+  private recentlyCopied = new Map<string, number>()
+  private readonly COPY_FEEDBACK_MS = 1200
   private rafId: number | null = null
 
   constructor(
@@ -224,7 +228,7 @@ export class ActionManager {
   }
 
   private startAnimationLoop() {
-    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0 || this.recentlyCopied.size > 0
 
     if (this.rafId !== null || !hasActivity) return
 
@@ -232,7 +236,7 @@ export class ActionManager {
     let isCoolingDown = false
 
     const animate = () => {
-      const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+      const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0 || this.recentlyCopied.size > 0
 
       if (currentActivity) {
         if (cooldownTimeout) {
@@ -472,6 +476,26 @@ export class ActionManager {
       return `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
     }
     return null
+  }
+
+  // Flag a cell as just-copied so the renderer can swap the copy glyph for a
+  // check. Auto-clears after COPY_FEEDBACK_MS and forces a final refresh so the
+  // glyph reverts even when nothing else is animating.
+  markRecentlyCopied(rowId: string, columnId: string) {
+    const key = this.getKey(rowId, columnId)
+    this.recentlyCopied.set(key, Date.now())
+    this.triggerRefreshCanvas()
+    this.startAnimationLoop()
+    setTimeout(() => {
+      this.recentlyCopied.delete(key)
+      this.triggerRefreshCanvas()
+    }, this.COPY_FEEDBACK_MS)
+  }
+
+  isRecentlyCopied(rowId: string, columnId: string): boolean {
+    const ts = this.recentlyCopied.get(this.getKey(rowId, columnId))
+    if (!ts) return false
+    return Date.now() - ts < this.COPY_FEEDBACK_MS
   }
 
   // Public state query methods

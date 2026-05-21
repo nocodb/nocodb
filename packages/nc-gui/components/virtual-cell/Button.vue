@@ -60,6 +60,37 @@ const pk = computed(() => {
 
 const isAiButtonType = computed(() => column.value?.colOptions?.type === ButtonActionsType.Ai)
 
+const isOpenFormButton = computed(() => column.value?.colOptions?.type === ButtonActionsType.OpenForm)
+
+// Ref to the GeneralCopyButton — we mint the token async on click, then drive
+// the check-glyph swap via its exposed `copyContent(url)` method.
+const copyBtnRef = ref<{ copyContent: (text?: string) => Promise<void> } | null>(null)
+
+const handleCopyFormEditUrl = async () => {
+  if (!meta.value?.fk_workspace_id || !meta.value?.base_id || !rowId.value || !column.value.id) return
+  try {
+    const result = await $api.internal.postOperation(
+      meta.value.fk_workspace_id,
+      meta.value.base_id,
+      {
+        operation: 'formEditTokenGenerate',
+        columnId: column.value.id,
+        rowId: rowId.value,
+      },
+      {},
+    )
+    const token = result?.token as string | undefined
+    const viewUuid = result?.viewUuid as string | undefined
+    if (!token || !viewUuid) throw new Error('Could not resolve form URL')
+
+    const editUrl = `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
+    await copyBtnRef.value?.copyContent(editUrl)
+    $e('c:button:open-form:copy-url', { via: 'mouse' })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const isFieldAiIntegrationAvailable = computed(() => {
   if (!isAiButtonType.value) return true
 
@@ -402,7 +433,7 @@ const triggerAction = async () => {
     :class="{
       'justify-center': isGrid && !isExpandedForm,
     }"
-    class="w-full flex items-center"
+    class="w-full flex items-center gap-1.5"
   >
     <NcTooltip
       :disabled="
@@ -460,6 +491,19 @@ const triggerAction = async () => {
         </NcTooltip>
       </component>
     </NcTooltip>
+    <GeneralCopyButton
+      v-if="isOpenFormButton && !isPublic"
+      ref="copyBtnRef"
+      type="secondary"
+      size="xsmall"
+      :bordered="true"
+      :timeout="1200"
+      :disabled="!!componentProps.disabled"
+      class="nc-open-form-copy-btn flex-none"
+      :class="{ 'nc-copy-hover-only': !isExpandedForm }"
+      data-testid="nc-open-form-copy-url"
+      @click="handleCopyFormEditUrl"
+    />
   </div>
 </template>
 
@@ -485,6 +529,20 @@ const triggerAction = async () => {
 
 .nc-button-cell-link {
   @apply !no-underline;
+}
+
+// In non-expanded-form contexts (grid rows, cards), keep the copy button hidden
+// until the ancestor row is hovered — matches the canvas grid's row-hover pattern.
+.nc-open-form-copy-btn.nc-copy-hover-only {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+tr:hover .nc-open-form-copy-btn.nc-copy-hover-only,
+.nc-data-cell:focus-within .nc-open-form-copy-btn.nc-copy-hover-only {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>
 

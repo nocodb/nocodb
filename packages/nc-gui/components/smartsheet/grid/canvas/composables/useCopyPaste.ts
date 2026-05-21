@@ -1267,6 +1267,7 @@ export function useCopyPaste({
                 const url = await actionManager.resolveFormEditUrl(columnObj.id!, rowPk)
                 if (url) {
                   await copy(url)
+                  actionManager.markRecentlyCopied(rowPk, columnObj.id!)
                   $e('c:button:open-form:copy-url', { via: 'keyboard' })
                   message.toast(t('msg.info.copiedToClipboard'))
                   return

@@ -35,6 +35,7 @@ let scimTest = () => {};
 let scimComplianceTest = () => {};
 let cloudOrgTest = () => {};
 let orgUserInvitePickerTest = () => {};
+let orgAdminRoleTest = () => {};
 let bulkAggregationTest = () => {};
 let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
@@ -55,6 +56,7 @@ if (process.env.EE === 'true') {
   scimComplianceTest = require('./tests/ee/scim-compliance.test').default;
   cloudOrgTest = require('./tests/ee/cloud-org.test').default;
   orgUserInvitePickerTest = require('./tests/ee/org-user-invite-picker.test').default;
+  orgAdminRoleTest = require('./tests/ee/org-admin-role.test').default;
   bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
@@ -95,6 +97,7 @@ function restTests() {
     scimComplianceTest();
     cloudOrgTest();
     orgUserInvitePickerTest();
+    orgAdminRoleTest();
     typeCastsTest();
     readOnlyTest();
     aggregationTest();

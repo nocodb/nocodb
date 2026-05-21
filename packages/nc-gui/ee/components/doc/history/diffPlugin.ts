@@ -83,7 +83,14 @@ export const docDiffPluginKey = new PluginKey<DocDiffState>('docHistoryDiff')
  * and a class on delete (red outline + placeholder). Inline range decorations
  * don't reach leaf DOM, so these need their own node decorations.
  */
-const ATOM_NODE_TYPES = new Set(['image', 'embed', 'fileAttachment'])
+const ATOM_NODE_TYPES = new Set([
+  'image',
+  'embed',
+  'fileAttachment',
+  // Dividers are atoms too — inline decorations don't reach `<hr>` either,
+  // so they need a node decoration for the green/red outline to appear.
+  'horizontalRule',
+])
 
 /**
  * Stable identity key for a media atom — used by the supplementary atom diff
@@ -629,6 +636,15 @@ function rewriteDeletedAtoms(
 
     img.classList.add(deleteClass)
     if (isCurrent) img.classList.add(currentClass)
+  })
+
+  // Dividers — bare `<hr>` from DOMSerializer. No NodeView, no inner card, so
+  // the delete class lands directly on the element. The CSS in Viewer.vue
+  // turns the rule red + strike-through to signal removal.
+  const hrs = root.querySelectorAll('hr')
+  hrs.forEach((hr) => {
+    hr.classList.add(deleteClass)
+    if (isCurrent) hr.classList.add(currentClass)
   })
 
   // Embeds — bare `<div data-type="embed">` from DOMSerializer. We rebuild

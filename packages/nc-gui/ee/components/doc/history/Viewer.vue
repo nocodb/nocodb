@@ -344,6 +344,26 @@ onBeforeUnmount(() => {
     outline-color: rgba(34, 197, 94, 0.85);
   }
 
+  // Inserted divider — `_doc-content.scss` draws the visible line via an
+  // `::after` pseudo-element (the host `<hr>` has `border: none`), so the
+  // green treatment lives on the pseudo. A wash on the host mirrors the
+  // red-deletion style so insert / delete read symmetrically and the
+  // divider stands out as much as inserted text.
+  hr.nc-doc-history-diff-insert-atom {
+    background-color: rgba(34, 197, 94, 0.12);
+  }
+  hr.nc-doc-history-diff-insert-atom::after {
+    border-top-color: rgba(34, 197, 94, 0.7) !important;
+    border-top-width: 2px !important;
+    transition: border-top-color 0.15s ease;
+  }
+  hr.nc-doc-history-diff-insert-atom-current {
+    background-color: rgba(34, 197, 94, 0.28);
+  }
+  hr.nc-doc-history-diff-insert-atom-current::after {
+    border-top-color: rgba(34, 197, 94, 0.95) !important;
+  }
+
   // ── Inline-strike delete (within a single block) ─────────
   // Muted-grey text + grey strikethrough on a very light red wash —
   // matches the completed-task style in `_doc-content.scss`.
@@ -387,6 +407,24 @@ onBeforeUnmount(() => {
   .nc-doc-history-diff-delete-atom-current .nc-embed-card,
   .nc-doc-history-diff-delete-atom-current .nc-file-attachment-card {
     outline-color: rgba(239, 68, 68, 0.85);
+  }
+
+  // Deleted divider — same `::after` indirection as the inserted variant.
+  // Faint red wash on the host shows the removed separator inside the
+  // cross-block deletion wrapper.
+  hr.nc-doc-history-diff-delete-atom {
+    background-color: rgba(239, 68, 68, 0.08);
+  }
+  hr.nc-doc-history-diff-delete-atom::after {
+    border-top-color: rgba(239, 68, 68, 0.65) !important;
+    border-top-width: 2px !important;
+    transition: border-top-color 0.15s ease;
+  }
+  hr.nc-doc-history-diff-delete-atom-current {
+    background-color: rgba(239, 68, 68, 0.22);
+  }
+  hr.nc-doc-history-diff-delete-atom-current::after {
+    border-top-color: rgba(239, 68, 68, 0.95) !important;
   }
 }
 

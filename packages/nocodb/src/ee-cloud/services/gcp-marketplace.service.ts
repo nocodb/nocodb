@@ -82,8 +82,9 @@ export class GcpMarketplaceService {
       GCP_CERTS_URL,
     );
 
-    // Parse cache-control max-age for cache duration
-    const cacheControl = headers['cache-control'] || '';
+    // Parse cache-control max-age for cache duration (axios >=1.14 widens
+    // header values to AxiosHeaderValue — coerce to string for .match()).
+    const cacheControl = (headers['cache-control'] as string) || '';
     const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
     const maxAgeSec = maxAgeMatch ? parseInt(maxAgeMatch[1], 10) : 3600;
 

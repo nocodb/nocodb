@@ -473,7 +473,11 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
-    const preFlushSnapshot = params.filter ? snapshotFilter(params.filter as any) : null
+    // FilterRow.onValueChange mutates `vModel.value.value` before emitting rowChange,
+    // so for `type: 'value'` updates `params.filter` already reflects the new value.
+    // Reconstruct the pre-state by overriding the changed field with `prevValue`, otherwise
+    // the diff guard below treats every value edit as a no-op and silently drops the API call.
+    const preFlushSnapshot = params.filter ? snapshotFilter({ ...params.filter, [params.type]: params.prevValue } as any) : null
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[colorIndex]!

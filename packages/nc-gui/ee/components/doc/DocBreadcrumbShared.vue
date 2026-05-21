@@ -88,9 +88,7 @@ const ancestors = computed<PublicDocTreeNode[]>(() => {
 })
 
 const rootAncestor = computed(() => ancestors.value[0] ?? null)
-const parentAncestor = computed(() =>
-  ancestors.value.length > 1 ? ancestors.value[ancestors.value.length - 1] : null,
-)
+const parentAncestor = computed(() => (ancestors.value.length > 1 ? ancestors.value[ancestors.value.length - 1] : null))
 const middleAncestor = computed(() => (ancestors.value.length === 3 ? ancestors.value[1] : null))
 const collapsedMiddle = computed(() => (ancestors.value.length <= 3 ? [] : ancestors.value.slice(1, -1)))
 const hasCollapsed = computed(() => collapsedMiddle.value.length > 0)

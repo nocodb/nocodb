@@ -40,9 +40,7 @@ const pieGradient = (cs: string[]): string => {
   const n = cs.length
   if (!n) return 'transparent'
   const step = 100 / n
-  return `conic-gradient(${cs
-    .map((c, i) => `${c} ${(i * step).toFixed(2)}% ${((i + 1) * step).toFixed(2)}%`)
-    .join(', ')})`
+  return `conic-gradient(${cs.map((c, i) => `${c} ${(i * step).toFixed(2)}% ${((i + 1) * step).toFixed(2)}%`).join(', ')})`
 }
 
 const sliced = computed(() => {
@@ -52,9 +50,7 @@ const sliced = computed(() => {
 
 const sparkPoints = (i: number): string => {
   const ys = LINE_SHAPES[i % LINE_SHAPES.length]
-  return ys
-    .map((y, j) => `${((j / (ys.length - 1)) * 36).toFixed(1)},${((y / 100) * 32 + 2).toFixed(1)}`)
-    .join(' ')
+  return ys.map((y, j) => `${((j / (ys.length - 1)) * 36).toFixed(1)},${((y / 100) * 32 + 2).toFixed(1)}`).join(' ')
 }
 
 const sizePx = computed(() => (props.size === 'lg' ? 36 : 22))
@@ -69,31 +65,18 @@ const dotRadius = computed(() => (props.size === 'lg' ? 3 : 2.5))
   <span
     class="nc-palette-preview"
     :class="{ 'nc-palette-preview-round': isRound }"
-    :style="{ width: sizePx + 'px', height: sizePx + 'px' }"
+    :style="{ width: `${sizePx}px`, height: `${sizePx}px` }"
   >
     <template v-if="preview === 'pie' || preview === 'donut'">
       <span class="nc-palette-pie-fill" :style="{ background: pieGradient(sliced) }" />
       <span v-if="preview === 'donut'" class="nc-palette-pie-hole" :style="{ inset: holeInset }" />
     </template>
 
-    <div
-      v-else-if="preview === 'bar'"
-      class="nc-palette-bars"
-      :style="{ padding: barPad, gap: barGap }"
-    >
-      <span
-        v-for="(c, i) in sliced"
-        :key="i"
-        :style="{ background: c, height: BAR_HEIGHTS[i % BAR_HEIGHTS.length] + '%' }"
-      />
+    <div v-else-if="preview === 'bar'" class="nc-palette-bars" :style="{ padding: barPad, gap: barGap }">
+      <span v-for="(c, i) in sliced" :key="i" :style="{ background: c, height: `${BAR_HEIGHTS[i % BAR_HEIGHTS.length]}%` }" />
     </div>
 
-    <svg
-      v-else-if="preview === 'line'"
-      viewBox="0 0 36 36"
-      preserveAspectRatio="none"
-      class="nc-palette-svg"
-    >
+    <svg v-else-if="preview === 'line'" viewBox="0 0 36 36" preserveAspectRatio="none" class="nc-palette-svg">
       <polyline
         v-for="(c, i) in sliced"
         :key="i"
@@ -106,11 +89,7 @@ const dotRadius = computed(() => (props.size === 'lg' ? 3 : 2.5))
       />
     </svg>
 
-    <svg
-      v-else-if="preview === 'scatter'"
-      viewBox="0 0 36 36"
-      class="nc-palette-svg"
-    >
+    <svg v-else-if="preview === 'scatter'" viewBox="0 0 36 36" class="nc-palette-svg">
       <circle
         v-for="(p, i) in SCATTER_POSITIONS.slice(0, PREVIEW_COUNT.scatter)"
         :key="i"

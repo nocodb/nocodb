@@ -31,7 +31,17 @@ const pieAppearanceSchema = z.object({
   showCountInLegend: z.boolean().optional(),
   showPercentageOnChart: z.boolean().optional(),
   legendPosition: legendPositionEnum.optional(),
-  colorSchema: z.enum(['default', 'classic', 'vibrant', 'pastel', 'earth', 'monoBlue', 'custom']).optional(),
+  colorSchema: z
+    .enum([
+      'default',
+      'classic',
+      'vibrant',
+      'pastel',
+      'earth',
+      'monoBlue',
+      'custom',
+    ])
+    .optional(),
   customColorSchema: z
     .array(z.object({ color: z.string(), label: z.string() }))
     .optional(),
@@ -64,7 +74,17 @@ const barAppearanceSchema = z.object({
   showCountInLegend: z.boolean().optional(),
   showValueInChart: z.boolean().optional(),
   legendPosition: legendPositionEnum.optional(),
-  colorSchema: z.enum(['default', 'classic', 'vibrant', 'pastel', 'earth', 'monoBlue', 'custom']).optional(),
+  colorSchema: z
+    .enum([
+      'default',
+      'classic',
+      'vibrant',
+      'pastel',
+      'earth',
+      'monoBlue',
+      'custom',
+    ])
+    .optional(),
 });
 
 const lineAppearanceSchema = barAppearanceSchema.extend({

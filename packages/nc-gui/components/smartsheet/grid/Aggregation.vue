@@ -83,9 +83,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
           'width': width,
         }"
       >
-        <template
-          v-if="!isMmTable && ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)"
-        >
+        <template v-if="!isMmTable && ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
           <div
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
             class="text-nc-content-gray-muted opacity-0 transition"

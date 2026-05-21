@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getFilteredAgents } from '~/utils/ssrf';
 import {
   Body,
   Controller,
@@ -18,6 +17,7 @@ import {
   ProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';

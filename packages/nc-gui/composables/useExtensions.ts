@@ -283,13 +283,7 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const {
-      id: _id,
-      order: _order,
-      base_id: _baseId,
-      fk_user_id: _fkUserId,
-      ...extensionData
-    } = extension.serialize()
+    const { id: _id, order: _order, base_id: _baseId, fk_user_id: _fkUserId, ...extensionData } = extension.serialize()
 
     const newExtension = await $api.internal.postOperation(
       base.value!.fk_workspace_id!,

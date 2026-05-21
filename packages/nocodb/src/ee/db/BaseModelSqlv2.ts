@@ -53,6 +53,7 @@ import type {
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
+import type { DisplacedRecord, LinkChange } from '~/command-registry/types';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
@@ -140,7 +141,6 @@ import {
   captureForTrace,
   isTraceActive,
 } from '~/decorators/trace-command.decorator';
-import type { DisplacedRecord, LinkChange } from '~/command-registry/types';
 import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 

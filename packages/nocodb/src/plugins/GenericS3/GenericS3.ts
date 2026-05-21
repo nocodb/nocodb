@@ -4,7 +4,6 @@ import { Readable } from 'stream';
 import path from 'path';
 import axios from 'axios';
 import { OperationSource } from 'nocodb-sdk';
-import { getFilteredAgents } from '~/utils/ssrf';
 import {
   GetObjectCommand,
   type PutObjectCommandInput,
@@ -13,6 +12,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';

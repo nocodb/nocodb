@@ -640,7 +640,12 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 @keydown.up="onPickerArrowUp"
                 @keydown.enter="onInputEnter"
                 @paste.prevent="onPaste"
-                @input="hasUserInteracted = true; warningMsg = null"
+                @input="
+                  () => {
+                    hasUserInteracted = true
+                    warningMsg = null
+                  }
+                "
               />
             </div>
 

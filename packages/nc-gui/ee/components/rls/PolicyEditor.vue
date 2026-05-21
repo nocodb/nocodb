@@ -11,9 +11,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const base = computed(() => props.base)
-const tableId = computed(() => props.tableId)
-
 const { t } = useI18n()
 
 const rlsStore = useRlsStore()

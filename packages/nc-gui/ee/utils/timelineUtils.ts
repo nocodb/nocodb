@@ -1,16 +1,6 @@
 import dayjs from 'dayjs'
 
-export const TIMELINE_ZOOM_LEVELS = [
-  'day',
-  'week',
-  '2week',
-  'month',
-  'quarter',
-  '6month',
-  'year',
-  '2year',
-  '5year',
-] as const
+export const TIMELINE_ZOOM_LEVELS = ['day', 'week', '2week', 'month', 'quarter', '6month', 'year', '2year', '5year'] as const
 
 export type TimelineZoomLevel = (typeof TIMELINE_ZOOM_LEVELS)[number]
 

@@ -19,16 +19,8 @@ const {
   pendingRemote,
 } = smartTextStore
 
-const {
-  closeEditor,
-  flushSave,
-  switchField,
-  setFullscreen,
-  setPmContent,
-  navigatePrev,
-  navigateNext,
-  applyPendingRemote,
-} = smartTextStore
+const { closeEditor, flushSave, switchField, setFullscreen, setPmContent, navigatePrev, navigateNext, applyPendingRemote } =
+  smartTextStore
 
 // When the expanded-record panel is also open it's hidden via v-show while
 // SmartText is active. On close we want SmartText to vanish instantly so the
@@ -485,12 +477,7 @@ const onDownloadPDF = async () => downloadPDF()
         data-testid="nc-smart-text-panel-remote-banner"
       >
         <template #action>
-          <NcButton
-            size="xs"
-            type="secondary"
-            data-testid="nc-smart-text-panel-remote-refresh"
-            @click="applyPendingRemote"
-          >
+          <NcButton size="xs" type="secondary" data-testid="nc-smart-text-panel-remote-refresh" @click="applyPendingRemote">
             {{ $t('general.refresh') }}
           </NcButton>
         </template>

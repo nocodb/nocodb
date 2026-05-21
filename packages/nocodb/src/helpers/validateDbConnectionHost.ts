@@ -16,7 +16,8 @@ import { isSsrfProtectionEnabled } from '~/utils/ssrf';
  * intentionally connect to localhost or private-network databases.
  */
 export async function validateDbConnectionHost(host: unknown): Promise<void> {
-  if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS })) return;
+  if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }))
+    return;
   if (typeof host !== 'string' || host.length === 0) return;
 
   const trimmed = host.trim();

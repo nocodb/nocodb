@@ -199,9 +199,7 @@ export function useInfiniteData(args: {
 
       const filterColIds = new Set(filters.map((f) => f.fk_column_id).filter(Boolean))
 
-      const ltarCols = meta.value.columns.filter(
-        (c) => filterColIds.has(c.id!) && c.uidt === UITypes.LinkToAnotherRecord,
-      )
+      const ltarCols = meta.value.columns.filter((c) => filterColIds.has(c.id!) && c.uidt === UITypes.LinkToAnotherRecord)
 
       for (const col of ltarCols) {
         const colOptions = col.colOptions as LinkToAnotherRecordType

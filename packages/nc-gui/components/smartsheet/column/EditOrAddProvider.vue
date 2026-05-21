@@ -23,8 +23,7 @@ const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid,
 
 const { isSaving } = useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 
-const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen } =
-  useColumnCreateStoreOrThrow()
+const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen } = useColumnCreateStoreOrThrow()
 
 /**
  * Determines whether the root dropdown should remain open.

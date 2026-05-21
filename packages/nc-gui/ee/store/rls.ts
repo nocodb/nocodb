@@ -143,12 +143,7 @@ export const useRlsStore = defineStore('rls', () => {
 
     isSaving.value = true
     try {
-      await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        base.value.id,
-        { operation: 'rlsPolicyDelete' },
-        { policyId },
-      )
+      await $api.internal.postOperation(activeWorkspaceId.value, base.value.id, { operation: 'rlsPolicyDelete' }, { policyId })
 
       if (tableId) {
         const list = policies.value.get(tableId) ?? []

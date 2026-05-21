@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
-import { getFilteredAgents } from '~/utils/ssrf';
 import { AppEvents, NcBaseError, OperationSource } from 'nocodb-sdk';
 import type {
   GoogleClientConfigType,
@@ -9,6 +8,7 @@ import type {
   SAMLClientConfigType,
   SSOClientType,
 } from 'nocodb-sdk';
+import { getFilteredAgents } from '~/utils/ssrf';
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
@@ -163,7 +163,10 @@ export class SSOClientService {
       const response = await axios(
         param.metadataUrl,
         process.env.NODE_ENV !== 'test'
-          ? getFilteredAgents({ url: param.metadataUrl, source: OperationSource.SSO })
+          ? getFilteredAgents({
+              url: param.metadataUrl,
+              source: OperationSource.SSO,
+            })
           : {},
       );
 

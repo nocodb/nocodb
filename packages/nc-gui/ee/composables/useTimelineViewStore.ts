@@ -153,29 +153,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     let _isFetching = false
     let _pending: { showLoading: boolean } | null = null
 
-    const fetchTimelineRecords = async (args: { showLoading: boolean }): Promise<void> => {
-      if (_isFetching) {
-        // Replace any earlier queued request — only the latest matters.
-        // If any caller wanted the loading spinner shown, preserve that.
-        _pending = {
-          showLoading: (_pending?.showLoading ?? false) || args.showLoading,
-        }
-        return
-      }
-      _isFetching = true
-      try {
-        await _fetchTimelineRecordsImpl(args)
-      } finally {
-        _isFetching = false
-        if (_pending) {
-          const next = _pending
-          _pending = null
-          // Fire-and-forget — the new call goes through the same gate.
-          fetchTimelineRecords(next)
-        }
-      }
-    }
-
     const _fetchTimelineRecordsImpl = async ({ showLoading }: { showLoading: boolean }) => {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !timelineRange.value?.length)
         return
@@ -241,6 +218,29 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       } finally {
         if (seq === _fetchSeq && showLoading) {
           isTimelineDataLoading.value = false
+        }
+      }
+    }
+
+    const fetchTimelineRecords = async (args: { showLoading: boolean }): Promise<void> => {
+      if (_isFetching) {
+        // Replace any earlier queued request — only the latest matters.
+        // If any caller wanted the loading spinner shown, preserve that.
+        _pending = {
+          showLoading: (_pending?.showLoading ?? false) || args.showLoading,
+        }
+        return
+      }
+      _isFetching = true
+      try {
+        await _fetchTimelineRecordsImpl(args)
+      } finally {
+        _isFetching = false
+        if (_pending) {
+          const next = _pending
+          _pending = null
+          // Fire-and-forget — the new call goes through the same gate.
+          fetchTimelineRecords(next)
         }
       }
     }
@@ -329,7 +329,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 
-    const findRowInState = (rowData: Record<string, any>) => {
+    const _findRowInState = (rowData: Record<string, any>) => {
       const pk = extractPkFromRow(rowData, meta.value?.columns as ColumnType[])
       return formattedData.value.find((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk)
     }

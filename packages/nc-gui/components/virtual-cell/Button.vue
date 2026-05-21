@@ -492,13 +492,12 @@ const triggerAction = async () => {
       </component>
     </NcTooltip>
     <GeneralCopyButton
-      v-if="isOpenFormButton && !isPublic"
+      v-if="isOpenFormButton && !isPublic && !componentProps.disabled"
       ref="copyBtnRef"
       type="secondary"
       size="xsmall"
       :bordered="true"
       :timeout="1200"
-      :disabled="!!componentProps.disabled"
       class="nc-open-form-copy-btn flex-none"
       :class="{ 'nc-copy-hover-only': !isExpandedForm }"
       data-testid="nc-open-form-copy-url"

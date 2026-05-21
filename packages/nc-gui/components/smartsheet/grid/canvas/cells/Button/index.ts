@@ -230,9 +230,11 @@ export const ButtonCellRenderer: CellRenderer = {
     }
 
     // OpenForm: ghost copy glyph adjacent to the main button, shown on row hover.
-    // No default chrome — the icon owns the visual space. Hover adds a soft bg tint.
+    // Hidden whenever the main button is disabled for any reason (invalid,
+    // filter, loading, queued) — copying a URL that can't be used makes no sense.
     // Briefly swaps to a check after a successful copy as click feedback.
-    if (isOpenForm && props.isRowHovered && copyIconRect && !disabled?.isInvalid) {
+    cellRenderStore.copyIconHidden = disabledState
+    if (isOpenForm && props.isRowHovered && copyIconRect && !disabledState) {
       const justCopied = actionManager.isRecentlyCopied(pk, column.id!)
       renderIconButton(ctx, {
         buttonX: copyIconRect.x,
@@ -269,8 +271,8 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const { buttonX, buttonY, buttonWidth, copyIconRect } = computeButtonLayout({ x, y, width, colOptions })
 
-    // Copy-form-URL icon (OpenForm only)
-    if (copyIconRect && isBoxHovered(copyIconRect, mousePosition)) {
+    // Copy-form-URL icon (OpenForm only) — skip when the icon isn't drawn
+    if (copyIconRect && !cellRenderStore?.copyIconHidden && isBoxHovered(copyIconRect, mousePosition)) {
       try {
         const url = await actionManager.resolveFormEditUrl(column.columnObj.id!, pk)
         if (!url) throw new Error('Could not resolve form URL')
@@ -302,11 +304,11 @@ export const ButtonCellRenderer: CellRenderer = {
 
     // Copy-form-URL icon tooltip (OpenForm only) — only when the icon is
     // actually drawn (matches the render gate), so hovering empty space in a
-    // disabled/invalid column doesn't surface a misleading tooltip.
+    // disabled column doesn't surface a misleading tooltip.
     if (
       copyIconRect &&
       mousePosition &&
-      !column?.isInvalidColumn?.isInvalid &&
+      !cellRenderStore?.copyIconHidden &&
       isBoxHovered(copyIconRect, mousePosition)
     ) {
       tryShowTooltip({ rect: copyIconRect, mousePosition, text: t('activity.copyUrl') })

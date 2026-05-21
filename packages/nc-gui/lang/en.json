@@ -3012,6 +3012,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "milestone": "Milestone",
     "showExtensions": "Show extensions",
     "hideExtensions": "Hide extensions",
     "sandboxRequiresV3": "Sandbox requires a V3 base. Please migrate this base to V3 first.",

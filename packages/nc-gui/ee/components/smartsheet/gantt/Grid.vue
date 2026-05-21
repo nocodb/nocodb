@@ -1831,13 +1831,26 @@ const onGridMouseLeave = () => {
           v-for="(lane, laneIdx) in swimlanes"
           :key="laneIdx"
           v-e="['c:gantt:sidebar-row-click']"
-          class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray cursor-pointer hover:bg-nc-bg-gray-extralight"
+          class="flex items-center gap-2 px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray cursor-pointer hover:bg-nc-bg-gray-extralight"
           :style="{ height: `${ROW_HEIGHT}px` }"
           @click="onSidebarRowClick(lane[0].record)"
         >
-          <NcTooltip show-on-truncate-only class="truncate">
+          <NcTooltip show-on-truncate-only class="flex-1 min-w-0 truncate">
             <template #title>{{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}</template>
             {{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}
+          </NcTooltip>
+          <!-- Milestone marker — fixed-slot on the right edge so it sits
+               outside the truncation ellipsis. Square rotated 45° with
+               rounded corners, matching the chart-side diamond's geometry.
+               Inline transform is used because WindiCSS's `rotate-45`
+               utility didn't reliably apply here. -->
+          <NcTooltip v-if="isMilestone(lane[0].record)" :title="$t('tooltip.milestone')" placement="top">
+            <span
+              class="nc-gantt-sidebar-milestone flex-shrink-0 inline-block w-3 h-3 rounded-sm bg-nc-gray-200"
+              style="transform: rotate(45deg); border: 1px solid var(--color-gray-400)"
+              :aria-label="$t('tooltip.milestone')"
+              data-testid="nc-gantt-sidebar-milestone"
+            />
           </NcTooltip>
         </div>
       </div>

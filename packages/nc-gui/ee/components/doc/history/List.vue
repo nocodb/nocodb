@@ -55,6 +55,23 @@ function formatTimestamp(iso: string): string {
   return `${month} ${ordinal(d.getDate())}, ${time}`
 }
 
+// Full, unabbreviated timestamp for the row tooltip — weekday + year +
+// seconds round out the abbreviated label shown inline. Surfaced on hover
+// because the inline label drops year/seconds to keep rows compact, but
+// users investigating a specific edit often need the exact moment.
+function formatTimestampFull(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+}
+
 function sourceVerb(source: DocRevisionSource): string {
   if (source === DocRevisionSource.RESTORE) return 'restored'
   if (source === DocRevisionSource.MANUAL) return 'saved'
@@ -105,33 +122,39 @@ function onSelect(rev: DocRevisionListItem) {
     <!-- List — flat, no day-group headers. The topmost row is the current
          version (most recent revision); every other row is a prior edit. -->
     <div v-else class="flex-1 overflow-y-auto px-3 py-3">
-      <div
+      <NcTooltip
         v-for="(rev, idx) in revisions"
         :key="rev.id"
-        class="nc-doc-history-row"
-        :class="{
-          'nc-doc-history-row-active': selectedRevisionId === rev.id,
-          'nc-doc-history-row-first-in-day': idx === 0,
-          'nc-doc-history-row-last-in-day': idx === revisions.length - 1,
-        }"
-        :data-testid="`nc-doc-history-item-${rev.id}`"
-        @click="onSelect(rev)"
+        :title="formatTimestampFull(rev.created_at)"
+        placement="left"
+        :mouse-enter-delay="0.4"
       >
-        <div class="nc-doc-history-avatar">
-          <GeneralUserIcon size="medium" :user="userTile(rev)" />
-        </div>
-        <div class="nc-doc-history-content">
-          <div class="text-xs font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
-          <div class="text-xs text-nc-content-gray-muted mt-0.5">
-            <template v-if="idx === 0">
-              Current version · {{ authorLabel(rev) }}
-            </template>
-            <template v-else>
-              {{ authorLabel(rev) }} {{ sourceVerb(rev.source) }}
-            </template>
+        <div
+          class="nc-doc-history-row"
+          :class="{
+            'nc-doc-history-row-active': selectedRevisionId === rev.id,
+            'nc-doc-history-row-first-in-day': idx === 0,
+            'nc-doc-history-row-last-in-day': idx === revisions.length - 1,
+          }"
+          :data-testid="`nc-doc-history-item-${rev.id}`"
+          @click="onSelect(rev)"
+        >
+          <div class="nc-doc-history-avatar">
+            <GeneralUserIcon size="medium" :user="userTile(rev)" />
+          </div>
+          <div class="nc-doc-history-content">
+            <div class="text-xs font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
+            <div class="text-xs text-nc-content-gray-muted mt-0.5">
+              <template v-if="idx === 0">
+                Current version · {{ authorLabel(rev) }}
+              </template>
+              <template v-else>
+                {{ authorLabel(rev) }} {{ sourceVerb(rev.source) }}
+              </template>
+            </div>
           </div>
         </div>
-      </div>
+      </NcTooltip>
 
       <NcButton
         v-if="hasMore"

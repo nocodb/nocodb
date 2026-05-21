@@ -2159,6 +2159,8 @@ const onGridMouseLeave = () => {
                     // bars. Row coloring (if configured) takes precedence.
                     backgroundColor:
                       getRowColorStyle(record).rowBgColor?.backgroundColor || 'var(--nc-bg-gray-light)',
+                    // Match the task bar's 1px line weight so the milestone
+                    // diamond and bars share outline thickness side-by-side.
                     border: `1px solid ${
                       isInspectedRecord(record)
                         ? 'var(--nc-border-brand)'

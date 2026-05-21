@@ -1,6 +1,8 @@
 import { parse } from 'papaparse'
 import {
   type AttachmentType,
+  ButtonActionsType,
+  type ButtonType,
   type ColumnType,
   type LinkToAnotherRecordType,
   PermissionEntity,
@@ -1252,6 +1254,22 @@ export function useCopyPaste({
           const rowObj = unref(dataCache.cachedRows).get(cpRow)
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
+
+          // OpenForm button cells copy the record-edit form URL instead of the (empty) cell value
+          if (columnObj.uidt === UITypes.Button) {
+            const btnOpts = columnObj.colOptions as ButtonType | undefined
+            if (btnOpts?.type === ButtonActionsType.OpenForm) {
+              const rowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+              if (rowPk) {
+                const url = await actionManager.resolveFormEditUrl(columnObj.id!, rowPk)
+                if (url) {
+                  await copy(url)
+                  message.toast(t('msg.info.copiedToClipboard'))
+                  return
+                }
+              }
+            }
+          }
 
           const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
             meta: meta.value,

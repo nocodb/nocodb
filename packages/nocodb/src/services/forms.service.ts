@@ -240,5 +240,4 @@ export class FormsService {
     }
     return safeView;
   }
-
 }

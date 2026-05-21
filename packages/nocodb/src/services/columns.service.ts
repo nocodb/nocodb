@@ -38,7 +38,6 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
-  ViewTypes,
   WebhookActions,
 } from 'nocodb-sdk';
 import { getProjectRole } from 'nocodb-sdk';
@@ -456,38 +455,17 @@ export class ColumnsService implements IColumnsService {
    * @returns Updated internal_meta object with unique_constraint_name set
    */
   /**
-   * Shared validator for OpenForm button columns. Rejects configs that
-   * the backend would mint-fail against at click-time, so bad state can't
-   * be persisted via API callers that bypass the frontend form validator.
+   * Extension hook for validating OpenForm button column configuration.
+   * CE is a no-op — EE overrides this with the real validation since
+   * OpenForm is an EE-only feature. Called from `columnAdd` / `columnUpdate`
+   * when the button type is `open_form`.
    */
-  private async validateOpenFormButtonConfig(
-    context: NcContext,
-    colBody: Record<string, any>,
-    tableId: string,
-  ) {
-    if (!colBody.fk_form_view_id) {
-      NcError.get(context).badRequest(
-        'Form view not selected for Open Form button',
-      );
-    }
-
-    const formView = await View.get(context, colBody.fk_form_view_id);
-
-    if (!formView || formView.type !== ViewTypes.FORM) {
-      NcError.get(context).badRequest('Selected view is not a form');
-    }
-
-    if (formView.fk_model_id !== tableId) {
-      NcError.get(context).badRequest(
-        'Selected form view does not belong to this table',
-      );
-    }
-
-    if (!formView.uuid) {
-      NcError.get(context).badRequest(
-        'The form linked to this button must be shared publicly. Share the form view and try again.',
-      );
-    }
+  protected async validateOpenFormButtonConfig(
+    _context: NcContext,
+    _colBody: Record<string, any>,
+    _tableId: string,
+  ): Promise<void> {
+    // no-op in CE — EE override in `src/ee/services/columns.service.ts`
   }
 
   private storeUniqueConstraintNameInInternalMeta(

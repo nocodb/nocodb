@@ -3,7 +3,6 @@ import {
   Get,
   HttpCode,
   Param,
-  Patch,
   Post,
   Query,
   Req,
@@ -334,61 +333,4 @@ export class PublicDatasController {
     return response;
   }
 
-  // NOTE: OpenForm buttons are currently disabled inside public shared views
-  // on the frontend (see `isColumnInvalid` in `nc-gui/utils/columnUtils.ts`),
-  // so this endpoint is not invoked today. Retained — with its full validation
-  // chain in the service layer — so shared-view OpenForm can be re-enabled by
-  // flipping the frontend gate without any backend change.
-  @Post([
-    '/api/v2/public/shared-view/:sharedViewUuid/button/:columnId/edit-token/:rowId',
-  ])
-  @HttpCode(200)
-  async generatePublicFormEditToken(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('sharedViewUuid') sharedViewUuid: string,
-    @Param('columnId') columnId: string,
-    @Param('rowId') rowId: string,
-  ) {
-    return await this.publicDatasService.generatePublicFormEditToken(context, {
-      sharedViewUuid,
-      columnId,
-      rowId,
-      password: req.headers?.['xc-password'] as string,
-    });
-  }
-
-  @Get(['/api/v2/public/shared-view/:sharedViewUuid/edit-row/:editToken'])
-  async dataEditGet(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('sharedViewUuid') sharedViewUuid: string,
-    @Param('editToken') editToken: string,
-  ) {
-    return await this.publicDatasService.dataEditGet(context, {
-      sharedViewUuid,
-      editToken: decodeURIComponent(editToken),
-      password: req.headers?.['xc-password'] as string,
-    });
-  }
-
-  @Patch(['/api/v2/public/shared-view/:sharedViewUuid/edit-row/:editToken'])
-  @HttpCode(200)
-  @UseInterceptors(AnyFilesInterceptor())
-  async dataEditUpdate(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('sharedViewUuid') sharedViewUuid: string,
-    @Param('editToken') editToken: string,
-  ) {
-    return await this.publicDatasService.dataEditUpdate(context, {
-      sharedViewUuid,
-      editToken: decodeURIComponent(editToken),
-      password: req.headers?.['xc-password'] as string,
-      body: req.body?.data,
-      siteUrl: (req as any).ncSiteUrl,
-      files: req.files as any[],
-      req,
-    });
-  }
 }

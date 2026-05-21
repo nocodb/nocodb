@@ -1,11 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  ButtonActionsType,
-  EventType,
-  PlanFeatureTypes,
-  ViewTypes,
-} from 'nocodb-sdk';
+import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import type {
   FormUpdateReqType,
   UserType,
@@ -25,9 +19,7 @@ import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { NcError } from '~/helpers/catchError';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
-import { generateFormEditToken } from '~/helpers/formEditToken';
-import { ButtonColumn, FormView, Model, Source, User, View } from '~/models';
+import { FormView, Model, Source, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
@@ -249,55 +241,4 @@ export class FormsService {
     return safeView;
   }
 
-  /**
-   * Authenticated (base-scoped) counterpart to
-   * `PublicDatasService.generatePublicFormEditToken`. Both mint the same
-   * HMAC-signed token; this one is reached via the internal `postOperation`
-   * endpoint (ACL: `formEditTokenGenerate`, EDITOR role), while the public
-   * variant is reached anonymously from a shared grid view.
-   *
-   * The two code paths exist because the authenticated path can trust the
-   * caller's workspace context and column ACLs, while the public path has
-   * to re-derive the workspace from the shared view uuid and verify the
-   * row is visible through that shared view.
-   */
-  async generateEditToken(
-    context: NcContext,
-    param: {
-      columnId: string;
-      rowId: string;
-    },
-  ) {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_OPEN_FORM_BUTTON);
-
-    const buttonCol = await ButtonColumn.read(context, param.columnId);
-
-    if (!buttonCol || buttonCol.type !== ButtonActionsType.OpenForm) {
-      NcError.get(context).badRequest('Column is not an OpenForm button');
-    }
-
-    const formViewId = buttonCol.fk_form_view_id;
-
-    if (!formViewId) {
-      NcError.get(context).badRequest(
-        'No form view configured for this button',
-      );
-    }
-
-    const view = await View.get(context, formViewId);
-
-    if (!view) {
-      NcError.get(context).viewNotFound(formViewId);
-    }
-
-    if (!view.uuid) {
-      NcError.get(context).badRequest(
-        'The form linked to this button must be shared publicly. Share the form view and try again.',
-      );
-    }
-
-    const token = generateFormEditToken(param.rowId, param.columnId, view.uuid);
-
-    return { token, viewUuid: view.uuid, isShared: true };
-  }
 }

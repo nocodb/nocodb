@@ -88,7 +88,6 @@ export const OPERATION_SCOPES = {
   hookTrigger: 'base',
   hookFilterCreate: 'base',
   buttonFilterCreate: 'base',
-  formEditTokenGenerate: 'base',
   gridViewCreate: 'base',
   formViewCreate: 'base',
   galleryViewCreate: 'base',

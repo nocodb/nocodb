@@ -228,7 +228,7 @@ export const ButtonCellRenderer: CellRenderer = {
     }
 
     // OpenForm: icon-only copy button adjacent to the main button, shown on row hover
-    if (isOpenForm && props.isRowHovered && copyIconRect) {
+    if (isOpenForm && props.isRowHovered && copyIconRect && !disabled?.isInvalid) {
       renderIconButton(ctx, {
         buttonX: copyIconRect.x,
         buttonY: copyIconRect.y,

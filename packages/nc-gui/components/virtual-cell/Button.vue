@@ -110,6 +110,21 @@ const isExecuting = computed(
 
 const invalidUrlTooltip = ref('')
 
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+// True only when the linked form view exists AND is publicly shared.
+// Invalid (deleted / unshared) linked form → button is disabled.
+const isLinkedFormViewShared = computed(() => {
+  if (column.value?.colOptions?.type !== ButtonActionsType.OpenForm) return true
+  const formViewId = column.value.colOptions.fk_form_view_id
+  if (!formViewId) return false
+  const key = meta.value?.base_id && meta.value?.id ? `${meta.value.base_id}:${meta.value.id}` : ''
+  if (!key) return true
+  const views = viewsByTable.value.get(key) ?? []
+  const linked = views.find((v) => v.id === formViewId)
+  return !!linked?.uuid
+})
+
 const baseStore = useBase()
 const { getBaseType } = baseStore
 const { metas } = useMetas()
@@ -188,7 +203,11 @@ const componentProps = computed(() => {
 
   else if (column.value.colOptions.type === ButtonActionsType.OpenForm) {
     return {
-      disabled: filterDisabled || isLoading.value || !column.value.colOptions.fk_form_view_id,
+      disabled:
+        filterDisabled ||
+        isLoading.value ||
+        !column.value.colOptions.fk_form_view_id ||
+        !isLinkedFormViewShared.value,
     }
   }
 
@@ -268,12 +287,9 @@ const triggerAction = async () => {
         {},
       )
 
-      if (result.isShared && result.token && result.viewUuid) {
+      if (result.token && result.viewUuid) {
         const editUrl = `${location.origin}/nc/form/${result.viewUuid}?editRow=${encodeURIComponent(result.token)}`
         window.open(editUrl, '_blank')
-      } else if (!result.isShared && result.viewId) {
-        // Non-shared form: open in-app
-        window.open(`${location.origin}/nc/form/${result.viewId}?editRowId=${result.rowId}`, '_blank')
       }
 
       afterActionStatus.value = { status: 'success' }

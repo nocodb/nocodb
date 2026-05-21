@@ -22,6 +22,8 @@ const { isUIAllowed } = useRoles()
 
 const { aiIntegrations, isNocoAiAvailable } = useNocoAi()
 
+const { viewsByTable } = storeToRefs(useViewsStore())
+
 const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
   if (!column?.value) {
     return {
@@ -30,12 +32,16 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
     }
   }
 
+  const key = meta.value?.base_id && meta.value?.id ? `${meta.value.base_id}:${meta.value.id}` : ''
+  const tableViews = key ? viewsByTable.value.get(key) ?? [] : []
+
   return isColumnInvalid({
     col: column.value,
     aiIntegrations: aiIntegrations.value,
     isReadOnly: isPublic.value || !isUIAllowed('dataEdit'),
     isNocoAiAvailable: isNocoAiAvailable.value,
     columns: meta.value?.columns as ColumnType[],
+    views: tableViews,
   })
 })
 

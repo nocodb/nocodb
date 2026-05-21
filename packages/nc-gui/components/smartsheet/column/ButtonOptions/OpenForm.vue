@@ -46,7 +46,7 @@ const isSelectedViewShared = computed(() => {
         {{ t('labels.formView') }}
       </template>
     </NcListViewSelector>
-    <div v-if="selectedFormViewId && !isSelectedViewShared" class="mt-2 text-xs text-nc-content-orange-dark">
+    <div v-if="selectedFormViewId && !isSelectedViewShared" class="mt-2 text-xs text-nc-content-red-dark">
       {{ $t('msg.info.formNotSharedEditNote') }}
     </div>
   </div>

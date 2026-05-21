@@ -422,11 +422,8 @@ export class ActionManager {
       {},
     )
 
-    if (result?.isShared && result.token && result.viewUuid) {
+    if (result?.token && result.viewUuid) {
       return `${location.origin}/nc/form/${result.viewUuid}?editRow=${encodeURIComponent(result.token)}`
-    }
-    if (result && !result.isShared && result.viewId) {
-      return `${location.origin}/nc/form/${result.viewId}?editRowId=${result.rowId}`
     }
     return null
   }

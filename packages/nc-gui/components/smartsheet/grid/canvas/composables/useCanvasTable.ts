@@ -234,6 +234,8 @@ export function useCanvasTable({
   // Initialize loaders that need meta.base_id after meta is available
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
+  const { addUndo, defineViewScope } = useUndoRedo()
+  const { activeView, viewsByTable } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
@@ -428,12 +430,16 @@ export function useCanvasTable({
           f.extra.display_column_meta = displayColumnConfig
         }
 
+        const tableViewsKey = meta.value?.base_id && meta.value?.id ? `${meta.value.base_id}:${meta.value.id}` : ''
+        const tableViews = tableViewsKey ? viewsByTable.value.get(tableViewsKey) ?? [] : []
+
         const isInvalid = isColumnInvalid({
           col: f,
           aiIntegrations: aiIntegrations.value,
           isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
+          views: tableViews,
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 

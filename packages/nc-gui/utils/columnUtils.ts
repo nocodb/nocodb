@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType, ViewType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaDataTypes,
@@ -303,12 +303,14 @@ const isColumnInvalid = ({
   isReadOnly = false,
   isNocoAiAvailable = false,
   columns = [],
+  views = [],
 }: {
   col: ColumnType
   aiIntegrations?: Partial<IntegrationType>[]
   isReadOnly?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
+  views?: ViewType[]
 }): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
@@ -344,6 +346,20 @@ const isColumnInvalid = ({
         }
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
+      } else if (colOptions.type === ButtonActionsType.OpenForm) {
+        if (!colOptions.fk_form_view_id) {
+          result.isInvalid = true
+          result.tooltip = 'msg.error.openFormButtonNoFormView'
+        } else {
+          const linkedView = views.find((v) => v.id === colOptions.fk_form_view_id)
+          if (!linkedView) {
+            result.isInvalid = true
+            result.tooltip = 'msg.error.openFormButtonFormDeleted'
+          } else if (!linkedView.uuid) {
+            result.isInvalid = true
+            result.tooltip = 'msg.error.openFormButtonFormUnshared'
+          }
+        }
       } else if (colOptions.type === ButtonActionsType.Ai) {
         const colOptions = col.colOptions as ButtonType
 

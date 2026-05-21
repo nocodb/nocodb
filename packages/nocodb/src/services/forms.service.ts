@@ -278,14 +278,10 @@ export class FormsService {
       NcError.get(context).viewNotFound(formViewId);
     }
 
-    const isShared = !!view.uuid;
-
-    if (!isShared) {
-      return {
-        isShared: false,
-        viewId: view.id,
-        rowId: param.rowId,
-      };
+    if (!view.uuid) {
+      NcError.get(context).badRequest(
+        'The form linked to this button must be shared publicly. Share the form view and try again.',
+      );
     }
 
     const token = generateFormEditToken(param.rowId, param.columnId, view.uuid);

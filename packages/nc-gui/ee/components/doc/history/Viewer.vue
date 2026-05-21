@@ -215,6 +215,19 @@ onBeforeUnmount(() => {
     background-color: rgba(34, 197, 94, 0.45);
   }
 
+  // ── Format-change highlight ──────────────────────────────
+  // Text whose marks changed (bold/italic/strike/code/link/etc.) but whose
+  // content stayed identical between revisions. Amber wash so it reads as
+  // distinct from green-insert ("new text") and red-delete ("removed text").
+  .nc-doc-history-diff-format {
+    background-color: rgba(245, 158, 11, 0.18);
+    border-radius: 2px;
+    transition: background-color 0.15s ease;
+  }
+  .nc-doc-history-diff-format-current {
+    background-color: rgba(245, 158, 11, 0.45);
+  }
+
   // Atom-leaf insert (images, embeds, file attachments) — the inline
   // highlight above doesn't wrap leaf-node DOM, so a node-level decoration
   // tags the NodeView wrapper. Each wrapper spans the full alignment box
@@ -289,6 +302,12 @@ onBeforeUnmount(() => {
   }
   .nc-doc-history-diff-insert-current {
     background-color: rgba(34, 197, 94, 0.6);
+  }
+  .nc-doc-history-diff-format {
+    background-color: rgba(245, 158, 11, 0.28);
+  }
+  .nc-doc-history-diff-format-current {
+    background-color: rgba(245, 158, 11, 0.6);
   }
   .nc-doc-history-diff-delete {
     background-color: rgba(239, 68, 68, 0.14);

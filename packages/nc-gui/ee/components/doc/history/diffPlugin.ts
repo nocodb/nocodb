@@ -1,7 +1,7 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
-import { DOMSerializer, Node as PMNode, type Schema, type Slice } from '@tiptap/pm/model'
+import { DOMSerializer, Mark, Node as PMNode, type Schema, type Slice } from '@tiptap/pm/model'
 import { StepMap } from '@tiptap/pm/transform'
 import { ChangeSet } from 'prosemirror-changeset'
 
@@ -45,11 +45,13 @@ export interface DocDiffState {
 /**
  * One rendered decoration. Insertions get an inline green highlight;
  * deletions render as a strikethrough span or block callout anchored at
- * `from`. `stepIndex` ties the decoration back to the navigable step so
- * the step-through nav can light up both halves of a replace together.
+ * `from`; format changes (mark-only diffs) get an amber underline. The
+ * `stepIndex` ties the decoration back to the navigable step so the
+ * step-through nav can light up both halves of a replace together.
  */
 export type DocDiffChange =
   | { type: 'insert'; from: number; to: number; stepIndex: number }
+  | { type: 'format'; from: number; to: number; stepIndex: number }
   | {
       type: 'delete'
       from: number
@@ -150,6 +152,109 @@ function fileAttachmentBadgeColor(ext: string): { bg: string; text: string } {
     return { bg: '#f3e8ff', text: '#7c3aed' }
   }
   return { bg: '#f3f4f6', text: '#6b7280' }
+}
+
+/**
+ * Detect mark-only changes (bold/italic/strike/code/link/etc.) that the
+ * changeset library misses. `prosemirror-changeset` matches inline tokens by
+ * text content alone, so a run of text whose only difference between
+ * revisions is the marks applied to it registers as "unchanged" and never
+ * appears in `changeset.changes`.
+ *
+ * Strategy: walk the gaps BETWEEN reported changes (where text content is
+ * identical in both docs by definition) and, at each text-node boundary,
+ * compare the mark sets at the corresponding positions. Adjacent text-node
+ * boundaries with differing marks are merged into a single decoration so
+ * the highlight reads as one continuous run.
+ */
+function findFormatChanges(
+  fromDoc: PMNode,
+  toDoc: PMNode,
+  changeset: ChangeSet,
+): { from: number; to: number }[] {
+  // Compute "stable gaps" — ranges where text content matches between docs.
+  // Each gap has equal byte length in A and B; offset = fromB - fromA is
+  // constant across the gap.
+  const sortedChanges = [...changeset.changes].sort((a, b) => a.fromB - b.fromB)
+  const gaps: { fromA: number; toA: number; fromB: number; toB: number }[] = []
+  let prevA = 0
+  let prevB = 0
+  for (const c of sortedChanges) {
+    if (c.fromA > prevA && c.fromB > prevB) {
+      gaps.push({ fromA: prevA, toA: c.fromA, fromB: prevB, toB: c.fromB })
+    }
+    prevA = c.toA
+    prevB = c.toB
+  }
+  if (fromDoc.content.size > prevA && toDoc.content.size > prevB) {
+    gaps.push({
+      fromA: prevA,
+      toA: fromDoc.content.size,
+      fromB: prevB,
+      toB: toDoc.content.size,
+    })
+  }
+
+  const out: { from: number; to: number }[] = []
+
+  for (const gap of gaps) {
+    // Defensive: stable gaps must have equal-length spans in A and B.
+    // If they don't, the changeset reported something we can't safely align
+    // — drop the gap rather than emit spurious decorations.
+    if (gap.toA - gap.fromA !== gap.toB - gap.fromB) continue
+
+    const offset = gap.fromB - gap.fromA
+    let pendingFrom: number | null = null
+    let pendingTo = 0
+
+    const flush = () => {
+      if (pendingFrom !== null) {
+        out.push({ from: pendingFrom, to: pendingTo })
+        pendingFrom = null
+      }
+    }
+
+    toDoc.nodesBetween(gap.fromB, gap.toB, (toNode, posB) => {
+      if (!toNode.isText) return true
+      const tStart = Math.max(posB, gap.fromB)
+      const tEnd = Math.min(posB + toNode.nodeSize, gap.toB)
+      if (tEnd <= tStart) return false
+
+      // Walk the corresponding fromDoc range, which may span multiple text
+      // nodes if marks were merged or split between revisions.
+      fromDoc.nodesBetween(tStart - offset, tEnd - offset, (fromNode, posA) => {
+        if (!fromNode.isText) return true
+        const fStart = Math.max(posA, tStart - offset)
+        const fEnd = Math.min(posA + fromNode.nodeSize, tEnd - offset)
+        if (fEnd <= fStart) return false
+
+        const overlapStartB = fStart + offset
+        const overlapEndB = fEnd + offset
+
+        if (!Mark.sameSet(fromNode.marks, toNode.marks)) {
+          // Coalesce abutting mark-diff ranges into one decoration so the
+          // highlight reads as a single span rather than fragmenting at
+          // every text-node boundary.
+          if (pendingFrom !== null && pendingTo === overlapStartB) {
+            pendingTo = overlapEndB
+          } else {
+            flush()
+            pendingFrom = overlapStartB
+            pendingTo = overlapEndB
+          }
+        } else {
+          flush()
+        }
+        return false
+      })
+
+      return false
+    })
+
+    flush()
+  }
+
+  return out
 }
 
 /**
@@ -303,6 +408,22 @@ function findChanges(
     })
     steps.push({ from: anchor })
   })
+
+  // Supplementary mark diff — the changeset matches text tokens by content
+  // alone, so bolding / italicising existing text leaves no `change` to
+  // report. `findFormatChanges` walks the gaps between reported changes
+  // and emits a decoration wherever the mark set at a corresponding text
+  // position differs between revisions.
+  const formatRanges = findFormatChanges(fromDoc, toDoc, changeset)
+  for (const range of formatRanges) {
+    changes.push({
+      type: 'format',
+      from: range.from,
+      to: range.to,
+      stepIndex: steps.length,
+    })
+    steps.push({ from: range.from })
+  }
 
   return { changes, steps }
 }
@@ -614,6 +735,20 @@ function buildDecorations(
         }
         return true
       })
+      return
+    }
+
+    if (change.type === 'format') {
+      // Amber wash on text whose marks changed but whose content stayed put.
+      // Distinct colour from green-insert keeps "newly added text" and
+      // "newly formatted text" visually separable.
+      decorations.push(
+        Decoration.inline(change.from, change.to, {
+          class: isCurrent
+            ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current'
+            : 'nc-doc-history-diff-format',
+        }),
+      )
       return
     }
 

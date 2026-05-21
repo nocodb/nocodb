@@ -31,6 +31,8 @@ export const useDocRevisions = createSharedComposable(() => {
   const { $api } = useNuxtApp()
   const basesStore = useBases()
   const { basesUser } = storeToRefs(basesStore)
+  const documentsStore = useDocumentsStore()
+  const { documents } = storeToRefs(documentsStore)
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
   const { activeProjectId } = storeToRefs(useBases())
 
@@ -212,12 +214,31 @@ export const useDocRevisions = createSharedComposable(() => {
 
     try {
       isRestoring.value = true
-      await $api.internal.postOperation(
+      const updated = (await $api.internal.postOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
         { operation: 'documentRevisionRestore' },
         { docId: activeDocId.value, revisionId },
-      )
+      )) as { id: string; version?: number; updated_at?: string; updated_by?: string; title?: string } | undefined
+
+      // Patch the documents store so `activeDocument.version` jumps past the
+      // editor's local version. The watcher in `useDocumentAutoSave` sees the
+      // jump on a current-user, no-pending-edits doc and triggers
+      // `reloadDocument()` — without this, the editor keeps showing the
+      // pre-restore content until the user manually refreshes the page.
+      // The realtime broadcast can't fix this for the restoring user because
+      // their own socket id is excluded from the echo on the backend.
+      if (updated?.id) {
+        const baseDocs = documents.value.get(activeProjectId.value) || []
+        const existing = baseDocs.find((d) => d.id === updated.id)
+        if (existing) {
+          if (updated.version !== undefined) existing.version = updated.version
+          if (updated.updated_at !== undefined) existing.updated_at = updated.updated_at
+          if (updated.updated_by !== undefined) existing.updated_by = updated.updated_by
+          if (updated.title !== undefined) existing.title = updated.title
+        }
+      }
+
       // Refresh the list to surface the new RESTORE revision at the top.
       await loadRevisions(activeDocId.value)
       selectedRevisionId.value = null

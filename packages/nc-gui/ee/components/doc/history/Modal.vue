@@ -177,7 +177,7 @@ async function onRestore() {
       if (!id) return
       const ok = await restoreRevision(id)
       if (ok) {
-        message.success('Restored to selected version')
+        message.toast('Restored to selected version')
         emit('update:visible', false)
       }
     },

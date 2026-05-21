@@ -165,6 +165,15 @@ const isLinkedFormViewShared = computed(() => {
   return !!linked?.uuid
 })
 
+// Tooltip shown when OpenForm is disabled because the viewer lacks dataEdit.
+// Suppressed in public shared views — everything is already gated there.
+const openFormNoEditPermissionTooltip = computed(() => {
+  if (column.value?.colOptions?.type !== ButtonActionsType.OpenForm) return ''
+  if (isPublic.value) return ''
+  if (isUIAllowed('dataEdit')) return ''
+  return t('msg.error.openFormButtonNoEditPermission')
+})
+
 const baseStore = useBase()
 const { getBaseType } = baseStore
 const { metas } = useMetas()
@@ -247,6 +256,9 @@ const componentProps = computed(() => {
         filterDisabled ||
         isLoading.value ||
         !column.value.colOptions.fk_form_view_id ||
+        // Backend mints the edit token via `formEditTokenGenerate` (editor+).
+        // Disable for viewers/commenters; tooltip explains why (see below).
+        !isUIAllowed('dataEdit') ||
         // Product decision: OpenForm is disabled in public shared views —
         // anonymous edits erode per-seat pricing and break audit trails.
         // The `isPublic` branch in `triggerAction` below + the public
@@ -439,7 +451,7 @@ const triggerAction = async () => {
       :disabled="
         isAiButtonType
           ? (isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')) && !filterDisabledTooltip
-          : !invalidUrlTooltip && !afterActionStatus?.tooltip && !filterDisabledTooltip
+          : !invalidUrlTooltip && !afterActionStatus?.tooltip && !filterDisabledTooltip && !openFormNoEditPermissionTooltip
       "
       class="flex"
     >
@@ -451,7 +463,7 @@ const triggerAction = async () => {
             ? aiIntegrations.length
               ? $t('tooltip.aiIntegrationReConfigure')
               : $t('tooltip.aiIntegrationAddAndReConfigure')
-            : afterActionStatus?.tooltip || invalidUrlTooltip
+            : openFormNoEditPermissionTooltip || afterActionStatus?.tooltip || invalidUrlTooltip
         }}
       </template>
       <component

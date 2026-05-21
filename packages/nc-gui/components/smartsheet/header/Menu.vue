@@ -39,6 +39,7 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
     col: column.value,
     aiIntegrations: aiIntegrations.value,
     isReadOnly: isPublic.value || !isUIAllowed('dataEdit'),
+    hasEditPermission: isUIAllowed('dataEdit'),
     isNocoAiAvailable: isNocoAiAvailable.value,
     columns: meta.value?.columns as ColumnType[],
     views: tableViews,

@@ -301,6 +301,7 @@ const isColumnInvalid = ({
   col,
   aiIntegrations = [],
   isReadOnly = false,
+  hasEditPermission = true,
   isNocoAiAvailable = false,
   columns = [],
   views = [],
@@ -309,6 +310,10 @@ const isColumnInvalid = ({
   col: ColumnType
   aiIntegrations?: Partial<IntegrationType>[]
   isReadOnly?: boolean
+  /** Whether the current user has `dataEdit` permission. OpenForm buttons mint
+   * an edit token via `formEditTokenGenerate` (editor+ on the backend), so
+   * viewers/commenters can't use them and should see a disabled button. */
+  hasEditPermission?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
   views?: ViewType[]
@@ -354,6 +359,12 @@ const isColumnInvalid = ({
         if (!colOptions.fk_form_view_id) {
           result.isInvalid = true
           result.tooltip = 'msg.error.openFormButtonNoFormView'
+        } else if (!hasEditPermission && !isPublicView) {
+          // Regular base / dashboard viewer lacking dataEdit — surface why.
+          // Shared view handling below stays silent (ignoreTooltip) since
+          // every feature is already restricted there by design.
+          result.isInvalid = true
+          result.tooltip = 'msg.error.openFormButtonNoEditPermission'
         } else if (isPublicView) {
           // Product decision: OpenForm buttons are disabled inside public shared
           // views. Anonymous editing of existing records erodes per-seat pricing

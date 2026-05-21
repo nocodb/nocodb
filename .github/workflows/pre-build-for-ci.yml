@@ -30,6 +30,13 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
+      # setup-node's pnpm-cache post-step calls `pnpm store path` and fails when
+      # the directory doesn't exist. That happens whenever the UI cache hits AND
+      # there's no prior pnpm cache for this hash (bootstrap is skipped via the
+      # conditional below, so pnpm never writes the store). Pre-create it.
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
+
       - name: Set CI env
         run: export CI=true
 

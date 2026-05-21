@@ -363,6 +363,17 @@ export class ActionManager {
           break
         }
 
+        case 'open_form': {
+          const rowId = rowIds[0]
+          if (!rowId) break
+
+          await this.executeAction(rowId, column.id, [], async () => {
+            const url = await this.resolveFormEditUrl(column.columnObj.id!, rowId)
+            if (url) window.open(url, '_blank')
+          })
+          break
+        }
+
         case 'ai': {
           const outputColumnIds = extra.isAiPromptCol
             ? [column.id]
@@ -395,6 +406,29 @@ export class ActionManager {
 
   async executeUploadAction(...args: Parameters<typeof this.executeAction>): Promise<ReturnType<typeof this.executeAction>> {
     return this.executeAction(...args)
+  }
+
+  async resolveFormEditUrl(columnId: string, rowId: string): Promise<string | null> {
+    if (!this.baseInfo) throw new Error('Base information not available. Call setBaseInfo() first.')
+
+    const result = await this.api.internal.postOperation(
+      this.baseInfo.workspaceId,
+      this.baseInfo.baseId,
+      {
+        operation: 'formEditTokenGenerate',
+        columnId,
+        rowId,
+      },
+      {},
+    )
+
+    if (result?.isShared && result.token && result.viewUuid) {
+      return `${location.origin}/nc/form/${result.viewUuid}?editRow=${encodeURIComponent(result.token)}`
+    }
+    if (result && !result.isShared && result.viewId) {
+      return `${location.origin}/nc/form/${result.viewId}?editRowId=${result.rowId}`
+    }
+    return null
   }
 
   // Public state query methods

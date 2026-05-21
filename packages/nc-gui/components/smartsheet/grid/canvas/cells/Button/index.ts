@@ -1,5 +1,5 @@
 import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
-import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderIconButton, renderSpinner, truncateText } from '../../utils/canvas'
 
 const horizontalPadding = 12
 const buttonHeight = 24
@@ -7,6 +7,63 @@ const buttonMinWidth = 32
 
 const iconSize = 14
 const iconSpacing = 6
+
+const copyIconSize = 20
+const copyIconMargin = 4
+
+// Computes button + optional copy-icon positions for a Button cell. Shared between render,
+// handleClick, and handleHover so all three agree on where the boxes live. Icon space is
+// always reserved for OpenForm — the icon itself is only rendered on row hover, but the
+// button's position doesn't shift because of it.
+function computeButtonLayout(
+  opts: {
+    x: number
+    y: number
+    width: number
+    colOptions: ButtonType
+  },
+) {
+  const { x, y, width, colOptions } = opts
+
+  const hasIcon = !!colOptions.icon
+  const hasLabel = !!colOptions.label
+  const isOpenForm = colOptions.type === ButtonActionsType.OpenForm
+
+  const maxButtonWidth = width - 8 - (isOpenForm ? copyIconSize + copyIconMargin : 0)
+
+  let contentWidth = 0
+
+  if (hasLabel) {
+    const ctx = defaultOffscreen2DContext
+    ctx.font = '600 13px Inter'
+    const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
+    const { width: labelWidth } = truncateText(ctx, colOptions.label!, maxTextWidth, true)
+    contentWidth += labelWidth
+  }
+  if (hasIcon) {
+    contentWidth += iconSize
+    if (hasLabel) contentWidth += iconSpacing
+  }
+
+  const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
+  const groupWidth = buttonWidth + (isOpenForm ? copyIconMargin + copyIconSize : 0)
+  const buttonX = x + (width - groupWidth) / 2
+  const buttonY = y + 4
+
+  return {
+    buttonX,
+    buttonY,
+    buttonWidth,
+    copyIconRect: isOpenForm
+      ? {
+          x: buttonX + buttonWidth + copyIconMargin,
+          y: buttonY + (buttonHeight - copyIconSize) / 2,
+          width: copyIconSize,
+          height: copyIconSize,
+        }
+      : null,
+  }
+}
 
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
@@ -83,35 +140,39 @@ export const ButtonCellRenderer: CellRenderer = {
     const hasIcon = !!buttonMeta.icon || isLoading || afterActionStatus
     const hasLabel = !!buttonMeta.label
 
-    const maxButtonWidth = width - 8
-
-    let contentWidth = 0
-    let labelWidth = 0
+    const isOpenForm = buttonMeta.type === ButtonActionsType.OpenForm
 
     // Show step title when loading, otherwise show button label
     const currentStepTitle = isLoading ? actionManager.getCurrentStepTitle(pk, column.id!) : undefined
     let truncatedLabel = currentStepTitle || buttonMeta.label
 
+    // computeButtonLayout truncates the label based on the button type; when a step title is
+    // showing we need to truncate that string instead, but it still uses the same max width.
+    const layout = computeButtonLayout({
+      x,
+      y,
+      width,
+      colOptions: {
+        ...colOptions,
+        label: currentStepTitle || buttonMeta.label,
+        type: buttonMeta.type,
+      },
+    })
+    const { buttonX: startX, buttonY: startY, buttonWidth, copyIconRect } = layout
+
+    // Recompute the displayed truncated label using the same effective max width.
+    let contentWidth = 0
     if (hasLabel || currentStepTitle) {
       ctx.font = '600 13px Inter'
-      const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
-
-      const labelToTruncate = currentStepTitle || buttonMeta.label
-      const truncatedInfo = truncateText(ctx, labelToTruncate, maxTextWidth, true)
+      const maxTextWidth = buttonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
+      const truncatedInfo = truncateText(ctx, currentStepTitle || buttonMeta.label, maxTextWidth, true)
       truncatedLabel = truncatedInfo.text
-      labelWidth = truncatedInfo.width
-      contentWidth += labelWidth
+      contentWidth += truncatedInfo.width
     }
-
     if (hasIcon) {
       contentWidth += iconSize
       if (hasLabel) contentWidth += iconSpacing
     }
-
-    const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
-
-    const startX = x + (width - buttonWidth) / 2
-    const startY = y + 4
 
     const isHovered =
       !disabledState &&
@@ -176,8 +237,31 @@ export const ButtonCellRenderer: CellRenderer = {
     if (disabledState) {
       ctx.globalAlpha = 1
     }
+
+    // OpenForm: icon-only copy button adjacent to the main button, shown on row hover
+    if (isOpenForm && props.isRowHovered && copyIconRect) {
+      renderIconButton(ctx, {
+        buttonX: copyIconRect.x,
+        buttonY: copyIconRect.y,
+        buttonSize: copyIconSize,
+        borderRadius: 6,
+        iconData: {
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'ncCopy',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
+        setCursor: props.setCursor,
+      })
+    }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl, cellRenderStore }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl, cellRenderStore, t }) {
     const isLoading = actionManager.isLoading(pk, column.id!)
 
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || isLoading) return false
@@ -187,101 +271,54 @@ export const ButtonCellRenderer: CellRenderer = {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const colOptions = column?.columnObj?.colOptions as ButtonType
-
     if (!colOptions) return false
 
-    const buttonMeta = {
-      label: colOptions?.label || '',
-      icon: colOptions?.icon,
-      theme: colOptions?.theme || 'solid',
-      color: colOptions?.color || 'brand',
-      type: colOptions?.type,
+    const { buttonX, buttonY, buttonWidth, copyIconRect } = computeButtonLayout({ x, y, width, colOptions })
+
+    // Copy-form-URL icon (OpenForm only)
+    if (copyIconRect && isBoxHovered(copyIconRect, mousePosition)) {
+      try {
+        const url = await actionManager.resolveFormEditUrl(column.columnObj.id!, pk)
+        if (!url) throw new Error('Could not resolve form URL')
+        await navigator.clipboard.writeText(url)
+        message.toast(t('msg.info.copiedToClipboard'))
+      } catch (e: any) {
+        message.error(e?.message || t('msg.error.copyToClipboardError'))
+      }
+      return true
     }
 
-    const hasIcon = !!buttonMeta.icon
-    const hasLabel = !!buttonMeta.label
+    if (!isBoxHovered({ x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }, mousePosition)) return false
 
-    const maxButtonWidth = width - 8
-
-    let contentWidth = 0
-    let labelWidth = 0
-
-    if (hasLabel) {
-      const ctx = defaultOffscreen2DContext
-      ctx.font = '600 13px Inter'
-
-      const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
-
-      const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
-      labelWidth = truncatedInfo.width
-      contentWidth += labelWidth
-    }
-
-    if (hasIcon) {
-      contentWidth += iconSize
-      if (hasLabel) contentWidth += iconSpacing
-    }
-
-    const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
-
-    const startX = x + (width - buttonWidth) / 2
-    const startY = y + 4
-
-    const isHovered =
-      mousePosition &&
-      mousePosition.x >= startX &&
-      mousePosition.x <= startX + buttonWidth &&
-      mousePosition.y >= startY &&
-      mousePosition.y <= startY + buttonHeight
-
-    if (!isHovered) return false
     await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
     return true
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, cellRenderStore }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, cellRenderStore, t }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    const colOptions = column.columnObj?.colOptions as ButtonType | undefined
+    if (!colOptions || !colOptions.type) return
+
+    const { buttonX, buttonY, buttonWidth, copyIconRect } = computeButtonLayout({ x, y, width, colOptions })
+
+    // Copy-form-URL icon tooltip (OpenForm only)
+    if (copyIconRect && mousePosition && isBoxHovered(copyIconRect, mousePosition)) {
+      tryShowTooltip({ rect: copyIconRect, mousePosition, text: t('activity.copyUrl') })
+      return
+    }
 
     const isInvalid = column?.isInvalidColumn?.isInvalid
     const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
     if (!cellRenderStore.invalidUrlTooltip && !cellRenderStore?.filterDisabled && (!isInvalid || ignoreTooltip)) return
 
-    const colOptions = column.columnObj?.colOptions as ButtonType
-
-    if (!colOptions || !colOptions.type) return
-
-    const buttonMeta = {
-      label: colOptions?.label || '',
-      icon: colOptions?.icon,
-      theme: colOptions?.theme || 'solid',
-      color: colOptions?.color || 'brand',
-      type: colOptions?.type,
-    }
-    const hasIcon = !!buttonMeta.icon
-    const hasLabel = !!buttonMeta.label
-
-    if (!hasLabel && !cellRenderStore?.filterDisabled) return
-    let contentWidth = 0
-    let labelWidth = 0
-    const maxButtonWidth = width - 8
-
-    if (hasLabel) {
-      const ctx = defaultOffscreen2DContext
-      ctx.font = '600 13px Inter'
-
-      const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
-
-      const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
-      labelWidth = truncatedInfo.width
-      contentWidth += labelWidth
-    }
+    if (!colOptions.label && !cellRenderStore?.filterDisabled) return
 
     let tooltip = ''
-
     if (cellRenderStore.invalidUrlTooltip) {
       tooltip = cellRenderStore.invalidUrlTooltip
     } else if (isAiButton(column.columnObj)) {
@@ -290,12 +327,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (!tooltip) return
 
-    const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
-
-    const startX = x + (width - buttonWidth) / 2
-    const startY = y + 4
-    const box = { x: startX, y: startY, height: buttonHeight, width: buttonWidth }
-    tryShowTooltip({ rect: box, mousePosition, text: tooltip })
+    tryShowTooltip({ rect: { x: buttonX, y: buttonY, height: buttonHeight, width: buttonWidth }, mousePosition, text: tooltip })
   },
   async handleKeyDown(ctx) {
     const { e, row, column, actionManager, pk, path, allowLocalUrl, cellRenderStore } = ctx

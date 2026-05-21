@@ -12,13 +12,31 @@
  * - `description`: short description from og:description / meta description
  * - `faviconUrl`:  resolved favicon URL (rendered directly)
  * - `imageUrl`:    signed URL of the cached og:image
- * - `imagePath`:   storage-relative path to the cached og:image (used to re-sign)
+ * - `imagePath`:   storage-relative path to the cached og:image (used to re-sign
+ *                  and as the FileReference lookup key in reconcileFileReferences)
+ * - `id`:          FileReference id — populated by reconcileFileReferences on
+ *                  the next doc save (mirrors image / fileAttachment lifecycle)
  * - `siteName`:    publisher / site name (e.g. "GitHub")
  * - `isLoading`:   transient flag while metadata is being fetched
  */
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import DocWebBookmarkNode from './DocWebBookmarkNode.vue'
+
+export interface WebBookmarkMetadata {
+  url: string
+  title: string | null
+  description: string | null
+  faviconUrl: string | null
+  imageUrl: string | null
+  imagePath: string | null
+  siteName: string | null
+  status: 'fetched' | 'fetch_failed'
+}
+
+export interface WebBookmarkNodeAttrs extends WebBookmarkMetadata {
+  id: string | null
+}
 
 export const DocWebBookmarkExtension = Node.create({
   name: 'webBookmark',
@@ -27,6 +45,16 @@ export const DocWebBookmarkExtension = Node.create({
 
   addAttributes() {
     return {
+      // FileReference id — stamped by reconcileFileReferences on doc save.
+      // Matches the `id` attribute on image / fileAttachment nodes.
+      id: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-id'),
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.id) return {}
+          return { 'data-id': attrs.id }
+        },
+      },
       url: {
         default: null,
         parseHTML: (el: HTMLElement) => el.getAttribute('data-url'),

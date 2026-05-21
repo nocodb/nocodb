@@ -15,31 +15,37 @@ const copyIconMargin = 4
 // handleClick, and handleHover so all three agree on where the boxes live. Icon space is
 // always reserved for OpenForm — the icon itself is only rendered on row hover, but the
 // button's position doesn't shift because of it.
-function computeButtonLayout(
-  opts: {
-    x: number
-    y: number
-    width: number
-    colOptions: ButtonType
-  },
-) {
+//
+// `hasIcon` is effective — render passes true when a spinner/status icon is shown even if
+// the configured icon is empty. Click/hover use the static value from colOptions.icon.
+function computeButtonLayout(opts: {
+  x: number
+  y: number
+  width: number
+  colOptions: ButtonType
+  label?: string
+  hasIcon?: boolean
+}) {
   const { x, y, width, colOptions } = opts
-
-  const hasIcon = !!colOptions.icon
-  const hasLabel = !!colOptions.label
+  const label = opts.label ?? colOptions.label ?? ''
+  const hasIcon = opts.hasIcon ?? !!colOptions.icon
+  const hasLabel = !!label
   const isOpenForm = colOptions.type === ButtonActionsType.OpenForm
 
   const maxButtonWidth = width - 8 - (isOpenForm ? copyIconSize + copyIconMargin : 0)
 
-  let contentWidth = 0
-
+  let truncatedLabel = label
+  let labelWidth = 0
   if (hasLabel) {
     const ctx = defaultOffscreen2DContext
     ctx.font = '600 13px Inter'
     const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
-    const { width: labelWidth } = truncateText(ctx, colOptions.label!, maxTextWidth, true)
-    contentWidth += labelWidth
+    const truncatedInfo = truncateText(ctx, label, maxTextWidth, true)
+    truncatedLabel = truncatedInfo.text
+    labelWidth = truncatedInfo.width
   }
+
+  let contentWidth = labelWidth
   if (hasIcon) {
     contentWidth += iconSize
     if (hasLabel) contentWidth += iconSpacing
@@ -54,6 +60,8 @@ function computeButtonLayout(
     buttonX,
     buttonY,
     buttonWidth,
+    truncatedLabel,
+    contentWidth,
     copyIconRect: isOpenForm
       ? {
           x: buttonX + buttonWidth + copyIconMargin,
@@ -144,35 +152,16 @@ export const ButtonCellRenderer: CellRenderer = {
 
     // Show step title when loading, otherwise show button label
     const currentStepTitle = isLoading ? actionManager.getCurrentStepTitle(pk, column.id!) : undefined
-    let truncatedLabel = currentStepTitle || buttonMeta.label
 
-    // computeButtonLayout truncates the label based on the button type; when a step title is
-    // showing we need to truncate that string instead, but it still uses the same max width.
     const layout = computeButtonLayout({
       x,
       y,
       width,
-      colOptions: {
-        ...colOptions,
-        label: currentStepTitle || buttonMeta.label,
-        type: buttonMeta.type,
-      },
+      colOptions,
+      label: currentStepTitle || buttonMeta.label,
+      hasIcon,
     })
-    const { buttonX: startX, buttonY: startY, buttonWidth, copyIconRect } = layout
-
-    // Recompute the displayed truncated label using the same effective max width.
-    let contentWidth = 0
-    if (hasLabel || currentStepTitle) {
-      ctx.font = '600 13px Inter'
-      const maxTextWidth = buttonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
-      const truncatedInfo = truncateText(ctx, currentStepTitle || buttonMeta.label, maxTextWidth, true)
-      truncatedLabel = truncatedInfo.text
-      contentWidth += truncatedInfo.width
-    }
-    if (hasIcon) {
-      contentWidth += iconSize
-      if (hasLabel) contentWidth += iconSpacing
-    }
+    const { buttonX: startX, buttonY: startY, buttonWidth, truncatedLabel, contentWidth, copyIconRect } = layout
 
     const isHovered =
       !disabledState &&

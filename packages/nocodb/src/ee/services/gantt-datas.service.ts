@@ -334,8 +334,8 @@ export class GanttDatasService {
       const visibleRows = (await baseModel.list(
         {
           fieldsSet: new Set<string>([pkCol.id]),
-          limitOverride: GANTT_DEPS_LIMIT,
         },
+        { limitOverride: GANTT_DEPS_LIMIT },
       )) as Array<Record<string, any>>;
       const visiblePks = visibleRows
         .map((r) => r?.[pkCol.title as string])
@@ -359,7 +359,6 @@ export class GanttDatasService {
       const rows = (await junctionBaseModel.list(
         {
           fieldsSet: new Set<string>([mmParentCol.id, mmChildCol.id]),
-          limitOverride: GANTT_DEPS_LIMIT,
           customConditions: [
             {
               fk_column_id: mmParentCol.id,
@@ -371,7 +370,11 @@ export class GanttDatasService {
         },
         // Junction has no view scope or RLS of its own — visibility is
         // enforced via the mm_parent IN visiblePks predicate above.
-        { ignoreViewFilterAndSort: true, ignoreRls: true },
+        {
+          ignoreViewFilterAndSort: true,
+          ignoreRls: true,
+          limitOverride: GANTT_DEPS_LIMIT,
+        },
       )) as Array<Record<string, any>>;
 
       const parentKey = mmParentCol.title as string;
@@ -404,12 +407,12 @@ export class GanttDatasService {
     const rows = (await baseModel.list(
       {
         fieldsSet,
-        // Bypass NC_DB_QUERY_LIMIT_MAX. Hard cap matches realistic Gantt
-        // upper bound — 100k tasks is well beyond any sane project board.
-        limitOverride: GANTT_DEPS_LIMIT,
       },
       {
         ignoreViewFilterAndSort: false,
+        // Bypass NC_DB_QUERY_LIMIT_MAX. Hard cap matches realistic Gantt
+        // upper bound — 100k tasks is well beyond any sane project board.
+        limitOverride: GANTT_DEPS_LIMIT,
       },
     )) as Array<Record<string, any>>;
 

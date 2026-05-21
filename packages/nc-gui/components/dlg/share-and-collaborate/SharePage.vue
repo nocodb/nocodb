@@ -563,6 +563,14 @@ const copyCustomUrl = async (custUrl = '') => {
     }`,
   )
 }
+
+/**
+ * When the grid has OpenForm button columns whose linked form views
+ * are also publicly shared, surface a warning that grants are implicit.
+ * Retained for future re-enable — today OpenForm is disabled in public
+ * shared views, so the banner stays hidden.
+ */
+const showOpenFormBtnShareWarning = false
 </script>
 
 <template>
@@ -853,14 +861,8 @@ const copyCustomUrl = async (custUrl = '') => {
           </a-radio-group>
         </div>
 
-        <!--
-          When the grid has OpenForm button columns whose linked form views
-          are also publicly shared, surface a warning that grants are implicit.
-          Retained for future re-enable — today OpenForm is disabled in public
-          shared views, so the banner stays hidden.
-        -->
         <NcAlert
-          v-if="false && openFormButtonsViaSharedForms.length"
+          v-if="showOpenFormBtnShareWarning && openFormButtonsViaSharedForms.length"
           type="warning"
           :message="$t('activity.warning')"
           :description="

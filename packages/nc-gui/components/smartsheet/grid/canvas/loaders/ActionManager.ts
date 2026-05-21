@@ -228,7 +228,11 @@ export class ActionManager {
   }
 
   private startAnimationLoop() {
-    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0 || this.recentlyCopied.size > 0
+    const hasActivity =
+      this.loadingColumns.size > 0 ||
+      this.afterActionStatus.size > 0 ||
+      this.activeBulkExecs.size > 0 ||
+      this.recentlyCopied.size > 0
 
     if (this.rafId !== null || !hasActivity) return
 
@@ -236,7 +240,11 @@ export class ActionManager {
     let isCoolingDown = false
 
     const animate = () => {
-      const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0 || this.recentlyCopied.size > 0
+      const currentActivity =
+        this.loadingColumns.size > 0 ||
+        this.afterActionStatus.size > 0 ||
+        this.activeBulkExecs.size > 0 ||
+        this.recentlyCopied.size > 0
 
       if (currentActivity) {
         if (cooldownTimeout) {

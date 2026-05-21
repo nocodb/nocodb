@@ -54,12 +54,7 @@ function patchViewInStore(viewId: string, patch: Partial<ViewType>) {
 
 async function unshareForm(viewId: string) {
   if (!meta.value?.fk_workspace_id || !meta.value?.base_id) return
-  await $api.internal.postOperation(
-    meta.value.fk_workspace_id,
-    meta.value.base_id,
-    { operation: 'shareViewDelete', viewId },
-    {},
-  )
+  await $api.internal.postOperation(meta.value.fk_workspace_id, meta.value.base_id, { operation: 'shareViewDelete', viewId }, {})
   patchViewInStore(viewId, { uuid: undefined, password: undefined })
 }
 
@@ -125,27 +120,18 @@ async function shareSelectedForm() {
           <template #title>{{ option.label }}</template>
           {{ option.label }}
         </NcTooltip>
-        <span
-          v-if="option?.uuid"
-          class="text-captionSm text-nc-content-green-dark inline-flex items-center gap-1 flex-none"
-        >
+        <span v-if="option?.uuid" class="text-captionSm text-nc-content-green-dark inline-flex items-center gap-1 flex-none">
           <GeneralIcon icon="ncGlobe" class="w-3 h-3" />
           {{ t('general.shared') }}
         </span>
-        <span
-          v-else
-          class="text-captionSm text-nc-content-gray-muted inline-flex items-center gap-1 flex-none"
-        >
+        <span v-else class="text-captionSm text-nc-content-gray-muted inline-flex items-center gap-1 flex-none">
           <GeneralIcon icon="ncLock" class="w-3 h-3" />
           {{ t('general.private') }}
         </span>
         <div class="flex-1" />
       </template>
     </NcListViewSelector>
-    <div
-      v-if="selectedFormViewId && !isSelectedViewShared"
-      class="mt-2 flex items-center gap-2 flex-wrap"
-    >
+    <div v-if="selectedFormViewId && !isSelectedViewShared" class="mt-2 flex items-center gap-2 flex-wrap">
       <span class="text-xs text-nc-content-red-dark">
         {{ $t('msg.info.formNotSharedShort') }}
       </span>

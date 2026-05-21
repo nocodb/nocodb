@@ -215,6 +215,18 @@ const {
     })()
   : useDocumentAutoSave({ editor, activeProjectId, isEditable })
 
+// Force a content reload after a revision restore. The auto-reload watcher
+// in useDocumentAutoSave bails out when the user has unsaved edits or a
+// pending debounced save, which would leave the editor's local PM state
+// stale — the next autosave would then overwrite the restored content with
+// whatever was in the editor before the restore.
+const { onRestored } = useDocRevisions()
+onRestored(({ docId }) => {
+  if (docId === doc.value?.id) {
+    reloadDocument()
+  }
+})
+
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
 const {

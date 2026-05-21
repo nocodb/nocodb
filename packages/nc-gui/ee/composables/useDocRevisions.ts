@@ -57,6 +57,14 @@ export const useDocRevisions = createSharedComposable(() => {
   // preview pane can render a word-level rename diff (parity with body diff).
   const comparisonTitle = ref<string | null>(null)
 
+  // Event fired after a successful restore. The active Editor.vue listens
+  // and force-reloads its content from the server — needed because the
+  // editor's local PM state can diverge from the restored content (the
+  // auto-reload watcher in useDocumentAutoSave bails out when the user
+  // has unsaved edits or a pending debounced save, and the restore would
+  // otherwise be silently overwritten by the next autosave).
+  const restoredHook = createEventHook<{ docId: string }>()
+
   // Step-through nav state. `diffChangeCount` is written by the Viewer
   // whenever the diff is recomputed; `currentChangeIndex` is driven by
   // the modal's ↑/↓ buttons. The Viewer watches the index and scrolls
@@ -222,12 +230,9 @@ export const useDocRevisions = createSharedComposable(() => {
       )) as { id: string; version?: number; updated_at?: string; updated_by?: string; title?: string } | undefined
 
       // Patch the documents store so `activeDocument.version` jumps past the
-      // editor's local version. The watcher in `useDocumentAutoSave` sees the
-      // jump on a current-user, no-pending-edits doc and triggers
-      // `reloadDocument()` — without this, the editor keeps showing the
-      // pre-restore content until the user manually refreshes the page.
-      // The realtime broadcast can't fix this for the restoring user because
-      // their own socket id is excluded from the echo on the backend.
+      // editor's local version. The realtime broadcast can't fix this for
+      // the restoring user because their own socket id is excluded from
+      // the echo on the backend.
       if (updated?.id) {
         const baseDocs = documents.value.get(activeProjectId.value) || []
         const existing = baseDocs.find((d) => d.id === updated.id)
@@ -237,6 +242,15 @@ export const useDocRevisions = createSharedComposable(() => {
           if (updated.updated_by !== undefined) existing.updated_by = updated.updated_by
           if (updated.title !== undefined) existing.title = updated.title
         }
+
+        // Force the editor to reload its content from the server. We can't
+        // rely on the auto-reload watcher in useDocumentAutoSave: it bails
+        // out when the user has unsaved edits or a pending debounced save,
+        // both of which are common right before opening the history panel.
+        // Without this signal the editor's stale local PM state would be
+        // sent by the next autosave, silently overwriting the restored
+        // content.
+        restoredHook.trigger({ docId: updated.id })
       }
 
       // Refresh the list to surface the new RESTORE revision at the top.
@@ -282,6 +296,7 @@ export const useDocRevisions = createSharedComposable(() => {
     loadMore,
     selectRevision,
     restoreRevision,
+    onRestored: restoredHook.on,
     nextChange,
     prevChange,
     reset,

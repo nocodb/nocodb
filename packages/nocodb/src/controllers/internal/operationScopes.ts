@@ -180,6 +180,7 @@ export const OPERATION_SCOPES = {
 
   // Web Bookmark (doc editor)
   webBookmarkFetch: 'base',
+  webBookmarkResignImage: 'base',
 
   // LTAR V2 conversion
   convertLinkToV2: 'base',

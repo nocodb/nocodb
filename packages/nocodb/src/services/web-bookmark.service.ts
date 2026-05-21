@@ -6,12 +6,12 @@ import { nanoid } from 'nanoid';
 import hash from 'object-hash';
 import moment from 'moment';
 import mime from 'mime/lite';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { FileReference, PresignedUrl } from '~/models';
+import { PresignedUrl } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { RootScopes } from '~/utils/globals';
+import { getFilteredAgents } from '~/utils/ssrf';
 
 interface WebBookmarkMetadata {
   url: string;
@@ -21,11 +21,16 @@ interface WebBookmarkMetadata {
   imageUrl: string | null;
   imagePath: string | null;
   siteName: string | null;
+  status: 'fetched' | 'fetch_failed';
 }
 
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_HTML_BYTES = 1_000_000;
 const MAX_IMAGE_BYTES = 5_000_000;
+const MAX_URL_LENGTH = 2048;
+// SVG intentionally excluded — fetched-from-anywhere SVG can carry inline
+// <script> and would XSS when served inline via /dltemp.
+// See attachmentHelpers.ts for the same exclusion.
 const ALLOWED_IMAGE_MIMES = new Set([
   'image/png',
   'image/jpeg',
@@ -33,7 +38,6 @@ const ALLOWED_IMAGE_MIMES = new Set([
   'image/gif',
   'image/webp',
   'image/avif',
-  'image/svg+xml',
 ]);
 const USER_AGENT =
   'Mozilla/5.0 (compatible; NocoDB-LinkPreview/1.0; +https://nocodb.com)';
@@ -44,16 +48,24 @@ export class WebBookmarkService {
 
   async fetchMetadata(
     context: NcContext,
-    param: { url: string; req: NcRequest },
+    param: { url: unknown; req: NcRequest },
   ): Promise<WebBookmarkMetadata> {
-    const url = (param.url || '').trim();
+    const ncError = NcError.get(context);
+
+    if (typeof param.url !== 'string') {
+      ncError.badRequest('Invalid URL — must be a string');
+    }
+    const url = (param.url as string).trim();
+    if (url.length > MAX_URL_LENGTH) {
+      ncError.badRequest(`URL exceeds maximum length of ${MAX_URL_LENGTH}`);
+    }
     if (!/^https?:\/\//i.test(url)) {
-      NcError.get(context).badRequest(
+      ncError.badRequest(
         'Invalid URL — must start with http:// or https://',
       );
     }
 
-    const empty: WebBookmarkMetadata = {
+    const empty = (status: WebBookmarkMetadata['status']): WebBookmarkMetadata => ({
       url,
       title: null,
       description: null,
@@ -61,7 +73,8 @@ export class WebBookmarkService {
       imageUrl: null,
       imagePath: null,
       siteName: null,
-    };
+      status,
+    });
 
     let html = '';
     try {
@@ -69,8 +82,7 @@ export class WebBookmarkService {
         responseType: 'text',
         timeout: FETCH_TIMEOUT_MS,
         maxContentLength: MAX_HTML_BYTES,
-        httpAgent: useAgent(url),
-        httpsAgent: useAgent(url),
+        ...getFilteredAgents({ url, source: OperationSource.ATTACHMENTS }),
         headers: {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -84,7 +96,7 @@ export class WebBookmarkService {
       this.logger.error(
         `Web bookmark fetch failed for ${url}: ${e?.message ?? e}`,
       );
-      return empty;
+      return empty('fetch_failed');
     }
 
     const parsed = this.parseMetaTags(html, url);
@@ -98,13 +110,7 @@ export class WebBookmarkService {
       );
       if (stored) {
         imagePath = stored.path;
-        // PresignedUrl returns either a fully-qualified URL (S3/GCS) or a
-        // local-storage relative path (`dltemp/...`). Relative paths only
-        // resolve against the API origin, so prefix with `ncSiteUrl` when
-        // present so the frontend can load the image from any origin.
-        imageUrl = /^https?:\/\//i.test(stored.signedUrl)
-          ? stored.signedUrl
-          : `${(param.req as any)?.ncSiteUrl?.replace(/\/+$/, '') ?? ''}/${stored.signedUrl.replace(/^\/+/, '')}`;
+        imageUrl = stored.signedUrl;
       }
     }
 
@@ -116,7 +122,50 @@ export class WebBookmarkService {
       imageUrl,
       imagePath,
       siteName: parsed.siteName,
+      status: 'fetched',
     };
+  }
+
+  /**
+   * Re-sign a stored bookmark image so the URL stays valid past the
+   * default signed-URL TTL. Frontend calls this lazily when an image fails
+   * to load (e.g. on doc render hours after creation).
+   */
+  async resignImage(
+    context: NcContext,
+    param: { imagePath: unknown },
+  ): Promise<{ imageUrl: string | null }> {
+    const ncError = NcError.get(context);
+
+    if (typeof param.imagePath !== 'string' || !param.imagePath.trim()) {
+      ncError.badRequest('Invalid imagePath');
+    }
+    const imagePath = (param.imagePath as string).trim();
+
+    // Only sign paths we own. The bookmark download path always begins
+    // with `download/web-bookmarks/` (or is a full URL for S3/GCS storage).
+    if (/^https?:\/\//i.test(imagePath)) {
+      return { imageUrl: imagePath };
+    }
+    if (!imagePath.startsWith('download/web-bookmarks/')) {
+      ncError.badRequest('Invalid imagePath');
+    }
+
+    // PresignedUrl.signAttachment / getSignedUrl expects the path relative
+    // to nc/uploads/ — strip the leading `download/`.
+    const relPath = imagePath.replace(/^download\//, '');
+    try {
+      const signedUrl = await PresignedUrl.getSignedUrl({
+        pathOrUrl: relPath,
+        preview: true,
+      });
+      return { imageUrl: signedUrl };
+    } catch (e: any) {
+      this.logger.error(
+        `Web bookmark image resign failed for ${imagePath}: ${e?.message ?? e}`,
+      );
+      return { imageUrl: null };
+    }
   }
 
   private parseMetaTags(html: string, baseUrl: string) {
@@ -264,16 +313,12 @@ export class WebBookmarkService {
 
       const fileUrl = hostedUrl ?? path.join('download', relDir, fileName);
 
-      await FileReference.insert(
-        { workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT },
-        {
-          storage: storageAdapter.name,
-          file_url: fileUrl,
-          file_size: 0,
-          fk_user_id: userId,
-          deleted: true,
-        },
-      );
+      // FileReference is intentionally not inserted here — it's created later
+      // by reconcileFileReferences on the next doc save, scoped to fk_doc_id.
+      // This mirrors the image upload flow: storage write happens at upload
+      // time, FileReference is materialized at save time, and the existing
+      // AttachmentCleanUpProcessor handles GC of soft-deleted rows.
+      void userId;
 
       const signedUrl = await PresignedUrl.getSignedUrl({
         pathOrUrl: hostedUrl ? hostedUrl : relPath,

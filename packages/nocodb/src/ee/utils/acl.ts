@@ -397,6 +397,7 @@ const permissionScopes = {
 
     // Web Bookmark (doc editor)
     'webBookmarkFetch',
+    'webBookmarkResignImage',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -1060,6 +1061,7 @@ const rolePermissions:
 
       // Web Bookmark (doc editor)
       webBookmarkFetch: true,
+      webBookmarkResignImage: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1657,6 +1659,7 @@ const permissionDescriptions: Record<string, string> = {
   dataImportFile: 'import file into a table',
 
   webBookmarkFetch: 'fetch link metadata for a doc bookmark block',
+  webBookmarkResignImage: 'refresh signed URL for a stored bookmark image',
   tableUpdate: 'update a table',
   viewColumnList: 'view list of view columns',
   triggerList: 'view list of triggers',

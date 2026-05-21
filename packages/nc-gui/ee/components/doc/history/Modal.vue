@@ -150,6 +150,17 @@ const { showWarningModal } = useNcConfirmModal()
 
 const canRestore = computed(() => isUIAllowed('documentRevisionRestore'))
 
+// Disable Restore when the selected revision IS the current version (the
+// topmost row in the list). Restoring to the current version is a no-op for
+// the user — it would only create a redundant RESTORE entry pointing at the
+// same content. The "Current version" label already signals this to readers;
+// the disabled button removes any ambiguity about whether the action does
+// anything.
+const isSelectedCurrentVersion = computed(
+  () =>
+    !!selectedRevisionId.value && selectedRevisionId.value === revisions.value[0]?.id,
+)
+
 const previewContent = computed(() => selectedRevisionContent.value?.content ?? null)
 
 // Reset the composable's state when the modal closes — without this, the
@@ -301,7 +312,7 @@ async function onRestore() {
             size="small"
             type="primary"
             :loading="isRestoring"
-            :disabled="!selectedRevisionId"
+            :disabled="!selectedRevisionId || isSelectedCurrentVersion"
             class="!px-5"
             data-testid="nc-doc-history-restore-btn"
             @click="onRestore"

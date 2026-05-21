@@ -441,7 +441,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border-1 border-transparent bg-nc-bg-gray-extralight truncate focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
+              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
               :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { '!border-nc-border-brand !shadow-selected': startOpen }]"
               :tabindex="isPublic ? -1 : 0"
               role="button"
@@ -481,7 +481,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border-1 border-transparent bg-nc-bg-gray-extralight truncate focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
+              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate focus:(outline-none ring-0 border-nc-border-brand shadow-selected)"
               :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { '!border-nc-border-brand !shadow-selected': endOpen }]"
               :tabindex="isPublic ? -1 : 0"
               role="button"
@@ -515,7 +515,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             {{ $t('objects.days') }}
           </div>
           <div
-            class="w-full px-2 py-1.5 text-xs rounded border-1 border-transparent bg-nc-bg-gray-light text-nc-content-gray"
+            class="w-full px-2 py-1.5 text-xs rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-light text-nc-content-gray"
             role="status"
             :aria-label="`${$t('objects.days')}: ${durationDays || '–'}`"
           >

@@ -63,7 +63,10 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       {
         condition: { source_id: table.source_id },
         xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+          _and: [
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+            { _or: [{ mm: { eq: false } }, { mm: { eq: null } }] },
+          ],
         },
       },
     );

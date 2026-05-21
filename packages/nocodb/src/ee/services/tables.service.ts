@@ -83,7 +83,10 @@ export class TablesService extends TableServiceCE {
             source_id: source.id,
           },
           xcCondition: {
-            _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+            _and: [
+              { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+              { _or: [{ mm: { eq: false } }, { mm: { eq: null } }] },
+            ],
           },
         },
       );

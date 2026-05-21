@@ -10,6 +10,10 @@ import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { Dashboard, Workflow } from '~/models';
 import type {
+  WebBookmarkMetadata,
+  WebBookmarkResignResult,
+} from '~/services/web-bookmark.service';
+import type {
   Column,
   DataReflection,
   Document,
@@ -121,6 +125,8 @@ export type InternalPOSTResponseType = Promise<
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
+  | WebBookmarkMetadata
+  | WebBookmarkResignResult
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

@@ -13,7 +13,7 @@ import { PresignedUrl } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFilteredAgents } from '~/utils/ssrf';
 
-interface WebBookmarkMetadata {
+export interface WebBookmarkMetadata {
   url: string;
   title: string | null;
   description: string | null;
@@ -22,6 +22,10 @@ interface WebBookmarkMetadata {
   imagePath: string | null;
   siteName: string | null;
   status: 'fetched' | 'fetch_failed';
+}
+
+export interface WebBookmarkResignResult {
+  imageUrl: string | null;
 }
 
 const FETCH_TIMEOUT_MS = 10_000;
@@ -134,7 +138,7 @@ export class WebBookmarkService {
   async resignImage(
     context: NcContext,
     param: { imagePath: unknown },
-  ): Promise<{ imageUrl: string | null }> {
+  ): Promise<WebBookmarkResignResult> {
     const ncError = NcError.get(context);
 
     if (typeof param.imagePath !== 'string' || !param.imagePath.trim()) {

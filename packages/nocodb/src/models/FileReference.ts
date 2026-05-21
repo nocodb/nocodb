@@ -21,6 +21,7 @@ export default class FileReference {
   fk_column_id: string;
   fk_row_id: string;
   fk_doc_id: string;
+  fk_revision_id: string;
   fk_session_id: string;
   is_external: boolean;
   deleted: boolean;
@@ -48,6 +49,7 @@ export default class FileReference {
       'fk_column_id',
       'fk_row_id',
       'fk_doc_id',
+      'fk_revision_id',
       'fk_session_id',
       'is_external',
       'deleted',
@@ -91,6 +93,7 @@ export default class FileReference {
         'fk_column_id',
         'fk_row_id',
         'fk_doc_id',
+        'fk_revision_id',
         'fk_session_id',
         'is_external',
         'deleted',
@@ -133,6 +136,7 @@ export default class FileReference {
       'fk_column_id',
       'fk_row_id',
       'fk_doc_id',
+      'fk_revision_id',
       'fk_session_id',
       'is_external',
       'deleted',
@@ -436,8 +440,8 @@ export default class FileReference {
   }
 
   /**
-   * Return all active FileReference IDs for a doc.
-   * Uses nc_fr_doc_idx (base_id, fk_doc_id).
+   * Active FileReference IDs for a doc's live content. Excludes revision
+   * snapshots so reconcile only diffs against what's currently embedded.
    */
   public static async listIdsForDoc(
     context: NcContext,
@@ -451,9 +455,170 @@ export default class FileReference {
         fk_doc_id: docId,
         deleted: false,
       })
+      .whereNull('fk_revision_id')
       .select('id');
 
     return rows.map((r: any) => r.id);
+  }
+
+  /**
+   * Sync the snapshot rows for a revision to match the attachments embedded
+   * in its content. Snapshot rows are keyed by (revision_id, file_url) and
+   * carry file_size=0 — the cleanup job groups by file_url and only purges
+   * when every row in the group is deleted, so a live snapshot pins the
+   * underlying file while the revision survives.
+   *
+   * Idempotent — safe on coalesce.
+   */
+  public static async syncSnapshotForRevision(
+    context: NcContext,
+    params: {
+      docId: string;
+      revisionId: string;
+      attachmentIds: string[];
+      fkUserId?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const uniqueIds = Array.from(new Set(params.attachmentIds ?? []));
+
+    const [liveRows, existingSnapshots]: [
+      { id: string; storage: string; file_url: string; fk_user_id: string }[],
+      { id: string; file_url: string }[],
+    ] = await Promise.all([
+      uniqueIds.length
+        ? ncMeta
+            .knexConnection(MetaTable.FILE_REFERENCES)
+            .where({ base_id: context.base_id, fk_doc_id: params.docId })
+            .whereNull('fk_revision_id')
+            .whereIn('id', uniqueIds)
+            .select('id', 'storage', 'file_url', 'fk_user_id')
+        : Promise.resolve([]),
+      ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({
+          base_id: context.base_id,
+          fk_revision_id: params.revisionId,
+        })
+        .select('id', 'file_url'),
+    ]);
+
+    const expectedFileUrls = new Set(liveRows.map((r) => r.file_url));
+    const seen = new Set(existingSnapshots.map((r) => r.file_url));
+
+    // Insert one row per new file_url. `seen` also dedupes when two live rows
+    // share a file_url (re-upload of the same physical file).
+    const snapshotObjs: Partial<FileReference>[] = [];
+    for (const r of liveRows) {
+      if (seen.has(r.file_url)) continue;
+      seen.add(r.file_url);
+      snapshotObjs.push({
+        storage: r.storage,
+        file_url: r.file_url,
+        file_size: 0,
+        fk_user_id: r.fk_user_id ?? params.fkUserId ?? 'anonymous',
+        fk_doc_id: params.docId,
+        fk_revision_id: params.revisionId,
+        deleted: false,
+      });
+    }
+    if (snapshotObjs.length) {
+      await this.bulkInsert(context, snapshotObjs, ncMeta);
+    }
+
+    // Hard-delete orphans (attachments that never settled in the revision's
+    // content). Soft-deleting would pin the file_url group forever.
+    const orphanIds = existingSnapshots
+      .filter((r) => !expectedFileUrls.has(r.file_url))
+      .map((r) => r.id);
+    if (orphanIds.length) {
+      await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({ base_id: context.base_id })
+        .whereIn('id', orphanIds)
+        .del();
+    }
+  }
+
+  /**
+   * True if any non-deleted FileReference under this doc (live row or
+   * revision snapshot) references the given file_url.
+   */
+  public static async existsActiveByFileUrlInDoc(
+    context: NcContext,
+    docId: string,
+    fileUrl: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const row = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_doc_id: docId,
+        file_url: fileUrl,
+        deleted: false,
+      })
+      .select(ncMeta.knexConnection.raw('1'))
+      .first();
+    return !!row;
+  }
+
+  /**
+   * Un-delete doc-owned FileReferences whose IDs are being reintroduced by
+   * a revision restore. Without this, reconcileFileReferences leaves
+   * pre-existing IDs alone, so previously soft-deleted refs stay deleted
+   * after restore and the proxy 404s.
+   */
+  public static async reviveForDoc(
+    context: NcContext,
+    docId: string,
+    ids: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    if (!ids?.length) return;
+
+    const query = () =>
+      ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({ base_id: context.base_id, fk_doc_id: docId, deleted: true })
+        .whereNull('fk_revision_id')
+        .whereIn('id', ids);
+
+    let restoredSize = 0;
+    try {
+      restoredSize =
+        (await query().sum('file_size as total').first())?.total || 0;
+    } catch (error) {
+      restoredSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await query().update({ deleted: false, soft_deleted: false });
+
+    await this.updateWorkspaceCache(context, restoredSize);
+  }
+
+  /**
+   * Soft-delete snapshot rows owned by the given revisions. file_size=0 so no
+   * workspace cache update needed.
+   */
+  public static async bulkDeleteForRevisions(
+    context: NcContext,
+    revisionIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    if (!revisionIds?.length) return;
+
+    // Chunk to stay under PG's WHERE IN planner cliff (~32k).
+    const BATCH = 1000;
+    for (let i = 0; i < revisionIds.length; i += BATCH) {
+      await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({ base_id: context.base_id, deleted: false })
+        .whereIn('fk_revision_id', revisionIds.slice(i, i + BATCH))
+        .update({ deleted: true });
+    }
   }
 
   /**

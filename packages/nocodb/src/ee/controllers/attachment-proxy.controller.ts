@@ -26,7 +26,21 @@ export class AttachmentProxyController {
   ) {
     const fileRef = await FileReference.get(context, fileRefId);
 
-    if (!fileRef || fileRef.deleted || fileRef.fk_doc_id !== docId) {
+    if (!fileRef || fileRef.fk_doc_id !== docId) {
+      return res.status(404).send('Attachment not found');
+    }
+
+    if (!fileRef.deleted) {
+      return this.serveAttachment(fileRef.file_url, res);
+    }
+
+    // Soft-deleted — keep serving if a revision snapshot still references it.
+    const stillReferenced = await FileReference.existsActiveByFileUrlInDoc(
+      context,
+      docId,
+      fileRef.file_url,
+    );
+    if (!stillReferenced) {
       return res.status(404).send('Attachment not found');
     }
 

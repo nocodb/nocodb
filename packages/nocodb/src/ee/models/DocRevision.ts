@@ -4,6 +4,8 @@ import type { DocumentRevisionType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import FileReference from '~/models/FileReference';
+import { extractFileReferenceIds } from '~/utils/richTextHelper';
 
 /**
  * Default inactivity window. The window slides: each save within this many ms
@@ -106,6 +108,12 @@ export default class DocRevision implements DocumentRevisionType {
         prepareForDb({ version, title, content }, ['content']),
         { id: latest.id },
       );
+      await FileReference.syncSnapshotForRevision(context, {
+        docId,
+        revisionId: latest.id!,
+        attachmentIds: extractFileReferenceIds(content),
+        fkUserId: createdBy,
+      });
       return latest.id!;
     }
 
@@ -129,6 +137,13 @@ export default class DocRevision implements DocumentRevisionType {
       prepareForDb(insertObj, ['content']),
       true, // ignoreIdGeneration — id is pre-generated above
     );
+
+    await FileReference.syncSnapshotForRevision(context, {
+      docId,
+      revisionId: insertObj.id,
+      attachmentIds: extractFileReferenceIds(content),
+      fkUserId: createdBy,
+    });
 
     return insertObj.id;
   }
@@ -237,10 +252,24 @@ export default class DocRevision implements DocumentRevisionType {
   }
 
   /**
-   * Delete all revisions for a doc. Called when the doc itself is hard-deleted
-   * (soft-delete leaves revisions in place so the doc can be restored).
+   * Delete all revisions for a doc — hard delete only (soft delete keeps
+   * revisions so the doc can be restored). Cascades snapshot rows first:
+   * revisions and file_references live in separate DBs with no cross-DB
+   * transaction, and snapshots orphaned by a crash here would pin file_url
+   * groups in storage forever.
    */
   static async deleteForDoc(context: NcContext, docId: string): Promise<void> {
+    const revisionIds: string[] = (
+      await Noco.ncDocsContent.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOC_REVISIONS,
+        { condition: { fk_doc_id: docId }, fields: ['id'] },
+      )
+    ).map((r: any) => r.id);
+
+    await FileReference.bulkDeleteForRevisions(context, revisionIds);
+
     await Noco.ncDocsContent.metaDelete(
       context.workspace_id,
       context.base_id,

@@ -12,8 +12,9 @@ import {
 } from '~/services/v3/document-revisions-v3.types';
 import { toDocumentV3 } from '~/services/v3/documents-v3.types';
 import { DocumentsService } from '~/services/documents.service';
-import { DocRevision } from '~/models';
+import { DocRevision, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { extractFileReferenceIds } from '~/utils/richTextHelper';
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -129,6 +130,14 @@ export class DocumentRevisionsV3Service {
       req,
       { revisionSource: DocRevisionSource.RESTORE },
     );
+
+    // reconcileFileReferences (inside update) leaves pre-existing IDs alone,
+    // so soft-deleted refs reintroduced by restore stay deleted. Flip them
+    // back. Runs post-update so the edit permission check has gated us.
+    const restoredIds = extractFileReferenceIds(rev.content);
+    if (restoredIds.length) {
+      await FileReference.reviveForDoc(context, param.docId, restoredIds);
+    }
 
     return toDocumentV3(updated);
   }

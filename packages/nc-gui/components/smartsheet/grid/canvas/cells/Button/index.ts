@@ -218,6 +218,7 @@ export const ButtonCellRenderer: CellRenderer = {
     }
 
     if (hasLabel || currentStepTitle) {
+      ctx.font = '600 13px Inter'
       ctx.fillStyle = colors.text
       ctx.textBaseline = 'middle'
       ctx.fillText(truncatedLabel, contentX, startY + 13)

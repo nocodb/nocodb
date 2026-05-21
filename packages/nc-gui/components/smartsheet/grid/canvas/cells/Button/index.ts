@@ -300,8 +300,15 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const { buttonX, buttonY, buttonWidth, copyIconRect } = computeButtonLayout({ x, y, width, colOptions })
 
-    // Copy-form-URL icon tooltip (OpenForm only)
-    if (copyIconRect && mousePosition && isBoxHovered(copyIconRect, mousePosition)) {
+    // Copy-form-URL icon tooltip (OpenForm only) — only when the icon is
+    // actually drawn (matches the render gate), so hovering empty space in a
+    // disabled/invalid column doesn't surface a misleading tooltip.
+    if (
+      copyIconRect &&
+      mousePosition &&
+      !column?.isInvalidColumn?.isInvalid &&
+      isBoxHovered(copyIconRect, mousePosition)
+    ) {
       tryShowTooltip({ rect: copyIconRect, mousePosition, text: t('activity.copyUrl') })
       return
     }

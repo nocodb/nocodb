@@ -535,6 +535,35 @@ function isInlineOnlySlice(slice: Slice): boolean {
 }
 
 /**
+ * Stringify the inline content of a deleted slice for the strike span.
+ * Text nodes contribute their text; inline atoms contribute a stable
+ * source-style representation so the deletion stays visible (e.g. inline
+ * math nodes render only via a NodeView that uses KaTeX — `textBetween`
+ * skips atoms, so a math-only deletion would otherwise collapse to an
+ * empty strike). Unknown inline atoms fall back to a `[type]` tag.
+ */
+function stringifyInlineDeletionSlice(slice: Slice): string {
+  let out = ''
+  slice.content.descendants((node) => {
+    if (node.isText) {
+      out += node.text ?? ''
+      return false
+    }
+    if (node.isInline && node.isAtom) {
+      if (node.type.name === 'inlineMath') {
+        const latex = (node.attrs.latex as string | undefined) ?? ''
+        out += `$${latex}$`
+      } else {
+        out += `[${node.type.name}]`
+      }
+      return false
+    }
+    return true
+  })
+  return out
+}
+
+/**
  * Inline strikethrough span for a within-block deletion. Plain text only —
  * marks are intentionally dropped because they tend to fight with the
  * strikethrough decoration.
@@ -545,7 +574,7 @@ function renderInlineDeletion(slice: Slice, isCurrent: boolean): HTMLElement {
     isCurrent ? ' nc-doc-history-diff-delete-current' : ''
   }`
   span.setAttribute('contenteditable', 'false')
-  span.textContent = slice.content.textBetween(0, slice.content.size, '\n')
+  span.textContent = stringifyInlineDeletionSlice(slice)
   return span
 }
 
@@ -645,6 +674,18 @@ function rewriteDeletedAtoms(
   hrs.forEach((hr) => {
     hr.classList.add(deleteClass)
     if (isCurrent) hr.classList.add(currentClass)
+  })
+
+  // Inline math — the schema's static renderHTML produces a bare empty
+  // `<span data-latex="...">`; the live NodeView is what renders the
+  // equation via KaTeX, but it doesn't run in static serialisation. Fill
+  // the span with the LaTeX source wrapped in `$…$` so the deletion is at
+  // least readable. The strike-text walker below then wraps the source
+  // text with the red wash + grey strike, just like normal deleted text.
+  const maths = root.querySelectorAll('span[data-latex]')
+  maths.forEach((el) => {
+    const latex = el.getAttribute('data-latex') || ''
+    el.textContent = latex ? `$${latex}$` : ''
   })
 
   // Embeds — bare `<div data-type="embed">` from DOMSerializer. We rebuild

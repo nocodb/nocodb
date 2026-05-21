@@ -415,6 +415,15 @@ export class ActionManager {
     return this.executeAction(...args)
   }
 
+  /**
+   * Builds the form-edit URL for an OpenForm button click. Two modes:
+   *  - Public shared grid: call the public token endpoint anonymously
+   *    (requires the grid to be publicly shared; the linked form must
+   *    also be publicly shared — backend enforces both).
+   *  - Authenticated grid: call the internal `formEditTokenGenerate` op.
+   * Returns null (no toast/window.open) when the backend can't mint a
+   * token; callers fall back silently.
+   */
   async resolveFormEditUrl(columnId: string, rowId: string): Promise<string | null> {
     let token: string | undefined
     let viewUuid: string | undefined

@@ -2,6 +2,22 @@ import crypto from 'crypto';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 
+/**
+ * HMAC-signed tokens that authorize editing a single record via a shared
+ * form view. The payload `{ r, c, v }` encodes the row primary key, the
+ * button column id (for audit / future grants), and the form view's uuid;
+ * the signature binds all three to this server's JWT secret.
+ *
+ * Design notes:
+ * - No explicit expiry. "Revocation" happens implicitly when the form view
+ *   is unshared (uuid is rotated or cleared) — any outstanding token with
+ *   an old uuid fails the `v` check at verify time.
+ * - The salt is a constant string so tokens minted for other purposes
+ *   (password reset, invites) can't be cross-used even if they happen to
+ *   share payload shape.
+ * - `timingSafeEqual` is used on the signature comparison to prevent
+ *   timing side-channels.
+ */
 const SALT = 'nc-form-edit-row';
 
 function getSecret(): string {

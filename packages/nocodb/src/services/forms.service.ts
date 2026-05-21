@@ -249,6 +249,18 @@ export class FormsService {
     return safeView;
   }
 
+  /**
+   * Authenticated (base-scoped) counterpart to
+   * `PublicDatasService.generatePublicFormEditToken`. Both mint the same
+   * HMAC-signed token; this one is reached via the internal `postOperation`
+   * endpoint (ACL: `formEditTokenGenerate`, EDITOR role), while the public
+   * variant is reached anonymously from a shared grid view.
+   *
+   * The two code paths exist because the authenticated path can trust the
+   * caller's workspace context and column ACLs, while the public path has
+   * to re-derive the workspace from the shared view uuid and verify the
+   * row is visible through that shared view.
+   */
   async generateEditToken(
     context: NcContext,
     param: {

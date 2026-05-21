@@ -312,6 +312,26 @@ export function useCanvasTable({
     { immediate: true },
   )
 
+  // Listen for form-edit submissions happening in a sibling same-origin tab
+  // (e.g. user clicked an OpenForm button here, completed the edit there).
+  // When the message targets this table we refetch data so the grid reflects
+  // the change without requiring a manual reload. Debounced implicitly by
+  // loadData's own guarding.
+  let recordEditChannel: BroadcastChannel | null = null
+  if (typeof BroadcastChannel !== 'undefined' && typeof window !== 'undefined') {
+    recordEditChannel = new BroadcastChannel('nc-record-edit')
+    recordEditChannel.onmessage = (ev) => {
+      const msg = ev.data as { type?: string; tableId?: string } | undefined
+      if (msg?.type === 'record-updated' && msg.tableId && msg.tableId === meta.value?.id) {
+        loadData(undefined, false).catch(() => {})
+      }
+    }
+  }
+  onUnmounted(() => {
+    recordEditChannel?.close()
+    recordEditChannel = null
+  })
+
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
   const removeInlineAddRecord = computed(() => {

@@ -38,6 +38,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
+  ViewTypes,
   WebhookActions,
 } from 'nocodb-sdk';
 import { getProjectRole } from 'nocodb-sdk';
@@ -454,6 +455,41 @@ export class ColumnsService implements IColumnsService {
    * @param column - Partial Column object containing base_id, fk_model_id, id, and internal_meta
    * @returns Updated internal_meta object with unique_constraint_name set
    */
+  /**
+   * Shared validator for OpenForm button columns. Rejects configs that
+   * the backend would mint-fail against at click-time, so bad state can't
+   * be persisted via API callers that bypass the frontend form validator.
+   */
+  private async validateOpenFormButtonConfig(
+    context: NcContext,
+    colBody: Record<string, any>,
+    tableId: string,
+  ) {
+    if (!colBody.fk_form_view_id) {
+      NcError.get(context).badRequest(
+        'Form view not selected for Open Form button',
+      );
+    }
+
+    const formView = await View.get(context, colBody.fk_form_view_id);
+
+    if (!formView || formView.type !== ViewTypes.FORM) {
+      NcError.get(context).badRequest('Selected view is not a form');
+    }
+
+    if (formView.fk_model_id !== tableId) {
+      NcError.get(context).badRequest(
+        'Selected form view does not belong to this table',
+      );
+    }
+
+    if (!formView.uuid) {
+      NcError.get(context).badRequest(
+        'The form linked to this button must be shared publicly. Share the form view and try again.',
+      );
+    }
+  }
+
   private storeUniqueConstraintNameInInternalMeta(
     context: NcContext,
     column: Pick<Column, 'id' | 'base_id' | 'fk_model_id' | 'internal_meta'>,
@@ -1441,6 +1477,8 @@ export class ColumnsService implements IColumnsService {
                 },
               );
             }
+          } else if (colBody.type === ButtonActionsType.OpenForm) {
+            await this.validateOpenFormButtonConfig(context, colBody, table.id);
           }
 
           await Column.update(context, column.id, {
@@ -3781,6 +3819,8 @@ export class ColumnsService implements IColumnsService {
               },
             );
           }
+        } else if (colBody.type === ButtonActionsType.OpenForm) {
+          await this.validateOpenFormButtonConfig(context, colBody, table.id);
         }
 
         savedColumn = await Column.insert(context, {

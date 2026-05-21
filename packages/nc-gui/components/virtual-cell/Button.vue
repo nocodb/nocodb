@@ -35,7 +35,7 @@ const { sharedView } = storeToRefs(useViewsStore())
 const sharedViewUuid = computed(() => sharedView.value?.uuid ?? null)
 const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -284,6 +284,8 @@ const triggerAction = async () => {
   } else if (colOptions.type === ButtonActionsType.OpenForm) {
     try {
       isLoading.value = true
+
+      $e('a:button:open-form:click', { public: isPublic.value })
 
       let token: string | undefined
       let viewUuid: string | undefined

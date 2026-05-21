@@ -87,6 +87,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { api, isLoading } = useApi()
 
+  const { $e } = useNuxtApp()
+
   const { setMeta, getMeta, getMetaByKey } = useMetas()
 
   const { isDark, getColor } = useTheme()
@@ -113,6 +115,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const isEditMode = ref(false)
 
   const editToken = ref<string | null>(null)
+
+  // Primary key of the record being edited — set when loadSharedView
+  // resolves the token. Used only for the cross-tab refresh broadcast.
+  const editRowPk = ref<string | null>(null)
 
   const preFilledformState = ref<Record<string, any>>({})
 
@@ -342,6 +348,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
               formState.value[key] = value
             }
           }
+
+          if (editData?.rowPk) editRowPk.value = editData.rowPk
         } catch {
           notFound.value = true
           return
@@ -541,6 +549,27 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             },
           },
         )
+
+        $e('a:form:edit-submit')
+
+        // Notify any same-origin grid tabs that opened this edit form so they
+        // can refresh the affected row without a full reload. Wrapped in
+        // try/catch because BroadcastChannel isn't available on old browsers
+        // (and we don't want to fail the submit just because notification
+        // couldn't go out).
+        try {
+          if (typeof BroadcastChannel !== 'undefined') {
+            const channel = new BroadcastChannel('nc-record-edit')
+            channel.postMessage({
+              type: 'record-updated',
+              baseId: meta.value?.base_id,
+              tableId: meta.value?.id,
+              rowId: editRowPk.value,
+              timestamp: Date.now(),
+            })
+            channel.close()
+          }
+        } catch {}
 
         submitted.value = true
         progress.value = false

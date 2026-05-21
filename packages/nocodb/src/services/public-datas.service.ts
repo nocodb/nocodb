@@ -1858,6 +1858,27 @@ export class PublicDatasService {
       updateObject[column] = JSON.stringify(data);
     }
 
+    // Enforce form-level required flags on the fields included in the PATCH.
+    // Standard PATCH semantics: fields absent from the body are left alone,
+    // so we only reject an explicit attempt to clear a required field.
+    for (const [title, fieldDef] of Object.entries(fields)) {
+      const col: any = fieldDef;
+      const isRequired = col?.required || col?.rqd;
+      if (!isRequired) continue;
+      if (!(title in updateObject)) continue;
+      const val = (updateObject as Record<string, any>)[title];
+      if (
+        val === null ||
+        val === undefined ||
+        val === '' ||
+        (Array.isArray(val) && val.length === 0)
+      ) {
+        NcError.get(context).badRequest(
+          `Field "${title}" is required and cannot be cleared`,
+        );
+      }
+    }
+
     const updatedRow = await baseModel.updateByPk(
       rowPk,
       updateObject,

@@ -60,6 +60,9 @@ export default class ButtonColumn {
 
     const openFormProps = ['fk_form_view_id'];
 
+    // Only the props for the selected button type are persisted; switching
+    // types (e.g. URL → OpenForm) silently drops fields that no longer apply
+    // so stale config doesn't leak into unrelated action paths.
     const insertObj = extractProps(buttonColumn, [
       ...(buttonColumn.type === ButtonActionsType.Url
         ? urlProps
@@ -190,6 +193,41 @@ export default class ButtonColumn {
 
     if ('parsed_tree' in updateObj)
       updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree', null);
+
+    // Null out any type-specific fields that no longer apply after the type
+    // change. Without this, switching (e.g.) OpenForm → Url would leave a
+    // stale fk_form_view_id in the row, which the invalid-column heuristic
+    // could then mis-read. `formula_*` / `error` are shared between Url and
+    // Ai, so they're preserved for both; `parsed_tree` is Url-only.
+    if (button.type) {
+      const sharedFormulaTypes = new Set<string>([
+        ButtonActionsType.Url,
+        ButtonActionsType.Ai,
+      ]);
+
+      if (!sharedFormulaTypes.has(button.type)) {
+        updateObj.formula = null;
+        updateObj.formula_raw = null;
+        updateObj.error = null;
+      }
+      if (button.type !== ButtonActionsType.Url) {
+        updateObj.parsed_tree = null;
+      }
+      if (button.type !== ButtonActionsType.Webhook) {
+        updateObj.fk_webhook_id = null;
+      }
+      if (button.type !== ButtonActionsType.Script) {
+        updateObj.fk_script_id = null;
+      }
+      if (button.type !== ButtonActionsType.OpenForm) {
+        updateObj.fk_form_view_id = null;
+      }
+      if (button.type !== ButtonActionsType.Ai) {
+        updateObj.fk_integration_id = null;
+        updateObj.model = null;
+        updateObj.output_column_ids = null;
+      }
+    }
 
     // set meta
     await ncMeta.metaUpdate(

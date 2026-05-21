@@ -30,6 +30,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const { getMeta } = useMetas()
 
 const { getColor } = useTheme()
@@ -457,6 +459,7 @@ const handleUpdateActionType = () => {
     return
   }
   previousType.value = vModel.value.type
+  $e('c:button:action-type-change', { type: vModel.value.type })
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }

@@ -42,7 +42,9 @@ jobs:
         shell: bash
         timeout-minutes: 1
         run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_ENV
+          STORE_PATH="$(pnpm store path)"
+          mkdir -p "$STORE_PATH"
+          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v5

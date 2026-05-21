@@ -11,6 +11,13 @@ import {
 import { ncAxios } from './ncAxios';
 import type { INcAxios } from './ncAxios';
 
+// Importing nock activates @mswjs/interceptors' global ClientRequest hook,
+// which wraps every outbound HTTP socket in a MockHttpSocket (~400 KB retained
+// per request). Across the ~37 suites in set 3 that leaks ~1 GB before any
+// nock intercept is registered. Disable the hook at module load and re-enable
+// it only inside the Attachment V3 describe — see before/after below.
+nock.restore();
+
 const API_VERSION = 'v3';
 describe('Attachment V3', () => {
   let testContext;
@@ -23,6 +30,11 @@ describe('Attachment V3', () => {
 
   const base64Image =
     'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADMElEQVR4nOzVwQnAIBQFQYXff81RUkQCOyDj1YOPnbXWPmeTRef+/3O/OyBjzh3CD95BfqICMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMK0CMO0TAAD//2Anhf4QtqobAAAAAElFTkSuQmCC';
+  before(function () {
+    // Re-engage the @mswjs/interceptors hook only for these tests.
+    nock.activate();
+  });
+
   beforeEach(async function () {
     const imageBuffer = Buffer.from(base64Image, 'base64');
     testContext = await dataApiV3BeforeEach();
@@ -51,6 +63,12 @@ describe('Attachment V3', () => {
 
   afterEach(function () {
     nock.cleanAll();
+  });
+
+  after(function () {
+    // Tear the hook down again so subsequent suites in set 3 run unwrapped.
+    nock.cleanAll();
+    nock.restore();
   });
 
   it('Upload file and update from url', async () => {

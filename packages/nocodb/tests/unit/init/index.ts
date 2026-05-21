@@ -10,6 +10,33 @@ import type { Base } from '~/models';
 import type { INestApplication } from '@nestjs/common';
 import Noco from '~/Noco';
 
+// superagent 10.x leaves listeners attached to the IncomingMessage, ClientRequest
+// and underlying Socket after a successful request — `error` is the most obvious
+// (`.once('error', …)` never fires on success) but `close`/`data`/`end`/`readable`
+// on the response, `finish`/`drain` on the request, and the full socket event set
+// also remain bound to closures that capture the response body. By the time
+// Test.end's callback fires the response is fully drained and supertest has no
+// more work to do with these emitters, so strip them wholesale.
+(() => {
+  const SupertestTest: any = (request as any).Test;
+  if (!SupertestTest?.prototype?.end || SupertestTest.prototype.__leakPatched) {
+    return;
+  }
+  const originalEnd = SupertestTest.prototype.end;
+  SupertestTest.prototype.end = function (fn?: (err: any, res: any) => void) {
+    return originalEnd.call(this, (err: any, res: any) => {
+      const incoming = res?.res ?? res;
+      if (incoming) {
+        incoming.removeAllListeners?.();
+        incoming.req?.removeAllListeners?.();
+        incoming.socket?.removeAllListeners?.();
+      }
+      fn?.(err, res);
+    });
+  };
+  SupertestTest.prototype.__leakPatched = true;
+})();
+
 let server;
 let nestApp: INestApplication<any>;
 
@@ -30,7 +57,11 @@ const serverInit = async () => {
     });
     next();
   });
-  return { serverInstance, nestApp };
+  // Pre-bind to a single http.Server so supertest reuses it instead of
+  // calling app.listen(0) on every `request(app)` call — heap snapshots
+  // showed ~27k orphaned Server instances per set-3 run from that pattern.
+  const listening = serverInstance.listen(0);
+  return { serverInstance: listening, nestApp };
 };
 
 const isFirstTimeRun = () => !server;

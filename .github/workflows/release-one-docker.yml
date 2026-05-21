@@ -127,8 +127,8 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
-      - name: Remove use-node-version from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
 
       - name: Cache integration dists
         uses: actions/cache@v4
@@ -211,8 +211,8 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
-      - name: Remove use-node-version from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
 
       - name: Cache integration dists
         uses: actions/cache@v4

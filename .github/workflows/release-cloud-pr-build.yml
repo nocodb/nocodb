@@ -42,7 +42,9 @@ jobs:
         shell: bash
         timeout-minutes: 1
         run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_ENV
+          STORE_PATH="$(pnpm store path)"
+          mkdir -p "$STORE_PATH"
+          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v5
@@ -89,8 +91,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
       - name: Cache integration dists
         uses: actions/cache@v4
         with:

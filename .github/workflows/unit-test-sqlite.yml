@@ -33,10 +33,10 @@ jobs:
         with:
           node-version: 24.14.0
           cache: 'pnpm'
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
       - name: Set CI env
         run: export CI=true
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
       - name: Cache integrations (node_modules + dists)
         uses: actions/cache@v5
         with:

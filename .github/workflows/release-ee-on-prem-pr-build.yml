@@ -87,6 +87,9 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
+
       # Resolve the single docker tag we will publish.
       # - Caller-supplied version (dispatch or workflow_call):    use as-is.
       # - PR labeled:                                             pr-<num>-<YYYY.MM.DD.HHMM>.
@@ -107,9 +110,6 @@ jobs:
           fi
           echo "PRIMARY_TAG=${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
           echo "Primary tag: ${PRIMARY_TAG}"
-
-      - name: remove use-node-version line from .npmrc
-        run: sed -i '/^use-node-version/d' .npmrc
 
       - name: Cache integration dists
         uses: actions/cache@v4

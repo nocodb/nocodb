@@ -478,7 +478,6 @@ export function useCanvasTable({
           col: f,
           aiIntegrations: aiIntegrations.value,
           isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
-          hasEditPermission: isDataEditAllowed.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
           views: tableViews,

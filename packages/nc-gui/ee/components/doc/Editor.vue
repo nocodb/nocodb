@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, PlanFeatureTypes, ProjectRoles, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -86,6 +86,8 @@ const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 
 const { showShareModal } = storeToRefs(useShare())
 
+const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermissions } = useEeConfig()
+
 const openShareModal = () => {
   // Close the page menu first so it doesn't sit behind the share dialog
   // (the menu is anchored to the topbar and would otherwise overlap the
@@ -93,6 +95,10 @@ const openShareModal = () => {
   // full-width / delete handlers below.
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   isPageMenuOpen.value = false
+  // Gate public-share behind license/plan: unlicensed On-Prem (and CE,
+  // which never reaches this since the button is hidden) routes to the
+  // upgrade modal instead of opening the share dialog.
+  if (showUpgradeToShareDoc()) return
   showShareModal.value = true
 }
 
@@ -115,11 +121,6 @@ const hasSubDocuments = computed(
 )
 
 const base = inject(ProjectInj, ref())
-
-const isCreatorOrAbove = computed(() => {
-  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
-  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
-})
 
 /**
  * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
@@ -1860,7 +1861,10 @@ const onDeletePage = () => {
 
 const onPagePermissions = () => {
   isPageMenuOpen.value = false
+
   if (!base.value?.id) return
+
+  if (showUpgradeToUseDocumentPermissions()) return
 
   const wsId = route.params.typeOrId
   navigateTo(`/${wsId}/${base.value.id}/settings/docs-permissions`)
@@ -2237,7 +2241,7 @@ defineExpose({ editor })
              so the action is one click away (and discoverable) instead of
              living behind the 3-dot menu. Same gate + telemetry + handler
              as the menu entry, so the two stay aligned. -->
-        <NcTooltip v-if="isCreatorOrAbove" :title="$t('activity.share')" placement="bottom" class="flex">
+        <NcTooltip v-if="isUIAllowed('documentCreate')" :title="$t('activity.share')" placement="bottom" class="flex">
           <NcButton
             v-e="['c:doc:share:open']"
             size="small"
@@ -2263,13 +2267,17 @@ defineExpose({ editor })
                 {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
               </NcMenuItem>
               <NcMenuItem
-                v-if="isCreatorOrAbove"
+                v-if="isUIAllowed('documentCreate')"
                 v-e="['c:doc:share:open']"
+                inner-class="w-full"
                 data-testid="nc-doc-page-share"
                 @click="openShareModal"
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncShare" />
-                {{ $t('activity.share') }}
+                <span class="flex-1">
+                  {{ $t('activity.share') }}
+                </span>
+                <PaymentUpgradeBadge :feature-enabled-callback="() => !blockDocShare" class="-mr-1" remove-click />
               </NcMenuItem>
               <NcDivider />
               <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
@@ -2325,13 +2333,17 @@ defineExpose({ editor })
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
               </NcMenuItem>
               <NcMenuItem
-                v-if="isCreatorOrAbove"
+                v-if="isUIAllowed('documentCreate')"
                 v-e="['c:doc:permissions']"
                 data-testid="nc-doc-page-permissions"
+                inner-class="w-full"
                 @click="onPagePermissions"
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncLock" />
-                {{ $t('title.pagePermissions') }}
+                <span class="flex-1">
+                  {{ $t('title.pagePermissions') }}
+                </span>
+                <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
               </NcMenuItem>
               <NcDivider />
               <NcSubMenu key="download" variant="small">

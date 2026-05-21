@@ -212,6 +212,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockDocsExportPdf = computed(() => true)
 
+  const blockDocShare = computed(() => true)
+
+  const showUpgradeToShareDoc = (..._args: any[]) => {}
+
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
 
   const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
@@ -417,6 +421,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocsInlineComments,
     blockDocsResolveComments,
     blockDocsExportPdf,
+    blockDocShare,
+    showUpgradeToShareDoc,
     showDashboardPlanLimitExceededModal,
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,

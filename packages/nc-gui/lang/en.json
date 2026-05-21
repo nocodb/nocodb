@@ -292,7 +292,8 @@
       "permissions": "Table & Field Permissions",
       "audit": "Workspace Audit",
       "privateBases": "Private Bases",
-      "ltarCustomDisplayValue": "Custom Display Value Field"
+      "ltarCustomDisplayValue": "Custom Display Value Field",
+      "publicDocShare": "Public Document Sharing"
     },
     "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
   },

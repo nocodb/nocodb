@@ -194,6 +194,12 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
   })
 
+  // Front-end-only gate on public-share-for-docs: lock the UI on On-Prem
+  // unlicensed (CE never renders this; the Share button is hidden via
+  // isEeUI). Cloud + licensed On-Prem get full access. No backend gate —
+  // the internal-API share endpoints stay unrestricted by design.
+  const blockDocShare = computed(() => isEEFeatureBlocked.value)
+
   const blockAddNewScript = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -2146,6 +2152,11 @@ export const useEeConfig = createSharedComposable(() => {
     return showUpgradeForEEFeature(t('upgrade.features.sso'), PlanFeatureTypes.FEATURE_SSO)
   }
 
+  const showUpgradeToShareDoc = () => {
+    if (!blockDocShare.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.publicDocShare'))
+  }
+
   const showUpgradeToUseScim = () => {
     if (!blockScim.value) return
 
@@ -2335,6 +2346,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocsInlineComments,
     blockDocsResolveComments,
     blockDocsExportPdf,
+    blockDocShare,
+    showUpgradeToShareDoc,
     showDashboardPlanLimitExceededModal,
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,

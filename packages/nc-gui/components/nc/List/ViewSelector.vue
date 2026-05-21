@@ -198,6 +198,12 @@ defineExpose({
               <NcIconView :view="option" class="text-nc-content-gray-muted" />
             </div>
           </template>
+          <template v-if="$slots.listItemContent" #listItemContent="slotProps">
+            <slot name="listItemContent" v-bind="slotProps" />
+          </template>
+          <template #listItemExtraRight="slotProps">
+            <slot name="listItemExtraRight" v-bind="slotProps" />
+          </template>
         </NcList>
       </template>
     </NcListDropdown>

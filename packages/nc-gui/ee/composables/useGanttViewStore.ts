@@ -197,6 +197,12 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     // newest dispatch commits.
     let _fetchSeq = 0
 
+    // Separate seq for loadDependencyLinks — it is fired fire-and-forget
+    // from _fetchGanttRecordsImpl on reset and can also be triggered by
+    // rapid filter/view changes, so two requests may race. Older responses
+    // must not clobber newer ones.
+    let _depsFetchSeq = 0
+
     // Set true in onBeforeUnmount. Any lingering callback (debounced fetch
     // that fires within its window post-unmount, fire-and-forget deps load,
     // etc.) checks this and short-circuits — otherwise a Gantt request goes
@@ -373,12 +379,16 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         url = `/api/v1/db/gantt-data/noco/${baseId}/${tableId}/views/${viewId}/deps`
       }
 
+      const seq = ++_depsFetchSeq
+
       try {
         const res = await $api.instance
           .get(url, {
             ...(isPublic.value ? { headers: { 'xc-password': sharedView.value?.password } } : {}),
           })
           .then((r: any) => r.data)
+
+        if (seq !== _depsFetchSeq) return
 
         // Backend returns `{ edges: [[childPk, parentPk], ...] }`. Group
         // by parent so the renderer can look up children directly.
@@ -390,6 +400,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         }
         dependencyLinks.value = graph
       } catch {
+        if (seq !== _depsFetchSeq) return
         dependencyLinks.value = new Map()
       }
     }
@@ -593,27 +604,11 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       )
     }
 
-    // True when the row's bar overlaps the current buffer window — used to
-    // gate realtime add/update events so out-of-window rows don't bloat
-    // formattedData (the next windowed fetch would re-include them anyway
-    // when the user pans there).
-    const passesWindow = (rowPayload: Record<string, any>) => {
-      const range = ganttRange.value?.[0]
-      const fromCol = range?.fk_from_col
-      if (!fromCol?.title) return true
-
-      const fromVal = rowPayload[fromCol.title]
-      const toVal = range?.fk_to_col?.title ? rowPayload[range.fk_to_col.title] : null
-
-      const fromDate = fromVal ? dayjs(fromVal) : null
-      const toDate = toVal ? dayjs(toVal) : null
-      const start = fromDate?.isValid() ? fromDate : toDate?.isValid() ? toDate : null
-      const end = toDate?.isValid() ? toDate : fromDate?.isValid() ? fromDate : null
-      if (!start || !end) return false
-
-      return !end.isBefore(bufferStart.value, 'day') && !start.isAfter(bufferEnd.value, 'day')
-    }
-
+    // Row-index pagination semantic: _offset is "next index to request from
+    // the server's chronological ordering." When realtime mutates the list
+    // locally, the server's row count has also changed, so _offset must move
+    // in lockstep — otherwise the next loadMoreGanttRecords() either skips
+    // a row (offset too high) or returns a duplicate (offset too low).
     const handleDataEvent = (data: DataPayload) => {
       const { action, payload } = data as { action?: string; payload?: Record<string, any> }
       if (!payload) return
@@ -628,20 +623,21 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
             inspectorRecord.value = null
           }
           formattedData.value.splice(idx, 1)
+          _offset.value = Math.max(0, _offset.value - 1)
         }
         return
       }
 
       if (action === 'update') {
         const matchesFilters = passesViewFilters(payload)
-        const inWindow = passesWindow(payload)
 
-        if (!matchesFilters || !inWindow) {
+        if (!matchesFilters) {
           if (idx >= 0) {
             if (inspectorRecord.value && inspectorRecord.value === formattedData.value[idx]) {
               inspectorRecord.value = null
             }
             formattedData.value.splice(idx, 1)
+            _offset.value = Math.max(0, _offset.value - 1)
           }
           return
         }
@@ -659,7 +655,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           return
         }
 
-        // Row entered the window — treat as add.
+        // Row newly passes filters — treat as add.
         formattedData.value.push({
           row: payload,
           oldRow: { ...payload },
@@ -668,11 +664,12 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
             ...getEvaluatedRowMetaRowColorInfo(payload),
           },
         })
+        _offset.value += 1
         return
       }
 
       if (action === 'add') {
-        if (!passesViewFilters(payload) || !passesWindow(payload)) return
+        if (!passesViewFilters(payload)) return
         if (idx >= 0) return
 
         formattedData.value.push({
@@ -683,6 +680,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
             ...getEvaluatedRowMetaRowColorInfo(payload),
           },
         })
+        _offset.value += 1
       }
     }
 

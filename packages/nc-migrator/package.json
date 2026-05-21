@@ -19,7 +19,7 @@
   "dependencies": {
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.1"
   },
   "engines": {
     "node": ">=24.0.0"

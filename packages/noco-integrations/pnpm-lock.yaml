@@ -8,6 +8,9 @@ overrides:
   tough-cookie@<4.1.3: '>=4.1.3'
   happy-dom@<15.10.2: '>=15.10.2'
   esbuild@<=0.24.2: '>=0.25.0'
+  axios@>=1.0.0 <1.15.2: '>=1.15.2'
+  uuid@>=11.0.0 <11.1.1: ^11.1.1
+  postcss@<8.5.10: '>=8.5.10'
 
 importers:
 
@@ -141,8 +144,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -160,8 +163,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       '@types/node':
         specifier: ^20.17.46
@@ -176,8 +179,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -195,8 +198,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       '@types/node':
         specifier: ^20.17.46
@@ -211,8 +214,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -230,8 +233,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
       mime:
         specifier: ^4.1.0
         version: 4.1.0
@@ -249,8 +252,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.7.9
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       typescript:
         specifier: ^5.8.3
@@ -378,8 +381,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -397,8 +400,8 @@ importers:
         specifier: workspace:*
         version: link:../dropbox-auth
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
       mime:
         specifier: ^4.1.0
         version: 4.1.0
@@ -416,8 +419,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.7.9
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       typescript:
         specifier: ^5.7.2
@@ -432,8 +435,8 @@ importers:
         specifier: workspace:*
         version: link:../freshdesk-auth
       axios:
-        specifier: ^1.6.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       typescript:
         specifier: ^5.7.2
@@ -448,8 +451,8 @@ importers:
         specifier: ^11.0.3
         version: 11.0.3(@octokit/core@5.2.1)
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
       octokit:
         specifier: 3.2.2
         version: 3.2.2
@@ -505,8 +508,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -565,8 +568,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
       googleapis:
         specifier: ^169.0.0
         version: 169.0.0
@@ -603,8 +606,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -622,8 +625,8 @@ importers:
         specifier: workspace:*
         version: link:../google-drive-auth
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
       mime:
         specifier: ^4.1.0
         version: 4.1.0
@@ -641,8 +644,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
       googleapis:
         specifier: ^169.0.0
         version: 169.0.0
@@ -704,8 +707,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -736,8 +739,8 @@ importers:
         specifier: workspace:*
         version: link:../hubspot-auth
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
       mime:
         specifier: ^4.1.0
         version: 4.1.0
@@ -755,8 +758,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -787,8 +790,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -806,8 +809,8 @@ importers:
         specifier: workspace:*
         version: link:../linear-auth
       axios:
-        specifier: ^1.6.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
       nocodb-sdk:
         specifier: file:../../../nocodb-sdk
         version: file:../nocodb-sdk(vue@3.5.24(typescript@5.8.3))
@@ -828,8 +831,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.5
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -1004,8 +1007,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.13.2
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -1083,8 +1086,8 @@ importers:
         specifier: ^7.11.0
         version: 7.13.0
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -1175,8 +1178,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -1194,8 +1197,8 @@ importers:
         specifier: workspace:*
         version: link:../zendesk-auth
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       typescript:
         specifier: ^5.8.3
@@ -1207,8 +1210,8 @@ importers:
         specifier: workspace:*
         version: link:../../core
       axios:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: '>=1.15.2'
+        version: 1.16.1
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -2258,14 +2261,8 @@ packages:
   aws4fetch@1.0.20:
     resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
-  axios@1.13.2:
-    resolution: {integrity: sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==}
-
-  axios@1.13.5:
-    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
-
-  axios@1.9.0:
-    resolution: {integrity: sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==}
+  axios@1.16.1:
+    resolution: {integrity: sha512-caYkukvroVPO8KrzuJEb50Hm07KwfBZPEC3VeFHTsqWHvKTsy54hjJz9BS/cdaypROE2rH6xvm9mHX4fgWkr3A==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -2811,17 +2808,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  follow-redirects@1.15.11:
-    resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-
-  follow-redirects@1.15.9:
-    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
+  follow-redirects@1.16.0:
+    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -2840,10 +2828,6 @@ packages:
   form-data@2.5.5:
     resolution: {integrity: sha512-jqdObeR2rxZZbPSGL+3VckHMYtu+f9//KXBsVny6JSX/pa38Fy+bGjuG8eW/H6USNQWhLi8Num++cU2yOCNz4A==}
     engines: {node: '>= 0.12'}
-
-  form-data@4.0.2:
-    resolution: {integrity: sha512-hGfm/slu0ZabnNt4oaRZ6uREyfCj6P4fT/n6A1rGV+Z0VdGXjfOhVUpkn6qVQONHGIFwmveGXyDs75+nr6FM8w==}
-    engines: {node: '>= 6'}
 
   form-data@4.0.5:
     resolution: {integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==}
@@ -3404,8 +3388,8 @@ packages:
     resolution: {integrity: sha512-eLoBxg6wE/rZkJPhU/xRX1WTpkFEwDJEN96oxFrTsqBdbT5ec295Q+CoHrL9IT0DipqKhmGcaZmwOt8OON5x1w==}
     engines: {node: '>=12.0.0'}
 
-  nanoid@3.3.11:
-    resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
+  nanoid@3.3.12:
+    resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -3648,8 +3632,8 @@ packages:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
 
-  postcss@8.5.6:
-    resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
+  postcss@8.5.15:
+    resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
     engines: {node: ^10 || ^12 || >=14}
 
   postgres-array@2.0.0:
@@ -3688,8 +3672,9 @@ packages:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
     engines: {node: '>= 0.10'}
 
-  proxy-from-env@1.1.0:
-    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+  proxy-from-env@2.1.0:
+    resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
+    engines: {node: '>=10'}
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -4070,8 +4055,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  uuid@11.1.0:
-    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+  uuid@11.1.1:
+    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
   validator@13.15.26:
@@ -4572,9 +4557,10 @@ snapshots:
 
   '@mailchimp/mailchimp_transactional@1.4.1':
     dependencies:
-      axios: 1.13.5
+      axios: 1.16.1
     transitivePeerDependencies:
       - debug
+      - supports-color
 
   '@microsoft/microsoft-graph-client@3.0.7':
     dependencies:
@@ -4885,7 +4871,7 @@ snapshots:
       '@slack/types': 2.19.0
       '@types/node': 20.17.46
       '@types/retry': 0.12.0
-      axios: 1.13.5
+      axios: 1.16.1
       eventemitter3: 5.0.1
       form-data: 4.0.5
       is-electron: 2.2.2
@@ -4895,6 +4881,7 @@ snapshots:
       retry: 0.13.1
     transitivePeerDependencies:
       - debug
+      - supports-color
 
   '@smithy/eventstream-codec@4.0.3':
     dependencies:
@@ -5148,7 +5135,7 @@ snapshots:
       '@vue/shared': 3.5.24
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.6
+      postcss: 8.5.15
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.24':
@@ -5332,29 +5319,15 @@ snapshots:
 
   aws4fetch@1.0.20: {}
 
-  axios@1.13.2:
+  axios@1.16.1:
     dependencies:
-      follow-redirects: 1.15.9
+      follow-redirects: 1.16.0
       form-data: 4.0.5
-      proxy-from-env: 1.1.0
+      https-proxy-agent: 5.0.1
+      proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
-
-  axios@1.13.5:
-    dependencies:
-      follow-redirects: 1.15.11
-      form-data: 4.0.5
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
-  axios@1.9.0:
-    dependencies:
-      follow-redirects: 1.15.9
-      form-data: 4.0.2
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
+      - supports-color
 
   balanced-match@1.0.2: {}
 
@@ -5986,9 +5959,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  follow-redirects@1.15.11: {}
-
-  follow-redirects@1.15.9: {}
+  follow-redirects@1.16.0: {}
 
   for-each@0.3.5:
     dependencies:
@@ -6007,13 +5978,6 @@ snapshots:
       hasown: 2.0.2
       mime-types: 2.1.35
       safe-buffer: 5.2.1
-
-  form-data@4.0.2:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      es-set-tostringtag: 2.1.0
-      mime-types: 2.1.35
 
   form-data@4.0.5:
     dependencies:
@@ -6604,7 +6568,7 @@ snapshots:
     dependencies:
       lru-cache: 7.18.3
 
-  nanoid@3.3.11: {}
+  nanoid@3.3.12: {}
 
   natural-compare@1.4.0: {}
 
@@ -6635,7 +6599,7 @@ snapshots:
       '@vue-flow/core': 1.47.0(vue@3.5.24(typescript@5.8.3))
       acorn-loose: 8.5.2
       acorn-walk: 8.3.4
-      axios: 1.13.5
+      axios: 1.16.1
       chevrotain: 10.5.0
       dayjs: 1.11.19
       fast-deep-equal: 3.1.3
@@ -6645,11 +6609,12 @@ snapshots:
       nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
       nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
       rfdc: 1.4.1
-      uuid: 11.1.0
+      uuid: 11.1.1
       validator: 13.15.26
     transitivePeerDependencies:
       - '@vue/composition-api'
       - debug
+      - supports-color
       - vue
 
   node-domexception@1.0.0: {}
@@ -6852,9 +6817,9 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss@8.5.6:
+  postcss@8.5.15:
     dependencies:
-      nanoid: 3.3.11
+      nanoid: 3.3.12
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -6883,7 +6848,7 @@ snapshots:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
 
-  proxy-from-env@1.1.0: {}
+  proxy-from-env@2.1.0: {}
 
   punycode@2.3.1: {}
 
@@ -7282,7 +7247,7 @@ snapshots:
 
   twilio@5.11.2:
     dependencies:
-      axios: 1.13.5
+      axios: 1.16.1
       dayjs: 1.11.19
       https-proxy-agent: 5.0.1
       jsonwebtoken: 9.0.2
@@ -7373,7 +7338,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  uuid@11.1.0: {}
+  uuid@11.1.1: {}
 
   validator@13.15.26: {}
 
@@ -7384,7 +7349,7 @@ snapshots:
       esbuild: 0.27.3
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
-      postcss: 8.5.6
+      postcss: 8.5.15
       rollup: 4.57.1
       tinyglobby: 0.2.15
     optionalDependencies:

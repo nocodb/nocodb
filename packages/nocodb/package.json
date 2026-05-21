@@ -226,7 +226,6 @@
     "scim-patch": "^0.8.3",
     "scim2-parse-filter": "^0.2.10",
     "sharp": "0.33.4",
-    "simple-git": "3.33.0",
     "slash": "^3.0.0",
     "slug": "^8.2.3",
     "snowflake-sdk": "^2.1.0",

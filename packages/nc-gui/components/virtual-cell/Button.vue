@@ -186,6 +186,12 @@ const componentProps = computed(() => {
     }
   }
 
+  else if (column.value.colOptions.type === ButtonActionsType.OpenForm) {
+    return {
+      disabled: filterDisabled || isLoading.value || !column.value.colOptions.fk_form_view_id,
+    }
+  }
+
   // If button type is missing then keep it as disabled
   if (!column.value.colOptions.type) {
     return {
@@ -247,6 +253,44 @@ const triggerAction = async () => {
     }
   } else if (colOptions.type === ButtonActionsType.Ai) {
     await generate()
+  } else if (colOptions.type === ButtonActionsType.OpenForm) {
+    try {
+      isLoading.value = true
+
+      const result = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'formEditTokenGenerate',
+          columnId: column.value.id,
+          rowId: rowId!.value,
+        },
+        {},
+      )
+
+      if (result.isShared && result.token && result.viewUuid) {
+        const editUrl = `${location.origin}/nc/form/${result.viewUuid}?editRow=${encodeURIComponent(result.token)}`
+        window.open(editUrl, '_blank')
+      } else if (!result.isShared && result.viewId) {
+        // Non-shared form: open in-app
+        window.open(`${location.origin}/nc/form/${result.viewId}?editRowId=${result.rowId}`, '_blank')
+      }
+
+      afterActionStatus.value = { status: 'success' }
+      ncDelay(2000).then(() => {
+        afterActionStatus.value = null
+      })
+    } catch (e: any) {
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      message.error(errorMsg)
+
+      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
+      ncDelay(3000).then(() => {
+        afterActionStatus.value = null
+      })
+    } finally {
+      isLoading.value = false
+    }
   } else if (colOptions.type === ButtonActionsType.Script) {
     try {
       isLoading.value = true

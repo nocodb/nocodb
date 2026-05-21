@@ -21,6 +21,7 @@ import {
   View,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { verifyFormEditToken } from '~/helpers/formEditToken';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
@@ -1599,5 +1600,184 @@ export class PublicDatasService {
     const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
 
     return data;
+  }
+
+  async dataEditGet(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      editToken: string;
+      password?: string;
+    },
+  ) {
+    const { rowPk } = verifyFormEditToken(
+      param.editToken,
+      param.sharedViewUuid,
+    );
+
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) {
+      NcError.get(context).viewNotFound(param.sharedViewUuid);
+    }
+
+    if (view.type !== ViewTypes.FORM) {
+      NcError.get(context).notFound();
+    }
+
+    if (!(await View.verifyPassword(view, param.password))) {
+      NcError.get(context).invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    await view.getViewWithInfo(context);
+    await view.getColumns(context);
+    await view.getModelWithInfo(context);
+    await view.model.getColumns(context);
+
+    const visibleFields = view.columns
+      .filter((c) => c.show && view.model.columnsById[c.fk_column_id])
+      .map((c) => view.model.columnsById[c.fk_column_id].title);
+
+    const row = await baseModel.readByPk(rowPk, false, {
+      fields: visibleFields.join(','),
+    });
+
+    if (!row) {
+      NcError.get(context).recordNotFound(rowPk);
+    }
+
+    return { row, rowPk };
+  }
+
+  async dataEditUpdate(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      editToken: string;
+      password?: string;
+      body: any;
+      files: any[];
+      siteUrl: string;
+      req: NcRequest;
+    },
+  ) {
+    const { rowPk } = verifyFormEditToken(
+      param.editToken,
+      param.sharedViewUuid,
+    );
+
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) {
+      NcError.get(context).viewNotFound(param.sharedViewUuid);
+    }
+
+    if (view.type !== ViewTypes.FORM) {
+      NcError.get(context).notFound();
+    }
+
+    if (!(await View.verifyPassword(view, param.password))) {
+      NcError.get(context).invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    if (source?.is_data_readonly) {
+      NcError.get(context).sourceDataReadOnly(source.alias);
+    }
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    await view.getViewWithInfo(context);
+    await view.getColumns(context);
+    await view.getModelWithInfo(context);
+    await view.model.getColumns(context);
+
+    const fields = view.columns
+      .filter((c) => c.show && view.model.columnsById[c.fk_column_id])
+      .reduce((o, c) => {
+        o[view.model.columnsById[c.fk_column_id].title] = new Column({
+          ...c,
+          ...view.model.columnsById[c.fk_column_id],
+        } as any);
+        return o;
+      }, {}) as any;
+
+    let body = param?.body;
+
+    if (typeof body === 'string') body = JSON.parse(body);
+
+    const updateObject = Object.entries(body).reduce((obj, [key, val]) => {
+      if (key in fields) {
+        obj[key] = val;
+      }
+      return obj;
+    }, {});
+
+    const attachments = {};
+
+    for (const file of param.files || []) {
+      const fieldName = Buffer.from(file?.fieldname || '', 'binary')
+        .toString('utf-8')
+        .replace(/^_|\[\d*]$/g, '');
+
+      if (
+        fieldName in fields &&
+        fields[fieldName].uidt === UITypes.Attachment
+      ) {
+        attachments[fieldName] = attachments[fieldName] || [];
+
+        attachments[fieldName].push(
+          ...(await this.attachmentsService.upload({
+            files: [file],
+            req: param.req,
+          })),
+        );
+      }
+    }
+
+    for (const [column, data] of Object.entries(attachments)) {
+      updateObject[column] = JSON.stringify(data);
+    }
+
+    const updatedRow = await baseModel.updateByPk(
+      rowPk,
+      updateObject,
+      null,
+      param.req,
+    );
+
+    // Filter response to only form-visible fields
+    const visibleFieldTitles = Object.keys(fields);
+    const filteredRow = Object.entries(updatedRow).reduce((obj, [key, val]) => {
+      if (visibleFieldTitles.includes(key)) {
+        obj[key] = val;
+      }
+      return obj;
+    }, {} as Record<string, any>);
+
+    return filteredRow;
   }
 }

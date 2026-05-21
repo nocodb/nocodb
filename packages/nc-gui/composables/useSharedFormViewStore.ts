@@ -110,6 +110,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formState = ref<Record<string, any>>({})
 
+  const isEditMode = ref(false)
+
+  const editToken = ref<string | null>(null)
+
   const preFilledformState = ref<Record<string, any>>({})
 
   const preFilledAdditionalState = ref<Record<string, any>>({})
@@ -317,6 +321,33 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       checkFieldVisibility()
 
+      // Detect edit mode from query param
+      const editRowToken = route.query.editRow as string
+      if (editRowToken) {
+        editToken.value = editRowToken
+        isEditMode.value = true
+
+        try {
+          const { data: editData } = await api.instance.get(
+            `/api/v2/public/shared-view/${sharedViewId}/edit-row/${encodeURIComponent(editRowToken)}`,
+            {
+              headers: {
+                'xc-password': password.value ?? '',
+              },
+            },
+          )
+
+          if (editData?.row) {
+            for (const [key, value] of Object.entries(editData.row as Record<string, any>)) {
+              formState.value[key] = value
+            }
+          }
+        } catch {
+          notFound.value = true
+          return
+        }
+      }
+
       nextTick(() => {
         showRecordPlanLimitExceededModal({ isSharedFormView: true, focusBtn: null })
       })
@@ -500,36 +531,51 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ...attachment,
       })
 
-      const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
-        headers: {
-          'xc-password': password.value,
-        },
-      })
+      if (isEditMode.value && editToken.value) {
+        await api.instance.patch(
+          `/api/v2/public/shared-view/${sharedView.value!.uuid!}/edit-row/${encodeURIComponent(editToken.value)}`,
+          filtedData,
+          {
+            headers: {
+              'xc-password': password.value ?? '',
+            },
+          },
+        )
 
-      const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
-
-      if (pk && isValidRedirectUrl.value) {
-        const redirectUrl = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
-
-        // Create an anchor element to parse the URL
-        const anchor = document.createElement('a')
-        anchor.href = redirectUrl
-
-        // Check if the redirect URL has the same host as the current page
-        const isSameHost = anchor.host === window.location.host
-
-        if (isSameHost) {
-          // Use pushState for internal links
-          window.history.pushState({}, 'Redirect', redirectUrl)
-          // Reload the page
-          window.location.reload()
-        } else {
-          // For external links, use window.location.href
-          window.location.href = redirectUrl
-        }
-      } else {
         submitted.value = true
         progress.value = false
+      } else {
+        const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
+          headers: {
+            'xc-password': password.value,
+          },
+        })
+
+        const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
+
+        if (pk && isValidRedirectUrl.value) {
+          const redirectUrl = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
+
+          // Create an anchor element to parse the URL
+          const anchor = document.createElement('a')
+          anchor.href = redirectUrl
+
+          // Check if the redirect URL has the same host as the current page
+          const isSameHost = anchor.host === window.location.host
+
+          if (isSameHost) {
+            // Use pushState for internal links
+            window.history.pushState({}, 'Redirect', redirectUrl)
+            // Reload the page
+            window.location.reload()
+          } else {
+            // For external links, use window.location.href
+            window.location.href = redirectUrl
+          }
+        } else {
+          submitted.value = true
+          progress.value = false
+        }
       }
     } catch (e: any) {
       console.error(e)
@@ -969,6 +1015,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormNotStarted,
     formStartsAt,
     backgroundAndTextColor,
+    isEditMode,
   }
 }, 'shared-form-view-store')
 

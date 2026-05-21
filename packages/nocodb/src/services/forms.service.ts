@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, ButtonActionsType, EventType, ViewTypes } from 'nocodb-sdk';
 import type {
   FormUpdateReqType,
   UserType,
@@ -19,7 +19,8 @@ import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { NcError } from '~/helpers/catchError';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
-import { FormView, Model, Source, User, View } from '~/models';
+import { generateFormEditToken } from '~/helpers/formEditToken';
+import { ButtonColumn, FormView, Model, Source, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
@@ -239,5 +240,47 @@ export class FormsService {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
     return safeView;
+  }
+
+  async generateEditToken(
+    context: NcContext,
+    param: {
+      columnId: string;
+      rowId: string;
+    },
+  ) {
+    const buttonCol = await ButtonColumn.read(context, param.columnId);
+
+    if (!buttonCol || buttonCol.type !== ButtonActionsType.OpenForm) {
+      NcError.get(context).badRequest('Column is not an OpenForm button');
+    }
+
+    const formViewId = buttonCol.fk_form_view_id;
+
+    if (!formViewId) {
+      NcError.get(context).badRequest(
+        'No form view configured for this button',
+      );
+    }
+
+    const view = await View.get(context, formViewId);
+
+    if (!view) {
+      NcError.get(context).viewNotFound(formViewId);
+    }
+
+    const isShared = !!view.uuid;
+
+    if (!isShared) {
+      return {
+        isShared: false,
+        viewId: view.id,
+        rowId: param.rowId,
+      };
+    }
+
+    const token = generateFormEditToken(param.rowId, param.columnId, view.uuid);
+
+    return { token, viewUuid: view.uuid, isShared: true };
   }
 }

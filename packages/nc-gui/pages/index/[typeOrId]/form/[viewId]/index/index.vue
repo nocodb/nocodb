@@ -18,6 +18,7 @@ const {
   validate,
   fieldMappings,
   meta,
+  isEditMode,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -138,20 +139,26 @@ const { message: templatedMessage } = useTemplatedMessage(
             <div v-if="sharedFormView" class="w-full">
               <a-alert class="nc-shared-form-success-msg !mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
-                  <LazyCellRichText
-                    v-if="templatedMessage"
-                    :value="templatedMessage"
-                    class="!h-auto -ml-1"
-                    is-form-field
-                    read-only
-                    sync-value-change
-                  />
-                  <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
+                  <template v-if="isEditMode">
+                    <span>{{ $t('msg.success.formRecordUpdated') }}</span>
+                  </template>
+                  <template v-else>
+                    <LazyCellRichText
+                      v-if="templatedMessage"
+                      :value="templatedMessage"
+                      class="!h-auto -ml-1"
+                      is-form-field
+                      read-only
+                      sync-value-change
+                    />
+                    <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
+                  </template>
                 </template>
               </a-alert>
 
               <div
                 v-if="
+                  !isEditMode &&
                   typeof sharedFormView?.redirect_url !== 'string' &&
                   (sharedFormView.show_blank_form || sharedFormView.submit_another_form)
                 "
@@ -291,7 +298,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     data-testid="shared-form-submit-button"
                     @click="submitForm"
                   >
-                    {{ $t('general.submit') }}
+                    {{ isEditMode ? $t('general.update') : $t('general.submit') }}
                   </NcButton>
                 </div>
               </div>

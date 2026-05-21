@@ -115,6 +115,11 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
+  {
+    icon: 'form',
+    label: t('labels.openForm'),
+    value: ButtonActionsType.OpenForm,
+  },
 ])
 
 const supportedColumns = computed(
@@ -190,6 +195,19 @@ const validators = {
       validator: (_: any, fk_script_id: any) => {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === ButtonActionsType.Script && !fk_script_id) {
+            reject(new Error(t('general.required')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_form_view_id: [
+    {
+      required: vModel.value.type === ButtonActionsType.OpenForm,
+      validator: (_: any, fk_form_view_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.OpenForm && !fk_form_view_id) {
             reject(new Error(t('general.required')))
           }
           resolve()
@@ -279,6 +297,7 @@ if (isEdit.value) {
   vModel.value.color = colOptions?.color
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.fk_script_id = colOptions?.fk_script_id
+  vModel.value.fk_form_view_id = colOptions?.fk_form_view_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
   selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
@@ -552,6 +571,10 @@ if (isEdit.value) {
       v-if="vModel?.type === buttonActionsType.Script && showEEFeatures"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
+    />
+    <SmartsheetColumnButtonOptionsOpenForm
+      v-if="vModel?.type === buttonActionsType.OpenForm"
+      v-model:model-value="vModel"
     />
 
     <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">

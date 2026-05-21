@@ -102,6 +102,7 @@ export class UiPostOperations
     'hookTrigger' as const,
     'hookFilterCreate' as const,
     'buttonFilterCreate' as const,
+    'formEditTokenGenerate' as const,
     'gridViewCreate' as const,
     'formViewCreate' as const,
     'galleryViewCreate' as const,
@@ -466,6 +467,11 @@ export class UiPostOperations
           viewId: req.query.viewId,
           grid: payload,
           req,
+        });
+      case 'formEditTokenGenerate':
+        return await this.formsService.generateEditToken(context, {
+          columnId: req.query.columnId as string,
+          rowId: req.query.rowId as string,
         });
       case 'formViewUpdate':
         return await this.formsService.formViewUpdate(context, {

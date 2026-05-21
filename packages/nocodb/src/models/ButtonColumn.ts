@@ -24,6 +24,7 @@ export default class ButtonColumn {
 
   fk_integration_id?: string;
   fk_script_id?: string;
+  fk_form_view_id?: string;
   model?: string;
   output_column_ids?: string;
   filters?: any[];
@@ -57,6 +58,8 @@ export default class ButtonColumn {
       'output_column_ids',
     ];
 
+    const openFormProps = ['fk_form_view_id'];
+
     const insertObj = extractProps(buttonColumn, [
       ...(buttonColumn.type === ButtonActionsType.Url
         ? urlProps
@@ -66,6 +69,8 @@ export default class ButtonColumn {
         ? scriptProps
         : buttonColumn.type === ButtonActionsType.Ai
         ? aiProps
+        : buttonColumn.type === ButtonActionsType.OpenForm
+        ? openFormProps
         : []),
       'theme',
       'color',
@@ -158,6 +163,8 @@ export default class ButtonColumn {
       'output_column_ids',
     ];
 
+    const openFormProps = ['fk_form_view_id'];
+
     const updateObj = extractProps(button, [
       ...(button.type === ButtonActionsType.Url
         ? urlProps
@@ -167,6 +174,8 @@ export default class ButtonColumn {
         ? scriptProps
         : button.type === ButtonActionsType.Ai
         ? aiProps
+        : button.type === ButtonActionsType.OpenForm
+        ? openFormProps
         : []),
       'theme',
       'color',

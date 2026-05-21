@@ -121,7 +121,7 @@ async function shareSelectedForm() {
         {{ t('labels.formView') }}
       </template>
       <template #listItemContent="{ option }">
-        <NcTooltip class="truncate min-w-0" show-on-truncate-only>
+        <NcTooltip class="truncate min-w-0 max-w-50" show-on-truncate-only>
           <template #title>{{ option.label }}</template>
           {{ option.label }}
         </NcTooltip>

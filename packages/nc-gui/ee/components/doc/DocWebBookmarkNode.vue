@@ -74,6 +74,11 @@ const refreshedImageUrl = ref<string | null>(null)
 
 const isRefreshingImage = ref(false)
 
+// One-shot guard for the resign-on-error flow. If the refreshed signed URL
+// also fails to load (auth flap, deleted storage object, CDN error), the
+// <img @error> handler must not loop back into another resign request.
+const refreshAttempted = ref(false)
+
 const safeFavicon = computed(() => {
   if (faviconError.value || !faviconUrl.value) return null
   if (!/^https?:\/\//i.test(faviconUrl.value)) return null
@@ -90,9 +95,14 @@ const safeImage = computed(() => {
 /**
  * The stored signed URL has a short TTL. When the <img> errors out, ask the
  * backend to re-sign the stable imagePath so the preview survives indefinitely.
+ *
+ * One refresh attempt per mounted card — if the re-signed URL also fails to
+ * load, give up and show the no-image fallback. This prevents an infinite
+ * resign loop when the underlying storage object is genuinely broken
+ * (deleted, auth state stale, CDN serving 5xx, etc.).
  */
 const onImageError = async () => {
-  if (isRefreshingImage.value) {
+  if (refreshAttempted.value || isRefreshingImage.value) {
     imageError.value = true
     return
   }
@@ -106,6 +116,7 @@ const onImageError = async () => {
     return
   }
 
+  refreshAttempted.value = true
   isRefreshingImage.value = true
   try {
     const res = (await $api.internal.postOperation(

@@ -175,18 +175,21 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       ]
     })
 
-    // Surfaced for the toolbar — counts rows currently in formattedData (which
-    // under windowed fetch == rows whose bar overlaps the buffer).
+    // Surfaced for the toolbar — counts rows currently loaded into formattedData.
+    // Under row-index pagination this is the high-water mark of pages fetched
+    // so far, not the total row count of the view.
     const totalRecordCount = computed(() => formattedData.value.length)
 
-    // Format buffer endpoints to match the column type. Date columns store
-    // `YYYY-MM-DD`; DateTime needs a TZ-aware boundary so a record with a
-    // mid-day timestamp on the boundary day still falls inside the window.
-    const formatBufferDate = (d: dayjs.Dayjs, col: ColumnType, end: boolean) => {
-      if (col?.uidt === UITypes.Date) return d.format('YYYY-MM-DD')
-      const anchored = end ? d.endOf('day') : d.startOf('day')
-      return anchored.format('YYYY-MM-DD HH:mm:ssZ')
-    }
+    // ---- Row-index pagination ----
+    // Gantt's list is decoupled from the date axis: rows load in chronological
+    // chunks via offset/limit, and bars paint at their stored dates. A bar
+    // outside the visible date window just doesn't paint — it isn't pruned
+    // from the list. Sidebar infinite-scroll triggers loadMoreGanttRecords()
+    // when the user nears the bottom; the date axis pans/zooms freely without
+    // refetching rows.
+    const PAGE_SIZE = 100
+    const _offset = ref(0)
+    const hasMoreRecords = ref(true)
 
     // Sequence number — defensive belt-and-suspenders for the serialized
     // dispatch below: if for any reason two requests do end up in flight
@@ -204,17 +207,19 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     // Serialize fetches — at most one request in flight at a time. While a
     // fetch is running, additional calls are coalesced into a single
     // pending slot (the most recent args win); when the current fetch
-    // settles, the pending slot fires next. Prevents fast scroll / zoom
-    // spam from issuing parallel network calls.
+    // settles, the pending slot fires next. Prevents reset + loadMore
+    // races from issuing parallel network calls.
     let _isFetching = false
-    let _pending: { showLoading: boolean } | null = null
+    let _pending: { showLoading: boolean; reset: boolean } | null = null
 
-    const fetchGanttRecords = async (args: { showLoading: boolean }): Promise<void> => {
+    const fetchGanttRecords = async (args: { showLoading: boolean; reset: boolean }): Promise<void> => {
       if (_isFetching) {
         // Replace any earlier queued request — only the latest matters.
-        // If any caller wanted the loading spinner shown, preserve that.
+        // OR the flags so a follow-up `reset` after a `loadMore` still
+        // takes effect, and a `showLoading` from any caller wins.
         _pending = {
           showLoading: (_pending?.showLoading ?? false) || args.showLoading,
+          reset: (_pending?.reset ?? false) || args.reset,
         }
         return
       }
@@ -232,23 +237,35 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       }
     }
 
-    const _fetchGanttRecordsImpl = async ({ showLoading }: { showLoading: boolean }) => {
+    const _fetchGanttRecordsImpl = async ({
+      showLoading,
+      reset,
+    }: {
+      showLoading: boolean
+      reset: boolean
+    }) => {
       if (_unmounted) return
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !ganttRange.value?.length)
         return
 
+      if (reset) {
+        _offset.value = 0
+        hasMoreRecords.value = true
+        formattedData.value = []
+      }
+
+      // Nothing left to fetch — bail before issuing a network call so the
+      // sidebar can fire loadMore liberally on near-bottom scroll without
+      // hammering the server once the table is fully loaded.
+      if (!hasMoreRecords.value) return
+
       const range = ganttRange.value[0]
       const fromCol = range.fk_from_col
-      const toCol = range.fk_to_col
       if (!fromCol?.id) return
 
-      const fromStr = formatBufferDate(bufferStart.value, fromCol, false)
-      const toStr = formatBufferDate(bufferEnd.value, toCol ?? fromCol, true)
-
-      // The server builds the bar-overlap predicate from from_date/to_date
-      // and merges it with any user-supplied filterArrJson. We only pass
-      // the user's nested filters when filterSync is off (otherwise the
-      // saved view filters are already applied server-side).
+      // Only pass user filters when filterSync is off — otherwise the saved
+      // view filters are already applied server-side and re-sending them
+      // would AND the same predicate twice.
       const userFilters: FilterType[] = isUIAllowed('filterSync') ? [] : [...nestedFilters.value]
 
       const seq = ++_fetchSeq
@@ -256,8 +273,8 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
       try {
         const queryParams: Record<string, string> = {
-          from_date: fromStr,
-          to_date: toStr,
+          offset: String(_offset.value),
+          limit: String(PAGE_SIZE),
           where: where?.value ?? '',
           include_row_color: 'true',
           getHiddenColumns: 'true',
@@ -266,10 +283,9 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           queryParams.filterArrJson = stringifyFilterOrSortArr(userFilters)
         }
 
-        // Hit the dedicated gantt endpoint. Server enforces
-        // GANTT_RECORD_LIMIT via `limitOverride`, bypassing the
-        // deployment-level NC_DB_QUERY_LIMIT_MAX clamp that would
-        // otherwise cap us at e.g. 100 on cloud builds.
+        // Hit the dedicated gantt endpoint. With no from_date/to_date the
+        // backend skips the bar-overlap filter and just paginates by
+        // offset/limit with a default sort by start_date ASC.
         const url = !isPublic.value
           ? `/api/v1/db/gantt-data/noco/${base.value.id}/${meta.value!.id}/views/${viewMeta.value!.id}`
           : `/api/v2/public/gantt-view/${sharedView.value?.uuid}`
@@ -283,7 +299,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
         if (seq !== _fetchSeq) return
 
-        formattedData.value = (res?.list ?? []).map((row: any) => ({
+        const newRows: Row[] = (res?.list ?? []).map((row: any) => ({
           row,
           rowMeta: {
             range: ganttRange.value[0],
@@ -291,6 +307,22 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           },
           oldRow: { ...row },
         }))
+
+        formattedData.value = [...formattedData.value, ...newRows]
+        _offset.value += newRows.length
+        // End-of-table signals: either a short page, or the server flagged
+        // this as the last page (totalRows is an exact match — the next
+        // offset would land at totalRows and the server rejects that with
+        // ERR_INVALID_OFFSET_VALUE rather than returning an empty list).
+        const pageInfo = res?.pageInfo
+        const totalRows = Number(pageInfo?.totalRows)
+        const reachedEnd =
+          newRows.length < PAGE_SIZE ||
+          pageInfo?.isLastPage === true ||
+          (Number.isFinite(totalRows) && _offset.value >= totalRows)
+        if (reachedEnd) {
+          hasMoreRecords.value = false
+        }
       } catch (e) {
         if (seq === _fetchSeq) {
           // @ts-expect-error - extractSdkResponseErrorMsg defensively handles unknown shapes
@@ -302,23 +334,15 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         }
       }
 
-      // After rows land, resolve the dependency graph (if a dep field is set).
-      // Fire-and-forget — arrows appear once links load; row data is already usable.
-      loadDependencyLinks()
+      // Deps cover the full table in a single round-trip — only refresh on
+      // a reset (view/filter change), not on every page load.
+      if (reset) {
+        loadDependencyLinks()
+      }
     }
 
-    const loadGanttData = () => fetchGanttRecords({ showLoading: true })
-
-    // Silent refetch on buffer changes — fires when the user pans, zooms, or
-    // jumps to a date that re-anchors the buffer. Debounced so a fast scroll
-    // that triggers multiple `extendBuffer*` calls collapses into one fetch.
-    // Doesn't toggle isGanttDataLoading — existing bars stay visible until
-    // the new window arrives, then patch in place.
-    const _silentRefetch = useDebounceFn(() => fetchGanttRecords({ showLoading: false }), 250)
-
-    watch([bufferStart, bufferEnd], () => {
-      _silentRefetch()
-    })
+    const loadGanttData = () => fetchGanttRecords({ showLoading: true, reset: true })
+    const loadMoreGanttRecords = () => fetchGanttRecords({ showLoading: false, reset: false })
 
     // Dependency graph — Map<parentRowId, childRowIds[]>.
     // Fetched in a single batch call from the dedicated /deps endpoint;
@@ -682,13 +706,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     onBeforeUnmount(() => {
       _unmounted = true
-      // Cancel the in-flight debounced refetch so it doesn't fire its
-      // 250ms callback after the component has been replaced (e.g. view
-      // switch). Without this, the timer would hit fetchGanttRecords with
-      // a stale viewMeta and produce a 400 against the new (non-Gantt) view.
-      if (typeof (_silentRefetch as any).cancel === 'function') {
-        ;(_silentRefetch as any).cancel()
-      }
       eventBus.off(smartsheetEventHandler)
       if (activeDataListener.value) {
         $ncSocket.offMessage(activeDataListener.value)
@@ -741,6 +758,8 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
       // Gantt-specific methods
       loadGanttData,
+      loadMoreGanttRecords,
+      hasMoreRecords,
       loadDependencyLinks,
       unlinkDependency,
       linkDependency,

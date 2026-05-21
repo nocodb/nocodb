@@ -49,6 +49,8 @@ const {
   onScrollUpdate,
   onScrollAdjustment,
   inspectorRecord,
+  loadMoreGanttRecords,
+  hasMoreRecords,
 } = useGanttViewStoreOrThrow()
 
 const { t } = useI18n()
@@ -141,21 +143,31 @@ const isInspectedRecord = (row: RowType) => {
   return !!inspectorRecord.value && inspectorRecord.value === row
 }
 
-// Sidebar row click — open the inspector and scroll the date axis to
-// the record's anchor date so the user sees what they just clicked.
-// Fall back to end date for milestones (end-date-only) and any record
-// without a start date — navigateToRecordStart silently no-ops on null,
-// which would leave the user with an inspector open for an off-screen
-// bar and no scroll assistance.
+// Sidebar row click — open the inspector. Re-anchor the date axis only
+// when the bar is fully off-screen horizontally; if any part of it overlaps
+// the visible window the timeline stays put so the user's scroll position
+// is preserved. Milestones (end-date only) treat the end date as the bar.
 const onSidebarRowClick = (record: RowType) => {
   openInspector(record)
-  const startDate = getRecordStartDate(record)
-  if (startDate) {
-    emit('navigateTo', startDate)
+
+  const start = getRecordStartDate(record)
+  const end = getRecordEndDate(record)
+  const barStart = start ?? end
+  const barEnd = end ?? start
+  if (!barStart || !barEnd) return
+
+  const visible = props.visibleDates
+  if (!visible?.length) {
+    emit('navigateTo', barStart)
     return
   }
-  const endDate = getRecordEndDate(record)
-  if (endDate) emit('navigateTo', endDate)
+
+  const visStart = visible[0]
+  const visEnd = visible[visible.length - 1]
+  const isOffScreen = barEnd.isBefore(visStart, 'day') || barStart.isAfter(visEnd, 'day')
+  if (isOffScreen) {
+    emit('navigateTo', barStart)
+  }
 }
 const closeInspector = () => {
   if (!inspectorRecord.value) return
@@ -1631,6 +1643,20 @@ const headerScrollRef = ref<HTMLElement | null>(null)
 const bodyScrollRef = ref<HTMLElement | null>(null)
 const sidebarScrollRef = ref<HTMLElement | null>(null)
 
+// Trigger row-index pagination when the user nears the bottom of the
+// vertical scroll area. Threshold is a few row-heights' worth so the next
+// page is in-flight before the visible scroll fills up. Re-evaluated on
+// every scroll event — the store's own serialization gate dedupes
+// overlapping calls.
+const LOAD_MORE_THRESHOLD_PX = 200
+const maybeLoadMore = (target: HTMLElement) => {
+  if (!hasMoreRecords.value) return
+  const distanceFromBottom = target.scrollHeight - target.scrollTop - target.clientHeight
+  if (distanceFromBottom <= LOAD_MORE_THRESHOLD_PX) {
+    loadMoreGanttRecords()
+  }
+}
+
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement
 
@@ -1641,6 +1667,8 @@ const onBodyScroll = (event: Event) => {
   if (sidebarScrollRef.value && sidebarScrollRef.value.scrollTop !== target.scrollTop) {
     sidebarScrollRef.value.scrollTop = target.scrollTop
   }
+
+  maybeLoadMore(target)
 
   if (target.scrollLeft === storeScrollLeft.value) return
 
@@ -1707,6 +1735,7 @@ const onSidebarScroll = (event: Event) => {
   if (bodyScrollRef.value && bodyScrollRef.value.scrollTop !== target.scrollTop) {
     bodyScrollRef.value.scrollTop = target.scrollTop
   }
+  maybeLoadMore(target)
 }
 
 const onGridMouseMove = (event: MouseEvent) => {

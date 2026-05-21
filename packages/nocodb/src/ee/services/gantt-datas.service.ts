@@ -52,11 +52,22 @@ export class GanttDatasService {
   ) {
     const { viewId, query, from_date, to_date } = param;
 
-    if (!from_date || !to_date) {
-      NcError.get(context).badRequest('from_date and to_date are required');
+    // Either both date bounds or neither. Mixed-mode (one missing) is almost
+    // always a frontend bug — fail loud rather than silently dropping half
+    // the predicate. Absence of both means row-index pagination mode: list
+    // rows by offset/limit + default chronological sort, bars off the
+    // visible date window simply don't paint.
+    if ((from_date && !to_date) || (!from_date && to_date)) {
+      NcError.get(context).badRequest(
+        'from_date and to_date must be provided together',
+      );
     }
 
-    if (dayjs(to_date).diff(dayjs(from_date), 'days') > GANTT_MAX_WINDOW_DAYS) {
+    if (
+      from_date &&
+      to_date &&
+      dayjs(to_date).diff(dayjs(from_date), 'days') > GANTT_MAX_WINDOW_DAYS
+    ) {
       NcError.get(context).badRequest(
         `Date range should not exceed ${GANTT_MAX_WINDOW_DAYS} days`,
       );
@@ -79,18 +90,50 @@ export class GanttDatasService {
       NcError.get(context).badRequest('No active date dependency rule found');
     }
 
-    const overlapFilter = this.buildOverlapFilter(rule, from_date, to_date);
+    // Bar-overlap predicate only applies when the caller passed a window.
+    // Row-index pagination (no window) returns the full filtered set with
+    // standard offset/limit; bars off the visible buffer just don't paint.
+    if (from_date && to_date) {
+      const overlapFilter = this.buildOverlapFilter(rule, from_date, to_date);
 
-    // Combine the server-built overlap predicate with any user-supplied
-    // filters. Both sit at the top level so the parser ANDs them together.
-    query.filterArrJson = JSON.stringify([
-      ...overlapFilter,
-      ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
-    ]);
+      // Combine the server-built overlap predicate with any user-supplied
+      // filters. Both sit at the top level so the parser ANDs them together.
+      query.filterArrJson = JSON.stringify([
+        ...overlapFilter,
+        ...(query.filterArrJson ? JSON.parse(query.filterArrJson) : []),
+      ]);
+    }
+
+    // Default to chronological order when the caller didn't supply a sort.
+    // Without this the list reads in insertion order, which makes vertical
+    // scrolling feel random on a Gantt — top should be earliest, bottom
+    // latest. Gantt has no user-configurable sort so this is the only
+    // ordering signal we have.
+    const existingSort = query.sortArrJson
+      ? JSON.parse(query.sortArrJson)
+      : [];
+    if (!existingSort.length && rule.fk_start_date_field_id) {
+      query.sortArrJson = JSON.stringify([
+        {
+          fk_column_id: rule.fk_start_date_field_id,
+          direction: 'asc',
+        },
+      ]);
+    }
 
     const model = await Model.getByIdOrName(context, {
       id: view.fk_model_id,
     });
+
+    // Honor the caller's `limit` (for row-index pagination) but cap at
+    // GANTT_RECORD_LIMIT to keep any single response bounded. `limitOverride`
+    // also bypasses NC_DB_QUERY_LIMIT_MAX so cloud's 100-row clamp doesn't
+    // silently truncate.
+    const requestedLimit = Number.parseInt(query.limit, 10);
+    const effectiveLimit =
+      Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, GANTT_RECORD_LIMIT)
+        : GANTT_RECORD_LIMIT;
 
     return await this.datasService.dataList(context, {
       ...param,
@@ -98,9 +141,7 @@ export class GanttDatasService {
       viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,
-      // Hard cap regardless of NC_DB_QUERY_LIMIT_MAX. The frontend's
-      // `limit=400` URL param is overridden here.
-      limitOverride: GANTT_RECORD_LIMIT,
+      limitOverride: effectiveLimit,
     });
   }
 

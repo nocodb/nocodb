@@ -39,6 +39,7 @@ const {
   unlinkDependency,
   linkDependency,
   colWidth,
+  viewportWidth,
   totalGridWidth,
   gridlineOffsets,
   weekendOffsets,
@@ -145,8 +146,11 @@ const isInspectedRecord = (row: RowType) => {
 
 // Sidebar row click — open the inspector. Re-anchor the date axis only
 // when the bar is fully off-screen horizontally; if any part of it overlaps
-// the visible window the timeline stays put so the user's scroll position
-// is preserved. Milestones (end-date only) treat the end date as the bar.
+// the visible window the timeline stays put. Note: `visibleDates` from the
+// store spans the full buffer (often several months wider than what's
+// actually painted), so we compute the real viewport range from scrollLeft
+// + viewportWidth instead. Milestones (end-date only) treat the end date
+// as the bar.
 const onSidebarRowClick = (record: RowType) => {
   openInspector(record)
 
@@ -156,15 +160,27 @@ const onSidebarRowClick = (record: RowType) => {
   const barEnd = end ?? start
   if (!barStart || !barEnd) return
 
-  const visible = props.visibleDates
-  if (!visible?.length) {
+  const buffer = props.visibleDates
+  const cw = colWidth.value
+  const vw = viewportWidth.value
+  if (!buffer?.length || !cw || !vw) {
     emit('navigateTo', barStart)
     return
   }
 
-  const visStart = visible[0]
-  const visEnd = visible[visible.length - 1]
-  const isOffScreen = barEnd.isBefore(visStart, 'day') || barStart.isAfter(visEnd, 'day')
+  // Translate the body's scroll position into a date-index window. Clamp
+  // to the buffer bounds so a not-yet-mirrored scrollLeft (initial mount)
+  // can't index off either end of the array.
+  const firstIdx = Math.max(0, Math.floor(storeScrollLeft.value / cw))
+  const lastIdx = Math.min(buffer.length - 1, Math.ceil((storeScrollLeft.value + vw) / cw) - 1)
+  const viewStart = buffer[firstIdx]
+  const viewEnd = buffer[lastIdx]
+  if (!viewStart || !viewEnd) {
+    emit('navigateTo', barStart)
+    return
+  }
+
+  const isOffScreen = barEnd.isBefore(viewStart, 'day') || barStart.isAfter(viewEnd, 'day')
   if (isOffScreen) {
     emit('navigateTo', barStart)
   }

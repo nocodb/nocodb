@@ -11,15 +11,34 @@
  * (isLoading attr is true), shows a skeleton placeholder. If metadata fetch
  * fails, the card falls back to showing the URL as a plain hyperlink.
  */
+import type { NodeViewProps } from '@tiptap/vue-3'
 import { NodeViewWrapper } from '@tiptap/vue-3'
 
-const props = defineProps<{
-  node: any
-  updateAttributes: (attrs: Record<string, any>) => void
-  deleteNode: () => void
-  selected: boolean
-  editor: any
-}>()
+const props = defineProps<NodeViewProps>()
+
+const { $api } = useNuxtApp()
+
+const { appInfo } = useGlobal()
+
+const basesStore = useBases()
+const { activeProjectId } = storeToRefs(useBases())
+
+/**
+ * Backend may return either a fully-qualified URL (S3/GCS storage) or a path
+ * relative to nc/uploads/ (local storage, served by /dltemp). Relative paths
+ * must be joined with the backend ncSiteUrl so the browser hits the API
+ * origin instead of the frontend origin.
+ */
+const resolveSrc = (raw: string | null): string | null => {
+  if (!raw) return null
+  if (/^(https?:|blob:|data:)/i.test(raw)) return raw
+  try {
+    const base = new URL(appInfo.value.ncSiteUrl || '/', window.location.origin)
+    return new URL(raw.replace(/^\/+/, ''), base).toString()
+  } catch {
+    return raw
+  }
+}
 
 const url = computed<string>(() => props.node.attrs.url || '')
 
@@ -30,6 +49,8 @@ const description = computed<string | null>(() => props.node.attrs.description)
 const faviconUrl = computed<string | null>(() => props.node.attrs.faviconUrl)
 
 const imageUrl = computed<string | null>(() => props.node.attrs.imageUrl)
+
+const imagePath = computed<string | null>(() => props.node.attrs.imagePath)
 
 const siteName = computed<string | null>(() => props.node.attrs.siteName)
 
@@ -49,16 +70,61 @@ const faviconError = ref(false)
 
 const imageError = ref(false)
 
+const refreshedImageUrl = ref<string | null>(null)
+
+const isRefreshingImage = ref(false)
+
 const safeFavicon = computed(() => {
   if (faviconError.value || !faviconUrl.value) return null
   if (!/^https?:\/\//i.test(faviconUrl.value)) return null
   return faviconUrl.value
 })
 
+const effectiveImageUrl = computed(() => refreshedImageUrl.value || imageUrl.value)
+
 const safeImage = computed(() => {
-  if (imageError.value || !imageUrl.value) return null
-  return imageUrl.value
+  if (imageError.value || !effectiveImageUrl.value) return null
+  return resolveSrc(effectiveImageUrl.value)
 })
+
+/**
+ * The stored signed URL has a short TTL. When the <img> errors out, ask the
+ * backend to re-sign the stable imagePath so the preview survives indefinitely.
+ */
+const onImageError = async () => {
+  if (isRefreshingImage.value) {
+    imageError.value = true
+    return
+  }
+  if (!imagePath.value) {
+    imageError.value = true
+    return
+  }
+  const base = basesStore.bases.get(activeProjectId.value!)
+  if (!base?.fk_workspace_id || !base?.id) {
+    imageError.value = true
+    return
+  }
+
+  isRefreshingImage.value = true
+  try {
+    const res = (await $api.internal.postOperation(
+      base.fk_workspace_id,
+      base.id,
+      { operation: 'webBookmarkResignImage' },
+      { imagePath: imagePath.value },
+    )) as { imageUrl: string | null }
+    if (res?.imageUrl) {
+      refreshedImageUrl.value = res.imageUrl
+    } else {
+      imageError.value = true
+    }
+  } catch {
+    imageError.value = true
+  } finally {
+    isRefreshingImage.value = false
+  }
+}
 
 const openUrl = () => {
   if (!url.value) return
@@ -66,7 +132,7 @@ const openUrl = () => {
 }
 
 const onCardClick = (e: MouseEvent) => {
-  // Don't navigate when the user clicks the delete button
+  // Don't navigate when the user clicks the delete button.
   if ((e.target as HTMLElement)?.closest('.nc-web-bookmark-delete')) return
   openUrl()
 }
@@ -127,7 +193,7 @@ const onCardClick = (e: MouseEvent) => {
           :src="safeImage"
           alt=""
           referrerpolicy="no-referrer"
-          @error="imageError = true"
+          @error="onImageError"
         />
       </div>
 
@@ -160,6 +226,14 @@ const onCardClick = (e: MouseEvent) => {
 <style lang="scss" scoped>
 .nc-web-bookmark-wrapper {
   margin: 0.5rem 0;
+
+  // ProseMirror's default NodeSelection style adds a 2px outline inside the
+  // wrapper. With `overflow: hidden` on the card, it bleeds inside the
+  // rounded corners. We render selection state via the card border + glow
+  // instead (.nc-web-bookmark-selected).
+  &.ProseMirror-selectednode {
+    outline: none;
+  }
 }
 
 .nc-web-bookmark-card {
@@ -173,7 +247,21 @@ const onCardClick = (e: MouseEvent) => {
   background: var(--nc-bg-default);
   overflow: hidden;
   cursor: pointer;
+  // Click navigates — selecting the text inside isn't a useful interaction,
+  // and ProseMirror's NodeSelection would otherwise highlight every text
+  // node within when navigating via arrow keys. Selection state is shown
+  // via the `nc-web-bookmark-selected` border + glow below.
+  user-select: none;
+  -webkit-user-select: none;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+
+  // Belt-and-braces: suppress ::selection paint when the node is in a
+  // ProseMirror NodeSelection (arrow-key nav, programmatic selection, …).
+  *::selection,
+  *::-moz-selection {
+    background: transparent;
+    color: inherit;
+  }
 
   &:hover {
     border-color: var(--nc-border-gray-strong);

@@ -215,6 +215,23 @@ const {
     })()
   : useDocumentAutoSave({ editor, activeProjectId, isEditable })
 
+// Unsaved-changes safety net — mirrors the SmartTextPanel/Modal pattern.
+// `flushOnUnmount` already runs on component unmount (covers SPA navigation),
+// but the browser tears down the in-flight XHR if the tab is closed or
+// backgrounded before a pending debounced save fires. Hooking `beforeunload`
+// + `visibilitychange` triggers the same flush so the user doesn't lose the
+// last few seconds of edits to a destroyed request. Doc mode only — cell
+// mode is wrapped by SmartTextPanel/Modal which have their own listeners,
+// and `flushOnUnmount` is a no-op in that branch anyway. `flushOnUnmount`
+// self-guards (only fires when a save is actually pending) so unconditional
+// calls here are cheap.
+if (!isCellMode.value) {
+  useEventListener(window, 'beforeunload', () => flushOnUnmount())
+  useEventListener(document, 'visibilitychange', () => {
+    if (document.hidden) flushOnUnmount()
+  })
+}
+
 // Force a content reload after a revision restore. The auto-reload watcher
 // in useDocumentAutoSave bails out when the user has unsaved edits or a
 // pending debounced save, which would leave the editor's local PM state

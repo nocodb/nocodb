@@ -267,39 +267,38 @@ test.describe('Gantt View', () => {
     expect(yearCount).toBeGreaterThan(0);
   });
 
-  test('clicking next slides the buffer and issues a windowed gantt-data fetch', async ({ page }) => {
+  test('clicking next pans the date axis without refetching rows', async ({ page }) => {
     await createConfiguredGantt({ title: 'GSlide' });
 
     const before = await gantt.getActiveDateLabel();
 
-    // Gantt's windowed-fetch endpoint mirrors Timeline's — the URL
-    // template is /api/v1/db/gantt-data/noco/{base}/{table}/views/{view}
-    // with from_date / to_date query params. Server-side overlap
-    // predicate + limitOverride live behind it.
-    const requestPromise = page.waitForRequest(
-      req =>
-        req.url().includes('/api/v1/db/gantt-data/') &&
-        req.url().includes('from_date=') &&
-        req.url().includes('to_date='),
-      { timeout: 15000 }
-    );
+    // Post row-index-pagination decouple (commit 49e6f19d3ef), panning the
+    // date axis is a pure-UI operation — bars off the visible window simply
+    // don't paint, but the row list is unaffected. The windowed-fetch
+    // shape (`?from_date=&to_date=`) the old code emitted on every pan is
+    // gone; only the row-index shape (`?offset=&limit=`) survives, and
+    // that's triggered by sidebar scroll, not by panning. Track any
+    // windowed-fetch URLs during the pan to assert the new contract.
+    const windowedFetches: string[] = [];
+    const onRequest = (req: import('@playwright/test').Request) => {
+      const url = req.url();
+      if (url.includes('/gantt-data/') && url.includes('from_date=')) {
+        windowedFetches.push(url);
+      }
+    };
+    page.on('request', onRequest);
 
-    // bufferDays at month zoom is wide; the next-button click only
-    // triggers a refetch when the cursor crosses the buffer edge. Six
-    // clicks guarantees the slide at any zoom — same heuristic Timeline
-    // uses.
-    for (let i = 0; i < 6; i++) {
-      await gantt.clickNext();
+    try {
+      for (let i = 0; i < 6; i++) {
+        await gantt.clickNext();
+      }
+
+      const after = await gantt.getActiveDateLabel();
+      expect(after).not.toEqual(before);
+      expect(windowedFetches).toEqual([]);
+    } finally {
+      page.off('request', onRequest);
     }
-
-    const req = await requestPromise;
-    const after = await gantt.getActiveDateLabel();
-
-    expect(after).not.toEqual(before);
-
-    const url = decodeURIComponent(req.url());
-    expect(url).toMatch(/from_date=\d{4}-\d{2}-\d{2}/);
-    expect(url).toMatch(/to_date=\d{4}-\d{2}-\d{2}/);
   });
 
   test('dependency graph endpoint returns edges between linked rows', async () => {
@@ -362,12 +361,14 @@ test.describe('Gantt View', () => {
 
     // Open the share URL in an anonymous (no-auth) context — same
     // origin, fresh storage state. Anonymous renderer must reach the
-    // same windowed-fetch endpoint via /api/v2/public/gantt-view/.
+    // public gantt-data endpoint via /api/v2/public/gantt-view/{uuid}.
+    // After the row-index-pagination decouple, the default fetch shape
+    // is offset/limit (no from_date/to_date), so don't filter on that.
     const anonCtx = await browser.newContext({ storageState: undefined });
     const anonPage = await anonCtx.newPage();
 
     const dataResp = anonPage.waitForResponse(
-      r => r.url().includes(`/api/v2/public/gantt-view/${share.uuid}`) && r.url().includes('from_date='),
+      r => r.url().includes(`/api/v2/public/gantt-view/${share.uuid}`) && r.url().includes('limit='),
       { timeout: 15000 }
     );
     await anonPage.goto(`/nc/gantt/${share.uuid}`);

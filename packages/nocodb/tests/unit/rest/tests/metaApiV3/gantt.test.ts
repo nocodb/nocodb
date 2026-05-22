@@ -184,9 +184,15 @@ export default function () {
         expect(createResponse.status).to.eq(200);
         const viewId = createResponse.body.id;
 
+        // Title lives on MetaTable.VIEWS, not GANTT_VIEW — same as Calendar
+        // and Timeline. The view-type-specific update operations
+        // (ganttViewUpdate / calendarViewUpdate / timelineViewUpdate) only
+        // handle the view-type's own config (meta + ranges); renames go
+        // through the generic `viewUpdate` operation — matches how the
+        // frontend dispatches renames (TreeView/Views/List.vue onRename).
         const updateResponse = await request(context.app)
           .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${initBase.id}?operation=ganttViewUpdate&viewId=${viewId}`,
+            `/api/v2/internal/${context.fk_workspace_id}/${initBase.id}?operation=viewUpdate&viewId=${viewId}`,
           )
           .set('xc-auth', context.token)
           .send({ title: 'Gantt Updated Title' });

@@ -762,6 +762,21 @@ const addRecord = (date: dayjs.Dayjs) => {
   }
   emit('newRecord', newRecord)
 }
+
+const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || isSyncedTable.value) return
+  const record = {
+    row: {
+      [range.fk_from_col!.title!]: date.format(updateFormat.value),
+      ...(range.fk_to_col
+        ? {
+            [range.fk_to_col!.title!]: date.endOf('day').format(updateFormat.value),
+          }
+        : {}),
+    },
+  }
+  emit('newRecord', record)
+}
 </script>
 
 <template>
@@ -841,21 +856,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                       v-for="(range, index) in calendarRange"
                       :key="index"
                       class="text-nc-content-gray-default font-semibold text-sm"
-                      @click="
-                      () => {
-                        const record = {
-                          row: {
-                            [range.fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
-                            ...(range.fk_to_col
-                        ? {
-                            [range.fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
-                          }
-                        : {}),
-                          },
-                        }
-                        emit('newRecord', record)
-                      }
-                    "
+                      @click="addRecordWithRange(range, day.date)"
                     >
                       <div class="flex items-center gap-1">
                         <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
@@ -883,21 +884,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                     size="xsmall"
                     type="secondary"
                     :disabled="!isAllowed"
-                    @click="
-                () => {
-                  const record = {
-                    row: {
-                      [calendarRange[0].fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
-                      ...(calendarRange[0].fk_to_col
-                        ? {
-                            [calendarRange[0].fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
-                          }
-                        : {}),
-                    },
-                  }
-                  emit('newRecord', record)
-                }
-              "
+                    @click="addRecordWithRange(calendarRange[0], day.date)"
                   >
                     <component :is="iconMap.plus" />
                   </NcButton>

@@ -694,7 +694,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title!]: timezoneDayjs.dayjsTz(newEndDate).format(updateFormat.value),
+        [toCol.title!]: newEndDate.format(updateFormat.value),
       },
     }
   } else if (resizeDirection.value === 'left') {
@@ -965,7 +965,7 @@ const newRecord = (hour: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedTable.value) return
   const record = {
     row: {
-      [calendarRange.value[0].fk_from_col!.title!]: timezoneDayjs.dayjsTz(hour).format(updateFormat.value),
+      [calendarRange.value[0].fk_from_col!.title!]: hour.format(updateFormat.value),
     },
   }
   emit('newRecord', record)
@@ -975,14 +975,14 @@ const newRecordWithRange = (range: any, hour: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || isSyncedTable.value) return
   let record = {
     row: {
-      [range.fk_from_col!.title!]: timezoneDayjs.dayjsTz(hour).format(updateFormat.value),
+      [range.fk_from_col!.title!]: hour.format(updateFormat.value),
     },
   }
   if (range.fk_to_col) {
     record = {
       row: {
         ...record.row,
-        [range.fk_to_col!.title!]: timezoneDayjs.dayjsTz(hour).add(1, 'hour').format(updateFormat.value),
+        [range.fk_to_col!.title!]: hour.add(1, 'hour').format(updateFormat.value),
       },
     }
   }

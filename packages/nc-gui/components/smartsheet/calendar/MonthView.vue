@@ -775,7 +775,6 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
         : {}),
     },
   }
-  console.log('Sending date payload (addRecordWithRange):', record)
   emit('newRecord', record)
 }
 </script>

@@ -216,7 +216,7 @@ async function localInit({
 
     const apiTokens = await api.orgTokens.list();
 
-    if (apiTokens.list.length > 0) {
+    if (apiTokens.list.length > 0 && apiTokens.list[0].token) {
       apiToken = apiTokens.list[0].token;
     } else {
       const { token: createdToken } = await api.orgTokens.create({ description: 'test' });

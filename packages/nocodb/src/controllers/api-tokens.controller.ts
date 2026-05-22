@@ -25,7 +25,10 @@ export class ApiTokensController {
     '/api/v1/db/meta/projects/:baseId/api-tokens',
     '/api/v2/meta/bases/:baseId/api-tokens',
   ])
-  @Acl('baseApiTokenList')
+  @Acl('baseApiTokenList', {
+    blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
+  })
   async apiTokenList(@Req() req: NcRequest) {
     return new PagedResponseImpl(
       await this.apiTokensService.apiTokenList({ userId: req['user'].id, req }),
@@ -37,7 +40,10 @@ export class ApiTokensController {
     '/api/v2/meta/bases/:baseId/api-tokens',
   ])
   @HttpCode(200)
-  @Acl('baseApiTokenCreate')
+  @Acl('baseApiTokenCreate', {
+    blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
+  })
   async apiTokenCreate(@Req() req: NcRequest, @Body() body) {
     return await this.apiTokensService.apiTokenCreate({
       tokenBody: body,
@@ -50,7 +56,10 @@ export class ApiTokensController {
     '/api/v1/db/meta/projects/:baseId/api-tokens/:tokenId',
     '/api/v2/meta/bases/:baseId/api-tokens/:tokenId',
   ])
-  @Acl('baseApiTokenDelete')
+  @Acl('baseApiTokenDelete', {
+    blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
+  })
   async apiTokenDelete(
     @Req() req: NcRequest,
     @Param('tokenId') tokenId: string,

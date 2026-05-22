@@ -296,6 +296,29 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
 
   // ── Permanent Delete ───────────────────────────────────────
 
+  /**
+   * Returns `false` when the model row is gone (hard-deleted out-of-band).
+   * The orchestrator then drops the trash entry without running cleanup —
+   * which would otherwise flip cascaded reverse columns to live before
+   * `tablesService.tableDelete` throws on the missing model.
+   */
+  async beforePermanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<boolean> {
+    await super.beforePermanentDelete(ctx, trashEntry, ncMeta);
+
+    const existing = await Model.get(ctx, trashEntry.resource_id, true, ncMeta);
+    if (!existing) {
+      this.logger.log(
+        `Trash entry ${trashEntry.id} table ${trashEntry.resource_id} already gone; clearing entry.`,
+      );
+      return false;
+    }
+    return true;
+  }
+
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,

@@ -388,66 +388,77 @@ export class BaseTrashService implements OnModuleInit {
         ? param.ncMeta
         : await (Noco.ncMeta as MetaService).startTransaction();
       try {
-        // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
-        if (handler.childTypes?.length) {
-          const CHILD_CLEANUP_BATCH = 100;
-          for (const childType of handler.childTypes) {
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-              const childTrash = await BaseTrash.listChildrenByParent(
-                context,
-                {
-                  resourceType: childType,
-                  parentId: trashEntry.resource_id,
-                  limit: CHILD_CLEANUP_BATCH,
-                },
-                ncMeta,
-              );
-              if (!childTrash.length) break;
-              let removed = 0;
-              for (const child of childTrash) {
-                const childHandler = this.getHandler(child.resource_type);
-                const childLifecycle = await childHandler.permanentDelete(
-                  context,
-                  child,
-                  { user: param.user, req: param.req },
-                  ncMeta,
-                );
-                // Mirror the parent guard at line 397 — handlers (e.g. record
-                // handler under RLS-bounded users) may ask the entry to survive
-                // when only a subset of underlying state was swept. Wiping the
-                // trash row while the soft-deleted rows persist would orphan
-                // them.
-                const childKeepEntry =
-                  ncHasProperties<TrashLifecycleResult>(
-                    childLifecycle,
-                    'keepEntry',
-                  ) && !!childLifecycle.keepEntry;
-                if (!childKeepEntry) {
-                  await BaseTrash.delete(context, child.id, ncMeta);
-                  removed++;
-                }
-              }
-              // If any child opted to survive, stop paging — re-fetching would
-              // return the same kept rows and loop forever.
-              if (removed < childTrash.length) break;
-              if (childTrash.length < CHILD_CLEANUP_BATCH) break;
-            }
-          }
-        }
-
-        const lifecycle = await handler.permanentDelete(
+        const proceed = await handler.beforePermanentDelete(
           context,
           trashEntry,
-          { user: param.user, req: param.req },
           ncMeta,
         );
-        // See `restore` — handlers may keep the entry alive when their
-        // permanent-delete only swept a subset of the underlying state.
-        const keepEntry =
-          ncHasProperties<TrashLifecycleResult>(lifecycle, 'keepEntry') &&
-          !!lifecycle.keepEntry;
-        if (!keepEntry) {
+
+        if (proceed) {
+          // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
+          if (handler.childTypes?.length) {
+            const CHILD_CLEANUP_BATCH = 100;
+            for (const childType of handler.childTypes) {
+              // eslint-disable-next-line no-constant-condition
+              while (true) {
+                const childTrash = await BaseTrash.listChildrenByParent(
+                  context,
+                  {
+                    resourceType: childType,
+                    parentId: trashEntry.resource_id,
+                    limit: CHILD_CLEANUP_BATCH,
+                  },
+                  ncMeta,
+                );
+                if (!childTrash.length) break;
+                let removed = 0;
+                for (const child of childTrash) {
+                  const childHandler = this.getHandler(child.resource_type);
+                  const childLifecycle = await childHandler.permanentDelete(
+                    context,
+                    child,
+                    { user: param.user, req: param.req },
+                    ncMeta,
+                  );
+                  // Mirror the parent guard below — handlers (e.g. record
+                  // handler under RLS-bounded users) may ask the entry to
+                  // survive when only a subset of underlying state was swept.
+                  // Wiping the trash row while the soft-deleted rows persist
+                  // would orphan them.
+                  const childKeepEntry =
+                    ncHasProperties<TrashLifecycleResult>(
+                      childLifecycle,
+                      'keepEntry',
+                    ) && !!childLifecycle.keepEntry;
+                  if (!childKeepEntry) {
+                    await BaseTrash.delete(context, child.id, ncMeta);
+                    removed++;
+                  }
+                }
+                // If any child opted to survive, stop paging — re-fetching
+                // would return the same kept rows and loop forever.
+                if (removed < childTrash.length) break;
+                if (childTrash.length < CHILD_CLEANUP_BATCH) break;
+              }
+            }
+          }
+
+          const lifecycle = await handler.permanentDelete(
+            context,
+            trashEntry,
+            { user: param.user, req: param.req },
+            ncMeta,
+          );
+          // See `restore` — handlers may keep the entry alive when their
+          // permanent-delete only swept a subset of the underlying state.
+          const keepEntry =
+            ncHasProperties<TrashLifecycleResult>(lifecycle, 'keepEntry') &&
+            !!lifecycle.keepEntry;
+          if (!keepEntry) {
+            await BaseTrash.delete(context, trashEntry.id, ncMeta);
+          }
+        } else {
+          // Underlying entity is gone — just drop the trash row.
           await BaseTrash.delete(context, trashEntry.id, ncMeta);
         }
         if (!param.ncMeta) await ncMeta.commit();
@@ -456,7 +467,9 @@ export class BaseTrashService implements OnModuleInit {
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error(e.message, e.stack);
         NcError.get(context).internalServerError(
-          'Failed to permanently delete',
+          `Failed to permanently delete (${e?.name ?? 'Error'}: ${
+            e?.message ?? 'unknown'
+          })`,
         );
       }
 

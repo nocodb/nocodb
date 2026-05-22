@@ -1449,29 +1449,6 @@ const viewportEdges = computed<{ first: dayjs.Dayjs; last: dayjs.Dayjs } | null>
   return { first, last }
 })
 
-// Offset inside the bar where the clipped-left nav arrow should render.
-// `absolute left: 0` would place the arrow at the bar's own left edge —
-// off-screen for any bar whose start is clipped, which is precisely when
-// we need it. Pin it to the painted viewport's left edge instead.
-const arrowLeftOffsetPx = (record: RowType): string => {
-  const style = getBarStyle(record)
-  if (!style) return '0px'
-  const barLeft = parseFloat(style.left)
-  return `${Math.max(0, storeScrollLeft.value - barLeft)}px`
-}
-
-// Symmetric for the right arrow: clamp to the viewport's right edge so
-// the arrow stays inside the painted area even when the bar runs off it.
-const arrowRightOffsetPx = (record: RowType): string => {
-  const style = getBarStyle(record)
-  if (!style) return '0px'
-  const barLeft = parseFloat(style.left)
-  const barWidth = parseFloat(style.width)
-  const barRight = barLeft + barWidth
-  const viewportRight = storeScrollLeft.value + viewportWidth.value
-  return `${Math.max(0, barRight - viewportRight)}px`
-}
-
 // Check if record's start date is visible (not clipped at the left edge of the painted viewport)
 const isStartVisible = (row: RowType) => {
   const range = props.ganttRange[0]
@@ -2329,26 +2306,6 @@ const onGridMouseLeave = () => {
                   </template>
                 </span>
 
-                <!-- Per-bar left nav arrow — when start is clipped -->
-                <div
-                  v-if="!isStartVisible(record)"
-                  class="nc-gantt-nav-arrow absolute top-0 h-full z-20 flex items-center"
-                  :style="{ left: arrowLeftOffsetPx(record) }"
-                  role="button"
-                  tabindex="0"
-                  :aria-label="$t('labels.previous')"
-                  @click.stop="navigateToRecordStart(record)"
-                  @keydown.enter.prevent="navigateToRecordStart(record)"
-                  @keydown.space.prevent="navigateToRecordStart(record)"
-                  @mousedown.stop
-                >
-                  <div
-                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
-                  >
-                    <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
-                  </div>
-                </div>
-
                 <!-- Right resize handle (end date) — only when end date column exists -->
                 <div
                   v-if="canResizeRight && ganttRange[0]?.fk_to_col"
@@ -2358,25 +2315,6 @@ const onGridMouseLeave = () => {
                   <div class="nc-gantt-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <!-- Per-bar right nav arrow — when end is clipped -->
-                <div
-                  v-if="!isEndVisible(record)"
-                  class="nc-gantt-nav-arrow absolute top-0 h-full z-20 flex items-center"
-                  :style="{ right: arrowRightOffsetPx(record) }"
-                  role="button"
-                  tabindex="0"
-                  :aria-label="$t('labels.next')"
-                  @click.stop="navigateToRecordEnd(record)"
-                  @keydown.enter.prevent="navigateToRecordEnd(record)"
-                  @keydown.space.prevent="navigateToRecordEnd(record)"
-                  @mousedown.stop
-                >
-                  <div
-                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
-                  >
-                    <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
-                  </div>
-                </div>
               </div>
               <!-- Dependency handle — sibling to the bar (peer) so it can
                    straddle the bar's bottom-right edge without being clipped
@@ -2403,6 +2341,52 @@ const onGridMouseLeave = () => {
                 @click.stop
               />
             </NcTooltip>
+
+            <!-- Per-bar nav chevrons — sibling of the NcTooltip on purpose.
+                 If the chevron sat inside the tooltip's slot, hovering it
+                 would mark the wrapper as "entered" via the descendant and
+                 fire the bar's tooltip — which then positions itself
+                 relative to the (possibly off-screen) bar, leaving the
+                 tooltip card stranded far from the cursor. As a sibling,
+                 the chevron's hover events stay local; the bar tooltip
+                 only fires when the user is actually over the bar. -->
+            <div
+              v-if="!isMilestone(record) && getBarStyle(record) && !isStartVisible(record)"
+              class="nc-gantt-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
+              :style="{ left: `${storeScrollLeft}px` }"
+              role="button"
+              tabindex="0"
+              :aria-label="$t('labels.previous')"
+              @click.stop="navigateToRecordStart(record)"
+              @keydown.enter.prevent="navigateToRecordStart(record)"
+              @keydown.space.prevent="navigateToRecordStart(record)"
+              @mousedown.stop
+            >
+              <div
+                class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
+              >
+                <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
+              </div>
+            </div>
+
+            <div
+              v-if="!isMilestone(record) && getBarStyle(record) && !isEndVisible(record)"
+              class="nc-gantt-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
+              :style="{ right: `${Math.max(0, totalGridWidth - storeScrollLeft - viewportWidth)}px` }"
+              role="button"
+              tabindex="0"
+              :aria-label="$t('labels.next')"
+              @click.stop="navigateToRecordEnd(record)"
+              @keydown.enter.prevent="navigateToRecordEnd(record)"
+              @keydown.space.prevent="navigateToRecordEnd(record)"
+              @mousedown.stop
+            >
+              <div
+                class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
+              >
+                <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
+              </div>
+            </div>
 
             <!-- Spill-over label — for bars too narrow to hold their inline
                  label inside, render the label as a separate floating

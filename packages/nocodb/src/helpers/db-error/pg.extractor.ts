@@ -181,11 +181,8 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       case 'P0002':
       case 'P0003':
       case 'P0004': {
-        // PL/pgSQL exceptions — these carry the user-authored message
-        // verbatim. P0001 is `RAISE EXCEPTION 'foo'`, P0002 is
-        // NO_DATA_FOUND, P0003 is TOO_MANY_ROWS, P0004 is ASSERT_FAILURE.
-        // Surface message + hint as-is so domain-specific guards (e.g.
-        // "Currency mismatch") reach the user.
+        // PL/pgSQL exceptions carry a user-authored message; surface it
+        // along with any HINT so schema-level guards reach the caller.
         const raw = pgRawMessage(error);
         message = [raw, error.hint].filter(Boolean).join(' — ');
         if (!message) message = 'Database raised an exception.';

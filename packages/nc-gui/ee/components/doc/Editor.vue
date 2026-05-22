@@ -220,12 +220,17 @@ const {
 // pending debounced save, which would leave the editor's local PM state
 // stale — the next autosave would then overwrite the restored content with
 // whatever was in the editor before the restore.
+// `onRestored` returns an `{ off }` handle from createEventHook. The hook
+// lives for the lifetime of the singleton composable, so dropping the
+// handle would leak a listener on every doc navigation (Editor.vue
+// remounts via <NuxtPage>).
 const { onRestored } = useDocRevisions()
-onRestored(({ docId }) => {
+const restoredSub = onRestored(({ docId }) => {
   if (docId === doc.value?.id) {
     reloadDocument()
   }
 })
+onBeforeUnmount(() => restoredSub.off())
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 

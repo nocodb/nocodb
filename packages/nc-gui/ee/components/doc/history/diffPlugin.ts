@@ -133,11 +133,7 @@ function atomIdentity(node: PMNode): string | null {
     // (or kept as a string) by the UserMention extension. Use the user id
     // when available, falling back to email so a mention round-tripped
     // through a name-only legacy save still has a stable key.
-    const idAttr = node.attrs.id as
-      | string
-      | { id?: string; email?: string }
-      | null
-      | undefined
+    const idAttr = node.attrs.id as string | { id?: string; email?: string } | null | undefined
     if (typeof idAttr === 'string' && idAttr) return `mention:${idAttr}`
     if (idAttr && typeof idAttr === 'object') {
       const key = idAttr.id || idAttr.email
@@ -239,10 +235,7 @@ function labelForMark(name: string): string {
  * Returns the empty string when the two sets are identical (caller treats
  * that as "no diff at this position").
  */
-function describeMarkDiff(
-  fromMarks: readonly Mark[],
-  toMarks: readonly Mark[],
-): string {
+function describeMarkDiff(fromMarks: readonly Mark[], toMarks: readonly Mark[]): string {
   const fromMap = new Map(fromMarks.map((m) => [m.type.name, m]))
   const toMap = new Map(toMarks.map((m) => [m.type.name, m]))
 
@@ -430,11 +423,7 @@ function findFormatChanges(
           // Coalesce only when the diff signature matches the previous run.
           // Different mark deltas in abutting ranges keep distinct
           // decorations so each tooltip describes its own range accurately.
-          if (
-            pendingFrom !== null
-            && pendingTo === overlapStartB
-            && pendingTooltip === tooltip
-          ) {
+          if (pendingFrom !== null && pendingTo === overlapStartB && pendingTooltip === tooltip) {
             pendingTo = overlapEndB
           } else {
             flush()
@@ -477,7 +466,12 @@ function findChanges(
   try {
     fromDoc = PMNode.fromJSON(schema, fromContent)
     toDoc = PMNode.fromJSON(schema, toContent)
-  } catch {
+  } catch (e) {
+    // Schema drift — a removed extension or unknown node type in the older
+    // revision. Falling back to "no changes" preserves rendering, but we
+    // surface a warn so a future schema migration that breaks history
+    // rendering is visible.
+    console.warn('[doc-diff] schema parse failed, hiding diff highlights', e)
     return { changes: [], steps: [] }
   }
 
@@ -557,11 +551,7 @@ function findChanges(
 
   // Skip atoms whose position is already inside a changeset-reported range —
   // avoids double-decorating when the standard diff did catch the change.
-  const positionInsideAnyChange = (
-    from: number,
-    to: number,
-    side: 'A' | 'B',
-  ) =>
+  const positionInsideAnyChange = (from: number, to: number, side: 'A' | 'B') =>
     changeset.changes.some((c) => {
       const cFrom = side === 'A' ? c.fromA : c.fromB
       const cTo = side === 'A' ? c.toA : c.toB
@@ -680,17 +670,9 @@ function stringifyInlineDeletionSlice(slice: Slice): string {
         // UserMention stores the display name on `label`, falling back to
         // the parsed `data-id` object for legacy nodes saved before label
         // was promoted to a top-level attr.
-        const idAttr = node.attrs.id as
-          | string
-          | { name?: string; email?: string }
-          | null
-          | undefined
+        const idAttr = node.attrs.id as string | { name?: string; email?: string } | null | undefined
         const idObj = typeof idAttr === 'object' && idAttr !== null ? idAttr : null
-        const label =
-          (node.attrs.label as string | undefined)
-          ?? idObj?.name
-          ?? idObj?.email
-          ?? ''
+        const label = (node.attrs.label as string | undefined) ?? idObj?.name ?? idObj?.email ?? ''
         out += `@${label}`
       } else {
         out += `[${node.type.name}]`
@@ -709,9 +691,7 @@ function stringifyInlineDeletionSlice(slice: Slice): string {
  */
 function renderInlineDeletion(slice: Slice, isCurrent: boolean): HTMLElement {
   const span = document.createElement('span')
-  span.className = `nc-doc-history-diff-delete${
-    isCurrent ? ' nc-doc-history-diff-delete-current' : ''
-  }`
+  span.className = `nc-doc-history-diff-delete${isCurrent ? ' nc-doc-history-diff-delete-current' : ''}`
   span.setAttribute('contenteditable', 'false')
   span.textContent = stringifyInlineDeletionSlice(slice)
   return span
@@ -725,9 +705,7 @@ function renderInlineDeletion(slice: Slice, isCurrent: boolean): HTMLElement {
  * markers, ...) is left untouched because we only touch text leaves.
  */
 function wrapTextNodesWithDeletionMark(root: Node, isCurrent: boolean) {
-  const klass = `nc-doc-history-diff-delete${
-    isCurrent ? ' nc-doc-history-diff-delete-current' : ''
-  }`
+  const klass = `nc-doc-history-diff-delete${isCurrent ? ' nc-doc-history-diff-delete-current' : ''}`
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   const nodes: Text[] = []
   let n: Node | null
@@ -764,11 +742,7 @@ function wrapTextNodesWithDeletionMark(root: Node, isCurrent: boolean) {
  *   tag them with the delete class and let CSS (`::before` on the data-type)
  *   render the URL / filename + a red outline.
  */
-function rewriteDeletedAtoms(
-  root: Element,
-  resolveImageSrc: ((id: string) => string) | null | undefined,
-  isCurrent: boolean,
-) {
+function rewriteDeletedAtoms(root: Element, resolveImageSrc: ((id: string) => string) | null | undefined, isCurrent: boolean) {
   const deleteClass = 'nc-doc-history-diff-delete-atom'
   const currentClass = 'nc-doc-history-diff-delete-atom-current'
 
@@ -862,18 +836,10 @@ function rewriteDeletedAtoms(
     if (src) {
       const iframe = document.createElement('iframe')
       iframe.src = src
-      iframe.className = `nc-embed-iframe${
-        height ? ' nc-embed-iframe-fixed' : ''
-      }`
+      iframe.className = `nc-embed-iframe${height ? ' nc-embed-iframe-fixed' : ''}`
       iframe.setAttribute('frameborder', '0')
-      iframe.setAttribute(
-        'sandbox',
-        'allow-scripts allow-same-origin allow-popups allow-presentation',
-      )
-      iframe.setAttribute(
-        'allow',
-        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
-      )
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation')
+      iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture')
       iframe.setAttribute('allowfullscreen', '')
       wrapper.appendChild(iframe)
     }
@@ -997,9 +963,7 @@ function buildDecorations(
       // Text-level inline highlight (green wash).
       decorations.push(
         Decoration.inline(change.from, change.to, {
-          class: isCurrent
-            ? 'nc-doc-history-diff-insert nc-doc-history-diff-insert-current'
-            : 'nc-doc-history-diff-insert',
+          class: isCurrent ? 'nc-doc-history-diff-insert nc-doc-history-diff-insert-current' : 'nc-doc-history-diff-insert',
         }),
       )
       // Node decoration for atom leaves (images, embeds, file attachments)
@@ -1029,9 +993,7 @@ function buildDecorations(
       // the OS-controlled `title` tooltip.
       decorations.push(
         Decoration.inline(change.from, change.to, {
-          class: isCurrent
-            ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current'
-            : 'nc-doc-history-diff-format',
+          'class': isCurrent ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current' : 'nc-doc-history-diff-format',
           'data-nc-mark-diff': change.tooltip,
         }),
       )
@@ -1044,9 +1006,7 @@ function buildDecorations(
       // in Viewer.vue picks it up via `closest()` like inline format diffs.
       decorations.push(
         Decoration.node(change.from, change.to, {
-          class: isCurrent
-            ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current'
-            : 'nc-doc-history-diff-format',
+          'class': isCurrent ? 'nc-doc-history-diff-format nc-doc-history-diff-format-current' : 'nc-doc-history-diff-format',
           'data-nc-mark-diff': change.tooltip,
         }),
       )
@@ -1088,19 +1048,12 @@ function buildDecorations(
  * `props.decorations` stays cheap and external callers (the step-through
  * nav) can read positions via `getDiffSteps()` without re-running the LCS.
  */
-export function docDiffPlugin(
-  initial: Omit<DocDiffState, 'decorations' | 'changes' | 'steps'>,
-) {
+export function docDiffPlugin(initial: Omit<DocDiffState, 'decorations' | 'changes' | 'steps'>) {
   return new Plugin<DocDiffState>({
     key: docDiffPluginKey,
     state: {
       init(_, editorState) {
-        const { changes, steps } = findChanges(
-          initial.fromContent,
-          initial.toContent,
-          initial.enabled,
-          editorState.schema,
-        )
+        const { changes, steps } = findChanges(initial.fromContent, initial.toContent, initial.enabled, editorState.schema)
         const decorations = buildDecorations(
           changes,
           initial.currentIndex,
@@ -1111,30 +1064,20 @@ export function docDiffPlugin(
         return { ...initial, changes, steps, decorations }
       },
       apply(tr, value, _oldState, newState) {
-        const meta = tr.getMeta(docDiffPluginKey) as
-          | Partial<DocDiffState>
-          | undefined
+        const meta = tr.getMeta(docDiffPluginKey) as Partial<DocDiffState> | undefined
 
         // Determine whether the underlying diff inputs changed (rerun the
         // LCS) vs only the focused-change index (cheap rebuild — same
         // change-steps, just different "current" marker).
-        const inputChanged =
-          !!meta &&
-          ('fromContent' in meta || 'toContent' in meta || 'enabled' in meta)
-        const indexOnlyChanged =
-          !!meta && !inputChanged && 'currentIndex' in meta
+        const inputChanged = !!meta && ('fromContent' in meta || 'toContent' in meta || 'enabled' in meta)
+        const indexOnlyChanged = !!meta && !inputChanged && 'currentIndex' in meta
         const docChanged = tr.docChanged
 
         const next: DocDiffState = { ...value, ...(meta ?? {}) }
         if (docChanged) next.toContent = newState.doc.toJSON()
 
         if (inputChanged || docChanged) {
-          const result = findChanges(
-            next.fromContent,
-            next.toContent,
-            next.enabled,
-            newState.schema,
-          )
+          const result = findChanges(next.fromContent, next.toContent, next.enabled, newState.schema)
           next.changes = result.changes
           next.steps = result.steps
           next.decorations = buildDecorations(
@@ -1208,9 +1151,7 @@ export function setDocDiffState(
  * it produces two on-screen decorations. Drives the "n / N" counter and
  * the ↑/↓ step-through nav.
  */
-export function getDiffSteps(
-  editor: { view: { state: any } } | null | undefined,
-): DocDiffStep[] {
+export function getDiffSteps(editor: { view: { state: any } } | null | undefined): DocDiffStep[] {
   if (!editor) return []
   return docDiffPluginKey.getState(editor.view.state)?.steps ?? []
 }
@@ -1219,10 +1160,7 @@ export function getDiffSteps(
  * Scroll the editor's viewport to the given step index. No-op when the
  * index is out of range. Used by the step-through nav (↑/↓ buttons).
  */
-export function scrollToDiffChange(
-  editor: { view: any } | null | undefined,
-  index: number,
-): void {
+export function scrollToDiffChange(editor: { view: any } | null | undefined, index: number): void {
   if (!editor) return
   const steps = getDiffSteps(editor)
   const step = steps[index]

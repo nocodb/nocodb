@@ -644,6 +644,9 @@ export class DocumentsService extends DocumentsServiceCE {
 
     // Reconcile FileReferences BEFORE saving — injects IDs into payload.content
     // so the persisted content contains FileReference IDs (same as attachment columns).
+    // `reviveIncoming` is on for restores so soft-deleted refs reintroduced by
+    // the restored content get flipped back inline — closing the brief window
+    // where the proxy would 404 if the revive ran post-update.
     if (payload.content) {
       try {
         await this.reconcileFileReferences(
@@ -652,6 +655,10 @@ export class DocumentsService extends DocumentsServiceCE {
           payload.content,
           req,
           existing.meta?.cover_image_file_ref_id,
+          {
+            reviveIncoming:
+              options?.revisionSource === DocRevisionSource.RESTORE,
+          },
         );
       } catch (e) {
         this.logger.error(e.message, e.stack);
@@ -990,6 +997,7 @@ export class DocumentsService extends DocumentsServiceCE {
     content: Record<string, any>,
     req: NcRequest,
     coverFileRefId?: string,
+    options?: { reviveIncoming?: boolean },
   ) {
     // 1. Walk content and collect all file nodes
     const fileNodes: {
@@ -1032,9 +1040,23 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // 3. Diff: soft-delete FileReferences no longer in content
+    // 3. Revive soft-deleted FileReferences whose IDs are being reintroduced
+    // by this update — only on restore. Without it, IDs that were
+    // soft-deleted by a prior reconcile stay soft-deleted and the proxy
+    // 404s. Gated by `reviveIncoming` because reviveForDoc always emits a
+    // Redis incrHashField on the workspace storage counter, and running
+    // that on every normal save (where there is nothing to revive) would
+    // add a per-save roundtrip with no work to do.
+    const incomingIds = fileNodes
+      .map((n) => n.id)
+      .filter((id): id is string => !!id);
+    if (options?.reviveIncoming && incomingIds.length) {
+      await FileReference.reviveForDoc(context, docId, incomingIds);
+    }
+
+    // 4. Diff: soft-delete FileReferences no longer in content
     // Preserve the cover image FileReference — it lives in meta, not content.
-    const newIds = new Set(fileNodes.map((n) => n.id).filter(Boolean));
+    const newIds = new Set(incomingIds);
     const existingIds = await FileReference.listIdsForDoc(context, docId);
 
     const removedIds = existingIds.filter(

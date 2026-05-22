@@ -74,10 +74,7 @@ export const useDocRevisions = createSharedComposable(() => {
 
   function nextChange() {
     if (diffChangeCount.value === 0) return
-    currentChangeIndex.value = Math.min(
-      currentChangeIndex.value + 1,
-      diffChangeCount.value - 1,
-    )
+    currentChangeIndex.value = Math.min(currentChangeIndex.value + 1, diffChangeCount.value - 1)
   }
 
   function prevChange() {
@@ -109,15 +106,11 @@ export const useDocRevisions = createSharedComposable(() => {
         nextCursor.value = null
       }
 
-      const res = (await $api.internal.getOperation(
-        activeWorkspaceId.value,
-        activeProjectId.value,
-        {
-          operation: 'documentRevisionList',
-          docId,
-          ...(opts.append && nextCursor.value ? { before: nextCursor.value } : {}),
-        },
-      )) as { list: DocRevisionListItem[]; nextCursor: string }
+      const res = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'documentRevisionList',
+        docId,
+        ...(opts.append && nextCursor.value ? { before: nextCursor.value } : {}),
+      })) as { list: DocRevisionListItem[]; nextCursor: string }
 
       const incoming = (res?.list || []).map(enrich)
       revisions.value = opts.append ? [...revisions.value, ...incoming] : incoming
@@ -138,15 +131,11 @@ export const useDocRevisions = createSharedComposable(() => {
   async function fetchRevisionContent(revisionId: string): Promise<DocRevisionFull | null> {
     if (!activeDocId.value || !activeWorkspaceId.value || !activeProjectId.value) return null
     try {
-      const res = (await $api.internal.getOperation(
-        activeWorkspaceId.value,
-        activeProjectId.value,
-        {
-          operation: 'documentRevisionGet',
-          docId: activeDocId.value,
-          revisionId,
-        },
-      )) as DocRevisionFull
+      const res = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'documentRevisionGet',
+        docId: activeDocId.value,
+        revisionId,
+      })) as DocRevisionFull
       // The single-revision endpoint returns the raw `created_by` user id —
       // run it through the same enrichment as list items so the header in
       // the viewer pane shows the author's display name + avatar meta.
@@ -169,7 +158,7 @@ export const useDocRevisions = createSharedComposable(() => {
     return prev?.id ?? null
   }
 
-  async function refreshComparisonContent() {
+  async function refreshComparisonContent(seq?: number) {
     if (!selectedRevisionId.value) {
       comparisonContent.value = null
       comparisonTitle.value = null
@@ -182,11 +171,21 @@ export const useDocRevisions = createSharedComposable(() => {
       return
     }
     const rev = await fetchRevisionContent(compareId)
+    // Bail if a newer selection superseded this fetch — otherwise the
+    // comparison content for revision A could land after revision B is
+    // already showing.
+    if (seq !== undefined && seq !== selectionSeq) return
     comparisonContent.value = rev?.content ?? null
     comparisonTitle.value = rev?.title ?? null
   }
 
+  // Monotonic ticket — incremented on each selectRevision call so that a
+  // late-arriving fetch from a superseded click can't overwrite the content
+  // shown for the newly-selected revision.
+  let selectionSeq = 0
+
   async function selectRevision(revisionId: string | null) {
+    const seq = ++selectionSeq
     selectedRevisionId.value = revisionId
     selectedRevisionContent.value = null
     comparisonContent.value = null
@@ -199,6 +198,7 @@ export const useDocRevisions = createSharedComposable(() => {
     try {
       isLoadingSelected.value = true
       const res = await fetchRevisionContent(revisionId)
+      if (seq !== selectionSeq) return
       if (!res) {
         selectedRevisionId.value = null
         return
@@ -206,9 +206,9 @@ export const useDocRevisions = createSharedComposable(() => {
       selectedRevisionContent.value = res
       // Kick off comparison fetch in parallel — the viewer can render
       // without it; diff highlights pop in when it lands.
-      refreshComparisonContent()
+      refreshComparisonContent(seq)
     } finally {
-      isLoadingSelected.value = false
+      if (seq === selectionSeq) isLoadingSelected.value = false
     }
   }
 
@@ -259,6 +259,14 @@ export const useDocRevisions = createSharedComposable(() => {
       selectedRevisionContent.value = null
       return true
     } catch (e: any) {
+      // 422 is the optimistic-concurrency reject — another tab or user
+      // edited the doc between the panel opening and the restore click.
+      // Refresh the list so the user sees the new state on the retry; the
+      // backend message ("Document has been modified by another user…")
+      // already tells them what to do.
+      if (e?.response?.status === 422 && activeDocId.value) {
+        await loadRevisions(activeDocId.value)
+      }
       message.error(await extractSdkResponseErrorMsg(e))
       return false
     } finally {
@@ -267,6 +275,9 @@ export const useDocRevisions = createSharedComposable(() => {
   }
 
   function reset() {
+    // Bump the selection seq so any in-flight selectRevision fetch bails
+    // before writing back into the just-cleared state. Cheap, defensive.
+    selectionSeq++
     activeDocId.value = null
     revisions.value = []
     nextCursor.value = null

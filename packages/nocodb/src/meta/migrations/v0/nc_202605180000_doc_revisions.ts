@@ -15,9 +15,33 @@ const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
     table.string('fk_revision_id', 20).nullable();
   });
-  await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
-    table.index(['base_id', 'fk_revision_id'], 'nc_fr_revision_idx');
-  });
+
+  // Index supports lookups by revision (sync / bulk-delete of snapshot rows).
+  // On PG/SQLite use a partial index — every row has fk_revision_id IS NULL
+  // at deploy time, so the index is empty and the build lock is sub-second
+  // instead of 20s+ on large nc_file_references tables. The planner uses it
+  // for `fk_revision_id = ?` / `IN (...)` predicates (both imply NOT NULL).
+  // MySQL has no partial-index syntax — fall back to a full composite index.
+  const client = knex.client.config.client;
+  const isPartialIndexSupported =
+    client === 'pg' ||
+    client === 'postgresql' ||
+    client === 'sqlite3' ||
+    client === 'better-sqlite3';
+
+  if (isPartialIndexSupported) {
+    await knex.raw('CREATE INDEX ?? ON ?? (??, ??) WHERE ?? IS NOT NULL', [
+      'nc_fr_revision_idx',
+      MetaTable.FILE_REFERENCES,
+      'base_id',
+      'fk_revision_id',
+      'fk_revision_id',
+    ]);
+  } else {
+    await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
+      table.index(['base_id', 'fk_revision_id'], 'nc_fr_revision_idx');
+    });
+  }
 };
 
 const down = async (knex: Knex) => {

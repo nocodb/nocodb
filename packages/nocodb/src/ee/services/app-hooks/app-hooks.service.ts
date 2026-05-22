@@ -22,6 +22,7 @@ import type {
   DocumentPublicShareCreateEvent,
   DocumentPublicShareDeleteEvent,
   DocumentPublicShareUpdateEvent,
+  DocumentRevisionRestoreEvent,
   DocumentUpdateEvent,
   DocumentUserMentionEvent,
   FilterEvent,
@@ -555,6 +556,10 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: DocumentUserMentionEvent) => void,
   ): () => void;
   on(
+    event: AppEvents.DOCUMENT_REVISION_RESTORE,
+    listener: (data: DocumentRevisionRestoreEvent) => void,
+  ): () => void;
+  on(
     event: AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE,
     listener: (data: DocumentPublicShareCreateEvent) => void,
   ): () => void;
@@ -1034,6 +1039,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.DOCUMENT_USER_MENTION,
     data: DocumentUserMentionEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_REVISION_RESTORE,
+    data: DocumentRevisionRestoreEvent,
   ): void;
   emit(
     event: AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE,

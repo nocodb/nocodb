@@ -28,7 +28,7 @@ export interface DocRevisionFull extends DocRevisionListItem {
 export const useDocRevisions = createSharedComposable(() => {
   const { user } = useGlobal()
   const { isUIAllowed } = useRoles()
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const basesStore = useBases()
   const { basesUser } = storeToRefs(basesStore)
   const documentsStore = useDocumentsStore()
@@ -116,6 +116,8 @@ export const useDocRevisions = createSharedComposable(() => {
       revisions.value = opts.append ? [...revisions.value, ...incoming] : incoming
       nextCursor.value = res?.nextCursor || null
       hasMore.value = !!res?.nextCursor
+
+      $e('a:doc:history:list', { append: !!opts.append, count: incoming.length })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {

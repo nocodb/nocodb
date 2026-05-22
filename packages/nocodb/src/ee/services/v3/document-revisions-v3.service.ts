@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DocRevisionSource } from 'nocodb-sdk';
+import { AppEvents, DocRevisionSource } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DocumentRevisionV3ListResponseType,
@@ -19,7 +19,10 @@ const DEFAULT_PAGE_SIZE = 50;
 
 @Injectable()
 export class DocumentRevisionsV3Service {
-  constructor(protected readonly documentsService: DocumentsService) {}
+  constructor(
+    protected readonly documentsService: DocumentsService,
+    protected readonly appHooksService: AppHooksService,
+  ) {}
 
   /**
    * List revisions for a doc, newest first. `before` is an opaque cursor

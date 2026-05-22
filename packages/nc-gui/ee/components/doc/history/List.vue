@@ -130,6 +130,7 @@ function onSelect(rev: DocRevisionListItem) {
         :mouse-enter-delay="0.4"
       >
         <div
+          v-e="['c:doc:history:select-version']"
           class="nc-doc-history-row"
           :class="{
             'nc-doc-history-row-active': selectedRevisionId === rev.id,

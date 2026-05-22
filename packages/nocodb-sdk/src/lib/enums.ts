@@ -359,6 +359,7 @@ export enum AppEvents {
   DOCUMENT_UPDATE = 'document.update',
   DOCUMENT_DELETE = 'document.delete',
   DOCUMENT_USER_MENTION = 'document.user.mention',
+  DOCUMENT_REVISION_RESTORE = 'document.revision.restore',
 
   DOCUMENT_PUBLIC_SHARE_CREATE = 'document.public_share.create',
   DOCUMENT_PUBLIC_SHARE_UPDATE = 'document.public_share.update',

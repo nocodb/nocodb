@@ -108,6 +108,15 @@ export class DocsHistoryPage extends BasePage {
     await expect(this.listItems()).toHaveCount(count);
   }
 
+  /**
+   * Waits until at least `min` revisions are listed. Less brittle than
+   * `verifyRevisionCount` when the initial doc save may or may not produce
+   * a separate row depending on backend coalesce settings.
+   */
+  async verifyMinRevisionCount(min: number) {
+    await expect(this.listItems().nth(min - 1)).toBeVisible();
+  }
+
   async verifyChangeNavLabel(label: string) {
     await expect(this.changeNav()).toContainText(label);
   }

@@ -55,9 +55,11 @@ test.describe('Docs — Revision history', () => {
     await history.openHistory();
     await history.verifyModalVisible(true);
 
-    // Expect at least two revisions; row 0 is the current version, row 1
-    // is the prior edit. Restore is disabled for row 0 by design.
-    await history.verifyRevisionCount(2);
+    // Wait for at least two revisions to appear — the initial doc save
+    // counts as one, so with two content edits we may end up with three
+    // rows. Row 0 is the current version, rows ≥1 are prior. Restore is
+    // disabled for row 0 by design, so we click row 1.
+    await history.verifyMinRevisionCount(2);
     await history.clickRevisionAt(1);
 
     // Restore — confirms via NcConfirmModal.

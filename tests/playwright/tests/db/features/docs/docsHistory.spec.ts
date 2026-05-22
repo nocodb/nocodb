@@ -4,10 +4,12 @@ import setup, { unsetup } from '../../../../setup';
 import { isEE } from '../../../../setup/db';
 
 /**
- * End-to-end smoke for doc revision history. The 2-minute coalesce window
- * on the backend means we can't easily produce multiple revisions inside
- * a fast spec — so this test verifies the happy path with a single edit:
- * one revision shows in the list, restore creates a second.
+ * End-to-end smoke for doc revision history. Relies on the backend test
+ * harness running with `NC_DOC_REVISION_COALESCE_WINDOW_MS=0` so each save
+ * lands as a distinct revision row — otherwise edits by the same author
+ * within 2 minutes coalesce into one entry. The UI explicitly disables
+ * Restore for the current (topmost) revision, so the test must select a
+ * prior one before restoring.
  */
 test.describe('Docs — Revision history', () => {
   if (!isEE()) test.skip();
@@ -25,14 +27,27 @@ test.describe('Docs — Revision history', () => {
   });
 
   test('open history, preview a revision, and restore it', async ({ page }) => {
-    // Create a doc and make one content edit so we have a revision to show.
+    // Create a doc and make two distinct edits so we have at least two
+    // revisions (one current + one prior) — the UI disables Restore when
+    // the selected revision is the current version.
     await dashboard.sidebar.docsSidebar.createDocument({
       baseTitle: context.base.title,
       title: 'History Smoke',
     });
+
+    // First save → revision #1.
     await dashboard.docs.openedPage.tiptap.fillContent({
       content: 'First version content',
     });
+    // Wait past the 2s autosave debounce so the save is flushed before the
+    // next edit, otherwise both edits debounce into a single save.
+    await page.waitForTimeout(2500);
+
+    // Second save → revision #2 (becomes the current version).
+    await dashboard.docs.openedPage.tiptap.fillContent({
+      content: 'Second version content',
+    });
+    await page.waitForTimeout(2500);
 
     const history = dashboard.docs.openedPage.history;
 
@@ -40,16 +55,12 @@ test.describe('Docs — Revision history', () => {
     await history.openHistory();
     await history.verifyModalVisible(true);
 
-    // The modal auto-selects the most recent revision; explicitly click it
-    // anyway to make the assertion deterministic.
-    await page.waitForTimeout(500);
-    await history.clickRevisionAt(0);
+    // Expect at least two revisions; row 0 is the current version, row 1
+    // is the prior edit. Restore is disabled for row 0 by design.
+    await history.verifyRevisionCount(2);
+    await history.clickRevisionAt(1);
 
     // Restore — confirms via NcConfirmModal.
     await history.restoreSelectedRevision();
-
-    // After restore, the modal closes and a new revision has been written
-    // to history. Re-opening would show two entries (original + restored).
-    await page.waitForTimeout(500);
   });
 });

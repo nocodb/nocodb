@@ -81,6 +81,10 @@ export class DocsHistoryPage extends BasePage {
   }
 
   async restoreSelectedRevision() {
+    // Restore is disabled when the selected revision IS the current version
+    // (topmost row). Caller must first click a prior revision via
+    // clickRevisionAt(i >= 1) for this to be enabled.
+    await expect(this.restoreButton()).toBeEnabled();
     await this.restoreButton().click();
     // NcConfirmModal — click "Restore" in the warning dialog.
     await this.rootPage.getByRole('button', { name: 'Restore' }).last().click();

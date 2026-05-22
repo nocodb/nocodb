@@ -318,9 +318,9 @@ function docRevisionTests() {
         createdBy: 'user-1',
       });
 
-      const fetched = await DocRevision.get(ctx, inserted.id!);
+      const fetched = await DocRevision.get(ctx, inserted);
       expect(fetched).to.not.be.null;
-      expect(fetched!.id).to.equal(inserted.id);
+      expect(fetched!.id).to.equal(inserted);
       expect(fetched!.content).to.deep.equal(sampleContent('payload'));
     });
 

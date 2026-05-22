@@ -77,13 +77,7 @@ function diffTitleSegments(prev: string, next: string): TitleSeg[] {
     const isWhitespaceEq = seg.type === 'eq' && /^\s+$/.test(seg.text)
     const prev = out[out.length - 1]
     const nextSeg = raw[k + 1]
-    if (
-      isWhitespaceEq &&
-      prev &&
-      nextSeg &&
-      prev.type !== 'eq' &&
-      prev.type === nextSeg.type
-    ) {
+    if (isWhitespaceEq && prev && nextSeg && prev.type !== 'eq' && prev.type === nextSeg.type) {
       prev.text += seg.text
       continue
     }
@@ -125,20 +119,14 @@ const headerSubtitle = computed(() => {
       })
     : ''
   const verb =
-    rev.source === DocRevisionSource.RESTORE
-      ? 'Restored'
-      : rev.source === DocRevisionSource.MANUAL
-      ? 'Saved'
-      : 'Edited'
+    rev.source === DocRevisionSource.RESTORE ? 'Restored' : rev.source === DocRevisionSource.MANUAL ? 'Saved' : 'Edited'
   return `${verb} by ${author} · ${when}`
 })
 
 const hasChanges = computed(() => diffChangeCount.value > 0)
 
 const canPrev = computed(() => hasChanges.value && currentChangeIndex.value > 0)
-const canNext = computed(
-  () => hasChanges.value && currentChangeIndex.value < diffChangeCount.value - 1,
-)
+const canNext = computed(() => hasChanges.value && currentChangeIndex.value < diffChangeCount.value - 1)
 
 const changeLabel = computed(() => {
   if (!hasChanges.value) return ''
@@ -156,10 +144,7 @@ const canRestore = computed(() => isUIAllowed('documentRevisionRestore'))
 // same content. The "Current version" label already signals this to readers;
 // the disabled button removes any ambiguity about whether the action does
 // anything.
-const isSelectedCurrentVersion = computed(
-  () =>
-    !!selectedRevisionId.value && selectedRevisionId.value === revisions.value[0]?.id,
-)
+const isSelectedCurrentVersion = computed(() => !!selectedRevisionId.value && selectedRevisionId.value === revisions.value[0]?.id)
 
 const previewContent = computed(() => selectedRevisionContent.value?.content ?? null)
 
@@ -202,7 +187,6 @@ async function onRestore() {
     size="xl"
     :show-separator="false"
     nc-modal-class-name="!p-0"
-    data-testid="nc-doc-history-modal"
     @update:visible="(v: boolean) => emit('update:visible', v)"
     @cancel="onClose"
   >
@@ -210,7 +194,7 @@ async function onRestore() {
          carries its own chrome — the LEFT pane is just the doc preview
          (which provides its own title), the RIGHT pane has its own
          "Version history" header and footer with action buttons. -->
-    <div class="nc-doc-history-body flex h-full overflow-hidden">
+    <div class="nc-doc-history-body flex h-full overflow-hidden" data-testid="nc-doc-history-modal">
       <!-- Viewer pane. Body is constrained to the live doc-editor's
            comfortable reading width (772px) and centred — matches what the
            user sees outside history mode. -->
@@ -222,14 +206,13 @@ async function onRestore() {
           v-else-if="!selectedRevisionContent"
           class="flex flex-col items-center justify-center h-full min-h-[400px] px-6 text-center"
         >
-          <div
-            class="flex items-center justify-center w-14 h-14 rounded-full bg-nc-bg-gray-light mb-4"
-          >
+          <div class="flex items-center justify-center w-14 h-14 rounded-full bg-nc-bg-gray-light mb-4">
             <GeneralIcon icon="ncHistory" class="text-nc-content-gray-subtle w-7 h-7" />
           </div>
           <span class="text-base font-medium text-nc-content-gray">Select a version to preview</span>
           <span class="text-sm text-nc-content-gray-muted mt-2 leading-relaxed max-w-[380px]">
-            Pick one from the list on the right to see the page as it was at that point. Changes against the current version are highlighted inline.
+            Pick one from the list on the right to see the page as it was at that point. Changes against the current version are
+            highlighted inline.
           </span>
         </div>
         <div v-else class="max-w-[772px] mx-auto px-10 py-8">
@@ -246,11 +229,7 @@ async function onRestore() {
             </h1>
             <div class="text-sm text-nc-content-gray-muted mt-2">{{ headerSubtitle }}</div>
           </div>
-          <DocHistoryViewer
-            :content="previewContent"
-            :comparison-content="comparisonContent"
-            :highlight-changes="true"
-          />
+          <DocHistoryViewer :content="previewContent" :comparison-content="comparisonContent" :highlight-changes="true" />
         </div>
       </div>
 
@@ -260,12 +239,7 @@ async function onRestore() {
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
           <span class="font-semibold text-base text-nc-content-gray">Version history</span>
-          <NcButton
-            size="xsmall"
-            type="text"
-            data-testid="nc-doc-history-close-btn"
-            @click="onClose"
-          >
+          <NcButton size="xsmall" type="text" data-testid="nc-doc-history-close-btn" @click="onClose">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
@@ -276,31 +250,17 @@ async function onRestore() {
         </div>
 
         <!-- Footer with Restore + change navigation. -->
-        <div
-          class="flex items-center justify-between px-3 py-2.5 border-t-1 border-nc-border-gray-medium flex-none gap-2"
-        >
+        <div class="flex items-center justify-between px-3 py-2.5 border-t-1 border-nc-border-gray-medium flex-none gap-2">
           <div
             v-if="hasChanges"
             class="flex items-center gap-1 text-xs text-nc-content-gray-subtle"
             data-testid="nc-doc-history-change-nav"
           >
-            <NcButton
-              size="xsmall"
-              type="text"
-              :disabled="!canPrev"
-              data-testid="nc-doc-history-prev-change"
-              @click="prevChange"
-            >
+            <NcButton size="xsmall" type="text" :disabled="!canPrev" data-testid="nc-doc-history-prev-change" @click="prevChange">
               <GeneralIcon icon="ncArrowUp" />
             </NcButton>
             <span class="tabular-nums">{{ changeLabel }}</span>
-            <NcButton
-              size="xsmall"
-              type="text"
-              :disabled="!canNext"
-              data-testid="nc-doc-history-next-change"
-              @click="nextChange"
-            >
+            <NcButton size="xsmall" type="text" :disabled="!canNext" data-testid="nc-doc-history-next-change" @click="nextChange">
               <GeneralIcon icon="ncArrowDown" />
             </NcButton>
           </div>

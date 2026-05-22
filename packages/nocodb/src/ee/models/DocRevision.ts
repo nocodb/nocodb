@@ -91,10 +91,12 @@ export default class DocRevision implements DocumentRevisionType {
     const coalesceWindowMs = getCoalesceWindowMs();
     // Sliding window — measured from latest.updated_at so an active editor's
     // run-on session stays in one row until they go idle.
+    // Normalize null vs undefined — DB stores missing tab_id as NULL but the
+    // incoming context may have it as undefined; we want them to match.
     const canCoalesce =
       latest &&
       latest.created_by === createdBy &&
-      latest.fk_tab_id === context.tab_id &&
+      (latest.fk_tab_id ?? null) === (context.tab_id ?? null) &&
       latest.source === DocRevisionSource.AUTO &&
       source === DocRevisionSource.AUTO &&
       coalesceWindowMs > 0 &&

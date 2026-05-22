@@ -14,6 +14,7 @@ import { toDocumentV3 } from '~/services/v3/documents-v3.types';
 import { DocumentsService } from '~/services/documents.service';
 import { DocRevision } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -135,6 +136,20 @@ export class DocumentRevisionsV3Service {
       req,
       { revisionSource: DocRevisionSource.RESTORE },
     );
+
+    this.appHooksService.emit(AppEvents.DOCUMENT_REVISION_RESTORE, {
+      context,
+      req,
+      docId: param.docId,
+      docTitle: updated.title || 'Untitled',
+      revisionId: rev.id!,
+      revisionCreatedAt: rev.created_at!,
+      revisionAuthor: rev.created_by ?? null,
+      revisionSource: (rev.source ?? DocRevisionSource.AUTO) as
+        | 'auto'
+        | 'manual'
+        | 'restore',
+    });
 
     return toDocumentV3(updated);
   }

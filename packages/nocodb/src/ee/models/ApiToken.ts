@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { API_TOKEN_PREFIX } from 'nocodb-sdk';
 import ApiTokenCE from 'src/models/ApiToken';
 import ApiTokenScope from './ApiTokenScope';
@@ -15,6 +15,11 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+
+const generateToken = customAlphabet(
+  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  40,
+);
 
 export default class ApiToken extends ApiTokenCE {
   token_hash?: string;
@@ -121,7 +126,7 @@ export default class ApiToken extends ApiTokenCE {
       apiToken.expiry;
 
     if (isFineGrained) {
-      const plainToken = API_TOKEN_PREFIX + nanoid(40);
+      const plainToken = API_TOKEN_PREFIX + generateToken();
       const tokenHash = crypto
         .createHash('sha256')
         .update(plainToken)

@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import type { ApiTokenType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
@@ -10,6 +10,11 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
+
+const generateToken = customAlphabet(
+  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  40,
+);
 
 export default class ApiToken implements ApiTokenType {
   id?: string;
@@ -31,7 +36,7 @@ export default class ApiToken implements ApiTokenType {
     apiToken: Partial<ApiToken>,
     ncMeta = Noco.ncMeta,
   ) {
-    const token = nanoid(40);
+    const token = generateToken();
     await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,

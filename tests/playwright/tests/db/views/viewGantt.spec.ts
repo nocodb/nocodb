@@ -17,8 +17,9 @@ import { isEE } from '../../../setup/db';
  *     tooltip surfaces the title so identity is still recoverable when
  *     the inline label is cut off.
  *   - Zoom-level change preserves bars.
- *   - Prev/next navigation slides the buffer and issues a windowed
- *     fetch against the dedicated gantt-data endpoint.
+ *   - Prev/next navigation pans the date axis (pure UI — no refetch).
+ *     The pre-decouple windowed-fetch path is opt-in via from_date /
+ *     to_date and isn't exercised by the default UI flow anymore.
  *   - Dep graph endpoint returns edges for self-ref LTAR predecessors.
  *   - Composite-PK skip is non-fatal (warn-only on backend).
  *
@@ -201,7 +202,10 @@ test.describe('Gantt View', () => {
     await createConfiguredGantt({ title: 'G1Configured' });
     await expect(gantt.get()).toBeVisible();
 
-    // After rule configuration, the windowed fetch should return rows
+    // Rule configuration unlocks bar rendering — without an active
+    // DateDependency rule the fetch 400s, so a non-empty bar count
+    // confirms both the rule landed AND rows are flowing through the
+    // (now default row-index) data path.
     expect(await gantt.getBarCount()).toBeGreaterThan(0);
   });
 
@@ -498,15 +502,14 @@ test.describe('Gantt View', () => {
     expect(arrowCount).toBeGreaterThanOrEqual(2);
   });
 
-  // TODO(gantt): re-enable a milestone test once the windowed-fetch path
-  // returns rows with start=null. As of the time this spec was written,
-  // gantt-datas.service.ts buildOverlapFilter ANDs `start <= to_date`
-  // and `end >= from_date` — SQL evaluates `NULL <= 'date'` to UNKNOWN,
-  // so start=null rows are filtered out at the DB. isMilestone() on the
-  // FE expects start=null AND end=set, but the matching row never
-  // arrives. A future fix would either (a) detect "start col is null
-  // but end col is set" rows via a separate query, or (b) accept
-  // start-only milestones (end=null) in the FE's isMilestone semantics.
+  // TODO(gantt): add a milestone test (start=null, end=set, isMilestone
+  // renders as a diamond). The original NULL-start filtering issue is
+  // resolved: the default fetch path is now row-index pagination, which
+  // skips buildOverlapFilter entirely (gantt-datas.service.ts:96-105),
+  // so NULL-start rows flow through to the FE. Only the opt-in windowed
+  // fetch (when from_date+to_date are provided) still drops them. A new
+  // test seeding a row with start=null and asserting the diamond renders
+  // is now feasible — not added in this commit to keep scope tight.
 
   test('public shared Gantt view is read-only — no drag handles', async ({ browser }) => {
     const viewId = await createConfiguredGantt({ title: 'GReadOnly' });

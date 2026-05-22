@@ -13,7 +13,7 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn } =
+const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn, updateFormat } =
   useCalendarViewStoreOrThrow()
 
 const fields = inject(FieldsInj, ref())
@@ -145,7 +145,7 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
       },
     }
 
@@ -164,7 +164,7 @@ const dropEvent = (event: DragEvent) => {
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+      newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
       updateProperty.push(toCol.title!)
     }
 
@@ -198,7 +198,7 @@ const newRecord = () => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedFromColumn.value) return
   const record = {
     row: {
-      [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
+      [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format(updateFormat.value),
     },
   }
   emit('newRecord', record)

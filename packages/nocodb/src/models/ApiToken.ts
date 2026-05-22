@@ -55,19 +55,32 @@ export default class ApiToken implements ApiTokenType {
     });
   }
 
+  // Columns returned by list endpoints — intentionally excludes the raw
+  // `token` secret. The full token is only ever returned at creation time.
+  private static readonly LIST_FIELDS = [
+    'id',
+    'description',
+    'fk_user_id',
+    'fk_sso_client_id',
+    'base_id',
+    'token_prefix',
+    'expiry',
+    'enabled',
+    'last_used_at',
+    'created_at',
+    'updated_at',
+  ];
+
   static async list(userId: string, ncMeta = Noco.ncMeta) {
-    // let tokens = await NocoCache.getList(CacheScope.API_TOKEN, []);
-    // if (!tokens.length) {
     const tokens = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.API_TOKENS,
       {
         condition: { fk_user_id: userId },
+        fields: this.LIST_FIELDS,
       },
     );
-    // await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
-    // }
     return tokens?.map((t) => this.castType(t));
   }
 
@@ -81,6 +94,7 @@ export default class ApiToken implements ApiTokenType {
           fk_user_id: userId,
           fk_sso_client_id: null,
         },
+        fields: this.LIST_FIELDS,
       },
     );
     return tokens?.map((t) => this.castType(t));
@@ -182,7 +196,6 @@ export default class ApiToken implements ApiTokenType {
       .limit(limit)
       .select(
         `${MetaTable.API_TOKENS}.id`,
-        `${MetaTable.API_TOKENS}.token`,
         `${MetaTable.API_TOKENS}.description`,
         `${MetaTable.API_TOKENS}.fk_user_id`,
         `${MetaTable.API_TOKENS}.fk_sso_client_id`,

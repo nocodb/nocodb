@@ -211,9 +211,7 @@ function onMouseOver(e: MouseEvent) {
   // <strong>text</strong></span>`) so the mouseover fires with `e.target`
   // pointing at the innermost element. `closest` walks up the ancestors to
   // find the decoration span.
-  const span = (e.target as HTMLElement | null)?.closest?.(
-    '.nc-doc-history-diff-format',
-  ) as HTMLElement | null
+  const span = (e.target as HTMLElement | null)?.closest?.('.nc-doc-history-diff-format') as HTMLElement | null
   if (!span) {
     tooltipVisible.value = false
     return
@@ -270,9 +268,10 @@ onBeforeUnmount(() => {
   overrides — the diff-insert decoration colour and its dark-theme variant.
 -->
 <style lang="scss">
-// `@import` is deprecated but still functional — see the note at the
-// matching import in Editor.vue for why we haven't switched to `@use` yet.
-@import '../_doc-content';
+// `@use` loads the module at the top of the file; `@include` below emits
+// the CSS. This is the Sass 3.0-safe replacement for `@import`.
+@use '../_doc-content' as doc;
+@include doc.doc-content;
 
 // ── Mark-diff tooltip (teleported to body) ───────────────
 // Mirrors NcTooltip's `dark` variant — gray-800 fill, white text, rounded

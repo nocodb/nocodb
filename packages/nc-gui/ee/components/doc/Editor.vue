@@ -3087,6 +3087,11 @@ defineExpose({ editor })
 </template>
 
 <style lang="scss">
+// Loaded at the top per Sass 3.0 rules — the actual styles are emitted
+// later in the file via `@include doc.doc-content` so they cascade after
+// the editor chrome rules below.
+@use './_doc-content' as doc;
+
 .nc-doc-editor {
   background: var(--nc-bg-default);
   // Definite height so inner overflow-y-auto activates and only the editor content scrolls.
@@ -3672,11 +3677,10 @@ defineExpose({ editor })
 
 // Content rendering styles for the .nc-doc-editor-content.ProseMirror root
 // live in a shared partial so the read-only history Viewer renders identically.
-// We still use `@import` here (deprecated but functional) — `@use` requires
-// being at the top of the file, which would mean reshuffling ~500 lines of
-// chrome styles that need to render BEFORE the content rules cascade in.
-// Revisit when Sass 3.0 lands and `@import` actually breaks.
-@import './_doc-content';
+// The mixin is included here (rather than at the top of the file) so the
+// content rules land after the editor chrome above and override it where
+// the selectors overlap.
+@include doc.doc-content;
 
 // Paste link embed popup
 .nc-paste-link-menu {

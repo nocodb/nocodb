@@ -4453,6 +4453,8 @@ export class AppHooksListenerService
               details: {
                 table_id: param.table?.id,
                 table_title: param.table?.title,
+                gantt_view_id: param.ganttView?.id,
+                gantt_view_title: param.ganttView?.title,
                 date_dependency_id: param.dateDependency?.id,
                 is_new: param.isNew,
                 start_date_field: startDateField,
@@ -4487,6 +4489,8 @@ export class AppHooksListenerService
               details: {
                 table_id: param.table?.id,
                 table_title: param.table?.title,
+                gantt_view_id: param.ganttView?.id,
+                gantt_view_title: param.ganttView?.title,
               },
             },
           ),

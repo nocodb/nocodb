@@ -14,7 +14,7 @@ import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { validatePayload } from '~/helpers/apiHelpers';
-import { Column, DateDependency, DependencyTracker, Model } from '~/models';
+import { Column, DateDependency, DependencyTracker, Model, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
@@ -103,10 +103,17 @@ export class DateDependencyService {
       context.socket_id,
     );
 
+    // Resolve the Gantt view identity for the audit payload — per-view
+    // and table-level rules otherwise look identical in the audit log.
+    const ganttView = param.ganttViewId
+      ? await View.get(context, param.ganttViewId)
+      : undefined;
+
     this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_UPDATE, {
       context,
       req: param.req,
       table: model,
+      ganttView: ganttView ? { id: ganttView.id, title: ganttView.title } : undefined,
       dateDependency: result,
       isNew,
     });
@@ -130,6 +137,13 @@ export class DateDependencyService {
     }
 
     const model = param.modelId && (await Model.get(context, param.modelId));
+
+    // Resolve view identity before the delete so the audit log can name
+    // the specific Gantt view whose rule was removed (table-level
+    // deletes leave this undefined).
+    const ganttView = param.ganttViewId
+      ? await View.get(context, param.ganttViewId)
+      : undefined;
 
     const existing = param.ganttViewId
       ? await DateDependency.getByGanttViewId(context, param.ganttViewId)
@@ -167,6 +181,7 @@ export class DateDependencyService {
         context,
         req: param.req,
         table: model,
+        ganttView: ganttView ? { id: ganttView.id, title: ganttView.title } : undefined,
       });
     }
   }

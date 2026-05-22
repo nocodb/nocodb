@@ -17,7 +17,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
-import { Model, User, View } from '~/models';
+import { DateDependency, Model, User, View } from '~/models';
 import GanttView from '~/models/GanttView';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
@@ -154,6 +154,26 @@ export class GanttsService {
       context,
       owner,
     });
+
+    // A1 + A2: emit a paired DATE_DEPENDENCY_UPDATE whenever the new
+    // Gantt view ends up with a per-view rule attached. View.insertMetaOnly
+    // (models/View.ts) silently creates one from either the embedded
+    // `dependency` payload (configure-wizard path) or by cloning from a
+    // duplicated view (`copy_from_id` path). Both cases leave no audit
+    // trail otherwise — only the GANTT_CREATE above. Query the DB rather
+    // than echoing the request so the audit reflects what actually landed
+    // (defaults filled in, copied buffer settings, etc.).
+    const persistedRule = await DateDependency.getByGanttViewId(context, view.id);
+    if (persistedRule) {
+      this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_UPDATE, {
+        context,
+        req: param.req,
+        table: model,
+        ganttView: { id: view.id, title: view.title },
+        dateDependency: persistedRule,
+        isNew: true,
+      });
+    }
 
     await view.getView(context);
 

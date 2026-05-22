@@ -493,6 +493,9 @@ export interface DocumentCommentDeleteEvent extends NcBaseEvent {
 // Date Dependency Events
 export interface DateDependencyUpdateEvent extends NcBaseEvent {
   table: { id?: string; title?: string; base_id?: string };
+  /** Set when the rule is per-Gantt-view rather than table-level default.
+   * Surfaces into the audit payload so multi-view boards disambiguate. */
+  ganttView?: { id?: string; title?: string };
   dateDependency: {
     id?: string;
     fk_start_date_field_id?: string;
@@ -511,6 +514,8 @@ export interface DateDependencyUpdateEvent extends NcBaseEvent {
 
 export interface DateDependencyDeleteEvent extends NcBaseEvent {
   table: { id?: string; title?: string; base_id?: string };
+  /** Set when the deleted rule was scoped to a single Gantt view. */
+  ganttView?: { id?: string; title?: string };
 }
 
 // Org Domain Events

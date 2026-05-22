@@ -11,12 +11,17 @@ import NocoCache from '~/cache/NocoCache';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import { getListArgs } from '~/db/BaseModelSqlv2';
 import { getDataWithCountCache } from '~/dbQueryClient/cross-db-utils/get-data-with-count-cache';
+import {
+  getSingleQueryCache,
+  setSingleQueryCache,
+  SINGLE_QUERY_DEFAULT_VIEW,
+} from '~/dbQueryClient/cross-db-utils/single-query-cache';
 import { haveFormulaColumn } from '~/helpers/dbHelpers';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Profiler } from '~/helpers/profiler';
 import { Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
 import { RlsSubscriptionRegistry } from '~/socket/RlsSubscriptionRegistry';
 
@@ -96,23 +101,15 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       (ctx.extractOnlyPrimaries ? ':primaries' : '') +
       rlsCacheSegment +
       displayColSegment;
-    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
-      ctx.view?.id ?? 'default'
-    }:queries${cacheKeySuffix}`;
-    const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
-      ctx.view?.id ?? 'default'
-    }:count${cacheKeySuffix}`;
+    const viewIdOrDefault = ctx.view?.id ?? SINGLE_QUERY_DEFAULT_VIEW;
+    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${viewIdOrDefault}:queries${cacheKeySuffix}`;
+    const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${viewIdOrDefault}:count${cacheKeySuffix}`;
 
     if (!skipCache) {
-      const cachedQuery = await NocoCache.get(
-        context,
-        cacheKey,
-        CacheGetType.TYPE_STRING,
-      );
-      const cachedCountQuery = await NocoCache.get(
+      const cachedQuery = await getSingleQueryCache(context, cacheKey);
+      const cachedCountQuery = await getSingleQueryCache(
         context,
         countCacheKey,
-        CacheGetType.TYPE_STRING,
       );
       if (cachedQuery && cachedCountQuery) {
         profiler.log('get data using cache');
@@ -123,6 +120,8 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
           limit: +listArgs.limit,
           offset: +listArgs.offset,
           knex,
+          modelId: ctx.model.id,
+          viewIdOrDefault,
           countCacheKey,
           skipCache,
           excludeCount,
@@ -232,6 +231,8 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
         limit: +listArgs.limit,
         offset: +listArgs.offset,
         knex,
+        modelId: ctx.model.id,
+        viewIdOrDefault,
         countCacheKey,
         skipCache,
         excludeCount,
@@ -258,18 +259,16 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     }
 
     if (!skipCache) {
-      // cache query for later use after successful execution
-      await NocoCache.set(context, cacheKey, dataQuery);
-
-      // Track RLS-specific keys so clearSingleQueryCache can delete them
-      // Uses Redis SET (sadd) — appends without duplicates
-      if (rlsCacheSegment) {
-        await NocoCache.set(
-          context,
-          `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:rls_keys`,
-          [cacheKey, countCacheKey],
-        );
-      }
+      // cache query for later use after successful execution.
+      // Registers under the per-view parent SET so
+      // `clearSingleQueryCache` -> `deepDel(listKey, PARENT_TO_CHILD)`
+      // wipes every entry for the view regardless of suffix.
+      await setSingleQueryCache(context, {
+        modelId: ctx.model.id,
+        viewIdOrDefault,
+        cacheKey,
+        query: dataQuery,
+      });
     }
 
     profiler.end();

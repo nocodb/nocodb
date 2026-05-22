@@ -1110,7 +1110,27 @@ const hoveredRecordId = ref<string | null>(null)
 const setHighlightFromRecord = (record: RowType) => {
   const pkCols = (meta.value?.columns ?? []) as ColumnType[]
   const id = extractPkFromRow(record.row, pkCols)
-  hoveredRecordId.value = id != null ? String(id) : null
+  const idStr = id != null ? String(id) : null
+  hoveredRecordId.value = idStr
+
+  // Emit chain-hover only when the hovered bar is actually part of a
+  // dependency chain (has at least one predecessor or successor). A
+  // mouseenter on a standalone bar isn't a chain-affordance discovery.
+  if (idStr) {
+    const links = dependencyLinks?.value
+    if (links?.size) {
+      let hasChain = (links.get(idStr)?.length ?? 0) > 0
+      if (!hasChain) {
+        for (const succs of links.values()) {
+          if (succs.includes(idStr)) {
+            hasChain = true
+            break
+          }
+        }
+      }
+      if (hasChain) $e('c:gantt:chain-hover')
+    }
+  }
 }
 
 const clearHighlight = () => {
@@ -1165,6 +1185,7 @@ const selectArrow = (id: string, event?: MouseEvent) => {
   if (!canEditDeps.value) return
   event?.stopPropagation()
   selectedArrowId.value = id
+  $e('c:gantt:arrow-select')
 }
 
 const deselectArrow = () => {

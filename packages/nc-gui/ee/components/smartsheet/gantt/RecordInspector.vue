@@ -114,6 +114,7 @@ const saveName = async () => {
     await updateRowProperty(props.record, [primaryField.value.title])
     $e('a:gantt:inspector-update', { field: 'name' })
   } catch (e: any) {
+    $e('a:gantt:inspector-update-error', { field: 'name' })
     message.error(await extractSdkResponseErrorMsg(e))
     props.record.row[primaryField.value.title] = current
     nameValue.value = current
@@ -130,6 +131,7 @@ const saveDate = async (col: ColumnType | undefined | null, raw: string, kind: '
     await updateRowProperty(props.record, [col.title])
     $e('a:gantt:inspector-update', { field: kind })
   } catch (e: any) {
+    $e('a:gantt:inspector-update-error', { field: kind })
     message.error(await extractSdkResponseErrorMsg(e))
     // Roll back both the underlying row AND the inspector's edit-bound
     // copy. Without the second line, the date input keeps showing the

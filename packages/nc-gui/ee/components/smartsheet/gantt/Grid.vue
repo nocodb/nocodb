@@ -1430,18 +1430,62 @@ const isWeekend = (date: dayjs.Dayjs) => {
   return date.day() === 0 || date.day() === 6
 }
 
-// Check if record's start date is visible (not clamped to before the viewport)
+// Compute the painted viewport's date range. `props.visibleDates` spans
+// the full date-axis buffer (months wider than what's on screen), so
+// using its first/last entries reports "visible" for any bar inside the
+// buffer — far too generous for the clipped-bar nav arrows. Translate
+// scrollLeft + viewportWidth into buffer indices to derive the actual
+// painted edges, clamped to buffer bounds.
+const viewportEdges = computed<{ first: dayjs.Dayjs; last: dayjs.Dayjs } | null>(() => {
+  const buffer = props.visibleDates
+  const cw = colWidth.value
+  const vw = viewportWidth.value
+  if (!buffer?.length || !cw || !vw) return null
+  const firstIdx = Math.max(0, Math.floor(storeScrollLeft.value / cw))
+  const lastIdx = Math.min(buffer.length - 1, Math.ceil((storeScrollLeft.value + vw) / cw) - 1)
+  const first = buffer[firstIdx]
+  const last = buffer[lastIdx]
+  if (!first || !last) return null
+  return { first, last }
+})
+
+// Offset inside the bar where the clipped-left nav arrow should render.
+// `absolute left: 0` would place the arrow at the bar's own left edge —
+// off-screen for any bar whose start is clipped, which is precisely when
+// we need it. Pin it to the painted viewport's left edge instead.
+const arrowLeftOffsetPx = (record: RowType): string => {
+  const style = getBarStyle(record)
+  if (!style) return '0px'
+  const barLeft = parseFloat(style.left)
+  return `${Math.max(0, storeScrollLeft.value - barLeft)}px`
+}
+
+// Symmetric for the right arrow: clamp to the viewport's right edge so
+// the arrow stays inside the painted area even when the bar runs off it.
+const arrowRightOffsetPx = (record: RowType): string => {
+  const style = getBarStyle(record)
+  if (!style) return '0px'
+  const barLeft = parseFloat(style.left)
+  const barWidth = parseFloat(style.width)
+  const barRight = barLeft + barWidth
+  const viewportRight = storeScrollLeft.value + viewportWidth.value
+  return `${Math.max(0, barRight - viewportRight)}px`
+}
+
+// Check if record's start date is visible (not clipped at the left edge of the painted viewport)
 const isStartVisible = (row: RowType) => {
   const range = props.ganttRange[0]
   if (!range) return false
   const startDate = parseDate(row, range.fk_from_col)
   if (!startDate) return false
-  const firstVisibleDate = props.visibleDates[0]
-  if (!firstVisibleDate) return false
-  return !startDate.isBefore(firstVisibleDate, 'day')
+  const edges = viewportEdges.value
+  // Fail open while measurements aren't ready — don't paint a stray arrow
+  // before the date axis has anchored.
+  if (!edges) return true
+  return !startDate.isBefore(edges.first, 'day')
 }
 
-// Check if record's end date is visible (not clamped to after the viewport)
+// Check if record's end date is visible (not clipped at the right edge of the painted viewport)
 const isEndVisible = (row: RowType) => {
   const range = props.ganttRange[0]
   if (!range) return false
@@ -1449,9 +1493,9 @@ const isEndVisible = (row: RowType) => {
   const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
   const effectiveEnd = endDate || startDate
   if (!effectiveEnd) return false
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-  if (!lastVisibleDate) return false
-  return !effectiveEnd.isAfter(lastVisibleDate, 'day')
+  const edges = viewportEdges.value
+  if (!edges) return true
+  return !effectiveEnd.isAfter(edges.last, 'day')
 }
 
 // Today column index (relative to bufferStart) — drives the today highlight
@@ -2288,7 +2332,8 @@ const onGridMouseLeave = () => {
                 <!-- Per-bar left nav arrow — when start is clipped -->
                 <div
                   v-if="!isStartVisible(record)"
-                  class="nc-gantt-nav-arrow absolute left-0 top-0 h-full z-20 flex items-center"
+                  class="nc-gantt-nav-arrow absolute top-0 h-full z-20 flex items-center"
+                  :style="{ left: arrowLeftOffsetPx(record) }"
                   role="button"
                   tabindex="0"
                   :aria-label="$t('labels.previous')"
@@ -2316,7 +2361,8 @@ const onGridMouseLeave = () => {
                 <!-- Per-bar right nav arrow — when end is clipped -->
                 <div
                   v-if="!isEndVisible(record)"
-                  class="nc-gantt-nav-arrow absolute right-0 top-0 h-full z-20 flex items-center"
+                  class="nc-gantt-nav-arrow absolute top-0 h-full z-20 flex items-center"
+                  :style="{ right: arrowRightOffsetPx(record) }"
                   role="button"
                   tabindex="0"
                   :aria-label="$t('labels.next')"

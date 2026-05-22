@@ -95,7 +95,8 @@ export class BaseTrashCleanUpProcessor {
         };
 
         const workspace =
-          entry.fk_workspace_id && (await Workspace.get(entry.fk_workspace_id));
+          entry.fk_workspace_id &&
+          (await Workspace.get(entry.fk_workspace_id, false, Noco.ncMeta, false));
         const base =
           workspace && entry.base_id && (await Base.get(context, entry.base_id));
         if (!workspace || !base) {

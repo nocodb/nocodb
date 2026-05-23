@@ -30,7 +30,10 @@ const { isUIAllowed } = useRoles()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
-/* expansion */
+/* expansion — the preview bar no longer expands on hover; this ref is kept
+ * only because PreviewCell can emit `expand: false` (via the click-outside
+ * listener inside it) and the dropdown header reads it. Nothing turns it on
+ * here, so the bar stays at its compact 80 px width. */
 
 const isExpanded = ref(false)
 
@@ -39,11 +42,6 @@ const isFileContentMenuOpen = ref(false)
 /* auto scroll */
 
 const previewBarCellsContainer = ref<HTMLDivElement | null>(null)
-
-const onMouseLeave = () => {
-  if (isFileContentMenuOpen.value) return
-  isExpanded.value = false
-}
 
 watch(activeAttachmentIndex, async () => {
   await nextTick()
@@ -62,8 +60,6 @@ watch(selectedFieldId, () => {
       'w-[80px]': !isExpanded,
       'w-[320px]': isExpanded,
     }"
-    @mouseenter="isExpanded = true"
-    @mouseleave="onMouseLeave"
   >
     <div class="px-4 py-3 overflow-hidden">
       <NcDropdownSelect
@@ -105,17 +101,19 @@ watch(selectedFieldId, () => {
             'preview-cell-wrapper-active': activeAttachmentIndex === index,
           }"
         >
-          <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
-            v-model:is-file-content-menu-open="isFileContentMenuOpen"
-            :attachment="attachment"
-            :selected-field="selectedField"
-            :active="activeAttachmentIndex === index"
-            :attachment-index="index"
-            class="nc-files-preview-cell"
-            :is-expanded="isExpanded"
-            @click="activeAttachmentIndex = index"
-            @expand="isExpanded = $event"
-          />
+          <NcTooltip :title="attachment.title" placement="right" :disabled="isExpanded">
+            <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
+              v-model:is-file-content-menu-open="isFileContentMenuOpen"
+              :attachment="attachment"
+              :selected-field="selectedField"
+              :active="activeAttachmentIndex === index"
+              :attachment-index="index"
+              class="nc-files-preview-cell"
+              :is-expanded="isExpanded"
+              @click="activeAttachmentIndex = index"
+              @expand="isExpanded = $event"
+            />
+          </NcTooltip>
         </div>
       </div>
     </div>

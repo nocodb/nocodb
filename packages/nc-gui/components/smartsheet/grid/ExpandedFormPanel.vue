@@ -80,7 +80,7 @@ const getMaxWidth = () => {
     el = el.parentElement
   }
   const containerWidth = el?.clientWidth ?? 0
-  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.6))
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
 }
 
 const onResizeMove = (e: MouseEvent) => {

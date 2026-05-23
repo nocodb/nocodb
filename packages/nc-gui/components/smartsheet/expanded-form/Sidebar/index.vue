@@ -112,6 +112,13 @@ const isNarrow = computed(() => sidebarWidth.value > 0 && sidebarWidth.value < T
         }
       }
     }
+    /* Ant-design auto-shows a `…` overflow menu when it thinks the tabs
+       don't fit. With only 3 tabs that collapse to icons below 320 px
+       (see useResizeObserver above), they always fit — kill the overflow
+       button so it doesn't appear as visual noise. */
+    .ant-tabs-nav-more {
+      @apply !hidden;
+    }
   }
   .ant-tabs-content-holder {
     .ant-tabs-content {

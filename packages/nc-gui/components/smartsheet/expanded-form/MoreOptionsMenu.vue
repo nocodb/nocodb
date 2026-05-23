@@ -15,6 +15,11 @@ interface Props {
   // without it those actions point at a record that can't be reached by URL
   // (public shared views, add-new flow, linked-record modal-over-modal).
   rowId?: string
+  // Enables a "Compact view" toggle menu item. Used by the EE docked side
+  // panel; hidden by default so the modal usage stays unchanged.
+  showCompactToggle?: boolean
+  // Current state of the compact-view toggle. v-modeled via 'update:compactMode'.
+  compactMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,13 +28,16 @@ const props = withDefaults(defineProps<Props>(), {
   blueprintMode: false,
   compact: false,
   rowId: undefined,
+  showCompactToggle: false,
+  compactMode: false,
 })
 
 const emits = defineEmits<{
-  duplicateStart: []
-  duplicateApplied: []
-  afterDelete: []
-  requestClose: []
+  'duplicateStart': []
+  'duplicateApplied': []
+  'afterDelete': []
+  'requestClose': []
+  'update:compactMode': [boolean]
 }>()
 
 const { isUIAllowed } = useRoles()
@@ -90,7 +98,8 @@ const visibleMoreOptions = computed(() => {
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
 
-  const hasItemsAboveDelete = Object.entries(result).some(([key, value]) => key !== 'deleteRecord' && value)
+  const hasItemsAboveDelete =
+    Object.entries(result).some(([key, value]) => key !== 'deleteRecord' && value) || props.showCompactToggle
 
   return {
     ...result,
@@ -262,6 +271,20 @@ const onConfirmDeleteRowClick = async () => {
             </NcMenuItem>
           </template>
         </PermissionsTooltip>
+        <NcMenuItem
+          v-if="showCompactToggle"
+          v-e="[compactMode ? 'c:row-expand-panel:compact:off' : 'c:row-expand-panel:compact:on']"
+          data-testid="nc-expanded-form-compact-toggle"
+          @click="emits('update:compactMode', !compactMode)"
+        >
+          <div class="flex gap-2 items-center justify-between w-full">
+            <div class="flex gap-2 items-center">
+              <component :is="iconMap.list" class="cursor-pointer" />
+              <span>Compact view</span>
+            </div>
+            <component :is="iconMap.check" v-if="compactMode" class="!w-3.5 !h-3.5 text-nc-content-brand" />
+          </div>
+        </NcMenuItem>
         <NcDivider v-if="visibleMoreOptions.showDeleteDivider" />
         <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
           <template #title>

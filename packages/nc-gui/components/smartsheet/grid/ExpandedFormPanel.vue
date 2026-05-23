@@ -2,6 +2,7 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { ExpandedFormMode } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { useStorage } from '@vueuse/core'
 
 const panelStore = useExpandedFormPanelOrThrow()
 
@@ -586,6 +587,11 @@ const searchQuery = ref('')
 
 const hideBlankFields = ref(false)
 
+// Compact view — when on, fields render as label + plain text (no input box).
+// Persisted across sessions because it's a viewing preference, not transient
+// state.
+const isCompactMode = useStorage('nc-expanded-form-panel-compact', false)
+
 const showFieldFilters = computed(() => {
   if (isLoading.value) return false
   if (isFullscreen.value) return activeViewMode.value === ExpandedFormMode.FIELD
@@ -745,9 +751,15 @@ watch(activeRowId, () => {
 
         <div class="flex items-center gap-1">
           <SmartsheetExpandedFormMoreOptionsMenu
+            v-model:compact-mode="isCompactMode"
             :is-loading="isLoading"
             :view="view"
+<<<<<<< ours
             :row-id="activeRowId ?? undefined"
+=======
+            :row-id="primaryKey"
+            :show-compact-toggle="!isFullscreen"
+>>>>>>> theirs
             compact
             @after-delete="closePanel"
             @duplicate-applied="onAfterDuplicate"
@@ -923,6 +935,7 @@ watch(activeRowId, () => {
               :is-loading="isLoading"
               :search-query="searchQuery"
               :hide-blank-fields="hideBlankFields"
+              :compact-mode="isCompactMode"
               force-vertical-mode
               class="nc-panel-fields-compact"
             />
@@ -1152,8 +1165,32 @@ watch(activeRowId, () => {
 .nc-expanded-form-panel .nc-data-cell {
   box-shadow: none !important;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):hover {
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):not(.nc-data-cell-compact):hover {
     box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.12) !important;
   }
+}
+
+/* Compact view — strip every visible chrome layer (border / background /
+   shadow) at all states. Cells stay editable; the inner widget shows its own
+   feedback (text cursor, picker overlay, dropdown). Uses `border: none` so
+   the 1px transparent border from `!border-1 !border-nc-border-brand` doesn't
+   eat layout space. */
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact,
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact:hover,
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact:focus-within {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Compact view — shrink the label text by 1px (12px -> 11px) and force
+   uppercase. The existing rule chains through .nc-panel-fields-compact >
+   .nc-expanded-cell-header > .nc-cell-name-wrapper > .name.truncate > span
+   (specificity 5 classes + 1 element), so beat it by adding .nc-row-compact
+   AND keeping the full chain. */
+.nc-panel-fields-compact .nc-row-compact .nc-expanded-cell-header .nc-cell-name-wrapper .name.truncate span,
+.nc-panel-fields-compact .nc-row-compact .nc-expanded-cell-header .nc-virtual-cell-name-wrapper .name.truncate span {
+  font-size: 11px !important;
+  text-transform: uppercase !important;
 }
 </style>

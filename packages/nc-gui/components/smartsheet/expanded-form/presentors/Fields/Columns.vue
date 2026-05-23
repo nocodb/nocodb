@@ -9,6 +9,7 @@ const props = defineProps<{
   forceVerticalMode?: boolean
   searchQuery?: string
   hideBlankFields?: boolean
+  compactMode?: boolean
 }>()
 
 const isLoading = toRef(props, 'isLoading')
@@ -54,7 +55,8 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
 <template>
   <div
     ref="expandedFormScrollWrapper"
-    class="flex flex-col flex-grow gap-5 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
+    class="flex flex-col flex-grow h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2) children:max-w-[588px] <lg:(children:max-w-[450px])"
+    :class="compactMode ? 'gap-2.5 xs:gap-3' : 'gap-5 xs:gap-6'"
   >
     <SmartsheetExpandedFormPresentorsFieldsColumnList
       :fields="fields"
@@ -62,6 +64,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
       :is-loading="isLoading"
       :search-query="normalizedSearch"
       :hide-blank-fields="hideBlankFields"
+      :compact-mode="compactMode"
     />
     <div v-if="hiddenFields.length > 0 && !showEmptyState" class="flex w-full <lg:(px-1) items-center py-6">
       <div class="flex-grow h-px mr-1 bg-nc-bg-gray-light" />
@@ -96,6 +99,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
       :is-loading="isLoading"
       :search-query="normalizedSearch"
       :hide-blank-fields="hideBlankFields"
+      :compact-mode="compactMode"
       :show-col-callback="(col) => isFormula(col)"
     />
     <div

@@ -41,31 +41,10 @@ test.describe('Force 2FA workspace setting', () => {
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 
-  test('confirming the warning enforces 2FA on the owner immediately', async () => {
-    await dashboard.workspaceSettings.open();
-
-    const toggle = dashboard.workspaceSettings.forceTwoFactorToggle();
-    const confirmModal = dashboard.rootPage.locator('.nc-modal-confirm-type-warning:visible');
-    const mfaModal = dashboard.rootPage.locator('.nc-modal-confirm:visible', {
-      hasText: 'Two-Factor Authentication Required',
-    });
-
-    await expect(toggle).toHaveAttribute('aria-checked', 'false');
-
-    // Open the warning, confirm enable — PATCH lands and the toggle flips.
-    await dashboard.workspaceSettings.clickForceTwoFactorToggle();
-    await expect(confirmModal).toBeVisible();
-
-    await dashboard.workspaceSettings.waitForResponse({
-      uiAction: () => confirmModal.locator('.nc-modal-confirm-ok-btn').click(),
-      httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `/api/v1/workspaces/`,
-    });
-
-    // Owner has no 2FA — once force_2fa is on, the next workspace request
-    // returns 403 ERR_MFA_SETUP_REQUIRED and the EE interceptor opens the
-    // setup dialog. If the regression returned, this assertion would fail
-    // because the owner would silently keep workspace access.
-    await expect(mfaModal).toBeVisible();
-  });
+  // The confirm path (clicking Enable) intentionally locks the workspace owner
+  // out of their own workspace. Asserting that here would leave force_2fa = true
+  // on the seed workspace, and the next test's beforeEach can't clean it up
+  // (PATCH/DELETE on the workspace also go through the MFA gate → 403). Backend
+  // unit tests in packages/nocodb/tests/unit/rest/tests/ee/mfa.test.ts cover the
+  // owner-no-longer-exempt regression instead.
 });

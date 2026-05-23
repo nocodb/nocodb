@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useResizeObserver } from '@vueuse/core'
+
 const props = defineProps<{
   showFieldsTab?: boolean
   /** Render the Fields tab content in compact mode. Forwarded straight to
@@ -21,37 +23,57 @@ watch(tab, (newValue) => {
     expandedFormStore.loadAudits()
   }
 })
+
+// Container-aware tab labels: when the sidebar itself is narrow (not the
+// viewport), collapse each tab to icon-only and surface the label via tooltip.
+// Below this threshold a 3-tab pill cannot host icon + label without elbowing
+// each tab into <80 px which clips the labels anyway.
+const sidebarRef = ref<HTMLElement>()
+const sidebarWidth = ref(0)
+
+useResizeObserver(sidebarRef, (entries) => {
+  sidebarWidth.value = entries[0]?.contentRect.width ?? 0
+})
+
+const TAB_LABEL_THRESHOLD = 320
+const isNarrow = computed(() => sidebarWidth.value > 0 && sidebarWidth.value < TAB_LABEL_THRESHOLD)
 </script>
 
 <template>
-  <div class="flex flex-col bg-nc-bg-default !h-full w-full rounded-br-2xl overflow-hidden">
+  <div ref="sidebarRef" class="flex flex-col bg-nc-bg-default !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:active-key="tab" class="h-full">
       <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
         <template #tab>
-          <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
-            <GeneralIcon icon="fields" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('objects.fields') }} </span>
-          </div>
+          <NcTooltip :disabled="!isNarrow" :title="$t('objects.fields')">
+            <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
+              <GeneralIcon icon="fields" class="w-4 h-4" />
+              <span v-show="!isNarrow"> {{ $t('objects.fields') }} </span>
+            </div>
+          </NcTooltip>
         </template>
         <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
       </a-tab-pane>
 
       <a-tab-pane v-if="!isSqlView" key="comments" class="w-full h-full">
         <template #tab>
-          <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
-            <GeneralIcon icon="messageCircle" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('general.comments') }} </span>
-          </div>
+          <NcTooltip :disabled="!isNarrow" :title="$t('general.comments')">
+            <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
+              <GeneralIcon icon="messageCircle" class="w-4 h-4" />
+              <span v-show="!isNarrow"> {{ $t('general.comments') }} </span>
+            </div>
+          </NcTooltip>
         </template>
         <SmartsheetExpandedFormSidebarComments />
       </a-tab-pane>
 
       <a-tab-pane v-if="!isSqlView" key="audits" class="w-full">
         <template #tab>
-          <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
-            <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('labels.revisionHistory') }} </span>
-          </div>
+          <NcTooltip :disabled="!isNarrow" :title="$t('labels.revisionHistory')">
+            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
+              <GeneralIcon icon="audit" class="w-4 h-4" />
+              <span v-show="!isNarrow"> {{ $t('labels.revisionHistory') }} </span>
+            </div>
+          </NcTooltip>
         </template>
         <SmartsheetExpandedFormSidebarAudits />
       </a-tab-pane>

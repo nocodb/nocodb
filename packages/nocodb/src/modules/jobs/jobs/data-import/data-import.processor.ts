@@ -20,6 +20,7 @@ import type {
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
 import { getCheckboxValue } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+import { describeRowError } from '~/modules/jobs/jobs/data-import/error-formatter';
 import {
   deleteImportAttachment,
   openImportAttachmentStream,
@@ -47,20 +48,6 @@ const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
   NcErrorType.ERR_INVALID_JSON,
   NcErrorType.ERR_INVALID_ATTACHMENT_JSON,
 ]);
-
-/**
- * Build a short, user-presentable error string from a thrown error. Strips
- * newlines and clips the length so raw DB-driver messages (e.g. "invalid
- * input syntax for type numeric: \"$500.00\"") render cleanly in a toast.
- */
-function describeRowError(err: unknown): string {
-  const msg =
-    err && typeof err === 'object' && 'message' in err
-      ? (err as { message?: unknown }).message
-      : undefined;
-  if (typeof msg !== 'string' || !msg) return 'Failed to insert row';
-  return msg.replace(/\s+/g, ' ').trim().slice(0, 240);
-}
 
 interface ColumnMapEntry {
   destCn: string;

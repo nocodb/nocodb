@@ -9,6 +9,7 @@ import { apiTokenPermissionTest } from './apiTokenPermission.test';
 import { mailAuditTests } from './mailAudit.test';
 import { jobsProcessorTest } from './jobsProcessor.test';
 import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
+import { describeRowErrorTests } from './dataImportProcessor.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -41,6 +42,7 @@ function _helperTests() {
   emailUtilsTest();
   jobsProcessorTest();
   dateTimeFilterHandlerTest();
+  describeRowErrorTests();
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();

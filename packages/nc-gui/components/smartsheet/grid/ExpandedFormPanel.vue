@@ -48,6 +48,29 @@ const resizeStartWidth = ref(0)
 
 const MIN_WIDTH = 320
 
+// Below this width the docked panel renders only the main pane (no sidebar);
+// at or above this width — or anytime fullscreen — the presenter's right-side
+// drawer (comments/audits/fields) is allowed to show. The docked panel uses a
+// vertical (label-above-value) field layout, which lets us split far earlier
+// than fullscreen's horizontal layout would allow — ~280 px main + ~280 px
+// sidebar + chrome.
+const DUAL_PANE_THRESHOLD = 600
+
+const useDualPane = computed(() => isFullscreen.value || panelWidth.value >= DUAL_PANE_THRESHOLD)
+
+// Manual toggle for the sidebar in docked mode — paired with the header's
+// show/hide-sidebar button. Click in single-pane bumps the panel up to the
+// dual-pane threshold so the sidebar becomes visible; click in dual-pane
+// collapses to a single-pane-friendly width. Honors the resize handle bounds.
+const SIDEBAR_COLLAPSED_WIDTH = 480
+
+const toggleSidebar = () => {
+  if (panelWidth.value >= DUAL_PANE_THRESHOLD) {
+    panelWidth.value = SIDEBAR_COLLAPSED_WIDTH
+  } else {
+    panelWidth.value = DUAL_PANE_THRESHOLD
+  }
+}
 const getMaxWidth = () => {
   // The panel sits inside a `display: contents` wrapper in Smartsheet.vue
   // (kept so toggling SmartText visibility doesn't remount the panel). Such
@@ -715,44 +738,26 @@ watch(activeRowId, () => {
           class="nc-expanded-form-mode-switch"
         />
 
-        <!-- Activity pill — side-panel mode in any edition, plus CE fullscreen. -->
-        <div
-          v-if="showActivity && !useEeFullscreenSelector"
-          class="nc-panel-mode-selector flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
-        >
-          <NcTooltip :title="$t('objects.fields')">
-            <div
-              v-e="['c:row-expand-panel:mode:fields']"
-              class="nc-panel-mode-tab"
-              :class="{ active: !activityExpanded }"
-              @click="activityExpanded = false"
-            >
-              <GeneralIcon icon="menu" class="nc-panel-mode-tab-icon" />
-            </div>
-          </NcTooltip>
-          <NcTooltip :title="$t('general.comments')">
-            <div
-              v-e="['c:row-expand-panel:mode:comments']"
-              class="nc-panel-mode-tab"
-              :class="{ active: activityExpanded && activeActivityTab === 'comments' }"
-              data-testid="nc-expanded-form-panel-comments-toggle"
-              @click="toggleActivity('comments')"
-            >
-              <GeneralIcon icon="messageCircle" class="nc-panel-mode-tab-icon" />
-            </div>
-          </NcTooltip>
-          <NcTooltip :title="$t('labels.revisionHistory')">
-            <div
-              v-e="['c:row-expand-panel:mode:audits']"
-              class="nc-panel-mode-tab"
-              :class="{ active: activityExpanded && activeActivityTab === 'audits' }"
-              data-testid="nc-expanded-form-panel-audits-toggle"
-              @click="toggleActivity('audits')"
-            >
-              <GeneralIcon icon="audit" class="nc-panel-mode-tab-icon" />
-            </div>
-          </NcTooltip>
-        </div>
+        <!-- Show / Hide sidebar — only meaningful in docked mode (fullscreen
+             always renders the dual pane). Single-pane state bumps to the
+             dual-pane threshold; dual-pane state collapses to a single-pane
+             width. Mirrors the left-sidebar toggle pattern. -->
+        <NcTooltip v-if="!isFullscreen" :title="useDualPane ? 'Hide sidebar' : 'Show sidebar'">
+          <NcButton
+            v-e="[`c:row-expand-panel:${useDualPane ? 'hide' : 'show'}-sidebar`]"
+            size="xs"
+            type="text"
+            data-testid="nc-expanded-form-panel-toggle-sidebar"
+            class="!px-1"
+            @click="(e) => { toggleSidebar(); (e.currentTarget as HTMLElement)?.blur?.() }"
+          >
+            <GeneralIcon
+              icon="sidebar"
+              class="w-3.5 h-3.5 transform scale-x-[-1]"
+              :class="useDualPane ? '!text-nc-content-brand' : ''"
+            />
+          </NcButton>
+        </NcTooltip>
 
         <div class="flex items-center gap-1">
           <SmartsheetExpandedFormMoreOptionsMenu

@@ -38,6 +38,7 @@ const {
   dependencyLinks,
   unlinkDependency,
   linkDependency,
+  invalidReasonFor,
   colWidth,
   viewportWidth,
   totalGridWidth,
@@ -1036,8 +1037,9 @@ function buildArrowPath(
 //   'date-violation' — successor scheduled before its predecessor finishes
 //                       (or analogous failure per the rule's connection_type)
 //   'cycle'          — this edge participates in a dependency loop
-// Drives the red palette in the SVG template. Mirrors Airtable's red-line
-// behaviour for invalid dependencies.
+// Drives the red palette in the SVG template. Detection lives on the
+// store (useGanttViewStore.invalidReasonFor) so Grid, GroupedCrossArrows,
+// and RecordInspector all label edges identically.
 type InvalidReason = 'date-violation' | 'cycle' | null
 type ArrowPath = {
   id: string
@@ -1045,101 +1047,6 @@ type ArrowPath = {
   rowId: string
   linkedId: string
   invalidReason: InvalidReason
-}
-
-// Edges that participate in a cycle. Computed once per dependencyLinks
-// change via a simple reachability pass: an edge (u → v) is in a cycle iff
-// v can transitively reach u through the graph. O(V*E) — fine for the
-// row counts a Gantt view holds in memory.
-const cycleEdgeIds = computed<Set<string>>(() => {
-  const links = dependencyLinks?.value
-  if (!links || !links.size) return new Set()
-
-  const cycles = new Set<string>()
-  const canReach = (from: string, target: string, seen: Set<string>): boolean => {
-    if (from === target) return true
-    if (seen.has(from)) return false
-    seen.add(from)
-    const children = links.get(from)
-    if (!children) return false
-    for (const c of children) {
-      if (canReach(c, target, seen)) return true
-    }
-    return false
-  }
-
-  links.forEach((children, parent) => {
-    for (const child of children) {
-      if (canReach(child, parent, new Set())) {
-        cycles.add(`${parent}-${child}`)
-      }
-    }
-  })
-  return cycles
-})
-
-// Per-rule date-violation check. Compares the predecessor's anchor date to
-// the successor's anchor date based on the configured connection_type, and
-// flags the pair if the constraint isn't satisfied. Mirrors the gap logic
-// the backend cascade CTE uses, just one pair at a time for rendering.
-//
-//   end-to-start    succ.start must come AFTER pred.end       (Airtable default)
-//   end-to-end      succ.end   must come AFTER  pred.end
-//   start-to-start  succ.start must come AFTER  pred.start
-//   start-to-end    succ.end   must come AFTER  pred.start
-//
-// buffer_type='fixed'    -> require exact gap === buffer_days (mismatch is a violation)
-// buffer_type='flexible' -> require gap >= buffer_days (smaller is a violation)
-// buffer_type='none'     -> no enforcement; never violated
-const checkDateViolation = (
-  predRow: RowType,
-  succRow: RowType,
-  range: NonNullable<typeof props.ganttRange[0]>,
-): boolean => {
-  const fromCol = range.fk_from_col
-  const toCol = range.fk_to_col ?? fromCol
-  if (!fromCol) return false
-
-  const predStart = parseDate(predRow, fromCol)
-  const predEnd = toCol ? parseDate(predRow, toCol) : predStart
-  const succStart = parseDate(succRow, fromCol)
-  const succEnd = toCol ? parseDate(succRow, toCol) : succStart
-  if (!predStart || !succStart) return false
-
-  const bufferType = range.buffer_type ?? 'flexible'
-  if (bufferType === 'none') return false
-  const bufferDays = range.buffer_days ?? 0
-
-  const connection = range.connection_type ?? 'end-to-start'
-  let predAnchor = predStart
-  let succAnchor = succStart
-  switch (connection) {
-    case 'end-to-start':
-      predAnchor = predEnd ?? predStart
-      succAnchor = succStart
-      break
-    case 'end-to-end':
-      predAnchor = predEnd ?? predStart
-      succAnchor = succEnd ?? succStart
-      break
-    case 'start-to-start':
-      predAnchor = predStart
-      succAnchor = succStart
-      break
-    case 'start-to-end':
-      predAnchor = predStart
-      succAnchor = succEnd ?? succStart
-      break
-  }
-
-  // End dates are inclusive in NocoDB Gantt (a Jan 1–3 task spans 3 days),
-  // so end-to-start requires the successor to start strictly after the
-  // predecessor's end day. The other variants compare same-kind anchors
-  // and just need succ ≥ pred + buffer.
-  const minGap = connection === 'end-to-start' ? 1 + bufferDays : bufferDays
-  const actualGap = succAnchor.diff(predAnchor, 'day')
-
-  return bufferType === 'fixed' ? actualGap !== minGap : actualGap < minGap
 }
 
 const arrowPaths = computed<ArrowPath[]>(() => {
@@ -1157,7 +1064,6 @@ const arrowPaths = computed<ArrowPath[]>(() => {
   if (!indexByRowId.size) return []
 
   const direction = range.dependency_direction ?? 'successor'
-  const cycles = cycleEdgeIds.value
   const result: ArrowPath[] = []
 
   // Resolve a record's horizontal anchors (right-edge for a predecessor, left-
@@ -1194,15 +1100,10 @@ const arrowPaths = computed<ArrowPath[]>(() => {
       const succAnchor = anchorsFor(succRow)
       if (!predAnchor || !succAnchor) continue
 
-      // Edges in cycles trump date violations — a loop is the more
-      // fundamental schema-level problem, the dates would be undefined
-      // anyway. Otherwise check the per-connection-type timing rule.
-      let invalidReason: InvalidReason = null
-      if (cycles.has(`${rowId}-${linkedId}`)) {
-        invalidReason = 'cycle'
-      } else if (checkDateViolation(predRow, succRow, range)) {
-        invalidReason = 'date-violation'
-      }
+      // Cycles trump date violations — a loop is the more fundamental
+      // schema-level problem (dates wouldn't be defined anyway). The
+      // store's invalidReasonFor handles that priority internally.
+      const invalidReason: InvalidReason = invalidReasonFor(rowId, linkedId)
 
       result.push({
         id: `${rowId}-${linkedId}`,

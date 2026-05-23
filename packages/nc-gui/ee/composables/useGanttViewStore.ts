@@ -417,6 +417,134 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       }
     }
 
+    // ── Invalid-dependency detection ─────────────────────────────────────
+    // Two failure modes per Airtable's spec:
+    //   - 'cycle'          — edge participates in a dependency loop
+    //   - 'date-violation' — successor scheduled before its predecessor
+    //                         finishes (or analogous failure per the rule's
+    //                         connection_type / buffer)
+    // Computed centrally so Grid.vue, GroupedCrossArrows.vue, and the
+    // RecordInspector all consume identical labels (single source of truth).
+
+    type InvalidReason = 'date-violation' | 'cycle'
+
+    // O(V*E) DFS reachability — an edge (u → v) is in a cycle iff v can
+    // transitively reach u. Recomputed lazily as dependencyLinks changes.
+    const cycleEdgeIds = computed<Set<string>>(() => {
+      const links = dependencyLinks.value
+      if (!links?.size) return new Set()
+      const cycles = new Set<string>()
+      const canReach = (from: string, target: string, seen: Set<string>): boolean => {
+        if (from === target) return true
+        if (seen.has(from)) return false
+        seen.add(from)
+        const children = links.get(from)
+        if (!children) return false
+        for (const c of children) {
+          if (canReach(c, target, seen)) return true
+        }
+        return false
+      }
+      links.forEach((children, parent) => {
+        for (const child of children) {
+          if (canReach(child, parent, new Set())) cycles.add(`${parent}-${child}`)
+        }
+      })
+      return cycles
+    })
+
+    // Index visible rows by PK so cell-level lookups (e.g. fetching the
+    // predecessor row for a date-violation check from the inspector) hit
+    // a Map instead of scanning formattedData.
+    const recordById = computed<Map<string, Row>>(() => {
+      const map = new Map<string, Row>()
+      const cols = (meta.value?.columns ?? []) as ColumnType[]
+      for (const row of formattedData.value) {
+        const id = extractPkFromRow(row.row, cols)
+        if (id != null) map.set(String(id), row)
+      }
+      return map
+    })
+
+    const _parseDate = (row: Row, col: ColumnType | undefined | null): dayjs.Dayjs | null => {
+      if (!col?.title) return null
+      const val = row.row?.[col.title]
+      if (!val) return null
+      const d = dayjs(val)
+      return d.isValid() ? d : null
+    }
+
+    // Date-violation check for a single (predecessor, successor) pair —
+    // mirrors the backend cascade CTE's gap math, applied one edge at a
+    // time so the renderer + inspector can mark individual links.
+    const checkDateViolationFor = (predRow: Row, succRow: Row): boolean => {
+      const r = ganttRange.value?.[0]
+      if (!r) return false
+      const fromCol = r.fk_from_col
+      const toCol = r.fk_to_col ?? fromCol
+      if (!fromCol) return false
+
+      const predStart = _parseDate(predRow, fromCol)
+      const predEnd = toCol ? _parseDate(predRow, toCol) : predStart
+      const succStart = _parseDate(succRow, fromCol)
+      const succEnd = toCol ? _parseDate(succRow, toCol) : succStart
+      if (!predStart || !succStart) return false
+
+      const bufferType = r.buffer_type ?? 'flexible'
+      if (bufferType === 'none') return false
+      const bufferDays = r.buffer_days ?? 0
+      const connection = r.connection_type ?? 'end-to-start'
+
+      let predAnchor = predStart
+      let succAnchor = succStart
+      switch (connection) {
+        case 'end-to-start':
+          predAnchor = predEnd ?? predStart
+          succAnchor = succStart
+          break
+        case 'end-to-end':
+          predAnchor = predEnd ?? predStart
+          succAnchor = succEnd ?? succStart
+          break
+        case 'start-to-start':
+          predAnchor = predStart
+          succAnchor = succStart
+          break
+        case 'start-to-end':
+          predAnchor = predStart
+          succAnchor = succEnd ?? succStart
+          break
+      }
+
+      const minGap = connection === 'end-to-start' ? 1 + bufferDays : bufferDays
+      const actualGap = succAnchor.diff(predAnchor, 'day')
+      return bufferType === 'fixed' ? actualGap !== minGap : actualGap < minGap
+    }
+
+    // Caller convenience: gives the failure mode (or null) for any edge
+    // identified by (parent, child) row PKs in the dependency graph.
+    const invalidReasonFor = (parentId: string, childId: string): InvalidReason | null => {
+      if (cycleEdgeIds.value.has(`${parentId}-${childId}`)) return 'cycle'
+      const predRow = recordById.value.get(parentId)
+      const succRow = recordById.value.get(childId)
+      if (!predRow || !succRow) return null
+      return checkDateViolationFor(predRow, succRow) ? 'date-violation' : null
+    }
+
+    // Total invalid edges in view — surfaced to the toolbar for a count
+    // badge. Recomputes only when the graph or visible rows change.
+    const invalidDependencyCount = computed(() => {
+      const links = dependencyLinks.value
+      if (!links?.size) return 0
+      let count = 0
+      links.forEach((children, parent) => {
+        for (const child of children) {
+          if (invalidReasonFor(parent, child)) count++
+        }
+      })
+      return count
+    })
+
     // Mutate the in-memory dep graph without a round-trip; used for optimistic
     // updates on unlink/link and for undo after a toast.
     const patchDependencyLinks = (
@@ -751,6 +879,9 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       isPublic,
       totalRecordCount,
       dependencyLinks,
+      cycleEdgeIds,
+      invalidReasonFor,
+      invalidDependencyCount,
       updateFormat,
       inspectorRecord,
 

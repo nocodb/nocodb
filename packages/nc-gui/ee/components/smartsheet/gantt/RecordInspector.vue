@@ -27,8 +27,15 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { ganttRange, formattedData, dependencyLinks, updateRowProperty, linkDependency, unlinkDependency } =
-  useGanttViewStoreOrThrow()
+const {
+  ganttRange,
+  formattedData,
+  dependencyLinks,
+  invalidReasonFor,
+  updateRowProperty,
+  linkDependency,
+  unlinkDependency,
+} = useGanttViewStoreOrThrow()
 
 // Display value column (Title / Name).
 const primaryField = computed(() => {
@@ -198,6 +205,70 @@ const titleFor = (id: string): string => {
   const row = recordsById.value.get(id)
   if (!row || !primaryField.value?.title) return id
   return String(row.row?.[primaryField.value.title] ?? id)
+}
+
+// ── Invalid-dependency status per linked record ──────────────────────────
+// Surfaced inline next to each successor/predecessor as a red warning
+// triangle (matching Airtable's UX). Reasons:
+//   'cycle'          — these records form a dependency loop
+//   'date-violation' — the predecessor's end date is after the successor
+//                       starts (or the analogous failure per the rule's
+//                       connection_type / buffer config)
+// invalidReasonFor() lives on the store (same source of truth as the
+// red-arrow renderer) so the inspector and the chart never disagree.
+
+// Predecessor list iterates predId -> currentRow; pass the edge in that
+// direction (predId is the graph-parent, currentRow is the graph-child).
+const predecessorInvalidReasonFor = (predId: string) => {
+  if (!currentRowId.value) return null
+  return invalidReasonFor(predId, currentRowId.value)
+}
+
+// Successor list iterates currentRow -> succId; currentRow is the
+// graph-parent, succId is the graph-child.
+const successorInvalidReasonFor = (succId: string) => {
+  if (!currentRowId.value) return null
+  return invalidReasonFor(currentRowId.value, succId)
+}
+
+// Build the Airtable-style "{succTitle} starts before {predTitle} ends"
+// message. Direction-aware so predecessor + successor lists each say
+// the same thing in a way that reads correctly from their perspective.
+const invalidTooltipFor = (
+  reason: 'date-violation' | 'cycle' | null,
+  otherId: string,
+  isPredecessor: boolean,
+): string => {
+  if (reason === 'cycle') return t('msg.dependencyInvalidCycle')
+  if (reason === 'date-violation') {
+    const otherTitle = titleFor(otherId) || t('objects.record')
+    const selfTitle = nameValue.value || t('objects.record')
+    return isPredecessor
+      ? t('msg.dependencyInvalidDatePredecessor', { self: selfTitle, other: otherTitle })
+      : t('msg.dependencyInvalidDateSuccessor', { self: selfTitle, other: otherTitle })
+  }
+  return ''
+}
+
+// Inspector-level summary: does any edge touching THIS record violate?
+// Drives the "Fix invalid dependencies" link visibility at the bottom of
+// the dep section. We only surface the action when there's something to
+// fix on the open record's chain (don't dangle a global action under a
+// per-record view).
+const hasInvalidEdgeOnRecord = computed(() => {
+  return (
+    predecessorIds.value.some((id) => predecessorInvalidReasonFor(id)) ||
+    successorIds.value.some((id) => successorInvalidReasonFor(id))
+  )
+})
+
+// Placeholder fix action — surface a toast pointing the user at the
+// inline ⚠ markers. The actual cascade-fix algorithm (shift
+// predecessors/successors while preserving durations) is scoped as a
+// separate piece of work; this commit only wires the discovery affordance.
+const onClickFixInvalid = () => {
+  $e('a:gantt:inspector-fix-invalid')
+  message.info(t('msg.dependencyFixInvalidHint'))
 }
 
 const onUnlinkSuccessor = async (linkedId: string) => {
@@ -588,8 +659,23 @@ const formatDisplay = (raw: string | null | undefined) => {
             v-for="id in predecessorIds"
             :key="`pred-${id}`"
             class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-xs"
+            :class="{ 'border-nc-content-red-dark': predecessorInvalidReasonFor(id) }"
           >
-            <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
+            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+              <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
+              <NcTooltip
+                v-if="predecessorInvalidReasonFor(id)"
+                :title="invalidTooltipFor(predecessorInvalidReasonFor(id), id, true)"
+                placement="top"
+                class="flex flex-shrink-0"
+              >
+                <GeneralIcon
+                  icon="alertTriangle"
+                  class="!w-3 !h-3 text-nc-content-red-dark"
+                  :data-testid="`nc-gantt-inspector-pred-invalid-${id}`"
+                />
+              </NcTooltip>
+            </div>
             <NcButton
               v-if="!isPublic"
               type="text"
@@ -659,8 +745,23 @@ const formatDisplay = (raw: string | null | undefined) => {
             v-for="id in successorIds"
             :key="`succ-${id}`"
             class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-xs"
+            :class="{ 'border-nc-content-red-dark': successorInvalidReasonFor(id) }"
           >
-            <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
+            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+              <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
+              <NcTooltip
+                v-if="successorInvalidReasonFor(id)"
+                :title="invalidTooltipFor(successorInvalidReasonFor(id), id, false)"
+                placement="top"
+                class="flex flex-shrink-0"
+              >
+                <GeneralIcon
+                  icon="alertTriangle"
+                  class="!w-3 !h-3 text-nc-content-red-dark"
+                  :data-testid="`nc-gantt-inspector-succ-invalid-${id}`"
+                />
+              </NcTooltip>
+            </div>
             <NcButton
               v-if="!isPublic"
               type="text"
@@ -708,6 +809,31 @@ const formatDisplay = (raw: string | null | undefined) => {
           @change="onPickSuccessor"
           @escape="showSuccessorPicker = false"
         />
+      </div>
+
+      <!-- "Fix invalid dependencies" affordance — visible only when at
+           least one edge touching the current record violates the dep
+           contract. Mirrors Airtable's bottom-of-inspector link. The
+           auto-fix algorithm itself (shift predecessors/successors to
+           resolve the violation while preserving each task's duration)
+           is not implemented yet; clicking the link surfaces a toast
+           pointing the user at the inline ⚠ markers so they can resolve
+           the conflict manually. -->
+      <div v-if="depCol && hasInvalidEdgeOnRecord && !isPublic" class="pt-3 mt-2 border-t border-nc-border-gray-light">
+        <NcButton
+          type="text"
+          size="xs"
+          v-e="['c:gantt:inspector-fix-invalid']"
+          class="!text-xs !text-nc-content-red-dark hover:!text-nc-content-red"
+          inner-class="gap-1.5"
+          data-testid="nc-gantt-inspector-fix-invalid"
+          @click="onClickFixInvalid"
+        >
+          <template #icon>
+            <GeneralIcon icon="alertTriangle" class="!w-3.5 !h-3.5" />
+          </template>
+          {{ $t('labels.dateDependency.fixInvalidDependencies') }}
+        </NcButton>
       </div>
     </div>
   </div>

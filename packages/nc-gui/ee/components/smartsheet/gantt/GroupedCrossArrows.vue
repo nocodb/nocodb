@@ -35,7 +35,7 @@ const props = defineProps<Props>()
 
 const meta = inject(MetaInj, ref())
 
-const { ganttRange, dependencyLinks, colWidth, scrollLeft, inspectorRecord } = useGanttViewStoreOrThrow()
+const { ganttRange, dependencyLinks, invalidReasonFor, colWidth, scrollLeft, inspectorRecord } = useGanttViewStoreOrThrow()
 
 const { rootGroup } = useViewGroupByOrThrow()
 
@@ -285,77 +285,9 @@ function buildPath(predRightX: number, predY: number, succLeftX: number, succY: 
   )
 }
 
-// Cycle detection — edges where the child can reach back to the parent
-// transitively are flagged. Mirrors the per-group Grid.vue logic so the
-// red-line behaviour is consistent across grouped and flat modes.
-const cycleEdgeIds = computed<Set<string>>(() => {
-  const links = dependencyLinks?.value
-  if (!links?.size) return new Set()
-  const cycles = new Set<string>()
-  const canReach = (from: string, target: string, seen: Set<string>): boolean => {
-    if (from === target) return true
-    if (seen.has(from)) return false
-    seen.add(from)
-    const children = links.get(from)
-    if (!children) return false
-    for (const c of children) {
-      if (canReach(c, target, seen)) return true
-    }
-    return false
-  }
-  links.forEach((children, parent) => {
-    for (const child of children) {
-      if (canReach(child, parent, new Set())) cycles.add(`${parent}-${child}`)
-    }
-  })
-  return cycles
-})
-
-// Per-rule date-violation check — same constraint the backend cascade
-// enforces. See Grid.vue checkDateViolation for the full rationale.
-const checkDateViolation = (predRow: RowType, succRow: RowType): boolean => {
-  const r = range.value
-  if (!r) return false
-  const fromCol = r.fk_from_col
-  const toCol = r.fk_to_col ?? fromCol
-  if (!fromCol) return false
-
-  const predStart = parseDate(predRow, fromCol)
-  const predEnd = toCol ? parseDate(predRow, toCol) : predStart
-  const succStart = parseDate(succRow, fromCol)
-  const succEnd = toCol ? parseDate(succRow, toCol) : succStart
-  if (!predStart || !succStart) return false
-
-  const bufferType = r.buffer_type ?? 'flexible'
-  if (bufferType === 'none') return false
-  const bufferDays = r.buffer_days ?? 0
-  const connection = r.connection_type ?? 'end-to-start'
-
-  let predAnchor = predStart
-  let succAnchor = succStart
-  switch (connection) {
-    case 'end-to-start':
-      predAnchor = predEnd ?? predStart
-      succAnchor = succStart
-      break
-    case 'end-to-end':
-      predAnchor = predEnd ?? predStart
-      succAnchor = succEnd ?? succStart
-      break
-    case 'start-to-start':
-      predAnchor = predStart
-      succAnchor = succStart
-      break
-    case 'start-to-end':
-      predAnchor = predStart
-      succAnchor = succEnd ?? succStart
-      break
-  }
-
-  const minGap = connection === 'end-to-start' ? 1 + bufferDays : bufferDays
-  const actualGap = succAnchor.diff(predAnchor, 'day')
-  return bufferType === 'fixed' ? actualGap !== minGap : actualGap < minGap
-}
+// Invalid-edge detection lives on the store (useGanttViewStore.invalidReasonFor)
+// — single source of truth shared with the per-group Grid.vue and the
+// RecordInspector so labels never disagree across views.
 
 const arrowPaths = computed<CrossArrow[]>(() => {
   const r = range.value
@@ -385,7 +317,6 @@ const arrowPaths = computed<CrossArrow[]>(() => {
 
   const result: CrossArrow[] = []
   const direction = r.dependency_direction ?? 'successor'
-  const cycles = cycleEdgeIds.value
 
   links.forEach((linkedIds, rowId) => {
     for (const linkedId of linkedIds) {
@@ -408,17 +339,12 @@ const arrowPaths = computed<CrossArrow[]>(() => {
       const succYVal = recordY.value.get(succId)
       if (!predGeom || !succGeom || predYVal === undefined || succYVal === undefined) continue
 
-      // Cycles win over date violations; same priority as flat-mode Grid.vue.
-      let invalidReason: 'date-violation' | 'cycle' | null = null
-      if (cycles.has(`${rowId}-${linkedId}`)) invalidReason = 'cycle'
-      else if (checkDateViolation(predRow, succRow)) invalidReason = 'date-violation'
-
       const hiSet = highlightedRowIds.value
       result.push({
         id: `${predId}-${succId}`,
         d: buildPath(predGeom.rightX, predYVal, succGeom.leftX, succYVal),
         highlighted: hiSet.has(predId) && hiSet.has(succId),
-        invalidReason,
+        invalidReason: invalidReasonFor(rowId, linkedId),
       })
     }
   })

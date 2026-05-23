@@ -44,7 +44,10 @@ const isResizing = ref(false)
 const resizeStartX = ref(0)
 const resizeStartWidth = ref(0)
 
-const MIN_WIDTH = 320
+// Tuned so the header's icon row (prev / next, save, 3-tab mode selector,
+// sidebar toggle, more, fullscreen, close) all stay visible — the title
+// shrinks to zero before this floor is reached.
+const MIN_WIDTH = 360
 
 // Below this width the docked panel renders only the main pane (no sidebar);
 // at or above this width — or anytime fullscreen — the presenter's right-side

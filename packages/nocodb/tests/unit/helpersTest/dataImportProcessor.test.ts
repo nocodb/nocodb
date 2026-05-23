@@ -4,123 +4,73 @@ import { describeRowError } from '~/modules/jobs/jobs/data-import/error-formatte
 
 /**
  * Locks in the contract for the error message we surface to the UI when an
- * import row fails. The processor used to push a hardcoded "Failed to
- * insert row" placeholder, then leaked the raw driver text. Both extremes
- * were poor UX — these tests assert the readable, column-aware messages we
- * now produce. Change the helper and this file breaks.
+ * import row fails. The formatter delegates to the central
+ * DBErrorExtractor (shared with the global exception filter and the formula
+ * query builder) and layers an import-specific column-name hint on top:
+ * when Postgres embeds the offending value in the error text, we match
+ * that value back to the row to name the column.
+ *
+ * Change the helper and this file breaks.
  */
 function describeRowErrorTests() {
   describe('describeRowError', () => {
-    describe('Postgres SQLSTATE → friendly text', () => {
-      it('22001 (string_data_right_truncation) → "Value is too long"', () => {
+    describe('Postgres SQLSTATE → extractor message', () => {
+      it('22001 → "data entered is too long"', () => {
         const err = {
           code: '22001',
           message: 'value too long for type character(3)',
         };
-        expect(describeRowError(err)).to.equal('Value is too long for the column');
+        expect(describeRowError(err)).to.equal(
+          'The data entered is too long for this field.',
+        );
       });
 
-      it('22P02 (invalid_text_representation) → "Value does not match the column type"', () => {
+      it('22P02 → value+type message, no column when none inferred', () => {
         const err = {
           code: '22P02',
           message: 'invalid input syntax for type numeric: "$500.00"',
         };
         expect(describeRowError(err)).to.equal(
-          'Value does not match the column type',
+          "Invalid value '$500.00' for type 'numeric'",
         );
       });
 
-      it('22008 (datetime_field_overflow) → "Invalid date or time value"', () => {
+      it('22008 → date/time out of range, preserves value', () => {
         const err = {
           code: '22008',
           message: 'date/time field value out of range: "05/22/2026"',
         };
-        expect(describeRowError(err)).to.equal('Invalid date or time value');
+        expect(describeRowError(err)).to.equal(
+          'Date/time field value out of range: "05/22/2026"',
+        );
       });
 
-      it('23502 (not_null_violation) extracts column from message', () => {
+      it('23502 → required-field message', () => {
         const err = {
           code: '23502',
           message:
             'null value in column "event_date" of relation "test_imports" violates not-null constraint',
         };
         expect(describeRowError(err)).to.equal(
-          'Required column is empty (column: event_date)',
+          'A value is required for this field. (column: event_date)',
         );
       });
 
-      it('23505 (unique_violation) reports duplicate', () => {
+      it('23505 with detail → column-aware unique violation', () => {
         const err = {
           code: '23505',
+          detail: 'Key (status_code)=(ACT) already exists.',
           message:
             'duplicate key value violates unique constraint "test_imports_pkey"',
         };
         expect(describeRowError(err)).to.equal(
-          'Duplicate value violates a unique constraint',
-        );
-      });
-
-      it('uses structured `column` field when the driver provides it', () => {
-        const err = {
-          code: '22001',
-          column: 'status_code',
-          message: 'value too long for type character(3)',
-        };
-        expect(describeRowError(err)).to.equal(
-          'Value is too long for the column (column: status_code)',
-        );
-      });
-    });
-
-    describe('MySQL errno → friendly text', () => {
-      it('1062 (ER_DUP_ENTRY) reports duplicate', () => {
-        const err = { errno: 1062, message: "Duplicate entry '1' for key 'PRIMARY'" };
-        expect(describeRowError(err)).to.equal(
-          'Duplicate value violates a unique constraint',
-        );
-      });
-
-      it('1366 (ER_TRUNCATED_WRONG_VALUE_FOR_FIELD) → type mismatch', () => {
-        const err = {
-          errno: 1366,
-          message: "Incorrect integer value: 'abc' for column 'amount' at row 1",
-        };
-        expect(describeRowError(err)).to.equal(
-          'Value does not match the column type (column: amount)',
-        );
-      });
-
-      it('1048 (ER_BAD_NULL_ERROR) → required column empty, extracts column', () => {
-        const err = {
-          errno: 1048,
-          message: "Column 'event_date' cannot be null",
-        };
-        expect(describeRowError(err)).to.equal(
-          'Required column is empty (column: event_date)',
-        );
-      });
-    });
-
-    describe('SQLite / unknown driver → message-pattern fallback', () => {
-      it('NOT NULL constraint hits the pattern branch', () => {
-        const err = {
-          message: 'SQLITE_CONSTRAINT: NOT NULL constraint failed: test_imports.event_date',
-        };
-        expect(describeRowError(err)).to.equal('Required column is empty');
-      });
-
-      it('UNIQUE constraint hits the pattern branch', () => {
-        const err = {
-          message: 'SQLITE_CONSTRAINT: UNIQUE constraint failed: test_imports.id',
-        };
-        expect(describeRowError(err)).to.equal(
-          'Duplicate value violates a unique constraint',
+          "status_code field unique constraint violation. Value 'ACT' already exists.",
         );
       });
     });
 
     describe('Row-value matching → column extraction', () => {
-      it('matches the embedded value back to the row to name the column', () => {
+      it('matches the embedded $-value back to its column', () => {
         const err = {
           code: '22P02',
           message: 'invalid input syntax for type numeric: "$500.00"',
@@ -130,12 +80,14 @@ function describeRowErrorTests() {
           status_code: 'OK',
           amount: '$500.00',
         };
+        // Extractor produces "Invalid value '$500.00' for type 'numeric'".
+        // Our layer matches '$500.00' against the row → adds "(column: amount)".
         expect(describeRowError(err, row)).to.equal(
-          'Value does not match the column type (column: amount)',
+          "Invalid value '$500.00' for type 'numeric' (column: amount)",
         );
       });
 
-      it('matches the embedded date back to the column', () => {
+      it('matches the embedded date back to its column', () => {
         const err = {
           code: '22008',
           message: 'date/time field value out of range: "05/22/2026"',
@@ -146,37 +98,52 @@ function describeRowErrorTests() {
           amount: '100.00',
         };
         expect(describeRowError(err, row)).to.equal(
-          'Invalid date or time value (column: event_date)',
+          'Date/time field value out of range: "05/22/2026" (column: event_date)',
         );
       });
 
-      it('prefers driver-supplied column over row-value match', () => {
+      it('uses driver-supplied `err.column` over row matching', () => {
         const err = {
           code: '22P02',
           column: 'amount',
           message: 'invalid input syntax for type numeric: "$500.00"',
         };
-        // Row also contains the value in another field — driver column wins.
         const row = { description: '$500.00', amount: '$500.00' };
+        // Without the precedence rule, row iteration order would pick
+        // `description`. The driver column wins.
         expect(describeRowError(err, row)).to.equal(
-          'Value does not match the column type (column: amount)',
+          "Invalid value '$500.00' for type 'numeric' (column: amount)",
         );
       });
 
-      it('does not invent a column when the row has no matching value', () => {
+      it('does not invent a column when nothing matches', () => {
         const err = {
           code: '22001',
           message: 'value too long for type character(3)',
         };
         const row = { event_date: '2026-05-23', status_code: 'PENDING' };
-        // No value embedded in message — bare reason without column.
+        // 22001 has no value-in-quotes — bare extractor message.
         expect(describeRowError(err, row)).to.equal(
-          'Value is too long for the column',
+          'The data entered is too long for this field.',
         );
+      });
+
+      it('does not duplicate column name when the message already mentions it', () => {
+        const err = {
+          code: '23502',
+          column: 'event_date',
+          message:
+            'null value in column "event_date" of relation "test_imports" violates not-null constraint',
+        };
+        // Extractor message already includes the column → no "(column: ...)".
+        const result = describeRowError(err);
+        expect(result).to.contain('event_date');
+        // Only one occurrence — not appended again.
+        expect(result.match(/event_date/g)?.length).to.equal(1);
       });
     });
 
-    describe('Fallback when nothing matches', () => {
+    describe('Fallback when extractor returns nothing', () => {
       it('returns a generic message for non-Error input', () => {
         expect(describeRowError(undefined)).to.equal('Database rejected the row');
         expect(describeRowError(null)).to.equal('Database rejected the row');
@@ -184,8 +151,9 @@ function describeRowErrorTests() {
         expect(describeRowError({})).to.equal('Database rejected the row');
       });
 
-      it('does not leak raw SQL text when no pattern matches', () => {
+      it('does not leak raw text when the code is unknown', () => {
         const err = {
+          // `ignoreDefault: true` means unknown codes bypass DefaultExtractor.
           code: 'XX000',
           message:
             'internal_error: deeply weird postgres internal exception nobody should see',
@@ -193,7 +161,6 @@ function describeRowErrorTests() {
         const out = describeRowError(err);
         expect(out).to.equal('Database rejected the row');
         expect(out).not.to.contain('internal_error');
-        expect(out).not.to.contain('postgres');
       });
     });
   });

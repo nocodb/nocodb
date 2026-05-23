@@ -1,27 +1,23 @@
+import { DBErrorExtractor } from '~/helpers/db-error/extractor';
+
 /**
  * Translate a thrown DB-driver error into a short, user-facing reason that
- * makes sense in an import toast. Raw driver text ("invalid input syntax
- * for type numeric") leaks SQL jargon and isn't actionable to a non-DBA
- * user; we map the common Postgres SQLSTATE codes (and MySQL error numbers)
- * to something a person can read.
+ * makes sense in an import toast.
  *
- * Pulled into its own module so importing it from a unit test doesn't drag
- * the whole jobs / NestJS module graph along.
+ * Delegates to the central DBErrorExtractor (also used by the global
+ * exception filter and the formula query builder) so the messaging stays
+ * consistent across the codebase. Adds one CSV-import-specific touch on
+ * top: when the extractor couldn't pin down a column but Postgres embedded
+ * the offending value in the message (e.g. `numeric: "$500.00"`), we match
+ * that value back to the row dict to name the column.
  */
-
-interface DbDriverError {
-  code?: unknown;
-  errno?: unknown;
-  message?: unknown;
-  column?: unknown;
-}
 
 /**
  * Best-effort column extraction from raw driver text — Postgres reports
  * "column \"event_date\"", MySQL reports "column `event_date`", SQLite
  * sometimes uses single quotes.
  */
-function extractColumn(msg: string): string | undefined {
+function extractColumnFromMessage(msg: string): string | undefined {
   const m =
     msg.match(/column "([^"]+)"/i) ||
     msg.match(/column `([^`]+)`/i) ||
@@ -30,19 +26,19 @@ function extractColumn(msg: string): string | undefined {
 }
 
 /**
- * Postgres often embeds the offending VALUE in error text (e.g. `invalid
- * input syntax for type numeric: "$500.00"`) but not the column name. When
- * we have the row that triggered the error we can match the value back to
- * find which column held it.
+ * When the extractor returns a value-only message (e.g.
+ * `Invalid value '$500.00' for type 'numeric'`), match that value back to
+ * the row to find which column held it. Postgres often doesn't include
+ * the column in the SQLSTATE; the row dict does.
  */
 function extractColumnFromRowMatch(
   msg: string,
   row: Record<string, unknown> | undefined,
 ): string | undefined {
   if (!row) return undefined;
-  // Pull any double-quoted value out of the message — Postgres uses double
-  // quotes to wrap the offending value in most "value-included" errors.
-  const quoted = msg.match(/: "([^"]+)"/);
+  // Both extractor output (`'$500.00'`) and raw PG text (`"$500.00"`) embed
+  // the bad value in quotes; accept either flavour.
+  const quoted = msg.match(/['"]([^'"]+)['"]/);
   if (!quoted) return undefined;
   const needle = quoted[1];
   for (const [col, val] of Object.entries(row)) {
@@ -52,106 +48,53 @@ function extractColumnFromRowMatch(
   return undefined;
 }
 
-/** Append "(column: name)" when we know the column — keeps the toast
- *  short but actionable. */
-function withColumn(reason: string, column?: string): string {
-  return column ? `${reason} (column: ${column})` : reason;
-}
-
 export function describeRowError(
   err: unknown,
   row?: Record<string, unknown>,
 ): string {
   if (!err || typeof err !== 'object') return 'Database rejected the row';
 
-  const e = err as DbDriverError;
-  const rawMsg = typeof e.message === 'string' ? e.message : '';
-  const colHint =
-    (typeof e.column === 'string' && e.column ? e.column : undefined) ||
-    extractColumn(rawMsg) ||
+  const extracted = DBErrorExtractor.get().extractDbError(err, {
+    ignoreDefault: true,
+  });
+
+  const baseMessage =
+    typeof extracted?.message === 'string' && extracted.message
+      ? extracted.message
+      : 'Database rejected the row';
+
+  // Walk through the column-name signals in order of reliability:
+  //   1. driver-supplied `err.column` (PG/MySQL set this on some errors)
+  //   2. column extracted by DBErrorExtractor into `details.column`
+  //   3. quoted column name in the raw or extracted message
+  //   4. value embedded in message → match against the row dict
+  const driverColumn =
+    typeof (err as { column?: unknown }).column === 'string'
+      ? ((err as { column: string }).column)
+      : undefined;
+  const extractorColumn =
+    extracted?.details &&
+    typeof (extracted.details as { column?: unknown }).column === 'string'
+      ? ((extracted.details as { column: string }).column)
+      : undefined;
+  const rawMsg =
+    typeof (err as { message?: unknown }).message === 'string'
+      ? ((err as { message?: unknown }).message as string)
+      : '';
+  const messageColumn =
+    extractColumnFromMessage(baseMessage) || extractColumnFromMessage(rawMsg);
+
+  const column =
+    driverColumn ||
+    extractorColumn ||
+    messageColumn ||
+    extractColumnFromRowMatch(baseMessage, row) ||
     extractColumnFromRowMatch(rawMsg, row);
 
-  // Postgres SQLSTATE — these are the ones we hit on CSV import.
-  // Reference: https://www.postgresql.org/docs/current/errcodes-appendix.html
-  if (typeof e.code === 'string') {
-    switch (e.code) {
-      case '22001':
-        return withColumn('Value is too long for the column', colHint);
-      case '22003':
-        return withColumn('Number is out of range for the column', colHint);
-      case '22007':
-      case '22008':
-        return withColumn('Invalid date or time value', colHint);
-      case '22P02':
-        return withColumn('Value does not match the column type', colHint);
-      case '23502':
-        return withColumn('Required column is empty', colHint);
-      case '23503':
-        return 'Referenced record does not exist';
-      case '23505':
-        return withColumn(
-          'Duplicate value violates a unique constraint',
-          colHint,
-        );
-      case '23514':
-        return 'Value violates a check constraint';
-    }
-  }
+  if (!column) return baseMessage;
 
-  // MySQL — knex preserves the numeric `errno` alongside `.code`.
-  const errno = typeof e.errno === 'number' ? e.errno : undefined;
-  if (errno !== undefined) {
-    switch (errno) {
-      case 1062:
-        return withColumn(
-          'Duplicate value violates a unique constraint',
-          colHint,
-        );
-      case 1264:
-        return withColumn('Number is out of range for the column', colHint);
-      case 1265: // WARN_DATA_TRUNCATED — strict mode promotes to error
-      case 1406:
-        return withColumn('Value is too long for the column', colHint);
-      case 1292:
-        return withColumn('Invalid date or time value', colHint);
-      case 1366:
-        return withColumn('Value does not match the column type', colHint);
-      case 1048:
-        return withColumn('Required column is empty', colHint);
-      case 1452:
-        return 'Referenced record does not exist';
-    }
-  }
+  // If the message already references the column by name, don't repeat it.
+  if (baseMessage.includes(column)) return baseMessage;
 
-  // Last-resort pattern match on the raw message — handles SQLite (no useful
-  // error codes) and anything else we haven't enumerated above.
-  if (rawMsg) {
-    if (/not[- ]?null|null value in column|cannot be null/i.test(rawMsg))
-      return withColumn('Required column is empty', colHint);
-    if (/duplicate|unique constraint/i.test(rawMsg))
-      return withColumn(
-        'Duplicate value violates a unique constraint',
-        colHint,
-      );
-    if (/foreign key|references/i.test(rawMsg))
-      return 'Referenced record does not exist';
-    if (/check constraint/i.test(rawMsg))
-      return 'Value violates a check constraint';
-    if (/too long|truncat/i.test(rawMsg))
-      return withColumn('Value is too long for the column', colHint);
-    if (/out of range/i.test(rawMsg))
-      return withColumn('Number is out of range for the column', colHint);
-    if (
-      /date|time|timestamp/i.test(rawMsg) &&
-      /invalid|out of range|format/i.test(rawMsg)
-    )
-      return withColumn('Invalid date or time value', colHint);
-    if (/invalid input syntax|incorrect.*value|invalid.*format/i.test(rawMsg))
-      return withColumn('Value does not match the column type', colHint);
-  }
-
-  // Nothing matched. Don't leak raw SQL text — give a generic line.
-  return colHint
-    ? `Database rejected the row (column: ${colHint})`
-    : 'Database rejected the row';
+  return `${baseMessage} (column: ${column})`;
 }

@@ -68,17 +68,31 @@ function onKeyDown(e: any) {
     return e.preventDefault()
   }
 
-  if (e.key === 'ArrowDown') {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault()
-    // Move the cursor to the end of the input
-    e.target.type = 'text'
-    e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
-    e.target.type = 'number'
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    e.target.type = 'text'
-    e.target?.setSelectionRange(0, 0)
-    e.target.type = 'number'
+
+    // In form view the input is rendered as type="text" (so non-numeric input can
+    // surface validation errors). That disables the browser's native ↑/↓ step,
+    // so emulate it here by ±1.
+    if (isForm.value && !isEditColumn.value) {
+      const current = Number(_vModel.value ?? 0)
+      if (isNaN(current)) return
+      const direction = e.key === 'ArrowUp' ? 1 : -1
+      vModel.value = toSafeInteger(current + direction)
+      return
+    }
+
+    // Outside form view (grid / expanded form): keep existing cursor-positioning
+    // behavior so ↑/↓ doesn't step the value.
+    if (e.key === 'ArrowDown') {
+      e.target.type = 'text'
+      e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
+      e.target.type = 'number'
+    } else {
+      e.target.type = 'text'
+      e.target?.setSelectionRange(0, 0)
+      e.target.type = 'number'
+    }
   }
 }
 

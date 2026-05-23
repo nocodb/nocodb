@@ -3,13 +3,18 @@ const workspaceStore = useWorkspace()
 
 const { mfaSetupRequiredDlg } = storeToRefs(workspaceStore)
 
-const onOk = () => {
+// Reload after navigating to flush in-flight workspace API calls — without it
+// they surface as toasts after the dialog closes (same as WorkspaceSsoRedirectConfirm).
+const onOk = async () => {
   workspaceStore.toggleMfaSetupRequiredDlg(false)
-  navigateTo('/account/security', { replace: true })
+  await navigateTo('/account/security', { replace: true })
+  location.reload()
 }
 
-const onCancel = () => {
+const onCancel = async () => {
   workspaceStore.toggleMfaSetupRequiredDlg(false)
+  await navigateTo('/', { replace: true })
+  location.reload()
 }
 </script>
 

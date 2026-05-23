@@ -109,7 +109,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
     >
       <GeneralIcon icon="search" class="h-6 w-6" />
       <span v-if="isSearching" class="text-sm">{{ $t('placeholder.noResultsFoundForYourSearch') }}</span>
-      <span v-else class="text-sm">All fields are blank for this record</span>
+      <span v-else class="text-sm">{{ $t('msg.info.allFieldsBlankForRecord') }}</span>
     </div>
   </div>
 </template>

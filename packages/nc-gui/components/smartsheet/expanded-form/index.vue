@@ -1057,8 +1057,7 @@ export default {
             <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
           </NcButton>
         </div>
-        <NcTooltip :disabled="!isNew" placement="top">
-          <template #title>Not available while creating a new record</template>
+        <NcTooltip :disabled="!isNew" :title="$t('tooltip.notAvailableForNewRecord')" placement="top">
           <label
             v-e="hideBlankFields ? ['c:row-expand:hide-blank:off'] : ['c:row-expand:hide-blank:on']"
             class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-sm text-nc-content-gray"
@@ -1071,7 +1070,7 @@ export default {
               data-testid="nc-expanded-form-hide-blank-checkbox"
               size="default"
             />
-            <span>Hide blank fields</span>
+            <span>{{ $t('labels.hideBlankFields') }}</span>
           </label>
         </NcTooltip>
       </div>

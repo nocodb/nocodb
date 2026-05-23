@@ -38,18 +38,20 @@ const isViewModeEnabled = computed(() => {
   )
 })
 
+const { t } = useI18n()
+
 const items = computed(() => {
   return [
-    { icon: 'menu', value: ExpandedFormMode.FIELD, tooltip: 'Fields' },
+    { icon: 'menu', value: ExpandedFormMode.FIELD, tooltip: t('objects.fields') },
     {
       icon: modelValue.value === ExpandedFormMode.ATTACHMENT ? 'ncFileTextSolid' : 'ncFileText',
       value: ExpandedFormMode.ATTACHMENT,
-      tooltip: 'File Preview',
+      tooltip: t('labels.filePreview'),
     },
     {
       icon: modelValue.value === ExpandedFormMode.DISCUSSION ? 'ncMessageSquare1Solid' : 'ncMessageSquare1Outline',
       value: ExpandedFormMode.DISCUSSION,
-      tooltip: 'Discussion',
+      tooltip: t('labels.discussion'),
       hidden: isSqlView.value,
     },
   ].filter((i) => !i.hidden) as ItemType[]

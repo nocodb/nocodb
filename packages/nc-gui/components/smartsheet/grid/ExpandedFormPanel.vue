@@ -6,19 +6,7 @@ import { useStorage } from '@vueuse/core'
 
 const panelStore = useExpandedFormPanelOrThrow()
 
-const {
-  isOpen,
-  activeRow,
-  activeRowId,
-  activeRowState,
-  panelWidth,
-  isLoading,
-  isFullscreen,
-  activityExpanded,
-  activeActivityTab,
-  hasPrev,
-  hasNext,
-} = panelStore
+const { isOpen, activeRow, activeRowId, activeRowState, panelWidth, isLoading, isFullscreen, hasPrev, hasNext } = panelStore
 
 const { closePanel, setFullscreen, navigatePrev, navigateNext } = panelStore
 
@@ -138,7 +126,6 @@ const {
   save: _save,
   formatSaveError,
   loadComments,
-  loadAudits,
   clearColumns,
   baseRoles,
   fields,
@@ -169,32 +156,26 @@ commentsDrawer.value = true
 
 const route = useRoute()
 
-// Deep-links like ?rowId=2&commentId=… should surface the Comments tab so the
-// linked comment is visible. SidebarComments handles the scroll/highlight +
-// URL cleanup itself, but only once it's actually mounted — which happens
-// only when activityExpanded is true and the tab is 'comments'.
-// Watch commentId too so clicking another notification while the panel is
-// already open also flips to Comments.
+// Deep-links like ?rowId=2&commentId=… should open the sidebar's Comments tab
+// so the linked comment is visible. The sidebar reads `isExpandedFormCommentMode`
+// from the config store to decide its initial tab; SidebarComments handles the
+// scroll/highlight + URL cleanup itself once it mounts. In single-pane state the
+// sidebar isn't rendered — bump the panel to dual-pane width so it becomes
+// visible.
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 watch(
   [isOpen, () => route.query.commentId],
   ([open, commentId]) => {
     if (open && commentId) {
-      activeActivityTab.value = 'comments'
-      activityExpanded.value = true
+      isExpandedFormCommentMode.value = true
+      if (!isFullscreen.value && panelWidth.value < DUAL_PANE_THRESHOLD) {
+        panelWidth.value = DUAL_PANE_THRESHOLD
+      }
     }
   },
   { immediate: true },
 )
-
-watch([() => activityExpanded.value, () => activeActivityTab.value], async ([expanded, tab]) => {
-  if (!isOpen.value || !expanded || !primaryKey.value) return
-
-  if (tab === 'comments') {
-    await loadComments(primaryKey.value, false)
-  } else if (tab === 'audits') {
-    await loadAudits(primaryKey.value, false)
-  }
-})
 
 const isSaveDisabled = computed(() => {
   // Enable save whenever there's anything to commit: explicit cell edits OR
@@ -244,10 +225,6 @@ watch(
       await nextTick()
       clearColumns()
     }
-
-    if (activityExpanded.value && activeActivityTab.value === 'audits') {
-      await loadAudits(primaryKey.value ?? undefined, false)
-    }
   },
   { immediate: true },
 )
@@ -281,7 +258,6 @@ const save = async (): Promise<boolean> => {
 // Save button is visible — the user has to manually find the Fields tab before
 // they can change anything.
 const onAfterDuplicate = () => {
-  activityExpanded.value = false
   activeViewMode.value = ExpandedFormMode.FIELD
 }
 
@@ -617,8 +593,7 @@ const isCompactMode = useStorage('nc-expanded-form-panel-compact', false)
 
 const showFieldFilters = computed(() => {
   if (isLoading.value) return false
-  if (isFullscreen.value) return activeViewMode.value === ExpandedFormMode.FIELD
-  return !activityExpanded.value
+  return activeViewMode.value === ExpandedFormMode.FIELD
 })
 
 watch(isOpen, (v) => {
@@ -743,7 +718,7 @@ watch(activeRowId, () => {
              always renders the dual pane). Single-pane state bumps to the
              dual-pane threshold; dual-pane state collapses to a single-pane
              width. Mirrors the left-sidebar toggle pattern. -->
-        <NcTooltip v-if="!isFullscreen" :title="useDualPane ? 'Hide sidebar' : 'Show sidebar'">
+        <NcTooltip v-if="!isFullscreen" :title="useDualPane ? $t('title.hideSidebar') : $t('title.showSidebar')">
           <NcButton
             v-e="[`c:row-expand-panel:${useDualPane ? 'hide' : 'show'}-sidebar`]"
             size="xs"
@@ -803,55 +778,56 @@ watch(activeRowId, () => {
           <GeneralLoader />
         </div>
 
-        <!-- EE: presentor-driven (Fields / Attachments / Discussion) — used
-             for both side-panel and fullscreen. Side-panel passes vertical /
-             compact / hide-sidebar so the presenters fit the narrow layout. -->
-        <template v-else-if="useEePresenter">
-          <!-- Field filters strip — search + hide-blank, shown in Fields mode. -->
-          <div
-            v-if="activeViewMode === ExpandedFormMode.FIELD"
-            class="nc-expanded-form-field-filters flex-shrink-0 flex items-center h-8 gap-3 px-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight"
-          >
-            <div class="flex-1 min-w-0 flex items-center gap-2">
-              <GeneralIcon icon="search" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
-              <input
-                v-model="searchQuery"
-                type="text"
-                class="nc-expanded-form-search-input flex-1 min-w-0 bg-transparent border-none outline-none text-xs text-nc-content-gray placeholder-nc-content-gray-muted focus:(outline-none border-none ring-0 shadow-none)"
-                :placeholder="$t('placeholder.searchFields')"
-                data-testid="nc-expanded-form-search-input"
-                @keydown.esc.stop.prevent="searchQuery = ''"
-              />
-              <NcButton
-                v-if="searchQuery"
-                v-e="['c:row-expand-panel:search:clear']"
-                class="nc-expanded-form-search-clear !w-4 !h-4 flex-none"
-                data-testid="nc-expanded-form-search-clear"
-                type="text"
-                size="xs"
-                @click="searchQuery = ''"
-              >
-                <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
-              </NcButton>
-            </div>
-            <NcTooltip :disabled="!isNew" placement="top">
-              <template #title>Not available while creating a new record</template>
-              <label
-                v-e="hideBlankFields ? ['c:row-expand-panel:hide-blank:off'] : ['c:row-expand-panel:hide-blank:on']"
-                class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-xs text-nc-content-gray"
-                :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
-                data-testid="nc-expanded-form-hide-blank-label"
-              >
-                <NcCheckbox
-                  v-model:checked="hideBlankFields"
-                  :disabled="isNew"
-                  data-testid="nc-expanded-form-hide-blank-checkbox"
-                  size="small"
-                />
-                <span>Hide blank fields</span>
-              </label>
-            </NcTooltip>
+        <!-- Field filters strip — search + hide-blank, shown when in Fields
+             mode. Rendered once above both EE & CE branches. -->
+        <div
+          v-else-if="showFieldFilters"
+          class="nc-expanded-form-field-filters flex-shrink-0 flex items-center h-8 gap-3 px-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+        >
+          <div class="flex-1 min-w-0 flex items-center gap-2">
+            <GeneralIcon icon="search" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="nc-expanded-form-search-input flex-1 min-w-0 bg-transparent border-none outline-none text-xs text-nc-content-gray placeholder-nc-content-gray-muted focus:(outline-none border-none ring-0 shadow-none)"
+              :placeholder="$t('placeholder.searchFields')"
+              data-testid="nc-expanded-form-search-input"
+              @keydown.esc.stop.prevent="searchQuery = ''"
+            />
+            <NcButton
+              v-if="searchQuery"
+              v-e="['c:row-expand-panel:search:clear']"
+              class="nc-expanded-form-search-clear !w-4 !h-4 flex-none"
+              data-testid="nc-expanded-form-search-clear"
+              type="text"
+              size="xs"
+              @click="searchQuery = ''"
+            >
+              <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
+            </NcButton>
           </div>
+          <NcTooltip :disabled="!isNew" :title="$t('tooltip.notAvailableForNewRecord')" placement="top">
+            <label
+              v-e="hideBlankFields ? ['c:row-expand-panel:hide-blank:off'] : ['c:row-expand-panel:hide-blank:on']"
+              class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-xs text-nc-content-gray"
+              :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
+              data-testid="nc-expanded-form-hide-blank-label"
+            >
+              <NcCheckbox
+                v-model:checked="hideBlankFields"
+                :disabled="isNew"
+                data-testid="nc-expanded-form-hide-blank-checkbox"
+                size="small"
+              />
+              <span>{{ $t('labels.hideBlankFields') }}</span>
+            </label>
+          </NcTooltip>
+        </div>
+
+        <!-- EE: presentor-driven (Fields / File / Discussion) for both
+             side-panel and fullscreen. Side-panel passes vertical / compact /
+             hide-sidebar so the presenters fit the narrow layout. -->
+        <template v-if="!isLoading && useEePresenter">
           <SmartsheetExpandedFormPresentorsFields
             v-if="activeViewMode === ExpandedFormMode.FIELD"
             :row-id="primaryKey"
@@ -889,126 +865,24 @@ watch(activeRowId, () => {
           />
         </template>
 
-        <!-- Side-panel (any edition) or CE fullscreen — activity-pill driven.
-             Field-filters strip (search + hide-blank) above the body when in
-             Fields view. -->
-        <template v-else>
-          <!-- Field filters strip — shown when viewing fields (docked or fullscreen) -->
-          <div
-            v-if="showFieldFilters"
-            class="nc-expanded-form-field-filters flex-shrink-0 flex items-center h-8 gap-3 px-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight"
-          >
-            <div class="flex-1 min-w-0 flex items-center gap-2">
-              <GeneralIcon icon="search" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
-              <input
-                v-model="searchQuery"
-                type="text"
-                class="nc-expanded-form-search-input flex-1 min-w-0 bg-transparent border-none outline-none text-xs text-nc-content-gray placeholder-nc-content-gray-muted focus:(outline-none border-none ring-0 shadow-none)"
-                :placeholder="$t('placeholder.searchFields')"
-                data-testid="nc-expanded-form-search-input"
-                @keydown.esc.stop.prevent="searchQuery = ''"
-              />
-              <NcButton
-                v-if="searchQuery"
-                v-e="['c:row-expand-panel:search:clear']"
-                class="nc-expanded-form-search-clear !w-4 !h-4 flex-none"
-                data-testid="nc-expanded-form-search-clear"
-                type="text"
-                size="xs"
-                @click="searchQuery = ''"
-              >
-                <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
-              </NcButton>
-            </div>
-            <NcTooltip :disabled="!isNew" placement="top">
-              <template #title>Not available while creating a new record</template>
-              <label
-                v-e="hideBlankFields ? ['c:row-expand-panel:hide-blank:off'] : ['c:row-expand-panel:hide-blank:on']"
-                class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-xs text-nc-content-gray"
-                :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
-                data-testid="nc-expanded-form-hide-blank-label"
-              >
-                <NcCheckbox
-                  v-model:checked="hideBlankFields"
-                  :disabled="isNew"
-                  data-testid="nc-expanded-form-hide-blank-checkbox"
-                  size="small"
-                />
-                <span>Hide blank fields</span>
-              </label>
-            </NcTooltip>
-          </div>
-
-          <!-- Fullscreen: use expanded form presentors (Fields/Attachments/Discussion) -->
-          <div v-if="isFullscreen" class="flex-1 min-h-0 overflow-hidden">
-            <SmartsheetExpandedFormPresentorsFields
-              v-if="activeViewMode === ExpandedFormMode.FIELD"
-              :row-id="primaryKey"
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-unsaved-duplicated-record-exist="false"
-              :is-unsaved-form-exist="false"
-              :is-loading="isLoading"
-              :is-saving="isSaving"
-              :search-query="searchQuery"
-              :hide-blank-fields="hideBlankFields"
-            />
-            <SmartsheetExpandedFormPresentorsAttachments
-              v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
-              :row-id="primaryKey"
-              :view="view"
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-unsaved-duplicated-record-exist="false"
-              :is-unsaved-form-exist="false"
-              :is-loading="isLoading"
-              :is-saving="isSaving"
-              :hide-sidebar="!useDualPane"
-              :compact-mode="!isFullscreen && isCompactMode"
-            />
-            <SmartsheetExpandedFormPresentorsDiscussion
-              v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
-              :is-unsaved-duplicated-record-exist="false"
-              :hide-sidebar="!useDualPane"
-              :compact-mode="!isFullscreen && isCompactMode"
-            />
-          </div>
-
-          <!-- Panel mode: fields / comments / audits -->
-          <div v-else class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
-            <template v-if="activityExpanded && activeActivityTab === 'comments'">
-              <SmartsheetExpandedFormSidebarComments />
-            </template>
-            <template v-else-if="activityExpanded && activeActivityTab === 'audits'">
-              <SmartsheetExpandedFormSidebarAudits />
-            </template>
-            <!-- CE fullscreen uses the wide PresentorsFields layout for the
-                 Fields tab; side-panel mode uses the compact FieldsColumns. -->
-            <SmartsheetExpandedFormPresentorsFields
-              v-else-if="isFullscreen"
-              :row-id="primaryKey"
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-unsaved-duplicated-record-exist="false"
-              :is-unsaved-form-exist="false"
-              :is-loading="isLoading"
-              :is-saving="isSaving"
-              :search-query="searchQuery"
-              :hide-blank-fields="hideBlankFields"
-            />
-            <SmartsheetExpandedFormPresentorsFieldsColumns
-              v-else
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-loading="isLoading"
-              :search-query="searchQuery"
-              :hide-blank-fields="hideBlankFields"
-              :compact-mode="isCompactMode"
-              force-vertical-mode
-              class="nc-panel-fields-compact"
-            />
-          </div>
-        </template>
+        <!-- CE: Fields only. The presenter renders its own sidebar with
+             Comments + History tabs; in single-pane state the sidebar is
+             hidden and reachable via the header's show-sidebar toggle. -->
+        <SmartsheetExpandedFormPresentorsFields
+          v-else-if="!isLoading"
+          :row-id="primaryKey"
+          :fields="fields ?? []"
+          :hidden-fields="hiddenFields"
+          :is-unsaved-duplicated-record-exist="false"
+          :is-unsaved-form-exist="false"
+          :is-loading="isLoading"
+          :is-saving="isSaving"
+          :search-query="searchQuery"
+          :hide-blank-fields="hideBlankFields"
+          :hide-sidebar="!useDualPane"
+          :force-vertical-mode="!isFullscreen"
+          :compact-mode="!isFullscreen && isCompactMode"
+        />
       </div>
     </div>
   </Transition>

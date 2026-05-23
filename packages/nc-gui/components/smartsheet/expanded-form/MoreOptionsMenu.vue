@@ -280,7 +280,7 @@ const onConfirmDeleteRowClick = async () => {
           <div class="flex gap-2 items-center justify-between w-full">
             <div class="flex gap-2 items-center">
               <component :is="iconMap.list" class="cursor-pointer" />
-              <span>Compact view</span>
+              <span>{{ $t('labels.compactView') }}</span>
             </div>
             <component :is="iconMap.check" v-if="compactMode" class="!w-3.5 !h-3.5 text-nc-content-brand" />
           </div>

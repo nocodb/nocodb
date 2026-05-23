@@ -155,13 +155,13 @@ async function copyComment(comment: CommentType) {
       }"
     >
       <div
-        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b rounded-t-lg text-nc-content-gray min-h-[37px]"
+        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-0.5 border-b rounded-t-lg text-nc-content-gray min-h-[28px]"
         :class="{
           '!bg-nc-bg-brand border-nc-brand-200/70 dark:(!bg-[#151b23] !border-[#388bfd4b])': isCreatedByYou,
           'border-nc-border-gray-medium': !isCreatedByYou,
         }"
       >
-        <span class="font-medium text-sm" :class="{ 'text-nc-content-brand-disabled': isCreatedByYou }">
+        <span class="font-medium text-xs" :class="{ 'text-nc-content-brand-disabled': isCreatedByYou }">
           {{ createdBy(props.comment) }}
         </span>
         <span class="text-xs text-nc-content-gray-muted">
@@ -179,12 +179,12 @@ async function copyComment(comment: CommentType) {
             class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
             <NcButton
-              class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium"
+              class="!w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium"
               size="xsmall"
               type="text"
               @click="editComment(props.comment)"
             >
-              <GeneralIcon class="text-md" icon="pencil" />
+              <GeneralIcon class="!w-3.5 !h-3.5" icon="pencil" />
             </NcButton>
             <template #title>Click to edit</template>
           </NcTooltip>
@@ -195,8 +195,8 @@ async function copyComment(comment: CommentType) {
             overlay-class-name="!min-w-[160px]"
             placement="bottomRight"
           >
-            <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium" size="xsmall" type="text">
-              <GeneralIcon class="text-md" icon="threeDotVertical" />
+            <NcButton class="!w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium" size="xsmall" type="text">
+              <GeneralIcon class="!w-3.5 !h-3.5" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
@@ -224,24 +224,24 @@ async function copyComment(comment: CommentType) {
             class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
             <NcButton
-              class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium"
+              class="!w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium"
               size="xsmall"
               type="text"
               @click="resolveComment(props.comment.id)"
             >
-              <GeneralIcon class="text-md" icon="checkCircle" />
+              <GeneralIcon class="!w-3.5 !h-3.5" icon="checkCircle" />
             </NcButton>
             <template #title>Click to resolve</template>
           </NcTooltip>
           <NcTooltip v-else-if="props.comment.resolved_by">
             <template #title>{{ `Resolved by ${props.comment.resolved_display_name_short}` }}</template>
             <NcButton
-              class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
+              class="!h-6 !w-6 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
               size="xsmall"
               type="text"
               @click="resolveComment(props.comment.id!)"
             >
-              <GeneralIcon class="text-md rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
+              <GeneralIcon class="!w-3.5 !h-3.5 rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
             </NcButton>
           </NcTooltip>
         </div>

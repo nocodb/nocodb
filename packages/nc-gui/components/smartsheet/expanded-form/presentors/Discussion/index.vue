@@ -22,6 +22,8 @@ const { isUIAllowed } = useRoles()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
+const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
+
 /* flags */
 
 const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
@@ -139,11 +141,13 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-[240px] h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default h-full xs:hidden rounded-br-2xl flex-shrink-0"
+      :style="{ width: `${sidebarWidth}px` }"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
+      <div class="nc-sidebar-resize-handle" @mousedown.prevent="onResizeStart" />
       <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
     </div>
   </div>
@@ -161,5 +165,12 @@ export default {
   &::placeholder {
     @apply !text-gray-400;
   }
+}
+
+.nc-sidebar-resize-handle {
+  @apply absolute left-0 top-0 h-full w-1 cursor-col-resize z-50 transition-colors;
+}
+.nc-sidebar-resize-handle:hover {
+  @apply bg-nc-border-gray-medium;
 }
 </style>

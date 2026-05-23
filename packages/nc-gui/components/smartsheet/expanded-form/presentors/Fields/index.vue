@@ -42,6 +42,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
+const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
+
 /* flags */
 const showRightSections = computed(
   () => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList') && !isSqlView.value,
@@ -77,12 +79,24 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-[240px] h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight h-full xs:hidden rounded-br-2xl flex-shrink-0"
+      :style="{ width: `${sidebarWidth}px` }"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
+      <!-- Resize handle on the left edge — drag to widen/narrow the sidebar -->
+      <div class="nc-sidebar-resize-handle" @mousedown.prevent="onResizeStart" />
       <SmartsheetExpandedFormSidebar />
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-sidebar-resize-handle {
+  @apply absolute left-0 top-0 h-full w-1 cursor-col-resize z-50 transition-colors;
+}
+.nc-sidebar-resize-handle:hover {
+  @apply bg-nc-border-gray-medium;
+}
+</style>

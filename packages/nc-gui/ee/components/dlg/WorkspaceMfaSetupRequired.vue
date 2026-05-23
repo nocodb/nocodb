@@ -11,10 +11,8 @@ const onOk = async () => {
   location.reload()
 }
 
-const onCancel = async () => {
+const onCancel = () => {
   workspaceStore.toggleMfaSetupRequiredDlg(false)
-  await navigateTo('/', { replace: true })
-  location.reload()
 }
 </script>
 

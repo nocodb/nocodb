@@ -1028,6 +1028,17 @@ watch(activeRowId, () => {
 </style>
 
 <style lang="scss">
+/* Slightly smaller checkbox inside the field-filters strip — NcCheckbox's
+   `size` prop is unused, so override the hardcoded 16px (h-4/w-4) with 14px. */
+.nc-expanded-form-field-filters {
+  .nc-checkbox > .ant-checkbox,
+  .nc-checkbox > .ant-checkbox > .ant-checkbox-input,
+  .nc-checkbox > .ant-checkbox::after,
+  .nc-checkbox > .ant-checkbox > .ant-checkbox-inner {
+    @apply !h-3.5 !w-3.5;
+  }
+}
+
 /* Thinner, subtler grid scrollbar when panel is open (panel is sibling of grid's parent) */
 :has(> .nc-expanded-form-panel) .custom-scrollbar-track.vertical {
   width: 4px;

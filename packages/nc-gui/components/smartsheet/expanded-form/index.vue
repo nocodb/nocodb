@@ -204,15 +204,6 @@ const activeViewMode = ref(
     : ExpandedFormMode.FIELD,
 )
 
-const searchQuery = ref('')
-
-const hideBlankFields = ref(false)
-
-const resetFieldFilters = () => {
-  searchQuery.value = ''
-  hideBlankFields.value = false
-}
-
 watch(activeViewMode, async (v) => {
   const viewId = props.view?.id
   if (!viewId) return
@@ -291,10 +282,6 @@ watch(
 
 const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
-})
-
-watch(isExpanded, (v) => {
-  if (!v) resetFieldFilters()
 })
 
 // check if the row is new and has some changes on LTAR/Links
@@ -679,9 +666,6 @@ const onAfterDelete = () => {
 
 watch(rowId, async (nRow) => {
   mobileDiscussionMode.value = false
-  // Reset only the search — hide-blank is a viewing preference that persists
-  // across records, search is a per-row query.
-  searchQuery.value = ''
   await triggerRowLoad(nRow)
 })
 
@@ -1031,13 +1015,6 @@ export default {
           </NcButton>
         </div>
       </div>
-      <SmartsheetExpandedFormFieldFilters
-        v-if="activeViewMode === ExpandedFormMode.FIELD && !templateMode && !blueprintMode && !isLoading"
-        v-model:search-query="searchQuery"
-        v-model:hide-blank-fields="hideBlankFields"
-        :is-new="isNew"
-        telemetry-prefix="c:row-expand"
-      />
       <div ref="wrapper" class="flex-grow w-full min-h-0">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <div v-if="isMobileMode && mobileDiscussionMode && showMobileDiscussionToggle" class="h-full">
@@ -1053,8 +1030,6 @@ export default {
             :is-loading="isLoading"
             :is-saving="isSaving"
             :new-record-submit-btn-text="newRecordSubmitBtnText"
-            :search-query="searchQuery"
-            :hide-blank-fields="hideBlankFields"
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
             @update-row-comment-count="emits('updateRowCommentCount', $event)"

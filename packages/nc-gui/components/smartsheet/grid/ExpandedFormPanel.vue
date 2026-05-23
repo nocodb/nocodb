@@ -600,6 +600,9 @@ const isCompactMode = useStorage('nc-expanded-form-panel-compact', false)
 
 const showFieldFilters = computed(() => {
   if (isLoading.value) return false
+  // New-record forms have no values to search or hide-blank against — the
+  // strip would just truncate the form to nothing or be a no-op.
+  if (isNew.value) return false
   return activeViewMode.value === ExpandedFormMode.FIELD
 })
 

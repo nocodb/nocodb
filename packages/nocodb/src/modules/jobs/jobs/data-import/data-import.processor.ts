@@ -514,9 +514,11 @@ export class DataImportProcessor {
           } catch (rowErr) {
             stats.rowsFailed += 1;
             if (stats.errors.length < MAX_ERROR_SAMPLES) {
+              // Pass the row so the formatter can match an embedded value
+              // (e.g. `numeric: "$500.00"`) back to its column name.
               stats.errors.push({
                 row: batchStartRow + i,
-                error: describeRowError(rowErr),
+                error: describeRowError(rowErr, pending[i]),
               });
             }
           }

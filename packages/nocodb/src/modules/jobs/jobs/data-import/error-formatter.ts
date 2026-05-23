@@ -29,19 +29,47 @@ function extractColumn(msg: string): string | undefined {
   return m?.[1];
 }
 
+/**
+ * Postgres often embeds the offending VALUE in error text (e.g. `invalid
+ * input syntax for type numeric: "$500.00"`) but not the column name. When
+ * we have the row that triggered the error we can match the value back to
+ * find which column held it.
+ */
+function extractColumnFromRowMatch(
+  msg: string,
+  row: Record<string, unknown> | undefined,
+): string | undefined {
+  if (!row) return undefined;
+  // Pull any double-quoted value out of the message — Postgres uses double
+  // quotes to wrap the offending value in most "value-included" errors.
+  const quoted = msg.match(/: "([^"]+)"/);
+  if (!quoted) return undefined;
+  const needle = quoted[1];
+  for (const [col, val] of Object.entries(row)) {
+    if (val === undefined || val === null) continue;
+    if (String(val) === needle) return col;
+  }
+  return undefined;
+}
+
 /** Append "(column: name)" when we know the column — keeps the toast
  *  short but actionable. */
 function withColumn(reason: string, column?: string): string {
   return column ? `${reason} (column: ${column})` : reason;
 }
 
-export function describeRowError(err: unknown): string {
+export function describeRowError(
+  err: unknown,
+  row?: Record<string, unknown>,
+): string {
   if (!err || typeof err !== 'object') return 'Database rejected the row';
 
   const e = err as DbDriverError;
   const rawMsg = typeof e.message === 'string' ? e.message : '';
   const colHint =
-    typeof e.column === 'string' && e.column ? e.column : extractColumn(rawMsg);
+    (typeof e.column === 'string' && e.column ? e.column : undefined) ||
+    extractColumn(rawMsg) ||
+    extractColumnFromRowMatch(rawMsg, row);
 
   // Postgres SQLSTATE — these are the ones we hit on CSV import.
   // Reference: https://www.postgresql.org/docs/current/errcodes-appendix.html

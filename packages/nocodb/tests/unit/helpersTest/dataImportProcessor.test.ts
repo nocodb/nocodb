@@ -119,6 +119,63 @@ function describeRowErrorTests() {
       });
     });
 
+    describe('Row-value matching → column extraction', () => {
+      it('matches the embedded value back to the row to name the column', () => {
+        const err = {
+          code: '22P02',
+          message: 'invalid input syntax for type numeric: "$500.00"',
+        };
+        const row = {
+          event_date: '2026-05-24',
+          status_code: 'OK',
+          amount: '$500.00',
+        };
+        expect(describeRowError(err, row)).to.equal(
+          'Value does not match the column type (column: amount)',
+        );
+      });
+
+      it('matches the embedded date back to the column', () => {
+        const err = {
+          code: '22008',
+          message: 'date/time field value out of range: "05/22/2026"',
+        };
+        const row = {
+          event_date: '05/22/2026',
+          status_code: 'ACT',
+          amount: '100.00',
+        };
+        expect(describeRowError(err, row)).to.equal(
+          'Invalid date or time value (column: event_date)',
+        );
+      });
+
+      it('prefers driver-supplied column over row-value match', () => {
+        const err = {
+          code: '22P02',
+          column: 'amount',
+          message: 'invalid input syntax for type numeric: "$500.00"',
+        };
+        // Row also contains the value in another field — driver column wins.
+        const row = { description: '$500.00', amount: '$500.00' };
+        expect(describeRowError(err, row)).to.equal(
+          'Value does not match the column type (column: amount)',
+        );
+      });
+
+      it('does not invent a column when the row has no matching value', () => {
+        const err = {
+          code: '22001',
+          message: 'value too long for type character(3)',
+        };
+        const row = { event_date: '2026-05-23', status_code: 'PENDING' };
+        // No value embedded in message — bare reason without column.
+        expect(describeRowError(err, row)).to.equal(
+          'Value is too long for the column',
+        );
+      });
+    });
+
     describe('Fallback when nothing matches', () => {
       it('returns a generic message for non-Error input', () => {
         expect(describeRowError(undefined)).to.equal('Database rejected the row');

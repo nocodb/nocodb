@@ -76,7 +76,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
         @click="showHiddenFields = !showHiddenFields"
       >
         <template v-if="isFiltering">
-          {{ visibleHiddenFieldsCount }} matching hidden {{ visibleHiddenFieldsCount === 1 ? 'field' : 'fields' }}
+          {{ visibleHiddenFieldsCount }} hidden {{ visibleHiddenFieldsCount === 1 ? 'field' : 'fields' }}
         </template>
         <template v-else>
           {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}

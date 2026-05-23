@@ -428,9 +428,10 @@ const innerTransform = computed(() => `translate(${-scrollLeft.value}, 0)`)
       </marker>
     </defs>
     <g :transform="innerTransform">
-      <!-- Priority: invalid (red) > chain-highlighted (green) > default (grey).
-           Invalid trumps chain highlight because a broken edge is more
-           load-bearing than a chain affordance. -->
+      <!-- Priority: invalid (red, dashed) > chain-highlighted (green) >
+           default (grey). Invalid arrows use a dashed stroke so the
+           broken edge is recognisable at a glance — matches Airtable's
+           red-dotted-line convention. -->
       <path
         v-for="arrow in arrowPaths"
         :key="arrow.id"
@@ -444,6 +445,7 @@ const innerTransform = computed(() => `translate(${-scrollLeft.value}, 0)`)
             : 'var(--nc-border-gray-extra-dark, #9aa2af)'
         "
         :stroke-width="arrow.invalidReason ? 1.25 : 1"
+        :stroke-dasharray="arrow.invalidReason ? '4 3' : undefined"
         stroke-linejoin="round"
         :marker-end="
           arrow.invalidReason

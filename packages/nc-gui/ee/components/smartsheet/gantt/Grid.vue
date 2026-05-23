@@ -2114,10 +2114,10 @@ const onGridMouseLeave = () => {
               @click="selectArrow(arrow.id, $event)"
             />
             <!-- Visible arrow. Priority order: selected (red, thicker) >
-                 invalid (red, default weight, separate marker) > chain-
-                 highlighted (green) > default (grey). The invalid state
-                 uses the red palette to match Airtable's red-line
-                 convention for date violations + cycles. -->
+                 invalid (red, dashed, separate marker) > chain-
+                 highlighted (green) > default (grey). Invalid arrows use
+                 a dashed stroke (Airtable convention) so the broken edge
+                 reads even when the red colour blends into theme bg. -->
             <path
               :d="arrow.d"
               fill="none"
@@ -2139,6 +2139,7 @@ const onGridMouseLeave = () => {
                   ? 1
                   : 1
               "
+              :stroke-dasharray="arrow.invalidReason ? '4 3' : undefined"
               stroke-linejoin="round"
               class="pointer-events-none"
               :marker-end="

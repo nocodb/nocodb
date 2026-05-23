@@ -32,7 +32,9 @@ const { user, isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
-const { showInfoModal } = useNcConfirmModal()
+const { showInfoModal, showWarningModal } = useNcConfirmModal()
+
+const { api } = useApi()
 
 const leavedWsUserId = ref('')
 
@@ -341,13 +343,8 @@ const force2faEnabled = computed(() => {
 
 const isForce2faUpdating = ref(false)
 
-async function toggleForce2fa(enabled: boolean) {
+async function applyForce2fa(enabled: boolean) {
   if (!currentWorkspace.value?.id) return
-
-  if (blockForce2fa.value) {
-    showUpgradeToUseForce2fa()
-    return
-  }
 
   isForce2faUpdating.value = true
 
@@ -365,6 +362,42 @@ async function toggleForce2fa(enabled: boolean) {
   } finally {
     isForce2faUpdating.value = false
   }
+}
+
+// Fall back to "not enabled" on failure — the stronger warning is the safe default.
+async function currentUserHas2fa(): Promise<boolean> {
+  try {
+    const response = await api.instance.get('/api/v2/auth/mfa/status')
+    return !!response.data.enabled
+  } catch {
+    return false
+  }
+}
+
+async function toggleForce2fa(enabled: boolean) {
+  if (!currentWorkspace.value?.id) return
+
+  if (blockForce2fa.value) {
+    showUpgradeToUseForce2fa()
+    return
+  }
+
+  if (!enabled) {
+    await applyForce2fa(false)
+    return
+  }
+
+  const selfHas2fa = await currentUserHas2fa()
+
+  showWarningModal({
+    title: t('title.confirmEnableForce2faTitle'),
+    content: selfHas2fa ? t('title.confirmEnableForce2faSubtitle') : t('title.confirmEnableForce2faSubtitleSelf'),
+    showCancelBtn: true,
+    okText: t('general.enable'),
+    okCallback: async () => {
+      await applyForce2fa(true)
+    },
+  })
 }
 </script>
 

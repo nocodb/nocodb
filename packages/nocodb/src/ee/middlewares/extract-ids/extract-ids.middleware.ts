@@ -1470,12 +1470,14 @@ export class AclMiddleware implements NestInterceptor {
       }
     }
 
-    // If workspace requires 2FA, block users who haven't set it up
-    // Skip for workspace owners, service users, API tokens, and SSO users (no password)
-    // Only enforced when the force_2fa plan feature is available
+    // If workspace requires 2FA, block users who haven't set it up.
+    // Skip only for service users, API tokens, and SSO users (no password).
+    // Workspace owners are NOT exempt — they must also set up 2FA, otherwise
+    // org admins / owners could enable workspace-wide enforcement while
+    // continuing to access the workspace themselves without a second factor.
+    // Only enforced when the force_2fa plan feature is available.
     if (
       req.ncWorkspaceId &&
-      !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
       !isServiceUser(req.user) &&
       !req.user?.is_api_token &&
       (await getFeature(

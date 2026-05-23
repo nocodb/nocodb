@@ -34,4 +34,12 @@ export class WorkspaceSettingsObject extends BasePage {
       requestUrlPathToMatch: `/api/v1/workspaces/`,
     });
   }
+
+  forceTwoFactorToggle() {
+    return this.get().getByTestId('nc-workspace-settings-force-2fa-toggle');
+  }
+
+  async clickForceTwoFactorToggle() {
+    await this.forceTwoFactorToggle().click();
+  }
 }

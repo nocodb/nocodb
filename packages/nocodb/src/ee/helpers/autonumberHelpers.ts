@@ -20,7 +20,12 @@ function quoteRegclass(tnPath: string): string {
 }
 
 /**
- * Resets a PostgreSQL BIGSERIAL sequence to MAX(column) after a backfill.
+ * Resets a PostgreSQL BIGSERIAL sequence so the next nextval() returns
+ * MAX(column) + 1, or 1 when the table is empty.
+ *
+ * Uses setval(seq, value, is_called=false) so nextval() returns `value`
+ * directly — this lets us pass 1 for empty tables (setval(seq, 0) would
+ * violate the sequence's default MINVALUE 1 and throw).
  */
 async function resetPgSequence(
   knex: any,
@@ -30,7 +35,8 @@ async function resetPgSequence(
   await knex.raw(
     `SELECT setval(
       pg_get_serial_sequence(:tnVal, :colVal),
-      COALESCE((SELECT MAX(:colId:) FROM :tnId:), 0)
+      COALESCE((SELECT MAX(:colId:) FROM :tnId:), 0) + 1,
+      false
     )`,
     {
       tnVal: quoteRegclass(tnPath),

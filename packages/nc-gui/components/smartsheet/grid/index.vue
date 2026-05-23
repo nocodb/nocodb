@@ -273,14 +273,7 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
-  if (
-    isEeUI &&
-    !isMobileMode.value &&
-    !isPublic.value &&
-    expandedFormMode.value === 'panel' &&
-    rowId &&
-    isCanvasRendering.value
-  ) {
+  if (!isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId && isCanvasRendering.value) {
     const doExpand = () => {
       expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
       updateRowIdRoute(rowId, path)
@@ -322,11 +315,10 @@ const expandedFormOnRowIdDlg = computed({
     if (!routeQuery.value.rowId) return false
     // When the side panel is open, don't trigger the modal
     if (isExpandedFormPanelOpen.value) return false
-    // EE desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
+    // Desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
     // Falls back to the modal when the grid isn't canvas-rendered, since the panel
     // depends on canvas-only contracts (getDataCache(path), highlight bar, etc.).
-    if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && isCanvasRendering.value)
-      return false
+    if (!isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && isCanvasRendering.value) return false
     // When ?cellCol points at a SmartText column the SmartText panel claims
     // the screen — expanded record dialog stays closed.
     const cellCol = routeQuery.value.cellCol
@@ -373,7 +365,7 @@ onBeforeUnmount(() => {
   isSyncingPanelRoute.value = false
 })
 
-// EE desktop: open panel from route rowId (page reload, direct link).
+// Desktop: open panel from route rowId (page reload, direct link).
 // Depends on meta columns being loaded so injectPkIntoRow can populate the PK.
 watch(
   [() => routeQuery.value.rowId, () => meta.value?.columns?.length],
@@ -381,7 +373,6 @@ watch(
     if (
       !rowId ||
       !columnsLen ||
-      !isEeUI ||
       isMobileMode.value ||
       isPublic.value ||
       expandedFormMode.value !== 'panel' ||

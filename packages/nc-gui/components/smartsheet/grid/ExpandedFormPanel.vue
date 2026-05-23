@@ -788,76 +788,83 @@ watch(activeRowId, () => {
           <GeneralLoader />
         </div>
 
-        <!-- Field filters strip — shown in Fields mode, above both EE & CE
-             branches. -->
-        <SmartsheetExpandedFormFieldFilters
-          v-else-if="showFieldFilters"
-          v-model:search-query="searchQuery"
-          v-model:hide-blank-fields="hideBlankFields"
-          :is-new="isNew"
-          telemetry-prefix="c:row-expand-panel"
-          compact
-        />
+        <template v-else>
+          <!-- Field filters strip — shown in Fields mode, above both EE & CE
+               branches. -->
+          <SmartsheetExpandedFormFieldFilters
+            v-if="showFieldFilters"
+            v-model:search-query="searchQuery"
+            v-model:hide-blank-fields="hideBlankFields"
+            :is-new="isNew"
+            telemetry-prefix="c:row-expand-panel"
+            compact
+          />
 
-        <!-- EE: presentor-driven (Fields / File / Discussion) for both
-             side-panel and fullscreen. Side-panel passes vertical / compact /
-             hide-sidebar so the presenters fit the narrow layout. -->
-        <template v-if="!isLoading && useEePresenter">
-          <SmartsheetExpandedFormPresentorsFields
-            v-if="activeViewMode === ExpandedFormMode.FIELD"
-            :row-id="primaryKey"
-            :fields="fields ?? []"
-            :hidden-fields="hiddenFields"
-            :is-unsaved-duplicated-record-exist="false"
-            :is-unsaved-form-exist="false"
-            :is-loading="isLoading"
-            :is-saving="isSaving"
-            :search-query="searchQuery"
-            :hide-blank-fields="hideBlankFields"
-            :hide-sidebar="!useDualPane"
-            :force-vertical-mode="!isFullscreen"
-            :compact-mode="!isFullscreen && isCompactMode"
-          />
-          <SmartsheetExpandedFormPresentorsAttachments
-            v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
-            :row-id="primaryKey"
-            :view="view"
-            :fields="fields ?? []"
-            :hidden-fields="hiddenFields"
-            :is-unsaved-duplicated-record-exist="false"
-            :is-unsaved-form-exist="false"
-            :is-loading="isLoading"
-            :is-saving="isSaving"
-            :hide-sidebar="!useDualPane"
-            :compact-mode="!isFullscreen && isCompactMode"
-            compact-layout
-          />
-          <SmartsheetExpandedFormPresentorsDiscussion
-            v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
-            :is-unsaved-duplicated-record-exist="false"
-            :hide-sidebar="!useDualPane"
-            :compact-mode="!isFullscreen && isCompactMode"
-          />
+          <!-- Presenter body wrapper. flex-1 + min-h-0 bounds the presenter's
+               own `h-full` so it doesn't add up against the strip and push the
+               comments composer past the panel's bottom. -->
+          <div class="flex-1 min-h-0 overflow-hidden">
+            <!-- EE: presentor-driven (Fields / File / Discussion) for both
+                 side-panel and fullscreen. Side-panel passes vertical / compact
+                 / hide-sidebar so the presenters fit the narrow layout. -->
+            <template v-if="useEePresenter">
+              <SmartsheetExpandedFormPresentorsFields
+                v-if="activeViewMode === ExpandedFormMode.FIELD"
+                :row-id="primaryKey"
+                :fields="fields ?? []"
+                :hidden-fields="hiddenFields"
+                :is-unsaved-duplicated-record-exist="false"
+                :is-unsaved-form-exist="false"
+                :is-loading="isLoading"
+                :is-saving="isSaving"
+                :search-query="searchQuery"
+                :hide-blank-fields="hideBlankFields"
+                :hide-sidebar="!useDualPane"
+                :force-vertical-mode="!isFullscreen"
+                :compact-mode="!isFullscreen && isCompactMode"
+              />
+              <SmartsheetExpandedFormPresentorsAttachments
+                v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
+                :row-id="primaryKey"
+                :view="view"
+                :fields="fields ?? []"
+                :hidden-fields="hiddenFields"
+                :is-unsaved-duplicated-record-exist="false"
+                :is-unsaved-form-exist="false"
+                :is-loading="isLoading"
+                :is-saving="isSaving"
+                :hide-sidebar="!useDualPane"
+                :compact-mode="!isFullscreen && isCompactMode"
+                compact-layout
+              />
+              <SmartsheetExpandedFormPresentorsDiscussion
+                v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
+                :is-unsaved-duplicated-record-exist="false"
+                :hide-sidebar="!useDualPane"
+                :compact-mode="!isFullscreen && isCompactMode"
+              />
+            </template>
+
+            <!-- CE: Fields only. The presenter renders its own sidebar with
+                 Comments + History tabs; in single-pane state the sidebar is
+                 hidden and reachable via the header's show-sidebar toggle. -->
+            <SmartsheetExpandedFormPresentorsFields
+              v-else
+              :row-id="primaryKey"
+              :fields="fields ?? []"
+              :hidden-fields="hiddenFields"
+              :is-unsaved-duplicated-record-exist="false"
+              :is-unsaved-form-exist="false"
+              :is-loading="isLoading"
+              :is-saving="isSaving"
+              :search-query="searchQuery"
+              :hide-blank-fields="hideBlankFields"
+              :hide-sidebar="!useDualPane"
+              :force-vertical-mode="!isFullscreen"
+              :compact-mode="!isFullscreen && isCompactMode"
+            />
+          </div>
         </template>
-
-        <!-- CE: Fields only. The presenter renders its own sidebar with
-             Comments + History tabs; in single-pane state the sidebar is
-             hidden and reachable via the header's show-sidebar toggle. -->
-        <SmartsheetExpandedFormPresentorsFields
-          v-else-if="!isLoading"
-          :row-id="primaryKey"
-          :fields="fields ?? []"
-          :hidden-fields="hiddenFields"
-          :is-unsaved-duplicated-record-exist="false"
-          :is-unsaved-form-exist="false"
-          :is-loading="isLoading"
-          :is-saving="isSaving"
-          :search-query="searchQuery"
-          :hide-blank-fields="hideBlankFields"
-          :hide-sidebar="!useDualPane"
-          :force-vertical-mode="!isFullscreen"
-          :compact-mode="!isFullscreen && isCompactMode"
-        />
       </div>
     </div>
   </Transition>

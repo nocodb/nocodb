@@ -1,8 +1,12 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import init from '../../../init';
 import { defaultUserArgs } from '../../../factory/user';
+import { isEE } from '../../../utils/helpers';
+import { overrideFeature } from '../../../utils/plan.utils';
+import { Workspace } from '~/models';
 
 function mfaTests() {
   let context;
@@ -480,13 +484,83 @@ function mfaTests() {
     });
   });
   // --- Force 2FA (Workspace-level) ---
-  // These tests require a multi-user workspace setup (owner + non-owner member)
-  // because workspace owners are exempt from force 2FA enforcement.
-  // The middleware enforcement is tested via manual/E2E testing:
-  // 1. Set workspace meta.force_2fa = true
-  // 2. Non-owner member without 2FA → 403 ERR_MFA_SETUP_REQUIRED
-  // 3. Non-owner member with 2FA → allowed
-  // 4. Workspace owner without 2FA → allowed (exempt)
+  // Workspace owners are NOT exempt from force_2fa — otherwise an admin who
+  // flips the toggle on can keep accessing the workspace themselves without
+  // a second factor while all other members get blocked. The default user
+  // created by init() is the workspace owner, which is exactly the case we
+  // want to assert.
+  describe('Force 2FA Workspace Enforcement', () => {
+    if (!isEE()) return;
+
+    let featureMock: { restore: () => Promise<void> | void } | undefined;
+
+    afterEach(async () => {
+      await featureMock?.restore();
+      featureMock = undefined;
+    });
+
+    async function enableForce2fa() {
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: PlanFeatureTypes.FEATURE_FORCE_2FA,
+        allowed: true,
+      });
+      await Workspace.update(context.fk_workspace_id, {
+        meta: { force_2fa: true },
+      });
+    }
+
+    function readWorkspace(token: string) {
+      // /api/v1/workspaces/:id has no plan-feature gating beyond ACL, so it
+      // exercises the AclMiddleware 2FA check cleanly. v3 metaApi routes
+      // additionally require FEATURE_API_MEMBER_MANAGEMENT, which would
+      // confuse "did the 2FA check fire?" with "is that feature on?".
+      return request(context.app)
+        .get(`/api/v1/workspaces/${context.fk_workspace_id}`)
+        .set('xc-auth', token);
+    }
+
+    it('blocks workspace owner without 2FA when force_2fa is enabled', async () => {
+      await enableForce2fa();
+
+      const res = await readWorkspace(context.token);
+
+      expect(res.status).to.equal(403);
+      expect(JSON.stringify(res.body)).to.match(/two-factor|2fa/i);
+    });
+
+    it('allows workspace owner with 2FA when force_2fa is enabled', async () => {
+      await enable2FA();
+      await enableForce2fa();
+
+      await readWorkspace(context.token).expect(200);
+    });
+
+    it('allows workspace owner without 2FA when force_2fa is disabled on the workspace', async () => {
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: PlanFeatureTypes.FEATURE_FORCE_2FA,
+        allowed: true,
+      });
+      // meta.force_2fa stays unset/false on the workspace — gate skips.
+
+      await readWorkspace(context.token).expect(200);
+    });
+
+    it('allows workspace owner without 2FA when the plan feature is unavailable', async () => {
+      // Plan does not grant FEATURE_FORCE_2FA, even though meta says force_2fa.
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: PlanFeatureTypes.FEATURE_FORCE_2FA,
+        allowed: false,
+      });
+      await Workspace.update(context.fk_workspace_id, {
+        meta: { force_2fa: true },
+      });
+
+      await readWorkspace(context.token).expect(200);
+    });
+  });
 }
 
 export default function () {

@@ -12,6 +12,8 @@ const props = defineProps<{
   isLoading: boolean
   isSaving: boolean
   newRecordSubmitBtnText?: string
+  searchQuery?: string
+  hideBlankFields?: boolean
 }>()
 
 const fields = toRef(props, 'fields')
@@ -46,7 +48,13 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsColumns :fields="fields" :hidden-fields="hiddenFields" :is-loading="isLoading" />
+      <SmartsheetExpandedFormPresentorsFieldsColumns
+        :fields="fields"
+        :hidden-fields="hiddenFields"
+        :is-loading="isLoading"
+        :search-query="searchQuery"
+        :hide-blank-fields="hideBlankFields"
+      />
 
       <div class="p-2" />
     </div>

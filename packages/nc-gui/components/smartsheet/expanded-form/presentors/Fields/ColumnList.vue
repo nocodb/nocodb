@@ -8,6 +8,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
+import { fieldMatchesSearch, isBlankFieldValue } from './searchUtils'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -15,6 +16,9 @@ const props = defineProps<{
   isLoading: boolean
   showColCallback?: (col: ColumnType) => boolean
   isHiddenCol?: boolean
+  /** Already lower-cased & trimmed in the parent */
+  searchQuery?: string
+  hideBlankFields?: boolean
 }>()
 
 const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
@@ -114,7 +118,11 @@ const getRelatedTableName = (col: ColumnType): string => {
 }
 
 const showCol = (col: ColumnType) => {
-  return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+  const baseVisible = props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+  if (!baseVisible) return false
+  if (!fieldMatchesSearch(col, props.searchQuery ?? '', _row.value?.row)) return false
+  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title])) return false
+  return true
 }
 
 const revertLocalOnlyChanges = (col: string) => {

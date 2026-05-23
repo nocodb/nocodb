@@ -56,6 +56,16 @@ function describeRowErrorTests() {
         );
       });
 
+      it('MySQL ER_DATA_OUT_OF_RANGE → friendly message with column', () => {
+        const err = {
+          code: 'ER_DATA_OUT_OF_RANGE',
+          message: "Out of range value for column 'amount' at row 1",
+        };
+        expect(describeRowError(err)).to.equal(
+          "Number is out of range for column 'amount'.",
+        );
+      });
+
       it('23505 with detail → column-aware unique violation', () => {
         const err = {
           code: '23505',

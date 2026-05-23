@@ -35,7 +35,7 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const panelRef = ref<HTMLElement>()
 
@@ -580,11 +580,7 @@ const showActivity = computed(() => {
   return !isNew.value && isUIAllowed('commentList', baseRoles.value) && !isPublic.value && !isSqlView.value
 })
 
-// EE has dedicated fullscreen presentors (Attachments + Discussion) driven by
-// ViewModeSelector. CE doesn't expose those tabs, so fullscreen reuses the
-// same Fields / Comments / Audits set that the side-panel uses — same activity
-// pill, same content components, just a wider layout.
-const useEeFullscreenSelector = computed(() => isFullscreen.value && isEeUI)
+const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.value.ee)
 </script>
 
 <template>

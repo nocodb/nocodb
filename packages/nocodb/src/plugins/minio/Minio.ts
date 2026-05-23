@@ -190,7 +190,7 @@ export default class Minio implements IStorageAdapterV2 {
         Key: key,
         Body: response.data,
         metaData: {
-          ContentType: response.headers['content-type'],
+          ContentType: response.headers['content-type'] as string,
         },
       };
 

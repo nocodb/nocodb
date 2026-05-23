@@ -155,7 +155,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
         ...this.defaultParams,
         Body: response.data,
         Key: key,
-        ContentType: response.headers['content-type'],
+        ContentType: response.headers['content-type'] as string,
       };
 
       const data = await this.upload(uploadParams);

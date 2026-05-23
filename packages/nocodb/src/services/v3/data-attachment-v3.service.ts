@@ -394,11 +394,18 @@ export class DataAttachmentV3Service {
       httpsAgent: useAgent(url),
     });
 
-    // Extract file information from response headers
+    // Extract file information from response headers (axios >=1.14 widens
+    // AxiosHeaderValue to string | number | boolean | string[] — content-* are
+    // always a single string in HTTP responses, so coerce to string.)
     const contentType =
-      response.headers['content-type'] || 'application/octet-stream';
-    const contentLength = response.headers['content-length'];
-    const contentDisposition = response.headers['content-disposition'];
+      (response.headers['content-type'] as string) ||
+      'application/octet-stream';
+    const contentLength = response.headers['content-length'] as
+      | string
+      | undefined;
+    const contentDisposition = response.headers['content-disposition'] as
+      | string
+      | undefined;
 
     const passthrough = new PassThrough(); // Track size via the PassThrough stream
     let totalBytes = 0;

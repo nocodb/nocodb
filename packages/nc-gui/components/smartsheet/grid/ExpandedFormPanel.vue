@@ -655,25 +655,9 @@ watch(activeRowId, () => {
         </span>
         <div v-else class="flex-1" />
 
-        <!-- Save -->
-        <NcTooltip
-          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
-          :title="isNew ? $t('general.create') : $t('general.save')"
-        >
-          <NcButton
-            v-e="['c:row-expand-panel:save']"
-            :disabled="isSaveDisabled"
-            :loading="isSaving"
-            class="!px-1"
-            data-testid="nc-expanded-form-save"
-            type="primary"
-            size="xs"
-            @click="save"
-          >
-            <GeneralIcon icon="save" class="w-4 h-4" />
-          </NcButton>
-        </NcTooltip>
-
+        <!-- Prev / Next — sits adjacent to the title since these navigate
+             which record the title refers to; grouping them avoids Save
+             interrupting the record-navigator cluster. -->
         <div v-if="!isNew" class="flex items-center">
           <NcTooltip :title="$t('labels.prevRow')">
             <NcButton
@@ -700,6 +684,27 @@ watch(activeRowId, () => {
             </NcButton>
           </NcTooltip>
         </div>
+
+        <!-- Save — boundary between record navigation and mode switcher.
+             Visually prominent (primary type, blue when there are unsaved
+             changes), so position is less load-bearing than visual state. -->
+        <NcTooltip
+          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+          :title="isNew ? $t('general.create') : $t('general.save')"
+        >
+          <NcButton
+            v-e="['c:row-expand-panel:save']"
+            :disabled="isSaveDisabled"
+            :loading="isSaving"
+            class="!px-1"
+            data-testid="nc-expanded-form-save"
+            type="primary"
+            size="xs"
+            @click="save"
+          >
+            <GeneralIcon icon="save" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
 
         <!-- EE fullscreen: Fields / Attachments / Discussion. CE fullscreen
              uses the activity pill below instead. -->

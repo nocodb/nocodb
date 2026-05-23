@@ -22,7 +22,7 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const { appInfo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const panelRef = ref<HTMLElement>()
 
@@ -582,10 +582,12 @@ const panelClasses = computed(() => {
   return base
 })
 
-// EE renders the Fields / File / Discussion mode selector + presenter layout
-// in both side-panel and fullscreen. CE has no Attachment/Discussion modes,
-// so it falls through to the legacy fields-only body below.
-const useEePresenter = computed(() => appInfo.value.ee)
+// Every EE build (licensed + unlicensed on-prem + cloud) gets the unified
+// Fields / File / Discussion presenter — unlicensed users see the tabs and
+// hit the upgrade modal on click. CE has no File/Discussion modes and falls
+// through to the Fields-only body below. Kept in sync with ViewModeSelector's
+// own `isEeUI` gate so the tabs and the body unlock together.
+const useEePresenter = computed(() => isEeUI)
 
 const searchQuery = ref('')
 

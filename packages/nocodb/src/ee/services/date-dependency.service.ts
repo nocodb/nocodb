@@ -262,6 +262,19 @@ export class DateDependencyService {
         );
       }
 
+      // Reject system-generated inverse LTAR columns. For self-ref v2 OO
+      // (and any other where the system auto-creates a counterpart), writes
+      // via the inverse store the junction with flipped mm_parent/mm_child
+      // relative to the canonical user-created column, which makes the cell
+      // appear on the wrong row in grid views that display the canonical
+      // side. Forcing dep config to point at the non-system column keeps
+      // Gantt arrows + grid cell display consistent.
+      if ((col as any).system) {
+        NcError.get(context).badRequest(
+          'Dependency linkrow field cannot be an auto-generated inverse link column. Pick the user-created link field instead.',
+        );
+      }
+
       // Load the link column options to verify it's a self-referencing HM/OM/OO relation
       // hm = Has Many (v1), om = One to Many (v2), oo = One to One
       const colOptions = await col.getColOptions<any>(context);

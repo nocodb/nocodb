@@ -646,8 +646,16 @@ onMounted(async () => {
         const dateCols = cols.filter(
           (c: ColumnType) => c.uidt === UITypes.Date || c.uidt === UITypes.DateTime,
         )
+        // Auto-pick a self-referencing HM/OM/OO link column as the default
+        // dep field. Exclude system-generated inverse columns — writes via
+        // the inverse store the junction with flipped mm_parent/mm_child
+        // relative to the user-facing column, which makes the cell appear
+        // on the wrong row in any grid view that displays the canonical
+        // column. The user-created (non-system) side keeps Gantt arrows +
+        // grid cell display consistent.
         const selfLink = cols.find((c: ColumnType) => {
           if (!isLinksOrLTAR(c)) return false
+          if ((c as any).system) return false
           const opts = (c.colOptions as any) ?? {}
           return (
             ['hm', 'om', 'oo'].includes(opts.type) &&

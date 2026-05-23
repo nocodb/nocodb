@@ -101,10 +101,17 @@ const durationOptions = computed(() =>
 
 // Only show self-referencing HM/OM/OO link columns — BT/MO/MM cannot be used as predecessor links
 // hm = Has Many (v1), om = One to Many (v2), oo = One to One
+// Also exclude system-generated inverse columns (e.g. the auto-created OO
+// counterpart for self-ref). Writes via the inverse store the junction with
+// flipped mm_parent/mm_child relative to the canonical column, so the cell
+// content shows up on the wrong row in any grid that displays the canonical
+// column. Restricting selection to the user-created (non-system) side keeps
+// the Gantt arrows + grid cell display consistent.
 const linkOptions = computed(() =>
   tableColumns.value
     .filter((c) => {
       if (!isLinksOrLTAR(c)) return false
+      if ((c as any).system) return false
       const opts = (c.colOptions as LinkToAnotherRecordType) ?? {}
       return ['hm', 'om', 'oo'].includes(opts.type as string) && opts.fk_related_model_id === props.tableId
     })

@@ -581,6 +581,29 @@ const showActivity = computed(() => {
 })
 
 const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.value.ee)
+
+const searchQuery = ref('')
+
+const hideBlankFields = ref(false)
+
+const showFieldFilters = computed(() => {
+  if (isLoading.value) return false
+  if (isFullscreen.value) return activeViewMode.value === ExpandedFormMode.FIELD
+  return !activityExpanded.value
+})
+
+watch(isOpen, (v) => {
+  if (!v) {
+    searchQuery.value = ''
+    hideBlankFields.value = false
+  }
+})
+
+// Row navigation resets the per-record search; hide-blank is a viewing
+// preference that persists across rows in the same panel session.
+watch(activeRowId, () => {
+  searchQuery.value = ''
+})
 </script>
 
 <template>
@@ -756,7 +779,7 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
         </div>
       </div>
 
-      <div class="flex-1 min-h-0 overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-hidden flex flex-col">
         <div v-if="isLoading" class="flex items-center justify-center h-full">
           <GeneralLoader />
         </div>
@@ -772,6 +795,8 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
             :is-unsaved-form-exist="false"
             :is-loading="isLoading"
             :is-saving="isSaving"
+            :search-query="searchQuery"
+            :hide-blank-fields="hideBlankFields"
           />
           <SmartsheetExpandedFormPresentorsAttachments
             v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
@@ -791,9 +816,88 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
         </template>
 
         <!-- Side-panel (any edition) or CE fullscreen — activity-pill driven.
-             Same content components in both layouts; only width differs. -->
+             Field-filters strip (search + hide-blank) above the body when in
+             Fields view. -->
         <template v-else>
-          <div class="h-full overflow-y-auto nc-scrollbar-thin">
+          <!-- Field filters strip — shown when viewing fields (docked or fullscreen) -->
+          <div
+            v-if="showFieldFilters"
+            class="nc-expanded-form-field-filters flex-shrink-0 flex items-center h-8 gap-3 px-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+          >
+            <div class="flex-1 min-w-0 flex items-center gap-2">
+              <GeneralIcon icon="search" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                class="nc-expanded-form-search-input flex-1 min-w-0 bg-transparent border-none outline-none text-xs text-nc-content-gray placeholder-nc-content-gray-muted focus:(outline-none border-none ring-0 shadow-none)"
+                :placeholder="$t('placeholder.searchFields')"
+                data-testid="nc-expanded-form-search-input"
+                @keydown.esc.stop.prevent="searchQuery = ''"
+              />
+              <NcButton
+                v-if="searchQuery"
+                v-e="['c:row-expand-panel:search:clear']"
+                class="nc-expanded-form-search-clear !w-4 !h-4 flex-none"
+                data-testid="nc-expanded-form-search-clear"
+                type="text"
+                size="xs"
+                @click="searchQuery = ''"
+              >
+                <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
+              </NcButton>
+            </div>
+            <NcTooltip :disabled="!isNew" placement="top">
+              <template #title>Not available while creating a new record</template>
+              <label
+                v-e="hideBlankFields ? ['c:row-expand-panel:hide-blank:off'] : ['c:row-expand-panel:hide-blank:on']"
+                class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-xs text-nc-content-gray"
+                :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
+                data-testid="nc-expanded-form-hide-blank-label"
+              >
+                <NcCheckbox
+                  v-model:checked="hideBlankFields"
+                  :disabled="isNew"
+                  data-testid="nc-expanded-form-hide-blank-checkbox"
+                  size="small"
+                />
+                <span>Hide blank fields</span>
+              </label>
+            </NcTooltip>
+          </div>
+
+          <!-- Fullscreen: use expanded form presentors (Fields/Attachments/Discussion) -->
+          <div v-if="isFullscreen" class="flex-1 min-h-0 overflow-hidden">
+            <SmartsheetExpandedFormPresentorsFields
+              v-if="activeViewMode === ExpandedFormMode.FIELD"
+              :row-id="primaryKey"
+              :fields="fields ?? []"
+              :hidden-fields="hiddenFields"
+              :is-unsaved-duplicated-record-exist="false"
+              :is-unsaved-form-exist="false"
+              :is-loading="isLoading"
+              :is-saving="isSaving"
+              :search-query="searchQuery"
+              :hide-blank-fields="hideBlankFields"
+            />
+            <SmartsheetExpandedFormPresentorsAttachments
+              v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
+              :row-id="primaryKey"
+              :view="view"
+              :fields="fields ?? []"
+              :hidden-fields="hiddenFields"
+              :is-unsaved-duplicated-record-exist="false"
+              :is-unsaved-form-exist="false"
+              :is-loading="isLoading"
+              :is-saving="isSaving"
+            />
+            <SmartsheetExpandedFormPresentorsDiscussion
+              v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
+              :is-unsaved-duplicated-record-exist="false"
+            />
+          </div>
+
+          <!-- Panel mode: fields / comments / audits -->
+          <div v-else class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
             <template v-if="activityExpanded && activeActivityTab === 'comments'">
               <SmartsheetExpandedFormSidebarComments />
             </template>
@@ -817,6 +921,8 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
               :fields="fields ?? []"
               :hidden-fields="hiddenFields"
               :is-loading="isLoading"
+              :search-query="searchQuery"
+              :hide-blank-fields="hideBlankFields"
               force-vertical-mode
               class="nc-panel-fields-compact"
             />
@@ -846,6 +952,14 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
   &:not(.active) {
     @apply hover:text-nc-content-gray-extreme;
   }
+}
+
+.nc-expanded-form-search-input,
+.nc-expanded-form-search-input:focus,
+.nc-expanded-form-search-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 /* Edge tabs need no side border. :first-child / :last-child on the tab itself
@@ -959,9 +1073,14 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
       }
 
       svg.nc-icon:not(.invisible):not(.nc-column-context-menu):not(.nc-column-lock-icon) {
-        @apply !w-3.5 !h-3.5 !mx-0;
+        @apply !w-3 !h-3 !mx-0;
       }
     }
+  }
+
+  /* Tighten label-to-input gap in vertical/compact mode (label container has mb-2 by default) */
+  .nc-expanded-form-row .nc-expanded-cell > :first-child {
+    @apply !mb-1;
   }
 }
 

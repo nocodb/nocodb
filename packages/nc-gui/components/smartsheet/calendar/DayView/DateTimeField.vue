@@ -694,7 +694,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
+        [toCol.title!]: newEndDate.format(updateFormat.value),
       },
     }
   } else if (resizeDirection.value === 'left') {
@@ -713,7 +713,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format(updateFormat.value),
       },
     }
   }
@@ -861,7 +861,7 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format(updateFormat.value),
       },
     }
 
@@ -880,7 +880,7 @@ const dropEvent = (event: DragEvent) => {
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
       updateProperty.push(toCol.title!)
     }
 
@@ -965,8 +965,26 @@ const newRecord = (hour: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedTable.value) return
   const record = {
     row: {
-      [calendarRange.value[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
+      [calendarRange.value[0].fk_from_col!.title!]: hour.format(updateFormat.value),
     },
+  }
+  emit('newRecord', record)
+}
+
+const newRecordWithRange = (range: any, hour: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || isSyncedTable.value) return
+  let record = {
+    row: {
+      [range.fk_from_col!.title!]: hour.format(updateFormat.value),
+    },
+  }
+  if (range.fk_to_col) {
+    record = {
+      row: {
+        ...record.row,
+        [range.fk_to_col!.title!]: hour.add(1, 'hour').format(updateFormat.value),
+      },
+    }
   }
   emit('newRecord', record)
 }
@@ -1070,24 +1088,7 @@ const expandRecord = (record: Row) => {
                   <NcMenuItem
                     v-if="!range.is_readonly"
                     class="text-nc-content-gray font-semibold text-sm"
-                    @click="
-                () => {
-                  let record = {
-                    row: {
-                      [range.fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
-                    },
-                  }
-                  if (range.fk_to_col) {
-                    record = {
-                      row: {
-                        ...record.row,
-                        [range.fk_to_col!.title!]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
-                      },
-                    }
-                  }
-                  emit('newRecord', record)
-                }
-              "
+                    @click="newRecordWithRange(range, hour)"
                   >
                     <div class="flex items-center gap-1">
                       <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
@@ -1121,24 +1122,7 @@ const expandRecord = (record: Row) => {
                   size="xsmall"
                   type="secondary"
                   :disabled="!isAllowed"
-                  @click="
-                  () => {
-                    let record = {
-                      row: {
-                        [calendarRange[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
-                      },
-                    }
-
-                    if (calendarRange[0].fk_to_col) {
-                      record = {
-                        row: {
-                          ...record.row,
-                          [calendarRange[0].fk_to_col!.title!]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
-                        },
-                      }
-                    }
-                    emit('newRecord', record)
-                }"
+                  @click="newRecordWithRange(calendarRange[0], hour)"
                 >
                   <component :is="iconMap.plus" class="h-4 w-4" />
                 </NcButton>

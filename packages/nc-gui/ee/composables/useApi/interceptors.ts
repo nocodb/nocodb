@@ -73,12 +73,14 @@ export function addAxiosInterceptors(api: Api<any> | InternalApi<any>, skipSocke
       }
 
       // if 403 and ERR_MFA_SETUP_REQUIRED error, show dialog prompting 2FA setup.
-      // Suppress when already on /account/security — the dialog's "Set Up 2FA"
-      // button navigates here, so triggering it from here loops indefinitely.
+      // Restricted to workspace pages — /account/* routes are deliberately
+      // outside the workspace context, so 2FA enforcement there shouldn't
+      // pop a modal (it would also loop on /account/security, which is where
+      // the dialog's Set Up button navigates).
       if (
         error.response?.status === 403 &&
         error.response?.data?.error === NcErrorType.ERR_MFA_SETUP_REQUIRED &&
-        router.currentRoute.value.path !== '/account/security'
+        !router.currentRoute.value.path.startsWith('/account')
       ) {
         const workspaceStore = useWorkspace()
         workspaceStore.toggleMfaSetupRequiredDlg(true)

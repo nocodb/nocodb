@@ -377,9 +377,6 @@ onMounted(() => {
         </div>
       </div>
     </NuxtLayout>
-    <!-- Account pages also fire workspace-scoped requests; mirror the dialogs from ee/pages/index.vue. -->
-    <DlgWorkspaceSsoRedirectConfirm />
-    <DlgWorkspaceMfaSetupRequired />
   </div>
 </template>
 

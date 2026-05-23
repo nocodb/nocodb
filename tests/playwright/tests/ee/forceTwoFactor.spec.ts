@@ -19,7 +19,10 @@ test.describe('Force 2FA workspace setting', () => {
     await dashboard.workspaceSettings.open();
 
     const toggle = dashboard.workspaceSettings.forceTwoFactorToggle();
-    const modal = dashboard.rootPage.locator('.nc-modal-confirm');
+    // Scope to :visible — useDialog defers unmount by 1s after close, so a
+    // dismissed modal lingers in the DOM and a plain `.nc-modal-confirm`
+    // locator would match both the old hidden one and the newly-opened one.
+    const modal = dashboard.rootPage.locator('.nc-modal-confirm:visible');
 
     // Sanity: starts off
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
@@ -33,7 +36,7 @@ test.describe('Force 2FA workspace setting', () => {
     await expect(modal.locator('.nc-modal-confirm-content')).toContainText('locked out');
 
     await modal.locator('.nc-modal-confirm-cancel-btn').click();
-    await expect(modal).toBeHidden();
+    await expect(modal).toHaveCount(0);
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
     // 2. Confirm path — clicking OK actually flips the toggle and persists
@@ -46,7 +49,7 @@ test.describe('Force 2FA workspace setting', () => {
       requestUrlPathToMatch: `/api/v1/workspaces/`,
     });
 
-    await expect(modal).toBeHidden();
+    await expect(modal).toHaveCount(0);
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
 
     // 3. Turning it OFF must NOT show the confirm — it's only when enabling.
@@ -55,7 +58,7 @@ test.describe('Force 2FA workspace setting', () => {
       httpMethodsToMatch: ['PATCH'],
       requestUrlPathToMatch: `/api/v1/workspaces/`,
     });
-    await expect(modal).toBeHidden();
+    await expect(modal).toHaveCount(0);
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 });

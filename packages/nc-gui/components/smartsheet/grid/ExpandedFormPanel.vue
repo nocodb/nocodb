@@ -897,16 +897,14 @@ watch(activeRowId, () => {
               :is-unsaved-form-exist="false"
               :is-loading="isLoading"
               :is-saving="isSaving"
-<<<<<<< ours
-=======
               :hide-sidebar="!useDualPane"
               :compact-mode="!isFullscreen && isCompactMode"
->>>>>>> theirs
             />
             <SmartsheetExpandedFormPresentorsDiscussion
               v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
               :is-unsaved-duplicated-record-exist="false"
-<<<<<<< ours
+              :hide-sidebar="!useDualPane"
+              :compact-mode="!isFullscreen && isCompactMode"
             />
           </div>
 
@@ -929,6 +927,8 @@ watch(activeRowId, () => {
               :is-unsaved-form-exist="false"
               :is-loading="isLoading"
               :is-saving="isSaving"
+              :search-query="searchQuery"
+              :hide-blank-fields="hideBlankFields"
             />
             <SmartsheetExpandedFormPresentorsFieldsColumns
               v-else
@@ -940,10 +940,6 @@ watch(activeRowId, () => {
               :compact-mode="isCompactMode"
               force-vertical-mode
               class="nc-panel-fields-compact"
-=======
-              :hide-sidebar="!useDualPane"
-              :compact-mode="!isFullscreen && isCompactMode"
->>>>>>> theirs
             />
           </div>
         </template>

@@ -14,6 +14,11 @@ const props = defineProps<{
   hideSidebar?: boolean
   /** Render the sidebar's Fields tab in compact mode. */
   compactMode?: boolean
+  /** Side-panel layout: preview on top, horizontal thumbnail strip at the
+   * bottom (with a '+' tile to add files), field selector as an icon-only
+   * dropdown in the top-left. When false (fullscreen), the original
+   * vertical rail + preview layout is used. */
+  compactLayout?: boolean
 }>()
 
 const { fields, hiddenFields, isUnsavedDuplicatedRecordExist } = toRefs(props)
@@ -211,6 +216,43 @@ export default {
                     />
                   </NcButton>
                 </NcDropdownSelect>
+              </div>
+            </div>
+          </template>
+          <template v-else-if="compactLayout">
+            <!-- Side-panel layout: preview on top, horizontal strip at bottom -->
+            <div class="flex-1 flex flex-col relative w-full">
+              <!-- Field selector — always present so the user knows which field
+                   they're viewing; behaves as a single-item indicator when
+                   only one attachment field exists. z-30 keeps it above the
+                   carousel's full-height nav arrows (z-20) so clicks land on
+                   the dropdown, not the left arrow. -->
+              <div class="absolute top-3 left-3 z-30">
+                <NcDropdownSelect
+                  v-model="selectedFieldId"
+                  class="nc-files-current-field-dropdown"
+                  :items="attachmentFields.map((field) => ({ label: field.title || field.id!, value: field.id! }))"
+                  overlay-class-name="w-[288px]"
+                >
+                  <NcTooltip :title="selectedField?.title" placement="bottom">
+                    <button
+                      class="nc-files-field-icon-btn flex items-center justify-center w-8 h-8 rounded-lg bg-white/70 backdrop-blur-md border-1 border-nc-border-gray-medium shadow-sm hover:bg-white transition-all"
+                    >
+                      <GeneralIcon icon="cellAttachment" class="w-4 h-4 text-nc-content-gray" />
+                    </button>
+                  </NcTooltip>
+                </NcDropdownSelect>
+              </div>
+              <div class="flex-1 min-h-0 overflow-hidden">
+                <SmartsheetExpandedFormPresentorsAttachmentsInlinePreviewCarousel
+                  v-model:active-index="activeAttachmentIndex"
+                  :attachments="selectedFieldValue"
+                  :is-edit-allowed="!readOnly"
+                  @download="(att) => refAttachmentCell?.downloadAttachment?.(att)"
+                  @rename="(att, idx) => refAttachmentCell?.renameAttachment?.(att, idx, true)"
+                  @remove="(idx) => refAttachmentCell?.removeAttachment?.(idx)"
+                  @add-file="openFilePicker()"
+                />
               </div>
             </div>
           </template>

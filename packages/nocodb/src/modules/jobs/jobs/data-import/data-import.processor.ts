@@ -48,6 +48,20 @@ const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
   NcErrorType.ERR_INVALID_ATTACHMENT_JSON,
 ]);
 
+/**
+ * Build a short, user-presentable error string from a thrown error. Strips
+ * newlines and clips the length so raw DB-driver messages (e.g. "invalid
+ * input syntax for type numeric: \"$500.00\"") render cleanly in a toast.
+ */
+function describeRowError(err: unknown): string {
+  const msg =
+    err && typeof err === 'object' && 'message' in err
+      ? (err as { message?: unknown }).message
+      : undefined;
+  if (typeof msg !== 'string' || !msg) return 'Failed to insert row';
+  return msg.replace(/\s+/g, ' ').trim().slice(0, 240);
+}
+
 interface ColumnMapEntry {
   destCn: string;
   uidt: string;
@@ -187,6 +201,9 @@ export class DataImportProcessor {
       const rowsInserted = results.reduce((s, r) => s + r.rowsInserted, 0);
       const rowsFailed = results.reduce((s, r) => s + r.rowsFailed, 0);
       const errorsCount = results.reduce((s, r) => s + r.errors.length, 0);
+      const sampleError = results
+        .flatMap((r) => r.errors)
+        .find((e) => e?.error)?.error;
 
       elapsedTime(
         hrTime,
@@ -201,6 +218,7 @@ export class DataImportProcessor {
           rowsInserted,
           rowsFailed,
           errorsCount,
+          ...(sampleError ? { sampleError } : {}),
         }),
       );
       log(
@@ -485,24 +503,33 @@ export class DataImportProcessor {
 
         const isRowLevel =
           err instanceof NcBaseErrorv2 && ROW_LEVEL_ERRORS.has(err.error);
+        const batchStartRow = processedRows - pending.length + 1;
         if (!isRowLevel) {
           stats.rowsFailed += pending.length;
+          // Surface the underlying message (DB constraint text, etc.) once
+          // per batch so the UI has something concrete to show rather than
+          // a generic placeholder.
+          if (stats.errors.length < MAX_ERROR_SAMPLES) {
+            stats.errors.push({
+              row: batchStartRow,
+              error: describeRowError(err),
+            });
+          }
           if (++systemErrorCount >= MAX_SYSTEM_ERRORS) throw err;
           return;
         }
 
         // Retry one-by-one so well-formed rows in the batch still make it in.
-        const firstRowIndex = processedRows - pending.length + 1;
         for (let i = 0; i < pending.length; i++) {
           try {
             await insert([pending[i]]);
             stats.rowsInserted += 1;
-          } catch {
+          } catch (rowErr) {
             stats.rowsFailed += 1;
             if (stats.errors.length < MAX_ERROR_SAMPLES) {
               stats.errors.push({
-                row: firstRowIndex + i,
-                error: 'Failed to insert row',
+                row: batchStartRow + i,
+                error: describeRowError(rowErr),
               });
             }
           }

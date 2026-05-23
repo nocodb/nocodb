@@ -20,15 +20,13 @@ const {
   hasNext,
 } = panelStore
 
-const { closePanel, setFullscreen, navigatePrev, navigateNext, toggleActivity } = panelStore
+const { closePanel, setFullscreen, navigatePrev, navigateNext } = panelStore
 
 const { requestSwitch } = panelStore
 
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
-
-const isPublic = inject(IsPublicInj, ref(false))
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -600,11 +598,10 @@ const panelClasses = computed(() => {
   return base
 })
 
-const showActivity = computed(() => {
-  return !isNew.value && isUIAllowed('commentList', baseRoles.value) && !isPublic.value && !isSqlView.value
-})
-
-const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.value.ee)
+// EE renders the Fields / File / Discussion mode selector + presenter layout
+// in both side-panel and fullscreen. CE has no Attachment/Discussion modes,
+// so it falls through to the legacy fields-only body below.
+const useEePresenter = computed(() => appInfo.value.ee)
 
 const searchQuery = ref('')
 
@@ -729,10 +726,11 @@ watch(activeRowId, () => {
           </NcButton>
         </NcTooltip>
 
-        <!-- EE fullscreen: Fields / Attachments / Discussion. CE fullscreen
-             uses the activity pill below instead. -->
+        <!-- EE: Fields / File / Discussion mode selector — shown in both
+             side-panel and fullscreen. CE falls through to the legacy
+             fields-only body. -->
         <SmartsheetExpandedFormViewModeSelector
-          v-if="useEeFullscreenSelector"
+          v-if="useEePresenter"
           v-model="activeViewMode"
           :view="view"
           class="nc-expanded-form-mode-switch"
@@ -802,8 +800,55 @@ watch(activeRowId, () => {
           <GeneralLoader />
         </div>
 
-        <!-- EE fullscreen: presentor-driven (Fields / Attachments / Discussion) -->
-        <template v-else-if="useEeFullscreenSelector">
+        <!-- EE: presentor-driven (Fields / Attachments / Discussion) — used
+             for both side-panel and fullscreen. Side-panel passes vertical /
+             compact / hide-sidebar so the presenters fit the narrow layout. -->
+        <template v-else-if="useEePresenter">
+          <!-- Field filters strip — search + hide-blank, shown in Fields mode. -->
+          <div
+            v-if="activeViewMode === ExpandedFormMode.FIELD"
+            class="nc-expanded-form-field-filters flex-shrink-0 flex items-center h-8 gap-3 px-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+          >
+            <div class="flex-1 min-w-0 flex items-center gap-2">
+              <GeneralIcon icon="search" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                class="nc-expanded-form-search-input flex-1 min-w-0 bg-transparent border-none outline-none text-xs text-nc-content-gray placeholder-nc-content-gray-muted focus:(outline-none border-none ring-0 shadow-none)"
+                :placeholder="$t('placeholder.searchFields')"
+                data-testid="nc-expanded-form-search-input"
+                @keydown.esc.stop.prevent="searchQuery = ''"
+              />
+              <NcButton
+                v-if="searchQuery"
+                v-e="['c:row-expand-panel:search:clear']"
+                class="nc-expanded-form-search-clear !w-4 !h-4 flex-none"
+                data-testid="nc-expanded-form-search-clear"
+                type="text"
+                size="xs"
+                @click="searchQuery = ''"
+              >
+                <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
+              </NcButton>
+            </div>
+            <NcTooltip :disabled="!isNew" placement="top">
+              <template #title>Not available while creating a new record</template>
+              <label
+                v-e="hideBlankFields ? ['c:row-expand-panel:hide-blank:off'] : ['c:row-expand-panel:hide-blank:on']"
+                class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-xs text-nc-content-gray"
+                :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
+                data-testid="nc-expanded-form-hide-blank-label"
+              >
+                <NcCheckbox
+                  v-model:checked="hideBlankFields"
+                  :disabled="isNew"
+                  data-testid="nc-expanded-form-hide-blank-checkbox"
+                  size="small"
+                />
+                <span>Hide blank fields</span>
+              </label>
+            </NcTooltip>
+          </div>
           <SmartsheetExpandedFormPresentorsFields
             v-if="activeViewMode === ExpandedFormMode.FIELD"
             :row-id="primaryKey"
@@ -815,6 +860,9 @@ watch(activeRowId, () => {
             :is-saving="isSaving"
             :search-query="searchQuery"
             :hide-blank-fields="hideBlankFields"
+            :hide-sidebar="!useDualPane"
+            :force-vertical-mode="!isFullscreen"
+            :compact-mode="!isFullscreen && isCompactMode"
           />
           <SmartsheetExpandedFormPresentorsAttachments
             v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
@@ -826,10 +874,15 @@ watch(activeRowId, () => {
             :is-unsaved-form-exist="false"
             :is-loading="isLoading"
             :is-saving="isSaving"
+            :hide-sidebar="!useDualPane"
+            :compact-mode="!isFullscreen && isCompactMode"
+            compact-layout
           />
           <SmartsheetExpandedFormPresentorsDiscussion
             v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
             :is-unsaved-duplicated-record-exist="false"
+            :hide-sidebar="!useDualPane"
+            :compact-mode="!isFullscreen && isCompactMode"
           />
         </template>
 

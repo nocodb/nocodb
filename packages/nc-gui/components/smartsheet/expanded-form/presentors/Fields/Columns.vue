@@ -56,7 +56,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
   <div
     ref="expandedFormScrollWrapper"
     class="flex flex-col flex-grow h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2) children:max-w-[588px] <lg:(children:max-w-[450px])"
-    :class="compactMode ? 'gap-2.5 xs:gap-3' : 'gap-5 xs:gap-6'"
+    :class="[compactMode ? 'gap-2.5 xs:gap-3 nc-panel-fields-compact' : 'gap-5 xs:gap-6']"
   >
     <SmartsheetExpandedFormPresentorsFieldsColumnList
       :fields="fields"

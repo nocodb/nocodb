@@ -3,6 +3,10 @@
 
 const props = defineProps<{
   isUnsavedDuplicatedRecordExist: boolean
+  /** Force-hide the right-side sidebar (fields summary) regardless of the
+   * user's commentsDrawer preference. Used by the EE docked panel at narrow
+   * widths. */
+  hideSidebar?: boolean
 }>()
 
 const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordExist')
@@ -18,7 +22,7 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 /* flags */
 
-const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
+const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 onMounted(() => {
   scrollToBottom()
@@ -133,7 +137,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-[240px] h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"

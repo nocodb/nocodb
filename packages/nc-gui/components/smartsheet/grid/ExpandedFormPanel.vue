@@ -754,12 +754,8 @@ watch(activeRowId, () => {
             v-model:compact-mode="isCompactMode"
             :is-loading="isLoading"
             :view="view"
-<<<<<<< ours
             :row-id="activeRowId ?? undefined"
-=======
-            :row-id="primaryKey"
             :show-compact-toggle="!isFullscreen"
->>>>>>> theirs
             compact
             @after-delete="closePanel"
             @duplicate-applied="onAfterDuplicate"

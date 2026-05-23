@@ -8,6 +8,10 @@ const props = defineProps<{
   hiddenFields: ColumnType[]
   view?: ViewType
   isUnsavedDuplicatedRecordExist: boolean
+  /** Force-hide the right-side sidebar (fields / comments / audits) regardless
+   * of the user's commentsDrawer preference. Used by the EE docked panel at
+   * narrow widths. */
+  hideSidebar?: boolean
 }>()
 
 const { fields, hiddenFields, isUnsavedDuplicatedRecordExist } = toRefs(props)
@@ -26,7 +30,7 @@ const viewsStore = useViewsStore()
 
 /* flags */
 
-const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
+const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
@@ -226,7 +230,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-[240px] h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"

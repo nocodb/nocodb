@@ -190,7 +190,16 @@ export default class DocRevision implements DocumentRevisionType {
   static async list(
     context: NcContext,
     docId: string,
-    options: { limit?: number; before?: string } = {},
+    options: {
+      limit?: number;
+      before?: string;
+      /**
+       * Per-plan retention window. Revisions older than `now - retentionDays`
+       * are hidden from the result; set to `undefined` (or omit) for no
+       * filter. The pruning job uses the same window to hard-delete.
+       */
+      retentionDays?: number;
+    } = {},
   ): Promise<DocRevision[]> {
     const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
 
@@ -215,6 +224,17 @@ export default class DocRevision implements DocumentRevisionType {
         'created_at',
         'updated_at',
       );
+
+    if (
+      options.retentionDays !== undefined &&
+      Number.isFinite(options.retentionDays) &&
+      options.retentionDays > 0
+    ) {
+      const cutoff = new Date(
+        Date.now() - options.retentionDays * 86400000,
+      ).toISOString();
+      query.where('created_at', '>=', cutoff);
+    }
 
     const cursor = decodeCursor(options.before);
     if (cursor) {
@@ -242,6 +262,7 @@ export default class DocRevision implements DocumentRevisionType {
   static async get(
     context: NcContext,
     revisionId: string,
+    options: { retentionDays?: number } = {},
   ): Promise<DocRevision | null> {
     const row = await Noco.ncDocsContent.metaGet2(
       context.workspace_id,
@@ -250,6 +271,22 @@ export default class DocRevision implements DocumentRevisionType {
       { id: revisionId },
     );
     if (!row) return null;
+
+    // Treat out-of-window revisions as not found so callers see a consistent
+    // "not found" surface (list already hides them) and restore can't be
+    // used to round-trip past the plan's retention window.
+    if (
+      options.retentionDays !== undefined &&
+      Number.isFinite(options.retentionDays) &&
+      options.retentionDays > 0 &&
+      row.created_at
+    ) {
+      const cutoffMs = Date.now() - options.retentionDays * 86400000;
+      if (new Date(row.created_at).getTime() < cutoffMs) {
+        return null;
+      }
+    }
+
     return new DocRevision(prepareForResponse(row, ['content']));
   }
 

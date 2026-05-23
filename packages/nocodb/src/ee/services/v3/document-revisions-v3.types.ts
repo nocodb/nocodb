@@ -19,6 +19,12 @@ export interface DocumentRevisionV3ListResponseType {
   list: DocumentRevisionV3ListItemType[];
   /** Cursor for the next page — pass as `before` to fetch older revisions. */
   nextCursor: string;
+  /**
+   * Plan-determined retention window in days. `null` when retention is
+   * unlimited (Enterprise / certain on-prem tiers). Frontend uses this to
+   * render the "kept for N days" banner and the upgrade nudge.
+   */
+  retentionDays: number | null;
 }
 
 export function toDocumentRevisionV3ListItem(

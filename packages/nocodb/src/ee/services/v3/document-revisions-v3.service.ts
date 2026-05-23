@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, DocRevisionSource } from 'nocodb-sdk';
+import { AppEvents, DocRevisionSource, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DocumentRevisionV3ListResponseType,
@@ -15,6 +15,7 @@ import { DocumentsService } from '~/services/documents.service';
 import { DocRevision } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { getLimit } from '~/helpers/paymentHelpers';
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -24,6 +25,24 @@ export class DocumentRevisionsV3Service {
     protected readonly documentsService: DocumentsService,
     protected readonly appHooksService: AppHooksService,
   ) {}
+
+  /**
+   * Resolve the plan's revision retention window in days. Returns `undefined`
+   * when retention is unlimited (Enterprise / on-prem licensed paid tiers
+   * that don't cap), so callers can skip the cutoff filter entirely. The
+   * value `0` is treated as "unlimited" as well — a 0-day window would
+   * effectively disable history, which isn't a state we ship.
+   */
+  private async resolveRetentionDays(
+    context: NcContext,
+  ): Promise<number | undefined> {
+    const { limit } = await getLimit(
+      PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS,
+      context.workspace_id,
+    );
+    if (!Number.isFinite(limit) || limit <= 0) return undefined;
+    return limit;
+  }
 
   /**
    * List revisions for a doc, newest first. `before` is an opaque cursor
@@ -48,10 +67,13 @@ export class DocumentRevisionsV3Service {
 
     const limit = Math.min(Math.max(param.limit ?? DEFAULT_PAGE_SIZE, 1), 200);
 
+    const retentionDays = await this.resolveRetentionDays(context);
+
     // Fetch one extra row to detect whether a next page exists.
     const rows = await DocRevision.list(context, param.docId, {
       limit: limit + 1,
       before: param.before,
+      retentionDays,
     });
 
     const hasMore = rows.length > limit;
@@ -63,6 +85,7 @@ export class DocumentRevisionsV3Service {
     return {
       list: page.map(toDocumentRevisionV3ListItem),
       nextCursor,
+      retentionDays: retentionDays ?? null,
     };
   }
 
@@ -80,7 +103,10 @@ export class DocumentRevisionsV3Service {
       param.req,
     );
 
-    const rev = await DocRevision.get(context, param.revisionId);
+    const retentionDays = await this.resolveRetentionDays(context);
+    const rev = await DocRevision.get(context, param.revisionId, {
+      retentionDays,
+    });
     if (!rev || rev.fk_doc_id !== param.docId) {
       NcError.get(context).genericNotFound(
         'DocumentRevision',
@@ -110,7 +136,10 @@ export class DocumentRevisionsV3Service {
       req,
     );
 
-    const rev = await DocRevision.get(context, param.revisionId);
+    const retentionDays = await this.resolveRetentionDays(context);
+    const rev = await DocRevision.get(context, param.revisionId, {
+      retentionDays,
+    });
     if (!rev || rev.fk_doc_id !== param.docId) {
       NcError.get(context).genericNotFound(
         'DocumentRevision',

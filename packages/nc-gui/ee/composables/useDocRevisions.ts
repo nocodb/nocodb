@@ -42,6 +42,11 @@ export const useDocRevisions = createSharedComposable(() => {
   const hasMore = ref(false)
   const nextCursor = ref<string | null>(null)
 
+  // Plan-determined retention window in days. `null` = unlimited.
+  // Updated by every successful list call so the banner copy stays in sync
+  // if the plan changes mid-session.
+  const retentionDays = ref<number | null>(null)
+
   // The revision currently selected for preview in the panel. Cleared when the
   // panel closes or when the user clicks "Current version".
   const selectedRevisionId = ref<string | null>(null)
@@ -110,12 +115,13 @@ export const useDocRevisions = createSharedComposable(() => {
         operation: 'documentRevisionList',
         docId,
         ...(opts.append && nextCursor.value ? { before: nextCursor.value } : {}),
-      })) as { list: DocRevisionListItem[]; nextCursor: string }
+      })) as { list: DocRevisionListItem[]; nextCursor: string; retentionDays: number | null }
 
       const incoming = (res?.list || []).map(enrich)
       revisions.value = opts.append ? [...revisions.value, ...incoming] : incoming
       nextCursor.value = res?.nextCursor || null
       hasMore.value = !!res?.nextCursor
+      retentionDays.value = res?.retentionDays ?? null
 
       $e('a:doc:history:list', { append: !!opts.append, count: incoming.length })
     } catch (e: any) {
@@ -290,6 +296,7 @@ export const useDocRevisions = createSharedComposable(() => {
     comparisonTitle.value = null
     diffChangeCount.value = 0
     currentChangeIndex.value = 0
+    retentionDays.value = null
   }
 
   return {
@@ -305,6 +312,7 @@ export const useDocRevisions = createSharedComposable(() => {
     comparisonTitle,
     diffChangeCount,
     currentChangeIndex,
+    retentionDays,
     loadRevisions,
     loadMore,
     selectRevision,

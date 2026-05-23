@@ -26,7 +26,15 @@ const {
   nextChange,
   prevChange,
   reset,
+  retentionDays,
 } = useDocRevisions()
+
+// Banner copy for the retention window. `null` retentionDays means
+// unlimited (Enterprise / certain on-prem tiers) — render nothing.
+const retentionLabel = computed(() => {
+  if (retentionDays.value === null) return ''
+  return `Versions are kept for ${retentionDays.value} day${retentionDays.value === 1 ? '' : 's'} on your plan.`
+})
 
 interface TitleSeg {
   type: 'eq' | 'ins' | 'del'
@@ -242,6 +250,17 @@ async function onRestore() {
           <NcButton size="xsmall" type="text" data-testid="nc-doc-history-close-btn" @click="onClose">
             <GeneralIcon icon="close" />
           </NcButton>
+        </div>
+
+        <!-- Plan-retention banner. Suppressed when retention is unlimited.
+             Sits between the header and the list so users see it before
+             scanning for an older revision that may have been pruned. -->
+        <div
+          v-if="retentionLabel"
+          class="px-4 py-2 text-xs text-nc-content-gray-muted bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium flex-none"
+          data-testid="nc-doc-history-retention-banner"
+        >
+          {{ retentionLabel }}
         </div>
 
         <!-- List (scrollable middle) -->

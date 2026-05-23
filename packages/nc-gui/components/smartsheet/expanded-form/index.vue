@@ -1031,49 +1031,13 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div
+      <SmartsheetExpandedFormFieldFilters
         v-if="activeViewMode === ExpandedFormMode.FIELD && !templateMode && !blueprintMode && !isLoading"
-        class="nc-expanded-form-field-filters flex-shrink-0 flex items-center gap-3 min-h-7 p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
-      >
-        <div class="flex-1 min-w-0 flex items-center gap-2">
-          <GeneralIcon icon="search" class="flex-none h-4 w-4 text-nc-content-gray-muted" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-nc-content-gray placeholder-nc-content-gray-muted"
-            :placeholder="$t('placeholder.searchFields')"
-            data-testid="nc-expanded-form-search-input"
-            @keydown.esc.stop.prevent="searchQuery = ''"
-          />
-          <NcButton
-            v-if="searchQuery"
-            v-e="['c:row-expand:search:clear']"
-            class="nc-expanded-form-search-clear !w-5 !h-5 flex-none"
-            data-testid="nc-expanded-form-search-clear"
-            type="text"
-            size="xs"
-            @click="searchQuery = ''"
-          >
-            <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
-          </NcButton>
-        </div>
-        <NcTooltip :disabled="!isNew" :title="$t('tooltip.notAvailableForNewRecord')" placement="top">
-          <label
-            v-e="hideBlankFields ? ['c:row-expand:hide-blank:off'] : ['c:row-expand:hide-blank:on']"
-            class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-sm text-nc-content-gray"
-            :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
-            data-testid="nc-expanded-form-hide-blank-label"
-          >
-            <NcCheckbox
-              v-model:checked="hideBlankFields"
-              :disabled="isNew"
-              data-testid="nc-expanded-form-hide-blank-checkbox"
-              size="default"
-            />
-            <span>{{ $t('labels.hideBlankFields') }}</span>
-          </label>
-        </NcTooltip>
-      </div>
+        v-model:search-query="searchQuery"
+        v-model:hide-blank-fields="hideBlankFields"
+        :is-new="isNew"
+        telemetry-prefix="c:row-expand"
+      />
       <div ref="wrapper" class="flex-grow w-full min-h-0">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <div v-if="isMobileMode && mobileDiscussionMode && showMobileDiscussionToggle" class="h-full">

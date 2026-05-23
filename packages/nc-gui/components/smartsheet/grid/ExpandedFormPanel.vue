@@ -60,7 +60,11 @@ const toggleSidebar = () => {
     panelWidth.value = DUAL_PANE_THRESHOLD
   }
 }
-const getMaxWidth = () => {
+// Resolved once on drag start and reused throughout the drag — avoids paying
+// for a parent-chain walk + getComputedStyle on every mousemove tick.
+const resizeMaxWidth = ref(0)
+
+const resolveMaxWidth = () => {
   // The panel sits inside a `display: contents` wrapper in Smartsheet.vue
   // (kept so toggling SmartText visibility doesn't remount the panel). Such
   // a wrapper has clientWidth 0, which would clamp the panel to MIN_WIDTH
@@ -77,7 +81,7 @@ const getMaxWidth = () => {
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
   const delta = resizeStartX.value - e.clientX
-  panelWidth.value = Math.max(MIN_WIDTH, Math.min(getMaxWidth(), resizeStartWidth.value + delta))
+  panelWidth.value = Math.max(MIN_WIDTH, Math.min(resizeMaxWidth.value, resizeStartWidth.value + delta))
 }
 
 const onResizeEnd = () => {
@@ -92,6 +96,7 @@ const onResizeStart = (e: MouseEvent) => {
   isResizing.value = true
   resizeStartX.value = e.clientX
   resizeStartWidth.value = panelWidth.value
+  resizeMaxWidth.value = resolveMaxWidth()
   document.body.style.cursor = 'col-resize'
 
   window.addEventListener('mousemove', onResizeMove)
@@ -778,51 +783,16 @@ watch(activeRowId, () => {
           <GeneralLoader />
         </div>
 
-        <!-- Field filters strip — search + hide-blank, shown when in Fields
-             mode. Rendered once above both EE & CE branches. -->
-        <div
+        <!-- Field filters strip — shown in Fields mode, above both EE & CE
+             branches. -->
+        <SmartsheetExpandedFormFieldFilters
           v-else-if="showFieldFilters"
-          class="nc-expanded-form-field-filters flex-shrink-0 flex items-center h-8 gap-3 px-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight"
-        >
-          <div class="flex-1 min-w-0 flex items-center gap-2">
-            <GeneralIcon icon="search" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="nc-expanded-form-search-input flex-1 min-w-0 bg-transparent border-none outline-none text-xs text-nc-content-gray placeholder-nc-content-gray-muted focus:(outline-none border-none ring-0 shadow-none)"
-              :placeholder="$t('placeholder.searchFields')"
-              data-testid="nc-expanded-form-search-input"
-              @keydown.esc.stop.prevent="searchQuery = ''"
-            />
-            <NcButton
-              v-if="searchQuery"
-              v-e="['c:row-expand-panel:search:clear']"
-              class="nc-expanded-form-search-clear !w-4 !h-4 flex-none"
-              data-testid="nc-expanded-form-search-clear"
-              type="text"
-              size="xs"
-              @click="searchQuery = ''"
-            >
-              <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />
-            </NcButton>
-          </div>
-          <NcTooltip :disabled="!isNew" :title="$t('tooltip.notAvailableForNewRecord')" placement="top">
-            <label
-              v-e="hideBlankFields ? ['c:row-expand-panel:hide-blank:off'] : ['c:row-expand-panel:hide-blank:on']"
-              class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-xs text-nc-content-gray"
-              :class="{ 'cursor-pointer': !isNew, 'opacity-50 cursor-not-allowed': isNew }"
-              data-testid="nc-expanded-form-hide-blank-label"
-            >
-              <NcCheckbox
-                v-model:checked="hideBlankFields"
-                :disabled="isNew"
-                data-testid="nc-expanded-form-hide-blank-checkbox"
-                size="small"
-              />
-              <span>{{ $t('labels.hideBlankFields') }}</span>
-            </label>
-          </NcTooltip>
-        </div>
+          v-model:search-query="searchQuery"
+          v-model:hide-blank-fields="hideBlankFields"
+          :is-new="isNew"
+          telemetry-prefix="c:row-expand-panel"
+          compact
+        />
 
         <!-- EE: presentor-driven (Fields / File / Discussion) for both
              side-panel and fullscreen. Side-panel passes vertical / compact /

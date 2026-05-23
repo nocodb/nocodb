@@ -387,10 +387,22 @@ export class GanttDatasService {
         return { edges: [] as Array<[string, string]> };
       }
 
-      // Each junction row = one edge (mm_parent, mm_child) where parent =
-      // the row that "owns" the LTAR field, child = the linked row.
-      // The mm_parent IN visiblePks predicate scopes the read to edges
-      // originating from rows the user can see.
+      // Each junction row = one edge between the LTAR-cell owner and its
+      // linked record. The frontend builds `graph.set(parentPk, [childPk])`
+      // and the inspector labels graph-children as Successors and graph-
+      // parents as Predecessors — i.e. graph orientation IS the role
+      // mapping. So the rule's `dependency_linkrow_role` decides which
+      // side of the link is the graph-child:
+      //   role='successors'   → linked record is the cell-owner's successor
+      //                         → emit [linkedPk, cellOwnerPk]
+      //   role='predecessors' → linked record is the cell-owner's predecessor
+      //                         → emit [cellOwnerPk, linkedPk]
+      //
+      // Storage convention for v2 LTAR junctions (set by
+      // RelationManager.isRelationReversed): mm_parent_col stores the
+      // linked record, mm_child_col stores the cell-owner. The mm_parent IN
+      // visiblePks predicate still scopes to "edges whose linked record is
+      // in the view's visible set" (security envelope unchanged).
       const junctionBaseModel = await Model.getBaseModelSQL(context, {
         id: junctionModel.id,
         dbDriver,
@@ -418,15 +430,25 @@ export class GanttDatasService {
         },
       )) as Array<Record<string, any>>;
 
-      const parentKey = mmParentCol.title as string;
-      const childKey = mmChildCol.title as string;
+      const linkedKey = mmParentCol.title as string;
+      const cellOwnerKey = mmChildCol.title as string;
       const edges: Array<[string, string]> = [];
+      const linkedIsPredecessor =
+        rule.dependency_linkrow_role === 'predecessors';
 
       for (const row of rows) {
-        const parentId = row?.[parentKey];
-        const childId = row?.[childKey];
-        if (parentId == null || childId == null) continue;
-        edges.push([String(childId), String(parentId)]);
+        const linkedId = row?.[linkedKey];
+        const cellOwnerId = row?.[cellOwnerKey];
+        if (linkedId == null || cellOwnerId == null) continue;
+        // Edges are [childPk, parentPk]. With role='successors' the linked
+        // record is the cell-owner's successor (graph-child); with
+        // role='predecessors' the linked record is the cell-owner's
+        // predecessor (graph-parent).
+        edges.push(
+          linkedIsPredecessor
+            ? [String(cellOwnerId), String(linkedId)]
+            : [String(linkedId), String(cellOwnerId)],
+        );
       }
 
       return { edges };
@@ -457,15 +479,27 @@ export class GanttDatasService {
       },
     )) as Array<Record<string, any>>;
 
-    const pkKey = pkCol.title as string;
-    const fkKey = fkChildCol.title as string;
+    // For v1 direct-FK self-ref: each child row stores its parent (cell-owner)
+    // in its FK column. So in the read, `row[pkKey]` is the linked record
+    // (the row sitting inside its parent's HM cell) and `row[fkKey]` is the
+    // cell-owner (the row holding the LTAR field). Same role mapping as v2:
+    //   role='successors'   → emit [linked, cellOwner]
+    //   role='predecessors' → emit [cellOwner, linked]
+    const linkedKey = pkCol.title as string;
+    const cellOwnerKey = fkChildCol.title as string;
     const edges: Array<[string, string]> = [];
+    const linkedIsPredecessor =
+      rule.dependency_linkrow_role === 'predecessors';
 
     for (const row of rows) {
-      const childId = row?.[pkKey];
-      const parentId = row?.[fkKey];
-      if (childId == null || parentId == null) continue;
-      edges.push([String(childId), String(parentId)]);
+      const linkedId = row?.[linkedKey];
+      const cellOwnerId = row?.[cellOwnerKey];
+      if (linkedId == null || cellOwnerId == null) continue;
+      edges.push(
+        linkedIsPredecessor
+          ? [String(cellOwnerId), String(linkedId)]
+          : [String(linkedId), String(cellOwnerId)],
+      );
     }
 
     return { edges };

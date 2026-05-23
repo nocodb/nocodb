@@ -186,6 +186,12 @@ interface CrossArrow {
   // gray → green stroke + marker switch so the chain highlight visually
   // continues across group boundaries — same UX flat mode already gets.
   highlighted: boolean
+  // Drives the red palette when the edge violates the dep contract:
+  //   'date-violation' — successor scheduled before predecessor finishes
+  //                       (or analogous failure per connection_type)
+  //   'cycle'          — edge participates in a dependency loop
+  // Matches Grid.vue's flat-mode treatment so the two render layers agree.
+  invalidReason: 'date-violation' | 'cycle' | null
 }
 
 // Set of row IDs reachable from the inspected record through
@@ -279,6 +285,78 @@ function buildPath(predRightX: number, predY: number, succLeftX: number, succY: 
   )
 }
 
+// Cycle detection — edges where the child can reach back to the parent
+// transitively are flagged. Mirrors the per-group Grid.vue logic so the
+// red-line behaviour is consistent across grouped and flat modes.
+const cycleEdgeIds = computed<Set<string>>(() => {
+  const links = dependencyLinks?.value
+  if (!links?.size) return new Set()
+  const cycles = new Set<string>()
+  const canReach = (from: string, target: string, seen: Set<string>): boolean => {
+    if (from === target) return true
+    if (seen.has(from)) return false
+    seen.add(from)
+    const children = links.get(from)
+    if (!children) return false
+    for (const c of children) {
+      if (canReach(c, target, seen)) return true
+    }
+    return false
+  }
+  links.forEach((children, parent) => {
+    for (const child of children) {
+      if (canReach(child, parent, new Set())) cycles.add(`${parent}-${child}`)
+    }
+  })
+  return cycles
+})
+
+// Per-rule date-violation check — same constraint the backend cascade
+// enforces. See Grid.vue checkDateViolation for the full rationale.
+const checkDateViolation = (predRow: RowType, succRow: RowType): boolean => {
+  const r = range.value
+  if (!r) return false
+  const fromCol = r.fk_from_col
+  const toCol = r.fk_to_col ?? fromCol
+  if (!fromCol) return false
+
+  const predStart = parseDate(predRow, fromCol)
+  const predEnd = toCol ? parseDate(predRow, toCol) : predStart
+  const succStart = parseDate(succRow, fromCol)
+  const succEnd = toCol ? parseDate(succRow, toCol) : succStart
+  if (!predStart || !succStart) return false
+
+  const bufferType = r.buffer_type ?? 'flexible'
+  if (bufferType === 'none') return false
+  const bufferDays = r.buffer_days ?? 0
+  const connection = r.connection_type ?? 'end-to-start'
+
+  let predAnchor = predStart
+  let succAnchor = succStart
+  switch (connection) {
+    case 'end-to-start':
+      predAnchor = predEnd ?? predStart
+      succAnchor = succStart
+      break
+    case 'end-to-end':
+      predAnchor = predEnd ?? predStart
+      succAnchor = succEnd ?? succStart
+      break
+    case 'start-to-start':
+      predAnchor = predStart
+      succAnchor = succStart
+      break
+    case 'start-to-end':
+      predAnchor = predStart
+      succAnchor = succEnd ?? succStart
+      break
+  }
+
+  const minGap = connection === 'end-to-start' ? 1 + bufferDays : bufferDays
+  const actualGap = succAnchor.diff(predAnchor, 'day')
+  return bufferType === 'fixed' ? actualGap !== minGap : actualGap < minGap
+}
+
 const arrowPaths = computed<CrossArrow[]>(() => {
   const r = range.value
   if (!r?.fk_dependency_col) return []
@@ -307,6 +385,7 @@ const arrowPaths = computed<CrossArrow[]>(() => {
 
   const result: CrossArrow[] = []
   const direction = r.dependency_direction ?? 'successor'
+  const cycles = cycleEdgeIds.value
 
   links.forEach((linkedIds, rowId) => {
     for (const linkedId of linkedIds) {
@@ -329,11 +408,17 @@ const arrowPaths = computed<CrossArrow[]>(() => {
       const succYVal = recordY.value.get(succId)
       if (!predGeom || !succGeom || predYVal === undefined || succYVal === undefined) continue
 
+      // Cycles win over date violations; same priority as flat-mode Grid.vue.
+      let invalidReason: 'date-violation' | 'cycle' | null = null
+      if (cycles.has(`${rowId}-${linkedId}`)) invalidReason = 'cycle'
+      else if (checkDateViolation(predRow, succRow)) invalidReason = 'date-violation'
+
       const hiSet = highlightedRowIds.value
       result.push({
         id: `${predId}-${succId}`,
         d: buildPath(predGeom.rightX, predYVal, succGeom.leftX, succYVal),
         highlighted: hiSet.has(predId) && hiSet.has(succId),
+        invalidReason,
       })
     }
   })
@@ -402,18 +487,49 @@ const innerTransform = computed(() => `translate(${-scrollLeft.value}, 0)`)
       >
         <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--color-green-600)" />
       </marker>
+      <!-- Invalid variant: red head for cycles + date violations. Matches
+           the per-Grid red marker so flat and grouped modes look the same. -->
+      <marker
+        id="nc-gantt-xgroup-arrow-head-invalid"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
+      </marker>
     </defs>
     <g :transform="innerTransform">
+      <!-- Priority: invalid (red) > chain-highlighted (green) > default (grey).
+           Invalid trumps chain highlight because a broken edge is more
+           load-bearing than a chain affordance. -->
       <path
         v-for="arrow in arrowPaths"
         :key="arrow.id"
         :d="arrow.d"
         fill="none"
-        :stroke="arrow.highlighted ? 'var(--color-green-600)' : 'var(--nc-border-gray-extra-dark, #9aa2af)'"
-        stroke-width="1"
+        :stroke="
+          arrow.invalidReason
+            ? 'var(--nc-content-red-dark, #b91c1c)'
+            : arrow.highlighted
+            ? 'var(--color-green-600)'
+            : 'var(--nc-border-gray-extra-dark, #9aa2af)'
+        "
+        :stroke-width="arrow.invalidReason ? 1.25 : 1"
         stroke-linejoin="round"
-        :marker-end="arrow.highlighted ? 'url(#nc-gantt-xgroup-arrow-head-highlighted)' : 'url(#nc-gantt-xgroup-arrow-head)'"
-      />
+        :marker-end="
+          arrow.invalidReason
+            ? 'url(#nc-gantt-xgroup-arrow-head-invalid)'
+            : arrow.highlighted
+            ? 'url(#nc-gantt-xgroup-arrow-head-highlighted)'
+            : 'url(#nc-gantt-xgroup-arrow-head)'
+        "
+      >
+        <title v-if="arrow.invalidReason === 'cycle'">{{ $t('msg.dependencyInvalidCycle') }}</title>
+        <title v-else-if="arrow.invalidReason === 'date-violation'">{{ $t('msg.dependencyInvalidDate') }}</title>
+      </path>
     </g>
   </svg>
 </template>

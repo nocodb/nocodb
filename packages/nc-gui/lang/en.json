@@ -3399,6 +3399,8 @@
     "ganttGroupByFields": "{count} fields",
     "dependencyRemoved": "Dependency removed",
     "dependencyCreated": "Dependency created",
+    "dependencyInvalidDate": "Invalid dependency: the successor is scheduled to start before its predecessor finishes",
+    "dependencyInvalidCycle": "Invalid dependency: these records form a cycle",
     "newFormWillBeLoaded": "New form will be loaded after {seconds} seconds",
     "optimizedQueryDisabled": "Optimized query is disabled",
     "optimizedQueryEnabled": "Optimized query is enabled",

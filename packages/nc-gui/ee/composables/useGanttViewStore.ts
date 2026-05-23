@@ -136,6 +136,14 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         fk_to_col?: ColumnType | null
         fk_dependency_col?: ColumnType | null
         dependency_direction?: 'predecessor' | 'successor'
+        // Per-rule timing config — surfaced so the arrow renderer can flag
+        // date violations (e.g. an end-to-start successor scheduled before
+        // its predecessor finishes) using the same constraint the backend
+        // cascade enforces. Mirrors DateDependencyReqType.
+        connection_type?: 'end-to-start' | 'end-to-end' | 'start-to-start' | 'start-to-end'
+        buffer_type?: 'flexible' | 'fixed' | 'none'
+        buffer_days?: number
+        include_weekends?: boolean
         id: string
         is_readonly: boolean
       }>
@@ -169,6 +177,10 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           // observed data semantics (linked child = successor) regardless
           // of the dependency_linkrow_role flag.
           dependency_direction: 'successor',
+          connection_type: dep.dependency_connection_type ?? 'end-to-start',
+          buffer_type: dep.dependency_buffer_type ?? 'flexible',
+          buffer_days: dep.dependency_buffer_days ?? 0,
+          include_weekends: dep.include_weekends ?? true,
           id: `${dep.fk_start_date_field_id}_${dep.fk_end_date_field_id ?? 'none'}`,
           is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),
         },

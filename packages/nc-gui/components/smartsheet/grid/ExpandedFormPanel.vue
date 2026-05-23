@@ -897,10 +897,16 @@ watch(activeRowId, () => {
               :is-unsaved-form-exist="false"
               :is-loading="isLoading"
               :is-saving="isSaving"
+<<<<<<< ours
+=======
+              :hide-sidebar="!useDualPane"
+              :compact-mode="!isFullscreen && isCompactMode"
+>>>>>>> theirs
             />
             <SmartsheetExpandedFormPresentorsDiscussion
               v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
               :is-unsaved-duplicated-record-exist="false"
+<<<<<<< ours
             />
           </div>
 
@@ -934,6 +940,10 @@ watch(activeRowId, () => {
               :compact-mode="isCompactMode"
               force-vertical-mode
               class="nc-panel-fields-compact"
+=======
+              :hide-sidebar="!useDualPane"
+              :compact-mode="!isFullscreen && isCompactMode"
+>>>>>>> theirs
             />
           </div>
         </template>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 const props = defineProps<{
   showFieldsTab?: boolean
+  /** Render the Fields tab content in compact mode. Forwarded straight to
+   * MiniColumnsWrapper. */
+  compactMode?: boolean
 }>()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
@@ -30,7 +33,7 @@ watch(tab, (newValue) => {
             <span class="<lg:hidden"> {{ $t('objects.fields') }} </span>
           </div>
         </template>
-        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper />
+        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
       </a-tab-pane>
 
       <a-tab-pane v-if="!isSqlView" key="comments" class="w-full h-full">

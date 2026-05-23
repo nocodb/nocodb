@@ -12,6 +12,8 @@ const props = defineProps<{
    * of the user's commentsDrawer preference. Used by the EE docked panel at
    * narrow widths. */
   hideSidebar?: boolean
+  /** Render the sidebar's Fields tab in compact mode. */
+  compactMode?: boolean
 }>()
 
 const { fields, hiddenFields, isUnsavedDuplicatedRecordExist } = toRefs(props)
@@ -235,7 +237,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar show-fields-tab />
+      <SmartsheetExpandedFormSidebar show-fields-tab :compact-mode="compactMode" />
     </div>
   </div>
 </template>

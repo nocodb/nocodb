@@ -70,7 +70,7 @@ const createdBy = computed(() => {
           display_name: props.auditGroup.displayName,
           meta: props.auditGroup.audit?.created_by_meta,
         }"
-        class="w-[24px] aspect-square"
+        class="w-[28px] h-[28px] aspect-square"
       />
       <p class="text-small1 mb-0">
         <span class="font-weight-700">

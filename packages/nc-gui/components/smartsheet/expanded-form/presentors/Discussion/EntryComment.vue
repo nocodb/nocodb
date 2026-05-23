@@ -144,7 +144,7 @@ async function copyComment(comment: CommentType) {
           meta: props.comment.created_by_meta,
         }"
         size="base"
-        class="w-[36px] h-[36px] !aspect-square !text-small"
+        class="w-[28px] h-[28px] !aspect-square !text-small"
       />
     </div>
     <div

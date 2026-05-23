@@ -1254,12 +1254,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // touch disjoint field sets run independently; rules that overlap
     // converge to last-write-wins (predictable, no conflict resolution
     // needed at this layer).
+    //
+    // View-scoped rules (fk_gantt_view_id set) only apply when the
+    // originating update came from THAT Gantt view — editing the same row
+    // from a grid / form / other view doesn't carry that view's dep
+    // configuration (e.g. its Duration↔Start↔End sync). Table-level rules
+    // (fk_gantt_view_id IS NULL) remain the default and apply from any view.
     const rules = await DateDependency.listByModelId(
       this.context,
       this.model.id,
     );
     for (const rule of rules) {
       if (!rule?.is_active) continue;
+      if (rule.fk_gantt_view_id && rule.fk_gantt_view_id !== this.viewId) continue;
       applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
     }
   }
@@ -1294,12 +1301,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       this.context,
       this.model.id,
     );
-    const activeRules = rules.filter(
-      (r) =>
-        r?.is_active &&
-        r.fk_dependency_linkrow_field_id &&
-        r.dependency_buffer_type !== 'none',
-    );
+    const activeRules = rules.filter((r) => {
+      if (!r?.is_active) return false;
+      if (!r.fk_dependency_linkrow_field_id) return false;
+      if (r.dependency_buffer_type === 'none') return false;
+      // View-scoped rules (fk_gantt_view_id set) should only cascade when
+      // the originating update came from THAT Gantt view. Editing the same
+      // row from a grid / form / other Gantt view must NOT trigger this
+      // rule — its dep config is per-view, so its cascade is per-view too.
+      // Table-level rules (fk_gantt_view_id IS NULL) remain the default
+      // and fire from any view.
+      if (r.fk_gantt_view_id && r.fk_gantt_view_id !== this.viewId) {
+        return false;
+      }
+      return true;
+    });
     if (!activeRules.length) return;
 
     if (!this.model.columns?.length) {

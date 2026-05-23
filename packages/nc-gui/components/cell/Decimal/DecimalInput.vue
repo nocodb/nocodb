@@ -22,9 +22,6 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
-const isForm = inject(IsFormInj, ref(false))
-const isEditColumn = inject(EditColumnInj, ref(false))
-
 const { isMobileMode } = useGlobal()
 
 const inputRef = templateRef('input-ref')
@@ -178,42 +175,36 @@ const onInputKeyDown = (e: KeyboardEvent) => {
     return
   }
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    // In form view the input is rendered as a text input (so thousand separators
-    // and locale decimal chars can be shown). That disables the browser's native
-    // ↑/↓ step, so emulate it here by ±1 — same step as Integer/Currency/Percent.
-    // The decimal portion the user typed is preserved (1.5 + 1 = 2.5).
-    if (isForm.value && !isEditColumn.value) {
-      e.preventDefault()
-      // Commit any in-flight typed value (debounced 100ms) before stepping,
-      // so the increment is applied on top of what the user can see.
-      if (savingHandle) {
-        clearTimeout(savingHandle)
-      }
-      // Parse the current displayed value rather than vModel.value — useVModel
-      // here returns a computed that reads from props, so vModel.value still
-      // reflects the *old* prop until the parent re-renders. Reading the input
-      // directly avoids that one-tick lag.
-      const decSep = props.decimalSeparator || '.'
-      const cleaned = target.value.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
-      const rawCurrent = Number(cleaned.replace(decSep, '.') || '0')
-      if (ncIsNaN(rawCurrent)) return
-      // Preserve the precision the user typed so the result doesn't gain
-      // floating-point noise (e.g. 1.2345 + 1 = 2.234499999... → 2.2345).
-      const decIndex = cleaned.indexOf(decSep)
-      const inputPrecision = decIndex === -1 ? 0 : cleaned.length - decIndex - 1
-      const direction = e.key === 'ArrowUp' ? 1 : -1
-      const newVal = Number((rawCurrent + direction).toFixed(inputPrecision))
-      vModel.value = newVal
-      // Update the visible input directly — refreshVModel would read the
-      // (stale) vModel.value and refuse to update for this same reason.
-      target.value = decSep !== '.' ? newVal.toString().replace('.', decSep) : newVal.toString()
-      return
+    // Step the value by ±1 — matches Currency/Percent/Float native behavior.
+    // Works regardless of view (form / grid / expanded) since this input is
+    // text-mode (inputmode="decimal") and never has native ↑/↓ stepping.
+    e.preventDefault()
+    // The template has .left/.right/.delete.stop but NOT .up/.down.stop, so
+    // bubble would reach grid's row-navigation handler. Stop it here.
+    e.stopPropagation()
+    // Commit any in-flight typed value (debounced 100ms) before stepping,
+    // so the increment is applied on top of what the user can see.
+    if (savingHandle) {
+      clearTimeout(savingHandle)
     }
-    if (e.key === 'ArrowDown') {
-      target.setSelectionRange(target.value.length, target.value.length)
-    } else {
-      target.setSelectionRange(0, 0)
-    }
+    // Parse the current displayed value rather than vModel.value — useVModel
+    // here returns a computed that reads from props, so vModel.value still
+    // reflects the *old* prop until the parent re-renders. Reading the input
+    // directly avoids that one-tick lag.
+    const decSep = props.decimalSeparator || '.'
+    const cleaned = target.value.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
+    const rawCurrent = Number(cleaned.replace(decSep, '.') || '0')
+    if (ncIsNaN(rawCurrent)) return
+    // Preserve the precision the user typed so the result doesn't gain
+    // floating-point noise (e.g. 1.2345 + 1 = 2.234499999... → 2.2345).
+    const decIndex = cleaned.indexOf(decSep)
+    const inputPrecision = decIndex === -1 ? 0 : cleaned.length - decIndex - 1
+    const direction = e.key === 'ArrowUp' ? 1 : -1
+    const newVal = Number((rawCurrent + direction).toFixed(inputPrecision))
+    vModel.value = newVal
+    // Update the visible input directly — refreshVModel would read the
+    // (stale) vModel.value and refuse to update for this same reason.
+    target.value = decSep !== '.' ? newVal.toString().replace('.', decSep) : newVal.toString()
     return
   }
 

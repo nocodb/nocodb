@@ -15,7 +15,7 @@ test.describe('Force 2FA workspace setting', () => {
     await unsetup(context);
   });
 
-  test('warns the admin before enabling and respects cancel/confirm', async () => {
+  test('shows warning and respects cancel before enabling', async () => {
     await dashboard.workspaceSettings.open();
 
     const toggle = dashboard.workspaceSettings.forceTwoFactorToggle();
@@ -27,7 +27,7 @@ test.describe('Force 2FA workspace setting', () => {
     // Sanity: starts off
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
-    // 1. Cancel path — clicking toggle opens a warning, cancel leaves it off
+    // Clicking the toggle opens a warning naming the lock-out risk.
     await dashboard.workspaceSettings.clickForceTwoFactorToggle();
     await expect(modal).toBeVisible();
     await expect(modal.locator('.nc-modal-confirm-title')).toContainText('Require two-factor');
@@ -35,30 +35,37 @@ test.describe('Force 2FA workspace setting', () => {
     // locked out" copy — the regression we're guarding against.
     await expect(modal.locator('.nc-modal-confirm-content')).toContainText('locked out');
 
+    // Cancel keeps the toggle off and does NOT fire a PATCH.
     await modal.locator('.nc-modal-confirm-cancel-btn').click();
     await expect(modal).toHaveCount(0);
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  });
 
-    // 2. Confirm path — clicking OK actually flips the toggle and persists
-    await dashboard.workspaceSettings.clickForceTwoFactorToggle();
-    await expect(modal).toBeVisible();
+  test('confirming the warning enforces 2FA on the owner immediately', async () => {
+    await dashboard.workspaceSettings.open();
 
-    await dashboard.workspaceSettings.waitForResponse({
-      uiAction: () => modal.locator('.nc-modal-confirm-ok-btn').click(),
-      httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `/api/v1/workspaces/`,
+    const toggle = dashboard.workspaceSettings.forceTwoFactorToggle();
+    const confirmModal = dashboard.rootPage.locator('.nc-modal-confirm-type-warning:visible');
+    const mfaModal = dashboard.rootPage.locator('.nc-modal-confirm:visible', {
+      hasText: 'Two-Factor Authentication Required',
     });
 
-    await expect(modal).toHaveCount(0);
-    await expect(toggle).toHaveAttribute('aria-checked', 'true');
-
-    // 3. Turning it OFF must NOT show the confirm — it's only when enabling.
-    await dashboard.workspaceSettings.waitForResponse({
-      uiAction: () => dashboard.workspaceSettings.clickForceTwoFactorToggle(),
-      httpMethodsToMatch: ['PATCH'],
-      requestUrlPathToMatch: `/api/v1/workspaces/`,
-    });
-    await expect(modal).toHaveCount(0);
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+    // Open the warning, confirm enable — PATCH lands and the toggle flips.
+    await dashboard.workspaceSettings.clickForceTwoFactorToggle();
+    await expect(confirmModal).toBeVisible();
+
+    await dashboard.workspaceSettings.waitForResponse({
+      uiAction: () => confirmModal.locator('.nc-modal-confirm-ok-btn').click(),
+      httpMethodsToMatch: ['PATCH'],
+      requestUrlPathToMatch: `/api/v1/workspaces/`,
+    });
+
+    // Owner has no 2FA — once force_2fa is on, the next workspace request
+    // returns 403 ERR_MFA_SETUP_REQUIRED and the EE interceptor opens the
+    // setup dialog. If the regression returned, this assertion would fail
+    // because the owner would silently keep workspace access.
+    await expect(mfaModal).toBeVisible();
   });
 });

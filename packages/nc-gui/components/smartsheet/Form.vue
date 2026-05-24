@@ -2703,6 +2703,21 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @change="onEmailChange"
                             />
                           </div>
+
+                          <div v-if="emailMe" class="flex flex-col gap-2 pt-2">
+                            <span class="text-nc-content-gray">{{ $t('msg.info.customEmailSubject') }}</span>
+                            <a-input
+                              :value="parseProp(formViewData?.meta)?.email_subject"
+                              :placeholder="`NocoDB Forms: Someone has responded to ${formViewData?.title || '{formTitle}'}`"
+                              :disabled="isLocked || !isEditable"
+                              @change="(e) => {
+                                const meta = parseProp(formViewData!.meta) || {}
+                                meta.email_subject = e.target.value
+                                formViewData!.meta = meta
+                                updateView()
+                              }"
+                            />
+                          </div>
                         </div>
 
                         <!-- Show this message -->

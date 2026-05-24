@@ -3638,6 +3638,7 @@
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",
       "emailForm": "Email responses to",
+      "customEmailSubject": "Custom email subject",
       "showSysFields": "Show system fields",
       "filterAutoApply": "Auto apply",
       "formDisplayMessage": "Display Message",

@@ -441,11 +441,25 @@ export class MailService {
         case MailEvent.FORM_SUBMISSION: {
           const { formView, data, model, emails, base } = payload;
 
+          let meta = formView.meta as Record<string, any>;
+          if (typeof formView.meta === 'string') {
+            try {
+              meta = JSON.parse(formView.meta);
+            } catch (e) {}
+          }
+
+          let subject = `NocoDB Forms: Someone has responded to ${formView.title}`;
+          if (meta?.email_subject) {
+            subject = meta.email_subject
+              .replace(/{formTitle}/g, formView.title || '')
+              .replace(/{tableTitle}/g, model.title || '');
+          }
+
           // SKIP_STORING_MAIL_EVENTS — recipients + payload are end-user data
           await this.dispatchAndLog(mailerAdapter, ncMeta, {
             event: mailEvent,
             to: emails.join(','),
-            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
+            subject,
             html: await this.renderMail('FormSubmission', {
               formTitle: formView.title,
               tableTitle: model.title,

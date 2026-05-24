@@ -316,20 +316,34 @@ onBeforeUnmount(() => {
     removeEvents(inputRef.value as HTMLInputElement)
   }
 })
-
 watch(vModel, (newValue) => {
-  if (
-    !inputRef.value ||
-    newValue ||
-    inputRef.value.value === getFormattedModelValue() ||
-    inputRef.value.value === (newValue?.toString() || '')
-  ) {
+  if (!inputRef.value) return
+  // If the input already matches the formatted value or the bare string representation, do nothing.
+  if (inputRef.value.value === getFormattedModelValue() || inputRef.value.value === (newValue?.toString() || '')) {
     return
   }
-
-  // Clear input value if vModel is null and input value is not empty and not a dot or minus
-  if (!newValue && inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
+  const decSep = props.decimalSeparator || '.'
+  let cleaned = inputRef.value.value.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
+  if (decSep !== '.') {
+    cleaned = cleaned.replace(new RegExp(`\\${decSep}`, 'g'), '.')
+  }
+  const parsedValue = Number(cleaned)
+  // If the parsed numeric value of the current input matches the new vModel,
+  // it means this change was triggered by the user typing (e.g., "10." -> vModel=10).
+  // We should NOT overwrite the input so we don't break their typing flow.
+  if (parsedValue === newValue || (ncIsNaN(parsedValue) && !newValue)) {
+    if (!newValue && inputRef.value.value && !['-', decSep].includes(inputRef.value.value)) {
+      inputRef.value.value = ''
+    }
+    return
+  }
+  // Otherwise, this is an external change (e.g. navigating records in Form view).
+  if (newValue === null || newValue === undefined) {
     inputRef.value.value = ''
+  } else {
+    // Refresh the input value. Apply thousand separators only if the field is not currently focused.
+    const isFocused = document.activeElement === inputRef.value
+    refreshVModel(!isFocused)
   }
 })
 </script>

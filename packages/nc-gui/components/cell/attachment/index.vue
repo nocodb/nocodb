@@ -48,6 +48,12 @@ const cellEventHook = inject(CellEventHookInj, null)
 
 const { isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
+const { copy } = useCopy()
+
+const { getAttachmentSrc } = useAttachment()
+
 const {
   isPublic,
   isForm,
@@ -106,6 +112,12 @@ const onDropAction = function (...args: any[]) {
   }
 }
 const { isOverDropZone } = useDropZone(currentCellRef as any, onDropAction)
+
+const copyAttachmentUrl = async (item: Record<string, any>) => {
+  const attachmentUrl = await getAttachmentSrc(item)
+  await copy(attachmentUrl)
+  message.info(t('msg.info.copiedToClipboard'))
+}
 
 /** on new value, reparse our stored attachments */
 watch(
@@ -538,7 +550,7 @@ onUnmounted(() => {
             <div class="text-center w-full">{{ item.title }}</div>
           </template>
           <div
-            class="aspect-square"
+            class="aspect-square relative nc-attachment-thumb"
             :class="{
               'h-[24px]': !rowHeight || rowHeight === 1,
               'h-[32px]': rowHeight === 2,
@@ -555,6 +567,19 @@ onUnmounted(() => {
               object-fit="contain"
               @click="() => onFileClick(item)"
             />
+            <NcTooltip placement="bottom">
+              <template #title>
+                {{ $t('general.copy') }}
+              </template>
+              <NcButton
+                type="secondary"
+                size="xsmall"
+                class="nc-attachment-copy-url !absolute top-0.5 right-0.5 !p-0 !w-5 !h-5 !min-w-[fit-content] opacity-0 focus:opacity-100"
+                @click.stop.prevent="copyAttachmentUrl(item)"
+              >
+                <GeneralIcon icon="copy" class="h-3 w-3" />
+              </NcButton>
+            </NcTooltip>
           </div>
         </NcTooltip>
       </div>
@@ -658,6 +683,13 @@ onUnmounted(() => {
   }
   .nc-attachment-item {
     @apply relative;
+  }
+
+  .nc-attachment-thumb:hover,
+  .nc-attachment-thumb:focus-within {
+    .nc-attachment-copy-url {
+      @apply opacity-100;
+    }
   }
 }
 </style>

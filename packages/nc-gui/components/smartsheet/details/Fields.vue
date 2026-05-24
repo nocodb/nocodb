@@ -1152,7 +1152,17 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 }
 
 const showOrHideAllFields = (isAllFieldsVisible = false) => {
-  fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
+  // Bulk path — bypass the per-field hide-required confirmation. Calling
+  // toggleVisibility() in a forEach would stack one warning modal per
+  // required field. Matches FieldsMenu.vue:onHideAll, which also acts on
+  // every togglable field without prompting.
+  const checked = !isAllFieldsVisible
+  fields.value.forEach((f) => {
+    const field = viewFieldsMap.value[f.id]
+    if (!field?.fk_column_id) return
+    if (fieldStatuses.value[field.fk_column_id]) return
+    stageVisibilityOp(checked, field)
+  })
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {

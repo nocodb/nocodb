@@ -74,6 +74,11 @@ export function useData(args: {
             missingFields,
           }
         }
+        // useData drives non-canvas views (gallery, kanban) where no
+        // inline ⚠️ marker exists, so a toast is the only feedback. This
+        // path is one-shot per user action — if it ever gets wired into
+        // an inline-edit retry loop (cf. useInfiniteData which drops the
+        // toast for that reason), de-dup against the previous saveError.
         const fieldList = missingFields.join(', ')
         message.error(
           missingFields.length === 1

@@ -131,6 +131,12 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
               missingFields,
             }
           }
+          // Map view has no inline ⚠️ marker (the canvas-only saveError
+          // glyph lives in useCanvasRender), so the toast is the only
+          // user-visible feedback. This path is one-shot per submit; if
+          // it ever gets wired into a retry loop, de-dup against the
+          // previous saveError to avoid the spam useInfiniteData was
+          // refactored around.
           const fieldList = missingFields.join(', ')
           message.error(
             missingFields.length === 1

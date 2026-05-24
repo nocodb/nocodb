@@ -2617,6 +2617,12 @@ watch([height, width, windowWidth, windowHeight], () => {
 // required-field pre-check (#13838). The inline marker only screams while
 // the user is looking at the row — once they've moved cursor away to a
 // different row they may not notice the row never persisted.
+//
+// Watcher key uses the joined `/`-delimited path string so Vue can shallow-
+// compare it as a primitive. Reconstructing the numeric path via
+// `split('/').filter(Boolean).map(Number)` assumes every segment is a
+// numeric group index — true today (groups are 0-based row indexes). If
+// non-numeric group keys ever appear, switch to JSON.stringify and parse.
 watch(
   () => [activeCell.value.row, (activeCell.value.path ?? []).join('/')] as [number, string],
   ([newRowIdx, newPath], [oldRowIdx, oldPath]) => {

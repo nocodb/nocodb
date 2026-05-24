@@ -1134,27 +1134,21 @@ export function useCanvasRender({
       currentX += 24
     }
 
-    /**
-     * 4a. Render save-error marker (#13838)
-     *
-     * When `populateInsertObject` rejects the row up-front because a required
-     * NOT-NULL no-default field is null, we keep the optimistic row in the
-     * cache and tag `rowMeta.saveError` so this marker can surface the
-     * problem in-place. Renders unconditionally (not gated on hover) so the
-     * user notices without re-hovering the offending row. Placed *left* of
-     * the comment / expand slot so both still render — the user needs that
-     * expand button to fix the row in the expanded form.
-     */
     const hasSaveError = row.rowMeta?.saveError?.reason === 'missingRequired'
 
     /**
-     * 4. Render comment-count bubble, save-error marker, or expand icon.
+     * 4. Render save-error marker OR comment-count bubble OR expand icon —
+     * mutually exclusive in this slot.
      *
-     * Save-error wins over the expand icon: we render the warning glyph in
-     * the same slot the maximize button normally occupies, so the click
-     * region (`action: 'comment'` in `extractHoverMetaColRegions`) already
-     * dispatches to `expandForm` — no separate hit test needed. The
-     * tooltip tells the user that clicking the icon opens the row.
+     * Save-error (#13838) wins over BOTH comment count and the expand
+     * icon. In practice an optimistic new row can't have comments yet, so
+     * the count branch is unreachable while saveError is set. The glyph
+     * sits in the exact pixel rect of the expand button so the existing
+     * click region (`action: 'comment'` in `extractHoverMetaColRegions`
+     * at index.vue) — which dispatches to `expandForm` for both this
+     * column and the comment-count column — already opens the row when
+     * the user clicks the warning. Don't reorder the regions in
+     * extractHoverMetaColRegions without re-testing this path.
      */
     if (hasSaveError) {
       const missingFields = row.rowMeta!.saveError!.missingFields ?? []

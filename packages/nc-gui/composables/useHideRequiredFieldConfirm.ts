@@ -24,9 +24,10 @@ export function useHideRequiredFieldConfirm() {
     if (!isHideBlockingRequired(column)) {
       const result = onConfirm()
       if (result instanceof Promise) {
-        result.catch(() => {
-          /* caller surfaces its own errors */
-        })
+        // Surface unhandled rejections so silent breakage is debuggable;
+        // call sites that toast their own errors still get to do so via
+        // their own try/catch around the awaited action.
+        result.catch((e) => console.error('confirmHide: onConfirm rejected', e))
       }
       return
     }

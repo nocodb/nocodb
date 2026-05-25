@@ -511,11 +511,52 @@ function updateImportTips(baseName: string, tableName: string, progress: number,
   importingTableTips.value[tableName] = percent
 }
 
+interface ImportFinalStats {
+  rowsInserted: number
+  rowsFailed: number
+  sampleError?: string
+}
+
+// Show a row-aware toast for the data-import job: success when everything
+// landed, a sticky error when nothing did, a warning for partial failures.
+// Default `message.success` here was masking DB-level rejections (date /
+// numeric / CHAR-width constraint errors etc.) because the poller treated
+// every 'completed' event as a success regardless of failed-row counts.
+function surfaceImportResult(stats: ImportFinalStats | undefined) {
+  if (!stats || stats.rowsFailed === 0) {
+    message.success(t('msg.success.tableDataImported'))
+    return
+  }
+
+  const params: Record<string, string | number> = {
+    inserted: stats.rowsInserted,
+    failed: stats.rowsFailed,
+  }
+  if (stats.sampleError) params.error = stats.sampleError
+
+  if (stats.rowsInserted === 0) {
+    const key = stats.sampleError ? 'msg.error.tableDataImportFailedWithReason' : 'msg.error.tableDataImportFailed'
+    // duration: 0 keeps the toast pinned until the user dismisses it
+    message.error({
+      content: t(key, params, stats.rowsFailed),
+      duration: 0,
+    })
+  } else {
+    const key = stats.sampleError ? 'msg.error.tableDataImportPartialWithReason' : 'msg.error.tableDataImportPartial'
+    message.warning({
+      content: t(key, params, stats.rowsFailed),
+      duration: 10,
+    })
+  }
+}
+
 // One import job per uploaded file. Each job carries all the sheets that
 // came from that file, so the file is opened and deleted exactly once.
 async function importViaJob() {
   isImporting.value = true
   expansionPanel.value = []
+
+  let importFinalStats: ImportFinalStats | undefined
 
   try {
     if (!importDataOnly) await validate()
@@ -612,10 +653,20 @@ async function importViaJob() {
 
             try {
               const progress = JSON.parse(pollerData.data.message)
-              if (progress.status !== 'progress') return
-              const tname = trackedNames.includes(progress.tableName) ? progress.tableName : trackedNames[0]
-              const total = totals[tname] || progress.totalProcessed || 0
-              updateImportTips(baseName, tname, progress.totalProcessed || 0, total)
+              if (progress.status === 'progress') {
+                const tname = trackedNames.includes(progress.tableName) ? progress.tableName : trackedNames[0]
+                const total = totals[tname] || progress.totalProcessed || 0
+                updateImportTips(baseName, tname, progress.totalProcessed || 0, total)
+              } else if (progress.status === 'completed') {
+                // Capture final counters so the toast below can distinguish
+                // success / partial / total failure — without this the UI
+                // always reports success even when the DB rejected rows.
+                importFinalStats = {
+                  rowsInserted: Number(progress.rowsInserted) || 0,
+                  rowsFailed: Number(progress.rowsFailed) || 0,
+                  sampleError: typeof progress.sampleError === 'string' ? progress.sampleError : undefined,
+                }
+              }
             } catch {
               // plain-text log — ignore
             }
@@ -626,10 +677,14 @@ async function importViaJob() {
 
     if (importDataOnly) {
       reloadHook.trigger()
-      message.success(t('msg.success.tableDataImported'))
+      surfaceImportResult(importFinalStats)
     } else {
       await loadProjectTables(base.value.id, true)
-      message.success(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
+      if (importFinalStats && importFinalStats.rowsFailed > 0) {
+        surfaceImportResult(importFinalStats)
+      } else {
+        message.success(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
+      }
     }
   } finally {
     isImporting.value = false

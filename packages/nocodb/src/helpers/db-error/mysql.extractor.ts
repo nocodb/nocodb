@@ -120,6 +120,22 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       case 'ER_DATA_TOO_LONG':
         message = 'The data entered is too long for this field.';
         break;
+      case 'ER_WARN_DATA_OUT_OF_RANGE':
+      case 'ER_DATA_OUT_OF_RANGE':
+        message = 'Number is out of range for this field.';
+        if (error.message) {
+          const outOfRangeMatch = error.message.match(
+            /Out of range value for column '(\w+)'/i,
+          );
+          if (outOfRangeMatch && outOfRangeMatch[1]) {
+            message = `Number is out of range for column '${outOfRangeMatch[1]}'.`;
+            _type = DBError.DATA_TYPE_MISMATCH;
+            _extra = {
+              column: outOfRangeMatch[1],
+            };
+          }
+        }
+        break;
       case 'ER_BAD_FIELD_ERROR':
         {
           message = 'The field you are trying to access does not exist.';

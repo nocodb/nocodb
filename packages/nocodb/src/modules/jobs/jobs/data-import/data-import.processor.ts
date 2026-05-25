@@ -20,6 +20,7 @@ import type {
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
 import { getCheckboxValue } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+import { describeRowError } from '~/modules/jobs/jobs/data-import/error-formatter';
 import {
   deleteImportAttachment,
   openImportAttachmentStream,
@@ -187,6 +188,9 @@ export class DataImportProcessor {
       const rowsInserted = results.reduce((s, r) => s + r.rowsInserted, 0);
       const rowsFailed = results.reduce((s, r) => s + r.rowsFailed, 0);
       const errorsCount = results.reduce((s, r) => s + r.errors.length, 0);
+      const sampleError = results
+        .flatMap((r) => r.errors)
+        .find((e) => e?.error)?.error;
 
       elapsedTime(
         hrTime,
@@ -201,6 +205,7 @@ export class DataImportProcessor {
           rowsInserted,
           rowsFailed,
           errorsCount,
+          ...(sampleError ? { sampleError } : {}),
         }),
       );
       log(
@@ -485,24 +490,35 @@ export class DataImportProcessor {
 
         const isRowLevel =
           err instanceof NcBaseErrorv2 && ROW_LEVEL_ERRORS.has(err.error);
+        const batchStartRow = processedRows - pending.length + 1;
         if (!isRowLevel) {
           stats.rowsFailed += pending.length;
+          // Surface the underlying message (DB constraint text, etc.) once
+          // per batch so the UI has something concrete to show rather than
+          // a generic placeholder.
+          if (stats.errors.length < MAX_ERROR_SAMPLES) {
+            stats.errors.push({
+              row: batchStartRow,
+              error: describeRowError(err),
+            });
+          }
           if (++systemErrorCount >= MAX_SYSTEM_ERRORS) throw err;
           return;
         }
 
         // Retry one-by-one so well-formed rows in the batch still make it in.
-        const firstRowIndex = processedRows - pending.length + 1;
         for (let i = 0; i < pending.length; i++) {
           try {
             await insert([pending[i]]);
             stats.rowsInserted += 1;
-          } catch {
+          } catch (rowErr) {
             stats.rowsFailed += 1;
             if (stats.errors.length < MAX_ERROR_SAMPLES) {
+              // Pass the row so the formatter can match an embedded value
+              // (e.g. `numeric: "$500.00"`) back to its column name.
               stats.errors.push({
-                row: firstRowIndex + i,
-                error: 'Failed to insert row',
+                row: batchStartRow + i,
+                error: describeRowError(rowErr, pending[i]),
               });
             }
           }

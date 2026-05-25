@@ -216,13 +216,13 @@ const googleAuthUrl = computed(() => {
             </button>
 
             <div class="text-sm">
-              <a class="prose-sm cursor-pointer" @click="toggleBackupCode">
+              <a class="prose-sm cursor-pointer" data-testid="nc-form-signin__2fa-toggle-backup" @click="toggleBackupCode">
                 {{ useBackupCode ? $t('labels.useAuthenticatorCode') : $t('labels.useBackupCode') }}
               </a>
             </div>
 
             <div class="text-sm">
-              <a class="prose-sm cursor-pointer" @click="cancelTwoFactor">
+              <a class="prose-sm cursor-pointer" data-testid="nc-form-signin__2fa-cancel" @click="cancelTwoFactor">
                 {{ $t('general.cancel') }}
               </a>
             </div>

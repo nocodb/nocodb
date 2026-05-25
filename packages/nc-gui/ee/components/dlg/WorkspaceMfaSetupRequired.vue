@@ -22,6 +22,7 @@ const onCancel = () => {
     :title="$t('labels.mfaSetupRequired')"
     :content="$t('labels.mfaSetupRequiredContent')"
     :ok-text="$t('labels.setupTwoFactorAuth')"
+    :wrapper-props="{ 'data-testid': 'nc-2fa-setup-required-dlg' }"
     @cancel="onCancel"
     @ok="onOk"
   >

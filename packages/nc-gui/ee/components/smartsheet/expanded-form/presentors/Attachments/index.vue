@@ -251,7 +251,7 @@ export default {
                   :attachments="selectedFieldValue"
                   :is-edit-allowed="!readOnly"
                   @download="(att) => refAttachmentCell?.downloadAttachment?.(att)"
-                  @rename="(att, idx) => refAttachmentCell?.renameAttachment?.(att, idx, true)"
+                  @rename="(att, idx) => refAttachmentCell?.renameAttachment?.(att, idx)"
                   @remove="(idx) => refAttachmentCell?.removeAttachment?.(idx)"
                   @add-file="openFilePicker()"
                 />

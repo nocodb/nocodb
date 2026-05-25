@@ -174,11 +174,37 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   ) {
     return
   }
-  if (e.key === 'ArrowDown') {
-    target.setSelectionRange(target.value.length, target.value.length)
-    return
-  } else if (e.key === 'ArrowUp') {
-    target.setSelectionRange(0, 0)
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    // Step the value by ±1 — matches Currency/Percent/Float native behavior.
+    // Works regardless of view (form / grid / expanded) since this input is
+    // text-mode (inputmode="decimal") and never has native ↑/↓ stepping.
+    e.preventDefault()
+    // The template has .left/.right/.delete.stop but NOT .up/.down.stop, so
+    // bubble would reach grid's row-navigation handler. Stop it here.
+    e.stopPropagation()
+    // Commit any in-flight typed value (debounced 100ms) before stepping,
+    // so the increment is applied on top of what the user can see.
+    if (savingHandle) {
+      clearTimeout(savingHandle)
+    }
+    // Parse the current displayed value rather than vModel.value — useVModel
+    // here returns a computed that reads from props, so vModel.value still
+    // reflects the *old* prop until the parent re-renders. Reading the input
+    // directly avoids that one-tick lag.
+    const decSep = props.decimalSeparator || '.'
+    const cleaned = target.value.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
+    const rawCurrent = Number(cleaned.replace(decSep, '.') || '0')
+    if (ncIsNaN(rawCurrent)) return
+    // Preserve the precision the user typed so the result doesn't gain
+    // floating-point noise (e.g. 1.2345 + 1 = 2.234499999... → 2.2345).
+    const decIndex = cleaned.indexOf(decSep)
+    const inputPrecision = decIndex === -1 ? 0 : cleaned.length - decIndex - 1
+    const direction = e.key === 'ArrowUp' ? 1 : -1
+    const newVal = Number((rawCurrent + direction).toFixed(inputPrecision))
+    vModel.value = newVal
+    // Update the visible input directly — refreshVModel would read the
+    // (stale) vModel.value and refuse to update for this same reason.
+    target.value = decSep !== '.' ? newVal.toString().replace('.', decSep) : newVal.toString()
     return
   }
 
@@ -318,17 +344,21 @@ onBeforeUnmount(() => {
 })
 
 watch(vModel, (newValue) => {
-  if (
-    !inputRef.value ||
-    newValue ||
-    inputRef.value.value === getFormattedModelValue() ||
-    inputRef.value.value === (newValue?.toString() || '')
-  ) {
+  if (!inputRef.value) return
+
+  // Don't touch the input while the user is actively typing — vModel updates
+  // also come from saveValue() on keyup, and overwriting would clobber input.
+  if (document.activeElement === inputRef.value) return
+
+  if (inputRef.value.value === getFormattedModelValue() || inputRef.value.value === (newValue?.toString() || '')) {
     return
   }
 
-  // Clear input value if vModel is null and input value is not empty and not a dot or minus
-  if (!newValue && inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
+  if (newValue || newValue === 0) {
+    // Sync DOM to the new prop value. Covers switching records in the expanded
+    // form, where the same DecimalInput instance receives a new modelValue.
+    refreshVModel()
+  } else if (inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
     inputRef.value.value = ''
   }
 })

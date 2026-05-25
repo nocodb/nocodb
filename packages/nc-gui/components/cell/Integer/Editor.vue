@@ -68,17 +68,15 @@ function onKeyDown(e: any) {
     return e.preventDefault()
   }
 
-  if (e.key === 'ArrowDown') {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    // Step the value by ±1 — matches Currency/Percent/Float native behavior
+    // and works regardless of whether the input is rendered as type=number
+    // (grid / expanded form) or type=text (form view).
     e.preventDefault()
-    // Move the cursor to the end of the input
-    e.target.type = 'text'
-    e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
-    e.target.type = 'number'
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    e.target.type = 'text'
-    e.target?.setSelectionRange(0, 0)
-    e.target.type = 'number'
+    const current = Number(_vModel.value ?? 0)
+    if (isNaN(current)) return
+    const direction = e.key === 'ArrowUp' ? 1 : -1
+    vModel.value = toSafeInteger(current + direction)
   }
 }
 

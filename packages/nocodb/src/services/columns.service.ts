@@ -454,6 +454,20 @@ export class ColumnsService implements IColumnsService {
    * @param column - Partial Column object containing base_id, fk_model_id, id, and internal_meta
    * @returns Updated internal_meta object with unique_constraint_name set
    */
+  /**
+   * Extension hook for validating OpenForm button column configuration.
+   * CE is a no-op — EE overrides this with the real validation since
+   * OpenForm is an EE-only feature. Called from `columnAdd` / `columnUpdate`
+   * when the button type is `open_form`.
+   */
+  protected async validateOpenFormButtonConfig(
+    _context: NcContext,
+    _colBody: Record<string, any>,
+    _tableId: string,
+  ): Promise<void> {
+    // no-op in CE — EE override in `src/ee/services/columns.service.ts`
+  }
+
   private storeUniqueConstraintNameInInternalMeta(
     context: NcContext,
     column: Pick<Column, 'id' | 'base_id' | 'fk_model_id' | 'internal_meta'>,
@@ -1441,6 +1455,8 @@ export class ColumnsService implements IColumnsService {
                 },
               );
             }
+          } else if (colBody.type === ButtonActionsType.OpenForm) {
+            await this.validateOpenFormButtonConfig(context, colBody, table.id);
           }
 
           await Column.update(context, column.id, {
@@ -3781,6 +3797,8 @@ export class ColumnsService implements IColumnsService {
               },
             );
           }
+        } else if (colBody.type === ButtonActionsType.OpenForm) {
+          await this.validateOpenFormButtonConfig(context, colBody, table.id);
         }
 
         savedColumn = await Column.insert(context, {

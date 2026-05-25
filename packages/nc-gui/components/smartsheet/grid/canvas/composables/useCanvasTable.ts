@@ -234,13 +234,15 @@ export function useCanvasTable({
   // Initialize loaders that need meta.base_id after meta is available
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
+  const { addUndo, defineViewScope } = useUndoRedo()
+  const { activeView, viewsByTable } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring, blockOpenForm } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
@@ -293,6 +295,47 @@ export function useCanvasTable({
     },
     { immediate: true },
   )
+
+  const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
+  // When we're inside a shared grid view, let the ActionManager know so it can
+  // route OpenForm button clicks through the public edit-token endpoint.
+  //
+  // NOTE: OpenForm buttons are currently force-disabled inside public shared
+  // views (see `isColumnInvalid` in `utils/columnUtils.ts`), so this wiring is
+  // effectively inert today. It is intentionally retained so a future product
+  // decision can re-enable shared-view OpenForm by flipping a single gate.
+  watch(
+    [isPublicView, () => activeView.value?.uuid, sharedViewPassword],
+    ([isPublic, uuid, password]) => {
+      if (isPublic && uuid) {
+        actionManager.setPublicContext({ sharedViewUuid: uuid, password: password ?? '' })
+      } else {
+        actionManager.setPublicContext(null)
+      }
+    },
+    { immediate: true },
+  )
+
+  // Listen for form-edit submissions happening in a sibling same-origin tab
+  // (e.g. user clicked an OpenForm button here, completed the edit there).
+  // When the message targets this table we refetch data so the grid reflects
+  // the change without requiring a manual reload. Debounced implicitly by
+  // loadData's own guarding.
+  let recordEditChannel: BroadcastChannel | null = null
+  if (typeof BroadcastChannel !== 'undefined' && typeof window !== 'undefined') {
+    recordEditChannel = new BroadcastChannel('nc-record-edit')
+    recordEditChannel.onmessage = (ev) => {
+      const msg = ev.data as { type?: string; tableId?: string } | undefined
+      if (msg?.type === 'record-updated' && msg.tableId && msg.tableId === meta.value?.id) {
+        loadData(undefined, false).catch(() => {})
+      }
+    }
+  }
+  onUnmounted(() => {
+    recordEditChannel?.close()
+    recordEditChannel = null
+  })
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -428,12 +471,22 @@ export function useCanvasTable({
           f.extra.display_column_meta = displayColumnConfig
         }
 
+        const tableViewsKey = meta.value?.base_id && meta.value?.id ? `${meta.value.base_id}:${meta.value.id}` : ''
+        const tableViews = tableViewsKey ? viewsByTable.value.get(tableViewsKey) ?? [] : []
+
         const isInvalid = isColumnInvalid({
           col: f,
           aiIntegrations: aiIntegrations.value,
           isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+          // Only the canvas passes this — disables OpenForm for viewers
+          // without flagging the column header as misconfigured (Menu.vue
+          // intentionally omits this param).
+          hasEditPermission: isDataEditAllowed.value,
+          isOpenFormFeatureBlocked: blockOpenForm.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
+          views: tableViews,
+          isPublicView: isPublicView.value,
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 

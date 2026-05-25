@@ -42,48 +42,52 @@ const handleValueUpdate = (value: any) => {
   modelValue.value = stringValue
 }
 
-const viewList = computedAsync(async () => {
-  if (!props.tableId) return []
-
-  try {
+// Fetch views when the target table (or force flag) changes. Keeping the side
+// effect in a watch — instead of inside the `viewList` derivation — means map
+// mutations (e.g. share-form toggle) don't re-trigger the API call.
+watch(
+  [() => props.tableId, () => props.baseId, activeProjectId, () => props.forceFetchViews],
+  async () => {
+    if (!props.tableId) return
     const effectiveBaseId = props.baseId || activeProjectId.value
     if (!effectiveBaseId) {
       console.error('[ViewSelector] baseId is required but was not provided')
-      return []
+      return
     }
+    try {
+      await viewsStore.loadViews({
+        tableId: props.tableId,
+        baseId: effectiveBaseId,
+        ignoreLoading: props.ignoreLoading,
+        force: props.forceFetchViews,
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  },
+  { immediate: true },
+)
 
-    await viewsStore.loadViews({
-      tableId: props.tableId,
-      baseId: effectiveBaseId,
-      ignoreLoading: props.ignoreLoading,
-      force: props.forceFetchViews,
-    })
-  } catch (e) {
-    console.error(e)
-    return []
-  }
-
-  // Use composite key (baseId:tableId) to get views
+// Pure derivation from the store map — reacts to mutations via `viewsByTable.get(key)`.
+const viewList = computed(() => {
+  if (!props.tableId) return []
   const effectiveBaseId = props.baseId || activeProjectId.value
-  const key = `${effectiveBaseId}:${props.tableId}`
+  if (!effectiveBaseId) return []
 
+  const key = `${effectiveBaseId}:${props.tableId}`
   let viewsList: ViewType[] = viewsByTable.value.get(key) || []
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)
   }
-  return viewsList.map((view) => {
-    const ncItemTooltip = ''
-
-    return {
-      label: view.title || view.id,
-      value: view.id,
-      ncItemDisabled: false,
-      ncItemTooltip,
-      ...view,
-    }
-  })
-}, [])
+  return viewsList.map((view) => ({
+    label: view.title || view.id,
+    value: view.id,
+    ncItemDisabled: false,
+    ncItemTooltip: '',
+    ...view,
+  }))
+})
 
 const viewListMap = computed(() => {
   if (!viewList.value || viewList.value.length === 0) return new Map()
@@ -197,6 +201,12 @@ defineExpose({
             <div class="min-w-5 flex items-center justify-center">
               <NcIconView :view="option" class="text-nc-content-gray-muted" />
             </div>
+          </template>
+          <template v-if="$slots.listItemContent" #listItemContent="slotProps">
+            <slot name="listItemContent" v-bind="slotProps" />
+          </template>
+          <template #listItemExtraRight="slotProps">
+            <slot name="listItemExtraRight" v-bind="slotProps" />
           </template>
         </NcList>
       </template>

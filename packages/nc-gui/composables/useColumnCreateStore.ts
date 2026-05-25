@@ -57,6 +57,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const disableSubmitBtn = ref(false)
 
+    // Optional human-readable reason for the disabled state — consumed by the
+    // submit button's tooltip in EditOrAdd so users know why Save is blocked.
+    const disableSubmitBtnReason = ref('')
+
     const isSaving = ref(false)
 
     const isWebhookCreateModalOpen = ref(false)
@@ -127,6 +131,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const onUidtOrIdTypeChange = (preload?: Record<string, any>) => {
       disableSubmitBtn.value = false
+      disableSubmitBtnReason.value = ''
 
       const newTitle = updateFieldName(false, preload)
 
@@ -581,6 +586,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isSystem,
       isXcdbBase,
       disableSubmitBtn,
+      disableSubmitBtnReason,
+      setPostSaveOrUpdateCbk,
+      triggerPostSaveOrUpdateCbk,
       updateFieldName,
       fromTableExplorer,
       isAiMode,

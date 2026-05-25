@@ -97,7 +97,7 @@ watch(isWebhookModal, (newVal) => {
           <NcListWithSearch
             v-if="isWebHookSelectionDropdownOpen"
             :is-parent-open="isWebHookSelectionDropdownOpen"
-            :search-input-placeholder="$t('placeholder.searchFields')"
+            :search-input-placeholder="$t('placeholder.searchWebhooks')"
             :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
             :options="manualHooks"
             :selected-option-id="selectedWebhook?.id"

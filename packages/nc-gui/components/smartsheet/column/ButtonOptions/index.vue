@@ -30,16 +30,29 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const { getMeta } = useMetas()
 
 const { getColor } = useTheme()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { getPlanTitle, showEEFeatures } = useEeConfig()
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked, blockOpenForm, showUpgradeToUseOpenForm, showUpgradeToUseScripts } =
+  useEeConfig()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const {
+  isEdit,
+  setAdditionalValidations,
+  validateInfos,
+  sqlUi,
+  column,
+  isAiMode,
+  updateFieldName,
+  setPostSaveOrUpdateCbk,
+  disableSubmitBtn,
+  disableSubmitBtnReason,
+} = useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -58,7 +71,13 @@ const bases = useBases()
 const { openedProject } = storeToRefs(bases)
 
 if (showEEFeatures.value) {
-  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+  const prefetch: Promise<unknown>[] = [loadHooksList()]
+  // Scripts is an EE-gated feature — skip the `listScripts` API call on
+  // unlicensed on-prem (isEEFeatureBlocked=true) where it's disabled anyway.
+  if (!isEEFeatureBlocked.value) {
+    prefetch.push(loadScripts({ baseId: openedProject.value!.id, force: true }))
+  }
+  await Promise.all(prefetch)
 }
 
 const { activeBaseScripts } = toRefs(scriptStore)
@@ -66,6 +85,47 @@ const { activeBaseScripts } = toRefs(scriptStore)
 const selectedWebhook = ref<HookType>()
 
 const selectedScript = ref<ScriptType>()
+
+// Views store provides the selected form view's current sharing state for the
+// OpenForm validator below.
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+// Look up the selected form view from the store. The computed only re-evaluates
+// when the selected id, the table's view list, or that view's properties change —
+// no deep watch over the full viewsByTable map.
+const selectedFormView = computed(() => {
+  const formViewId = vModel.value?.fk_form_view_id
+  if (!formViewId || !meta?.value?.base_id || !meta.value.id) return undefined
+  const key = `${meta.value.base_id}:${meta.value.id}`
+  return viewsByTable.value.get(key)?.find((v) => v.id === formViewId)
+})
+
+// `true` only when we can positively confirm the form view has no uuid.
+// If the view isn't in the store (not yet loaded, or a cross-table scenario)
+// we return `false` — backend will still reject at mint time if it's really unshared.
+const isSelectedFormUnshared = computed(() => !!selectedFormView.value && !selectedFormView.value.uuid)
+
+// Drive the EditOrAdd submit button's disabled state + tooltip from the
+// sharing status of the selected form view. Cleared on unmount so switching
+// to another column type doesn't leave Save stuck disabled.
+watch(
+  [() => vModel.value?.type, isSelectedFormUnshared],
+  ([type, unshared]) => {
+    if (type === ButtonActionsType.OpenForm && unshared) {
+      disableSubmitBtn.value = true
+      disableSubmitBtnReason.value = t('msg.info.formNotSharedEditNote')
+    } else {
+      disableSubmitBtn.value = false
+      disableSubmitBtnReason.value = ''
+    }
+  },
+  { immediate: true },
+)
+
+onUnmounted(() => {
+  disableSubmitBtn.value = false
+  disableSubmitBtnReason.value = ''
+})
 
 const defaultEditorError = {
   isError: false,
@@ -96,7 +156,7 @@ const buttonTypes = computed(() => [
     value: ButtonActionsType.Webhook,
     icon: 'ncWebhook',
   },
-  ...(isAiButtonEnabled.value && showEEFeatures.value
+  ...(isAiButtonEnabled.value && !isEEFeatureBlocked.value
     ? [
         {
           icon: 'ncAutoAwesome',
@@ -112,6 +172,11 @@ const buttonTypes = computed(() => [
           icon: 'ncScript',
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
+        },
+        {
+          icon: 'form',
+          label: t('labels.openForm'),
+          value: ButtonActionsType.OpenForm,
         },
       ]
     : []),
@@ -191,6 +256,31 @@ const validators = {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === ButtonActionsType.Script && !fk_script_id) {
             reject(new Error(t('general.required')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_form_view_id: [
+    {
+      required: vModel.value.type === ButtonActionsType.OpenForm,
+      validator: (_: any, fk_form_view_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type !== ButtonActionsType.OpenForm) {
+            resolve()
+            return
+          }
+          if (!fk_form_view_id) {
+            reject(new Error(t('general.required')))
+            return
+          }
+          // Form must be shared publicly — the button URL flow only supports
+          // UUID-scoped shared form views. Only block on a confirmed-unshared view;
+          // if we can't tell (e.g. store not yet populated), the backend enforces.
+          if (isSelectedFormUnshared.value) {
+            reject(new Error(t('msg.info.formNotSharedEditNote')))
+            return
           }
           resolve()
         })
@@ -279,6 +369,7 @@ if (isEdit.value) {
   vModel.value.color = colOptions?.color
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.fk_script_id = colOptions?.fk_script_id
+  vModel.value.fk_form_view_id = colOptions?.fk_form_view_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
   selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
@@ -357,7 +448,27 @@ const selectIcon = (icon: string) => {
   isButtonIconDropdownOpen.value = false
 }
 
+// Last type before a type change — used to revert if the user picks a plan-gated type.
+const previousType = ref<string | undefined>(vModel.value.type)
+
 const handleUpdateActionType = () => {
+  // If user picked OpenForm but their plan doesn't allow it, revert and show the upgrade modal
+  if (vModel.value.type === ButtonActionsType.OpenForm && blockOpenForm.value) {
+    const prev = previousType.value
+    vModel.value.type = prev
+    showUpgradeToUseOpenForm()
+    return
+  }
+
+  if (vModel.value.type === ButtonActionsType.Script && isEEFeatureBlocked.value) {
+    const prev = previousType.value
+    vModel.value.type = prev
+    showUpgradeToUseScripts()
+    return
+  }
+
+  previousType.value = vModel.value.type
+  $e('c:button:action-type-change', { type: vModel.value.type })
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
@@ -518,6 +629,17 @@ if (isEdit.value) {
                   <div class="flex-1">
                     {{ type.label }}
                   </div>
+                  <PaymentUpgradeBadge
+                    v-if="type.value === buttonActionsType.OpenForm && blockOpenForm"
+                    :plan-title="PlanTitles.PLUS"
+                    :feature="PlanFeatureTypes.FEATURE_OPEN_FORM_BUTTON"
+                    remove-click
+                  />
+                  <PaymentUpgradeBadge
+                    v-if="type.value === buttonActionsType.Script && isEEFeatureBlocked"
+                    :feature-enabled-callback="() => !isEEFeatureBlocked"
+                    remove-click
+                  />
                   <component
                     :is="iconMap.check"
                     v-if="vModel.type === type.value"
@@ -553,6 +675,7 @@ if (isEdit.value) {
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
+    <SmartsheetColumnButtonOptionsOpenForm v-if="vModel?.type === buttonActionsType.OpenForm" v-model:model-value="vModel" />
 
     <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">

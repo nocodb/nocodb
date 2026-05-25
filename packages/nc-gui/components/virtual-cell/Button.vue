@@ -27,9 +27,17 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
+const { blockOpenForm } = useEeConfig()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { $api } = useNuxtApp()
+// In a shared-view context these identify the grid uuid + (optional) password
+// so OpenForm buttons can mint an edit token through the public endpoint.
+const { sharedView } = storeToRefs(useViewsStore())
+const sharedViewUuid = computed(() => sharedView.value?.uuid ?? null)
+const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -53,6 +61,37 @@ const pk = computed(() => {
 })
 
 const isAiButtonType = computed(() => column.value?.colOptions?.type === ButtonActionsType.Ai)
+
+const isOpenFormButton = computed(() => column.value?.colOptions?.type === ButtonActionsType.OpenForm)
+
+// Ref to the GeneralCopyButton — we mint the token async on click, then drive
+// the check-glyph swap via its exposed `copyContent(url)` method.
+const copyBtnRef = ref<{ copyContent: (text?: string) => Promise<void> } | null>(null)
+
+const handleCopyFormEditUrl = async () => {
+  if (!meta.value?.fk_workspace_id || !meta.value?.base_id || !rowId.value || !column.value.id) return
+  try {
+    const result = await $api.internal.postOperation(
+      meta.value.fk_workspace_id,
+      meta.value.base_id,
+      {
+        operation: 'formEditTokenGenerate',
+        columnId: column.value.id,
+        rowId: rowId.value,
+      },
+      {},
+    )
+    const token = result?.token as string | undefined
+    const viewUuid = result?.viewUuid as string | undefined
+    if (!token || !viewUuid) throw new Error('Could not resolve form URL')
+
+    const editUrl = `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
+    await copyBtnRef.value?.copyContent(editUrl)
+    $e('c:button:open-form:copy-url', { via: 'mouse' })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 const isFieldAiIntegrationAvailable = computed(() => {
   if (!isAiButtonType.value) return true
@@ -109,6 +148,24 @@ const isExecuting = computed(
 )
 
 const invalidUrlTooltip = ref('')
+
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+// True only when the linked form view exists AND is publicly shared.
+// Invalid (deleted / unshared) linked form → button is disabled.
+// In public/shared context the views list isn't available to the client, so
+// we skip this check and let the backend gate instead.
+const isLinkedFormViewShared = computed(() => {
+  if (column.value?.colOptions?.type !== ButtonActionsType.OpenForm) return true
+  const formViewId = column.value.colOptions.fk_form_view_id
+  if (!formViewId) return false
+  if (isPublic.value) return true
+  const key = meta.value?.base_id && meta.value?.id ? `${meta.value.base_id}:${meta.value.id}` : ''
+  if (!key) return true
+  const views = viewsByTable.value.get(key) ?? []
+  const linked = views.find((v) => v.id === formViewId)
+  return !!linked?.uuid
+})
 
 const baseStore = useBase()
 const { getBaseType } = baseStore
@@ -184,6 +241,26 @@ const componentProps = computed(() => {
           column.value?.id &&
           generatingColumnRows.value.includes(column.value.id)),
     }
+  } else if (column.value.colOptions.type === ButtonActionsType.OpenForm) {
+    return {
+      disabled:
+        filterDisabled ||
+        isLoading.value ||
+        !column.value.colOptions.fk_form_view_id ||
+        // Plan doesn't include FEATURE_OPEN_FORM_BUTTON — backend would 403
+        // on mint. Disable silently; upsell is handled at column-config time.
+        blockOpenForm.value ||
+        // Backend mints the edit token via `formEditTokenGenerate` (editor+).
+        // Disable for viewers/commenters; tooltip explains why (see below).
+        !isUIAllowed('dataEdit') ||
+        // Product decision: OpenForm is disabled in public shared views —
+        // anonymous edits erode per-seat pricing and break audit trails.
+        // The `isPublic` branch in `triggerAction` below + the public
+        // edit-token plumbing are retained for a future re-enable (likely
+        // gated behind an external-collaborator SKU).
+        isPublic.value ||
+        !isLinkedFormViewShared.value,
+    }
   }
 
   // If button type is missing then keep it as disabled
@@ -247,6 +324,67 @@ const triggerAction = async () => {
     }
   } else if (colOptions.type === ButtonActionsType.Ai) {
     await generate()
+  } else if (colOptions.type === ButtonActionsType.OpenForm) {
+    try {
+      isLoading.value = true
+
+      $e('a:button:open-form:click', { public: isPublic.value })
+
+      let token: string | undefined
+      let viewUuid: string | undefined
+
+      // NOTE: the `isPublic` branch below is currently unreachable — OpenForm
+      // buttons are force-disabled in public shared views (see componentProps
+      // above). Retained for future re-enable of shared-view OpenForm.
+      if (isPublic.value && sharedViewUuid.value) {
+        const { data } = await $api.instance.post(
+          `/api/v2/public/shared-view/${sharedViewUuid.value}/button/${column.value.id}/edit-token/${encodeURIComponent(
+            rowId!.value,
+          )}`,
+          {},
+          {
+            headers: {
+              'xc-password': sharedViewPassword.value ?? '',
+            },
+          },
+        )
+        token = data?.token
+        viewUuid = data?.viewUuid
+      } else {
+        const result = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'formEditTokenGenerate',
+            columnId: column.value.id,
+            rowId: rowId!.value,
+          },
+          {},
+        )
+        token = result?.token
+        viewUuid = result?.viewUuid
+      }
+
+      if (token && viewUuid) {
+        const editUrl = `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
+        window.open(editUrl, '_blank')
+      }
+
+      afterActionStatus.value = { status: 'success' }
+      ncDelay(2000).then(() => {
+        afterActionStatus.value = null
+      })
+    } catch (e: any) {
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      message.error(errorMsg)
+
+      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
+      ncDelay(3000).then(() => {
+        afterActionStatus.value = null
+      })
+    } finally {
+      isLoading.value = false
+    }
   } else if (colOptions.type === ButtonActionsType.Script) {
     try {
       isLoading.value = true
@@ -301,7 +439,7 @@ const triggerAction = async () => {
     :class="{
       'justify-center': isGrid && !isExpandedForm,
     }"
-    class="w-full flex items-center"
+    class="nc-virtual-cell-button w-full flex items-center gap-1.5"
   >
     <NcTooltip
       :disabled="
@@ -359,6 +497,18 @@ const triggerAction = async () => {
         </NcTooltip>
       </component>
     </NcTooltip>
+    <GeneralCopyButton
+      v-if="isOpenFormButton && !isPublic && !componentProps.disabled"
+      ref="copyBtnRef"
+      type="secondary"
+      :size="isExpandedForm ? 'small' : 'xsmall'"
+      :bordered="true"
+      :timeout="1200"
+      class="nc-open-form-copy-btn flex-none"
+      :class="{ 'nc-copy-hover-only': !isExpandedForm }"
+      data-testid="nc-open-form-copy-url"
+      @click.prevent="handleCopyFormEditUrl"
+    />
   </div>
 </template>
 
@@ -384,6 +534,22 @@ const triggerAction = async () => {
 
 .nc-button-cell-link {
   @apply !no-underline;
+}
+
+// In non-expanded-form contexts (grid rows, cards), keep the copy button hidden
+// until the ancestor row is hovered — matches the canvas grid's row-hover pattern.
+.nc-open-form-copy-btn.nc-copy-hover-only {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+tr:hover .nc-open-form-copy-btn.nc-copy-hover-only,
+.nc-gallery-container .ant-card:hover .nc-open-form-copy-btn.nc-copy-hover-only,
+.nc-kanban-item:hover .nc-open-form-copy-btn.nc-copy-hover-only,
+.nc-data-cell:focus-within .nc-open-form-copy-btn.nc-copy-hover-only {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>
 

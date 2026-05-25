@@ -53,6 +53,7 @@ export enum PlanFeatureTypes {
   FEATURE_FORM_SCHEDULING = 'feature_form_scheduling',
   FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
   FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',
+  FEATURE_OPEN_FORM_BUTTON = 'feature_open_form_button',
   FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
   FEATURE_HIDE_BRANDING = 'feature_hide_branding',
   FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER = 'feature_ltar_limit_selection_by_filter',
@@ -319,6 +320,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
     'to access form field validation feature',
+  [PlanFeatureTypes.FEATURE_OPEN_FORM_BUTTON]:
+    'to use Open Form button action.',
   [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]:
     'to use group-by aggregations.',
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: 'to remove branding.',

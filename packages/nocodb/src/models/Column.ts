@@ -425,6 +425,7 @@ export default class Column<T = any> implements ColumnType {
           color: column.color,
           fk_webhook_id: column?.fk_webhook_id,
           fk_script_id: column?.fk_script_id,
+          fk_form_view_id: column?.fk_form_view_id,
           label: column.label,
           fk_integration_id: column.fk_integration_id,
           model: column.model,

@@ -25,6 +25,9 @@ export class ActionManager {
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
   private baseInfo: { baseId: string; workspaceId: string } | null = null
+  // When the canvas is rendering a shared grid view, these identify the
+  // shared view for public-endpoint calls (e.g. OpenForm edit-token minting).
+  private publicContext: { sharedViewUuid: string; password?: string } | null = null
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -44,6 +47,10 @@ export class ActionManager {
   private cellUpdates = new Map<string, CellUpdate>()
   private activeBulkExecs = new Map<string, boolean>()
   private bulkRowStates = new Map<string, BulkRowState>()
+  // Short-lived map of cells that just had their OpenForm URL copied, so the
+  // canvas can swap the copy glyph for a check for ~1s as click feedback.
+  private recentlyCopied = new Map<string, number>()
+  private readonly COPY_FEEDBACK_MS = 1200
   private rafId: number | null = null
 
   constructor(
@@ -76,6 +83,14 @@ export class ActionManager {
 
   setBaseInfo(baseId: string, workspaceId: string) {
     this.baseInfo = { baseId, workspaceId }
+  }
+
+  // NOTE: OpenForm buttons are currently disabled inside public shared views as
+  // a product decision (see `isColumnInvalid` in `utils/columnUtils.ts`), so
+  // this context is set but never acted on today. Retained so shared-view
+  // OpenForm can be re-enabled by flipping the `isColumnInvalid` gate.
+  setPublicContext(ctx: { sharedViewUuid: string; password?: string } | null) {
+    this.publicContext = ctx
   }
 
   private eventMap = {
@@ -213,7 +228,11 @@ export class ActionManager {
   }
 
   private startAnimationLoop() {
-    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+    const hasActivity =
+      this.loadingColumns.size > 0 ||
+      this.afterActionStatus.size > 0 ||
+      this.activeBulkExecs.size > 0 ||
+      this.recentlyCopied.size > 0
 
     if (this.rafId !== null || !hasActivity) return
 
@@ -221,7 +240,11 @@ export class ActionManager {
     let isCoolingDown = false
 
     const animate = () => {
-      const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+      const currentActivity =
+        this.loadingColumns.size > 0 ||
+        this.afterActionStatus.size > 0 ||
+        this.activeBulkExecs.size > 0 ||
+        this.recentlyCopied.size > 0
 
       if (currentActivity) {
         if (cooldownTimeout) {
@@ -363,6 +386,17 @@ export class ActionManager {
           break
         }
 
+        case 'open_form': {
+          const rowId = rowIds[0]
+          if (!rowId) break
+
+          await this.executeAction(rowId, column.id, [], async () => {
+            const url = await this.resolveFormEditUrl(column.columnObj.id!, rowId)
+            if (url) window.open(url, '_blank')
+          })
+          break
+        }
+
         case 'ai': {
           const outputColumnIds = extra.isAiPromptCol
             ? [column.id]
@@ -395,6 +429,81 @@ export class ActionManager {
 
   async executeUploadAction(...args: Parameters<typeof this.executeAction>): Promise<ReturnType<typeof this.executeAction>> {
     return this.executeAction(...args)
+  }
+
+  /**
+   * Builds the form-edit URL for an OpenForm button click. Two modes:
+   *  - Public shared grid: call the public token endpoint anonymously
+   *    (requires the grid to be publicly shared; the linked form must
+   *    also be publicly shared — backend enforces both).
+   *  - Authenticated grid: call the internal `formEditTokenGenerate` op.
+   * Returns null (no toast/window.open) when the backend can't mint a
+   * token; callers fall back silently.
+   *
+   * NOTE: the `publicContext` branch below is currently dead code — OpenForm
+   * buttons are force-disabled in public shared views (see `isColumnInvalid`)
+   * so clicks never reach here when `publicContext` is set. The branch is
+   * retained for future re-enable of shared-view OpenForm.
+   */
+  async resolveFormEditUrl(columnId: string, rowId: string): Promise<string | null> {
+    let token: string | undefined
+    let viewUuid: string | undefined
+
+    if (this.publicContext) {
+      // Shared grid view — mint via the public endpoint, no auth required.
+      const { data } = await this.api.instance.post(
+        `/api/v2/public/shared-view/${this.publicContext.sharedViewUuid}/button/${columnId}/edit-token/${encodeURIComponent(
+          rowId,
+        )}`,
+        {},
+        {
+          headers: {
+            'xc-password': this.publicContext.password ?? '',
+          },
+        },
+      )
+      token = data?.token
+      viewUuid = data?.viewUuid
+    } else {
+      if (!this.baseInfo) throw new Error('Base information not available. Call setBaseInfo() first.')
+      const result = await this.api.internal.postOperation(
+        this.baseInfo.workspaceId,
+        this.baseInfo.baseId,
+        {
+          operation: 'formEditTokenGenerate',
+          columnId,
+          rowId,
+        },
+        {},
+      )
+      token = result?.token
+      viewUuid = result?.viewUuid
+    }
+
+    if (token && viewUuid) {
+      return `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
+    }
+    return null
+  }
+
+  // Flag a cell as just-copied so the renderer can swap the copy glyph for a
+  // check. Auto-clears after COPY_FEEDBACK_MS and forces a final refresh so the
+  // glyph reverts even when nothing else is animating.
+  markRecentlyCopied(rowId: string, columnId: string) {
+    const key = this.getKey(rowId, columnId)
+    this.recentlyCopied.set(key, Date.now())
+    this.triggerRefreshCanvas()
+    this.startAnimationLoop()
+    setTimeout(() => {
+      this.recentlyCopied.delete(key)
+      this.triggerRefreshCanvas()
+    }, this.COPY_FEEDBACK_MS)
+  }
+
+  isRecentlyCopied(rowId: string, columnId: string): boolean {
+    const ts = this.recentlyCopied.get(this.getKey(rowId, columnId))
+    if (!ts) return false
+    return Date.now() - ts < this.COPY_FEEDBACK_MS
   }
 
   // Public state query methods

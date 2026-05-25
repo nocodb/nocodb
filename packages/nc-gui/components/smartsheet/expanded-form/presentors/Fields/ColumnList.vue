@@ -327,7 +327,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
     @apply !border-nc-border-gray-medium;
   }
 
-  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(:has(.nc-virtual-cell-button)) {
     @apply !shadow-selected;
   }
 
@@ -387,7 +387,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
   @apply !border-nc-border-brand !border-1;
 }
 
-.nc-data-cell:focus-within {
+.nc-data-cell:focus-within:not(:has(.nc-virtual-cell-button)) {
   @apply !border-1 !border-nc-border-brand;
 }
 

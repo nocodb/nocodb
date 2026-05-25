@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType, ViewType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaDataTypes,
@@ -301,14 +301,33 @@ const isColumnInvalid = ({
   col,
   aiIntegrations = [],
   isReadOnly = false,
+  hasEditPermission = true,
+  isOpenFormFeatureBlocked = false,
   isNocoAiAvailable = false,
   columns = [],
+  views = [],
+  isPublicView = false,
 }: {
   col: ColumnType
   aiIntegrations?: Partial<IntegrationType>[]
   isReadOnly?: boolean
+  /** Whether the current user has `dataEdit` permission. Only the canvas grid
+   * should pass this — it's used to silently disable the button cell for
+   * viewers/commenters (backend `formEditTokenGenerate` is editor+). Callers
+   * used for column-header warnings should leave this default so the header
+   * doesn't flag the column as misconfigured for permission-only gating. */
+  hasEditPermission?: boolean
+  /** True when the workspace plan doesn't include FEATURE_OPEN_FORM_BUTTON.
+   * Same caller convention as `hasEditPermission` — only the canvas grid
+   * passes it so the button cell silently disables; the column header must
+   * not render a warning for a plan-only gate. */
+  isOpenFormFeatureBlocked?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
+  views?: ViewType[]
+  /** In a public shared view the client can't list views, so the "linked form
+   * view missing" detection must be skipped — backend will gate instead. */
+  isPublicView?: boolean
 }): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
@@ -344,6 +363,42 @@ const isColumnInvalid = ({
         }
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
+      } else if (colOptions.type === ButtonActionsType.OpenForm) {
+        if (!colOptions.fk_form_view_id) {
+          result.isInvalid = true
+          result.tooltip = 'msg.error.openFormButtonNoFormView'
+        } else if (isOpenFormFeatureBlocked && !isPublicView) {
+          // Plan doesn't include the feature — backend would 403 on mint.
+          // Silent disable; column header stays clean because Menu.vue
+          // intentionally doesn't pass `isOpenFormFeatureBlocked`.
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else if (!hasEditPermission && !isPublicView) {
+          // Viewer/commenter can't mint an edit token (editor+ required).
+          // Silent disable — column is valid, only this user can't use it.
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else if (isPublicView) {
+          // Product decision: OpenForm buttons are disabled inside public shared
+          // views. Anonymous editing of existing records erodes per-seat pricing
+          // and breaks the audit trail. The plumbing (public edit-token endpoint,
+          // ActionManager.setPublicContext, resolveFormEditUrl public branch,
+          // isPublicView handling below) is retained so we can re-enable this
+          // path later — likely gated behind a paid external-collaborator SKU
+          // and an approval/update-request workflow. See also:
+          // `.claude/branches/shared-form-button/shared-view-edit-strategy.md`.
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else {
+          const linkedView = views.find((v) => v.id === colOptions.fk_form_view_id)
+          if (!linkedView) {
+            result.isInvalid = true
+            result.tooltip = 'msg.error.openFormButtonFormDeleted'
+          } else if (!linkedView.uuid) {
+            result.isInvalid = true
+            result.tooltip = 'msg.error.openFormButtonFormUnshared'
+          }
+        }
       } else if (colOptions.type === ButtonActionsType.Ai) {
         const colOptions = col.colOptions as ButtonType
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
-import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, ViewTypes } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
+import { ButtonActionsType, NC_VIEW_PASSWORD_PROTECTED_SENTINEL, UITypes, ViewTypes } from 'nocodb-sdk'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -59,6 +59,45 @@ const isPublicShared = computed(() => {
   if (restrictedSharing.value) return false
 
   return !!activeView.value?.uuid
+})
+
+const { viewsByTable } = storeToRefs(viewStore)
+
+// Detect OpenForm buttons on the current table whose linked form views are
+// themselves publicly shared. When present on a grid that's being shared,
+// anyone with the grid link can edit rows through that form — we surface a
+// warning so the admin is aware of this implicit authorization.
+//
+// NOTE: OpenForm buttons are currently disabled inside public shared views
+// (see `isColumnInvalid` in `utils/columnUtils.ts`), so the warning banner
+// below is hidden today — there is no implicit authorization to warn about.
+// The computation is retained so the banner can be re-surfaced if shared-view
+// OpenForm is re-enabled.
+const openFormButtonsViaSharedForms = computed<Array<{ buttonTitle: string; formTitle: string }>>(() => {
+  if (!activeView.value || activeView.value.type !== ViewTypes.GRID) return []
+
+  const tableMeta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id as string)
+  const buttonCols = (tableMeta?.columns ?? []).filter(
+    (c: ColumnType) => c.uidt === UITypes.Button && (c.colOptions as ButtonType | undefined)?.type === ButtonActionsType.OpenForm,
+  )
+  if (!buttonCols.length) return []
+
+  const viewsKey = `${activeView.value.base_id}:${activeView.value.fk_model_id}`
+  const tableViews = viewsByTable.value.get(viewsKey) ?? []
+
+  const entries: Array<{ buttonTitle: string; formTitle: string }> = []
+  for (const col of buttonCols) {
+    const formViewId = (col.colOptions as ButtonType).fk_form_view_id
+    if (!formViewId) continue
+    const linked = tableViews.find((v) => v.id === formViewId)
+    if (linked?.uuid) {
+      entries.push({
+        buttonTitle: col.title ?? '',
+        formTitle: linked.title ?? '',
+      })
+    }
+  }
+  return entries
 })
 
 const isReadOnly = computed(() => {
@@ -524,6 +563,14 @@ const copyCustomUrl = async (custUrl = '') => {
     }`,
   )
 }
+
+/**
+ * When the grid has OpenForm button columns whose linked form views
+ * are also publicly shared, surface a warning that grants are implicit.
+ * Retained for future re-enable — today OpenForm is disabled in public
+ * shared views, so the banner stays hidden.
+ */
+const showOpenFormBtnShareWarning = false
 </script>
 
 <template>
@@ -813,6 +860,25 @@ const copyCustomUrl = async (custUrl = '') => {
             </a-radio>
           </a-radio-group>
         </div>
+
+        <NcAlert
+          v-if="showOpenFormBtnShareWarning && openFormButtonsViaSharedForms.length"
+          type="warning"
+          :message="$t('activity.warning')"
+          :description="
+            $t('msg.info.openFormShareWarning', {
+              forms: openFormButtonsViaSharedForms.map((e) => e.formTitle).join(', '),
+            })
+          "
+          class="mt-1 !p-3"
+          message-class="!text-bodyDefaultSm !text-nc-content-orange-dark"
+          description-class="!text-xs !text-nc-content-orange-dark"
+          data-testid="nc-share-open-form-warning"
+        >
+          <template #icon>
+            <GeneralIcon icon="alertTriangle" class="nc-alert-icon" />
+          </template>
+        </NcAlert>
       </template>
     </div>
   </div>

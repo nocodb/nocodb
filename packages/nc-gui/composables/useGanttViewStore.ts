@@ -4,7 +4,7 @@
 // Bug-fix discipline: until then, any fix applied here MUST be double-applied to the
 // Timeline counterpart (and vice versa). See plan.md Phase 4 "Consolidation pass".
 
-import type { TableType, GanttType, ViewType } from 'nocodb-sdk'
+import type { GanttType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef } from 'vue'
 
 const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(

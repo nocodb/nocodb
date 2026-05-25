@@ -110,6 +110,25 @@ const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 32
 const SIDEBAR_MIN_WIDTH = 240
 
+const meta = inject(MetaInj, ref())
+
+// Interaction state used by bar click/dblclick guards below.
+const resizeInProgress = ref(false)
+const dragInProgress = ref(false)
+const dragCreateActive = ref(false)
+const dragCreateMoved = ref(false)
+
+// Flag to suppress the click that fires right after mouseup ends a resize/drag.
+const justFinishedResize = ref(false)
+
+// Whether any interaction (resize or drag) is happening. Drag-create counts
+// only AFTER the pointer has crossed a day boundary — otherwise a plain click
+// would briefly flip this flag and dim every bar (opacity-30) for the
+// duration of the click, producing a visible flash.
+const isInteracting = computed(
+  () => resizeInProgress.value || dragInProgress.value || (dragCreateActive.value && dragCreateMoved.value),
+)
+
 // Persist sidebar collapsed state and width across page reloads, keyed
 // globally — once the user picks a layout for the record list they likely
 // want it the same way everywhere.
@@ -220,8 +239,6 @@ const onBarDblClick = (record: RowType) => {
   emit('expandRecord', record)
 }
 
-const meta = inject(MetaInj, ref())
-
 // Measure the outer Gantt wrapper so the sidebar resize can cap at 50% of
 // the visible Gantt area (the parent already excludes the project tree from
 // the width it hands us). When the storage value exceeds the cap (smaller
@@ -296,17 +313,13 @@ watch(
 )
 
 // --- Resize state ---
-const resizeInProgress = ref(false)
 const resizeDirection = ref<'left' | 'right'>()
 const resizeRecord = ref<RowType | null>(null)
 const gridBodyRef = ref<HTMLElement | null>(null)
 
-// Flag to suppress the click that fires right after mouseup ends a resize/drag
-const justFinishedResize = ref(false)
 let resizeCooldownTimer: ReturnType<typeof setTimeout> | null = null
 
 // --- Drag-to-move state (#1) ---
-const dragInProgress = ref(false)
 const dragRecord = ref<RowType | null>(null)
 const dragStartDayIndex = ref<number>(0)
 let dragTimeout: ReturnType<typeof setTimeout> | null = null
@@ -578,7 +591,6 @@ const onDragStart = (event: MouseEvent, record: RowType) => {
 }
 
 // --- Drag-to-create: click and drag on empty grid to create a record with date range ---
-const dragCreateActive = ref(false)
 const dragCreateStartIdx = ref<number | null>(null)
 const dragCreateEndIdx = ref<number | null>(null)
 const dragCreateLaneIdx = ref<number | null>(null)
@@ -601,11 +613,11 @@ const dragCreateStyle = computed(() => {
   return { left: `${left}px`, width: `${width}px`, top: `${top}px`, height: `${height}px` }
 })
 
-// Set true as soon as the pointer moves to a different day during a
-// drag-create gesture. A plain click (mousedown→mouseup without crossing a day
-// boundary) shouldn't open the new-record modal — only an actual drag or a
-// dblclick should. See onDragCreateEnd / onGridBodyDblClick below.
-const dragCreateMoved = ref(false)
+// `dragCreateMoved`: set true as soon as the pointer moves to a different day
+// during a drag-create gesture. A plain click (mousedown→mouseup without
+// crossing a day boundary) shouldn't open the new-record modal — only an
+// actual drag or a dblclick should. See onDragCreateEnd / onGridBodyDblClick
+// below. (Declared above with the other interaction-state refs.)
 
 const onDragCreateMove = (event: MouseEvent) => {
   if (!dragCreateActive.value || !gridBodyRef.value) return
@@ -662,13 +674,7 @@ const onGridBodyDblClick = (event: MouseEvent) => {
   emit('newRecord', date, date)
 }
 
-// Whether any interaction (resize or drag) is happening. Drag-create counts
-// only AFTER the pointer has crossed a day boundary — otherwise a plain click
-// would briefly flip this flag and dim every bar (opacity-30) for the
-// duration of the click, producing a visible flash.
-const isInteracting = computed(
-  () => resizeInProgress.value || dragInProgress.value || (dragCreateActive.value && dragCreateMoved.value),
-)
+// `isInteracting` is declared above (used by bar click/dblclick handlers).
 const interactionRecord = computed(() => resizeRecord.value || dragRecord.value)
 
 // Clean up listeners and timers on unmount
@@ -686,42 +692,6 @@ onBeforeUnmount(() => {
 })
 
 // --- Helpers ---
-
-// Check if a record has a visible bar within the current date range
-const isRecordVisible = (row: RowType) => {
-  const range = props.ganttRange[0]
-  if (!range) return false
-
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-
-  if (!startDate) return false
-
-  const effectiveEnd = endDate || startDate
-  const firstVisibleDate = props.visibleDates[0]
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-
-  if (!firstVisibleDate || !lastVisibleDate) return false
-
-  return !effectiveEnd.isBefore(firstVisibleDate, 'day') && !startDate.isAfter(lastVisibleDate, 'day')
-}
-
-// Filtered + sorted records: only visible bars, ordered by start date
-const visibleRecords = computed(() => {
-  const range = props.ganttRange[0]
-  if (!range) return []
-
-  return props.records
-    .filter((record) => isRecordVisible(record))
-    .sort((a, b) => {
-      const aStart = parseDate(a, range.fk_from_col)
-      const bStart = parseDate(b, range.fk_from_col)
-      if (!aStart && !bStart) return 0
-      if (!aStart) return 1
-      if (!bStart) return -1
-      return aStart.valueOf() - bStart.valueOf()
-    })
-})
 
 // Gantt layout: one row per record, including records whose bars are
 // off-screen or records without dates at all. Sorted by start date, with
@@ -849,7 +819,7 @@ const getSpillLabelStyle = (row: RowType) => {
 const MILESTONE_SIZE = ROW_HEIGHT - 8
 const MILESTONE_INNER = MILESTONE_SIZE / Math.SQRT2
 
-const isMilestone = (row: RowType) => {
+function isMilestone(row: RowType) {
   const range = props.ganttRange[0]
   if (!range?.fk_to_col) return false
   const start = parseDate(row, range.fk_from_col)
@@ -1021,8 +991,7 @@ function buildArrowPath(
 
   // Last-resort fallback for upward / extreme-overlap cases — keep the
   // original wide U-turn since the hook can't physically fit.
-  const midY =
-    predIdx < succIdx ? succCenterY + ROW_HEIGHT : succCenterY - ROW_HEIGHT
+  const midY = predIdx < succIdx ? succCenterY + ROW_HEIGHT : succCenterY - ROW_HEIGHT
   const farLeftX = Math.min(succLeftX - 12, exitX - 12)
   return (
     `M ${exitX} ${predBottomY}` +
@@ -1041,7 +1010,7 @@ function buildArrowPath(
 // store (useGanttViewStore.invalidReasonFor) so Grid, GroupedCrossArrows,
 // and RecordInspector all label edges identically.
 type InvalidReason = 'date-violation' | 'cycle' | null
-type ArrowPath = {
+interface ArrowPath {
   id: string
   d: string
   rowId: string
@@ -1091,8 +1060,7 @@ const arrowPaths = computed<ArrowPath[]>(() => {
       const linkedIdx = indexByRowId.get(linkedId)
       if (linkedIdx === undefined) continue
 
-      const [predIdx, succIdx] =
-        direction === 'predecessor' ? [linkedIdx, rowIdx] : [rowIdx, linkedIdx]
+      const [predIdx, succIdx] = direction === 'predecessor' ? [linkedIdx, rowIdx] : [rowIdx, linkedIdx]
 
       const predRow = stableRowOrder.value[predIdx]!.record
       const succRow = stableRowOrder.value[succIdx]!.record
@@ -1262,6 +1230,23 @@ onKeyStroke(['Delete', 'Backspace'], (event) => {
   handleArrowDelete()
 })
 
+// Drag-to-create link from a bar's dependency handle to another bar.
+// Coordinates are in bodyScrollRef content space (not viewport), so they match
+// the SVG arrow overlay's coordinate system.
+interface LinkDragState {
+  fromRecord: RowType
+  fromId: string
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+  hoveredRecord: RowType | null
+  hoveredId: string | null
+}
+const linkCreationDrag = ref<LinkDragState | null>(null)
+
+const bodyScrollRef = ref<HTMLElement | null>(null)
+
 // Esc should dismiss one thing at a time. Without stopPropagation,
 // pressing Esc with both an arrow selected AND the inspector open
 // fires this handler AND the inspector's own Escape handler in the
@@ -1279,21 +1264,6 @@ onKeyStroke('Escape', (event) => {
     event.stopPropagation()
   }
 })
-
-// Drag-to-create link from a bar's dependency handle to another bar.
-// Coordinates are in bodyScrollRef content space (not viewport), so they match
-// the SVG arrow overlay's coordinate system.
-interface LinkDragState {
-  fromRecord: RowType
-  fromId: string
-  startX: number
-  startY: number
-  currentX: number
-  currentY: number
-  hoveredRecord: RowType | null
-  hoveredId: string | null
-}
-const linkCreationDrag = ref<LinkDragState | null>(null)
 
 const _eventToContentCoords = (event: MouseEvent) => {
   const container = bodyScrollRef.value
@@ -1335,7 +1305,7 @@ const onHandleMouseDown = (event: MouseEvent, record: RowType) => {
   document.body.style.cursor = 'grabbing'
 }
 
-const onHandleDragMove = (event: MouseEvent) => {
+function onHandleDragMove(event: MouseEvent) {
   const state = linkCreationDrag.value
   if (!state) return
   const coords = _eventToContentCoords(event)
@@ -1347,9 +1317,7 @@ const onHandleDragMove = (event: MouseEvent) => {
   // Resolve hovered bar from DOM under cursor. Walk through elementsFromPoint
   // because the SVG overlay sits on top and would otherwise mask the bar.
   const elements = document.elementsFromPoint(event.clientX, event.clientY)
-  const barEl = elements.find((el) =>
-    (el as HTMLElement).dataset?.testid === 'nc-gantt-bar',
-  ) as HTMLElement | undefined
+  const barEl = elements.find((el) => (el as HTMLElement).dataset?.testid === 'nc-gantt-bar') as HTMLElement | undefined
 
   if (!barEl) {
     state.hoveredRecord = null
@@ -1373,14 +1341,14 @@ const onHandleDragMove = (event: MouseEvent) => {
   state.hoveredId = hoveredId != null ? String(hoveredId) : null
 }
 
-const cancelLinkCreation = () => {
+function cancelLinkCreation() {
   linkCreationDrag.value = null
   document.removeEventListener('mousemove', onHandleDragMove)
   document.body.style.userSelect = ''
   document.body.style.cursor = ''
 }
 
-const onHandleDragEnd = async (_event: MouseEvent) => {
+async function onHandleDragEnd(_event: MouseEvent) {
   const state = linkCreationDrag.value
   cancelLinkCreation()
   if (!state) return
@@ -1438,9 +1406,7 @@ const getBarTooltip = (row: RowType) => {
   const range = props.ganttRange[0]
   if (!range) return ''
 
-  const title = primaryField.value
-    ? String(row.row?.[primaryField.value.title!] ?? '').trim()
-    : ''
+  const title = primaryField.value ? String(row.row?.[primaryField.value.title!] ?? '').trim() : ''
 
   const startDate = parseDate(row, range.fk_from_col)
   const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
@@ -1462,16 +1428,6 @@ const getBarTooltip = (row: RowType) => {
   }
 
   return [title, dateLine].filter(Boolean).join('  ·  ')
-}
-
-// Determine if a date is today
-const isToday = (date: dayjs.Dayjs) => {
-  return date.isSame(today.value, 'day')
-}
-
-// Determine if a date is a weekend
-const isWeekend = (date: dayjs.Dayjs) => {
-  return date.day() === 0 || date.day() === 6
 }
 
 // Compute the painted viewport's date range. `props.visibleDates` spans
@@ -1537,13 +1493,13 @@ const todayPosition = computed(() => {
 })
 
 // Per-bar navigation: get the start/end date for a clipped record
-const getRecordStartDate = (row: RowType) => {
+function getRecordStartDate(row: RowType) {
   const range = props.ganttRange[0]
   if (!range) return null
   return parseDate(row, range.fk_from_col)
 }
 
-const getRecordEndDate = (row: RowType) => {
+function getRecordEndDate(row: RowType) {
   const range = props.ganttRange[0]
   if (!range) return null
   const startDate = parseDate(row, range.fk_from_col)
@@ -1719,9 +1675,9 @@ const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, ba
   targetEl?.focus()
 }
 
-// Sync horizontal scroll between header and body, and vertical scroll with sidebar
+// Sync horizontal scroll between header and body, and vertical scroll with sidebar.
+// `bodyScrollRef` is declared earlier (used by the link-drag coord helper).
 const headerScrollRef = ref<HTMLElement | null>(null)
-const bodyScrollRef = ref<HTMLElement | null>(null)
 const sidebarScrollRef = ref<HTMLElement | null>(null)
 
 // Trigger row-index pagination when the user nears the bottom of the
@@ -1887,11 +1843,7 @@ const onGridMouseLeave = () => {
           </NcButton>
         </NcTooltip>
       </div>
-      <div
-        ref="sidebarScrollRef"
-        class="flex-1 overflow-y-auto overflow-x-hidden"
-        @scroll="onSidebarScroll"
-      >
+      <div ref="sidebarScrollRef" class="flex-1 overflow-y-auto overflow-x-hidden" @scroll="onSidebarScroll">
         <div
           v-for="(lane, laneIdx) in swimlanes"
           :key="laneIdx"
@@ -1937,437 +1889,545 @@ const onGridMouseLeave = () => {
 
     <!-- Main pane: date header + scrollable grid body -->
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden relative">
-    <!-- Expand sidebar button — overlay at the top-left of the date header
+      <!-- Expand sidebar button — overlay at the top-left of the date header
          when the record list is collapsed. Sits above the header on z-index
          so it stays clickable even as the header scrolls. -->
-    <NcTooltip
-      v-if="!hideHeader && sidebarCollapsed"
-      :title="$t('title.showSidebar')"
-      placement="bottom"
-      class="absolute top-1.5 left-1.5 z-30"
-    >
-      <NcButton
-        v-e="['c:gantt:sidebar-toggle', { collapsed: false }]"
-        size="xxsmall"
-        type="secondary"
-        data-testid="nc-gantt-sidebar-expand"
-        class="!bg-nc-bg-default"
-        @click="sidebarCollapsed = false"
+      <NcTooltip
+        v-if="!hideHeader && sidebarCollapsed"
+        :title="$t('title.showSidebar')"
+        placement="bottom"
+        class="absolute top-1.5 left-1.5 z-30"
       >
-        <GeneralIcon icon="arrowRight" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
-      </NcButton>
-    </NcTooltip>
-    <!-- Date column headers (hidden when parent provides a shared header). -->
-    <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
-      <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
-        <SmartsheetSharedDateAxisHeader
-          :major-header-tiers="majorHeaderTiers"
-          :minor-labels="minorLabels"
-          :weekend-offsets="weekendOffsets"
-          :gridline-offsets="gridlineOffsets"
-          :col-width="colWidth"
-          :total-grid-width="totalGridWidth"
-          :today-day-idx="todayDayIdx"
-          :minor-height="HEADER_HEIGHT"
-          :hover-col-index="hoverColIndex"
-        />
+        <NcButton
+          v-e="['c:gantt:sidebar-toggle', { collapsed: false }]"
+          size="xxsmall"
+          type="secondary"
+          data-testid="nc-gantt-sidebar-expand"
+          class="!bg-nc-bg-default"
+          @click="sidebarCollapsed = false"
+        >
+          <GeneralIcon icon="arrowRight" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
+        </NcButton>
+      </NcTooltip>
+      <!-- Date column headers (hidden when parent provides a shared header). -->
+      <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
+        <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
+          <SmartsheetSharedDateAxisHeader
+            :major-header-tiers="majorHeaderTiers"
+            :minor-labels="minorLabels"
+            :weekend-offsets="weekendOffsets"
+            :gridline-offsets="gridlineOffsets"
+            :col-width="colWidth"
+            :total-grid-width="totalGridWidth"
+            :today-day-idx="todayDayIdx"
+            :minor-height="HEADER_HEIGHT"
+            :hover-col-index="hoverColIndex"
+          />
+        </div>
       </div>
-    </div>
-    <!-- When header is hidden, still need a ref element to measure container width -->
-    <div v-else ref="gridContainerRef" class="w-full h-0" />
+      <!-- When header is hidden, still need a ref element to measure container width -->
+      <div v-else ref="gridContainerRef" class="w-full h-0" />
 
-    <!-- Scrollable grid body (#4: both axes scroll).
+      <!-- Scrollable grid body (#4: both axes scroll).
          In grouped mode (`hideHeader`) the body still owns its own horizontal scroll
          but with `nc-gantt-no-scrollbar` so the user only sees ONE scrollbar at the
          shared date header up top. The store mirrors scrollLeft into every body so
          all per-group bars stay in lockstep. -->
-    <div
-      ref="bodyScrollRef"
-      :class="hideHeader ? 'overflow-x-auto overflow-y-hidden nc-gantt-no-scrollbar' : 'flex-1 min-h-0 overflow-auto'"
-      @scroll="onBodyScroll"
-      @mousemove="onGridMouseMove"
-      @mouseleave="onGridMouseLeave"
-    >
-      <div class="relative" :style="{ width: `${totalGridWidth}px`, minHeight: '100%' }">
-        <!-- Background layer: grid lines, weekend shading, today line — fills full height.
+      <div
+        ref="bodyScrollRef"
+        :class="hideHeader ? 'overflow-x-auto overflow-y-hidden nc-gantt-no-scrollbar' : 'flex-1 min-h-0 overflow-auto'"
+        @scroll="onBodyScroll"
+        @mousemove="onGridMouseMove"
+        @mouseleave="onGridMouseLeave"
+      >
+        <div class="relative" :style="{ width: `${totalGridWidth}px`, minHeight: '100%' }">
+          <!-- Background layer: grid lines, weekend shading, today line — fills full height.
              Per-day v-fors replaced with sparse overlays so coarse zooms (year/5-year)
              don't paint 1.5k–3.7k empty cells per scroll frame. -->
-        <div class="absolute inset-0 pointer-events-none" style="z-index: 0">
-          <!-- Weekend stripes (only emitted at fine zooms where weekend cells are wide enough to read) -->
-          <div
-            v-for="off in weekendOffsets"
-            :key="`bg-${off.key}`"
-            class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight"
-            :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
-          />
-          <!-- Today indicator line -->
-          <div
-            v-if="todayPosition !== null"
-            class="absolute top-0 bottom-0 bg-nc-content-brand"
-            style="width: 1px"
-            :style="{ left: `${todayPosition}px` }"
-          />
-          <!-- Hover date column highlight -->
-          <div
-            v-if="hoverColIndex !== null && !dragCreateActive"
-            class="absolute top-0 bottom-0 nc-gantt-content-hover pointer-events-none"
-            :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
-          />
-          <!-- Vertical gridlines at the current scale's cadence (day / week / fortnight / month / quarter) -->
-          <div
-            v-for="off in gridlineOffsets"
-            :key="`line-${off.key}`"
-            class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-            :style="{ left: `${off.leftPx}px` }"
-          />
-          <!-- Horizontal row separators — moved here from the swimlane `border-b`
+          <div class="absolute inset-0 pointer-events-none" style="z-index: 0">
+            <!-- Weekend stripes (only emitted at fine zooms where weekend cells are wide enough to read) -->
+            <div
+              v-for="off in weekendOffsets"
+              :key="`bg-${off.key}`"
+              class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight"
+              :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
+            />
+            <!-- Today indicator line -->
+            <div
+              v-if="todayPosition !== null"
+              class="absolute top-0 bottom-0 bg-nc-content-brand"
+              style="width: 1px"
+              :style="{ left: `${todayPosition}px` }"
+            />
+            <!-- Hover date column highlight -->
+            <div
+              v-if="hoverColIndex !== null && !dragCreateActive"
+              class="absolute top-0 bottom-0 nc-gantt-content-hover pointer-events-none"
+              :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Vertical gridlines at the current scale's cadence (day / week / fortnight / month / quarter) -->
+            <div
+              v-for="off in gridlineOffsets"
+              :key="`line-${off.key}`"
+              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
+              :style="{ left: `${off.leftPx}px` }"
+            />
+            <!-- Horizontal row separators — moved here from the swimlane `border-b`
                so they paint in the BG stack alongside vertical gridlines,
                instead of in the content stack ABOVE the arrows SVG. Result:
                bg-lines → arrows → bars (the desired layering). -->
-          <div
-            v-for="(_, idx) in swimlanes"
-            :key="`row-line-${idx}`"
-            class="absolute left-0 right-0 border-b border-nc-border-gray-light"
-            :style="{ top: `${(idx + 1) * ROW_HEIGHT - 1}px` }"
-          />
-        </div>
+            <div
+              v-for="(_, idx) in swimlanes"
+              :key="`row-line-${idx}`"
+              class="absolute left-0 right-0 border-b border-nc-border-gray-light"
+              :style="{ top: `${(idx + 1) * ROW_HEIGHT - 1}px` }"
+            />
+          </div>
 
-        <!-- Dependency arrows layer — sits in the background (z=0, same as
+          <!-- Dependency arrows layer — sits in the background (z=0, same as
              grid gridlines/weekend stripes) so bars paint OVER it where they
              overlap. Bars sit later in DOM, so with z-index ties they naturally
              paint on top. SVG is pointer-events: none; the per-arrow
              transparent hit paths re-enable pointer-events only on themselves
              and only show where the bars don't cover. Arrows drawn 2px short
              of bar edges so they still read as terminating at the bar. -->
-        <svg
-          v-if="!hideHeader && (arrowPaths.length || linkCreationDrag)"
-          class="absolute inset-0 pointer-events-none"
-          style="z-index: 0"
-          :width="totalGridWidth"
-          :height="arrowSvgHeight"
-          :viewBox="`0 0 ${totalGridWidth} ${arrowSvgHeight}`"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <marker
-              id="nc-gantt-arrow-head"
-              viewBox="0 0 10 10"
-              refX="8"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-border-gray-extra-dark, #9aa2af)" />
-            </marker>
-            <marker
-              id="nc-gantt-arrow-head-selected"
-              viewBox="0 0 10 10"
-              refX="8"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
-            </marker>
-            <marker
-              id="nc-gantt-arrow-head-highlighted"
-              viewBox="0 0 10 10"
-              refX="8"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--color-green-600)" />
-            </marker>
-            <!-- Invalid dependency marker — same red as the selected
+          <svg
+            v-if="!hideHeader && (arrowPaths.length || linkCreationDrag)"
+            class="absolute inset-0 pointer-events-none"
+            style="z-index: 0"
+            :width="totalGridWidth"
+            :height="arrowSvgHeight"
+            :viewBox="`0 0 ${totalGridWidth} ${arrowSvgHeight}`"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <marker
+                id="nc-gantt-arrow-head"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-border-gray-extra-dark, #9aa2af)" />
+              </marker>
+              <marker
+                id="nc-gantt-arrow-head-selected"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
+              </marker>
+              <marker
+                id="nc-gantt-arrow-head-highlighted"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--color-green-600)" />
+              </marker>
+              <!-- Invalid dependency marker — same red as the selected
                  state but a separate marker so they can co-exist in the
                  defs and either can be referenced by the conditional in
                  the path render below. -->
-            <marker
-              id="nc-gantt-arrow-head-invalid"
-              viewBox="0 0 10 10"
-              refX="8"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
-            </marker>
-          </defs>
-          <g v-for="arrow in arrowPaths" :key="arrow.id">
-            <!-- Transparent wide hit target for click selection. Uses
+              <marker
+                id="nc-gantt-arrow-head-invalid"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
+              </marker>
+            </defs>
+            <g v-for="arrow in arrowPaths" :key="arrow.id">
+              <!-- Transparent wide hit target for click selection. Uses
                  pointer-events="stroke" so the invisible stroke still catches
                  clicks, re-enabling hit-testing over the SVG's inherited
                  pointer-events: none. -->
-            <path
-              v-if="canEditDeps"
-              :d="arrow.d"
-              fill="none"
-              stroke="transparent"
-              stroke-width="12"
-              pointer-events="stroke"
-              class="nc-gantt-arrow-hit cursor-pointer"
-              @click="selectArrow(arrow.id, $event)"
-            />
-            <!-- Visible arrow. Priority order: selected (red, thicker) >
+              <path
+                v-if="canEditDeps"
+                :d="arrow.d"
+                fill="none"
+                stroke="transparent"
+                stroke-width="12"
+                pointer-events="stroke"
+                class="nc-gantt-arrow-hit cursor-pointer"
+                @click="selectArrow(arrow.id, $event)"
+              />
+              <!-- Visible arrow. Priority order: selected (red, thicker) >
                  invalid (red, dashed, separate marker) > chain-
                  highlighted (green) > default (grey). Invalid arrows use
                  a dashed stroke (Airtable convention) so the broken edge
                  reads even when the red colour blends into theme bg. -->
-            <path
-              :d="arrow.d"
-              fill="none"
-              :stroke="
-                selectedArrowId === arrow.id
-                  ? 'var(--nc-content-red-dark, #b91c1c)'
-                  : arrow.invalidReason
-                  ? 'var(--nc-content-red-dark, #b91c1c)'
-                  : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
-                  ? 'var(--color-green-600)'
-                  : 'var(--nc-border-gray-extra-dark, #9aa2af)'
-              "
-              :stroke-width="
-                selectedArrowId === arrow.id
-                  ? 1.25
-                  : arrow.invalidReason
-                  ? 1.25
-                  : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
-                  ? 1
-                  : 1
-              "
-              :stroke-dasharray="arrow.invalidReason ? '4 3' : undefined"
-              stroke-linejoin="round"
-              class="pointer-events-none"
-              :marker-end="
-                selectedArrowId === arrow.id
-                  ? 'url(#nc-gantt-arrow-head-selected)'
-                  : arrow.invalidReason
-                  ? 'url(#nc-gantt-arrow-head-invalid)'
-                  : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
-                  ? 'url(#nc-gantt-arrow-head-highlighted)'
-                  : 'url(#nc-gantt-arrow-head)'
-              "
-            >
-              <!-- Native SVG tooltip — surfaces the violation reason on hover
+              <path
+                :d="arrow.d"
+                fill="none"
+                :stroke="
+                  selectedArrowId === arrow.id
+                    ? 'var(--nc-content-red-dark, #b91c1c)'
+                    : arrow.invalidReason
+                    ? 'var(--nc-content-red-dark, #b91c1c)'
+                    : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
+                    ? 'var(--color-green-600)'
+                    : 'var(--nc-border-gray-extra-dark, #9aa2af)'
+                "
+                :stroke-width="
+                  selectedArrowId === arrow.id
+                    ? 1.25
+                    : arrow.invalidReason
+                    ? 1.25
+                    : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
+                    ? 1
+                    : 1
+                "
+                :stroke-dasharray="arrow.invalidReason ? '4 3' : undefined"
+                stroke-linejoin="round"
+                class="pointer-events-none"
+                :marker-end="
+                  selectedArrowId === arrow.id
+                    ? 'url(#nc-gantt-arrow-head-selected)'
+                    : arrow.invalidReason
+                    ? 'url(#nc-gantt-arrow-head-invalid)'
+                    : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
+                    ? 'url(#nc-gantt-arrow-head-highlighted)'
+                    : 'url(#nc-gantt-arrow-head)'
+                "
+              >
+                <!-- Native SVG tooltip — surfaces the violation reason on hover
                    without needing the floating-tooltip infra. Empty when the
                    arrow is valid so the title element is a no-op. -->
-              <title v-if="arrow.invalidReason === 'cycle'">{{ $t('msg.dependencyInvalidCycle') }}</title>
-              <title v-else-if="arrow.invalidReason === 'date-violation'">{{ $t('msg.dependencyInvalidDate') }}</title>
-            </path>
-          </g>
-          <!-- Drag preview path while the user drags from a handle. L-shaped
+                <title v-if="arrow.invalidReason === 'cycle'">{{ $t('msg.dependencyInvalidCycle') }}</title>
+                <title v-else-if="arrow.invalidReason === 'date-violation'">{{ $t('msg.dependencyInvalidDate') }}</title>
+              </path>
+            </g>
+            <!-- Drag preview path while the user drags from a handle. L-shaped
                like the existing connectors (drop-then-arc-then-horizontal).
                Brand-coloured when hovering a valid target, neutral otherwise. -->
-          <path
-            v-if="linkCreationDrag"
-            :d="linkDragPreviewPath"
-            fill="none"
-            :stroke="
-              linkCreationDrag.hoveredId
-                ? 'var(--nc-content-brand, #3366ff)'
-                : 'var(--nc-border-gray-extra-dark, #9aa2af)'
-            "
-            stroke-width="1.5"
-            stroke-dasharray="5 3"
-            stroke-linejoin="round"
-            class="pointer-events-none"
-          />
-        </svg>
+            <path
+              v-if="linkCreationDrag"
+              :d="linkDragPreviewPath"
+              fill="none"
+              :stroke="
+                linkCreationDrag.hoveredId ? 'var(--nc-content-brand, #3366ff)' : 'var(--nc-border-gray-extra-dark, #9aa2af)'
+              "
+              stroke-width="1.5"
+              stroke-dasharray="5 3"
+              stroke-linejoin="round"
+              class="pointer-events-none"
+            />
+          </svg>
 
-        <!-- Content layer: bars and empty state. No explicit z-index — the
+          <!-- Content layer: bars and empty state. No explicit z-index — the
              SVG arrows layer is now at z=0 in the background, so bars (which
              come later in DOM) naturally paint on top where they overlap.
              Avoid setting z-index here so dep handles can still escape up
              via their own z=4 without being trapped in a stacking context. -->
-        <div
-          ref="gridBodyRef"
-          class="relative w-full"
-          data-gantt-group-grid
-          @mousedown="onGridBodyMouseDown"
-          @dblclick="onGridBodyDblClick"
-        >
-          <!-- Swimlane rows. Horizontal separator is drawn by the bg layer
-               (above) so the row border doesn't paint over the arrows SVG. -->
           <div
-            v-for="(lane, laneIdx) in swimlanes"
-            :key="laneIdx"
-            class="relative"
-            :style="{ height: `${ROW_HEIGHT}px` }"
-            :data-gantt-record-id="laneRecordId(lane)"
+            ref="gridBodyRef"
+            class="relative w-full"
+            data-gantt-group-grid
+            @mousedown="onGridBodyMouseDown"
+            @dblclick="onGridBodyDblClick"
           >
-            <!-- Hover background — z=-1 so the row tint paints BEHIND the
+            <!-- Swimlane rows. Horizontal separator is drawn by the bg layer
+               (above) so the row border doesn't paint over the arrows SVG. -->
+            <div
+              v-for="(lane, laneIdx) in swimlanes"
+              :key="laneIdx"
+              class="relative"
+              :style="{ height: `${ROW_HEIGHT}px` }"
+              :data-gantt-record-id="laneRecordId(lane)"
+            >
+              <!-- Hover background — z=-1 so the row tint paints BEHIND the
                  arrows SVG (z=0). Without this, the hover overlay would
                  mask connector lines that cross the hovered row. -->
-            <div class="absolute inset-0 nc-gantt-row-hover transition-colors" style="z-index: -1" />
+              <div class="absolute inset-0 nc-gantt-row-hover transition-colors" style="z-index: -1" />
 
-            <!-- Bars in this lane (skip records without valid dates — sidebar still shows them) -->
-            <template v-for="({ record, colorIndex }, barIdx) in lane" :key="colorIndex">
-            <!-- Milestone: end-date-only record rendered as a diamond marker -->
-            <NcTooltip
-              v-if="isMilestone(record) && getMilestoneStyle(record)"
-              :disabled="isInteracting"
-              placement="top"
-              class="nc-gantt-milestone absolute peer z-2"
-              :class="{
-                'cursor-grabbing': dragInProgress && dragRecord === record && canDragMilestone,
-                'cursor-grab': !isInteracting && canDragMilestone,
-                'cursor-pointer': !isInteracting && !canDragMilestone,
-                'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
-                'z-100': isInteracting && interactionRecord === record,
-              }"
-              :style="{
-                ...getMilestoneStyle(record),
-                top: `${(ROW_HEIGHT - MILESTONE_SIZE) / 2}px`,
-                height: `${MILESTONE_SIZE}px`,
-              }"
-            >
-              <template #title>
-                <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
-              </template>
-              <div
-                class="relative w-full h-full"
-                :data-lane="laneIdx"
-                :data-bar="barIdx"
-                data-testid="nc-gantt-bar"
-                :data-unique-id="record.rowMeta?.id"
-                role="button"
-                tabindex="0"
-                @click="onBarClick(record)"
-                @dblclick="onBarDblClick(record)"
-                @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
-                @mousedown.stop="onDragStart($event, record)"
-                @mouseenter="setHighlightFromRecord(record)"
-                @mouseleave="clearHighlight()"
-              >
-                <div
-                  class="nc-gantt-milestone-shape absolute"
-                  :style="{
-                    top: '50%',
-                    left: '50%',
-                    width: `${MILESTONE_INNER}px`,
-                    height: `${MILESTONE_INNER}px`,
-                    transform: 'translate(-50%, -50%) rotate(45deg)',
-                    // Subtle gray fill so the diamond reads as a 'checkpoint'
-                    // shape against the grid bg without competing with task
-                    // bars. Row coloring (if configured) takes precedence.
-                    backgroundColor:
-                      getRowColorStyle(record).rowBgColor?.backgroundColor || 'var(--nc-bg-gray-light)',
-                    // Match the task bar's 1px line weight so the milestone
-                    // diamond and bars share outline thickness side-by-side.
-                    border: `1px solid ${
-                      isInspectedRecord(record)
-                        ? 'var(--nc-border-brand)'
-                        : isRecordHighlighted(record)
-                        ? 'var(--color-green-600)'
-                        : 'var(--nc-border-gray-dark)'
-                    }`,
-                    borderRadius: '3px',
+              <!-- Bars in this lane (skip records without valid dates — sidebar still shows them) -->
+              <template v-for="({ record, colorIndex }, barIdx) in lane" :key="colorIndex">
+                <!-- Milestone: end-date-only record rendered as a diamond marker -->
+                <NcTooltip
+                  v-if="isMilestone(record) && getMilestoneStyle(record)"
+                  :disabled="isInteracting"
+                  placement="top"
+                  class="nc-gantt-milestone absolute peer z-2"
+                  :class="{
+                    'cursor-grabbing': dragInProgress && dragRecord === record && canDragMilestone,
+                    'cursor-grab': !isInteracting && canDragMilestone,
+                    'cursor-pointer': !isInteracting && !canDragMilestone,
+                    'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
+                    'z-100': isInteracting && interactionRecord === record,
                   }"
-                />
-                <!-- Label to the right of the diamond, vertically centered via flex.
+                  :style="{
+                    ...getMilestoneStyle(record),
+                    top: `${(ROW_HEIGHT - MILESTONE_SIZE) / 2}px`,
+                    height: `${MILESTONE_SIZE}px`,
+                  }"
+                >
+                  <template #title>
+                    <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+                  </template>
+                  <div
+                    class="relative w-full h-full"
+                    :data-lane="laneIdx"
+                    :data-bar="barIdx"
+                    data-testid="nc-gantt-bar"
+                    :data-unique-id="record.rowMeta?.id"
+                    role="button"
+                    tabindex="0"
+                    @click="onBarClick(record)"
+                    @dblclick="onBarDblClick(record)"
+                    @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
+                    @mousedown.stop="onDragStart($event, record)"
+                    @mouseenter="setHighlightFromRecord(record)"
+                    @mouseleave="clearHighlight()"
+                  >
+                    <div
+                      class="nc-gantt-milestone-shape absolute"
+                      :style="{
+                        top: '50%',
+                        left: '50%',
+                        width: `${MILESTONE_INNER}px`,
+                        height: `${MILESTONE_INNER}px`,
+                        transform: 'translate(-50%, -50%) rotate(45deg)',
+                        // Subtle gray fill so the diamond reads as a 'checkpoint'
+                        // shape against the grid bg without competing with task
+                        // bars. Row coloring (if configured) takes precedence.
+                        backgroundColor: getRowColorStyle(record).rowBgColor?.backgroundColor || 'var(--nc-bg-gray-light)',
+                        // Match the task bar's 1px line weight so the milestone
+                        // diamond and bars share outline thickness side-by-side.
+                        border: `1px solid ${
+                          isInspectedRecord(record)
+                            ? 'var(--nc-border-brand)'
+                            : isRecordHighlighted(record)
+                            ? 'var(--color-green-600)'
+                            : 'var(--nc-border-gray-dark)'
+                        }`,
+                        borderRadius: '3px',
+                      }"
+                    />
+                    <!-- Label to the right of the diamond, vertically centered via flex.
                      Max-width caps the label so a long title at a fine zoom can't
                      bleed across adjacent columns and obscure other bars. -->
-                <div
-                  class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none truncate"
-                  style="max-width: 160px;"
-                  :style="{ left: `${MILESTONE_SIZE + 6}px` }"
-                >
-                  {{ primaryField ? record.row[primaryField.title!] ?? '' : '' }}
-                </div>
-              </div>
-            </NcTooltip>
-            <!-- Dependency handle for milestones — anchored at the diamond's
+                    <div
+                      class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none truncate"
+                      style="max-width: 160px"
+                      :style="{ left: `${MILESTONE_SIZE + 6}px` }"
+                    >
+                      {{ primaryField ? record.row[primaryField.title!] ?? '' : '' }}
+                    </div>
+                  </div>
+                </NcTooltip>
+                <!-- Dependency handle for milestones — anchored at the diamond's
                  bottom tip so drag-to-create lines up with where existing
                  connectors actually exit (the bottom point, not the right). -->
-            <div
-              v-if="isMilestone(record) && getMilestoneStyle(record) && ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
-              class="nc-gantt-dep-handle nc-gantt-dep-handle--milestone absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
-              :class="{ '!opacity-100': linkCreationDrag?.fromRecord === record }"
-              :style="{
+                <div
+                  v-if="
+                    isMilestone(record) &&
+                    getMilestoneStyle(record) &&
+                    ganttRange[0]?.fk_dependency_col &&
+                    !isInteracting &&
+                    canEditDeps
+                  "
+                  class="nc-gantt-dep-handle nc-gantt-dep-handle--milestone absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
+                  :class="{ '!opacity-100': linkCreationDrag?.fromRecord === record }"
+                  :style="{
                 left: `calc(${getMilestoneStyle(record)!.left} + ${MILESTONE_SIZE / 2}px - 5px)`,
                 top: `${ROW_HEIGHT / 2 + MILESTONE_SIZE / 2 - 5}px`,
                 zIndex: 4,
                 border: '1.25px solid var(--nc-border-gray-extra-dark, #9aa2af)',
               }"
-              @mousedown="onHandleMouseDown($event, record)"
-              @click.stop
-            />
-            <NcTooltip
-              v-if="!isMilestone(record) && getBarStyle(record)"
-              :disabled="isInteracting"
-              placement="top"
-              class="absolute top-1 z-2"
-              :style="getBarStyle(record)"
-            >
-              <template #title>
-                <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
-              </template>
-              <div
-                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative"
-                :class="{
-                  'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
-                  'cursor-grab': !isInteracting && canDrag,
-                  'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
-                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
-                  'z-100 shadow-lg': isInteracting && interactionRecord === record,
-                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
-                    !getRowColorStyle(record).rowBgColor?.backgroundColor,
-                  'rounded-l-md': isStartVisible(record),
-                  'rounded-r-md': isEndVisible(record),
-                }"
-                :style="{
-                  height: `${ROW_HEIGHT - 8}px`,
-                  ...getRowColorStyle(record).rowBgColor,
-                  ...(isInspectedRecord(record)
-                    ? { borderColor: 'var(--nc-border-brand)', borderWidth: '1px' }
-                    : isRecordHighlighted(record)
-                    ? { borderColor: 'var(--color-green-600)', borderWidth: '1px' }
-                    : {}),
-                }"
-                :data-lane="laneIdx"
-                :data-bar="barIdx"
-                data-testid="nc-gantt-bar"
-                :data-unique-id="record.rowMeta?.id"
-                role="button"
-                tabindex="0"
-                @click="onBarClick(record)"
-                @dblclick="onBarDblClick(record)"
-                @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
-                @mousedown.stop="onDragStart($event, record)"
-              >
-                <!-- Left border color accent — opt-in via row-coloring rules
+                  @mousedown="onHandleMouseDown($event, record)"
+                  @click.stop
+                />
+                <NcTooltip
+                  v-if="!isMilestone(record) && getBarStyle(record)"
+                  :disabled="isInteracting"
+                  placement="top"
+                  class="absolute top-1 z-2"
+                  :style="getBarStyle(record)"
+                >
+                  <template #title>
+                    <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+                  </template>
+                  <div
+                    class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative"
+                    :class="{
+                      'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
+                      'cursor-grab': !isInteracting && canDrag,
+                      'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
+                      'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
+                      'z-100 shadow-lg': isInteracting && interactionRecord === record,
+                      'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
+                        !getRowColorStyle(record).rowBgColor?.backgroundColor,
+                      'rounded-l-md': isStartVisible(record),
+                      'rounded-r-md': isEndVisible(record),
+                    }"
+                    :style="{
+                      height: `${ROW_HEIGHT - 8}px`,
+                      ...getRowColorStyle(record).rowBgColor,
+                      ...(isInspectedRecord(record)
+                        ? { borderColor: 'var(--nc-border-brand)', borderWidth: '1px' }
+                        : isRecordHighlighted(record)
+                        ? { borderColor: 'var(--color-green-600)', borderWidth: '1px' }
+                        : {}),
+                    }"
+                    :data-lane="laneIdx"
+                    :data-bar="barIdx"
+                    data-testid="nc-gantt-bar"
+                    :data-unique-id="record.rowMeta?.id"
+                    role="button"
+                    tabindex="0"
+                    @click="onBarClick(record)"
+                    @dblclick="onBarDblClick(record)"
+                    @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
+                    @mousedown.stop="onDragStart($event, record)"
+                  >
+                    <!-- Left border color accent — opt-in via row-coloring rules
                      only. Earlier this used to fall back to gray-900 by
                      default, but a near-black stripe on every bar dominated
                      the chart and obscured the bar's own outline. Now it's
                      pure signal: shows when the row has a configured color,
                      stays hidden otherwise. -->
+                    <div
+                      v-if="isStartVisible(record) && getRowColorStyle(record).rowLeftBorderColor?.backgroundColor"
+                      class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
+                      :style="getRowColorStyle(record).rowLeftBorderColor"
+                    />
+                    <!-- Left resize handle (start date) — offset past the accent -->
+                    <div
+                      v-if="canResizeLeft"
+                      class="nc-gantt-resize-handle nc-gantt-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                      @mousedown.stop="onResizeStart('left', $event, record)"
+                    >
+                      <div class="nc-gantt-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+
+                    <span
+                      v-if="!getSpillLabelStyle(record)"
+                      class="whitespace-nowrap inline-flex items-center"
+                      :class="{
+                        'pl-7': !isStartVisible(record),
+                        'pl-2.5': isStartVisible(record),
+                        'pr-7': !isEndVisible(record),
+                        'pr-2': isEndVisible(record),
+                      }"
+                    >
+                      <template v-for="field in fields" :key="field.id">
+                        <LazySmartsheetPlainCell
+                          v-if="!isRowEmpty(record, field!)"
+                          v-model="record.row[field!.title!]"
+                          class="text-xs"
+                          :bold="fieldStyles[field.id]?.bold"
+                          :column="field"
+                          :italic="fieldStyles[field.id]?.italic"
+                          :underline="fieldStyles[field.id]?.underline"
+                        />
+                      </template>
+                    </span>
+
+                    <!-- Right resize handle (end date) — only when end date column exists -->
+                    <div
+                      v-if="canResizeRight && ganttRange[0]?.fk_to_col"
+                      class="nc-gantt-resize-handle nc-gantt-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                      @mousedown.stop="onResizeStart('right', $event, record)"
+                    >
+                      <div class="nc-gantt-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                  <!-- Dependency handle — sibling to the bar (peer) so it can
+                   straddle the bar's bottom-right edge without being clipped
+                   by the bar's overflow-hidden. Centered on the connector
+                   exit point at (bar_right - EXIT_INSET, bar_bottom). Shows
+                   when bar is hovered; grows slightly when handle itself
+                   is hovered. Translate + scale live in scoped CSS so we
+                   can compose them cleanly. -->
+                  <div
+                    v-if="ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
+                    class="nc-gantt-dep-handle absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
+                    :class="{
+                      '!opacity-100': linkCreationDrag?.fromRecord === record,
+                    }"
+                    style="
+                      left: calc(100% - 10px);
+                      bottom: 0;
+                      z-index: 4;
+                      border: 1.25px solid var(--nc-border-gray-extra-dark, #9aa2af);
+                    "
+                    role="button"
+                    :aria-label="$t('labels.dateDependency.title')"
+                    @mousedown="onHandleMouseDown($event, record)"
+                    @click.stop
+                  />
+                </NcTooltip>
+
+                <!-- Per-bar nav chevrons — sibling of the NcTooltip on purpose.
+                 If the chevron sat inside the tooltip's slot, hovering it
+                 would mark the wrapper as "entered" via the descendant and
+                 fire the bar's tooltip — which then positions itself
+                 relative to the (possibly off-screen) bar, leaving the
+                 tooltip card stranded far from the cursor. As a sibling,
+                 the chevron's hover events stay local; the bar tooltip
+                 only fires when the user is actually over the bar. -->
                 <div
-                  v-if="isStartVisible(record) && getRowColorStyle(record).rowLeftBorderColor?.backgroundColor"
-                  class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
-                  :style="getRowColorStyle(record).rowLeftBorderColor"
-                />
-                <!-- Left resize handle (start date) — offset past the accent -->
-                <div
-                  v-if="canResizeLeft"
-                  class="nc-gantt-resize-handle nc-gantt-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('left', $event, record)"
+                  v-if="!isMilestone(record) && getBarStyle(record) && !isStartVisible(record)"
+                  class="nc-gantt-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
+                  :style="{ left: `${storeScrollLeft}px` }"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="$t('labels.previous')"
+                  @click.stop="navigateToRecordStart(record)"
+                  @keydown.enter.prevent="navigateToRecordStart(record)"
+                  @keydown.space.prevent="navigateToRecordStart(record)"
+                  @mousedown.stop
                 >
-                  <div class="nc-gantt-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div
+                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
+                  >
+                    <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
+                  </div>
                 </div>
 
-                <span
-                  v-if="!getSpillLabelStyle(record)"
-                  class="whitespace-nowrap inline-flex items-center"
-                  :class="{
-                    'pl-7': !isStartVisible(record),
-                    'pl-2.5': isStartVisible(record),
-                    'pr-7': !isEndVisible(record),
-                    'pr-2': isEndVisible(record),
-                  }"
+                <div
+                  v-if="!isMilestone(record) && getBarStyle(record) && !isEndVisible(record)"
+                  class="nc-gantt-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
+                  :style="{ right: `${Math.max(0, totalGridWidth - storeScrollLeft - viewportWidth)}px` }"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="$t('labels.next')"
+                  @click.stop="navigateToRecordEnd(record)"
+                  @keydown.enter.prevent="navigateToRecordEnd(record)"
+                  @keydown.space.prevent="navigateToRecordEnd(record)"
+                  @mousedown.stop
+                >
+                  <div
+                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
+                  >
+                    <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
+                  </div>
+                </div>
+
+                <!-- Spill-over label — for bars too narrow to hold their inline
+                 label inside, render the label as a separate floating
+                 element to the right of the bar. Matches Airtable's
+                 Gantt rendering convention. Pointer-events disabled so
+                 the floating text doesn't intercept clicks meant for
+                 adjacent bars or empty-area drag-to-create. -->
+                <div
+                  v-if="!isMilestone(record) && getSpillLabelStyle(record)"
+                  class="absolute top-1 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
+                  :style="getSpillLabelStyle(record)!"
                 >
                   <template v-for="field in fields" :key="field.id">
                     <LazySmartsheetPlainCell
@@ -2380,139 +2440,33 @@ const onGridMouseLeave = () => {
                       :underline="fieldStyles[field.id]?.underline"
                     />
                   </template>
-                </span>
-
-                <!-- Right resize handle (end date) — only when end date column exists -->
-                <div
-                  v-if="canResizeRight && ganttRange[0]?.fk_to_col"
-                  class="nc-gantt-resize-handle nc-gantt-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('right', $event, record)"
-                >
-                  <div class="nc-gantt-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-
-              </div>
-              <!-- Dependency handle — sibling to the bar (peer) so it can
-                   straddle the bar's bottom-right edge without being clipped
-                   by the bar's overflow-hidden. Centered on the connector
-                   exit point at (bar_right - EXIT_INSET, bar_bottom). Shows
-                   when bar is hovered; grows slightly when handle itself
-                   is hovered. Translate + scale live in scoped CSS so we
-                   can compose them cleanly. -->
-              <div
-                v-if="ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
-                class="nc-gantt-dep-handle absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
-                :class="{
-                  '!opacity-100': linkCreationDrag?.fromRecord === record,
-                }"
-                style="
-                  left: calc(100% - 10px);
-                  bottom: 0;
-                  z-index: 4;
-                  border: 1.25px solid var(--nc-border-gray-extra-dark, #9aa2af);
-                "
-                role="button"
-                :aria-label="$t('labels.dateDependency.title')"
-                @mousedown="onHandleMouseDown($event, record)"
-                @click.stop
-              />
-            </NcTooltip>
-
-            <!-- Per-bar nav chevrons — sibling of the NcTooltip on purpose.
-                 If the chevron sat inside the tooltip's slot, hovering it
-                 would mark the wrapper as "entered" via the descendant and
-                 fire the bar's tooltip — which then positions itself
-                 relative to the (possibly off-screen) bar, leaving the
-                 tooltip card stranded far from the cursor. As a sibling,
-                 the chevron's hover events stay local; the bar tooltip
-                 only fires when the user is actually over the bar. -->
-            <div
-              v-if="!isMilestone(record) && getBarStyle(record) && !isStartVisible(record)"
-              class="nc-gantt-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
-              :style="{ left: `${storeScrollLeft}px` }"
-              role="button"
-              tabindex="0"
-              :aria-label="$t('labels.previous')"
-              @click.stop="navigateToRecordStart(record)"
-              @keydown.enter.prevent="navigateToRecordStart(record)"
-              @keydown.space.prevent="navigateToRecordStart(record)"
-              @mousedown.stop
-            >
-              <div
-                class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
-              >
-                <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
-              </div>
-            </div>
-
-            <div
-              v-if="!isMilestone(record) && getBarStyle(record) && !isEndVisible(record)"
-              class="nc-gantt-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
-              :style="{ right: `${Math.max(0, totalGridWidth - storeScrollLeft - viewportWidth)}px` }"
-              role="button"
-              tabindex="0"
-              :aria-label="$t('labels.next')"
-              @click.stop="navigateToRecordEnd(record)"
-              @keydown.enter.prevent="navigateToRecordEnd(record)"
-              @keydown.space.prevent="navigateToRecordEnd(record)"
-              @mousedown.stop
-            >
-              <div
-                class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
-              >
-                <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
-              </div>
-            </div>
-
-            <!-- Spill-over label — for bars too narrow to hold their inline
-                 label inside, render the label as a separate floating
-                 element to the right of the bar. Matches Airtable's
-                 Gantt rendering convention. Pointer-events disabled so
-                 the floating text doesn't intercept clicks meant for
-                 adjacent bars or empty-area drag-to-create. -->
-            <div
-              v-if="!isMilestone(record) && getSpillLabelStyle(record)"
-              class="absolute top-1 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
-              :style="getSpillLabelStyle(record)!"
-            >
-              <template v-for="field in fields" :key="field.id">
-                <LazySmartsheetPlainCell
-                  v-if="!isRowEmpty(record, field!)"
-                  v-model="record.row[field!.title!]"
-                  class="text-xs"
-                  :bold="fieldStyles[field.id]?.bold"
-                  :column="field"
-                  :italic="fieldStyles[field.id]?.italic"
-                  :underline="fieldStyles[field.id]?.underline"
-                />
               </template>
             </div>
-            </template>
-          </div>
 
-          <!-- Empty row for inserting a new record (flat mode only) -->
-          <!-- Clicks and drags are handled by the parent onGridBodyMouseDown (drag-to-create) -->
-          <div
-            v-if="!hideHeader && isUIAllowed('dataEdit')"
-            class="nc-gantt-add-row relative border-b border-nc-border-gray-light flex items-center cursor-cell transition-colors group"
-            :style="{ height: `${ROW_HEIGHT}px` }"
-          >
-            <div class="flex items-center gap-2 pl-3 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray">
-              <GeneralIcon icon="plus" class="w-4 h-4" />
+            <!-- Empty row for inserting a new record (flat mode only) -->
+            <!-- Clicks and drags are handled by the parent onGridBodyMouseDown (drag-to-create) -->
+            <div
+              v-if="!hideHeader && isUIAllowed('dataEdit')"
+              class="nc-gantt-add-row relative border-b border-nc-border-gray-light flex items-center cursor-cell transition-colors group"
+              :style="{ height: `${ROW_HEIGHT}px` }"
+            >
+              <div class="flex items-center gap-2 pl-3 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray">
+                <GeneralIcon icon="plus" class="w-4 h-4" />
+              </div>
             </div>
+
+            <!-- Drag-to-create dotted rectangle -->
+            <div
+              v-if="dragCreateActive && dragCreateMoved && dragCreateStyle"
+              class="absolute nc-gantt-drag-create-rect pointer-events-none"
+              :style="dragCreateStyle"
+            />
+
+            <!-- #9: Empty state grid filler — using i18n -->
           </div>
-
-          <!-- Drag-to-create dotted rectangle -->
-          <div
-            v-if="dragCreateActive && dragCreateMoved && dragCreateStyle"
-            class="absolute nc-gantt-drag-create-rect pointer-events-none"
-            :style="dragCreateStyle"
-          />
-
-          <!-- #9: Empty state grid filler — using i18n -->
         </div>
       </div>
-    </div>
     </div>
 
     <!-- Right-rail record inspector — opens on bar click, slides in as a

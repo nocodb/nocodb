@@ -218,7 +218,7 @@ const onFloatingNewRecord = () => {
   expandRecord({ row, oldRow: {}, rowMeta: { new: true } })
 }
 
-const reloadData = async () => {
+async function reloadData() {
   if (isGroupBy.value) {
     isViewDataLoading.value = true
     isPaginationLoading.value = true
@@ -335,8 +335,6 @@ const groupByFieldLabel = computed(() => {
 
 // #18: Reactive today
 const today = ref(dayjs())
-const isToday = (date: dayjs.Dayjs) => date.isSame(today.value, 'day')
-const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
 
 // Today's column index (relative to bufferStart) — drives the highlight overlay
 // in the grouped header without a per-day cell.

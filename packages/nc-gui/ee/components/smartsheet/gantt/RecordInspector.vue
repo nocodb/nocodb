@@ -27,15 +27,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const {
-  ganttRange,
-  formattedData,
-  dependencyLinks,
-  invalidReasonFor,
-  updateRowProperty,
-  linkDependency,
-  unlinkDependency,
-} = useGanttViewStoreOrThrow()
+const { ganttRange, formattedData, dependencyLinks, invalidReasonFor, updateRowProperty, linkDependency, unlinkDependency } =
+  useGanttViewStoreOrThrow()
 
 // Display value column (Title / Name).
 const primaryField = computed(() => {
@@ -114,28 +107,30 @@ const dateRangeLabel = computed(() => {
 
 const saveName = async () => {
   if (!primaryField.value?.title) return
-  const current = props.record.row?.[primaryField.value.title] ?? ''
+  const record = props.record
+  const current = record.row?.[primaryField.value.title] ?? ''
   if (nameValue.value === current) return
-  props.record.row[primaryField.value.title] = nameValue.value
+  record.row[primaryField.value.title] = nameValue.value
   try {
-    await updateRowProperty(props.record, [primaryField.value.title])
+    await updateRowProperty(record, [primaryField.value.title])
     $e('a:gantt:inspector-update', { field: 'name' })
   } catch (e: any) {
     $e('a:gantt:inspector-update-error', { field: 'name' })
     message.error(await extractSdkResponseErrorMsg(e))
-    props.record.row[primaryField.value.title] = current
+    record.row[primaryField.value.title] = current
     nameValue.value = current
   }
 }
 
 const saveDate = async (col: ColumnType | undefined | null, raw: string, kind: 'start' | 'end') => {
   if (!col?.title) return
-  const current = props.record.row?.[col.title] ?? ''
+  const record = props.record
+  const current = record.row?.[col.title] ?? ''
   const next = raw || null
   if (next === current) return
-  props.record.row[col.title] = next
+  record.row[col.title] = next
   try {
-    await updateRowProperty(props.record, [col.title])
+    await updateRowProperty(record, [col.title])
     $e('a:gantt:inspector-update', { field: kind })
   } catch (e: any) {
     $e('a:gantt:inspector-update-error', { field: kind })
@@ -145,7 +140,7 @@ const saveDate = async (col: ColumnType | undefined | null, raw: string, kind: '
     // failed-save value while the bar on the chart correctly reverts —
     // a confusing state-mismatch. `saveName` already does the symmetric
     // rollback on its catch path.
-    props.record.row[col.title] = current
+    record.row[col.title] = current
     if (kind === 'start') startValue.value = formatForInput(current)
     else endValue.value = formatForInput(current)
   }
@@ -234,11 +229,7 @@ const successorInvalidReasonFor = (succId: string) => {
 // Build the Airtable-style "{succTitle} starts before {predTitle} ends"
 // message. Direction-aware so predecessor + successor lists each say
 // the same thing in a way that reads correctly from their perspective.
-const invalidTooltipFor = (
-  reason: 'date-violation' | 'cycle' | null,
-  otherId: string,
-  isPredecessor: boolean,
-): string => {
+const invalidTooltipFor = (reason: 'date-violation' | 'cycle' | null, otherId: string, isPredecessor: boolean): string => {
   if (reason === 'cycle') return t('msg.dependencyInvalidCycle')
   if (reason === 'date-violation') {
     const otherTitle = titleFor(otherId) || t('objects.record')
@@ -351,7 +342,7 @@ const onPickPredecessor = (opt: any) => {
   if (opt?._row) onLinkPredecessor(opt._row)
 }
 
-const onLinkSuccessor = async (row: RowType) => {
+async function onLinkSuccessor(row: RowType) {
   const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
   if (!id || !currentRowId.value) return
   try {
@@ -363,7 +354,7 @@ const onLinkSuccessor = async (row: RowType) => {
   }
 }
 
-const onLinkPredecessor = async (row: RowType) => {
+async function onLinkPredecessor(row: RowType) {
   const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
   if (!id || !currentRowId.value) return
   try {
@@ -375,6 +366,14 @@ const onLinkPredecessor = async (row: RowType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+// Date-picker dropdowns — one for start, one for end. Each owns its own
+// open state and a paging date so the picker remembers the month the user
+// last viewed even if `selectedDate` is null.
+const startOpen = ref(false)
+const endOpen = ref(false)
+const startPageDate = ref(dayjs())
+const endPageDate = ref(dayjs())
 
 // Esc dismisses one thing at a time: first an open date picker / link
 // picker if any, then the panel itself. Without the priority chain
@@ -399,14 +398,6 @@ onKeyDown('Escape', () => {
   }
   emit('close')
 })
-
-// Date-picker dropdowns — one for start, one for end. Each owns its own
-// open state and a paging date so the picker remembers the month the user
-// last viewed even if `selectedDate` is null.
-const startOpen = ref(false)
-const endOpen = ref(false)
-const startPageDate = ref(dayjs())
-const endPageDate = ref(dayjs())
 
 watch(
   startValue,
@@ -678,10 +669,10 @@ const formatDisplay = (raw: string | null | undefined) => {
             </div>
             <NcButton
               v-if="!isPublic"
+              v-e="['c:gantt:inspector-unlink', { direction: 'predecessor' }]"
               type="text"
               size="xxsmall"
               icon-only
-              v-e="['c:gantt:inspector-unlink', { direction: 'predecessor' }]"
               class="nc-gantt-inspector-unlink flex-shrink-0 !px-1 -my-0.5 -mr-1 !text-nc-content-gray-muted hover:!text-nc-content-gray"
               :aria-label="$t('general.unlink')"
               :data-testid="`nc-gantt-inspector-unlink-pred-${id}`"
@@ -695,9 +686,9 @@ const formatDisplay = (raw: string | null | undefined) => {
         </div>
         <div v-if="!showPredecessorPicker && !isPublic">
           <NcButton
+            v-e="['c:gantt:inspector-add-predecessor']"
             type="link"
             size="xs"
-            v-e="['c:gantt:inspector-add-predecessor']"
             class="!text-xs !text-nc-content-gray-muted hover:!text-nc-content-brand"
             inner-class="gap-1.5"
             data-testid="nc-gantt-inspector-add-predecessor"
@@ -764,10 +755,10 @@ const formatDisplay = (raw: string | null | undefined) => {
             </div>
             <NcButton
               v-if="!isPublic"
+              v-e="['c:gantt:inspector-unlink', { direction: 'successor' }]"
               type="text"
               size="xxsmall"
               icon-only
-              v-e="['c:gantt:inspector-unlink', { direction: 'successor' }]"
               class="nc-gantt-inspector-unlink flex-shrink-0 !px-1 -my-0.5 -mr-1 !text-nc-content-gray-muted hover:!text-nc-content-gray"
               :aria-label="$t('general.unlink')"
               :data-testid="`nc-gantt-inspector-unlink-succ-${id}`"
@@ -781,9 +772,9 @@ const formatDisplay = (raw: string | null | undefined) => {
         </div>
         <div v-if="!showSuccessorPicker && !isPublic">
           <NcButton
+            v-e="['c:gantt:inspector-add-successor']"
             type="link"
             size="xs"
-            v-e="['c:gantt:inspector-add-successor']"
             class="!text-xs !text-nc-content-gray-muted hover:!text-nc-content-brand"
             inner-class="gap-1.5"
             data-testid="nc-gantt-inspector-add-successor"
@@ -821,9 +812,9 @@ const formatDisplay = (raw: string | null | undefined) => {
            the conflict manually. -->
       <div v-if="depCol && hasInvalidEdgeOnRecord && !isPublic" class="pt-3 mt-2 border-t border-nc-border-gray-light">
         <NcButton
+          v-e="['c:gantt:inspector-fix-invalid']"
           type="text"
           size="xs"
-          v-e="['c:gantt:inspector-fix-invalid']"
           class="!text-xs !text-nc-content-red-dark hover:!text-nc-content-red"
           inner-class="gap-1.5"
           data-testid="nc-gantt-inspector-fix-invalid"

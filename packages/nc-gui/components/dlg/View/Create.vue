@@ -418,7 +418,9 @@ onMounted(async () => {
   }
 
   if (
-    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE, ViewTypes.GANTT].includes(props.type) ||
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE, ViewTypes.GANTT].includes(
+      props.type,
+    ) ||
     aiIntegrationAvailable.value
   ) {
     isMetaLoading.value = true
@@ -643,9 +645,7 @@ onMounted(async () => {
         //   3. Else pick just the first date column (milestone-only Gantt).
         const tableDep = (meta.value as any)?.date_dependency
         const cols = meta.value!.columns ?? []
-        const dateCols = cols.filter(
-          (c: ColumnType) => c.uidt === UITypes.Date || c.uidt === UITypes.DateTime,
-        )
+        const dateCols = cols.filter((c: ColumnType) => c.uidt === UITypes.Date || c.uidt === UITypes.DateTime)
         // Auto-pick a self-referencing HM/OM/OO link column as the default
         // dep field. Exclude system-generated inverse columns — writes via
         // the inverse store the junction with flipped mm_parent/mm_child
@@ -657,10 +657,7 @@ onMounted(async () => {
           if (!isLinksOrLTAR(c)) return false
           if ((c as any).system) return false
           const opts = (c.colOptions as any) ?? {}
-          return (
-            ['hm', 'om', 'oo'].includes(opts.type) &&
-            opts.fk_related_model_id === meta.value!.id
-          )
+          return ['hm', 'om', 'oo'].includes(opts.type) && opts.fk_related_model_id === meta.value!.id
         })
 
         if (tableDep?.fk_start_date_field_id) {
@@ -1595,7 +1592,6 @@ watch(activeBaseId, () => {
               </div>
             </div>
           </template>
-
         </template>
         <template v-else>
           <!-- Ai view wizard  -->

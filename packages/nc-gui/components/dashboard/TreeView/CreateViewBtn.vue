@@ -20,7 +20,14 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockListView, blockTimelineView, blockGanttView, showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseGanttView } = useEeConfig()
+const {
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+} = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!

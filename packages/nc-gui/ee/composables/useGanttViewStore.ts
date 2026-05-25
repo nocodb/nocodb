@@ -1,10 +1,10 @@
 import dayjs from 'dayjs'
-import type { ColumnType, DataPayload, FilterType, TableType, GanttType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, DataPayload, FilterType, GanttType, TableType, ViewType } from 'nocodb-sdk'
 import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useDateAxisState } from './useDateAxisState'
 import type { TimelineZoomLevel } from '../utils/timelineUtils'
+import { useDateAxisState } from './useDateAxisState'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 import { validateRowFilters } from '~/utils/dataUtils'
@@ -13,16 +13,7 @@ import { validateRowFilters } from '~/utils/dataUtils'
 // viewport is too narrow once dependency arrows + milestones are rendered —
 // callers want at least a week of horizon. The remaining 8 scales mirror
 // Timeline so future scale-config tweaks land in one place.
-const GANTT_ZOOM_LEVELS: readonly TimelineZoomLevel[] = [
-  'week',
-  '2week',
-  'month',
-  'quarter',
-  '6month',
-  'year',
-  '2year',
-  '5year',
-]
+const GANTT_ZOOM_LEVELS: readonly TimelineZoomLevel[] = ['week', '2week', 'month', 'quarter', '6month', 'year', '2year', '5year']
 
 const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
   (
@@ -148,21 +139,15 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         is_readonly: boolean
       }>
     >(() => {
-      const dep =
-        (ganttMetaData.value as any)?.date_dependency ??
-        (meta.value as any)?.date_dependency
+      const dep = (ganttMetaData.value as any)?.date_dependency ?? (meta.value as any)?.date_dependency
       if (!dep || dep.is_active === false) return []
 
       const cols = meta.value?.columns ?? []
       const fromCol = cols.find((col) => col.id === dep.fk_start_date_field_id)
       if (!fromCol) return []
 
-      const toCol = dep.fk_end_date_field_id
-        ? cols.find((col) => col.id === dep.fk_end_date_field_id)
-        : null
-      const depCol = dep.fk_dependency_linkrow_field_id
-        ? cols.find((col) => col.id === dep.fk_dependency_linkrow_field_id)
-        : null
+      const toCol = dep.fk_end_date_field_id ? cols.find((col) => col.id === dep.fk_end_date_field_id) : null
+      const depCol = dep.fk_dependency_linkrow_field_id ? cols.find((col) => col.id === dep.fk_dependency_linkrow_field_id) : null
 
       return [
         {
@@ -255,16 +240,9 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       }
     }
 
-    const _fetchGanttRecordsImpl = async ({
-      showLoading,
-      reset,
-    }: {
-      showLoading: boolean
-      reset: boolean
-    }) => {
+    async function _fetchGanttRecordsImpl({ showLoading, reset }: { showLoading: boolean; reset: boolean }) {
       if (_unmounted) return
-      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !ganttRange.value?.length)
-        return
+      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !ganttRange.value?.length) return
 
       if (reset) {
         _offset.value = 0
@@ -369,7 +347,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     // optimistically by patchDependencyLinks on link/unlink.
     const dependencyLinks = ref<Map<string, string[]>>(new Map())
 
-    const loadDependencyLinks = async () => {
+    async function loadDependencyLinks() {
       if (_unmounted) return
       const range = ganttRange.value?.[0]
       const depCol = range?.fk_dependency_col as ColumnType | undefined
@@ -547,11 +525,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     // Mutate the in-memory dep graph without a round-trip; used for optimistic
     // updates on unlink/link and for undo after a toast.
-    const patchDependencyLinks = (
-      rowId: string,
-      linkedId: string,
-      action: 'add' | 'remove',
-    ) => {
+    const patchDependencyLinks = (rowId: string, linkedId: string, action: 'add' | 'remove') => {
       const next = new Map(dependencyLinks.value)
       const current = [...(next.get(rowId) ?? [])]
       if (action === 'remove') {
@@ -570,8 +544,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       const depCol = range?.fk_dependency_col as ColumnType | undefined
       const tableId = meta.value?.id
       const baseId = base.value?.id
-      const colType = (depCol?.colOptions as any)?.type as
-        | 'mm' | 'hm' | 'om' | 'bt' | 'oo' | 'ln' | undefined
+      const colType = (depCol?.colOptions as any)?.type as 'mm' | 'hm' | 'om' | 'bt' | 'oo' | 'ln' | undefined
       if (!depCol || !tableId || !baseId || !colType) return null
       return { baseId, tableId, colId: depCol.id!, relType: colType as any }
     }
@@ -667,11 +640,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 
-    const findRowInState = (rowData: Record<string, any>) => {
-      const pk = extractPkFromRow(rowData, meta.value?.columns as ColumnType[])
-      return formattedData.value.find((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk)
-    }
-
     async function updateRowProperty(toUpdate: Row, property: string[]) {
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
@@ -723,9 +691,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       const pkCols = (meta.value?.columns ?? []).filter((c) => (c as any).pk)
       if (!pkCols.length) return -1
       return formattedData.value.findIndex((row) =>
-        pkCols.every(
-          (pk) => pk.title && row.row?.[pk.title] != null && row.row[pk.title] === payloadRow[pk.title],
-        ),
+        pkCols.every((pk) => pk.title && row.row?.[pk.title] != null && row.row[pk.title] === payloadRow[pk.title]),
       )
     }
 

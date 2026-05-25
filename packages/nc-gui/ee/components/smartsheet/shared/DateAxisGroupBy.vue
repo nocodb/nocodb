@@ -15,12 +15,12 @@
  * receives `{ rows }` and is forwarded transparently through recursion so
  * nested groups pick up the same renderer.
  */
+import type dayjs from 'dayjs'
+import { TIMELINE_GROUP_SIDEBAR_WIDTH } from '../../../utils/timelineUtils'
 import GroupBy from './DateAxisGroupBy.vue'
 import type { Row as RowType } from '#imports'
-import type dayjs from 'dayjs'
 import { shouldRenderCell } from '~/utils/groupbyUtils'
 import type { Group } from '~/lib/types'
-import { TIMELINE_GROUP_SIDEBAR_WIDTH } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   group: Group
@@ -202,12 +202,7 @@ onBeforeUnmount(async () => {
            can draw across multiple groups inside the same scroll context.
            Passed expandedGroups + scroll container ref + group tree so
            callers can compute global y positions. -->
-      <slot
-        name="overlay"
-        :expanded-groups="expandedGroups"
-        :scroll-area-el="scrollAreaRef"
-        :group="vGroup"
-      />
+      <slot name="overlay" :expanded-groups="expandedGroups" :scroll-area-el="scrollAreaRef" :group="vGroup" />
       <!-- CSS Grid layout: left sidebar (group labels) + right date-axis area -->
       <div class="nc-date-axis-group-grid" :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }">
         <template v-for="grp of vGroup?.children ?? []" :key="grp.key">

@@ -277,11 +277,7 @@ function buildPath(predRightX: number, predY: number, succLeftX: number, succY: 
   const farLeftX = Math.min(succLeftX - 12, exitX - 12)
   const midY = succY > predY ? succY + 18 : succY - 18
   return (
-    `M ${exitX} ${predY}` +
-    ` L ${exitX} ${midY}` +
-    ` L ${farLeftX} ${midY}` +
-    ` L ${farLeftX} ${succY}` +
-    ` L ${tipX} ${succY}`
+    `M ${exitX} ${predY}` + ` L ${exitX} ${midY}` + ` L ${farLeftX} ${midY}` + ` L ${farLeftX} ${succY}` + ` L ${tipX} ${succY}`
   )
 }
 

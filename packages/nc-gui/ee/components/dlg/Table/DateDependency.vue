@@ -490,11 +490,7 @@ watch(rule, () => {
           <NcTooltip :disabled="includeWeekendsRelevant" placement="top">
             <template #title>{{ $t('labels.dateDependency.includeWeekendsDisabledHint') }}</template>
             <div class="flex items-center gap-2 mb-4" :class="{ 'opacity-50': !includeWeekendsRelevant }">
-              <NcSwitch
-                v-model:checked="form.include_weekends"
-                size="small"
-                :disabled="!includeWeekendsRelevant"
-              />
+              <NcSwitch v-model:checked="form.include_weekends" size="small" :disabled="!includeWeekendsRelevant" />
               <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('labels.dateDependency.includeWeekends') }}</span>
               <NcTooltip class="flex">
                 <template #title>{{ $t('labels.dateDependency.includeWeekendsHint') }}</template>

@@ -26,6 +26,27 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
   async validate(req: any, callback) {
     try {
+      // ─── Test-mode shim ────────────────────────────────────────────────
+      // When TEST=true AND the request carries the synthetic
+      // `xc-cognito-test` header (NOT the real `xc-cognito` JWT header),
+      // short-circuit the real passport-cognito strategy. Lets playwright
+      // / harnesses drive the Cognito sign-in flow without configuring an
+      // AWS Cognito User Pool.
+      //
+      // Same `TEST=true` gate as DbMux / sandbox / audit (see
+      // packages/nocodb/src/ee/models/DbMux.ts:302). The env var is only
+      // set by the test runners; production builds never trip this path.
+      //
+      // We do NOT expose this branch when the header is absent — falling
+      // through means existing tests of the real strategy keep working.
+      if (
+        process.env.TEST === 'true' &&
+        req.headers['xc-cognito-test'] &&
+        !req.headers['xc-cognito']
+      ) {
+        return this.testModeValidate(req, callback);
+      }
+
       if (
         !this.configService.get('cognito.aws_user_pools_id', { infer: true })
       ) {
@@ -143,6 +164,76 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         req,
       });
       return callback(error);
+    }
+  }
+
+  /**
+   * Test-mode-only short-circuit. Mirrors the get-or-create user shape of
+   * the real `validate()` above, minus the JWT verification + disposable /
+   * plus-addressing rejections (we trust the test harness).
+   *
+   * Header envelope shape: JSON string with `{ email, displayName?,
+   * firstTimeUser? }`. `firstTimeUser: true` forces the registration
+   * branch (useful for tests that want to assert "first-time" flow even
+   * if the email previously existed in the test DB).
+   *
+   * Reachable only when `process.env.TEST === 'true'` (caller-guarded).
+   */
+  private async testModeValidate(req: any, callback) {
+    // Belt-and-braces: never run this in production even if a caller
+    // somehow invokes the method directly.
+    if (process.env.TEST !== 'true') {
+      return callback(new Error('test-mode shim invoked outside TEST=true'));
+    }
+
+    let envelope: {
+      email?: string;
+      displayName?: string;
+      firstTimeUser?: boolean;
+    };
+    try {
+      envelope = JSON.parse(req.headers['xc-cognito-test'] as string);
+    } catch (_e) {
+      return callback(new Error('Invalid xc-cognito-test header (not JSON)'));
+    }
+
+    const rawEmail = envelope?.email?.toLowerCase();
+    if (!rawEmail) {
+      return callback(new Error('Invalid xc-cognito-test header (no email)'));
+    }
+
+    // Try existing user first — same login-first / register-second order
+    // as the real strategy. `firstTimeUser: true` forces the register
+    // branch for tests that want to exercise the new-user code path.
+    if (!envelope.firstTimeUser) {
+      const user = await User.getByEmail(rawEmail);
+      if (user) {
+        return callback(null, {
+          ...sanitiseUserObj(user),
+          provider: 'cognito',
+        });
+      }
+    }
+
+    try {
+      const salt = await promisify(bcrypt.genSalt)(10);
+      const newUser = await this.usersService.registerNewUserIfAllowed({
+        email: rawEmail,
+        password: '',
+        email_verification_token: null,
+        avatar: null,
+        user_name: null,
+        display_name: envelope.displayName ?? null,
+        salt,
+        req,
+      });
+
+      return callback(null, {
+        ...sanitiseUserObj(newUser),
+        provider: 'cognito',
+      });
+    } catch (err) {
+      return callback(err instanceof Error ? err : new Error(String(err)));
     }
   }
 }

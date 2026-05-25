@@ -50,7 +50,7 @@ const hideBlankFields = defineModel<boolean>('hideBlankFields', { default: false
     <NcTooltip :disabled="!props.isNew" :title="$t('tooltip.notAvailableForNewRecord')" placement="top">
       <label
         v-e="hideBlankFields ? [`${props.telemetryPrefix}:hide-blank:off`] : [`${props.telemetryPrefix}:hide-blank:on`]"
-        class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-nc-content-gray"
+        class="flex-none flex items-center gap-1.5 select-none whitespace-nowrap text-nc-content-gray-subtle"
         :class="[
           props.compact ? 'text-xs' : 'text-sm',
           { 'cursor-pointer': !props.isNew, 'opacity-50 cursor-not-allowed': props.isNew },

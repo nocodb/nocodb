@@ -240,7 +240,7 @@ onUnmounted(() => container.value?.removeEventListener('keydown', onKeyDown))
         class="absolute keep-open right-2 z-30 top-2 transition-all gap-3 transition-ease-in-out !h-6 flex items-center"
       >
         <NcTooltip v-if="isEditAllowed" color="light" placement="bottom">
-          <template #title>Add file(s)</template>
+          <template #title>{{ $t('title.addFiles') }}</template>
           <NcButton
             class="nc-attachment-add !hover:text-gray-400 !hover:bg-transparent !text-white"
             size="xsmall"

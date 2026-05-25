@@ -18,6 +18,7 @@ const MAX_ANCESTOR_WALK_DEPTH = 64
 definePageMeta({
   public: true,
   requiresAuth: false,
+  pageType: 'shared-view',
 })
 
 const route = useRoute()

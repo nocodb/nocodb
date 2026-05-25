@@ -296,7 +296,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
 
       // Determine if response is JSON
       let responseBody = response.data;
-      const contentType = response.headers['content-type'] || '';
+      const contentType = (response.headers['content-type'] as string) || '';
       const isJson = contentType.includes('application/json');
 
       return {
@@ -349,7 +349,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
               statusText: response.statusText,
               headers: responseHeaders,
               body: response.data,
-              isJson: (response.headers['content-type'] || '').includes(
+              isJson: ((response.headers['content-type'] as string) || '').includes(
                 'application/json',
               ),
               success: false,

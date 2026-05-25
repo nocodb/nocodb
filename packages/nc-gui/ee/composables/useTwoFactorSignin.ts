@@ -1,13 +1,17 @@
 /**
  * sessionStorage key used to hand a pending two-factor token from one
  * sign-in surface (e.g. the Cognito callback in `useGlobal/actions.ts`)
- * to the page that renders the TOTP input (Signin.vue). Keeping the
- * token here (rather than in a shared composable) avoids forcing
- * `useTwoFactorSignin` to be a singleton and survives the page nav.
+ * to the page that renders the TOTP input (Signin.vue).
  */
 const PENDING_TWO_FACTOR_TOKEN_KEY = 'nc.pendingTwoFactorToken'
 
-export function useTwoFactorSignin() {
+/**
+ * Shared composable — single instance across all callers in the page
+ * tree. The Cognito flow primes sessionStorage and navigates; Signin.vue
+ * hydrates from it. If a second consumer were ever added (e.g. a TOTP
+ * step rendered inline elsewhere), it must see the same state ref.
+ */
+export const useTwoFactorSignin = createSharedComposable(() => {
   const { signIn: _signIn } = useGlobal()
 
   const { api } = useApi({ useGlobalInstance: true })
@@ -73,6 +77,14 @@ export function useTwoFactorSignin() {
       // Expose it so the caller can navigate, rather than mutating
       // router state from inside the composable.
       postVerifyRedirect.value = response.data.redirect
+      // BE also echoes the sign-in-flow `extra` payload (OIDC strategy
+      // state — e.g. `continueAfterSignIn` from the Cognito callback).
+      // Re-apply the parts the FE auth middleware looks for in
+      // localStorage so the post-signin redirect works the same way it
+      // would have without the 2FA detour.
+      if (typeof window !== 'undefined' && response.data.extra?.continueAfterSignIn) {
+        window.localStorage.setItem('continueAfterSignIn', response.data.extra.continueAfterSignIn)
+      }
       $e('a:signin:2fa-verified', { method: useBackupCode.value ? 'backup_code' : 'totp' })
       return true
     } catch (e: any) {
@@ -114,4 +126,4 @@ export function useTwoFactorSignin() {
     cancelTwoFactor,
     toggleBackupCode,
   }
-}
+})

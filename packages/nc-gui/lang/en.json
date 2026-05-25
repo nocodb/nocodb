@@ -2257,6 +2257,8 @@
     "requireTwoFactorDescription": "All workspace members will be required to set up two-factor authentication before accessing this workspace.",
     "requireTwoFactorSsoNote": "Note: Members who sign in via SSO are exempt from this requirement, as their authentication is managed by the identity provider.",
     "twoFactorSsoNotAvailable": "Two-factor authentication isn't available — this account has no password set. Use 'Forgot password' to set one, then return here.",
+    "twoFactorSsoBanner": "You'll be asked for this code every time you sign in, in addition to your usual sign-in challenge.",
+    "preparingTwoFactor": "Preparing two-factor authentication…",
     "controlAppearance": "Control your Appearance.",
     "accountEmailID": "Account Email ID",
     "backToWorkspace": "Back to Workspace",

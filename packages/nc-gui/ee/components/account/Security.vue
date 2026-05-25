@@ -23,7 +23,13 @@ const setupData = ref<{ secret: string; qrUrl: string; backupCodes: string[] } |
 const setupCode = ref('')
 const setupError = ref('')
 const setupPassword = ref('')
-const setupStep = ref<'password' | 'qr' | 'verify' | 'backup'>('password')
+// `loading` is used by the SSO path (no local password) — there's no
+// password step to render, so the modal shows a spinner while the
+// initial `/setup` call is in flight. `ssoSetupError` is the terminal
+// state for SSO callers whose `/setup` call failed: render the error
+// message + Close affordance, but never fall back to the password
+// input (which they can't fill out).
+const setupStep = ref<'password' | 'loading' | 'qr' | 'verify' | 'backup' | 'ssoSetupError'>('password')
 const setupCodeInput = ref<HTMLInputElement>()
 const setupPasswordInput = ref<HTMLInputElement>()
 
@@ -79,10 +85,10 @@ function startSetup() {
   showSetupModal.value = true
 
   if (skipPasswordReproof.value) {
-    // SSO accounts without a local password — jump straight to the
-    // /setup call (BE accepts an empty password for these) and render
-    // the QR step on success.
-    setupStep.value = 'qr'
+    // SSO accounts without a local password — show a loading state
+    // while the initial /setup call runs (BE accepts an empty password
+    // for these). The QR step renders only after the response lands.
+    setupStep.value = 'loading'
     confirmPassword()
     return
   }
@@ -105,11 +111,10 @@ async function confirmPassword() {
     setupStep.value = 'qr'
   } catch (e: any) {
     setupError.value = await extractSdkResponseErrorMsg(e)
-    // For SSO callers we jumped to 'qr' optimistically — if the call
-    // failed, fall back to the password step so the user has somewhere
-    // to land + a recovery affordance.
     if (skipPasswordReproof.value) {
-      setupStep.value = 'password'
+      // SSO callers have no password input to fall back to — land on a
+      // dedicated error step that only shows the message + Close.
+      setupStep.value = 'ssoSetupError'
     }
   } finally {
     isLoading.value = false
@@ -243,8 +248,21 @@ watch(showDisableModal, (v) => {
   }
 })
 
-onMounted(() => {
-  fetchStatus()
+const route = useRoute()
+const router = useRouter()
+
+onMounted(async () => {
+  await fetchStatus()
+
+  // Auto-open the enrollment modal when arriving here from the
+  // workspace's force_2fa redirect (DlgWorkspaceMfaSetupRequired sets
+  // `?openEnrollment=true` on the navigation). Strip the param after
+  // we've consumed it so a page refresh doesn't re-trigger the modal.
+  if (route.query.openEnrollment === 'true' && !mfaEnabled.value) {
+    startSetup()
+    const { openEnrollment: _, ...rest } = route.query
+    router.replace({ path: route.path, query: rest })
+  }
 })
 </script>
 
@@ -371,13 +389,37 @@ onMounted(() => {
       </template>
       <template #content>
         <span v-if="setupStep === 'password'">{{ $t('labels.confirmPasswordToSetup') }}</span>
+        <span v-else-if="setupStep === 'loading'">{{ $t('labels.preparingTwoFactor') }}</span>
         <span v-else-if="setupStep === 'qr'">{{ $t('labels.scanQrCodeDescription') }}</span>
         <span v-else-if="setupStep === 'verify'">{{ $t('labels.enterCodeFromApp') }}</span>
         <span v-else-if="setupStep === 'backup'">{{ $t('labels.saveBackupCodes') }}</span>
       </template>
       <template #extraContent>
+        <!-- SSO loading state — no password step to render while the
+             initial /setup call is in flight. -->
+        <div
+          v-if="setupStep === 'loading'"
+          class="flex flex-col items-center justify-center gap-3 py-8"
+          data-testid="nc-2fa-setup-loading"
+        >
+          <GeneralLoader size="large" />
+          <div class="text-sm text-nc-content-gray-subtle">{{ $t('labels.preparingTwoFactor') }}</div>
+        </div>
+
+        <!-- SSO terminal-error state — the /setup call failed and the
+             caller has no password to retry with. Show the error + a
+             Close affordance only. -->
+        <div v-else-if="setupStep === 'ssoSetupError'" class="flex flex-col gap-4" data-testid="nc-2fa-setup-sso-error">
+          <div class="text-sm text-red-500">{{ setupError || $t('msg.error.somethingWentWrong') }}</div>
+          <div class="flex flex-row justify-end">
+            <NcButton type="secondary" size="small" @click="closeSetupModal">
+              {{ $t('general.close') }}
+            </NcButton>
+          </div>
+        </div>
+
         <!-- Step 0: Password confirmation -->
-        <div v-if="setupStep === 'password'" class="flex flex-col gap-5">
+        <div v-else-if="setupStep === 'password'" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <span class="text-sm">{{ $t('labels.password') }}</span>
             <a-input-password
@@ -402,6 +444,15 @@ onMounted(() => {
 
         <!-- Step 1: QR Code -->
         <div v-else-if="setupStep === 'qr' && setupData" class="flex flex-col gap-5">
+          <!-- SSO-callers context: spell out that they'll see this code
+               on every sign-in even though their IdP already
+               authenticated them. -->
+          <div
+            v-if="skipPasswordReproof"
+            class="rounded-md border border-nc-border-gray-medium bg-nc-bg-gray-extralight px-3 py-2 text-xs text-nc-content-gray-subtle"
+          >
+            {{ $t('labels.twoFactorSsoBanner') }}
+          </div>
           <div class="flex flex-col items-center gap-3">
             <img :src="setupData.qrUrl" alt="QR Code" class="w-60 h-60" />
             <div class="bg-nc-bg-gray-light rounded-lg px-3 py-2 flex items-center justify-center gap-2">

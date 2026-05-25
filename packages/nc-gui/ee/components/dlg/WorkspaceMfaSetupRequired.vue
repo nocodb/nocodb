@@ -5,7 +5,10 @@ const { mfaSetupRequiredDlg } = storeToRefs(workspaceStore)
 
 const onOk = () => {
   workspaceStore.toggleMfaSetupRequiredDlg(false)
-  navigateTo('/account/security', { replace: true })
+  // Pass `openEnrollment=true` so Security.vue can auto-open the
+  // setup modal on mount — saves the user an extra click after
+  // they've already opted in via this dialog.
+  navigateTo({ path: '/account/security', query: { openEnrollment: 'true' } }, { replace: true })
 }
 
 const onCancel = () => {

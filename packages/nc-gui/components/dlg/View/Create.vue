@@ -169,7 +169,7 @@ const errorMessages = {
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
   [ViewTypes.TIMELINE]: t('msg.warning.timelineNoFields'),
-  [ViewTypes.GANTT]: t('msg.warning.timelineNoFields'),
+  [ViewTypes.GANTT]: t('msg.warning.ganttNoFields'),
 }
 
 const form = reactive<Form>({

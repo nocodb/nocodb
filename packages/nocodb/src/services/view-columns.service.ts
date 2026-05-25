@@ -492,12 +492,7 @@ export class ViewColumnsService {
             // motivation: keep duplicate carrying B/I/U + visibility.
             if (existingCol) {
               updateOrInsertOptions.push(
-                GanttViewColumn.update(
-                  context,
-                  existingCol.id,
-                  column,
-                  ncMeta,
-                ),
+                GanttViewColumn.update(context, existingCol.id, column, ncMeta),
               );
             } else {
               updateOrInsertOptions.push(

@@ -1266,7 +1266,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     );
     for (const rule of rules) {
       if (!rule?.is_active) continue;
-      if (rule.fk_gantt_view_id && rule.fk_gantt_view_id !== this.viewId) continue;
+      if (rule.fk_gantt_view_id && rule.fk_gantt_view_id !== this.viewId)
+        continue;
       applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
     }
   }
@@ -1350,7 +1351,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     changedRowIds: string[],
     req: NcRequest,
   ): Promise<void> {
-
     const startCol = this.model.columns.find(
       (c) => c.id === rule.fk_start_date_field_id,
     );

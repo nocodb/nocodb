@@ -223,16 +223,18 @@ export class UiPostOperations
       case 'updateDateDependency':
         return this.dateDependencyService.update(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
-          ganttViewId: (req.query.fk_gantt_view_id ||
-            req.query.ganttViewId) as string | undefined,
+          ganttViewId: (req.query.fk_gantt_view_id || req.query.ganttViewId) as
+            | string
+            | undefined,
           body: payload,
           req,
         });
       case 'deleteTableDateDependency':
         return this.dateDependencyService.delete(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
-          ganttViewId: (req.query.fk_gantt_view_id ||
-            req.query.ganttViewId) as string | undefined,
+          ganttViewId: (req.query.fk_gantt_view_id || req.query.ganttViewId) as
+            | string
+            | undefined,
           req,
         });
     }

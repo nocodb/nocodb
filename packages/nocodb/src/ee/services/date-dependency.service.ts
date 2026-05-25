@@ -14,7 +14,13 @@ import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { validatePayload } from '~/helpers/apiHelpers';
-import { Column, DateDependency, DependencyTracker, Model, View } from '~/models';
+import {
+  Column,
+  DateDependency,
+  DependencyTracker,
+  Model,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
@@ -113,7 +119,9 @@ export class DateDependencyService {
       context,
       req: param.req,
       table: model,
-      ganttView: ganttView ? { id: ganttView.id, title: ganttView.title } : undefined,
+      ganttView: ganttView
+        ? { id: ganttView.id, title: ganttView.title }
+        : undefined,
       dateDependency: result,
       isNew,
     });
@@ -181,7 +189,9 @@ export class DateDependencyService {
         context,
         req: param.req,
         table: model,
-        ganttView: ganttView ? { id: ganttView.id, title: ganttView.title } : undefined,
+        ganttView: ganttView
+          ? { id: ganttView.id, title: ganttView.title }
+          : undefined,
       });
     }
   }

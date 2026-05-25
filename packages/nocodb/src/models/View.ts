@@ -585,7 +585,8 @@ export default class View implements ViewType {
                   fk_dependency_linkrow_field_id:
                     sourceRule.fk_dependency_linkrow_field_id,
                   dependency_linkrow_role: sourceRule.dependency_linkrow_role,
-                  dependency_connection_type: sourceRule.dependency_connection_type,
+                  dependency_connection_type:
+                    sourceRule.dependency_connection_type,
                   dependency_buffer_type: sourceRule.dependency_buffer_type,
                   dependency_buffer_days: sourceRule.dependency_buffer_days,
                   include_weekends: sourceRule.include_weekends,

@@ -404,12 +404,7 @@ export class ViewSettingsOverrideService {
         );
       }
       case ViewTypes.GANTT: {
-        return await GanttViewColumn.update(
-          context,
-          column.id,
-          column,
-          ncMeta,
-        );
+        return await GanttViewColumn.update(context, column.id, column, ncMeta);
       }
     }
   }

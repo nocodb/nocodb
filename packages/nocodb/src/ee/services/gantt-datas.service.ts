@@ -109,9 +109,7 @@ export class GanttDatasService {
     // scrolling feel random on a Gantt — top should be earliest, bottom
     // latest. Gantt has no user-configurable sort so this is the only
     // ordering signal we have.
-    const existingSort = query.sortArrJson
-      ? JSON.parse(query.sortArrJson)
-      : [];
+    const existingSort = query.sortArrJson ? JSON.parse(query.sortArrJson) : [];
     if (!existingSort.length && rule.fk_start_date_field_id) {
       query.sortArrJson = JSON.stringify([
         {
@@ -488,8 +486,7 @@ export class GanttDatasService {
     const linkedKey = pkCol.title as string;
     const cellOwnerKey = fkChildCol.title as string;
     const edges: Array<[string, string]> = [];
-    const linkedIsPredecessor =
-      rule.dependency_linkrow_role === 'predecessors';
+    const linkedIsPredecessor = rule.dependency_linkrow_role === 'predecessors';
 
     for (const row of rows) {
       const linkedId = row?.[linkedKey];

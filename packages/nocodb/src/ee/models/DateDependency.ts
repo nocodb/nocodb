@@ -121,7 +121,11 @@ export default class DateDependency implements DateDependencyType {
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
   ): Promise<DateDependency | null> {
-    const list = await DateDependency.listByModelId(context, fk_model_id, ncMeta);
+    const list = await DateDependency.listByModelId(
+      context,
+      fk_model_id,
+      ncMeta,
+    );
     return list.find((r) => !r.fk_gantt_view_id) ?? null;
   }
 

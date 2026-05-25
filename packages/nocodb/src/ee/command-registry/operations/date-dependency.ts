@@ -78,9 +78,7 @@ export const DateDependencyUpdateContract: OperationContract<
           params: {
             modelId: params.modelId,
             body: prev,
-            ...(params.ganttViewId
-              ? { ganttViewId: params.ganttViewId }
-              : {}),
+            ...(params.ganttViewId ? { ganttViewId: params.ganttViewId } : {}),
           },
         };
       }

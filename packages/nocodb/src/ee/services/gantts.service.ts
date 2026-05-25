@@ -6,8 +6,9 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -163,7 +164,10 @@ export class GanttsService {
     // trail otherwise — only the GANTT_CREATE above. Query the DB rather
     // than echoing the request so the audit reflects what actually landed
     // (defaults filled in, copied buffer settings, etc.).
-    const persistedRule = await DateDependency.getByGanttViewId(context, view.id);
+    const persistedRule = await DateDependency.getByGanttViewId(
+      context,
+      view.id,
+    );
     if (persistedRule) {
       this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_UPDATE, {
         context,
@@ -228,12 +232,7 @@ export class GanttsService {
       param.ganttViewId,
       ncMeta,
     );
-    await GanttView.update(
-      context,
-      param.ganttViewId,
-      param.gantt,
-      ncMeta,
-    );
+    await GanttView.update(context, param.ganttViewId, param.gantt, ncMeta);
 
     let owner = param.req.user;
 

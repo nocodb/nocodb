@@ -52,17 +52,30 @@ const up = async (knex: Knex) => {
   // fk_gantt_view_id IS NULL is the "default" / table-level rule used by grid
   // edits (and by the original single-rule API). Existing call sites that
   // looked up DateDependency.getByModelId continue to receive that default.
+  //
+  // The UNIQUE constraint on fk_gantt_view_id enforces the 1:1 contract the
+  // model layer assumes (DateDependency.getByGanttViewId uses metaGet2 and
+  // returns a single row). A retried request, idempotent sandbox replay, or
+  // concurrent POST cannot persist a duplicate. All three target DBs
+  // (Postgres, SQLite, MySQL) treat multiple NULLs as distinct under UNIQUE,
+  // so the table-level default rule (one per table, fk_gantt_view_id IS NULL)
+  // is unaffected.
   await knex.schema.alterTable(MetaTable.DATE_DEPENDENCY, (table) => {
     table.string('fk_gantt_view_id', 20).nullable();
     table.index(
       ['fk_model_id', 'fk_gantt_view_id'],
       'nc_date_dep_model_view_idx',
     );
+    table.unique(['fk_gantt_view_id'], 'nc_date_dep_gantt_view_id_unique');
   });
 };
 
 const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.DATE_DEPENDENCY, (table) => {
+    table.dropUnique(
+      ['fk_gantt_view_id'],
+      'nc_date_dep_gantt_view_id_unique',
+    );
     table.dropIndex(
       ['fk_model_id', 'fk_gantt_view_id'],
       'nc_date_dep_model_view_idx',

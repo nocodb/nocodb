@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import {
   AppEvents,
   CommonAggregations,
+  DependencyTableType,
   EventType,
   ExpandedFormMode,
   getFirstNonPersonalView,
@@ -42,6 +43,7 @@ import CalendarViewColumn from '~/models/CalendarViewColumn';
 import TimelineViewColumn from '~/models/TimelineViewColumn';
 import GanttViewColumn from '~/models/GanttViewColumn';
 import DateDependency from '~/models/DateDependency';
+import DependencyTracker from '~/models/DependencyTracker';
 import CalendarRange from '~/models/CalendarRange';
 import TimelineRange from '~/models/TimelineRange';
 import Sort from '~/models/Sort';
@@ -2127,27 +2129,27 @@ export default class View implements ViewType {
     // For Gantt View, delete the per-view DateDependency rule (if any) — each
     // Gantt view owns its own rule via nc_date_dependency.fk_gantt_view_id.
     // The table-level default rule (fk_gantt_view_id IS NULL) is untouched.
+    //
+    // Route through the DateDependency model (instead of a raw metaDelete) so
+    // we also (a) clean up nc_dependency_tracker rows that reference this
+    // rule's id, and (b) invalidate the per-rule cache key
+    // `${CacheScope.DATE_DEPENDENCY}:${rule.id}` — CHILD_TO_PARENT from
+    // `:list` does NOT walk to child id-keys, so the previous flow left
+    // stale `DateDependency.get(ruleId)` cache entries after the row was
+    // gone.
     if (view.type === ViewTypes.GANTT) {
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.DATE_DEPENDENCY,
-        {
-          fk_gantt_view_id: viewId,
-        },
+      const ganttRule = await DateDependency.getByGanttViewId(
+        context,
+        viewId,
+        ncMeta,
       );
-      // Invalidate the model-level DATE_DEPENDENCY list cache so the next
-      // listByModelId picks up the deletion. CacheMgr composes list keys
-      // as `${scope}:${subListKeys.join(':')}:list` — i.e. the trailing
-      // `:list` suffix, NOT a `:list:` infix. Getting the order wrong
-      // leaves a stale list-cache entry that still includes the
-      // deleted rule's id.
-      if (view.fk_model_id) {
-        await NocoCache.deepDel(
+      if (ganttRule?.id) {
+        await DependencyTracker.clearDependencies(
           context,
-          `${CacheScope.DATE_DEPENDENCY}:${view.fk_model_id}:list`,
-          CacheDelDirection.CHILD_TO_PARENT,
+          DependencyTableType.DateDependency,
+          ganttRule.id,
         );
+        await DateDependency.deleteByGanttViewId(context, viewId, ncMeta);
       }
     }
 

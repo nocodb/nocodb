@@ -1492,10 +1492,19 @@ export class AclMiddleware implements NestInterceptor {
           ? JSON.parse(workspace.meta)
           : workspace?.meta;
       if (meta?.force_2fa && !req.user?.totp_enabled) {
-        // SSO users (no password) cannot set up 2FA, so skip enforcement
-        const user = await User.get(req.user.id);
-        if (user?.password) {
+        // On Cloud, Cognito users can now enrol TOTP via NocoDB — so
+        // they're eligible for force_2fa enforcement (FE intercepts
+        // `mfaSetupRequired` and redirects to Account → Security to
+        // enrol, grace mode). On other deployments, an SSO user without
+        // a local password still has no way to enrol, so we exempt them
+        // to avoid a permanent lockout.
+        if (isCloud) {
           NcError.mfaSetupRequired(req.ncWorkspaceId);
+        } else {
+          const user = await User.get(req.user.id);
+          if (user?.password) {
+            NcError.mfaSetupRequired(req.ncWorkspaceId);
+          }
         }
       }
     }

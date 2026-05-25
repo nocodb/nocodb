@@ -33,6 +33,7 @@ import SSOClient from '~/models/SSOClient';
 import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
 import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
+import { isCloud } from '~/utils';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
@@ -107,7 +108,7 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
     @Body() body: { token: string; code: string },
   ) {
-    const { user } = await this.mfaService.verifySignin(
+    const { user, redirect } = await this.mfaService.verifySignin(
       body.token,
       body.code,
       req,
@@ -120,7 +121,15 @@ export class AuthController extends AuthControllerCE {
     // token_version that single-session enforcement just wrote.
     const loginResult = await this.usersService.login(req.user, req);
     setAuthCookie(res, loginResult.token);
-    res.json({ token: loginResult.token, userId: user.id });
+    res.json({
+      token: loginResult.token,
+      userId: user.id,
+      // Echo the deep-link captured when the 2FA token was minted (Cognito
+      // sign-in flow stashes the user's original destination here so the
+      // FE can re-navigate post-verify). Undefined for the email/password
+      // flow which doesn't currently set one.
+      ...(redirect ? { redirect } : {}),
+    });
   }
 
   @License(PlanFeatureTypes.FEATURE_MFA)
@@ -330,9 +339,33 @@ export class AuthController extends AuthControllerCE {
   @Post('/auth/cognito')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('cognito'))
   async cognitoSignin(
-    @Req() req: NcRequest & { extra: any },
+    @Req() req: NcRequest & { extra: any; body?: { redirect?: string } },
     @Res() res: Response,
   ) {
+    // Cloud + Cognito: layer NocoDB's TOTP 2FA on top of Cognito's own
+    // auth. Other deployments (on-prem with Cognito) keep the original
+    // straight-to-cookie flow until we extend coverage. EE-licensed +
+    // MFA-licensed gate matches the email/password signin path.
+    if (isCloud && NocoLicense.isEE) {
+      const twoFactorToken = await this.mfaService.getTwoFactorTokenIfEnabled(
+        req.user.id,
+        // Capture the destination the FE asked us to remember so we
+        // can hand it back after `/auth/mfa/verify` succeeds. Falls
+        // back to undefined → FE routes to dashboard root.
+        { redirect: req.body?.redirect },
+      );
+      if (twoFactorToken) {
+        res.json({
+          twoFactorRequired: true,
+          twoFactorToken,
+          // Echo the extras the original flow returned so the FE
+          // doesn't lose the Cognito-side payload during the detour.
+          extra: { ...req.extra },
+        });
+        return;
+      }
+    }
+
     await this.setRefreshToken({ req, res });
     const result = await this.usersService.login(
       {

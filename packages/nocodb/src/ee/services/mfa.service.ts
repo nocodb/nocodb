@@ -41,11 +41,20 @@ export function generateBackupCodes(count = 10): string[] {
 
 export function generateTwoFactorToken(
   user: { id: string; email: string },
-  secret?: string,
+  opts?: { secret?: string; redirect?: string },
 ): string {
-  const jwtSecret = secret ?? Noco.getConfig().auth.jwt.secret;
+  const jwtSecret = opts?.secret ?? Noco.getConfig().auth.jwt.secret;
+  // Carry an optional `redirect` (the URL the user was originally going
+  // to) inside the token so the post-verify response can hand it back to
+  // the FE without keeping any server-side session state. Sign-only, no
+  // encryption — `redirect` must be treated as untrusted on the FE.
   return jwt.sign(
-    { id: user.id, email: user.email, purpose: 'mfa' },
+    {
+      id: user.id,
+      email: user.email,
+      purpose: 'mfa',
+      ...(opts?.redirect ? { redirect: opts.redirect } : {}),
+    },
     jwtSecret,
     { expiresIn: '5m' },
   );
@@ -133,16 +142,20 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is already enabled');
     }
 
-    // Require password re-confirmation for security
-    if (!user.password) {
-      NcError.badRequest(
-        'Password verification is not available for this account',
-      );
-    }
-
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      NcError.badRequest('Incorrect password');
+    // Identity re-proof:
+    //   - Local-password accounts: bcrypt-compare the supplied password.
+    //   - SSO accounts (no local password, e.g. Cognito on Cloud): the
+    //     active session JWT is the proof — they're already authenticated
+    //     via their IdP, and verifySetup below still requires the user to
+    //     scan and submit a fresh TOTP code before `totp_enabled` flips.
+    // TODO: revisit with team whether to add a stronger reproof for SSO
+    // (email magic-link / Cognito re-prompt) once we have telemetry on
+    // session-hijack risk in Cloud.
+    if (user.password) {
+      const valid = await bcrypt.compare(password ?? '', user.password);
+      if (!valid) {
+        NcError.badRequest('Incorrect password');
+      }
     }
 
     const secret = generateSecret();
@@ -264,7 +277,12 @@ export class MfaService {
   async verifySignin(twoFactorToken: string, code: string, req: NcRequest) {
     const config = Noco.getConfig();
 
-    let payload: { id: string; email: string; purpose: string };
+    let payload: {
+      id: string;
+      email: string;
+      purpose: string;
+      redirect?: string;
+    };
     try {
       payload = jwt.verify(twoFactorToken, config.auth.jwt.secret) as any;
     } catch {
@@ -313,22 +331,34 @@ export class MfaService {
 
     // Return the verified user; JWT generation happens in the controller
     // after setRefreshToken rotates token_version so the JWT carries the
-    // new version (single-session enforcement).
+    // new version (single-session enforcement). `redirect` is whatever
+    // deep-link the original sign-in entry point captured for us; pass
+    // it back so the controller / FE can re-navigate after cookie set.
     return {
       user,
       userId: user.id,
+      redirect: payload.redirect,
     };
   }
 
   /**
    * Check if user has 2FA enabled. If so, return a short-lived token
    * for the 2FA verification step. Returns null if 2FA is not enabled.
+   * `redirect` (if provided) is embedded in the token so the post-verify
+   * response can hand the user back to the URL they were originally
+   * heading to before the 2FA challenge.
    */
-  async getTwoFactorTokenIfEnabled(userId: string): Promise<string | null> {
+  async getTwoFactorTokenIfEnabled(
+    userId: string,
+    opts?: { redirect?: string },
+  ): Promise<string | null> {
     const user = await User.get(userId);
     if (!user?.totp_enabled) return null;
 
-    return generateTwoFactorToken({ id: user.id, email: user.email });
+    return generateTwoFactorToken(
+      { id: user.id, email: user.email },
+      { redirect: opts?.redirect },
+    );
   }
 
   private async verifyTotp(secret: string, token: string): Promise<boolean> {

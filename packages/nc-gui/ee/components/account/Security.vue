@@ -9,6 +9,8 @@ const { $e } = useNuxtApp()
 
 const { blockMfa, showUpgradeToUseMfa, isEEFeatureBlocked } = useEeConfig()
 
+const { appInfo } = useGlobal()
+
 const { copy } = useCopy()
 
 const mfaEnabled = ref(false)
@@ -50,7 +52,18 @@ async function fetchStatus() {
   }
 }
 
-const canSetup2fa = computed(() => hasPassword.value)
+// Eligibility for the enrollment flow:
+//   - Account has a local password set → classic password-confirm flow.
+//   - On Cloud → email/password is disabled, the only sign-in path is
+//     Cognito SSO. We let those users enrol too; the backend skips the
+//     password reproof for accounts with no local password and treats
+//     the active session JWT as the proof (see mfa.service.setup).
+// Anywhere else (on-prem with SSO and no local password) we still gate
+// the button — there's no way to enrol without a password those users
+// could actually use, so showing the button would be misleading.
+const canSetup2fa = computed(() => hasPassword.value || appInfo.value?.isCloud)
+
+const skipPasswordReproof = computed(() => !hasPassword.value || appInfo.value?.disableEmailAuth)
 
 function startSetup() {
   if (blockMfa.value) {
@@ -61,15 +74,25 @@ function startSetup() {
   if (!canSetup2fa.value) return
 
   $e('c:account:security:enable-2fa')
-  setupStep.value = 'password'
   setupPassword.value = ''
   setupError.value = ''
   showSetupModal.value = true
+
+  if (skipPasswordReproof.value) {
+    // SSO accounts without a local password — jump straight to the
+    // /setup call (BE accepts an empty password for these) and render
+    // the QR step on success.
+    setupStep.value = 'qr'
+    confirmPassword()
+    return
+  }
+
+  setupStep.value = 'password'
   nextTick(() => setupPasswordInput.value?.focus())
 }
 
 async function confirmPassword() {
-  if (!setupPassword.value) return
+  if (!skipPasswordReproof.value && !setupPassword.value) return
 
   isLoading.value = true
   setupError.value = ''
@@ -82,6 +105,12 @@ async function confirmPassword() {
     setupStep.value = 'qr'
   } catch (e: any) {
     setupError.value = await extractSdkResponseErrorMsg(e)
+    // For SSO callers we jumped to 'qr' optimistically — if the call
+    // failed, fall back to the password step so the user has somewhere
+    // to land + a recovery affordance.
+    if (skipPasswordReproof.value) {
+      setupStep.value = 'password'
+    }
   } finally {
     isLoading.value = false
   }

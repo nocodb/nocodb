@@ -15,13 +15,25 @@ const {
   twoFactorError,
   twoFactorLoading,
   useBackupCode,
+  postVerifyRedirect,
   handleSigninResponse,
+  hydrateFromPendingToken,
   verifyTwoFactor: _verifyTwoFactor,
   cancelTwoFactor,
   toggleBackupCode,
 } = useTwoFactorSignin()
 
 const twoFactorCodeInput = ref<HTMLInputElement>()
+
+// If the Cognito callback deposited a pending 2FA token in
+// sessionStorage (see useGlobal/actions.ts:checkForCognitoToken), pick
+// it up so this page renders the TOTP step directly without requiring
+// an email/password submit first.
+onBeforeMount(() => {
+  if (hydrateFromPendingToken()) {
+    nextTick(() => twoFactorCodeInput.value?.focus())
+  }
+})
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -84,6 +96,16 @@ async function verifyTwoFactor() {
   if (success) {
     const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
     if (continueAfterSignIn) {
+      return
+    }
+
+    // Honor the deep-link the original sign-in path captured (e.g. the
+    // Cognito callback stashes `window.location` before redirecting
+    // here). Falls back to dashboard root for the email/password path
+    // which doesn't currently set one.
+    const redirect = postVerifyRedirect.value
+    if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+      await navigateTo(redirect)
       return
     }
 

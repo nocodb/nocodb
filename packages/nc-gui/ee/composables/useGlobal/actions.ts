@@ -137,15 +137,34 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         axiosInstance = nuxtApp.$api?.instance
       }
 
+      // Capture the URL the user was on when Cognito kicked in, so the
+      // BE can echo it back inside the twoFactorToken and we can re-land
+      // the user there after `/api/v2/auth/mfa/verify`. Skipped for the
+      // /signin path itself to avoid trivial loops.
+      const here = typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/'
+      const redirect = here && !here.startsWith('/signin') && !here.startsWith('/sso') ? here : undefined
+
       const tokenRes = await axiosInstance.post(
         '/auth/cognito',
-        {},
+        { ...(redirect ? { redirect } : {}) },
         {
           headers: {
             'xc-cognito': jwt,
           },
         },
       )
+      // NocoDB-side TOTP layered on top of Cognito (Cloud-only). The BE
+      // returns `{ twoFactorRequired, twoFactorToken }` when the user
+      // has TOTP enrolled; route to /signin which renders the TOTP step
+      // when it sees the pending token in sessionStorage.
+      if (tokenRes.data.twoFactorRequired && tokenRes.data.twoFactorToken) {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('nc.pendingTwoFactorToken', tokenRes.data.twoFactorToken)
+        }
+        const nuxtApp = useNuxtApp()
+        await nuxtApp.runWithContext(() => navigateTo('/signin'))
+        return
+      }
       if (tokenRes.data.token) {
         updateFirstTimeUser()
         const token = tokenRes.data.token

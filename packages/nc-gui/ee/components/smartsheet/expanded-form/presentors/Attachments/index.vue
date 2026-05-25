@@ -238,9 +238,9 @@ export default {
                 >
                   <NcTooltip :title="selectedField?.title" placement="bottom">
                     <button
-                      class="nc-files-field-icon-btn flex items-center justify-center w-8 h-8 rounded-lg bg-white/70 backdrop-blur-md border-1 border-nc-border-gray-medium shadow-sm hover:bg-white transition-all"
+                      class="nc-files-field-icon-btn flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 backdrop-blur-md border-1 border-white/20 hover:bg-white/20 transition-all"
                     >
-                      <GeneralIcon icon="cellAttachment" class="w-4 h-4 text-nc-content-gray" />
+                      <GeneralIcon icon="cellAttachment" class="w-4 h-4 text-white" />
                     </button>
                   </NcTooltip>
                 </NcDropdownSelect>

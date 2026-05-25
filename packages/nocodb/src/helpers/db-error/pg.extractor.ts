@@ -126,18 +126,20 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'There was a syntax error in your SQL query.';
         break;
       case '23502': {
-        // not_null_violation. Postgres puts the offending column in
-        // `error.column` and a sentence form in `error.message`:
-        //   null value in column "priority" of relation "tasks"
-        //   violates not-null constraint
+        // not_null_violation. Surface the generic message and expose the
+        // offending column via `details.column` so downstream consumers
+        // (e.g. the data-import error formatter) can decorate it with
+        // a "(column: X)" suffix without us having to know the row.
+        // Postgres sets `error.column` directly; fall back to the
+        // standard PG message form
+        //   null value in column "X" of relation "Y" violates not-null constraint
+        // if the driver omits it.
         let column: string | undefined = error.column;
         if (!column && error.message) {
           const m = error.message.match(/null value in column "([^"]+)"/i);
           if (m) column = m[1];
         }
-        message = column
-          ? `Required field '${column}' is missing.`
-          : 'A value is required for this field.';
+        message = 'A value is required for this field.';
         _type = DBError.COLUMN_NOT_NULL;
         if (column) _extra = { column };
         break;

@@ -12,33 +12,38 @@ function pgErrorExtractorUnitTests() {
     DBErrorExtractor.get().extractDbError(error, { clientType: ClientType.PG });
 
   describe('23502 (not_null_violation)', () => {
-    it('extracts column from error.column', () => {
+    // The 23502 base message stays generic — downstream consumers
+    // (e.g. the data-import error formatter) layer the column name on
+    // top via `details.column` to keep the assertion shape consistent
+    // with other SQLSTATEs that don't carry a column.
+    it('exposes column via details when error.column is set', () => {
       const result = extract({
         code: '23502',
         column: 'priority',
         message:
           'null value in column "priority" of relation "tasks" violates not-null constraint',
       });
-      expect(result.message).to.equal("Required field 'priority' is missing.");
+      expect(result.message).to.equal('A value is required for this field.');
       expect((result as any).details).to.deep.equal({ column: 'priority' });
     });
 
-    it('falls back to parsing error.message when error.column missing', () => {
+    it('parses column out of error.message when error.column is missing', () => {
       const result = extract({
         code: '23502',
         message:
           'null value in column "priority" of relation "tasks" violates not-null constraint',
       });
-      expect(result.message).to.equal("Required field 'priority' is missing.");
+      expect(result.message).to.equal('A value is required for this field.');
       expect((result as any).details).to.deep.equal({ column: 'priority' });
     });
 
-    it('uses generic message when column cannot be parsed', () => {
+    it('falls back to generic message + no details when the column cannot be parsed', () => {
       const result = extract({
         code: '23502',
         message: 'null value violates not-null constraint',
       });
       expect(result.message).to.equal('A value is required for this field.');
+      expect((result as any).details).to.be.undefined;
     });
   });
 

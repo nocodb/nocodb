@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import {
   AppEvents,
   CommonAggregations,
+  DependencyTableType,
   EventType,
   ExpandedFormMode,
   getFirstNonPersonalView,
@@ -36,9 +37,13 @@ import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
 import CalendarView from '~/models/CalendarView';
 import TimelineView from '~/models/TimelineView';
+import GanttView from '~/models/GanttView';
 import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
 import TimelineViewColumn from '~/models/TimelineViewColumn';
+import GanttViewColumn from '~/models/GanttViewColumn';
+import DateDependency from '~/models/DateDependency';
+import DependencyTracker from '~/models/DependencyTracker';
 import CalendarRange from '~/models/CalendarRange';
 import TimelineRange from '~/models/TimelineRange';
 import Sort from '~/models/Sort';
@@ -117,7 +122,8 @@ export default class View implements ViewType {
     | GalleryView
     | MapView
     | CalendarView
-    | TimelineView;
+    | TimelineView
+    | GanttView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
@@ -126,6 +132,7 @@ export default class View implements ViewType {
     | MapViewColumn
     | CalendarViewColumn
     | TimelineViewColumn
+    | GanttViewColumn
   >;
 
   sorts: Sort[];
@@ -315,6 +322,7 @@ export default class View implements ViewType {
           | MapView
           | CalendarView
           | TimelineView
+          | GanttView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
@@ -543,6 +551,55 @@ export default class View implements ViewType {
           await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
           break;
         }
+        case ViewTypes.GANTT: {
+          // Gantt resolves start/end/predecessor from a DateDependency
+          // rule — either view-owned (fk_gantt_view_id = view.id) or the
+          // table-level default (fk_gantt_view_id IS NULL). The per-view
+          // rule is the editor's primary surface, so a duplicate should
+          // re-create the rule pointing at the new view id — otherwise
+          // the user is forced to reconfigure the schedule from scratch
+          // on every duplicate.
+          await GanttView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          if (copyFromView?.id && copyFromView.type === ViewTypes.GANTT) {
+            const sourceRule = await DateDependency.getByGanttViewId(
+              context,
+              copyFromView.id,
+              ncMeta,
+            );
+            if (sourceRule) {
+              await DateDependency.insert(
+                context,
+                {
+                  fk_model_id: sourceRule.fk_model_id,
+                  fk_gantt_view_id: view_id,
+                  fk_start_date_field_id: sourceRule.fk_start_date_field_id,
+                  fk_end_date_field_id: sourceRule.fk_end_date_field_id,
+                  fk_duration_field_id: sourceRule.fk_duration_field_id,
+                  fk_dependency_linkrow_field_id:
+                    sourceRule.fk_dependency_linkrow_field_id,
+                  dependency_linkrow_role: sourceRule.dependency_linkrow_role,
+                  dependency_connection_type:
+                    sourceRule.dependency_connection_type,
+                  dependency_buffer_type: sourceRule.dependency_buffer_type,
+                  dependency_buffer_days: sourceRule.dependency_buffer_days,
+                  include_weekends: sourceRule.include_weekends,
+                  is_active: sourceRule.is_active,
+                },
+                ncMeta,
+              );
+            }
+          }
+          break;
+        }
       }
 
       if (copyFromView) {
@@ -641,13 +698,14 @@ export default class View implements ViewType {
         let order = 1;
         let galleryShowLimit = 0;
         let kanbanShowLimit = 0;
-        let calendarRanges: Array<string> | null = null;
+        let rangeColumns: Array<string> | null = null;
 
         if (
           view.type === ViewTypes.CALENDAR ||
-          view.type === ViewTypes.TIMELINE
+          view.type === ViewTypes.TIMELINE ||
+          view.type === ViewTypes.GANTT
         ) {
-          calendarRanges = await View.getRangeColumnsAsArray(
+          rangeColumns = await View.getRangeColumnsAsArray(
             context,
             view_id,
             ncMeta,
@@ -722,19 +780,29 @@ export default class View implements ViewType {
               view_id,
               ncMeta,
             );
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else
               show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.TIMELINE && !copyFromView) {
             // Timeline has no cover image, just show range columns and primary value
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else {
               show = vCol.pv;
             }
             // Show all Fields in Ranges
+          } else if (view.type === ViewTypes.GANTT && !copyFromView) {
+            // Gantt: default to only the display value (matches Timeline
+            // and Gantt's own bulkInsertFromMeta path). The bar gets its
+            // label from pv and the sidebar shows row identity; other
+            // fields are opt-in via the Fields panel. The per-view
+            // DateDependency rule is created AFTER this code runs, so
+            // rangeColumns is always empty here — range fields stay
+            // hidden until the user configures the dependency, then
+            // opts them in.
+            show = vCol.pv;
           } else if (view.type === ViewTypes.MAP && !copyFromView) {
             const mapView = await MapView.get(context, view_id, ncMeta);
             if (vCol.id === mapView?.fk_geo_data_col_id) {
@@ -850,6 +918,7 @@ export default class View implements ViewType {
       });
       return Array.from(tlIds) as Array<string>;
     }
+    // Gantt has no per-view range — skip.
     return [];
   }
 
@@ -985,6 +1054,16 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.GANTT:
+          await GanttViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+          break;
         case ViewTypes.FORM:
           await FormViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
@@ -1107,6 +1186,18 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.GANTT:
+        {
+          col = await GanttViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
     }
 
     return col;
@@ -1137,6 +1228,7 @@ export default class View implements ViewType {
       | MapViewColumn
       | CalendarViewColumn
       | TimelineViewColumn
+      | GanttViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -1175,6 +1267,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         columns = await TimelineViewColumn.list(context, viewId, ncMeta);
+        break;
+      case ViewTypes.GANTT:
+        columns = await GanttViewColumn.list(context, viewId, ncMeta);
         break;
     }
 
@@ -1236,6 +1331,11 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         tableName = MetaTable.TIMELINE_VIEW_COLUMNS;
         cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.GANTT:
+        tableName = MetaTable.GANTT_VIEW_COLUMNS;
+        cacheScope = CacheScope.GANTT_VIEW_COLUMN;
 
         break;
     }
@@ -1309,6 +1409,10 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW_COLUMNS;
         cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
+        break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW_COLUMNS;
+        cacheScope = CacheScope.GANTT_VIEW_COLUMN;
     }
     let updateObj = extractProps(colData, ['order', 'show']);
 
@@ -1377,7 +1481,11 @@ export default class View implements ViewType {
         }
       }
     }
-    if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
+    if (
+      view.type === ViewTypes.CALENDAR ||
+      view.type === ViewTypes.TIMELINE ||
+      view.type === ViewTypes.GANTT
+    ) {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
@@ -1425,6 +1533,8 @@ export default class View implements ViewType {
         return CalendarViewColumn.get(context, colId, ncMeta);
       case ViewTypes.TIMELINE:
         return TimelineViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.GANTT:
+        return GanttViewColumn.get(context, colId, ncMeta);
     }
     return null;
   }
@@ -1562,6 +1672,17 @@ export default class View implements ViewType {
           );
         case ViewTypes.TIMELINE:
           return await TimelineViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
+        case ViewTypes.GANTT:
+          return await GanttViewColumn.insert(
             context,
             {
               fk_view_id: viewId,
@@ -2004,6 +2125,34 @@ export default class View implements ViewType {
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
+
+    // For Gantt View, delete the per-view DateDependency rule (if any) — each
+    // Gantt view owns its own rule via nc_date_dependency.fk_gantt_view_id.
+    // The table-level default rule (fk_gantt_view_id IS NULL) is untouched.
+    //
+    // Route through the DateDependency model (instead of a raw metaDelete) so
+    // we also (a) clean up nc_dependency_tracker rows that reference this
+    // rule's id, and (b) invalidate the per-rule cache key
+    // `${CacheScope.DATE_DEPENDENCY}:${rule.id}` — CHILD_TO_PARENT from
+    // `:list` does NOT walk to child id-keys, so the previous flow left
+    // stale `DateDependency.get(ruleId)` cache entries after the row was
+    // gone.
+    if (view.type === ViewTypes.GANTT) {
+      const ganttRule = await DateDependency.getByGanttViewId(
+        context,
+        viewId,
+        ncMeta,
+      );
+      if (ganttRule?.id) {
+        await DependencyTracker.clearDependencies(
+          context,
+          DependencyTableType.DateDependency,
+          ganttRule.id,
+        );
+        await DateDependency.deleteByGanttViewId(context, viewId, ncMeta);
+      }
+    }
+
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,
@@ -2288,6 +2437,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         viewType = 'timeline';
         break;
+      case ViewTypes.GANTT:
+        viewType = 'gantt';
+        break;
       default:
         viewType = 'view';
     }
@@ -2543,6 +2695,7 @@ export default class View implements ViewType {
         | MapViewColumn
         | CalendarViewColumn
         | TimelineViewColumn
+        | GanttViewColumn
       )[];
     },
     view: View,
@@ -2566,7 +2719,8 @@ export default class View implements ViewType {
           'source_id',
           'order',
           ...(view.type === ViewTypes.CALENDAR ||
-          view.type === ViewTypes.TIMELINE
+          view.type === ViewTypes.TIMELINE ||
+          view.type === ViewTypes.GANTT
             ? ['bold', 'italic', 'underline']
             : []),
           ...(view.type === ViewTypes.FORM
@@ -2642,6 +2796,7 @@ export default class View implements ViewType {
             .flat();
         }
       }
+      // Gantt: no per-view range — start/end come from table-level DateDependency.
 
       for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
@@ -2721,6 +2876,14 @@ export default class View implements ViewType {
             // carry over.
             show = false;
           }
+        } else if (view.type === ViewTypes.GANTT) {
+          // Gantt: default-show only the display value (pv) so the bar
+          // gets a label and the sidebar shows row identity. Other fields
+          // stay hidden — users opt them in via the Fields panel. The
+          // date range columns don't need to be `show=true` here since
+          // bars read dates straight from row data via ganttRange, not
+          // via per-view-column visibility.
+          show = !!column.pv;
         }
 
         insertObjs.push({
@@ -2803,6 +2966,14 @@ export default class View implements ViewType {
           MetaTable.TIMELINE_VIEW_COLUMNS,
           insertObjs,
         );
+        break;
+      case ViewTypes.GANTT:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.GANTT_VIEW_COLUMNS,
+          insertObjs,
+        );
     }
   }
 
@@ -2822,11 +2993,13 @@ export default class View implements ViewType {
           | MapView
           | CalendarView
           | TimelineView
+          | GanttView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
+          dependency?: Partial<DateDependency>;
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -3066,6 +3239,71 @@ export default class View implements ViewType {
           },
           ncMeta,
         );
+
+        break;
+      }
+      case ViewTypes.GANTT: {
+        // Gantt resolves start/end/predecessor from a DateDependency rule
+        // — either view-owned (fk_gantt_view_id = view.id) or the
+        // table-level default (fk_gantt_view_id IS NULL). Three create
+        // paths land here, only one of which lands a rule:
+        //  - duplicate of an existing Gantt → clone the source's rule
+        //  - fresh create with `dependency` payload → insert that rule
+        //  - either with no rule data → view falls back to the table-level
+        //    default until the user configures one via the dialog
+        // Sitting next to the GanttView.insert call (same ncMeta, same
+        // switch arm) mirrors how Calendar/Timeline insert their
+        // CalendarRange / TimelineRange — keeping the view + its config
+        // row in one place so the failure mode is symmetric.
+        await GanttView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        if (copyFromView?.id && copyFromView.type === ViewTypes.GANTT) {
+          const sourceRule = await DateDependency.getByGanttViewId(
+            context,
+            copyFromView.id,
+            ncMeta,
+          );
+          if (sourceRule) {
+            await DateDependency.insert(
+              context,
+              {
+                fk_model_id: sourceRule.fk_model_id,
+                fk_gantt_view_id: view_id,
+                fk_start_date_field_id: sourceRule.fk_start_date_field_id,
+                fk_end_date_field_id: sourceRule.fk_end_date_field_id,
+                fk_duration_field_id: sourceRule.fk_duration_field_id,
+                fk_dependency_linkrow_field_id:
+                  sourceRule.fk_dependency_linkrow_field_id,
+                dependency_linkrow_role: sourceRule.dependency_linkrow_role,
+                dependency_connection_type:
+                  sourceRule.dependency_connection_type,
+                dependency_buffer_type: sourceRule.dependency_buffer_type,
+                dependency_buffer_days: sourceRule.dependency_buffer_days,
+                include_weekends: sourceRule.include_weekends,
+                is_active: sourceRule.is_active,
+              },
+              ncMeta,
+            );
+          }
+        } else if (view.dependency) {
+          await DateDependency.insert(
+            context,
+            {
+              ...view.dependency,
+              fk_model_id: view.fk_model_id,
+              fk_gantt_view_id: view_id,
+            },
+            ncMeta,
+          );
+        }
 
         break;
       }
@@ -3317,6 +3555,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW_COLUMNS;
         break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW_COLUMNS;
+        break;
     }
     return table;
   }
@@ -3347,6 +3588,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW;
+        break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW;
         break;
     }
     return table;
@@ -3379,6 +3623,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         scope = CacheScope.TIMELINE_VIEW_COLUMN;
         break;
+      case ViewTypes.GANTT:
+        scope = CacheScope.GANTT_VIEW_COLUMN;
+        break;
     }
     return scope;
   }
@@ -3409,6 +3656,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         scope = CacheScope.TIMELINE_VIEW;
+        break;
+      case ViewTypes.GANTT:
+        scope = CacheScope.GANTT_VIEW;
         break;
     }
     return scope;
@@ -3459,6 +3709,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         this.view = await TimelineView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.GANTT:
+        this.view = await GanttView.get(context, this.id, ncMeta);
+        break;
     }
     return <T>this.view;
   }
@@ -3491,6 +3744,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         this.view = await TimelineView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.GANTT:
+        this.view = await GanttView.get(context, this.id, ncMeta);
         break;
     }
     return this.view;

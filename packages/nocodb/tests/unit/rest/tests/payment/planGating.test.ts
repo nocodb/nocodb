@@ -111,6 +111,14 @@ export function planGatingTests() {
         .expect(expectedStatus);
     }
 
+    async function createGanttView(expectedStatus: number) {
+      return request(context.app)
+        .post(internalUrl('ganttViewCreate', `&tableId=${tableId}`))
+        .set('xc-auth', context.token)
+        .send({ title: `Gantt-${Date.now()}` })
+        .expect(expectedStatus);
+    }
+
     async function listV3Views(expectedStatus: number) {
       return request(context.app)
         .get(`/api/v3/meta/bases/${base.id}/tables/${tableId}/views`)
@@ -144,6 +152,11 @@ export function planGatingTests() {
         expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
 
+      it('should block gantt view creation (Business feature)', async () => {
+        const res = await createGanttView(403);
+        expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+
       it('should block V3 views API (Enterprise feature)', async () => {
         const res = await listV3Views(403);
         expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
@@ -174,6 +187,11 @@ export function planGatingTests() {
         expect(res.body).to.have.property('id');
       });
 
+      it('should allow gantt view creation (Business feature)', async () => {
+        const res = await createGanttView(200);
+        expect(res.body).to.have.property('id');
+      });
+
       it('should block V3 views API (Enterprise feature)', async () => {
         const res = await listV3Views(403);
         expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
@@ -201,6 +219,11 @@ export function planGatingTests() {
 
       it('should allow timeline view creation', async () => {
         const res = await createTimelineView(200);
+        expect(res.body).to.have.property('id');
+      });
+
+      it('should allow gantt view creation', async () => {
+        const res = await createGanttView(200);
         expect(res.body).to.have.property('id');
       });
 

@@ -372,11 +372,7 @@ onMounted(() => {
               :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS"
               :plan-title="PlanTitles.ENTERPRISE"
               :content="$t('upgrade.upgradeToDuplicateTableToOtherWs')"
-              :on-click-callback="
-                () => {
-                  dialogShow = false
-                }
-              "
+              :on-click-callback="() => (dialogShow = false)"
             />
           </div>
         </div>
@@ -475,11 +471,7 @@ onMounted(() => {
               class="mt-2"
               :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE"
               :content="$t('upgrade.upgradeToDuplicateTableToOtherBase')"
-              :on-click-callback="
-                () => {
-                  dialogShow = false
-                }
-              "
+              :on-click-callback="() => (dialogShow = false)"
             />
           </div>
         </div>

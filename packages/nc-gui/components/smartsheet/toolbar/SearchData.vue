@@ -236,7 +236,12 @@ watch(
       <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
     </NcButton>
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
-      <div class="border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)">
+      <div
+        class="overflow-hidden"
+        :class="{
+          'border-1 rounded-lg border-nc-border-gray-medium focus-within:(border-primary shadow-selected)': isMobileMode,
+        }"
+      >
         <div
           v-if="isList && listViewStore && listViewStore.levels.value.length > 1"
           class="flex items-center gap-1 px-2 py-1 border-b-1 border-nc-border-gray-medium"

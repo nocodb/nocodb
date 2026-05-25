@@ -303,6 +303,36 @@ export const timelineUpdateSchema = z
   })
   .strict();
 
+// Gantt body — mirrors Timeline's viewBaseFields-only shape; range columns
+// live on DateDependency, not on the view row.
+export const ganttBodySchema = z
+  .object({
+    ...viewBaseFields,
+  })
+  .strict();
+
+// DateDependency rule shipped alongside the view-create payload. Service
+// validates against swagger.json#/components/schemas/DateDependencyReq; we
+// keep the replay schema permissive (passthrough) so additions to the SDK
+// type don't require a contract version bump.
+const ganttDependencySchema = z.record(z.unknown());
+
+export const ganttCreateSchema = z
+  .object({
+    tableId: z.string(),
+    gantt: ganttBodySchema,
+    dependency: ganttDependencySchema.optional(),
+    ownedBy: z.string().optional(),
+  })
+  .strict();
+
+export const ganttUpdateSchema = z
+  .object({
+    ganttViewId: z.string(),
+    gantt: ganttBodySchema,
+  })
+  .strict();
+
 const viewUpdateBodySchema = z
   .object({
     title: z.string().optional(),

@@ -171,6 +171,7 @@ import type {
   FormColumnEvent,
   FormViewUpdateEvent,
   GalleryViewUpdateEvent,
+  GanttViewUpdateEvent,
   GridViewUpdateEvent,
   IntegrationEvent,
   IntegrationUpdateEvent,
@@ -221,6 +222,7 @@ import type {
   TeamMemberUpdateEvent,
   TeamMoveEvent,
   TeamUpdateEvent,
+  TimelineViewUpdateEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
   UserMfaBackupCodeUsedEvent,
@@ -2252,6 +2254,8 @@ export class AppHooksListenerService
       case AppEvents.KANBAN_UPDATE:
       case AppEvents.LIST_UPDATE:
       case AppEvents.MAP_UPDATE:
+      case AppEvents.TIMELINE_UPDATE:
+      case AppEvents.GANTT_UPDATE:
       case AppEvents.VIEW_UPDATE:
         {
           const param = data as
@@ -2262,6 +2266,8 @@ export class AppHooksListenerService
             | KanbanViewUpdateEvent
             | ListViewUpdateEvent
             | MapViewUpdateEvent
+            | TimelineViewUpdateEvent
+            | GanttViewUpdateEvent
             | ViewUpdateEvent;
           const type: string = viewTypeAlias[param.view.type];
 
@@ -2336,6 +2342,14 @@ export class AppHooksListenerService
                 view: (param as MapViewUpdateEvent).oldMapView,
                 context: param.context,
               });
+              break;
+            case AppEvents.TIMELINE_UPDATE:
+              next = (param as TimelineViewUpdateEvent).timelineView;
+              prev = (param as TimelineViewUpdateEvent).oldTimelineView;
+              break;
+            case AppEvents.GANTT_UPDATE:
+              next = (param as GanttViewUpdateEvent).ganttView;
+              prev = (param as GanttViewUpdateEvent).oldGanttView;
               break;
             case AppEvents.VIEW_UPDATE:
               next = (param as ViewUpdateEvent).view;
@@ -2782,6 +2796,118 @@ export class AppHooksListenerService
                   view_title: param.view.title,
                   view_id: param.view.id,
                   view_type: 'map',
+                  view_owner_id: param.owner?.id,
+                  view_owner_email: param.owner?.email,
+                  ...extractNonSystemProps(
+                    await extractViewRelatedProps(param),
+                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                  ),
+                },
+                fk_model_id: param.view.fk_model_id,
+                source_id: param.view.source_id,
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.TIMELINE_CREATE:
+        {
+          const param = data as ViewCreateEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewCreatePayload>(
+              AuditV1OperationTypes.VIEW_CREATE,
+              {
+                details: {
+                  view_title: param.view.title,
+                  view_id: param.view.id,
+                  view_type: 'timeline',
+                  ...extractNonSystemProps(
+                    await extractViewRelatedProps(param),
+                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                  ),
+                  view_owner_id: param.owner?.id,
+                  view_owner_email: param.owner?.email,
+                },
+                fk_model_id: param.view.fk_model_id,
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.TIMELINE_DELETE:
+        {
+          const param = data as ViewDeleteEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewDeletePayload>(
+              AuditV1OperationTypes.VIEW_DELETE,
+              {
+                details: {
+                  view_title: param.view.title,
+                  view_id: param.view.id,
+                  view_type: 'timeline',
+                  view_owner_id: param.owner?.id,
+                  view_owner_email: param.owner?.email,
+                  ...extractNonSystemProps(
+                    await extractViewRelatedProps(param),
+                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                  ),
+                },
+                fk_model_id: param.view.fk_model_id,
+                source_id: param.view.source_id,
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.GANTT_CREATE:
+        {
+          const param = data as ViewCreateEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewCreatePayload>(
+              AuditV1OperationTypes.VIEW_CREATE,
+              {
+                details: {
+                  view_title: param.view.title,
+                  view_id: param.view.id,
+                  view_type: 'gantt',
+                  ...extractNonSystemProps(
+                    await extractViewRelatedProps(param),
+                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                  ),
+                  view_owner_id: param.owner?.id,
+                  view_owner_email: param.owner?.email,
+                },
+                fk_model_id: param.view.fk_model_id,
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.GANTT_DELETE:
+        {
+          const param = data as ViewDeleteEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewDeletePayload>(
+              AuditV1OperationTypes.VIEW_DELETE,
+              {
+                details: {
+                  view_title: param.view.title,
+                  view_id: param.view.id,
+                  view_type: 'gantt',
                   view_owner_id: param.owner?.id,
                   view_owner_email: param.owner?.email,
                   ...extractNonSystemProps(
@@ -4327,6 +4453,8 @@ export class AppHooksListenerService
               details: {
                 table_id: param.table?.id,
                 table_title: param.table?.title,
+                gantt_view_id: param.ganttView?.id,
+                gantt_view_title: param.ganttView?.title,
                 date_dependency_id: param.dateDependency?.id,
                 is_new: param.isNew,
                 start_date_field: startDateField,
@@ -4361,6 +4489,8 @@ export class AppHooksListenerService
               details: {
                 table_id: param.table?.id,
                 table_title: param.table?.title,
+                gantt_view_id: param.ganttView?.id,
+                gantt_view_title: param.ganttView?.title,
               },
             },
           ),

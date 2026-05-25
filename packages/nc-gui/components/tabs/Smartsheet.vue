@@ -41,7 +41,7 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, xWhere, eventBus } =
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, isGantt, xWhere, eventBus } =
   useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
@@ -113,6 +113,7 @@ useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
 useProvideListViewStore(meta, activeView)
 useProvideTimelineViewStore(meta, activeView, false, xWhere)
+useProvideGanttViewStore(meta, activeView, false, xWhere)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -123,6 +124,7 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
 provide(IsTimelineInj, isTimeline)
+provide(IsGanttInj, isGantt)
 provide(TabMetaInj, activeTab)
 provide(ActiveSourceInj, activeSource)
 provide(ReloadAggregateHookInj, createEventHook())
@@ -356,9 +358,9 @@ watch(isViewsLoading, async () => {
         >
           <Pane class="flex flex-row h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
             <div v-show="!isExpandedFormPanelFullscreen" class="flex flex-col flex-1 min-w-0 h-full">
-              <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+              <SmartsheetToolbar v-if="!isForm && !isGantt" show-full-screen-toggle />
               <div
-                :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+                :style="{ height: isForm || isTimeline || isGantt ? '100%' : 'calc(100% - var(--toolbar-height))' }"
                 class="flex flex-row w-full"
               >
                 <Transition name="layout" mode="out-in">
@@ -376,6 +378,8 @@ watch(isViewsLoading, async () => {
                         <SmartsheetCalendar v-else-if="isCalendar" />
 
                         <SmartsheetTimeline v-else-if="isTimeline" />
+
+                        <SmartsheetGantt v-else-if="isGantt" />
 
                         <SmartsheetMap v-else-if="isMap" />
 

@@ -676,10 +676,16 @@ onMounted(() => { ... })
 
 ### Lint & hoisting rules
 
-- **`const` before use** — unlike `function` declarations, `const`/`let` are not hoisted. A computed or watcher that references a `ref` must come *after* that `ref` is declared.
-- **No unused variables** — lint will fail on declared-but-unused vars; remove them or prefix with `_` if intentionally unused (e.g. `_args`).
-- **No `console.log`** — remove before committing; use `Logger` in backend.
+The repo configures `@typescript-eslint/no-use-before-define` as `{ functions: false, classes: false, variables: true }`. Treat this as a hard constraint while writing — fixing forward-reference errors after the fact is expensive because it forces a reorder of the whole script.
+
+- **`const`/`let` are NOT hoisted.** A `ref`, `computed`, `watch`, `inject()` result, or any other `const`/`let` binding MUST be declared above every line that reads it. This includes refs read from inside an event handler defined earlier in the file — the handler's *body* runs later, but ESLint analyzes declaration order statically and will still flag it.
+- **`function` declarations ARE hoisted.** When you write a helper that needs to be called from code higher up in the file (e.g. a click handler that references a util defined further down), use `function name() { ... }` — *not* `const name = () => { ... }`. Both compile identically; only the `function` form satisfies the lint rule when referenced before its definition.
+- **Default to `function` for top-level helpers in `<script setup>`.** Arrow-`const` is only worth it when you actually need the lexical binding semantics (e.g. assigning a callback to a variable that gets reassigned, or building a closure over a specific scope). For ordinary handlers and utilities, `function foo() {}` is the safer default.
+- **Script-block ordering** — keep the order: imports → props/emits → composables/`inject` → refs → computeds → `function` helpers → watchers → lifecycle. Don't intersperse refs between handlers — group all state declarations before any function that touches them. See the "Script / composable internal order" template above.
 - **Avoid `as any` / `as unknown as T`** — fix the type instead.
+- **No `console.log`** in production code — remove before committing; use `Logger` in backend.
+
+Unused-variable errors (`@typescript-eslint/no-unused-vars`) are not covered by the rules above — they're case-by-case (was it a leftover from refactoring, or is the consumer missing?) and don't need a blanket policy.
 
 ### Spacing & readability
 

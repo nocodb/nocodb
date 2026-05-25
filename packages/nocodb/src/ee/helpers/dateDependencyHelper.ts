@@ -677,14 +677,27 @@ export function applyDateDependencyFieldSync(
         .split('T')[0];
     }
   } else if (endPresent && durPresent && !inData(startCol)) {
-    const e = toDate(endVal);
-    const days = toDays(durVal);
-    if (e && days !== null && days >= 0) {
-      data[startCol.column_name] = (
-        days === 0 ? e : subtractDays(e, days - 1, rule.include_weekends)
-      )
-        .toISOString()
-        .split('T')[0];
+    // Don't auto-fill Start Date on a row that was previously a milestone
+    // (Start Date is null in the current state and not being explicitly
+    // set in this patch). Computing `start = end - (duration - 1)` would
+    // silently convert the milestone into a 1-day bar — losing the
+    // diamond render and breaking the user's intent when they just drag
+    // the milestone to a new date. If they want to convert to a bar,
+    // they can set Start Date explicitly.
+    const wasMilestone =
+      !!oldData &&
+      oldData[startCol.title] == null &&
+      oldData[startCol.column_name] == null;
+    if (!wasMilestone) {
+      const e = toDate(endVal);
+      const days = toDays(durVal);
+      if (e && days !== null && days >= 0) {
+        data[startCol.column_name] = (
+          days === 0 ? e : subtractDays(e, days - 1, rule.include_weekends)
+        )
+          .toISOString()
+          .split('T')[0];
+      }
     }
   } else if (startPresent && endPresent && inData(durCol)) {
     // All three touched — recalculate duration from start+end (most explicit)

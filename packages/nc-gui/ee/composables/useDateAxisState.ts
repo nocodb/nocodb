@@ -376,7 +376,7 @@ export function useDateAxisState(options: UseDateAxisStateOptions) {
         return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
       }
       case 'month':
-        return currentDate.value.format('MMMM YYYY')
+        return currentDate.value.format('MMM YYYY')
       case 'quarter':
         return `Q${quarterOf(currentDate.value)} ${currentDate.value.format('YYYY')}`
       case '6month': {

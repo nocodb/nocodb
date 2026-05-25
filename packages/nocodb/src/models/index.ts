@@ -9,6 +9,8 @@ export { default as CalendarRange } from './CalendarRange';
 export { default as TimelineView } from './TimelineView';
 export { default as TimelineViewColumn } from './TimelineViewColumn';
 export { default as TimelineRange } from './TimelineRange';
+export { default as GanttView } from './GanttView';
+export { default as GanttViewColumn } from './GanttViewColumn';
 export { default as Filter } from './Filter';
 export { default as FormulaColumn } from './FormulaColumn';
 export { default as FormView } from './FormView';

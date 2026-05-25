@@ -28,6 +28,7 @@ import {
   User,
   View,
 } from '~/models';
+import DateDependency from '~/models/DateDependency';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
@@ -524,6 +525,24 @@ export class ViewsService {
       ).withViewId(view.id)
     ).forDelete();
 
+    // For Gantt views, capture the per-view DateDependency rule BEFORE
+    // View.delete's cascade drops it. View.delete removes the rule via a
+    // direct ncMeta.metaDelete (no event), so without this snapshot the
+    // audit trail would have no record of the rule that was removed
+    // alongside the view — a compliance auditor reconstructing "what
+    // date-dependency rules existed on table T at time Y" would lose the
+    // dropped rule's config.
+    let deletedGanttRule: Awaited<
+      ReturnType<typeof DateDependency.getByGanttViewId>
+    > | null = null;
+    if (view.type === ViewTypes.GANTT) {
+      deletedGanttRule = await DateDependency.getByGanttViewId(
+        context,
+        view.id,
+        ncMeta,
+      );
+    }
+
     await View.delete(context, param.viewId, ncMeta);
 
     let deleteEvent = AppEvents.GRID_DELETE;
@@ -541,6 +560,10 @@ export class ViewsService {
       deleteEvent = AppEvents.MAP_DELETE;
     } else if (view.type === ViewTypes.LIST) {
       deleteEvent = AppEvents.LIST_DELETE;
+    } else if (view.type === ViewTypes.TIMELINE) {
+      deleteEvent = AppEvents.TIMELINE_DELETE;
+    } else if (view.type === ViewTypes.GANTT) {
+      deleteEvent = AppEvents.GANTT_DELETE;
     }
 
     let owner = param.req.user;
@@ -556,6 +579,27 @@ export class ViewsService {
       req: param.req,
       context,
     });
+
+    // Emit DATE_DEPENDENCY_DELETE after the view-delete event so the audit
+    // ordering reads as "the view went away, and its per-view rule went
+    // with it." Skipped when the rule didn't exist — Gantt views without
+    // a configured rule fall back to the table-level default which is
+    // untouched by the cascade. ganttView surfaces in the audit message so
+    // the trail distinguishes "rule for view Y dropped" from a default-rule
+    // delete (which goes through date-dependency.service.ts).
+    if (deletedGanttRule) {
+      const model = await Model.get(context, view.fk_model_id, false, ncMeta);
+      this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_DELETE, {
+        context,
+        req: param.req,
+        table: {
+          id: model?.id,
+          title: model?.title,
+          base_id: model?.base_id,
+        },
+        ganttView: { id: view.id, title: view.title },
+      });
+    }
 
     NocoSocket.broadcastEvent(
       context,

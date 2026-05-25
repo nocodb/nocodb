@@ -164,6 +164,12 @@ import { TimelineColumnsService } from '~/services/timeline-columns.service';
 import { TimelineDatasService } from '~/ee/services/timeline-datas.service';
 import { TimelinesDatasController } from '~/ee/controllers/timelines-datas.controller';
 
+/* Gantts */
+import { GanttsService } from '~/services/gantts.service';
+import { GanttColumnsService } from '~/services/gantt-columns.service';
+import { GanttDatasService } from '~/ee/services/gantt-datas.service';
+import { GanttsDatasController } from '~/ee/controllers/gantts-datas.controller';
+
 /* Lists */
 import { ListColumnsService } from '~/ee/services/list-columns.service';
 import { UndoRedoService } from '~/ee/services/undo-redo.service';
@@ -303,6 +309,11 @@ export const nocoModuleEeMetadata = {
     TimelineColumnsService,
     TimelineDatasService,
 
+    /* Gantts */
+    GanttsService,
+    GanttColumnsService,
+    GanttDatasService,
+
     /* Lists */
     ListColumnsService,
 
@@ -395,6 +406,9 @@ export const nocoModuleEeMetadata = {
     /* Timeline data (windowed fetch with limitOverride) */
     TimelinesDatasController,
 
+    /* Gantt data (windowed fetch with limitOverride) */
+    GanttsDatasController,
+
     /* Workflows */
     WorkflowWebhookController,
 
@@ -435,6 +449,9 @@ export const nocoModuleEeMetadata = {
     TimelinesService,
     TimelineColumnsService,
     TimelineDatasService,
+    GanttsService,
+    GanttColumnsService,
+    GanttDatasService,
     ListColumnsService,
     PermissionsService,
     RlsService,

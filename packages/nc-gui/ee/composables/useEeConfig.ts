@@ -250,6 +250,10 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
+  const blockGanttView = computed(() => {
+    return !getFeature(PlanFeatureTypes.FEATURE_GANTT_VIEW)
+  })
+
   const blockTableAndFieldPermissions = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
@@ -1428,6 +1432,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseGanttView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockGanttView.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseGanttView'),
+      content: t('upgrade.upgradeToUseGanttViewSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_GANTT_VIEW,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockRowColoring.value) return
 
@@ -2360,6 +2387,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCalendarRange,
     blockTimelineView,
     showUpgradeToUseTimelineView,
+    blockGanttView,
+    showUpgradeToUseGanttView,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,

@@ -20,7 +20,14 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockListView, blockTimelineView, showEEFeatures, showUpgradeToUseTimelineView } = useEeConfig()
+const {
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+} = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -288,6 +295,40 @@ async function onOpenModal({
             </template>
             <template v-else>
               <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />
+            </template>
+          </div>
+        </NcMenuItem>
+        <NcMenuItem
+          v-if="isEeUI && showEEFeatures"
+          inner-class="w-full"
+          data-testid="sidebar-view-create-gantt"
+          @click="
+            () => {
+              isOpen = false
+              showUpgradeToUseGanttView({
+                successCallback: () => {
+                  onOpenModal({ type: ViewTypes.GANTT })
+                },
+              })
+            }
+          "
+        >
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
+              <div>{{ $t('objects.viewType.gantt') }}</div>
+            </div>
+
+            <template v-if="blockGanttView">
+              <PaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_GANTT_VIEW"
+                :plan-title="PlanTitles.BUSINESS"
+                show-as-lock
+                remove-click
+              />
+            </template>
+            <template v-else>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.GANTT && isViewListLoading" />
             </template>
           </div>
         </NcMenuItem>

@@ -1311,6 +1311,12 @@ export interface RlsPolicyDeletePayload {
 export interface DateDependencyUpdatePayload {
   table_id: string;
   table_title: string;
+  /** Set when the rule is scoped to a single Gantt view rather than the
+   * table-level default. A table can have one default rule + multiple
+   * per-view overrides; surface the view identity so the audit log
+   * disambiguates them. */
+  gantt_view_id?: string;
+  gantt_view_title?: string;
   date_dependency_id: string;
   is_new: boolean;
   start_date_field?: { id: string; title: string };
@@ -1328,6 +1334,9 @@ export interface DateDependencyUpdatePayload {
 export interface DateDependencyDeletePayload {
   table_id: string;
   table_title: string;
+  /** Set when the deleted rule was scoped to a single Gantt view. */
+  gantt_view_id?: string;
+  gantt_view_title?: string;
 }
 
 export interface DocAiCompletionPayload {
@@ -1885,13 +1894,18 @@ const descriptionTemplates = {
   ) => `Comment deleted from document '${audit.details.document_id}'`,
   [AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE]: (
     audit: AuditV1<DateDependencyUpdatePayload>
-  ) =>
-    `Date dependency ${
-      audit.details.is_new ? 'created' : 'updated'
-    } for table '${audit.details.table_title}'`,
+  ) => {
+    const verb = audit.details.is_new ? 'created' : 'updated';
+    return audit.details.gantt_view_title
+      ? `Date dependency ${verb} for Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
+      : `Date dependency ${verb} for table '${audit.details.table_title}'`;
+  },
   [AuditV1OperationTypes.DATE_DEPENDENCY_DELETE]: (
     audit: AuditV1<DateDependencyDeletePayload>
-  ) => `Date dependency deleted from table '${audit.details.table_title}'`,
+  ) =>
+    audit.details.gantt_view_title
+      ? `Date dependency deleted from Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
+      : `Date dependency deleted from table '${audit.details.table_title}'`,
 };
 
 function auditDescription(audit: AuditV1) {

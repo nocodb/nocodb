@@ -1,0 +1,168 @@
+import { expect, Locator } from '@playwright/test';
+import { DashboardPage } from '..';
+import BasePage from '../../Base';
+import { ToolbarPage } from '../common/Toolbar';
+import { TopbarPage } from '../common/Topbar';
+
+/**
+ * Page object for the Gantt view. Mirrors the Timeline page object — Gantt
+ * was forked from Timeline (see `composables/useGanttViewStore.ts` header
+ * comment) so navigation / zoom / fields-menu helpers are intentionally
+ * shaped the same way. When a behaviour drifts, both helpers should drift
+ * together; if they don't, that's a sign one of the two regressed.
+ */
+export class GanttPage extends BasePage {
+  readonly dashboard: DashboardPage;
+  readonly toolbar: ToolbarPage;
+  readonly topbar: TopbarPage;
+
+  constructor(dashboard: DashboardPage) {
+    super(dashboard.rootPage);
+    this.dashboard = dashboard;
+    this.toolbar = new ToolbarPage(this);
+    this.topbar = new TopbarPage(this);
+  }
+
+  get() {
+    return this.dashboard.rootPage.getByTestId('nc-gantt-wrapper');
+  }
+
+  async waitLoading() {
+    await this.get().waitFor({ state: 'visible' });
+    // Initial data fetch + navigateToClosestRecord pan happen on mount; let
+    // both settle before any caller asserts on bar positions.
+    await this.rootPage.waitForTimeout(1000);
+  }
+
+  async getActiveDateLabel() {
+    return await this.get().getByTestId('nc-gantt-active-date').textContent();
+  }
+
+  async clickToday() {
+    await this.get().getByTestId('nc-gantt-today-btn').click();
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  async clickNext() {
+    await this.get().getByTestId('nc-gantt-next-btn').click();
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  async clickPrev() {
+    await this.get().getByTestId('nc-gantt-prev-btn').click();
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  /**
+   * The Gantt has its own toolbar (`.nc-gantt-toolbar`), so the shared
+   * ToolbarPage helpers that anchor on `.nc-table-toolbar` don't resolve.
+   * Toggle the fields-menu dropdown explicitly, scoped to the Gantt wrapper.
+   */
+  async clickFields() {
+    const fieldsMenu = this.rootPage.locator('[data-testid="nc-fields-menu"]');
+    const wasOpen = await fieldsMenu.isVisible();
+    await this.get().locator('button.nc-fields-menu-btn').click();
+    if (wasOpen) await fieldsMenu.waitFor({ state: 'hidden' });
+    else await fieldsMenu.waitFor({ state: 'visible' });
+  }
+
+  bars(): Locator {
+    return this.get().locator('[data-testid="nc-gantt-bar"]');
+  }
+
+  async getBarCount() {
+    return await this.bars().count();
+  }
+
+  async getFirstBar(): Promise<Locator> {
+    return this.bars().first();
+  }
+
+  /**
+   * Returns the full text content of the bar at `index`. For wide bars
+   * this is what the user reads inside the rectangle; for narrow bars
+   * Gantt routes the label through a sibling spill-out element so the
+   * inside-bar content is empty — use `gantt.get().locator(...)` to find
+   * the spill text in that case.
+   */
+  async getBarText(index = 0): Promise<string> {
+    return ((await this.bars().nth(index).textContent()) ?? '').trim();
+  }
+
+  /**
+   * Hover the bar to surface the NcTooltip, then read its content. The
+   * tooltip portal mounts under `body > .ant-tooltip` — locate the last
+   * visible tooltip and grab its inner text.
+   */
+  async getBarTooltipText(index = 0): Promise<string> {
+    const bar = this.bars().nth(index);
+    await bar.scrollIntoViewIfNeeded();
+    await bar.hover();
+    const tooltip = this.rootPage.locator('.ant-tooltip-inner').last();
+    await tooltip.waitFor({ state: 'visible', timeout: 3000 });
+    return ((await tooltip.textContent()) ?? '').trim();
+  }
+
+  async clickBar(index = 0) {
+    await this.bars().nth(index).click();
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  /**
+   * Inspector panel — slides in from the right when a bar is clicked.
+   * Lives outside the Gantt wrapper in the layout, so locate it from
+   * the root page.
+   */
+  async getInspector(): Promise<Locator> {
+    return this.rootPage.getByTestId('nc-gantt-inspector');
+  }
+
+  async closeInspector() {
+    await this.rootPage.getByTestId('nc-gantt-inspector').getByTestId('nc-gantt-inspector-close').click();
+    await this.rootPage.waitForTimeout(300);
+  }
+
+  /**
+   * Set zoom level. The dropdown is an Ant Design `<a-select>` — options
+   * don't carry `data-value` attributes; click by visible label instead.
+   * Labels come from `zoomLabel(option)` in the FE which i18n-resolves
+   * to capitalized names ("Week", "2 weeks", "Month", "Quarter",
+   * "6 months", "Year", "2 years", "5 years").
+   */
+  async setZoomLevel(level: 'week' | '2week' | 'month' | 'quarter' | '6month' | 'year' | '2year' | '5year') {
+    const labels: Record<typeof level, string> = {
+      week: 'Week',
+      '2week': '2 weeks',
+      month: 'Month',
+      quarter: 'Quarter',
+      '6month': '6 months',
+      year: 'Year',
+      '2year': '2 years',
+      '5year': '5 years',
+    };
+    await this.get().getByTestId('nc-gantt-view-mode').click();
+    const dropdown = this.rootPage.locator('.nc-gantt-zoom-dropdown');
+    await dropdown.waitFor({ state: 'visible' });
+    await dropdown.locator('.ant-select-item-option-content').getByText(labels[level], { exact: true }).first().click();
+    await this.rootPage.waitForTimeout(800);
+  }
+
+  /**
+   * Dependency arrows — rendered as SVG paths with the hit-area class
+   * `nc-gantt-arrow-hit`. One path per edge between visible bars. The
+   * outer SVG mounts only when `arrowPaths.length || linkCreationDrag`,
+   * so a zero count is fine when no deps are configured.
+   */
+  async getArrowCount(): Promise<number> {
+    return await this.get().locator('.nc-gantt-arrow-hit').count();
+  }
+
+  async verifyEmptyState() {
+    await expect(this.get()).toContainText(/No date range configured|noGanttRange/i);
+  }
+
+  async verifyBarsRendered() {
+    const count = await this.getBarCount();
+    expect(count).toBeGreaterThan(0);
+  }
+}

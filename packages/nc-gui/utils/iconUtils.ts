@@ -272,9 +272,6 @@ import NcWhatsapp from '~icons/nc-icons/whatsapp'
 import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
 import NcMCP from '~icons/nc-icons/mcp'
 
-// View icons
-import NcViewGantt from '~icons/nc-icons/view-gantt'
-
 import NcDollerSign from '~icons/nc-icons/doller-sign'
 import NcMultiFile from '~icons/nc-icons/multi-file'
 import NcHeart from '~icons/nc-icons/heart'
@@ -626,6 +623,7 @@ import NcGalleryViewIcon from '~icons/nc-icons/gallery'
 import NcKanbanViewIcon from '~icons/nc-icons/kanban'
 import NcCalendarViewIcon from '~icons/nc-icons/calendar'
 import NcTimelineViewIcon from '~icons/nc-icons/timeline'
+import NcGanttViewIcon from '~icons/nc-icons/view-gantt'
 import NcMapViewIcon from '~icons/nc-icons/map'
 import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
@@ -998,6 +996,7 @@ import NcKeyboardIcon from '~icons/nc-icons-v2/keyboard'
 export const iconMap = {
   'calendar': NcCalendarViewIcon,
   'timeline': NcTimelineViewIcon,
+  'gantt': NcGanttViewIcon,
   'grid': NcGridViewIcon,
   'form': NcFormViewIcon,
   'gallery': NcGalleryViewIcon,
@@ -1357,7 +1356,6 @@ export const iconMap = {
   'twilio': NcTwilio,
   'whatsapp': NcWhatsapp,
   'whatsappSolid': NcWhatsappSolid,
-  'viewGannt': NcViewGantt,
   'dollerSign': NcDollerSign,
   'multiFile': NcMultiFile,
   'heart': NcHeart,

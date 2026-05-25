@@ -14,7 +14,13 @@ import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { validatePayload } from '~/helpers/apiHelpers';
-import { Column, DateDependency, DependencyTracker, Model } from '~/models';
+import {
+  Column,
+  DateDependency,
+  DependencyTracker,
+  Model,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
@@ -26,8 +32,11 @@ export class DateDependencyService {
 
   async get(
     context: NcContext,
-    param: { modelId: string },
+    param: { modelId: string; ganttViewId?: string },
   ): Promise<DateDependency | null> {
+    if (param.ganttViewId) {
+      return DateDependency.getByGanttViewId(context, param.ganttViewId);
+    }
     return DateDependency.getByModelId(context, param.modelId);
   }
 
@@ -36,6 +45,9 @@ export class DateDependencyService {
     context: NcContext,
     param: {
       modelId: string;
+      // When set, scopes the rule to a specific Gantt view (per-view rule).
+      // When omitted, operates on the table's default rule (fk_gantt_view_id IS NULL).
+      ganttViewId?: string;
       body: DateDependencyReqType;
       req: NcRequest;
     },
@@ -43,6 +55,14 @@ export class DateDependencyService {
     await assertNotSandboxProduction(context);
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
+
+    // Per-view rules belong to a Gantt view, so the Gantt feature flag must
+    // also be satisfied. The two flags are aligned in current plans but are
+    // separate enums — keep them independently enforced so a future plan
+    // mix doesn't accidentally let users mutate Gantt-owned rules.
+    if (param.ganttViewId) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_GANTT_VIEW);
+    }
 
     validatePayload(
       'swagger.json#/components/schemas/DateDependencyReq',
@@ -54,7 +74,9 @@ export class DateDependencyService {
 
     await this.validateConfig(context, param.modelId, param.body);
 
-    const existing = await DateDependency.getByModelId(context, param.modelId);
+    const existing = param.ganttViewId
+      ? await DateDependency.getByGanttViewId(context, param.ganttViewId)
+      : await DateDependency.getByModelId(context, param.modelId);
 
     let result: DateDependency;
     const isNew = !existing;
@@ -64,6 +86,7 @@ export class DateDependencyService {
     } else {
       result = await DateDependency.insert(context, {
         fk_model_id: param.modelId,
+        fk_gantt_view_id: param.ganttViewId ?? null,
         ...param.body,
       });
     }
@@ -86,10 +109,19 @@ export class DateDependencyService {
       context.socket_id,
     );
 
+    // Resolve the Gantt view identity for the audit payload — per-view
+    // and table-level rules otherwise look identical in the audit log.
+    const ganttView = param.ganttViewId
+      ? await View.get(context, param.ganttViewId)
+      : undefined;
+
     this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_UPDATE, {
       context,
       req: param.req,
       table: model,
+      ganttView: ganttView
+        ? { id: ganttView.id, title: ganttView.title }
+        : undefined,
       dateDependency: result,
       isNew,
     });
@@ -100,15 +132,30 @@ export class DateDependencyService {
   @TraceCommand(OperationName.dateDependencyDelete)
   async delete(
     context: NcContext,
-    param: { modelId: string; req: NcRequest },
+    param: { modelId: string; ganttViewId?: string; req: NcRequest },
   ): Promise<void> {
     await assertNotSandboxProduction(context);
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
+    // Per-view rule deletes must also satisfy the Gantt feature flag —
+    // see the matching gate in update() above for rationale.
+    if (param.ganttViewId) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_GANTT_VIEW);
+    }
+
     const model = param.modelId && (await Model.get(context, param.modelId));
 
-    const existing = await DateDependency.getByModelId(context, param.modelId);
+    // Resolve view identity before the delete so the audit log can name
+    // the specific Gantt view whose rule was removed (table-level
+    // deletes leave this undefined).
+    const ganttView = param.ganttViewId
+      ? await View.get(context, param.ganttViewId)
+      : undefined;
+
+    const existing = param.ganttViewId
+      ? await DateDependency.getByGanttViewId(context, param.ganttViewId)
+      : await DateDependency.getByModelId(context, param.modelId);
     if (existing?.id) {
       await DependencyTracker.clearDependencies(
         context,
@@ -116,7 +163,11 @@ export class DateDependencyService {
         existing.id,
       );
     }
-    await DateDependency.deleteByModelId(context, param.modelId);
+    if (param.ganttViewId) {
+      await DateDependency.deleteByGanttViewId(context, param.ganttViewId);
+    } else {
+      await DateDependency.deleteByModelId(context, param.modelId);
+    }
 
     if (model) {
       NocoSocket.broadcastEvent(
@@ -138,6 +189,9 @@ export class DateDependencyService {
         context,
         req: param.req,
         table: model,
+        ganttView: ganttView
+          ? { id: ganttView.id, title: ganttView.title }
+          : undefined,
       });
     }
   }
@@ -215,6 +269,19 @@ export class DateDependencyService {
       if (!col || !isLinksOrLTAR(col)) {
         NcError.get(context).badRequest(
           'Dependency linkrow field must be a Links or LinkToAnotherRecord type column',
+        );
+      }
+
+      // Reject system-generated inverse LTAR columns. For self-ref v2 OO
+      // (and any other where the system auto-creates a counterpart), writes
+      // via the inverse store the junction with flipped mm_parent/mm_child
+      // relative to the canonical user-created column, which makes the cell
+      // appear on the wrong row in grid views that display the canonical
+      // side. Forcing dep config to point at the non-system column keeps
+      // Gantt arrows + grid cell display consistent.
+      if ((col as any).system) {
+        NcError.get(context).badRequest(
+          'Dependency linkrow field cannot be an auto-generated inverse link column. Pick the user-created link field instead.',
         );
       }
 

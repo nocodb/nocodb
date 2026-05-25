@@ -49,7 +49,12 @@ export const DateDependencyUpdateContract: OperationContract<
       const table = params?.modelId
         ? await Model.get(context, params.modelId)
         : undefined;
-      const existing = params?.modelId
+      // Per-view Gantt rule when ganttViewId is set; otherwise table default.
+      // Old persisted rows (pre-Gantt) have no ganttViewId — fall through to
+      // the original getByModelId path unchanged.
+      const existing = params?.ganttViewId
+        ? await DateDependency.getByGanttViewId(context, params.ganttViewId)
+        : params?.modelId
         ? await DateDependency.getByModelId(context, params.modelId)
         : undefined;
       const prev = existing
@@ -63,18 +68,26 @@ export const DateDependencyUpdateContract: OperationContract<
   },
   undo: {
     // Was an update if `prev` exists — restore prior body. Otherwise the
-    // forward was an insert; undo by deleting.
+    // forward was an insert; undo by deleting. ganttViewId is carried so
+    // the restore/delete targets the same rule scope (view vs table).
     inverse: (_context, params, _result, resolved) => {
       const prev = resolved?.extra?.prev;
       if (prev) {
         return {
           name: OperationName.dateDependencyUpdate,
-          params: { modelId: params.modelId, body: prev },
+          params: {
+            modelId: params.modelId,
+            body: prev,
+            ...(params.ganttViewId ? { ganttViewId: params.ganttViewId } : {}),
+          },
         };
       }
       return {
         name: OperationName.dateDependencyDelete,
-        params: { modelId: params.modelId },
+        params: {
+          modelId: params.modelId,
+          ...(params.ganttViewId ? { ganttViewId: params.ganttViewId } : {}),
+        },
       };
     },
     scope: (_p, _r, _c, context) => scopeBase(context),
@@ -96,7 +109,9 @@ export const DateDependencyDeleteContract: OperationContract<
       const table = params?.modelId
         ? await Model.get(context, params.modelId)
         : undefined;
-      const existing = params?.modelId
+      const existing = params?.ganttViewId
+        ? await DateDependency.getByGanttViewId(context, params.ganttViewId)
+        : params?.modelId
         ? await DateDependency.getByModelId(context, params.modelId)
         : undefined;
       const prev = existing
@@ -116,7 +131,11 @@ export const DateDependencyDeleteContract: OperationContract<
       if (!prev) return null;
       return {
         name: OperationName.dateDependencyUpdate,
-        params: { modelId: params.modelId, body: prev },
+        params: {
+          modelId: params.modelId,
+          body: prev,
+          ...(params.ganttViewId ? { ganttViewId: params.ganttViewId } : {}),
+        },
       };
     },
     scope: (_p, _r, _c, context) => scopeBase(context),

@@ -438,9 +438,15 @@ const dragCreateStyle = computed(() => {
   return { left: `${left}px`, width: `${width}px`, top: `${top}px`, height: `${height}px` }
 })
 
+// Set true as soon as the pointer crosses a day boundary during a drag-create
+// gesture. A plain click (mousedown→mouseup without crossing days) shouldn't
+// open the new-record modal — only an actual drag or a dblclick should.
+const dragCreateMoved = ref(false)
+
 const onDragCreateMove = (event: MouseEvent) => {
   if (!dragCreateActive.value || !gridBodyRef.value) return
   const dayIdx = getDayIndexFromEvent(event)
+  if (dayIdx !== dragCreateStartIdx.value) dragCreateMoved.value = true
   dragCreateEndIdx.value = dayIdx
   // Lane stays locked to where the user initially clicked
 }
@@ -451,12 +457,14 @@ const onDragCreateEnd = () => {
 
   if (!dragCreateActive.value) return
 
-  const range = dragCreateRange.value
-  if (range) {
-    const startDate = props.visibleDates[range.minIdx]
-    const endDate = props.visibleDates[range.maxIdx]
-    if (startDate && endDate) {
-      emit('newRecord', startDate, endDate)
+  if (dragCreateMoved.value) {
+    const range = dragCreateRange.value
+    if (range) {
+      const startDate = props.visibleDates[range.minIdx]
+      const endDate = props.visibleDates[range.maxIdx]
+      if (startDate && endDate) {
+        emit('newRecord', startDate, endDate)
+      }
     }
   }
 
@@ -464,10 +472,16 @@ const onDragCreateEnd = () => {
   dragCreateStartIdx.value = null
   dragCreateEndIdx.value = null
   dragCreateLaneIdx.value = null
+  dragCreateMoved.value = false
 }
 
-// Whether any interaction (resize or drag) is happening
-const isInteracting = computed(() => resizeInProgress.value || dragInProgress.value || dragCreateActive.value)
+// Whether any interaction (resize or drag) is happening. Drag-create counts
+// only AFTER the pointer has crossed a day boundary — otherwise a plain click
+// would briefly flip this flag and dim every bar (opacity-30) for the
+// duration of the click, producing a visible flash.
+const isInteracting = computed(
+  () => resizeInProgress.value || dragInProgress.value || (dragCreateActive.value && dragCreateMoved.value),
+)
 const interactionRecord = computed(() => resizeRecord.value || dragRecord.value)
 
 // Clean up listeners and timers on unmount
@@ -762,6 +776,25 @@ const onGridBodyMouseDown = (event: MouseEvent) => {
   document.addEventListener('mouseup', onDragCreateEnd)
 }
 
+// Double-click on empty grid area = create a single-day record at the
+// pointer's day. Skips when clicking on a bar/handle (same exclusions as
+// onGridBodyMouseDown).
+const onGridBodyDblClick = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  const target = event.target as HTMLElement
+  if (
+    target.closest('.nc-timeline-bar') ||
+    target.closest('.nc-timeline-resize-handle') ||
+    target.closest('.nc-timeline-nav-arrow') ||
+    target.closest('.nc-timeline-nav-btn')
+  )
+    return
+  const dayIdx = getDayIndexFromEvent(event)
+  const date = props.visibleDates[dayIdx]
+  if (!date) return
+  emit('newRecord', date, date)
+}
+
 // #21: Keyboard navigation between bars
 const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, barIdx: number) => {
   if (event.key === 'Enter') {
@@ -886,90 +919,17 @@ const onGridMouseLeave = () => {
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
-        <div :style="{ width: `${totalGridWidth}px` }">
-          <!-- Stacked major rows (year / quarter / month etc.) — each tier is
-               a row of absolutely-positioned spans over the day grid. -->
-          <div
-            v-for="(tier, tierIdx) in majorHeaderTiers"
-            :key="`tier-${tierIdx}`"
-            class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
-            :style="{ height: '20px' }"
-          >
-            <div
-              v-for="span in tier"
-              :key="span.key"
-              class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
-              :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
-            >
-              {{ span.label }}
-            </div>
-          </div>
-
-          <!-- Minor row. Per-day cells were replaced with absolute overlays
-               so coarse zooms don't iterate 1.5k–3.7k cells per render: a
-               single bg div + sparse weekend / gridline / label arrays. -->
-          <div
-            class="relative bg-nc-bg-default border-b border-nc-border-gray-medium"
-            :style="{ height: `${TIMELINE_GROUP_HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
-          >
-            <!-- Weekend stripes (only at fine zooms) -->
-            <div
-              v-for="off in weekendOffsets"
-              :key="`hwk-${off.key}`"
-              class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
-              :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
-            />
-            <!-- Today column highlight -->
-            <div
-              v-if="todayDayIdx >= 0"
-              class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
-              :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
-            />
-            <!-- Hover column highlight -->
-            <div
-              v-if="hoverColIndex !== null && hoverColIndex !== todayDayIdx"
-              class="absolute top-0 bottom-0 nc-timeline-header-hover pointer-events-none"
-              :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
-            />
-            <!-- Gridline boundaries -->
-            <div
-              v-for="off in gridlineOffsets"
-              :key="`hgl-${off.key}`"
-              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
-              :style="{ left: `${off.leftPx}px` }"
-            />
-            <!-- Sparse labels (mondays / weekday-short / per-day at fine zooms) -->
-            <div
-              v-for="lbl in minorLabels"
-              :key="`hl-${lbl.key}`"
-              class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
-              :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
-            >
-              <span
-                v-if="lbl.weekday"
-                class="text-[10px] font-normal leading-tight"
-                :class="{
-                  'text-nc-content-brand': lbl.idx === todayDayIdx,
-                  'text-nc-content-gray-subtle': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
-                  'text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
-                }"
-              >
-                {{ lbl.weekday }}
-              </span>
-              <span
-                v-if="lbl.dayNum"
-                class="text-[11px] leading-tight whitespace-nowrap"
-                :class="{
-                  'text-nc-content-brand': lbl.idx === todayDayIdx,
-                  'font-semibold text-nc-content-gray-emphasis': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
-                  'font-normal text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
-                }"
-              >
-                {{ lbl.dayNum }}
-              </span>
-            </div>
-          </div>
-        </div>
+        <SmartsheetSharedDateAxisHeader
+          :major-header-tiers="majorHeaderTiers"
+          :minor-labels="minorLabels"
+          :weekend-offsets="weekendOffsets"
+          :gridline-offsets="gridlineOffsets"
+          :col-width="colWidth"
+          :total-grid-width="totalGridWidth"
+          :today-day-idx="todayDayIdx"
+          :minor-height="TIMELINE_GROUP_HEADER_HEIGHT"
+          :hover-col-index="hoverColIndex"
+        />
       </div>
     </div>
     <!-- When header is hidden, still need a ref element to measure container width -->
@@ -1019,7 +979,13 @@ const onGridMouseLeave = () => {
         </div>
 
         <!-- Content layer: bars and empty state — sits above backgrounds -->
-        <div ref="gridBodyRef" class="relative w-full" style="z-index: 1" @mousedown="onGridBodyMouseDown">
+        <div
+          ref="gridBodyRef"
+          class="relative w-full"
+          style="z-index: 1"
+          @mousedown="onGridBodyMouseDown"
+          @dblclick="onGridBodyDblClick"
+        >
           <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
@@ -1151,7 +1117,7 @@ const onGridMouseLeave = () => {
 
           <!-- Drag-to-create dotted rectangle -->
           <div
-            v-if="dragCreateActive && dragCreateStyle"
+            v-if="dragCreateActive && dragCreateMoved && dragCreateStyle"
             class="absolute nc-timeline-drag-create-rect pointer-events-none"
             :style="dragCreateStyle"
           />

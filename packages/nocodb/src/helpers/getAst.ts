@@ -25,6 +25,7 @@ import type {
 import type { ViewMetaRowColoring } from '~/models/View';
 import {
   CalendarRange,
+  DateDependency,
   Filter,
   GalleryView,
   GridViewColumn,
@@ -150,6 +151,26 @@ const getAst = async (
         .flatMap((obj) =>
           [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
         )
+        .map(String);
+    }
+  } else if (view && view.type === ViewTypes.GANTT) {
+    // Gantt consumes a DateDependency rule (EE-only). View-owned rule
+    // (fk_gantt_view_id = view.id) takes precedence, with fallback to the
+    // table-level default (fk_gantt_view_id IS NULL). Start/end date and
+    // dep-link columns often aren't "shown" on the view, so we augment
+    // the range-field list the same way Calendar does. CE's DateDependency
+    // stub returns null from both methods, so this block is an effective
+    // no-op in CE.
+    const dep =
+      (await DateDependency.getByGanttViewId(context, view.id)) ||
+      (await DateDependency.getByModelId(context, model.id));
+    if (dep && dep.is_active !== false) {
+      dependencyFieldsForRangeView = [
+        dep.fk_start_date_field_id,
+        dep.fk_end_date_field_id,
+        dep.fk_dependency_linkrow_field_id,
+      ]
+        .filter(Boolean)
         .map(String);
     }
   }

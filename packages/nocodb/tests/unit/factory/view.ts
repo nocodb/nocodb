@@ -43,6 +43,8 @@ const createView = async (
         return 'maps';
       case ViewTypes.TIMELINE:
         return 'timelines';
+      case ViewTypes.GANTT:
+        return 'gantts';
       default:
         throw new Error('Invalid view type');
     }

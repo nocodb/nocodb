@@ -1,22 +1,29 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+/**
+ * Shared GroupBy wrapper used by Timeline and Gantt grouped layouts.
+ *
+ * Owns:
+ * - Sidebar group labels (with expand/collapse, count, MultiSelect chip rendering, cell-typed value rendering)
+ * - Expand/collapse tracking + auto-expand new groups
+ * - Lazy load on first expand
+ * - Reload + smart per-group refetch on `reloadViewDataHook`
+ * - Pagination at the root
+ * - Recursion for nested groups
+ *
+ * The "leaf grid" — the actual date-axis bar renderer (TimelineGrid or
+ * GanttGrid) — is supplied by the caller via the default slot. The slot
+ * receives `{ rows }` and is forwarded transparently through recursion so
+ * nested groups pick up the same renderer.
+ */
 import type dayjs from 'dayjs'
-import { TIMELINE_GROUP_SIDEBAR_WIDTH, type TimelineZoomLevel } from '../../../utils/timelineUtils'
-import GroupBy from './GroupBy.vue'
+import { TIMELINE_GROUP_SIDEBAR_WIDTH } from '../../../utils/timelineUtils'
+import GroupBy from './DateAxisGroupBy.vue'
 import type { Row as RowType } from '#imports'
 import { shouldRenderCell } from '~/utils/groupbyUtils'
 import type { Group } from '~/lib/types'
 
 const props = defineProps<{
   group: Group
-  visibleDates: dayjs.Dayjs[]
-  timelineRange: Array<{
-    fk_from_col: ColumnType
-    fk_to_col?: ColumnType | null
-    id: string
-    is_readonly: boolean
-  }>
-  zoomLevel: TimelineZoomLevel
   loadGroups: (
     params?: any,
     group?: Group,
@@ -70,6 +77,10 @@ const _loadGroups = async (params?: any, group?: Group, options?: { triggerChild
   isViewDataLoading.value = false
   isPaginationLoading.value = false
 }
+
+// Ref the scroll area so the overlay slot can use it as a measurement
+// origin for absolute-positioned cross-group overlays.
+const scrollAreaRef = ref<HTMLElement | null>(null)
 
 // Expanded groups tracker — plain object for reliable Vue reactivity
 const expandedGroups = ref<Record<string, boolean>>({})
@@ -185,13 +196,19 @@ onBeforeUnmount(async () => {
 <template>
   <div class="h-full flex flex-col">
     <!-- Scrollable groups area -->
-    <div class="flex-1 min-h-0 overflow-y-auto">
-      <!-- CSS Grid layout: left sidebar (group labels) + right timeline area -->
-      <div class="nc-timeline-group-grid" :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }">
+    <div ref="scrollAreaRef" class="flex-1 min-h-0 overflow-y-auto relative">
+      <!-- Optional overlay slot — rendered as an absolute child of the
+           scroll area so consumers (e.g. Gantt cross-group arrow layer)
+           can draw across multiple groups inside the same scroll context.
+           Passed expandedGroups + scroll container ref + group tree so
+           callers can compute global y positions. -->
+      <slot name="overlay" :expanded-groups="expandedGroups" :scroll-area-el="scrollAreaRef" :group="vGroup" />
+      <!-- CSS Grid layout: left sidebar (group labels) + right date-axis area -->
+      <div class="nc-date-axis-group-grid" :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }">
         <template v-for="grp of vGroup?.children ?? []" :key="grp.key">
-          <!-- #13: Left cell: group label — min-h matches right cell when collapsed -->
+          <!-- Left cell: group label — min-h matches right cell when collapsed -->
           <div
-            class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors overflow-hidden"
+            class="nc-date-axis-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors overflow-hidden"
             @click="toggleGroup(grp)"
           >
             <div class="flex items-center gap-1.5 w-full">
@@ -242,7 +259,7 @@ onBeforeUnmount(async () => {
                 >
                   <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                     <SmartsheetGridGroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                    <span v-else class="text-nc-content-gray-muted text-sm">No mapped value</span>
+                    <span v-else class="text-nc-content-gray-muted text-sm">{{ $t('labels.noMappedValue') }}</span>
                   </template>
                 </div>
 
@@ -283,28 +300,19 @@ onBeforeUnmount(async () => {
             </div>
           </div>
 
-          <!-- #16: Right cell: timeline content — with expand/collapse transition -->
+          <!-- Right cell: date-axis content — with expand/collapse transition -->
           <div class="border-b border-nc-border-gray-medium overflow-hidden">
             <div v-if="isExpanded(String(grp.key))">
-              <!-- Leaf group: render timeline grid -->
-              <SmartsheetTimelineGrid
-                v-if="!grp.nested && grp.rows"
-                :records="grp.rows"
-                :visible-dates="visibleDates"
-                :timeline-range="timelineRange"
-                :zoom-level="zoomLevel"
-                :hide-header="true"
-                @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
-                @navigate-to="(date: dayjs.Dayjs) => emit('navigateTo', date)"
-              />
+              <!-- Leaf group: render the caller's grid via the default slot.
+                   Slot receives the leaf's row array; caller decides which grid
+                   component to instantiate (TimelineGrid / GanttGrid). -->
+              <slot v-if="!grp.nested && grp.rows" :rows="grp.rows" />
 
-              <!-- Nested group: recurse -->
+              <!-- Nested group: recurse. Forward the default slot transparently
+                   so nested levels render the same caller-supplied grid. -->
               <GroupBy
                 v-else-if="grp.nested"
                 :group="grp"
-                :visible-dates="visibleDates"
-                :timeline-range="timelineRange"
-                :zoom-level="zoomLevel"
                 :load-groups="loadGroups"
                 :load-group-data="loadGroupData"
                 :load-group-page="loadGroupPage"
@@ -313,7 +321,11 @@ onBeforeUnmount(async () => {
                 :max-depth="maxDepth"
                 @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
                 @navigate-to="(date: dayjs.Dayjs) => emit('navigateTo', date)"
-              />
+              >
+                <template #default="bindings">
+                  <slot v-bind="bindings" />
+                </template>
+              </GroupBy>
 
               <!-- Loading state -->
               <div v-else class="flex items-center justify-center py-4 text-nc-content-gray-muted">
@@ -330,7 +342,7 @@ onBeforeUnmount(async () => {
       v-if="vGroup.root && vGroup.paginationData"
       v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
-      custom-label="groups"
+      :custom-label="$t('objects.groups')"
       align-left
       show-api-timing
       :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
@@ -340,7 +352,7 @@ onBeforeUnmount(async () => {
 </template>
 
 <style scoped lang="scss">
-.nc-timeline-group-label {
+.nc-date-axis-group-label {
   align-self: stretch;
 }
 </style>

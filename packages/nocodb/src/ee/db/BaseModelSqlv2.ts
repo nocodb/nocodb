@@ -1249,10 +1249,27 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     data: Record<string, any>,
     oldData: Record<string, any> | null,
   ): Promise<void> {
-    const rule = await DateDependency.getByModelId(this.context, this.model.id);
-    if (!rule?.is_active) return;
-
-    applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
+    // Many rules per table now — table-level default + per-Gantt-view rules.
+    // Iterate all active rules and apply each one's field-sync. Rules that
+    // touch disjoint field sets run independently; rules that overlap
+    // converge to last-write-wins (predictable, no conflict resolution
+    // needed at this layer).
+    //
+    // View-scoped rules (fk_gantt_view_id set) only apply when the
+    // originating update came from THAT Gantt view — editing the same row
+    // from a grid / form / other view doesn't carry that view's dep
+    // configuration (e.g. its Duration↔Start↔End sync). Table-level rules
+    // (fk_gantt_view_id IS NULL) remain the default and apply from any view.
+    const rules = await DateDependency.listByModelId(
+      this.context,
+      this.model.id,
+    );
+    for (const rule of rules) {
+      if (!rule?.is_active) continue;
+      if (rule.fk_gantt_view_id && rule.fk_gantt_view_id !== this.viewId)
+        continue;
+      applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
+    }
   }
 
   /**
@@ -1260,6 +1277,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
    * The CTE computes which rows need updating and their new dates (SELECT only).
    * Results are streamed in batches of 500 and bulk-updated so that updated_at,
    * updated_by, hooks, broadcasts, and audit all go through the standard path.
+   *
+   * Many rules per table: iterate all active rules (table-level default +
+   * each Gantt-view-owned rule) and propagate each. The reentrancy guard is
+   * set once at the outer level so a propagation triggered by rule A doesn't
+   * re-enter via rule B's bulkUpdate.
    */
   protected async propagateDateDependency(
     changedRowIds: string[],
@@ -1276,18 +1298,59 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // Recursive CTE: PostgreSQL and MySQL 8+ only
     if (!this.isPg && !this.isMySQL) return;
 
-    const rule = await DateDependency.getByModelId(this.context, this.model.id);
-    if (
-      !rule?.is_active ||
-      !rule.fk_dependency_linkrow_field_id ||
-      rule.dependency_buffer_type === 'none'
-    )
-      return;
+    const rules = await DateDependency.listByModelId(
+      this.context,
+      this.model.id,
+    );
+    const activeRules = rules.filter((r) => {
+      if (!r?.is_active) return false;
+      if (!r.fk_dependency_linkrow_field_id) return false;
+      if (r.dependency_buffer_type === 'none') return false;
+      // View-scoped rules (fk_gantt_view_id set) should only cascade when
+      // the originating update came from THAT Gantt view. Editing the same
+      // row from a grid / form / other Gantt view must NOT trigger this
+      // rule — its dep config is per-view, so its cascade is per-view too.
+      // Table-level rules (fk_gantt_view_id IS NULL) remain the default
+      // and fire from any view.
+      if (r.fk_gantt_view_id && r.fk_gantt_view_id !== this.viewId) {
+        return false;
+      }
+      return true;
+    });
+    if (!activeRules.length) return;
 
     if (!this.model.columns?.length) {
       await this.model.getColumns(this.context);
     }
 
+    // Set reentrancy flag ONCE around the whole batch so per-rule bulkUpdate
+    // doesn't trigger re-entry via the next rule.
+    this.context.additionalContext = {
+      ...this.context.additionalContext,
+      isDatePropagating: true,
+    };
+    try {
+      for (const rule of activeRules) {
+        await this.propagateOneDateDependencyRule(rule, changedRowIds, req);
+      }
+    } finally {
+      this.context.additionalContext = {
+        ...this.context.additionalContext,
+        isDatePropagating: false,
+      };
+    }
+  }
+
+  /**
+   * Per-rule propagation. The body that previously lived in
+   * `propagateDateDependency` for the single-rule case — extracted so the
+   * outer method can loop. Reentrancy guard is set by the caller.
+   */
+  private async propagateOneDateDependencyRule(
+    rule: DateDependency,
+    changedRowIds: string[],
+    req: NcRequest,
+  ): Promise<void> {
     const startCol = this.model.columns.find(
       (c) => c.id === rule.fk_start_date_field_id,
     );
@@ -1426,14 +1489,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     };
 
     // Clear socket_id so the sender also receives realtime updates
-    // for cascaded rows (they didn't directly edit these rows)
+    // for cascaded rows (they didn't directly edit these rows).
+    // Reentrancy flag is set by the outer caller (propagateDateDependency).
     const savedSocketId = this.context.socket_id;
     this.context.socket_id = undefined;
 
-    this.context.additionalContext = {
-      ...this.context.additionalContext,
-      isDatePropagating: true,
-    };
     try {
       const isExternal = this.dbDriver.isExternal;
 
@@ -1483,10 +1543,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } catch (err: any) {
       this.logger.error('Date dependency propagation failed', err.stack);
     } finally {
-      this.context.additionalContext = {
-        ...this.context.additionalContext,
-        isDatePropagating: false,
-      };
       this.context.socket_id = savedSocketId;
     }
   }

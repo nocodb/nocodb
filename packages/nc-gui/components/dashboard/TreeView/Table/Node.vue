@@ -669,11 +669,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                                 plan: PlanTitles.PLUS,
                               })
                             "
-                            :on-click-callback="
-                              () => {
-                                isOptionsOpen = false
-                              }
-                            "
+                            :on-click-callback="() => (isOptionsOpen = false)"
                             show-as-lock
                           />
                         </div>
@@ -694,7 +690,18 @@ const isMmTable = computed(() => !!table.value?.mm)
                           <GeneralIcon icon="ncShield" class="opacity-80" />
                           <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
 
-                          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_RLS" remove-click show-as-lock />
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_RLS"
+                            remove-click
+                            show-as-lock
+                            :title="$t('upgrade.upgradeToUseRls')"
+                            :content="
+                              $t('upgrade.upgradeToUseRlsSubtitle', {
+                                plan: PlanTitles.ENTERPRISE,
+                              })
+                            "
+                            :on-click-callback="() => (isOptionsOpen = false)"
+                          />
                         </div>
                       </NcMenuItem>
                     </template>
@@ -717,6 +724,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                             :title="$t('upgrade.upgradeToUseDateDependency')"
                             :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
                             show-as-lock
+                            :on-click-callback="() => (isOptionsOpen = false)"
                           />
                         </div>
                       </NcMenuItem>

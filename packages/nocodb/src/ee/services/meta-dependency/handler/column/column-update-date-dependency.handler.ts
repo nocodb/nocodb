@@ -53,33 +53,22 @@ export class ColumnUpdateDateDependencyHandler implements MetaEventHandler {
 
     if (!isUsed) return undefined;
 
-    // Check if the new type is incompatible with the slot this column fills
-    const rule = await DateDependency.getByModelId(
+    // Iterate ALL rules referencing this column — both the table-level
+    // default and any per-Gantt-view rules can hold the column in one of
+    // their slots. `getByModelId` only returns the table-level default
+    // (post-Gantt-PR semantic), so using it here would silently miss
+    // view-owned references; the user could retype a column that the
+    // Gantt view still depends on and the FK would survive the dance.
+    const rules = await DateDependency.listByModelId(
       context,
       oldCol.fk_model_id,
       ncMeta as any,
     );
-    if (!rule) return undefined;
+    if (!rules?.length) return undefined;
 
-    const fieldSlots: Array<{ key: string; colId: string | null }> = [
-      { key: 'fk_start_date_field_id', colId: rule.fk_start_date_field_id },
-      { key: 'fk_end_date_field_id', colId: rule.fk_end_date_field_id },
-      { key: 'fk_duration_field_id', colId: rule.fk_duration_field_id },
-      {
-        key: 'fk_dependency_linkrow_field_id',
-        colId: rule.fk_dependency_linkrow_field_id,
-      },
-    ];
-
-    for (const { key, colId } of fieldSlots) {
-      if (colId !== oldCol.id) continue;
-
+    const checkSlot = async (key: string): Promise<boolean> => {
       if (key === 'fk_dependency_linkrow_field_id') {
-        // Linkrow slot — must remain Links/LTAR with HM/OM or OO direction
-        if (!isLinksOrLTAR(newCol)) {
-          return { columns: [oldCol] };
-        }
-        // Verify the relationship type is still valid (HM/OO self-ref)
+        if (!isLinksOrLTAR(newCol)) return true;
         const col = await Column.get(context, { colId: newCol.id }, ncMeta);
         if (col) {
           const colOptions = await col.getColOptions<any>(context, ncMeta);
@@ -88,12 +77,29 @@ export class ColumnUpdateDateDependencyHandler implements MetaEventHandler {
             !['hm', 'om', 'oo'].includes(colOptions.type) ||
             colOptions.fk_related_model_id !== col.fk_model_id
           ) {
-            return { columns: [oldCol] };
+            return true;
           }
         }
-      } else {
-        const validSet = VALID_TYPES[key];
-        if (validSet && !validSet.has(newCol.uidt)) {
+        return false;
+      }
+      const validSet = VALID_TYPES[key];
+      return !!validSet && !validSet.has(newCol.uidt);
+    };
+
+    for (const rule of rules) {
+      const fieldSlots: Array<{ key: string; colId: string | null }> = [
+        { key: 'fk_start_date_field_id', colId: rule.fk_start_date_field_id },
+        { key: 'fk_end_date_field_id', colId: rule.fk_end_date_field_id },
+        { key: 'fk_duration_field_id', colId: rule.fk_duration_field_id },
+        {
+          key: 'fk_dependency_linkrow_field_id',
+          colId: rule.fk_dependency_linkrow_field_id,
+        },
+      ];
+
+      for (const { key, colId } of fieldSlots) {
+        if (colId !== oldCol.id) continue;
+        if (await checkSlot(key)) {
           return { columns: [oldCol] };
         }
       }

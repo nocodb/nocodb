@@ -234,6 +234,13 @@ export interface TimelineViewUpdateEvent extends NcBaseEvent {
   owner: UserType;
 }
 
+export interface GanttViewUpdateEvent extends NcBaseEvent {
+  view: ViewType;
+  ganttView: any;
+  oldGanttView: any;
+  owner: UserType;
+}
+
 export interface FormViewUpdateEvent extends NcBaseEvent {
   view: ViewType;
   formView: any;

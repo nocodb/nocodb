@@ -85,6 +85,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.TIMELINE_VIEW]: 'tv',
       [MetaTable.TIMELINE_VIEW_COLUMNS]: 'tvc',
       [MetaTable.TIMELINE_VIEW_RANGE]: 'tvr',
+      [MetaTable.GANTT_VIEW]: 'gtv',
+      [MetaTable.GANTT_VIEW_COLUMNS]: 'gtvc',
       [MetaTable.USERS]: 'us',
       [MetaTable.TEAMS]: 'tm',
       [MetaTable.VIEWS]: 'vw',

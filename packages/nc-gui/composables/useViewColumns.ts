@@ -639,6 +639,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ? { operation: 'timelineColumnUpdate' as const, timelineViewColumnId: colId }
               : view.value?.type === ViewTypes.LIST
               ? { operation: 'listColumnUpdate' as const, listViewColumnId: colId }
+              : view.value?.type === ViewTypes.GANTT
+              ? { operation: 'ganttColumnUpdate' as const, ganttViewColumnId: colId }
               : { operation: 'gridColumnUpdate' as const, gridViewColumnId: colId }
 
           await $api.internal.postOperation(view.value!.fk_workspace_id!, view.value!.base_id!, operationParams, props)

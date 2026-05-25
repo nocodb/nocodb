@@ -61,6 +61,7 @@ export const copyViewConfigOptionMap: Record<
       ViewTypes.CALENDAR,
       ViewTypes.MAP,
       ViewTypes.TIMELINE,
+      ViewTypes.GANTT,
     ],
     icon: 'eyeSlash',
   },
@@ -77,6 +78,7 @@ export const copyViewConfigOptionMap: Record<
       ViewTypes.CALENDAR,
       ViewTypes.MAP,
       ViewTypes.TIMELINE,
+      ViewTypes.GANTT,
     ],
     icon: 'ncNumberList',
   },
@@ -108,6 +110,7 @@ export const copyViewConfigOptionMap: Record<
       ViewTypes.CALENDAR,
       ViewTypes.MAP,
       ViewTypes.TIMELINE,
+      ViewTypes.GANTT,
     ],
     icon: 'filter',
   },
@@ -116,7 +119,7 @@ export const copyViewConfigOptionMap: Record<
     label: 'Group',
     value: ViewSettingOverrideOptions.GROUP,
     i18nLabel: `objects.copyViewConfig.${ViewSettingOverrideOptions.GROUP}`,
-    supportedViewTypes: [ViewTypes.GRID, ViewTypes.TIMELINE],
+    supportedViewTypes: [ViewTypes.GRID, ViewTypes.TIMELINE, ViewTypes.GANTT],
     icon: 'group',
   },
   [ViewSettingOverrideOptions.SORT]: {
@@ -124,6 +127,10 @@ export const copyViewConfigOptionMap: Record<
     label: 'Sort',
     value: ViewSettingOverrideOptions.SORT,
     i18nLabel: `objects.copyViewConfig.${ViewSettingOverrideOptions.SORT}`,
+    // Gantt deliberately omits Sort from its toolbar — rows are always
+    // ordered chronologically by start date (Grid.vue's stableRowOrder),
+    // so a user sort would be silently overridden. Drop GANTT here too
+    // so the Copy-configuration dialog doesn't offer a no-op option.
     supportedViewTypes: [
       ViewTypes.GRID,
       ViewTypes.GALLERY,
@@ -144,6 +151,7 @@ export const copyViewConfigOptionMap: Record<
       ViewTypes.KANBAN,
       ViewTypes.CALENDAR,
       ViewTypes.TIMELINE,
+      ViewTypes.GANTT,
     ],
     icon: 'ncPaintRoller',
   },

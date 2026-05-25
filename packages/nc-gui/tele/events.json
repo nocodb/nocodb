@@ -180,6 +180,10 @@
   "data": {
     "a:data:reorder": "Reorder data rows"
   },
+  "dateDependency": {
+    "c:date-dependency:save": "Save Date Dependency rule from the configure dialog",
+    "c:date-dependency:toggle": "Toggle the Date Dependency rule active state"
+  },
   "document": {
     "a:document:create": "Create document",
     "a:document:delete": "Delete document",
@@ -311,6 +315,41 @@
     "a:form-view:remove-all": "Remove all fields from form",
     "a:form-view:reorder": "Reorder form fields (single-column / CE fallback)",
     "a:form-view:show-columns": "Show columns in form view"
+  },
+  "gantt": {
+    "a:gantt:dep-link-create": "New predecessor/successor link created via the on-bar drag handle",
+    "a:gantt:dep-unlink": "Dependency link removed via arrow-select + delete",
+    "a:gantt:dep-unlink-undo": "Undo button on the dep-unlink toast re-linked the dependency",
+    "a:gantt:expand-record": "Bar expanded into the full record drawer (escalation from inspector or double-click)",
+    "a:gantt:inspector-link": "Inspector link-picker added a predecessor or successor (payload: { direction })",
+    "a:gantt:inspector-unlink": "Inspector chip ✕ removed a predecessor or successor link (payload: { direction })",
+    "a:gantt:inspector-update": "Inspector saved a field — task name, start, or end (payload: { field })",
+    "a:gantt:inspector-update-error": "Inspector save failed; row state rolled back (payload: { field })",
+    "c:gantt:arrow-select": "User clicked a dependency arrow to select it (selection enables Delete)",
+    "c:gantt:bar-dblclick-expand": "Double-click on a bar escalated straight to the full record drawer",
+    "c:gantt:bar-expand-from-selected": "Second click on an already-inspected bar escalated to the full record drawer",
+    "c:gantt:chain-hover": "User hovered a bar that participates in a dependency chain (chain highlight triggered)",
+    "c:gantt:change-zoom-level": "Toolbar zoom level changed",
+    "c:gantt:configure": "Toolbar Configure button opened the Configure Gantt Schedule dialog",
+    "c:gantt:date-picker": "Toolbar date-range picker opened",
+    "c:gantt:drag-record": "Bar dragged horizontally to a new date range",
+    "c:gantt:inspector-add-predecessor": "Inspector + Link record clicked to open the predecessor picker",
+    "c:gantt:inspector-add-successor": "Inspector + Link record clicked to open the successor picker",
+    "c:gantt:inspector-close": "Inspector closed via the ✕ button or Esc",
+    "c:gantt:inspector-expand": "Inspector escalated to the full record drawer via the expand affordance",
+    "c:gantt:inspector-open": "Inspector opened by clicking a bar or sidebar row",
+    "c:gantt:inspector-swap": "Inspector was already open; clicking another record swapped its contents",
+    "c:gantt:inspector-unlink": "Inspector chip ✕ initiated a dependency unlink (telemetry pair to a:gantt:inspector-unlink for click → api split)",
+    "c:gantt:inspector:clear-date": "Inspector cleared a start or end date (canonical way to toggle milestone ↔ bar)",
+    "c:gantt:navigate": "Toolbar Prev/Next button advanced the date window",
+    "c:gantt:new-record": "Empty-grid drag-to-create finished and emitted a new record with date range",
+    "c:gantt:new-record-btn": "Toolbar + New record button clicked",
+    "c:gantt:open-date-dependency": "Open the Date Dependency configure dialog (entry point — distinct from c:gantt:configure)",
+    "c:gantt:resize-record": "Bar resized via the left/right edge resize handle",
+    "c:gantt:sidebar-resize": "Sidebar width adjusted via the right-edge drag handle",
+    "c:gantt:sidebar-row-click": "Sidebar row clicked — opens inspector and may re-anchor the timeline",
+    "c:gantt:sidebar-toggle": "Sidebar collapsed or expanded via the chevron",
+    "c:gantt:today-btn": "Toolbar Today button jumped the date axis to today"
   },
   "groupBy": {
     "a:group-by:update": "Update group-by config",
@@ -603,6 +642,7 @@
     "c:table:create-view": "Create view from table context",
     "c:table:create:navdraw": "Create table from nav drawer",
     "c:table:create:topbar": "Create table from topbar",
+    "c:table:date-dependency": "Open the table-level Date Dependency configure dialog",
     "c:table:delete": "Click delete table",
     "c:table:description": "Click table description",
     "c:table:duplicate": "Click duplicate table",

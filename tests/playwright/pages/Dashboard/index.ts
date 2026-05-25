@@ -29,6 +29,7 @@ import { CmdK } from './Command/CmdKPage';
 import { CmdL } from './Command/CmdLPage';
 import { CalendarPage } from './Calendar';
 import { TimelinePage } from './Timeline';
+import { GanttPage } from './Gantt';
 import { Extensions } from './Extensions';
 import { ScriptsPage } from './Scripts';
 
@@ -42,6 +43,7 @@ export class DashboardPage extends BasePage {
   readonly gallery: GalleryPage;
   readonly calendar: CalendarPage;
   readonly timeline: TimelinePage;
+  readonly gantt: GanttPage;
   readonly form: FormPage;
   readonly kanban: KanbanPage;
   readonly map: MapPage;
@@ -79,6 +81,7 @@ export class DashboardPage extends BasePage {
     this.gallery = new GalleryPage(this);
     this.calendar = new CalendarPage(this);
     this.timeline = new TimelinePage(this);
+    this.gantt = new GanttPage(this);
     this.form = new FormPage(this);
     this.kanban = new KanbanPage(this);
     this.map = new MapPage(this);

@@ -18,7 +18,7 @@ import {
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { PlanTitles, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { PlanTitles, UITypes, ViewLockType, ViewTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,6 +77,20 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null
   }>
+
+  // for gantt view only — view-owned DateDependency rule, sent atomically
+  // with the view-create payload so each Gantt has independent schedule config
+  dependency?: {
+    fk_start_date_field_id?: string | null
+    fk_end_date_field_id?: string | null
+    fk_dependency_linkrow_field_id?: string | null
+    dependency_linkrow_role?: 'predecessors' | 'successors'
+    dependency_connection_type?: 'end-to-start' | 'end-to-end' | 'start-to-end' | 'start-to-start'
+    dependency_buffer_type?: 'flexible' | 'fixed' | 'none'
+    dependency_buffer_days?: number
+    include_weekends?: boolean
+    is_active?: boolean
+  }
 
   fk_cover_image_col_id: string | null | undefined
 
@@ -155,6 +169,7 @@ const errorMessages = {
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
   [ViewTypes.TIMELINE]: t('msg.warning.timelineNoFields'),
+  [ViewTypes.GANTT]: t('msg.warning.ganttNoFields'),
 }
 
 const form = reactive<Form>({
@@ -202,6 +217,7 @@ const typeAlias = computed(
       [ViewTypes.CALENDAR]: 'calendar',
       [ViewTypes.LIST]: 'list',
       [ViewTypes.TIMELINE]: 'timeline',
+      [ViewTypes.GANTT]: 'gantt',
       // Todo: add ai view docs route
       AI: '',
     }[props.type]),
@@ -402,7 +418,9 @@ onMounted(async () => {
   }
 
   if (
-    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE].includes(props.type) ||
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE, ViewTypes.GANTT].includes(
+      props.type,
+    ) ||
     aiIntegrationAvailable.value
   ) {
     isMetaLoading.value = true
@@ -614,6 +632,60 @@ onMounted(async () => {
           }
         } else {
           // if there is no date field column, disable the create button
+          isNecessaryColumnsPresent.value = false
+        }
+      }
+
+      if (props.type === ViewTypes.GANTT) {
+        // Auto-pick the per-view DateDependency config (Airtable-style: each
+        // Gantt owns its own rule, decoupled from the table-level rule).
+        // Priority:
+        //   1. If the table has an existing DateDependency rule, use those fields.
+        //   2. Else pick the first two date columns (start, end) + first self-link Links field.
+        //   3. Else pick just the first date column (milestone-only Gantt).
+        const tableDep = (meta.value as any)?.date_dependency
+        const cols = meta.value!.columns ?? []
+        const dateCols = cols.filter((c: ColumnType) => c.uidt === UITypes.Date || c.uidt === UITypes.DateTime)
+        // Auto-pick a self-referencing HM/OM/OO link column as the default
+        // dep field. Exclude system-generated inverse columns — writes via
+        // the inverse store the junction with flipped mm_parent/mm_child
+        // relative to the user-facing column, which makes the cell appear
+        // on the wrong row in any grid view that displays the canonical
+        // column. The user-created (non-system) side keeps Gantt arrows +
+        // grid cell display consistent.
+        const selfLink = cols.find((c: ColumnType) => {
+          if (!isLinksOrLTAR(c)) return false
+          if ((c as any).system) return false
+          const opts = (c.colOptions as any) ?? {}
+          return ['hm', 'om', 'oo'].includes(opts.type) && opts.fk_related_model_id === meta.value!.id
+        })
+
+        if (tableDep?.fk_start_date_field_id) {
+          form.dependency = {
+            fk_start_date_field_id: tableDep.fk_start_date_field_id,
+            fk_end_date_field_id: tableDep.fk_end_date_field_id ?? null,
+            fk_dependency_linkrow_field_id: tableDep.fk_dependency_linkrow_field_id ?? null,
+            dependency_linkrow_role: tableDep.dependency_linkrow_role ?? 'successors',
+            dependency_connection_type: tableDep.dependency_connection_type ?? 'end-to-start',
+            dependency_buffer_type: tableDep.dependency_buffer_type ?? 'flexible',
+            dependency_buffer_days: tableDep.dependency_buffer_days ?? 0,
+            include_weekends: tableDep.include_weekends ?? true,
+            is_active: true,
+          }
+        } else if (dateCols.length >= 1) {
+          form.dependency = {
+            fk_start_date_field_id: dateCols[0].id,
+            fk_end_date_field_id: dateCols[1]?.id ?? null,
+            fk_dependency_linkrow_field_id: selfLink?.id ?? null,
+            dependency_linkrow_role: 'successors',
+            dependency_connection_type: 'end-to-start',
+            dependency_buffer_type: selfLink ? 'flexible' : 'none',
+            dependency_buffer_days: 0,
+            include_weekends: true,
+            is_active: true,
+          }
+        } else {
+          // No date columns — can't render Gantt. Same disabling pattern as Timeline.
           isNecessaryColumnsPresent.value = false
         }
       }
@@ -969,6 +1041,14 @@ watch(activeBaseId, () => {
             </template>
             <template v-else>
               {{ $t(`labels.${getPluralName('createTimelineView')}`) }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.GANTT">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateGanttView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createGanttView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === 'AI'">

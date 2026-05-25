@@ -47,6 +47,8 @@ export { default as ListViewLevel } from './ListViewLevel';
 export { default as TimelineView } from './TimelineView';
 export { default as TimelineRange } from './TimelineRange';
 export { default as TimelineViewColumn } from './TimelineViewColumn';
+export { default as GanttView } from './GanttView';
+export { default as GanttViewColumn } from './GanttViewColumn';
 export { default as DateDependency } from './DateDependency';
 export { default as RecordTemplate } from './RecordTemplate';
 export { default as BaseTrash } from './BaseTrash';

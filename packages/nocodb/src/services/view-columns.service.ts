@@ -26,7 +26,13 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { CalendarViewColumn, Column, View } from '~/models';
+import {
+  CalendarViewColumn,
+  Column,
+  GanttViewColumn,
+  TimelineViewColumn,
+  View,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
@@ -445,6 +451,55 @@ export class ViewColumnsService {
                   context,
                   {
                     ...(column as CalendarColumnReqType),
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                  },
+                  ncMeta,
+                ),
+              );
+            }
+            break;
+          case ViewTypes.TIMELINE:
+            // Timeline shares the Calendar-style column model (show/order +
+            // bold/italic/underline). Bulk import via columnsUpdate needs
+            // to reach the right column row; without this case, B/I/U +
+            // visibility silently get dropped on table duplicate.
+            if (existingCol) {
+              updateOrInsertOptions.push(
+                TimelineViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                ),
+              );
+            } else {
+              updateOrInsertOptions.push(
+                TimelineViewColumn.insert(
+                  context,
+                  {
+                    ...(column as any),
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                  },
+                  ncMeta,
+                ),
+              );
+            }
+            break;
+          case ViewTypes.GANTT:
+            // Gantt mirrors Timeline — same column model shape. Same
+            // motivation: keep duplicate carrying B/I/U + visibility.
+            if (existingCol) {
+              updateOrInsertOptions.push(
+                GanttViewColumn.update(context, existingCol.id, column, ncMeta),
+              );
+            } else {
+              updateOrInsertOptions.push(
+                GanttViewColumn.insert(
+                  context,
+                  {
+                    ...(column as any),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
                   },

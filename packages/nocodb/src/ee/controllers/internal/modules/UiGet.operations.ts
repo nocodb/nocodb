@@ -118,6 +118,9 @@ export class UiGetOperations
       case 'getDateDependency':
         return this.dateDependencyService.get(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
+          ganttViewId: (req.query.fk_gantt_view_id || req.query.ganttViewId) as
+            | string
+            | undefined,
         });
     }
     return super.handle(context, {

@@ -13,11 +13,14 @@ import { Column, View } from '~/models';
 import ListViewColumn from '~/models/ListViewColumn';
 import { extractProps } from '~/helpers/extractProps';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class ListColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.listColumnUpdate)
   async listColumnUpdate(
     context: NcContext,
     param: {

@@ -17,11 +17,14 @@ import TimelineViewColumn from '~/models/TimelineViewColumn';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class TimelineColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.timelineColumnUpdate)
   async timelineColumnUpdate(
     context: NcContext,
     param: {

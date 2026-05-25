@@ -17,11 +17,14 @@ import GanttViewColumn from '~/models/GanttViewColumn';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class GanttColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.ganttColumnUpdate)
   async ganttColumnUpdate(
     context: NcContext,
     param: {

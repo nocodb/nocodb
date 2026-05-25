@@ -2,7 +2,10 @@ import type { z } from 'zod';
 import type { NcContext } from '~/interface/config';
 import type { OperationContract } from '~/command-registry/types';
 import type { FormColumnsService } from '~/services/form-columns.service';
+import type { GanttColumnsService } from '~/services/gantt-columns.service';
 import type { GridColumnsService } from '~/services/grid-columns.service';
+import type { ListColumnsService } from '~/services/list-columns.service';
+import type { TimelineColumnsService } from '~/services/timeline-columns.service';
 import type { ViewColumnsService } from '~/services/view-columns.service';
 import type { ViewsService } from '~/services/views.service';
 import type { viewColumnBodySchema } from '~/command-registry/operations/_schemas/view-column';
@@ -10,13 +13,25 @@ import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
 import { scopeView } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
-import { Column, FormViewColumn, GridViewColumn, Model, View } from '~/models';
+import {
+  Column,
+  FormViewColumn,
+  GanttViewColumn,
+  GridViewColumn,
+  ListViewColumn,
+  Model,
+  TimelineViewColumn,
+  View,
+} from '~/models';
 import { pickFieldsIfPresent } from '~/utils/tsUtils';
 import { viewColumnActions } from '~/decorators/trace-command-descriptions';
 import {
   formColumnUpdateSchema,
+  ganttColumnUpdateSchema,
   gridColumnUpdateSchema,
+  listColumnUpdateSchema,
   showHideAllSchema,
+  timelineColumnUpdateSchema,
   viewColumnsBulkSetVisibilitySchema,
   viewColumnUpdateSchema,
 } from '~/command-registry/operations/_schemas/view-column';
@@ -358,6 +373,262 @@ export const FormColumnUpdateContract: OperationContract<
   },
 };
 
+// ── Type-specific column-update contracts for Timeline / Gantt / List ──────
+//
+// These three view types share GridColumnReqType server-side. In practice
+// only the group_by_* fields (and `show` / `order` for visibility/reorder
+// when routed here) are exercised — width/aggregation are Grid/List-only
+// surfaces, but the schema accepts them so undo round-trips cleanly.
+//
+// Same shape as GridColumnUpdateContract: snapshot prior body via `before`,
+// restore via inverse. Each carries its own `entity` MetaTable so audit
+// rows and cache scopes resolve correctly.
+
+type TimelineColumnBody = z.infer<typeof timelineColumnUpdateSchema>['timeline'];
+
+interface TimelineColumnUpdateExtra {
+  fkViewId?: string;
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevTimeline?: Partial<TimelineColumnBody>;
+}
+
+export const TimelineColumnUpdateContract: OperationContract<
+  typeof timelineColumnUpdateSchema,
+  TimelineColumnUpdateExtra,
+  unknown
+> = {
+  name: OperationName.timelineColumnUpdate,
+  entity: MetaTable.TIMELINE_VIEW_COLUMNS,
+  schema: timelineColumnUpdateSchema,
+  entry: {
+    entity_id: (params) => params.timelineViewColumnId,
+    description: viewColumnActions.update,
+    before: async (context, params) => {
+      const timelineCol = await TimelineViewColumn.get(
+        context,
+        params.timelineViewColumnId,
+      );
+      if (!timelineCol) return {};
+      const view = timelineCol.fk_view_id
+        ? await View.get(context, timelineCol.fk_view_id)
+        : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = timelineCol.fk_column_id
+        ? await Column.get(context, { colId: timelineCol.fk_column_id })
+        : undefined;
+
+      // Timeline column model has no `width` (chart UI, not resizable). The
+      // schema accepts the full GridColumnReq surface, but the snapshot only
+      // covers fields the model actually stores so undo round-trips cleanly.
+      const prevTimeline = pickFieldsIfPresent(
+        timelineCol,
+        [
+          'show',
+          'order',
+          'group_by',
+          'group_by_order',
+          'group_by_sort',
+          'aggregation',
+        ] as const,
+        params.timeline ?? {},
+      ) as Partial<TimelineColumnBody>;
+
+      // Mirror GridColumnUpdate's group_by_order normalization — legacy rows
+      // can carry null but the AJV validator on replay requires a number.
+      if (
+        prevTimeline &&
+        prevTimeline.group_by_order == null &&
+        'group_by_order' in prevTimeline
+      ) {
+        prevTimeline.group_by_order = 0;
+      }
+
+      return {
+        parentEntityTitle: view?.title,
+        extra: {
+          fkViewId: timelineCol.fk_view_id,
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          prevTimeline,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevTimeline;
+      if (!prev || Object.keys(prev).length === 0) return null;
+      return {
+        name: OperationName.timelineColumnUpdate,
+        params: {
+          timelineViewColumnId: params.timelineViewColumnId,
+          timeline: prev,
+        },
+      };
+    },
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
+  },
+};
+
+type GanttColumnBody = z.infer<typeof ganttColumnUpdateSchema>['gantt'];
+
+interface GanttColumnUpdateExtra {
+  fkViewId?: string;
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevGantt?: Partial<GanttColumnBody>;
+}
+
+export const GanttColumnUpdateContract: OperationContract<
+  typeof ganttColumnUpdateSchema,
+  GanttColumnUpdateExtra,
+  unknown
+> = {
+  name: OperationName.ganttColumnUpdate,
+  entity: MetaTable.GANTT_VIEW_COLUMNS,
+  schema: ganttColumnUpdateSchema,
+  entry: {
+    entity_id: (params) => params.ganttViewColumnId,
+    description: viewColumnActions.update,
+    before: async (context, params) => {
+      const ganttCol = await GanttViewColumn.get(
+        context,
+        params.ganttViewColumnId,
+      );
+      if (!ganttCol) return {};
+      const view = ganttCol.fk_view_id
+        ? await View.get(context, ganttCol.fk_view_id)
+        : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = ganttCol.fk_column_id
+        ? await Column.get(context, { colId: ganttCol.fk_column_id })
+        : undefined;
+
+      // Gantt column model has no `width` (chart UI, not resizable).
+      const prevGantt = pickFieldsIfPresent(
+        ganttCol,
+        [
+          'show',
+          'order',
+          'group_by',
+          'group_by_order',
+          'group_by_sort',
+          'aggregation',
+        ] as const,
+        params.gantt ?? {},
+      ) as Partial<GanttColumnBody>;
+
+      if (
+        prevGantt &&
+        prevGantt.group_by_order == null &&
+        'group_by_order' in prevGantt
+      ) {
+        prevGantt.group_by_order = 0;
+      }
+
+      return {
+        parentEntityTitle: view?.title,
+        extra: {
+          fkViewId: ganttCol.fk_view_id,
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          prevGantt,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevGantt;
+      if (!prev || Object.keys(prev).length === 0) return null;
+      return {
+        name: OperationName.ganttColumnUpdate,
+        params: {
+          ganttViewColumnId: params.ganttViewColumnId,
+          gantt: prev,
+        },
+      };
+    },
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
+  },
+};
+
+type ListColumnBody = z.infer<typeof listColumnUpdateSchema>['list'];
+
+interface ListColumnUpdateExtra {
+  fkViewId?: string;
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevList?: Partial<ListColumnBody>;
+}
+
+export const ListColumnUpdateContract: OperationContract<
+  typeof listColumnUpdateSchema,
+  ListColumnUpdateExtra,
+  unknown
+> = {
+  name: OperationName.listColumnUpdate,
+  entity: MetaTable.LIST_VIEW_COLUMNS,
+  schema: listColumnUpdateSchema,
+  entry: {
+    entity_id: (params) => params.listViewColumnId,
+    description: viewColumnActions.update,
+    before: async (context, params) => {
+      const listCol = await ListViewColumn.get(
+        context,
+        params.listViewColumnId,
+      );
+      if (!listCol) return {};
+      const view = listCol.fk_view_id
+        ? await View.get(context, listCol.fk_view_id)
+        : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = listCol.fk_column_id
+        ? await Column.get(context, { colId: listCol.fk_column_id })
+        : undefined;
+
+      // List column model has no group_by_* / aggregation (List doesn't
+      // group or aggregate). Width IS supported (column-resizable list rows).
+      const prevList = pickFieldsIfPresent(
+        listCol,
+        ['show', 'order', 'width'] as const,
+        params.list ?? {},
+      ) as Partial<ListColumnBody>;
+
+      return {
+        parentEntityTitle: view?.title,
+        extra: {
+          fkViewId: listCol.fk_view_id,
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          prevList,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevList;
+      if (!prev || Object.keys(prev).length === 0) return null;
+      return {
+        name: OperationName.listColumnUpdate,
+        params: {
+          listViewColumnId: params.listViewColumnId,
+          list: prev,
+        },
+      };
+    },
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
+  },
+};
+
 export function registerViewColumnHandlers(svc: ViewColumnsService): void {
   registerForward(ViewColumnUpdateContract, (context, params) =>
     svc.columnUpdate(context, params),
@@ -373,6 +644,26 @@ export function registerGridColumnHandlers(svc: GridColumnsService): void {
 export function registerFormColumnHandlers(svc: FormColumnsService): void {
   registerForward(FormColumnUpdateContract, (context, params) =>
     svc.columnUpdate(context, params),
+  );
+}
+
+export function registerTimelineColumnHandlers(
+  svc: TimelineColumnsService,
+): void {
+  registerForward(TimelineColumnUpdateContract, (context, params) =>
+    svc.timelineColumnUpdate(context, params),
+  );
+}
+
+export function registerGanttColumnHandlers(svc: GanttColumnsService): void {
+  registerForward(GanttColumnUpdateContract, (context, params) =>
+    svc.ganttColumnUpdate(context, params),
+  );
+}
+
+export function registerListColumnHandlers(svc: ListColumnsService): void {
+  registerForward(ListColumnUpdateContract, (context, params) =>
+    svc.listColumnUpdate(context, params),
   );
 }
 

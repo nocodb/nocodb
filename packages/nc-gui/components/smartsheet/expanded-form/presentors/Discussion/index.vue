@@ -15,14 +15,32 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, hasMoreAudits, loadMoreAudits } =
-  useExpandedFormStoreOrThrow()
+const {
+  saveComment,
+  commentsDrawer,
+  isNew,
+  audits,
+  comments,
+  auditCommentGroups,
+  hasMoreAudits,
+  loadMoreAudits,
+  primaryKey,
+  resetAuditPages,
+} = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
+
+// Audits accumulate via unshift() in the store and are only reset by explicit
+// callers. The legacy Sidebar/Audits.vue watches primaryKey for this; mirror
+// the same here so switching rows in the docked panel's Discussion mode shows
+// the new row's history instead of the previous row's.
+watch(primaryKey, () => {
+  resetAuditPages()
+})
 
 /* flags */
 

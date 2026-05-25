@@ -173,7 +173,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     </div>
     <div
       v-if="!hideCalendar"
-      class="rounded-y-xl max-w-[350px]"
+      class="nc-month-year-grid rounded-y-xl max-w-[350px]"
       :class="{
         'px-2 py-1': isCellInputField,
         'px-2.5 py-1': !isCellInputField,

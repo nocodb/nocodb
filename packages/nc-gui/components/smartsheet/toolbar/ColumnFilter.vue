@@ -441,9 +441,14 @@ if (isEeUI) {
         const localFilter = filters.value.find((f) => f.id === storeFilter.id)
         if (!localFilter) continue
 
-        // Sync value, enabled, and meta if they differ
+        // Sync value, comparison_sub_op, enabled, and meta if they differ.
+        // comparison_sub_op is included so date-filter changes made via the
+        // pinned filter sub-op picker propagate back to the main filter menu.
         if (localFilter.value !== storeFilter.value) {
           localFilter.value = storeFilter.value
+        }
+        if (localFilter.comparison_sub_op !== storeFilter.comparison_sub_op) {
+          localFilter.comparison_sub_op = storeFilter.comparison_sub_op
         }
         if (localFilter.enabled !== storeFilter.enabled) {
           localFilter.enabled = storeFilter.enabled
@@ -792,7 +797,17 @@ const pinnedFilterCount = computed(() => {
   return visibleFilters.value.filter((f) => !f.is_group && parseProp(f.meta)?.pinned === true).length
 })
 
-const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
+const PINNABLE_TYPES = [
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.User,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+]
 
 const isPinnableType = (filter: ColumnFilterType): boolean => {
   const col = getColumn(filter)

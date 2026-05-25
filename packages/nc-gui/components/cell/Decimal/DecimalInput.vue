@@ -344,17 +344,21 @@ onBeforeUnmount(() => {
 })
 
 watch(vModel, (newValue) => {
-  if (
-    !inputRef.value ||
-    newValue ||
-    inputRef.value.value === getFormattedModelValue() ||
-    inputRef.value.value === (newValue?.toString() || '')
-  ) {
+  if (!inputRef.value) return
+
+  // Don't touch the input while the user is actively typing — vModel updates
+  // also come from saveValue() on keyup, and overwriting would clobber input.
+  if (document.activeElement === inputRef.value) return
+
+  if (inputRef.value.value === getFormattedModelValue() || inputRef.value.value === (newValue?.toString() || '')) {
     return
   }
 
-  // Clear input value if vModel is null and input value is not empty and not a dot or minus
-  if (!newValue && inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
+  if (newValue || newValue === 0) {
+    // Sync DOM to the new prop value. Covers switching records in the expanded
+    // form, where the same DecimalInput instance receives a new modelValue.
+    refreshVModel()
+  } else if (inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
     inputRef.value.value = ''
   }
 })

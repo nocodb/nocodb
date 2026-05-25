@@ -1109,14 +1109,9 @@ const saveChanges = async () => {
   }
 }
 
-const toggleVisibility = async (checked: boolean, field: Field) => {
-  if (!field?.fk_column_id) return
+const { confirmHide } = useHideRequiredFieldConfirm()
 
-  if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
-    message.warning(t('msg.warning.multiField.fieldVisibility'))
-    return
-  }
-
+const stageVisibilityOp = (checked: boolean, field: Field) => {
   const visibilityOpIndex = visibilityOps.value.findIndex((op) => op.column.fk_column_id === field.fk_column_id)
 
   if (visibilityOpIndex !== -1) {
@@ -1134,8 +1129,40 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
   })
 }
 
+const toggleVisibility = async (checked: boolean, field: Field) => {
+  if (!field?.fk_column_id) return
+
+  if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
+    message.warning(t('msg.warning.multiField.fieldVisibility'))
+    return
+  }
+
+  // Hiding a required NOT-NULL-no-default column would silently break
+  // inline row create (#13838) — warn the user before staging the op.
+  // Showing a field is always safe; only gate the hide direction.
+  if (!checked) {
+    const column = meta.value?.columnsById?.[field.fk_column_id] as ColumnType | undefined
+    confirmHide(column, () => {
+      stageVisibilityOp(checked, field)
+    })
+    return
+  }
+
+  stageVisibilityOp(checked, field)
+}
+
 const showOrHideAllFields = (isAllFieldsVisible = false) => {
-  fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
+  // Bulk path — bypass the per-field hide-required confirmation. Calling
+  // toggleVisibility() in a forEach would stack one warning modal per
+  // required field. Matches FieldsMenu.vue:onHideAll, which also acts on
+  // every togglable field without prompting.
+  const checked = !isAllFieldsVisible
+  fields.value.forEach((f) => {
+    const field = viewFieldsMap.value[f.id]
+    if (!field?.fk_column_id) return
+    if (fieldStatuses.value[field.fk_column_id]) return
+    stageVisibilityOp(checked, field)
+  })
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -2100,6 +2127,29 @@ onBeforeRouteUpdate((_to, from, next) => {
                         <span data-testid="nc-field-title">
                           {{ fieldState(field)?.title || field.title }}
                         </span>
+                      </NcTooltip>
+
+                      <NcTooltip
+                        v-if="
+                          field.id &&
+                          viewFieldsMap[field.id] &&
+                          !(
+                            visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ??
+                            viewFieldsMap[field.id].show
+                          ) &&
+                          isHideBlockingRequired(field)
+                        "
+                        placement="left"
+                      >
+                        <template #title>
+                          {{ $t('msg.warning.hideRequiredField.hiddenBadge') }}
+                        </template>
+                        <GeneralIcon
+                          icon="alertTriangleSolid"
+                          class="!w-3.5 !h-3.5 text-nc-content-yellow-dark"
+                          data-testid="nc-field-hidden-required-warning"
+                          @click.stop
+                        />
                       </NcTooltip>
                     </div>
                     <div class="flex items-center justify-end gap-1">

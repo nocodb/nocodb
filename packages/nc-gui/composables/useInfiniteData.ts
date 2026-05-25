@@ -1339,7 +1339,26 @@ export function useInfiniteData(args: {
       })
 
       if (missingRequiredColumns.size) {
+        // Frontend pre-check rejected the insert: at least one required
+        // (NOT NULL, no default, not auto-generated) column is null. Don't
+        // call the API — keep the optimistic row in the cache so the canvas
+        // can render the inline ⚠️ marker (see `useCanvasRender`). The user
+        // can fill the missing field inline (which re-fires this path via
+        // `updateOrSaveRow`) or open the expanded form. Surfacing the state
+        // used to be a silent bail (#13838).
+        const missingFields = [...missingRequiredColumns].filter((f): f is string => typeof f === 'string').sort()
+
+        currentRow.rowMeta.saveError = {
+          reason: 'missingRequired',
+          missingFields,
+        }
         return insertObj
+      }
+
+      // Clearing on the path that's about to call the API means a previously
+      // failed row that just had its missing field filled gets a clean retry.
+      if (currentRow.rowMeta.saveError) {
+        currentRow.rowMeta.saveError = undefined
       }
 
       const insertedData = await $api.dbViewRow.create(

@@ -66,7 +66,27 @@ export function useData(args: {
         row,
       })
 
-      if (missingRequiredColumns.size) return
+      if (missingRequiredColumns.size) {
+        const missingFields = [...missingRequiredColumns].filter((f): f is string => typeof f === 'string')
+        if (currentRow.rowMeta) {
+          currentRow.rowMeta.saveError = {
+            reason: 'missingRequired',
+            missingFields,
+          }
+        }
+        // useData drives non-canvas views (gallery, kanban) where no
+        // inline ⚠️ marker exists, so a toast is the only feedback. This
+        // path is one-shot per user action — if it ever gets wired into
+        // an inline-edit retry loop (cf. useInfiniteData which drops the
+        // toast for that reason), de-dup against the previous saveError.
+        const fieldList = missingFields.join(', ')
+        message.error(
+          missingFields.length === 1
+            ? t('msg.error.requiredFieldMissing', { fields: fieldList })
+            : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
+        )
+        return
+      }
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,

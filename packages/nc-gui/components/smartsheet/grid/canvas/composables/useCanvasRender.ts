@@ -1134,10 +1134,67 @@ export function useCanvasRender({
       currentX += 24
     }
 
+    const hasSaveError = row.rowMeta?.saveError?.reason === 'missingRequired'
+
     /**
-     * 4. Render comment or expand icon
+     * 4. Render save-error marker OR comment-count bubble OR expand icon —
+     * mutually exclusive in this slot.
+     *
+     * Save-error (#13838) wins over BOTH comment count and the expand
+     * icon. In practice an optimistic new row can't have comments yet, so
+     * the count branch is unreachable while saveError is set. The glyph
+     * sits in the exact pixel rect of the expand button so the existing
+     * click region (`action: 'comment'` in `extractHoverMetaColRegions`
+     * at index.vue) — which dispatches to `expandForm` for both this
+     * column and the comment-count column — already opens the row when
+     * the user clicks the warning. Don't reorder the regions in
+     * extractHoverMetaColRegions without re-testing this path.
      */
-    if (row.rowMeta?.commentCount) {
+    if (hasSaveError) {
+      const missingFields = row.rowMeta!.saveError!.missingFields ?? []
+      const box = {
+        x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - 20) / 2,
+        height: 20,
+        width: 20,
+      }
+      const isErrorHovered = isBoxHovered(box, mousePosition)
+      renderIconButton(ctx, {
+        buttonX: box.x,
+        buttonY: box.y,
+        buttonSize: 20,
+        icon: 'alertTriangleSolid',
+        iconData: {
+          size: 14,
+          xOffset: 3,
+          yOffset: 3,
+          color: getColor(themeV4Colors.yellow['600']),
+        },
+        borderRadius: 6,
+        spriteLoader,
+        background: !isErrorHovered ? 'transparent' : getColor(themeV4Colors.yellow['50']),
+        borderColor: !isErrorHovered ? 'transparent' : getColor(themeV4Colors.yellow['200']),
+        hoveredBackground: getColor(themeV4Colors.yellow['100']),
+        setCursor,
+      })
+      if (isErrorHovered) {
+        const plural = missingFields.length === 1 ? '' : 's'
+        const visibleTitles = new Set(columns.value.map((c) => c.title))
+        const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))
+        tryShowTooltip({
+          mousePosition,
+          text:
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: missingFields.join(', ') })
+              : t('msg.error.requiredFieldsMissing', { fields: missingFields.join(', ') }),
+          description: hiddenMissing.length
+            ? t('msg.error.rowNotSavedYetHiddenClickToOpen', { plural })
+            : t('msg.error.rowNotSavedYetClickToOpen', { plural }),
+          rect: box,
+          placement: 'right',
+        })
+      }
+    } else if (row.rowMeta?.commentCount) {
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 

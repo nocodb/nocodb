@@ -14,7 +14,12 @@ const { loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
-const showHiddenFields = ref(false)
+// Default the hidden-fields section to open when this is a new row
+// and at least one hidden field is required (#13838) — saves the user
+// from hunting for the field that's blocking their save. For existing
+// rows or when no hidden field is required, keep the section collapsed
+// as before. The user can still toggle manually after the initial mount.
+const showHiddenFields = ref(_row.value?.rowMeta?.new === true && props.hiddenFields.some(isHideBlockingRequired))
 </script>
 
 <template>

@@ -6,6 +6,34 @@ import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 const REGEX_DATE_TIME_OUT_OF_RANGE =
   /date\/time field value out of range:\s*(.*)$/;
 
+/**
+ * Pull the raw Postgres message out of a Knex-wrapped error.
+ *
+ * Knex wraps PG errors into `Error('<sql query> - <original-message>')`,
+ * but preserves the pg-protocol error at `error.original` (knex-pg) or
+ * `error.nativeError` (some drivers). Prefer those when present so the
+ * user doesn't see a SQL fragment prepended to their RAISE EXCEPTION
+ * text. Falls back to splitting on the ` - ` separator Knex uses.
+ */
+function pgRawMessage(error: any): string | undefined {
+  const inner = error?.original?.message ?? error?.nativeError?.message;
+  if (typeof inner === 'string' && inner.trim()) return inner.trim();
+  const raw = error?.message;
+  if (typeof raw !== 'string') return undefined;
+  // Strip the `<sql query> - ` prefix Knex prepends. The SQL portion
+  // always begins with a recognisable verb; only strip when we see one
+  // to avoid mangling messages that legitimately contain ` - `. Use
+  // the FIRST ` - ` after the SQL verb so a user-authored RAISE
+  // EXCEPTION message that itself contains ` - ` survives intact.
+  const sqlPrefix =
+    /^\s*(insert|update|delete|select|alter|drop|create|with)\s+/i;
+  if (sqlPrefix.test(raw)) {
+    const idx = raw.indexOf(' - ');
+    if (idx >= 0) return raw.slice(idx + 3).trim();
+  }
+  return raw.trim();
+}
+
 export class PgDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
     private readonly option?: {
@@ -97,16 +125,79 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       case '42601':
         message = 'There was a syntax error in your SQL query.';
         break;
-      case '23502':
+      case '23502': {
+        // not_null_violation. Surface the generic message and expose the
+        // offending column via `details.column` so downstream consumers
+        // (e.g. the data-import error formatter) can decorate it with
+        // a "(column: X)" suffix without us having to know the row.
+        // Postgres sets `error.column` directly; fall back to the
+        // standard PG message form
+        //   null value in column "X" of relation "Y" violates not-null constraint
+        // if the driver omits it.
+        let column: string | undefined = error.column;
+        if (!column && error.message) {
+          const m = error.message.match(/null value in column "([^"]+)"/i);
+          if (m) column = m[1];
+        }
         message = 'A value is required for this field.';
+        _type = DBError.COLUMN_NOT_NULL;
+        if (column) _extra = { column };
         break;
-      case '23503':
-        message =
-          'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
+      }
+      case '23503': {
+        // foreign_key_violation. Fires on INSERT/UPDATE when the target
+        // row doesn't exist, and on DELETE when this row is referenced.
+        // PG sets `error.constraint`; `error.detail` carries the offending
+        // key/value: `Key (fk_id)=(123) is not present in table "y".`
+        // Strip the physical table reference (the PG name is internal —
+        // e.g. `nc_xyz___tasks`) but keep the key/value so the user can
+        // see which value they tried to insert/delete.
+        const constraint: string | undefined = error.constraint;
+        const detail = (error.detail || '').replace(
+          /\s*(?:in|from) table\s+"[^"]+"\.?/i,
+          '',
+        );
+        if (detail && /is not present/i.test(detail)) {
+          message = `Foreign-key violation: ${detail.trim()}.`;
+        } else if (detail && /is still referenced/i.test(detail)) {
+          message = `Cannot delete this record because other records depend on it. ${detail.trim()}.`;
+        } else {
+          message =
+            'Foreign-key constraint violation. Please verify the linked record exists.';
+        }
+        if (constraint) _extra = { constraint };
         break;
-      case '23514':
-        message = 'A null value is not allowed for this field.';
+      }
+      case '23514': {
+        // check_violation. PG: `new row for relation "tasks" violates
+        // check constraint "tasks_priority_check"`. `error.constraint`
+        // carries the constraint name; `error.message` (or `error.hint`)
+        // carries any RAISE-style hint the schema author wrote.
+        const constraint: string | undefined = error.constraint;
+        const hint = error.hint;
+        if (hint) {
+          message = `Check constraint violated${
+            constraint ? ` ('${constraint}')` : ''
+          }: ${hint}`;
+        } else if (constraint) {
+          message = `Check constraint '${constraint}' violated.`;
+        } else {
+          message = error.message || 'Check constraint violation.';
+        }
+        if (constraint) _extra = { constraint };
         break;
+      }
+      case 'P0001':
+      case 'P0002':
+      case 'P0003':
+      case 'P0004': {
+        // PL/pgSQL exceptions carry a user-authored message; surface it
+        // along with any HINT so schema-level guards reach the caller.
+        const raw = pgRawMessage(error);
+        message = [raw, error.hint].filter(Boolean).join(' — ');
+        if (!message) message = 'Database raised an exception.';
+        break;
+      }
       case '22001':
         message = 'The data entered is too long for this field.';
         break;

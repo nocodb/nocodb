@@ -26,6 +26,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const formattedData = ref<Row[]>([])
 
+    const { t } = useI18n()
+
     const { api } = useApi()
 
     const { base } = storeToRefs(useBase())
@@ -121,7 +123,28 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           row,
         })
 
-        if (missingRequiredColumns.size) return
+        if (missingRequiredColumns.size) {
+          const missingFields = [...missingRequiredColumns].filter((f): f is string => typeof f === 'string')
+          if (currentRow.rowMeta) {
+            currentRow.rowMeta.saveError = {
+              reason: 'missingRequired',
+              missingFields,
+            }
+          }
+          // Map view has no inline ⚠️ marker (the canvas-only saveError
+          // glyph lives in useCanvasRender), so the toast is the only
+          // user-visible feedback. This path is one-shot per submit; if
+          // it ever gets wired into a retry loop, de-dup against the
+          // previous saveError to avoid the spam useInfiniteData was
+          // refactored around.
+          const fieldList = missingFields.join(', ')
+          message.error(
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: fieldList })
+              : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
+          )
+          return
+        }
 
         const insertedData = await $api.dbViewRow.create(
           NOCO,

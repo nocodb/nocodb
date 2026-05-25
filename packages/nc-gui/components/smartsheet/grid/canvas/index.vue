@@ -2613,6 +2613,40 @@ watch([height, width, windowWidth, windowHeight], () => {
   })
 })
 
+// Toast when the user navigates away from a row that's still failing the
+// required-field pre-check (#13838). The inline marker only screams while
+// the user is looking at the row — once they've moved cursor away to a
+// different row they may not notice the row never persisted.
+//
+// Watcher key uses the joined `/`-delimited path string so Vue can shallow-
+// compare it as a primitive. Reconstructing the numeric path via
+// `split('/').filter(Boolean).map(Number)` assumes every segment is a
+// numeric group index — true today (groups are 0-based row indexes). If
+// non-numeric group keys ever appear, switch to JSON.stringify and parse.
+watch(
+  () => [activeCell.value.row, (activeCell.value.path ?? []).join('/')] as [number, string],
+  ([newRowIdx, newPath], [oldRowIdx, oldPath]) => {
+    if (oldRowIdx === undefined || oldRowIdx === -1) return
+    if (oldRowIdx === newRowIdx && oldPath === newPath) return
+
+    const path = oldPath ? oldPath.split('/').filter(Boolean).map(Number) : []
+    const dataCache = getDataCache(path)
+    const leftRow = dataCache?.cachedRows.value.get(oldRowIdx)
+    const err = leftRow?.rowMeta?.saveError
+    if (err?.reason !== 'missingRequired') return
+
+    const fields = (err.missingFields ?? []).filter(Boolean)
+    if (!fields.length) return
+
+    message.error(
+      t('msg.error.rowAbandonedMissingRequired', {
+        plural: fields.length === 1 ? '' : 's',
+        fields: fields.join(', '),
+      }),
+    )
+  },
+)
+
 watch(totalHeight, (newHeight) => {
   if (scrollTop.value > newHeight - height.value) {
     scroller.value?.scrollTo({

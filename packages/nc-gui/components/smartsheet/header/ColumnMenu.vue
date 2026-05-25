@@ -302,8 +302,9 @@ const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
   }
 }
 
-// hide the field in view
-const hideOrShowField = async () => {
+const { confirmHide } = useHideRequiredFieldConfirm()
+
+const performHideOrShow = async () => {
   isLoading.value = 'hideOrShow'
 
   const viewId = view.value?.id
@@ -375,6 +376,27 @@ const hideOrShowField = async () => {
       isOpen.value = false
     }
   }
+}
+
+// hide the field in view
+const hideOrShowField = async () => {
+  // Showing a field is always safe; warn before hiding a required
+  // NOT-NULL-no-default column (#13838). When the user confirms we
+  // re-enter this handler with the confirmation already accepted, so
+  // gate on `isHiddenCol` first to ensure we only intercept the hide
+  // direction.
+  if (!props.isHiddenCol) {
+    if (isHideBlockingRequired(column.value)) {
+      // Close the context menu so the modal isn't hidden behind it,
+      // then prompt for confirmation. On confirm, kick off the hide
+      // flow without re-running this guard.
+      isOpen.value = false
+      confirmHide(column.value, () => performHideOrShow())
+      return
+    }
+  }
+
+  await performHideOrShow()
 }
 
 const handleDelete = () => {

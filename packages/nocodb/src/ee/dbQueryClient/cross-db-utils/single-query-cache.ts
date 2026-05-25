@@ -8,22 +8,12 @@ export { SINGLE_QUERY_DEFAULT_VIEW };
 
 /**
  * Read a cached singleQuery entry. Returns the SQL string or null.
- *
- * `setSingleQueryCache` always lands a raw string at `cacheKey`, even on
- * the cold-start path (the post-setList overwrite normalizes the shape).
- * Legacy entries written before this PR were also raw strings, so a single
- * `typeof === 'string'` check covers every shape.
  */
 export async function getSingleQueryCache(
   context: NcContext,
   cacheKey: string,
 ): Promise<string | null> {
-  const cached = await NocoCache.get(
-    context,
-    cacheKey,
-    CacheGetType.TYPE_STRING,
-  );
-  return typeof cached === 'string' ? cached : null;
+  return NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING);
 }
 
 /**
@@ -34,8 +24,10 @@ export async function getSingleQueryCache(
  * (`:queries`, `:count`, `:read:N`, `:ltar`, `:deleted`, `:primaries`,
  *  `:rls:*`, `:dvc:*`).
  *
- * Mirrors the view/column/model cache layout: setList seeds (cold start),
- * appendToList grows the parent SET (warm), deepDel invalidates.
+ * Uses `addToList` (sadd) instead of `appendToList`/`setList` so concurrent
+ * writers for the same (model, view) but different suffixes (e.g. `:queries`
+ * and `:count` racing through `Promise.all` in `getDataWithCountCache`) each
+ * add their own member without wiping siblings.
  */
 export async function setSingleQueryCache(
   context: NcContext,
@@ -46,35 +38,11 @@ export async function setSingleQueryCache(
     query: string;
   },
 ): Promise<void> {
-  const { modelId, viewIdOrDefault, cacheKey, query } = params;
-  const subListKeys = [modelId, viewIdOrDefault];
-
-  // Write child first — appendToList's destructive fallback fires when the
-  // child is missing, so ordering matters.
-  await NocoCache.set(context, cacheKey, query);
-
-  const appended = await NocoCache.appendToList(
+  await NocoCache.set(context, params.cacheKey, params.query);
+  await NocoCache.addToList(
     context,
     CacheScope.SINGLE_QUERY,
-    subListKeys,
-    cacheKey,
+    [params.modelId, params.viewIdOrDefault],
+    params.cacheKey,
   );
-
-  if (!appended) {
-    // Cold start: the list doesn't exist yet. setList re-derives the child
-    // key as `${scope}:${o.id}` and re-wraps its envelope with
-    // parentKeys=[listKey] so deepDel(listKey) can later reach the child —
-    // but it also overwrites the child's value with `o` itself
-    // (`{ id, query }`). We immediately overwrite the value back to the
-    // plain SQL string; CacheMgr.set preserves the existing parentKeys
-    // from the envelope, so the list linkage survives.
-    const keySuffix = cacheKey.startsWith(`${CacheScope.SINGLE_QUERY}:`)
-      ? cacheKey.slice(`${CacheScope.SINGLE_QUERY}:`.length)
-      : cacheKey;
-
-    await NocoCache.setList(context, CacheScope.SINGLE_QUERY, subListKeys, [
-      { id: keySuffix, query },
-    ]);
-    await NocoCache.set(context, cacheKey, query);
-  }
 }

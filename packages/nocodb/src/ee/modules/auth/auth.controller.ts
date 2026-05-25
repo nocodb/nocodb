@@ -108,7 +108,7 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
     @Body() body: { token: string; code: string },
   ) {
-    const { user, redirect } = await this.mfaService.verifySignin(
+    const { user, redirect, extra } = await this.mfaService.verifySignin(
       body.token,
       body.code,
       req,
@@ -124,11 +124,14 @@ export class AuthController extends AuthControllerCE {
     res.json({
       token: loginResult.token,
       userId: user.id,
-      // Echo the deep-link captured when the 2FA token was minted (Cognito
-      // sign-in flow stashes the user's original destination here so the
-      // FE can re-navigate post-verify). Undefined for the email/password
-      // flow which doesn't currently set one.
+      // Echo the deep-link + extra payload captured when the 2FA token
+      // was minted. Cognito sign-in stashes the user's original
+      // destination (`redirect`) and any OIDC-strategy state payload
+      // (`extra`, e.g. `continueAfterSignIn`) here so the FE can
+      // re-apply them post-verify. Undefined for the email/password
+      // flow which doesn't currently set either.
       ...(redirect ? { redirect } : {}),
+      ...(extra ? { extra } : {}),
     });
   }
 
@@ -349,18 +352,22 @@ export class AuthController extends AuthControllerCE {
     if (isCloud && NocoLicense.isEE) {
       const twoFactorToken = await this.mfaService.getTwoFactorTokenIfEnabled(
         req.user.id,
-        // Capture the destination the FE asked us to remember so we
-        // can hand it back after `/auth/mfa/verify` succeeds. Falls
-        // back to undefined → FE routes to dashboard root.
-        { redirect: req.body?.redirect },
+        {
+          // Capture the destination the FE asked us to remember so we
+          // can hand it back after `/auth/mfa/verify` succeeds. Falls
+          // back to undefined → FE routes to dashboard root.
+          redirect: req.body?.redirect,
+          // Persist the Cognito-strategy `extra` payload (e.g.
+          // `continueAfterSignIn` set by the OIDC state replay) inside
+          // the 2FA token so it survives the verify round-trip without
+          // the FE having to stash it separately.
+          extra: req.extra,
+        },
       );
       if (twoFactorToken) {
         res.json({
           twoFactorRequired: true,
           twoFactorToken,
-          // Echo the extras the original flow returned so the FE
-          // doesn't lose the Cognito-side payload during the detour.
-          extra: { ...req.extra },
         });
         return;
       }

@@ -41,19 +41,26 @@ export function generateBackupCodes(count = 10): string[] {
 
 export function generateTwoFactorToken(
   user: { id: string; email: string },
-  opts?: { secret?: string; redirect?: string },
+  opts?: {
+    secret?: string;
+    redirect?: string;
+    extra?: Record<string, any>;
+  },
 ): string {
   const jwtSecret = opts?.secret ?? Noco.getConfig().auth.jwt.secret;
   // Carry an optional `redirect` (the URL the user was originally going
-  // to) inside the token so the post-verify response can hand it back to
-  // the FE without keeping any server-side session state. Sign-only, no
-  // encryption — `redirect` must be treated as untrusted on the FE.
+  // to) and an `extra` blob (sign-in-flow specific payload — e.g.
+  // `continueAfterSignIn` set by the OpenID/Cognito strategies) inside
+  // the token so the post-verify response can hand them back to the FE
+  // without keeping any server-side session state. Sign-only, no
+  // encryption — both fields must be treated as untrusted on the FE.
   return jwt.sign(
     {
       id: user.id,
       email: user.email,
       purpose: 'mfa',
       ...(opts?.redirect ? { redirect: opts.redirect } : {}),
+      ...(opts?.extra ? { extra: opts.extra } : {}),
     },
     jwtSecret,
     { expiresIn: '5m' },
@@ -282,6 +289,7 @@ export class MfaService {
       email: string;
       purpose: string;
       redirect?: string;
+      extra?: Record<string, any>;
     };
     try {
       payload = jwt.verify(twoFactorToken, config.auth.jwt.secret) as any;
@@ -338,26 +346,29 @@ export class MfaService {
       user,
       userId: user.id,
       redirect: payload.redirect,
+      extra: payload.extra,
     };
   }
 
   /**
    * Check if user has 2FA enabled. If so, return a short-lived token
    * for the 2FA verification step. Returns null if 2FA is not enabled.
-   * `redirect` (if provided) is embedded in the token so the post-verify
-   * response can hand the user back to the URL they were originally
-   * heading to before the 2FA challenge.
+   *
+   * `redirect` (the URL the user was originally heading to) and `extra`
+   * (sign-in-flow-specific payload like `continueAfterSignIn`) are
+   * embedded in the token so the post-verify response can hand them
+   * back to the FE without server-side session state.
    */
   async getTwoFactorTokenIfEnabled(
     userId: string,
-    opts?: { redirect?: string },
+    opts?: { redirect?: string; extra?: Record<string, any> },
   ): Promise<string | null> {
     const user = await User.get(userId);
     if (!user?.totp_enabled) return null;
 
     return generateTwoFactorToken(
       { id: user.id, email: user.email },
-      { redirect: opts?.redirect },
+      { redirect: opts?.redirect, extra: opts?.extra },
     );
   }
 

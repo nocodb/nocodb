@@ -253,15 +253,6 @@ const hasInvalidEdgeOnRecord = computed(() => {
   )
 })
 
-// Placeholder fix action — surface a toast pointing the user at the
-// inline ⚠ markers. The actual cascade-fix algorithm (shift
-// predecessors/successors while preserving durations) is scoped as a
-// separate piece of work; this commit only wires the discovery affordance.
-const onClickFixInvalid = () => {
-  $e('a:gantt:inspector-fix-invalid')
-  message.info(t('msg.dependencyFixInvalidHint'))
-}
-
 const onUnlinkSuccessor = async (linkedId: string) => {
   if (!currentRowId.value) return
   try {
@@ -802,29 +793,23 @@ const formatDisplay = (raw: string | null | undefined) => {
         />
       </div>
 
-      <!-- "Fix invalid dependencies" affordance — visible only when at
-           least one edge touching the current record violates the dep
-           contract. Mirrors Airtable's bottom-of-inspector link. The
-           auto-fix algorithm itself (shift predecessors/successors to
-           resolve the violation while preserving each task's duration)
-           is not implemented yet; clicking the link surfaces a toast
-           pointing the user at the inline ⚠ markers so they can resolve
-           the conflict manually. -->
+      <!-- Invalid-dependency notice — visible only when at least one edge
+           touching the current record violates the dep contract. Mirrors
+           Airtable's bottom-of-inspector affordance, but as a passive
+           informational badge (not a button). The hint surfaces on hover
+           via tooltip — clicking does nothing because the auto-fix
+           cascade algorithm isn't implemented yet, and presenting it as
+           a button led users to expect an action that wasn't there. -->
       <div v-if="depCol && hasInvalidEdgeOnRecord && !isPublic" class="pt-3 mt-2 border-t border-nc-border-gray-light">
-        <NcButton
-          v-e="['c:gantt:inspector-fix-invalid']"
-          type="text"
-          size="xs"
-          class="!text-xs !text-nc-content-red-dark hover:!text-nc-content-red"
-          inner-class="gap-1.5"
-          data-testid="nc-gantt-inspector-fix-invalid"
-          @click="onClickFixInvalid"
-        >
-          <template #icon>
+        <NcTooltip :title="$t('msg.dependencyFixInvalidHint')" placement="top">
+          <div
+            class="inline-flex items-center gap-1.5 text-xs text-nc-content-red-dark cursor-help"
+            data-testid="nc-gantt-inspector-fix-invalid"
+          >
             <GeneralIcon icon="alertTriangle" class="!w-3.5 !h-3.5" />
-          </template>
-          {{ $t('labels.dateDependency.fixInvalidDependencies') }}
-        </NcButton>
+            {{ $t('labels.dateDependency.fixInvalidDependencies') }}
+          </div>
+        </NcTooltip>
       </div>
     </div>
   </div>

@@ -1089,7 +1089,7 @@ watch(activeRowId, () => {
 .nc-expanded-form-panel .nc-data-cell {
   box-shadow: none !important;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):not(.nc-data-cell-compact):hover {
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):not(.nc-data-cell-compact):not(.nc-attachment-cell):hover {
     box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.12) !important;
   }
 }

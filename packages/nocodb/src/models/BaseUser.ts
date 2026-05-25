@@ -480,7 +480,13 @@ export default class BaseUser {
 
   static async getProjectsList(
     userId: string,
-    params: any,
+    params: {
+      workspaceId?: string;
+      starred?: boolean;
+      shared?: boolean;
+      recent?: boolean;
+      type?: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
     const workspaceId = params.workspaceId;

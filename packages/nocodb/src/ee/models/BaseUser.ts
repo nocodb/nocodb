@@ -814,7 +814,13 @@ export default class BaseUser extends BaseUserCE {
 
   static async getProjectsList(
     userId: string,
-    params: any,
+    params: {
+      workspaceId?: string;
+      starred?: boolean;
+      shared?: boolean;
+      recent?: boolean;
+      type?: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<(BaseType & { project_role: ProjectRoles })[]> {
     // TODO implement CacheScope.USER_BASE

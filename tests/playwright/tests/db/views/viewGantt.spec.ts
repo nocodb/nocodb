@@ -333,21 +333,20 @@ test.describe('Gantt View', () => {
     expect(Array.isArray(body.edges)).toBe(true);
     expect(body.edges.length).toBeGreaterThanOrEqual(2);
 
-    // Edge tuple shape from the API: [mm_child, mm_parent]. For an HM
-    // self-ref Predecessors field, the row that owns the field is
-    // mm_parent and the linked predecessor is mm_child. nestedAdd was
-    // called as (rowId=2, refRowId=1) and (rowId=3, refRowId=2) — the
-    // junction rows that land in DB are (mm_parent=2, mm_child=1) and
-    // (mm_parent=3, mm_child=2), and the endpoint emits them as
-    // [1, 2] and [2, 3] respectively. Post fix #3 (security envelope),
-    // edges originating from non-visible parents are filtered out —
-    // the seeded user owns the workspace so all rows are visible and
-    // we expect every link we created to round-trip.
+    // Edge tuple shape is role-aware (see fix: dep endpoint role-aware).
+    // The rule here uses dependency_linkrow_role='predecessors', so the
+    // endpoint emits [cellOwnerPk, linkedPk] — i.e. [successor, predecessor]
+    // in graph terms, or [child, parent] where parent=predecessor in time.
+    // nestedAdd(rowId=2, refRowId=1) sets up Task 1 as predecessor of Task 2
+    // → emit [2, 1]. nestedAdd(rowId=3, refRowId=2) → emit [3, 2]. Post fix
+    // (security envelope) edges originating from non-visible parents are
+    // filtered out — the seeded user owns the workspace so all rows are
+    // visible and we expect every link we created to round-trip.
     const asStrings = body.edges.map(([c, p]: [unknown, unknown]) => [String(c), String(p)]);
     expect(asStrings).toEqual(
       expect.arrayContaining([
-        ['1', '2'],
-        ['2', '3'],
+        ['2', '1'],
+        ['3', '2'],
       ])
     );
   });

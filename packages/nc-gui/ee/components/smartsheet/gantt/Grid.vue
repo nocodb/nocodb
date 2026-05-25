@@ -319,6 +319,16 @@ const gridBodyRef = ref<HTMLElement | null>(null)
 
 let resizeCooldownTimer: ReturnType<typeof setTimeout> | null = null
 
+// Threshold below which a mousedown-then-mouseup on a resize handle is
+// treated as a click (and bubbles to onBarClick to open the inspector),
+// not as a zero-pixel resize. At coarse zoom levels (Year / 6-Month /
+// 5-Year) bars can be only a few pixels wide and the two 12px handles
+// cover most of the surface — without lazy commit a click anywhere on
+// such a bar lands on a handle, fires a no-op resize cycle, and the
+// resulting justFinishedResize cooldown swallows the click.
+const RESIZE_COMMIT_PX = 3
+let resizePendingStartX: number | null = null
+
 // --- Drag-to-move state (#1) ---
 const dragRecord = ref<RowType | null>(null)
 const dragStartDayIndex = ref<number>(0)
@@ -346,6 +356,16 @@ const hoverColIndex = ref<number | null>(null)
 
 const onResize = (event: MouseEvent) => {
   if (!resizeRecord.value || !gridBodyRef.value) return
+
+  // Lazy commit: a static click on the handle would land here with
+  // movement < RESIZE_COMMIT_PX. Skip until the user actually drags,
+  // so onResizeEnd doesn't set the click-suppression cooldown for what
+  // was effectively a click → onBarClick fires → inspector opens.
+  if (!resizeInProgress.value) {
+    if (resizePendingStartX === null) return
+    if (Math.abs(event.clientX - resizePendingStartX) < RESIZE_COMMIT_PX) return
+    resizeInProgress.value = true
+  }
 
   const range = props.ganttRange[0]
   if (!range) return
@@ -409,12 +429,20 @@ const onResize = (event: MouseEvent) => {
 }
 
 const onResizeEnd = () => {
-  $e('c:gantt:resize-record')
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+
+  const wasResizing = resizeInProgress.value
   resizeInProgress.value = false
   resizeDirection.value = undefined
   resizeRecord.value = null
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', onResizeEnd)
+  resizePendingStartX = null
+
+  // Pure click on a handle (no drag committed) — let the click bubble
+  // to onBarClick so the inspector opens. Skip telemetry + suppression.
+  if (!wasResizing) return
+
+  $e('c:gantt:resize-record')
 
   // Suppress the click event that follows mouseup on the same element.
   // mouseup → click fires synchronously in the same frame, so we set a
@@ -473,9 +501,11 @@ const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: R
   if (direction === 'left' && !canResizeLeft.value) return
   if (direction === 'right' && !canResizeRight.value) return
 
-  resizeInProgress.value = true
+  // Defer resizeInProgress until the pointer actually moves. onResize
+  // promotes the gesture once movement crosses RESIZE_COMMIT_PX.
   resizeDirection.value = direction
   resizeRecord.value = record
+  resizePendingStartX = event.clientX
   hoverColIndex.value = null
 
   document.addEventListener('mousemove', onResize)

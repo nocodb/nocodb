@@ -22,11 +22,13 @@ function pgRawMessage(error: any): string | undefined {
   if (typeof raw !== 'string') return undefined;
   // Strip the `<sql query> - ` prefix Knex prepends. The SQL portion
   // always begins with a recognisable verb; only strip when we see one
-  // to avoid mangling messages that legitimately contain ` - `.
+  // to avoid mangling messages that legitimately contain ` - `. Use
+  // the FIRST ` - ` after the SQL verb so a user-authored RAISE
+  // EXCEPTION message that itself contains ` - ` survives intact.
   const sqlPrefix =
     /^\s*(insert|update|delete|select|alter|drop|create|with)\s+/i;
   if (sqlPrefix.test(raw)) {
-    const idx = raw.lastIndexOf(' - ');
+    const idx = raw.indexOf(' - ');
     if (idx >= 0) return raw.slice(idx + 3).trim();
   }
   return raw.trim();
@@ -145,12 +147,18 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         // row doesn't exist, and on DELETE when this row is referenced.
         // PG sets `error.constraint`; `error.detail` carries the offending
         // key/value: `Key (fk_id)=(123) is not present in table "y".`
+        // Strip the physical table reference (the PG name is internal —
+        // e.g. `nc_xyz___tasks`) but keep the key/value so the user can
+        // see which value they tried to insert/delete.
         const constraint: string | undefined = error.constraint;
-        const detail: string | undefined = error.detail;
-        if (detail && /is not present in table/i.test(detail)) {
-          message = `Foreign-key violation: ${detail}`;
+        const detail = (error.detail || '').replace(
+          /\s*(?:in|from) table\s+"[^"]+"\.?/i,
+          '',
+        );
+        if (detail && /is not present/i.test(detail)) {
+          message = `Foreign-key violation: ${detail.trim()}.`;
         } else if (detail && /is still referenced/i.test(detail)) {
-          message = `Cannot delete this record because other records depend on it. ${detail}`;
+          message = `Cannot delete this record because other records depend on it. ${detail.trim()}.`;
         } else {
           message =
             'Foreign-key constraint violation. Please verify the linked record exists.';

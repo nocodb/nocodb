@@ -759,6 +759,18 @@ export class UiPostOperations
           body: payload,
           req,
         });
+      default:
+        // Some op names are registered in CE's `operations` (so their type is
+        // visible to the SDK / typed clients) but only EE has a real handler —
+        // ganttView/ganttColumn/timelineView/timelineColumn/listView/listColumn.
+        // In a pure-CE deployment, the EE override never wires those handlers,
+        // and falling through silently used to return `undefined` while the
+        // ACL had already accepted the request — the frontend's optimistic
+        // create then thought the entity existed until the next page reload
+        // proved otherwise. Fail loudly instead.
+        NcError.notImplemented(
+          `Operation '${operation}' is not available in this edition`,
+        );
     }
   }
 }

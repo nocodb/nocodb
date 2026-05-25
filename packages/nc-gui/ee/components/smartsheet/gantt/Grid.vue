@@ -369,9 +369,12 @@ const onResize = (event: MouseEvent) => {
 
   if (!ogStartDate) return
 
-  // Determine date format based on column type
-  const isDateOnly = fromCol.uidt === UITypes.Date
-  const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
+  // Date format is per-column. When the range spans a Date-only column
+  // and a DateTime column, formatting based solely on fromCol's uidt
+  // would write 'YYYY-MM-DD' into a DateTime column (or worse, the
+  // datetime-with-tz format into a Date-only column).
+  const formatForCol = (col: ColumnType | null | undefined, d: dayjs.Dayjs) =>
+    col?.uidt === UITypes.Date ? d.format('YYYY-MM-DD') : d.format(updateFormat.value)
 
   // Mutate the record's row data in-place so the change propagates
   // to both flat (storeFormattedData) and grouped (grp.rows) views,
@@ -385,7 +388,7 @@ const onResize = (event: MouseEvent) => {
     if (newEndDate.isBefore(ogStartDate, 'day')) {
       newEndDate = ogStartDate.clone().endOf('day')
     }
-    resizeRecord.value.row[toCol.title] = isDateOnly ? newEndDate.format('YYYY-MM-DD') : newEndDate.format(dateFormat)
+    resizeRecord.value.row[toCol.title] = formatForCol(toCol, newEndDate)
     updateProperty = [toCol.title]
   } else if (resizeDirection.value === 'left' && fromCol?.title) {
     // Resizing start date
@@ -395,7 +398,7 @@ const onResize = (event: MouseEvent) => {
     if (newStartDate.isAfter(effectiveEnd, 'day')) {
       newStartDate = effectiveEnd.clone()
     }
-    resizeRecord.value.row[fromCol.title] = isDateOnly ? newStartDate.format('YYYY-MM-DD') : newStartDate.format(dateFormat)
+    resizeRecord.value.row[fromCol.title] = formatForCol(fromCol, newStartDate)
     updateProperty = [fromCol.title]
   } else {
     return
@@ -507,30 +510,30 @@ const onDrag = (event: MouseEvent) => {
   const ogStartDate = parseDate(dragRecord.value, fromCol)
   const ogEndDate = toCol ? parseDate(dragRecord.value, toCol) : null
 
+  // Format per column — start and end may have different uidts (e.g. Date +
+  // DateTime). Using fromCol's uidt for both writes corrupts the other column.
+  const formatForCol = (col: ColumnType | null | undefined, d: dayjs.Dayjs) =>
+    col?.uidt === UITypes.Date ? d.format('YYYY-MM-DD') : d.format(updateFormat.value)
+
   // Milestone path: no start date, only shift end date
   if (!ogStartDate) {
     if (!ogEndDate || !toCol?.title) return
-    const isDateOnly = toCol.uidt === UITypes.Date
-    const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
     const newEnd = ogEndDate.add(dayDelta, 'day')
-    dragRecord.value.row[toCol.title] = isDateOnly ? newEnd.format('YYYY-MM-DD') : newEnd.format(dateFormat)
+    dragRecord.value.row[toCol.title] = formatForCol(toCol, newEnd)
     dragStartDayIndex.value = currentDayIdx
     useDebouncedRowUpdate(dragRecord.value, [toCol.title])
     return
   }
 
-  const isDateOnly = fromCol.uidt === UITypes.Date
-  const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
-
   // Shift both start and end by the delta
   const newStart = ogStartDate.add(dayDelta, 'day')
-  dragRecord.value.row[fromCol.title!] = isDateOnly ? newStart.format('YYYY-MM-DD') : newStart.format(dateFormat)
+  dragRecord.value.row[fromCol.title!] = formatForCol(fromCol, newStart)
 
   const updateProperty = [fromCol.title!]
 
   if (toCol?.title && ogEndDate) {
     const newEnd = ogEndDate.add(dayDelta, 'day')
-    dragRecord.value.row[toCol.title] = isDateOnly ? newEnd.format('YYYY-MM-DD') : newEnd.format(dateFormat)
+    dragRecord.value.row[toCol.title] = formatForCol(toCol, newEnd)
     updateProperty.push(toCol.title)
   }
 

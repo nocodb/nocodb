@@ -390,8 +390,17 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         }
         dependencyLinks.value = graph
       } catch {
+        // Stale failure (a newer fetch has already started) — drop silently.
         if (seq !== _depsFetchSeq) return
-        dependencyLinks.value = new Map()
+        // Current-fetch failure: preserve the previously-rendered graph
+        // instead of wiping every arrow off the screen. A transient 5xx
+        // shouldn't make the user's dependency chains disappear; the next
+        // successful fetch (reset, link/unlink, realtime patch) will
+        // restore the canonical state. Only clear when we've never had
+        // a successful response (first load).
+        if (!dependencyLinks.value.size) {
+          dependencyLinks.value = new Map()
+        }
       }
     }
 

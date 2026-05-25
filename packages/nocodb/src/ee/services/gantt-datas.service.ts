@@ -86,14 +86,22 @@ export class GanttDatasService {
       (await DateDependency.getByGanttViewId(context, view.id)) ??
       (await DateDependency.getByModelId(context, view.fk_model_id));
 
-    if (!rule || rule.is_active === false) {
+    const hasWindow = !!(from_date && to_date);
+    const hasUsableRule = !!rule && rule.is_active !== false;
+
+    // Only fail when the caller explicitly asked for window-filtered data
+    // and we can't build the overlap predicate. Windowless callers (initial
+    // row-index pagination, sidebar list refresh) keep working after an
+    // admin deactivates the table rule — they just get the unfiltered row
+    // set, with no bars painted in the date axis until a rule is restored.
+    if (hasWindow && !hasUsableRule) {
       NcError.get(context).badRequest('No active date dependency rule found');
     }
 
     // Bar-overlap predicate only applies when the caller passed a window.
     // Row-index pagination (no window) returns the full filtered set with
     // standard offset/limit; bars off the visible buffer just don't paint.
-    if (from_date && to_date) {
+    if (hasWindow && hasUsableRule) {
       const overlapFilter = this.buildOverlapFilter(rule, from_date, to_date);
 
       // Combine the server-built overlap predicate with any user-supplied
@@ -110,7 +118,7 @@ export class GanttDatasService {
     // latest. Gantt has no user-configurable sort so this is the only
     // ordering signal we have.
     const existingSort = query.sortArrJson ? JSON.parse(query.sortArrJson) : [];
-    if (!existingSort.length && rule.fk_start_date_field_id) {
+    if (!existingSort.length && rule?.fk_start_date_field_id) {
       query.sortArrJson = JSON.stringify([
         {
           fk_column_id: rule.fk_start_date_field_id,

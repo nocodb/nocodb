@@ -178,7 +178,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       // /signin is a no-op (no remount). sessionStorage write still
       // happens inside stagePendingToken to cover hard reloads.
       if (tokenRes.data.twoFactorRequired && tokenRes.data.twoFactorToken) {
-        const nuxtApp = useNuxtApp()
         await nuxtApp.runWithContext(() => {
           useTwoFactorSignin().stagePendingToken(tokenRes.data.twoFactorToken)
           return navigateTo('/signin')
@@ -207,7 +206,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     const t = nuxtApp.vueApp.i18n.global.t
 
     if (!axiosInstance) {
-      const nuxtApp = useNuxtApp()
       axiosInstance = nuxtApp.$api?.instance
     }
 

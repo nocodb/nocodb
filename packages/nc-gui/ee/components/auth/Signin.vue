@@ -222,7 +222,20 @@ const googleAuthUrl = computed(() => {
             </div>
 
             <div class="text-sm">
-              <a class="prose-sm cursor-pointer" data-testid="nc-form-signin__2fa-cancel" @click="cancelTwoFactor">
+              <!--
+                Cancel triggers an async Auth.signOut() roundtrip; gate
+                pointer-events / opacity on `twoFactorLoading` so a fast
+                double-click can't queue a second cancel against the
+                still-pending one. The composable's re-entrant guard
+                covers the race too, but disabling at the UI is the
+                less-surprising affordance.
+              -->
+              <a
+                class="prose-sm cursor-pointer"
+                :class="{ 'pointer-events-none opacity-60': twoFactorLoading }"
+                data-testid="nc-form-signin__2fa-cancel"
+                @click="cancelTwoFactor"
+              >
                 {{ $t('general.cancel') }}
               </a>
             </div>

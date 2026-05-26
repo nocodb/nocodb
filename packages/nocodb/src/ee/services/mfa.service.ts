@@ -194,16 +194,30 @@ export class MfaService {
       // Cloud session minted before per-session identity stamping
       // shipped — we can't classify it safely, so force a re-sign-in
       // to populate the tag rather than fall through to the legacy
-      // session-JWT-as-proof branch (which is fine on on-prem but not
-      // on Cloud, where every sign-in goes through Cognito).
+      // session-JWT-as-proof branch.
       NcError.forbidden(
         'Two-factor authentication is only available for accounts that sign in with email and password. Please sign out and sign in again to refresh your session.',
       );
+    } else if (!user.password) {
+      // Belt-and-braces guard. By this point we've ruled out:
+      //   - local password (handled above)
+      //   - SSO session (forbidden above)
+      //   - Cognito federated session (forbidden above)
+      //   - Cognito native session (handled above)
+      //   - legacy Cloud session (forbidden above)
+      // What's left is an authenticated session with no local password
+      // and no per-session identity — pre-PR this was treated as
+      // "legacy SSO" with session-JWT-as-proof, but that's a real
+      // regression: an XSS or stolen cookie on such a session can enrol
+      // 2FA with no reproof. Refuse the enrolment and tell the user to
+      // sign in via a password-backed flow.
+      NcError.forbidden(
+        'Two-factor authentication requires signing in with email and password. Please sign in with your password to enable.',
+      );
     }
-    // No-op branch: no local password AND no Cognito tag = legacy SSO
-    // (OIDC/SAML provisioned without a password). Session JWT remains
-    // the proof; verifySetup still gates `totp_enabled` on a fresh
-    // TOTP submission.
+    // Reaching here means user.password is set AND we passed the bcrypt
+    // re-confirm — proceed with enrolment. verifySetup gates the actual
+    // `totp_enabled` flip on a fresh TOTP submission.
 
     const secret = generateSecret();
     const otpauthUrl = generateURI({

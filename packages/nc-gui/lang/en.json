@@ -2262,6 +2262,7 @@
     "twoFactorSsoSessionNotAvailable": "Two-factor authentication for SSO sign-in is managed by your identity provider. To manage 2FA here, sign in with your email and password.",
     "twoFactorLegacySession": "Two-factor authentication is only available for accounts that sign in with email and password. Please sign out and sign in again to refresh your session.",
     "twoFactorSsoBanner": "You'll be asked for this code every time you sign in, in addition to your usual sign-in challenge.",
+    "twoFactorScopeBanner": "You'll be asked for this code when signing in with your email and password. Sign-ins through Google or another identity provider are managed by that provider and won't be challenged here.",
     "preparingTwoFactor": "Preparing two-factor authentication…",
     "controlAppearance": "Control your Appearance.",
     "accountEmailID": "Account Email ID",

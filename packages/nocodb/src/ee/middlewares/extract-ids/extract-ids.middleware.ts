@@ -1502,17 +1502,37 @@ export class AclMiddleware implements NestInterceptor {
         //     don't force them through the setup flow while they're
         //     signed in via the federated path.
         //
-        // Both signals come from `req.user.extra`, which is populated
-        // by JwtStrategy from JWT-payload fields seeded by the sign-in
-        // strategy (CognitoStrategy.cognitoIdentityExtra) and carried
-        // across refresh-token regen via userRefreshToken.meta. We
-        // deliberately do NOT read `user.meta.cognito_identity_type`
-        // here — that field reflects the latest Cognito sign-in across
-        // all sessions and can be wrong for any given session in a
-        // multi-device scenario.
+        // Primary signal is `req.user.extra` (per-session, set by the
+        // sign-in strategy, carried across refresh via
+        // userRefreshToken.meta). For JWTs minted before this PR
+        // shipped the per-session field doesn't exist, so we also
+        // consult `user.meta.cognito_identity_type` as a fallback —
+        // matches `mfa.service.getSessionIdentity` so the middleware
+        // and the service can't disagree about whether a user is
+        // federated. The user.meta fallback is multi-device-stale
+        // (reflects last sign-in across all devices) but with
+        // single-session enforcement on the default path it's accurate
+        // within ~10h of deploy as legacy JWTs cycle out.
         const extra = (req.user as any)?.extra ?? {};
         const isSsoSession = !!extra.sso_client_id;
-        const isFederatedSession = extra.cognito_identity_type === 'federated';
+
+        let isFederatedSession = extra.cognito_identity_type === 'federated';
+
+        // Pre-PR JWT — fall back to the user.meta tag.
+        const needsMetaFallback =
+          !isSsoSession && !extra.cognito_identity_type;
+        const user = needsMetaFallback
+          ? await User.get(req.user.id)
+          : null;
+        if (needsMetaFallback) {
+          const userMeta =
+            typeof user?.meta === 'string'
+              ? JSON.parse(user.meta || '{}')
+              : user?.meta || {};
+          if (userMeta?.cognito_identity_type === 'federated') {
+            isFederatedSession = true;
+          }
+        }
 
         if (isSsoSession || isFederatedSession) {
           // Skip enforcement.
@@ -1521,8 +1541,8 @@ export class AclMiddleware implements NestInterceptor {
           NcError.mfaSetupRequired(req.ncWorkspaceId);
         } else {
           // Self-hosted: only local-password users can enrol.
-          const user = await User.get(req.user.id);
-          if (user?.password) {
+          const u = user ?? (await User.get(req.user.id));
+          if (u?.password) {
             NcError.mfaSetupRequired(req.ncWorkspaceId);
           }
         }

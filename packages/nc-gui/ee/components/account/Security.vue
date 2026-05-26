@@ -543,14 +543,20 @@ onMounted(async () => {
 
         <!-- Step 1: QR Code -->
         <div v-else-if="setupStep === 'qr' && setupData" class="flex flex-col gap-5">
-          <!-- SSO-callers context: spell out that they'll see this code
-               on every sign-in even though their IdP already
-               authenticated them. -->
+          <!--
+            Scope reminder on Cloud — Cognito users may have a parallel
+            Google (or other federated) identity on the same email. 2FA
+            we set up here applies to their email/password sign-in only;
+            federated sign-ins are managed by the provider and won't be
+            challenged for this code. Surfacing the constraint up-front
+            so dual-identity users don't think the federated bypass is a
+            bug after enrolment.
+          -->
           <div
-            v-if="skipPasswordReproof"
+            v-if="appInfo?.isCloud"
             class="rounded-md border border-nc-border-gray-medium bg-nc-bg-gray-extralight px-3 py-2 text-xs text-nc-content-gray-subtle"
           >
-            {{ $t('labels.twoFactorSsoBanner') }}
+            {{ $t('labels.twoFactorScopeBanner') }}
           </div>
           <div class="flex flex-col items-center gap-3">
             <img :src="setupData.qrUrl" alt="QR Code" class="w-60 h-60" />

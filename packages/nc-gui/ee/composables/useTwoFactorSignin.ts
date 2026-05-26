@@ -158,6 +158,15 @@ export const useTwoFactorSignin = createSharedComposable(() => {
   }
 
   async function cancelTwoFactor() {
+    // Re-entrant guard. Auth.signOut() is a multi-second roundtrip and
+    // the Cancel button is a plain anchor without disable semantics; a
+    // double-click (or a confused user clicking Cancel + Verify in
+    // quick succession) would otherwise queue two flows against a
+    // still-valid token. Flip `twoFactorLoading` so the verify button
+    // disables and the cancel-handler short-circuits on re-entry.
+    if (twoFactorLoading.value) return
+    twoFactorLoading.value = true
+
     $e('c:signin:2fa-cancelled', { source: twoFactorSource.value })
 
     // Cognito-sourced challenge: the IdP session is still active in
@@ -177,6 +186,8 @@ export const useTwoFactorSignin = createSharedComposable(() => {
       }
     }
 
+    // resetState() clears `twoFactorLoading` along with the rest of the
+    // singleton state — no manual unset needed here.
     resetState()
   }
 

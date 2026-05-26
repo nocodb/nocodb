@@ -182,10 +182,11 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const invite_token = uuidv4();
     const error = [];
+    let invite_token: string;
 
     for (const emailAddr of emails) {
+      invite_token = uuidv4();
       // Check if user exists
       let user = await User.getByCanonicalEmail(emailAddr, ncMeta);
 
@@ -251,6 +252,6 @@ export class WorkspaceUsersService {
       return { msg: 'success', invite_token };
     }
 
-    return { invite_token, emails, error };
+    return { msg: 'success', emails, error };
   }
 }

@@ -111,7 +111,6 @@ export class BaseUsersService {
       );
     }
 
-    const invite_token = uuidv4();
     const error = [];
 
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
@@ -125,6 +124,7 @@ export class BaseUsersService {
     }
 
     for (const email of emails) {
+      const invite_token = uuidv4();
       // add user to base if user already exist (canonical lookup handles alias variants)
       const user = await User.getByCanonicalEmail(email, ncMeta);
 
@@ -357,7 +357,7 @@ export class BaseUsersService {
         msg: 'The user has been invited successfully',
       };
     } else {
-      return { invite_token, emails, error };
+      return { msg: 'success', emails, error };
     }
   }
 

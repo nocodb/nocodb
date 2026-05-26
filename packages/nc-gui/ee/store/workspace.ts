@@ -447,7 +447,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       return res
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      // Skip the toast + home redirect when the error is the force_2fa
+      // setup gate — the API interceptor already opened the setup-required
+      // dialog and is owning the redirect to /account/security?openEnrollment=true
+      // once the user clicks OK. Falling through here would race the
+      // dialog's navigateTo with this navigateTo('/'), and the home page
+      // would usually win → broken UX (and broken playwright assertion).
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+      if (errorInfo.error === NcErrorType.ERR_MFA_SETUP_REQUIRED) {
+        return
+      }
+      message.error(errorInfo.message)
       navigateTo('/')
     }
   }

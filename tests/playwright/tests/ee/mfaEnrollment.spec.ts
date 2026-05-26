@@ -108,11 +108,26 @@ test.describe('Account → Security: 2FA enrolment', () => {
     await expect(accountPage.security.disableBtn()).toBeVisible();
     await expect(accountPage.security.enableBtn()).toHaveCount(0);
 
-    // ─── Step 7: disable round-trip cleans up state ──────────────────
+    // ─── Step 7: disable round-trip ──────────────────────────────────
+    // Disable also triggers a forced sign-out (mfa.service.disable
+    // rotates token_version + FE force-signs-out symmetric to enrol)
+    // so the user lands back on /signin. Wait for that, then sign back
+    // in with email + password — no TOTP challenge now since 2FA is
+    // off — and re-check Security to confirm the Enable button is
+    // back.
     await accountPage.security.clickDisable();
     await accountPage.security.fillDisablePasswordAndConfirm(DEFAULT_PWD);
 
-    // Status flips back: Enable button returns, Disable is gone.
+    await page.waitForURL(/\/signin/, { timeout: 15000 });
+    await page.getByTestId('nc-form-signin__email').fill(context.rootUser.email);
+    await page.getByTestId('nc-form-signin__password').fill(DEFAULT_PWD);
+    await page.getByTestId('nc-form-signin__submit').click();
+    await page
+      .locator('[data-testid="nc-sidebar-userinfo"], .nc-home-sidebar, .nc-treeview-container')
+      .first()
+      .waitFor({ timeout: 30000 });
+
+    await accountPage.security.goto();
     await expect(accountPage.security.enableBtn()).toBeVisible();
     await expect(accountPage.security.disableBtn()).toHaveCount(0);
   });

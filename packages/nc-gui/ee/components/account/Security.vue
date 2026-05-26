@@ -13,6 +13,10 @@ const { appInfo, signOut } = useGlobal()
 
 const { copy } = useCopy()
 
+const route = useRoute()
+
+const router = useRouter()
+
 const mfaEnabled = ref(false)
 const hasPassword = ref(true)
 const isLoading = ref(false)
@@ -327,9 +331,6 @@ watch(showDisableModal, (v) => {
     nextTick(() => disablePasswordInput.value?.focus())
   }
 })
-
-const route = useRoute()
-const router = useRouter()
 
 onMounted(async () => {
   await fetchStatus()

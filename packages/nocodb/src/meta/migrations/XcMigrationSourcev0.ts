@@ -63,7 +63,7 @@ import * as nc_202605120000_mail_sends from './v0/nc_202605120000_mail_sends';
 import * as nc_202605140000_operation_logs from './v0/nc_202605140000_operation_logs';
 import * as nc_202605160000_cleanup_orphan_base_users from './v0/nc_202605160000_cleanup_orphan_base_users';
 import * as nc_202605181000_gantt_view from './v0/nc_202605181000_gantt_view';
-import * as nc_202605180000_doc_revisions from './v0/nc_202605180000_doc_revisions';
+import * as nc_202605260000_doc_revisions from './v0/nc_202605260000_doc_revisions';
 import * as nc_202605271200_add_group_by_enabled from './v0/nc_202605271200_add_group_by_enabled';
 
 // Create a custom migration source class
@@ -139,7 +139,7 @@ export default class XcMigrationSourcev0 {
       'nc_202605140000_operation_logs',
       'nc_202605160000_cleanup_orphan_base_users',
       'nc_202605181000_gantt_view',
-      'nc_202605180000_doc_revisions',
+      'nc_202605260000_doc_revisions',
       'nc_202605271200_add_group_by_enabled',
     ]);
   }
@@ -280,8 +280,8 @@ export default class XcMigrationSourcev0 {
         return nc_202605160000_cleanup_orphan_base_users;
       case 'nc_202605181000_gantt_view':
         return nc_202605181000_gantt_view;
-      case 'nc_202605180000_doc_revisions':
-        return nc_202605180000_doc_revisions;
+      case 'nc_202605260000_doc_revisions':
+        return nc_202605260000_doc_revisions;
       case 'nc_202605271200_add_group_by_enabled':
         return nc_202605271200_add_group_by_enabled;
     }

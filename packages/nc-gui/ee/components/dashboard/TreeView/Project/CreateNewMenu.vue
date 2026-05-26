@@ -83,6 +83,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
               submenu-class="nc-sub-menu-item-icon-only"
               title-class="!p-0 hover:bg-nc-bg-brand dark:hover:bg-nc-bg-gray-medium group"
               show-noco-db-import
+              show-table-sync
               :popup-offset="[8, -2]"
             >
               <template #title>

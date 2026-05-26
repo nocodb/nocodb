@@ -353,6 +353,10 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_SYNC)
   })
 
+  const blockTableSync = computed(() => {
+    return !getFeature(PlanFeatureTypes.FEATURE_TABLE_SYNC)
+  })
+
   const blockRls = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_RLS)
   })
@@ -1986,6 +1990,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTableSync = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockTableSync.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTableSync'),
+      content: t('upgrade.upgradeToUseTableSyncSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_SYNC,
+      requiredPlan: PlanTitles.BUSINESS,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseRecordTemplates = ({
     callback,
     successCallback,
@@ -2470,12 +2497,14 @@ export const useEeConfig = createSharedComposable(() => {
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
     blockSync,
+    blockTableSync,
     blockRls,
     blockUnique,
     blockUuidField,
     blockAutoNumberField,
     showUpgradeToUseUnique,
     showUpgradeToUseSync,
+    showUpgradeToUseTableSync,
     showUpgradeToUseRls,
     showUpgradeToUseUuidField,
     showUpgradeToUseAutoNumberField,

@@ -50,6 +50,36 @@ import { getMMColumnNames } from '~/helpers/columnHelpers';
 export class SyncModuleService implements OnModuleInit {
   private logger: Logger = new Logger(SyncModuleService.name);
 
+  private async resolveAvailableTableTitle(
+    context: NcContext,
+    base: Base,
+    source: { id?: string },
+    desiredTitle: string,
+  ): Promise<{ title: string; table_name: string }> {
+    const baseTableName =
+      desiredTitle.replace(/\W+/g, '_').replace(/^_+|_+$/g, '') || desiredTitle;
+    for (let i = 0; i < 1000; i++) {
+      const title = i === 0 ? desiredTitle : `${desiredTitle} (${i})`;
+      const table_name = i === 0 ? baseTableName : `${baseTableName}_${i}`;
+      const [titleOk, tableNameOk] = await Promise.all([
+        Model.checkAliasAvailable(context, {
+          title,
+          base_id: base.id!,
+          source_id: source.id,
+        } as any),
+        Model.checkTitleAvailable(context, {
+          table_name,
+          base_id: base.id!,
+          source_id: source.id,
+        } as any),
+      ]);
+      if (titleOk && tableNameOk) return { title, table_name };
+    }
+    NcError.badRequest(
+      `Could not allocate a unique table name for "${desiredTitle}"`,
+    );
+  }
+
   constructor(
     protected readonly nocoJobsService: NocoJobsService,
     protected readonly integrationsService: IntegrationsService,
@@ -248,19 +278,13 @@ export class SyncModuleService implements OnModuleInit {
             continue;
           }
 
-          const tableTitle = tableSchema.title;
-
-          // Check if table name is available
-          const titleAvailable = await Model.checkTitleAvailable(context, {
-            table_name: tableTitle,
-            base_id: base.id,
-            source_id: source.id,
-          });
-
-          if (!titleAvailable) {
-            this.logger.warn(`Table "${tableTitle}" already exists, skipping`);
-            continue;
-          }
+          const { title: tableTitle, table_name: tableNameSafe } =
+            await this.resolveAvailableTableTitle(
+              context,
+              base,
+              source,
+              tableSchema.title,
+            );
 
           // Add system fields to the columns
           const columns = [...tableSchema.columns, ...syncSystemFields];
@@ -286,6 +310,7 @@ export class SyncModuleService implements OnModuleInit {
               baseId: base.id,
               table: {
                 title: tableTitle,
+                table_name: tableNameSafe,
                 columns: columns
                   .filter((column) => !column.exclude)
                   .map((column) => ({
@@ -387,6 +412,7 @@ export class SyncModuleService implements OnModuleInit {
                   ],
                 },
                 synced: true,
+                mm: true,
               },
             );
 
@@ -398,8 +424,8 @@ export class SyncModuleService implements OnModuleInit {
 
             tablesToDelete.push(junctionTable);
 
-            await Model.markAsMmTable(context, junctionTable.id, true);
-
+            await table.getColumns(context);
+            await relatedTable.getColumns(context);
             await junctionTable.getColumns(context);
 
             const remoteIdParentColumn = table.columns.find(
@@ -417,6 +443,17 @@ export class SyncModuleService implements OnModuleInit {
             const childColumn = junctionTable.columns.find(
               (c) => c.column_name === childCn,
             );
+
+            if (
+              !remoteIdParentColumn ||
+              !remoteIdChildColumn ||
+              !parentColumn ||
+              !childColumn
+            ) {
+              throw new Error(
+                `Sync relation '${relation.columnTitle}' missing junction columns on ${table.title} ↔ ${relatedTable.title}`,
+              );
+            }
 
             const column = await this.columnsService.columnAdd(
               {
@@ -483,30 +520,46 @@ export class SyncModuleService implements OnModuleInit {
           }
         }
       } catch (e) {
-        for (const table of tablesToDelete) {
-          if (table.mm) {
-            await Model.markAsMmTable(context, table.id, false);
-          }
+        this.logger.error(
+          `Sync create failed: ${(e as Error)?.message ?? e}`,
+          (e as Error)?.stack,
+        );
 
-          await this.tablesService.tableDelete(
-            {
-              ...context,
-              socket_id: null,
-            },
-            {
-              tableId: table.id,
-              forceDeleteSyncs: true,
-              skipTrash: true,
-              req,
-            },
-          );
+        for (const table of tablesToDelete) {
+          try {
+            if (table.mm) {
+              await Model.markAsMmTable(context, table.id, false);
+            }
+            await this.tablesService.tableDelete(
+              {
+                ...context,
+                socket_id: null,
+              },
+              {
+                tableId: table.id,
+                forceDeleteSyncs: true,
+                skipTrash: true,
+                req,
+              },
+            );
+          } catch (cleanupErr) {
+            this.logger.error(
+              `Sync cleanup: failed to drop table ${table.id}: ${
+                (cleanupErr as Error)?.message ?? cleanupErr
+              }`,
+              (cleanupErr as Error)?.stack,
+            );
+          }
         }
 
         for (const syncMapping of syncMappings) {
           await SyncMapping.delete(context, syncMapping.id);
         }
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
-        this.logger.error('Failed to create sync', e);
+        this.logger.error(
+          `Failed to create sync: ${(e as any)?.message ?? e}`,
+          (e as any)?.stack,
+        );
         NcError.get(context).internalServerError('Failed to create sync');
       }
 

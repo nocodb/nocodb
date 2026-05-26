@@ -1,5 +1,7 @@
 import { MetaType } from '../Api';
 
+export * from './table-sync';
+
 export enum SyncType {
   Full = 'full',
   Incremental = 'incremental',

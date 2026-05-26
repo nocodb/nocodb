@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersV3Service as FiltersV3ServiceCE } from 'src/services/v3/filters-v3.service';
-
-// Re-export CE helpers so callers that import from '~/services/v3/filters-v3.service'
-// (which resolves to this EE file in EE mode) still get them.
-export { addDummyRootAndNest } from 'src/services/v3/filters-v3.service';
 import type { FilterCreateV3Type } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';

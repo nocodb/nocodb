@@ -286,6 +286,17 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
+    // Table Sync
+    'tableSyncList',
+    'tableSyncGet',
+    'tableSyncCreate',
+    'tableSyncUpdate',
+    'tableSyncDelete',
+    'tableSyncResync',
+    'tableSyncFreeze',
+    'tableSyncResume',
+    'tableSyncResolveLink',
+
     // Data Import
     'dataImportPreview',
     'dataImportFile',
@@ -1007,6 +1018,16 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
+
+  tableSyncList: 'view list of table syncs',
+  tableSyncGet: 'view table sync details',
+  tableSyncCreate: 'create a table sync',
+  tableSyncUpdate: 'update a table sync',
+  tableSyncDelete: 'delete a table sync',
+  tableSyncResync: 'manually resync a table sync',
+  tableSyncFreeze: 'pause a table sync',
+  tableSyncResume: 'resume a paused table sync',
+  tableSyncResolveLink: 'resolve a source share link for a table sync',
 
   dataImportPreview: 'preview file for import',
   dataImportFile: 'import file into a table',

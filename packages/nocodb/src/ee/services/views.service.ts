@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
 import { ViewsService as ViewsServiceCE } from 'src/services/views.service';
 import type {
   SharedViewReqType,
@@ -15,7 +15,9 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   assertNotSandbox,
@@ -26,8 +28,9 @@ export class ViewsService extends ViewsServiceCE {
   constructor(
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly baseTrashService: BaseTrashService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {
-    super(appHooksServiceEE);
+    super(appHooksServiceEE, metaDependencyEventHandler);
   }
 
   @TraceCommand(OperationName.viewUpdate)
@@ -46,6 +49,9 @@ export class ViewsService extends ViewsServiceCE {
         context,
         'Locked views cannot be created or modified on a base with an active sandbox. Make changes in the sandbox.',
       );
+    }
+    if (param.view?.allow_sync === true) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_SYNC);
     }
     return super.viewUpdate(context, param);
   }

@@ -1,8 +1,15 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
 import {
+  AppEvents,
+  arrUniqMerge,
   type HookType,
+  ncIsObject,
+  NOCO_SERVICE_USERS,
   PlanLimitTypes,
+  ServiceUserType,
+  TableSyncStatus,
+  TableSyncTrigger,
   ViewTypes,
   WebhookEvents,
 } from 'nocodb-sdk';
@@ -12,8 +19,18 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 // @ts-ignore importing directly will cause circular dependency error
 import { type WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { JobTypes } from '~/interface/Jobs';
-import { Filter, Hook, Model, Source, View } from '~/models';
-import Workflow from '~/ee/models/Workflow';
+import {
+  Base,
+  Filter,
+  Hook,
+  Model,
+  Source,
+  TableSync,
+  TableSyncMapping,
+  View,
+  Workflow,
+} from '~/models';
+import { dataWrapper } from '~/helpers/dbHelpers';
 import {
   getAffectedColumns,
   validateCondition,
@@ -22,13 +39,27 @@ import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 import { checkLimit } from '~/helpers/paymentHelpers';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 
+const TABLE_SYNC_HOOKS_OF_INTEREST = new Set([
+  'after.insert',
+  'after.bulkInsert',
+  'after.update',
+  'after.bulkUpdate',
+  'after.delete',
+  'after.bulkDelete',
+]);
+
+const TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS = 5000;
+
 @Injectable()
 export class HookHandlerService extends HookHandlerServiceCE {
   protected logger = new Logger(HookHandlerService.name);
+
+  private lmtUnsubscribe?: () => void;
 
   constructor(
     @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
@@ -37,8 +68,37 @@ export class HookHandlerService extends HookHandlerServiceCE {
     private readonly datasV3Service: DataV3Service,
     @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
+    private readonly nocoJobsService: NocoJobsService,
   ) {
     super(eventEmitter, jobsService, mailService);
+  }
+
+  onModuleInit(): any {
+    super.onModuleInit();
+    this.lmtUnsubscribe = this.eventEmitter.on(
+      AppEvents.ROW_LMT_TOUCHED,
+      async (arg: {
+        context: NcContext;
+        modelId: string;
+        rowIds: string[];
+        user: any;
+      }) => {
+        try {
+          await this.scheduleTableSyncsFromLmtTouch(arg);
+        } catch (e) {
+          this.logger.error({
+            error: e,
+            details: 'Error handling ROW_LMT_TOUCHED in HookHandlerService',
+            modelId: arg?.modelId,
+          });
+        }
+      },
+    );
+  }
+
+  onModuleDestroy() {
+    super.onModuleDestroy();
+    this.lmtUnsubscribe?.();
   }
 
   @EEOnly()
@@ -92,6 +152,15 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
     // Call parent to handle webhooks
     await super.handleHooks(context, param);
+
+    this.scheduleTableSyncs(context, param).catch((e: Error) => {
+      this.logger.error({
+        error: e,
+        details: 'Error while scheduling table-sync',
+        hookName: param.hookName,
+        modelId: param.modelId,
+      });
+    });
 
     await checkLimit({
       workspaceId: context.workspace_id,
@@ -785,6 +854,243 @@ export class HookHandlerService extends HookHandlerServiceCE {
         details: 'Error in triggerRecordMatchesConditionWorkflows',
         hookName,
         modelId,
+      });
+    }
+  }
+
+  private async scheduleTableSyncs(
+    context: NcContext,
+    param: { hookName; prevData; newData; user; viewId; modelId },
+  ): Promise<void> {
+    if (!param.hookName || !TABLE_SYNC_HOOKS_OF_INTEREST.has(param.hookName)) {
+      return;
+    }
+
+    if (!param.modelId || !context?.workspace_id || !context?.base_id) return;
+
+    const mappings = await TableSyncMapping.listBySourceTable(
+      context.workspace_id,
+      context.base_id,
+      param.modelId,
+    );
+
+    if (!mappings.length) return;
+
+    const model = await Model.get(context, param.modelId);
+
+    if (!model) return;
+
+    await model.getColumns(context);
+
+    const eventRows = param.newData ?? param.prevData;
+
+    const idsFromEvent: string[] = [];
+
+    if (eventRows != null) {
+      for (const row of Array.isArray(eventRows) ? eventRows : [eventRows]) {
+        if (!ncIsObject(row)) continue;
+        const pk = dataWrapper(row).extractPksValue(model, true);
+        if (pk != null && pk !== '') idsFromEvent.push(String(pk));
+      }
+    }
+
+    const seenSyncIds = new Set<string>();
+
+    for (const mapping of mappings) {
+      if (seenSyncIds.has(mapping.fk_table_sync_id)) continue;
+
+      seenSyncIds.add(mapping.fk_table_sync_id);
+
+      if (
+        mapping.source_workspace_id !== context.workspace_id ||
+        mapping.source_base_id !== context.base_id
+      ) {
+        this.logger.warn({
+          message: 'Skipping cross-scope table-sync mapping',
+          mappingId: mapping.id,
+        });
+        continue;
+      }
+
+      await this.scheduleIncrementalTableSync(
+        mapping,
+        context,
+        param,
+        idsFromEvent,
+      );
+    }
+  }
+
+  private async scheduleTableSyncsFromLmtTouch(arg: {
+    context: NcContext;
+    modelId: string;
+    rowIds: string[];
+    user: any;
+  }): Promise<void> {
+    const { context, modelId, rowIds, user } = arg;
+
+    if (!modelId || !context?.workspace_id || !context?.base_id) return;
+    if (!rowIds?.length) return;
+
+    const mappings = await TableSyncMapping.listBySourceTable(
+      context.workspace_id,
+      context.base_id,
+      modelId,
+    );
+    if (!mappings.length) return;
+
+    const idsFromEvent = rowIds
+      .filter((id) => id != null && id !== '')
+      .map((id) => String(id));
+    if (!idsFromEvent.length) return;
+
+    const seenSyncIds = new Set<string>();
+    for (const mapping of mappings) {
+      if (seenSyncIds.has(mapping.fk_table_sync_id)) continue;
+      seenSyncIds.add(mapping.fk_table_sync_id);
+
+      if (
+        mapping.source_workspace_id !== context.workspace_id ||
+        mapping.source_base_id !== context.base_id
+      ) {
+        this.logger.warn({
+          message: 'Skipping cross-scope table-sync mapping on LMT touch',
+          mappingId: mapping.id,
+        });
+        continue;
+      }
+
+      await this.scheduleIncrementalTableSync(
+        mapping,
+        context,
+        {
+          hookName: 'lmt.touch',
+          prevData: null,
+          newData: null,
+          user,
+          modelId,
+        },
+        idsFromEvent,
+      );
+    }
+  }
+
+  /**
+   * Debounce policy (window: `TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS`):
+   *  - First write for a sync: schedule a job with that delay; jobId is
+   *    stable per sync.
+   *  - Subsequent write while the job is queued: remove the pending job
+   *    and re-add it with a fresh delay, carrying merged
+   *    `affectedIdsBySource`. The job fires one window after the LAST write.
+   *  - Subsequent write while the job is processing: `remove()` rejects;
+   *    we bail and the running job uses its snapshot.
+   * `affectedIdsBySource[modelId]` is what lets the processor detect
+   * deletes / view-exits: any id present here but not returned by the
+   * source view query has disappeared and needs tombstoning.
+   */
+  private async scheduleIncrementalTableSync(
+    mapping: TableSyncMapping,
+    context: NcContext,
+    param: { hookName; prevData; newData; user; modelId },
+    idsFromEvent: string[],
+  ): Promise<void> {
+    const syncId = mapping.fk_table_sync_id;
+    const jobId = `tableSync:${syncId}:incremental`;
+    const sourceTableId = param.modelId;
+
+    const destContext: NcContext = {
+      workspace_id: mapping.fk_workspace_id,
+      base_id: mapping.dest_base_id,
+    };
+
+    const [destBase, sourceBase] = await Promise.all([
+      Base.get(
+        {
+          workspace_id: mapping.fk_workspace_id,
+          base_id: mapping.dest_base_id,
+        } as NcContext,
+        mapping.dest_base_id,
+      ),
+      Base.get(
+        {
+          workspace_id: mapping.source_workspace_id,
+          base_id: mapping.source_base_id,
+        } as NcContext,
+        mapping.source_base_id,
+      ),
+    ]);
+    if (!destBase || !sourceBase) {
+      return;
+    }
+
+    const sync = await TableSync.get(destContext, syncId);
+    if (!sync || sync.status !== TableSyncStatus.Active) {
+      return;
+    }
+    if (sync.sync_trigger === TableSyncTrigger.Manual) {
+      return;
+    }
+
+    const existing = await this.nocoJobsService.getJob(jobId);
+    const existingData =
+      (existing?.data as { affectedIdsBySource?: Record<string, string[]> }) ??
+      {};
+    const merged: Record<string, string[]> = {
+      ...(existingData.affectedIdsBySource ?? {}),
+    };
+    if (idsFromEvent.length) {
+      merged[sourceTableId] = arrUniqMerge(
+        merged[sourceTableId] ?? [],
+        idsFromEvent,
+      );
+    }
+    const affectedIdsBySource = Object.keys(merged).length ? merged : undefined;
+
+    if (existing) {
+      try {
+        await existing.remove();
+      } catch (e) {
+        this.logger.warn(
+          `Incremental ${jobId} dropped ${
+            idsFromEvent.length
+          } ids — prior job still processing (${(e as Error).message})`,
+        );
+        return;
+      }
+    }
+
+    try {
+      await this.nocoJobsService.add(
+        JobTypes.TableSyncRun,
+        {
+          context: destContext,
+          syncId,
+          mode: 'incremental',
+          affectedIdsBySource,
+          req: {
+            context,
+            user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+            ncWorkspaceId: context?.workspace_id,
+            ncBaseId: context?.base_id,
+            ncSiteUrl: '',
+            dashboardUrl: '',
+            headers: {},
+            query: {},
+            body: {},
+            params: {},
+          },
+        },
+        {
+          jobId,
+          delay: TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    } catch (e) {
+      this.logger.error({
+        error: e,
+        message: `Failed to enqueue table-sync job ${jobId}`,
       });
     }
   }

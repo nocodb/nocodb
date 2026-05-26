@@ -37,12 +37,13 @@ export default class SyncSource {
       MetaTable.SYNC_SOURCE,
       syncSourceId,
     );
+    if (!syncSource) return null;
     if (syncSource.details && typeof syncSource.details === 'string') {
       try {
         syncSource.details = JSON.parse(syncSource.details);
       } catch {}
     }
-    return syncSource && new SyncSource(syncSource);
+    return new SyncSource(syncSource);
   }
 
   static async list(

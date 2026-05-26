@@ -6319,6 +6319,10 @@
           "attachment_mode_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of column used for attachment mode"
+          },
+          "allow_sync": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this view can be used as a source for internal sync."
           }
         }
       },
@@ -6762,6 +6766,135 @@
           "custom_path": {
             "type": "string",
             "description": "Custom url path"
+          }
+        }
+      },
+      "TableSyncCreateReq": {
+        "description": "Create a realtime in-process table-sync between a source view (in this workspace or any workspace whose share link the caller possesses) and a new synced table in the destination base.",
+        "type": "object",
+        "title": "Table Sync Create Request",
+        "required": ["title", "source_base_id", "source_table_id", "source_view_id"],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Title of the sync. Must be unique within the destination base.",
+            "example": "Customers (synced)"
+          },
+          "source_workspace_id": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Workspace ID of the source view. Defaults to the caller's workspace when omitted (same-workspace Browse mode). Set explicitly when creating a cross-workspace sync via paste-link."
+          },
+          "source_base_id": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "ID of the base containing the source view."
+          },
+          "source_table_id": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "ID of the source table."
+          },
+          "source_view_id": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "ID of the source grid view. Must have allow_sync enabled."
+          },
+          "selected_fields": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "description": "Source field titles to sync. null = sync all current and future fields."
+          },
+          "link_view_by_column": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Per-LTAR source column, the linked-table grid view ID to mirror as a shadow table. Backend auto-picks the first sync-enabled grid view for any LTAR column not listed here."
+          },
+          "on_delete_action": {
+            "type": "string",
+            "enum": ["delete", "mark_deleted"],
+            "description": "Behaviour when a row is deleted on the source. Default: mark_deleted."
+          },
+          "sync_trigger": {
+            "type": "string",
+            "enum": ["realtime", "manual"],
+            "description": "How destination updates are triggered. Default: realtime."
+          },
+          "source_input_mode": {
+            "type": "string",
+            "enum": ["browse", "paste"],
+            "description": "How the user picked the source view at create time. Persisted so edit mode can render the matching UI. Defaults to 'browse'."
+          },
+          "password": {
+            "type": "string",
+            "description": "Share password for the source view. Required when the source view is password-protected. Verified against the view's stored hash before the sync is created."
+          }
+        }
+      },
+      "TableSyncUpdateReq": {
+        "description": "Update editable fields on an existing table-sync. Source workspace, base, and table are immutable post-creation (the destination schema is structurally bound to them). The source view MAY be re-bound to a different view on the same source table — useful when the original view was deleted or had its share / allow_sync revoked. selected_fields and link_view_by_column may be updated to add/remove synced fields; added regular fields are created on the destination and back-filled via a full re-sync, added link fields create the necessary junction/shadow tables, and removed fields drop their destination columns (with link removals also cleaning up any junction and ref-counted shadow tables).",
+        "type": "object",
+        "title": "Table Sync Update Request",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "New title. Must be unique within the destination base."
+          },
+          "on_delete_action": {
+            "type": "string",
+            "enum": ["delete", "mark_deleted"]
+          },
+          "sync_trigger": {
+            "type": "string",
+            "enum": ["realtime", "manual"]
+          },
+          "source_view_id": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Re-bind the sync to a different source view. The new view MUST live on the same source table as the existing Main mapping. Must be a Grid view with allow_sync enabled and a non-null uuid."
+          },
+          "password": {
+            "type": "string",
+            "description": "Share password for the new source view. Required when source_view_id points to a password-protected view. Verified against the view's stored hash before the re-bind is applied."
+          },
+          "selected_fields": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "description": "Updated set of source field titles to sync. null = sync all current and future fields. Diffed against the sync's current selection — additions create destination columns, removals drop them."
+          },
+          "link_view_by_column": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Updated per-LTAR source column → linked-table grid view ID map. Used for newly-added link fields to pick the shadow source view."
+          }
+        }
+      },
+      "TableSyncResolveLinkReq": {
+        "description": "Resolve a public share-view URL (or raw UUID) + optional password into workspace/base/table/view ids so the caller can pre-fill a paste-link create form. Returned IDs are only those of a publicly-shared view with allow_sync enabled.",
+        "type": "object",
+        "title": "Table Sync Resolve Link Request",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Share-view URL — e.g. https://app.example.com/dashboard/#/nc/view/<uuid>. Either url or uuid is required."
+          },
+          "uuid": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Bare share-view UUID. Alternative to passing the full url."
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Password for the share view (when set). Bcrypt-compared against the view's stored hash."
           }
         }
       }

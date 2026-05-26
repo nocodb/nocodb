@@ -1021,6 +1021,13 @@ export class NcErrorBase {
     });
   }
 
+  tableSyncNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TABLE_SYNC_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   tableTrashNotSupported(tableTitle: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED,

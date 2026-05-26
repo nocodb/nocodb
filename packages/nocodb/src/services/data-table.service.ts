@@ -40,6 +40,7 @@ export class DataTableService {
       ignorePagination?: boolean;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
+      getHiddenColumns?: boolean;
       user?: any;
     },
   ) {
@@ -56,6 +57,7 @@ export class DataTableService {
       view,
       apiVersion: param.apiVersion,
       includeSortAndFilterColumns: param?.includeSortAndFilterColumns,
+      getHiddenColumns: param?.getHiddenColumns,
     });
   }
 
@@ -290,6 +292,9 @@ export class DataTableService {
       cookie: any;
       body: any;
       user?: any;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+      };
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -311,6 +316,7 @@ export class DataTableService {
         cookie: param.cookie,
         throwExceptionIfNotExist: true,
         isSingleRecordDeletion: !Array.isArray(param.body),
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
       },
     );
 

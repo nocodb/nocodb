@@ -29444,6 +29444,10 @@
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
           },
+          "allow_sync": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this view can be used as a source for internal sync."
+          },
           "row_coloring_mode": {
             "type": "string",
             "enum": [
@@ -29776,6 +29780,10 @@
           "owned_by": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
+          },
+          "allow_sync": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this view can be used as a source for internal sync."
           }
         }
       },

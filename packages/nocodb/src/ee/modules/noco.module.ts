@@ -161,6 +161,8 @@ import { ViewSectionsService } from '~/ee/services/view-sections.service';
 /* Base Variables */
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
 
+import { TableSyncService } from '~/modules/table-sync/table-sync.service';
+
 /* Timelines */
 import { TimelinesService } from '~/services/timelines.service';
 import { TimelineColumnsService } from '~/services/timeline-columns.service';
@@ -307,6 +309,8 @@ export const nocoModuleEeMetadata = {
 
     /* Base Variables */
     BaseVariablesService,
+
+    TableSyncService,
 
     /* Timelines */
     TimelinesService,

@@ -1157,6 +1157,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       before?: string;
       undo?: boolean;
       raw?: boolean;
+      allowSystemColumn?: boolean;
     },
   ) {
     for (const column of this.model.columns) {
@@ -4246,10 +4247,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       cookie,
       throwExceptionIfNotExist = false,
       isSingleRecordDeletion = false,
+      allowSystemColumn = false,
     }: {
       cookie?: any;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordDeletion?: boolean;
+      allowSystemColumn?: boolean;
     } = {},
   ) {
     const queries: string[] = [];
@@ -4315,7 +4318,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         captureForTrace('recordPrev', deleted);
       }
 
-      await this.beforeBulkDelete(deleted, cookie);
+      await this.beforeBulkDelete(deleted, cookie, { allowSystemColumn });
 
       const base = await this.getSource();
 
@@ -4924,6 +4927,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async beforeDelete(
     data: Record<string, any>,
     req: NcRequest,
+    params?: {
+      allowSystemColumn?: boolean;
+    },
   ): Promise<void> {
     await this.checkPermission({
       entity: PermissionEntity.TABLE,
@@ -4933,12 +4939,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req,
     });
 
-    return super.beforeDelete(data, req);
+    return super.beforeDelete(data, req, params);
   }
 
   public async beforeBulkDelete(
     _data: Record<string, any>[],
     req: NcRequest,
+    params?: {
+      allowSystemColumn?: boolean;
+    },
   ): Promise<void> {
     await this.checkPermission({
       entity: PermissionEntity.TABLE,
@@ -4948,7 +4957,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req,
     });
 
-    return super.beforeBulkDelete(_data, req);
+    return super.beforeBulkDelete(_data, req, params);
   }
 
   public async bulkUpdateAudit({

@@ -33,6 +33,8 @@ import { BaseTrashPostOperations } from '~/controllers/internal/modules/BaseTras
 import { SmartTextGetOperations } from '~/controllers/internal/modules/SmartTextGet.operations';
 import { SmartTextPostOperations } from '~/controllers/internal/modules/SmartTextPost.operations';
 import { UndoRedoPostOperations } from '~/controllers/internal/modules/UndoRedoPost.operations';
+import { TableSyncPostOperations } from '~/controllers/internal/modules/TableSyncPost.operations';
+import { TableSyncGetOperations } from '~/controllers/internal/modules/TableSyncGet.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -70,6 +72,8 @@ export const InternalApiModules = [
   SmartTextGetOperations,
   SmartTextPostOperations,
   UndoRedoPostOperations,
+  TableSyncPostOperations,
+  TableSyncGetOperations,
 ];
 
 export const InternalApiModuleProvider = {

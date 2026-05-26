@@ -204,4 +204,14 @@ export const OPERATION_SCOPES = {
   // Undo / redo (per-(user, base, tab) — tab id read from x-nc-tab-id header)
   undo: 'base',
   redo: 'base',
+
+  tableSyncCreate: 'base',
+  tableSyncUpdate: 'base',
+  tableSyncDelete: 'base',
+  tableSyncResync: 'base',
+  tableSyncFreeze: 'base',
+  tableSyncResume: 'base',
+  tableSyncList: 'base',
+  tableSyncGet: 'base',
+  tableSyncResolveLink: 'base',
 } as const;

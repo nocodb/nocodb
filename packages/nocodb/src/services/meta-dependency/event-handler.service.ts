@@ -22,6 +22,11 @@ export class MetaDependencyEventHandler {
     COLUMN_DELETED: [],
     COLUMN_UPDATED: [],
     HOOK_DELETED: [],
+    FILTER_CREATED: [],
+    FILTER_UPDATED: [],
+    FILTER_DELETED: [],
+    VIEW_UPDATED: [],
+    TABLE_DELETED: [],
   };
 
   registerEvents(metaEventHandler: MetaEventHandler[]) {

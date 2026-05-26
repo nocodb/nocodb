@@ -21,6 +21,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -34,12 +35,14 @@ export class TablesService extends TableServiceCE {
     protected readonly linkPlaceholderServiceEE: LinkPlaceholderService,
     @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
+    protected readonly metaDependencyEventHandlerEE: MetaDependencyEventHandler,
   ) {
     super(
       metaDiffServiceEE,
       appHooksServiceEE,
       columnsServiceEE,
       linkPlaceholderServiceEE,
+      metaDependencyEventHandlerEE,
     );
   }
 
@@ -54,6 +57,7 @@ export class TablesService extends TableServiceCE {
       user: User | UserType;
       req: NcRequest;
       synced?: boolean;
+      mm?: boolean;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
       operationSource?: OperationSource;
@@ -207,13 +211,13 @@ export class TablesService extends TableServiceCE {
       'Deleting tables is not allowed on a base with an active sandbox. Delete the table in the sandbox.',
     );
 
-    if (param.skipTrash) {
-      return super.tableDelete(context, param, ncMeta);
-    }
-
     const table = await Model.get(context, param.tableId, false, ncMeta);
     if (!table) {
       NcError.get(context).tableNotFound(param.tableId);
+    }
+
+    if (param.skipTrash) {
+      return super.tableDelete(context, param, ncMeta);
     }
 
     const user = param.req?.user;

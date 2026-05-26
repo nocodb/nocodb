@@ -39,7 +39,7 @@ import {
 } from '~/models';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
-import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 import { isEE, isOnPrem } from '~/utils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 

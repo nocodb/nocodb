@@ -33,7 +33,7 @@ const { isMobileMode } = useGlobal()
 const column = toRef(props, 'column')
 provide(ColumnInj, column)
 
-const { eventBus, allFilters, isSqlView, sorts } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters, isSqlView, isSyncedTable, sorts } = useSmartsheetStoreOrThrow()
 
 const viewStore = useViewsStore()
 
@@ -501,8 +501,7 @@ const isColumnEditAllowed = computed(() => {
     (isMetaReadOnly.value &&
       !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
       !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
-    isSqlView.value ||
-    isSyncedReadonlyField.value
+    isSqlView.value
   ) {
     return false
   }
@@ -667,16 +666,15 @@ const onDeleteColumn = () => {
       </GeneralSourceRestrictionTooltip>
     </template>
 
-    <NcMenuItem
-      v-if="isUIAllowed('fieldAlter') && !!column?.pv"
-      title="Select a new field as display value"
-      @click="changeTitleField"
-    >
-      <div class="nc-column-change-display-value-field nc-header-menu-item">
-        <GeneralIcon icon="star" class="opacity-80 !w-4.25 !h-4.25" />
-        {{ $t('labels.changeDisplayValueField') }}
-      </div>
-    </NcMenuItem>
+    <NcTooltip v-if="isUIAllowed('fieldAlter') && !!column?.pv" :disabled="!isSyncedTable" placement="right">
+      <template #title>{{ $t('msg.info.displayValueChangeNotAvailableForSyncedTable') }}</template>
+      <NcMenuItem :disabled="isSyncedTable" title="Select a new field as display value" @click="changeTitleField">
+        <div class="nc-column-change-display-value-field nc-header-menu-item">
+          <GeneralIcon icon="star" class="opacity-80 !w-4.25 !h-4.25" />
+          {{ $t('labels.changeDisplayValueField') }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
     <NcMenuItem
       v-if="!isMobileMode && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
       title="Add field description"
@@ -785,14 +783,18 @@ const onDeleteColumn = () => {
     </NcMenuItem>
     <NcTooltip
       v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
-      :disabled="isSupportedDisplayValueColumn(column)"
+      :disabled="isSupportedDisplayValueColumn(column) && !isSyncedTable"
       placement="right"
     >
       <template #title>
-        {{ $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) }) }}
+        {{
+          isSyncedTable
+            ? $t('msg.info.displayValueChangeNotAvailableForSyncedTable')
+            : $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) })
+        }}
       </template>
 
-      <NcMenuItem :disabled="isLocked || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
+      <NcMenuItem :disabled="isLocked || isSyncedTable || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
         <div class="nc-column-set-primary nc-header-menu-item item">
           <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
           <GeneralIcon v-else icon="star" class="opacity-80 !w-4.25 !h-4.25" />

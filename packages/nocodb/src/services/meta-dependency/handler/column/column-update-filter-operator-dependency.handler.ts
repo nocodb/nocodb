@@ -32,7 +32,9 @@ export class ColumnUpdateFilterOperatorDependencyHandler
 
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_UPDATED];
 
-  constructor(private readonly filtersService: FiltersService) {}
+  constructor(
+    private readonly filtersService: FiltersService,
+  ) {}
 
   async getAffectedDependency(
     _context: NcContext,

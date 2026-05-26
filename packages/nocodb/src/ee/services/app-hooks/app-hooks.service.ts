@@ -159,6 +159,9 @@ import type {
   SourceUpdateEvent,
   SyncSourceEvent,
   TableDuplicateEvent,
+  TableSyncDeleteEvent,
+  TableSyncEvent,
+  TableSyncUpdateEvent,
   TableUpdateEvent,
   TimelineViewUpdateEvent,
   UserEmailVerificationEvent,
@@ -465,6 +468,23 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SHARED_DASHBOARD_DELETE_LINK
       | AppEvents.SHARED_DASHBOARD_UPDATE_LINK,
     listener: (data: SharedDashboardEvent) => void,
+  ): () => void;
+
+  on(
+    event:
+      | AppEvents.TABLE_SYNC_CREATE
+      | AppEvents.TABLE_SYNC_FREEZE
+      | AppEvents.TABLE_SYNC_RESUME
+      | AppEvents.TABLE_SYNC_RESYNC,
+    listener: (data: TableSyncEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.TABLE_SYNC_UPDATE,
+    listener: (data: TableSyncUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.TABLE_SYNC_DELETE,
+    listener: (data: TableSyncDeleteEvent) => void,
   ): () => void;
 
   on(
@@ -983,6 +1003,17 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SHARED_DASHBOARD_UPDATE_LINK,
     data: SharedDashboardEvent,
   ): void;
+
+  emit(
+    event:
+      | AppEvents.TABLE_SYNC_CREATE
+      | AppEvents.TABLE_SYNC_FREEZE
+      | AppEvents.TABLE_SYNC_RESUME
+      | AppEvents.TABLE_SYNC_RESYNC,
+    data: TableSyncEvent,
+  ): void;
+  emit(event: AppEvents.TABLE_SYNC_UPDATE, data: TableSyncUpdateEvent): void;
+  emit(event: AppEvents.TABLE_SYNC_DELETE, data: TableSyncDeleteEvent): void;
 
   emit(event: AppEvents.WIDGET_CREATE, data: WidgetCreateEvent): void;
   emit(event: AppEvents.WIDGET_UPDATE, data: WidgetUpdateEvent): void;

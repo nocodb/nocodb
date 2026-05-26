@@ -21,6 +21,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+import { isCloud } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { randomTokenString } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -189,6 +190,15 @@ export class MfaService {
     } else if (session.cognitoType === 'native') {
       // Cognito email/password — re-verify via InitiateAuth.
       await this.verifyCognitoPassword(user.email, password ?? '');
+    } else if (session.isLegacyCloudSession) {
+      // Cloud session minted before per-session identity stamping
+      // shipped — we can't classify it safely, so force a re-sign-in
+      // to populate the tag rather than fall through to the legacy
+      // session-JWT-as-proof branch (which is fine on on-prem but not
+      // on Cloud, where every sign-in goes through Cognito).
+      NcError.forbidden(
+        'Two-factor authentication is only available for accounts that sign in with email and password. Please sign out and sign in again to refresh your session.',
+      );
     }
     // No-op branch: no local password AND no Cognito tag = legacy SSO
     // (OIDC/SAML provisioned without a password). Session JWT remains
@@ -304,7 +314,26 @@ export class MfaService {
       // Without this branch, a stolen session cookie on a Cognito-native
       // account could disable 2FA in a single POST.
       await this.verifyCognitoPassword(user.email, password ?? '');
+    } else if (session.isLegacyCloudSession) {
+      // Same reasoning as `setup` — can't classify, force re-sign-in.
+      NcError.forbidden(
+        'Two-factor authentication is only available for accounts that sign in with email and password. Please sign out and sign in again to refresh your session.',
+      );
+    } else if (isCloud) {
+      // Belt-and-braces: on Cloud, every active session post-this-PR
+      // either has `user.password`, hits the SSO/federated guards
+      // above, has `cognito_identity_type === 'native'`, or is flagged
+      // legacy. Anything else is an unexpected state — refuse to
+      // disable without a proof rather than silently falling through.
+      NcError.forbidden(
+        'Two-factor authentication cannot be disabled from this session. Please sign in via your password to disable.',
+      );
     }
+    // On on-prem, an authenticated user with no local password and no
+    // Cognito tag is legitimate legacy-SSO (e.g. SAML provisioning
+    // without a NocoDB-side hash). Pre-PR behaviour relied on the
+    // session JWT alone; preserve that fall-through here so existing
+    // on-prem enrolments stay disable-able.
 
     // Disable 2FA and clear secrets
     await this.updateMfaFields(userId, {
@@ -337,11 +366,18 @@ export class MfaService {
     // and Cognito-federated sessions. Local-password and Cognito-native
     // pass through. Dual-identity Cognito users have to switch to the
     // email/password sign-in to enrol.
-    let ineligibleReason: 'sso' | 'federated' | null = null;
+    //
+    // 'legacy_session' covers Cloud sessions minted pre-this-PR whose
+    // JWT lacks the per-session identity tag. The FE tooltip prompts
+    // the user to sign out + sign in to pick up the tag; once they do,
+    // they re-enter the normal classification flow.
+    let ineligibleReason: 'sso' | 'federated' | 'legacy_session' | null = null;
     if (session.isSso) {
       ineligibleReason = 'sso';
     } else if (session.cognitoType === 'federated') {
       ineligibleReason = 'federated';
+    } else if (session.isLegacyCloudSession) {
+      ineligibleReason = 'legacy_session';
     }
 
     const eligible = ineligibleReason === null;
@@ -642,21 +678,34 @@ export class MfaService {
    */
   private getSessionIdentity(
     req: NcRequest | undefined,
-    user: { meta?: any },
+    user: { meta?: any; password?: string },
   ): {
     isSso: boolean;
     cognitoType: 'native' | 'federated' | null;
     federationProvider: string | null;
+    /**
+     * Legacy session on Cloud: signed in before this PR landed, so the
+     * JWT (and the row in `nc_user_refresh_tokens.meta`) lacks the
+     * per-session Cognito identity tag. We can't reliably classify
+     * them — `user.meta` is multi-device-stale and may be empty
+     * altogether. Only meaningful on Cloud, where every active sign-in
+     * post-this-PR carries the tag; on on-prem the same shape is
+     * legitimate legacy-SSO (no password, no Cognito) and should fall
+     * through to "session JWT is the proof".
+     */
+    isLegacyCloudSession: boolean;
   } {
     const extra = (req as any)?.user?.extra ?? {};
     const isSso = !!extra.sso_client_id;
 
     let cognitoType: 'native' | 'federated' | null = null;
     let federationProvider: string | null = null;
+    let resolvedFromPerSession = false;
 
     if (extra.cognito_identity_type) {
       cognitoType = extra.cognito_identity_type;
       federationProvider = extra.cognito_federation_provider ?? null;
+      resolvedFromPerSession = true;
     } else {
       // Pre-PR fallback. Stale for multi-session users but better
       // than treating them as un-classifiable.
@@ -670,7 +719,26 @@ export class MfaService {
       }
     }
 
-    return { isSso, cognitoType, federationProvider };
+    // Cloud-only legacy detection. The user has no local password, no
+    // SSO marker, AND the per-session Cognito tag is missing (could be
+    // backed by a stale user.meta read too — both branches above run
+    // before this check). Surface as a distinct ineligibility reason
+    // so the FE can ask the user to re-sign-in rather than silently
+    // letting the legacy-SSO fallthrough run on Cloud (where it
+    // shouldn't apply post-this-PR).
+    const isLegacyCloudSession =
+      isCloud &&
+      !user?.password &&
+      !isSso &&
+      cognitoType === null &&
+      !resolvedFromPerSession;
+
+    return {
+      isSso,
+      cognitoType,
+      federationProvider,
+      isLegacyCloudSession,
+    };
   }
 
   /**

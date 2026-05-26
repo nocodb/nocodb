@@ -17,15 +17,16 @@ const mfaEnabled = ref(false)
 const hasPassword = ref(true)
 const isLoading = ref(false)
 
-// MFA-enrolment gating — set by /mfa/status. Two ineligible cases:
-//   - 'sso'        — current session is SAML / OIDC. Block enrolment;
-//                    2FA should be configured at the IdP.
-//   - 'federated'  — Cognito-federated (Google) with no email/password
-//                    on the same account. Same reasoning.
-// In both cases the toggle is disabled and the tooltip points at the
-// IdP.
+// MFA-enrolment gating — set by /mfa/status. Three ineligible cases:
+//   - 'sso'             — current session is SAML / OIDC. Block enrolment;
+//                         2FA should be configured at the IdP.
+//   - 'federated'       — Cognito-federated (Google) with no email/password
+//                         on the same account. Same reasoning.
+//   - 'legacy_session'  — Cloud session minted before per-session
+//                         identity stamping landed. Prompt the user to
+//                         sign out + back in to refresh the tag.
 const mfaEligible = ref(true)
-const ineligibleReason = ref<'sso' | 'federated' | null>(null)
+const ineligibleReason = ref<'sso' | 'federated' | 'legacy_session' | null>(null)
 const federationProvider = ref<string | null>(null)
 
 // Setup wizard state
@@ -108,7 +109,8 @@ const skipPasswordReproof = computed(() => {
 
 // Tooltip copy shown over the disabled toggle for ineligible users.
 // Tailored per reason — federated names the IdP, SSO points the user
-// at their workspace's identity provider.
+// at their workspace's identity provider, legacy_session asks the user
+// to re-sign-in to pick up the per-session identity tag.
 const ineligibleTooltip = computed(() => {
   if (mfaEligible.value) return ''
   if (ineligibleReason.value === 'federated') {
@@ -118,6 +120,9 @@ const ineligibleTooltip = computed(() => {
   }
   if (ineligibleReason.value === 'sso') {
     return t('labels.twoFactorSsoSessionNotAvailable')
+  }
+  if (ineligibleReason.value === 'legacy_session') {
+    return t('labels.twoFactorLegacySession')
   }
   return t('labels.twoFactorSsoNotAvailable')
 })
@@ -359,8 +364,18 @@ onMounted(async () => {
                 <div class="flex flex-col gap-1.5 min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <div class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.twoFactorAuth') }}</div>
+                    <!--
+                      Show "Enabled" only when the user is BOTH enrolled
+                      *and* eligible to manage MFA from this session.
+                      An SSO / federated session on a user who once enrolled
+                      via email/password would otherwise see a green
+                      "Enabled" badge that lies — those sessions don't get
+                      the OTP challenge (IdP owns auth), so the stored TOTP
+                      is dead state. Render as "Disabled" with the tooltip
+                      explaining the email/password sign-in path.
+                    -->
                     <NcBadge
-                      v-if="mfaEnabled"
+                      v-if="mfaEnabled && mfaEligible"
                       :border="false"
                       class="!bg-green-100 !text-green-600 !border-green-200 flex items-center gap-1"
                     >
@@ -381,7 +396,15 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex-shrink-0">
-                  <NcTooltip v-if="!mfaEnabled" :disabled="canSetup2fa" :title="ineligibleTooltip">
+                  <!--
+                    Show the Disable button only when the user is BOTH
+                    enrolled and eligible to manage MFA from this session.
+                    For an enrolled-but-ineligible session (SSO / federated
+                    on a user who once enrolled via email/password), surface
+                    the disabled Enable button + tooltip — they need to
+                    sign in via email/password to manage anything here.
+                  -->
+                  <NcTooltip v-if="!mfaEnabled || !mfaEligible" :disabled="canSetup2fa" :title="ineligibleTooltip">
                     <NcButton
                       v-e="['c:account:security:enable-2fa']"
                       :type="blockMfa ? 'secondary' : 'primary'"
@@ -408,7 +431,14 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <template v-if="mfaEnabled">
+              <!--
+                Backup-code regen is only meaningful for enrolled users
+                who can actually manage their 2FA from this session.
+                For ineligible-but-enrolled (SSO / federated session over
+                an account that once had email/password), hide the whole
+                regen section — they need to switch sign-in method first.
+              -->
+              <template v-if="mfaEnabled && mfaEligible">
                 <NcDivider class="!my-4" />
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex flex-col gap-1 min-w-0 flex-1">

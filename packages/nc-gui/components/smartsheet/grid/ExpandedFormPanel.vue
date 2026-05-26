@@ -1093,7 +1093,9 @@ watch(activeRowId, () => {
      icons / buttons / barcodes / image strips), so the hover shadow ring
      reads as wrong. Each :has() targets the actual descendant class set by
      the cell component itself. */
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-data-cell-compact):not(:has(.form-attachment-cell)):not(:has(.nc-cell-button)):not(:has(.barcode-wrapper)):not(:has(.nc-qrcode-container)):not(:has(.nc-cell-longtext-ai .nc-expanded-form-open)):hover {
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-data-cell-compact):not(:has(.form-attachment-cell)):not(
+      :has(.nc-cell-button)
+    ):not(:has(.barcode-wrapper)):not(:has(.nc-qrcode-container)):not(:has(.nc-cell-longtext-ai .nc-expanded-form-open)):hover {
     box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.12) !important;
   }
 }

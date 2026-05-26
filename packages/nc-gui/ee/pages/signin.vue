@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { appInfo } = useGlobal()
 const { ssoError } = useSsoError()
+const { twoFactorRequired } = useTwoFactorSignin()
 
 const route = useRoute()
 
@@ -23,7 +24,16 @@ onMounted(() => {
     <AuthNoAccess :message="ssoError.message" />
   </div>
   <template v-else-if="appInfo.cognito">
-    <AuthCognito v-if="appInfo.cognito.aws_user_pools_id" />
+    <!--
+      Hide AuthCognito while a NocoDB-side 2FA challenge is pending.
+      Cognito has already authenticated the user; the Amplify
+      <Authenticator> renders nothing into its default slot when
+      authenticated but its outer container is min-h-screen, which
+      pushes <AuthSignin> (the TOTP form) below the fold and leaves
+      /signin looking blank. Suppressing AuthCognito for the duration
+      of the 2FA step keeps the TOTP UI visible.
+    -->
+    <AuthCognito v-if="appInfo.cognito.aws_user_pools_id && !twoFactorRequired" />
     <NuxtLayout>
       <AuthSignin />
     </NuxtLayout>

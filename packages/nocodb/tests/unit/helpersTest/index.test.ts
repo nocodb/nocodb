@@ -14,6 +14,7 @@ let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
 let mfaHelperTests = () => {};
+let cognitoTestShimTests = () => {};
 let patResourceFilterTest = () => {};
 let dynamicFieldFilterTests = () => {};
 let onPremPlanResolutionTests = () => {};
@@ -26,6 +27,8 @@ if (process.env.EE === 'true') {
   verifyDefaultOrgTests =
     require('./ee/verifyDefaultOrg.test').verifyDefaultOrgTests;
   mfaHelperTests = require('./mfa.test').mfaHelperTests;
+  cognitoTestShimTests =
+    require('./cognitoTestShim.test').cognitoTestShimTests;
   patResourceFilterTest =
     require('./patResourceFilter.test').patResourceFilterTest;
   dynamicFieldFilterTests =
@@ -48,6 +51,7 @@ function _helperTests() {
   planResolutionTests();
   onPremPlanResolutionTests();
   mfaHelperTests();
+  cognitoTestShimTests();
   describe(
     'PublicDatasService - shared view column sanitization',
     publicDatasSanitizeTest,

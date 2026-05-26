@@ -15,13 +15,25 @@ const {
   twoFactorError,
   twoFactorLoading,
   useBackupCode,
+  postVerifyRedirect,
   handleSigninResponse,
+  hydrateFromPendingToken,
   verifyTwoFactor: _verifyTwoFactor,
   cancelTwoFactor,
   toggleBackupCode,
 } = useTwoFactorSignin()
 
 const twoFactorCodeInput = ref<HTMLInputElement>()
+
+// If the Cognito callback deposited a pending 2FA token in
+// sessionStorage (see useGlobal/actions.ts:checkForCognitoToken), pick
+// it up so this page renders the TOTP step directly without requiring
+// an email/password submit first.
+onBeforeMount(() => {
+  if (hydrateFromPendingToken()) {
+    nextTick(() => twoFactorCodeInput.value?.focus())
+  }
+})
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -85,6 +97,32 @@ async function verifyTwoFactor() {
     const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
     if (continueAfterSignIn) {
       return
+    }
+
+    // Honor the deep-link the original sign-in path captured (e.g. the
+    // Cognito callback stashes `window.location` before redirecting
+    // here). Falls back to dashboard root for the email/password path
+    // which doesn't currently set one.
+    //
+    // Defense-in-depth: the redirect is FE-sourced (window.location at
+    // sign-in entry) and only echoed through a server-signed JWT, so a
+    // remote attacker can't inject an arbitrary URL today. Still — this
+    // is the only client-side gate before navigation, and historically
+    // browsers have normalised forms like `/\evil.com` as protocol-
+    // relative URLs after parsing. Cheap to harden: require relative
+    // path, reject backslash-prefixed, and re-parse through URL with
+    // same-origin enforcement before navigating.
+    const redirect = postVerifyRedirect.value
+    if (redirect && redirect.startsWith('/') && !redirect.startsWith('//') && !redirect.startsWith('/\\')) {
+      try {
+        const url = new URL(redirect, window.location.origin)
+        if (url.origin === window.location.origin) {
+          await navigateTo(url.pathname + url.search + url.hash)
+          return
+        }
+      } catch {
+        // Malformed redirect — fall through to dashboard.
+      }
     }
 
     await navigateTo({
@@ -194,13 +232,26 @@ const googleAuthUrl = computed(() => {
             </button>
 
             <div class="text-sm">
-              <a class="prose-sm cursor-pointer" @click="toggleBackupCode">
+              <a class="prose-sm cursor-pointer" data-testid="nc-form-signin__2fa-toggle-backup" @click="toggleBackupCode">
                 {{ useBackupCode ? $t('labels.useAuthenticatorCode') : $t('labels.useBackupCode') }}
               </a>
             </div>
 
             <div class="text-sm">
-              <a class="prose-sm cursor-pointer" @click="cancelTwoFactor">
+              <!--
+                Cancel triggers an async Auth.signOut() roundtrip; gate
+                pointer-events / opacity on `twoFactorLoading` so a fast
+                double-click can't queue a second cancel against the
+                still-pending one. The composable's re-entrant guard
+                covers the race too, but disabling at the UI is the
+                less-surprising affordance.
+              -->
+              <a
+                class="prose-sm cursor-pointer"
+                :class="{ 'pointer-events-none opacity-60': twoFactorLoading }"
+                data-testid="nc-form-signin__2fa-cancel"
+                @click="cancelTwoFactor"
+              >
                 {{ $t('general.cancel') }}
               </a>
             </div>

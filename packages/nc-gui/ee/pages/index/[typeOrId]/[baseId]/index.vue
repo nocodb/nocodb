@@ -37,6 +37,15 @@ onBeforeMount(async () => {
   try {
     await loadProject()
   } catch (e: any) {
+    // ERR_MFA_SETUP_REQUIRED is handled by the EE response interceptor —
+    // it shows the setup-required dialog whose OK navigates to
+    // /account/security. Falling through to the generic 403 branch
+    // would clobber that nav with `router.replace('/')` and surface a
+    // misleading "Base not accessible" toast.
+    if (e?.response?.data?.error === NcErrorType.ERR_MFA_SETUP_REQUIRED) {
+      return
+    }
+
     if (e.response?.status === 403) {
       // Base is not accessible
       message.error(t('msg.error.projectNotAccessible'))

@@ -9,11 +9,32 @@ const { $e } = useNuxtApp()
 
 const { blockMfa, showUpgradeToUseMfa, isEEFeatureBlocked } = useEeConfig()
 
+const { appInfo, signOut } = useGlobal()
+
 const { copy } = useCopy()
+
+const route = useRoute()
+
+const router = useRouter()
 
 const mfaEnabled = ref(false)
 const hasPassword = ref(true)
 const isLoading = ref(false)
+
+// MFA-enrolment gating — set by /mfa/status. Three ineligible cases:
+//   - 'sso'             — current session is SAML / OIDC. Block enrolment;
+//                         2FA should be configured at the IdP.
+//   - 'federated'       — Cognito-federated (Google) with no email/password
+//                         on the same account. Same reasoning.
+//   - 'legacy_session'  — Cloud session minted before per-session
+//                         identity stamping landed. Prompt the user to
+//                         sign out + back in to refresh the tag.
+const mfaEligible = ref(true)
+const ineligibleReason = ref<'sso' | 'federated' | 'legacy_session' | null>(null)
+// Provider name (e.g. 'Google') surfaced by `/mfa/status` for the
+// federated case so the tooltip can name the IdP the user is signed in
+// with. Falls back to the generic "identity provider" copy when absent.
+const federationProvider = ref<string | null>(null)
 
 // Setup wizard state
 const showSetupModal = ref(false)
@@ -45,12 +66,52 @@ async function fetchStatus() {
     const response = await api.instance.get('/api/v2/auth/mfa/status')
     mfaEnabled.value = response.data.enabled
     hasPassword.value = response.data.hasPassword ?? true
+    // Older backends won't echo `eligible` — default to true so the
+    // existing CE / on-prem behaviour is preserved.
+    mfaEligible.value = response.data.eligible ?? true
+    ineligibleReason.value = response.data.ineligibleReason ?? null
+    federationProvider.value = response.data.federationProvider ?? null
   } catch {
     // ignore
   }
 }
 
-const canSetup2fa = computed(() => hasPassword.value)
+// Eligibility for the enrollment flow:
+//   - Account has a local password → classic password-confirm flow.
+//   - On Cloud, Cognito-native (signed up via email/password to the
+//     User Pool) → backend re-verifies the supplied password against
+//     Cognito's InitiateAuth, so we DO render the password step here.
+//   - On Cloud, Cognito-federated (Google etc.) → backend rejects with
+//     403; FE marks `mfaEligible=false` so the toggle is disabled and
+//     the tooltip points the user at their IdP.
+// `mfaEligible` is the single switch; the explicit ineligible reason
+// today is only `federated`.
+const canSetup2fa = computed(() => mfaEligible.value && (hasPassword.value || appInfo.value?.isCloud))
+
+// Note: this component intentionally does NOT branch the reproof flow
+// based on identity source. After mfa.service.setup was tightened to
+// reject every reachable path that doesn't carry a password (Cognito
+// native InitiateAuth, local bcrypt, or 403), the FE-side matrix
+// became redundant — every `canSetup2fa` user goes through the
+// password step, and the BE picks bcrypt vs InitiateAuth from
+// `req.user.extra` + `user.password`. Keeping the FE oblivious to
+// the matrix means we only have to evolve one side when the rules
+// change.
+
+// Tooltip copy for ineligible-toggle users. Each variant names the
+// auth method the user is currently signed in with, then gives one
+// uniform directive: sign in with email and password to set up 2FA.
+const ineligibleTooltip = computed(() => {
+  if (mfaEligible.value) return ''
+  if (ineligibleReason.value === 'federated') {
+    return federationProvider.value
+      ? t('labels.twoFactorFederatedNotAvailable', { provider: federationProvider.value })
+      : t('labels.twoFactorFederatedNotAvailableGeneric')
+  }
+  if (ineligibleReason.value === 'sso') return t('labels.twoFactorSsoSessionNotAvailable')
+  if (ineligibleReason.value === 'legacy_session') return t('labels.twoFactorLegacySession')
+  return t('labels.twoFactorSsoNotAvailable')
+})
 
 function startSetup() {
   if (blockMfa.value) {
@@ -61,10 +122,10 @@ function startSetup() {
   if (!canSetup2fa.value) return
 
   $e('c:account:security:enable-2fa')
-  setupStep.value = 'password'
   setupPassword.value = ''
   setupError.value = ''
   showSetupModal.value = true
+  setupStep.value = 'password'
   nextTick(() => setupPasswordInput.value?.focus())
 }
 
@@ -108,7 +169,17 @@ async function confirmSetup() {
   }
 }
 
-function closeSetupModal() {
+async function closeSetupModal() {
+  // If the user is closing the modal after seeing the backup codes,
+  // enrolment has succeeded — the BE rotated `token_version` to
+  // invalidate every existing session (mfa.service.verifySetup). The
+  // current FE still holds the now-stale token, and without an API
+  // call to surface the 401 the user can sit on /account forever
+  // until they navigate or refresh. Force the sign-out → /signin
+  // round trip so they immediately re-authenticate under the new
+  // 2FA-protected flow.
+  const justEnrolled = setupStep.value === 'backup'
+
   showSetupModal.value = false
   setupData.value = null
   setupCode.value = ''
@@ -116,18 +187,32 @@ function closeSetupModal() {
   setupError.value = ''
   setupStep.value = 'password'
   isLoading.value = false
+
+  if (justEnrolled) {
+    await signOut({ redirectToSignin: true })
+  }
 }
 
 async function confirmDisable() {
-  if (hasPassword.value && !disablePassword.value) return
+  // Always send the password — BE picks bcrypt vs Cognito InitiateAuth
+  // from the session context. Federated / SSO sessions get rejected by
+  // the BE with 403 before this codepath even renders (the Disable
+  // button is hidden for ineligible users); but we keep the password
+  // requirement here so the BE/FE stay consistent if eligibility ever
+  // expands.
+  if (!disablePassword.value) return
 
   isLoading.value = true
   disableError.value = ''
 
   try {
     await api.instance.post('/api/v2/auth/mfa/disable', {
-      ...(hasPassword.value ? { password: disablePassword.value } : {}),
+      password: disablePassword.value,
     })
+    // Disable does NOT rotate token_version BE-side (other sessions
+    // were already authenticated under the stricter 2FA gate, so
+    // weakening doesn't justify killing them). User stays signed in
+    // on the current device — the Security card updates in place.
     mfaEnabled.value = false
     showDisableModal.value = false
     disablePassword.value = ''
@@ -214,8 +299,18 @@ watch(showDisableModal, (v) => {
   }
 })
 
-onMounted(() => {
-  fetchStatus()
+onMounted(async () => {
+  await fetchStatus()
+
+  // Auto-open the enrollment modal when arriving here from the
+  // workspace's force_2fa redirect (DlgWorkspaceMfaSetupRequired sets
+  // `?openEnrollment=true` on the navigation). Strip the param after
+  // we've consumed it so a page refresh doesn't re-trigger the modal.
+  if (route.query.openEnrollment === 'true' && !mfaEnabled.value) {
+    startSetup()
+    const { openEnrollment: _, ...rest } = route.query
+    router.replace({ path: route.path, query: rest })
+  }
 })
 </script>
 
@@ -243,8 +338,18 @@ onMounted(() => {
                 <div class="flex flex-col gap-1.5 min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <div class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.twoFactorAuth') }}</div>
+                    <!--
+                      Show "Enabled" only when the user is BOTH enrolled
+                      *and* eligible to manage MFA from this session.
+                      An SSO / federated session on a user who once enrolled
+                      via email/password would otherwise see a green
+                      "Enabled" badge that lies — those sessions don't get
+                      the OTP challenge (IdP owns auth), so the stored TOTP
+                      is dead state. Render as "Disabled" with the tooltip
+                      explaining the email/password sign-in path.
+                    -->
                     <NcBadge
-                      v-if="mfaEnabled"
+                      v-if="mfaEnabled && mfaEligible"
                       :border="false"
                       class="!bg-green-100 !text-green-600 !border-green-200 flex items-center gap-1"
                     >
@@ -265,7 +370,15 @@ onMounted(() => {
                 </div>
 
                 <div class="flex-shrink-0">
-                  <NcTooltip v-if="!mfaEnabled" :disabled="canSetup2fa" :title="$t('labels.twoFactorSsoNotAvailable')">
+                  <!--
+                    Show the Disable button only when the user is BOTH
+                    enrolled and eligible to manage MFA from this session.
+                    For an enrolled-but-ineligible session (SSO / federated
+                    on a user who once enrolled via email/password), surface
+                    the disabled Enable button + tooltip — they need to
+                    sign in via email/password to manage anything here.
+                  -->
+                  <NcTooltip v-if="!mfaEnabled || !mfaEligible" :disabled="canSetup2fa" :title="ineligibleTooltip">
                     <NcButton
                       v-e="['c:account:security:enable-2fa']"
                       :type="blockMfa ? 'secondary' : 'primary'"
@@ -292,7 +405,14 @@ onMounted(() => {
                 </div>
               </div>
 
-              <template v-if="mfaEnabled">
+              <!--
+                Backup-code regen is only meaningful for enrolled users
+                who can actually manage their 2FA from this session.
+                For ineligible-but-enrolled (SSO / federated session over
+                an account that once had email/password), hide the whole
+                regen section — they need to switch sign-in method first.
+              -->
+              <template v-if="mfaEnabled && mfaEligible">
                 <NcDivider class="!my-4" />
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex flex-col gap-1 min-w-0 flex-1">
@@ -373,6 +493,21 @@ onMounted(() => {
 
         <!-- Step 1: QR Code -->
         <div v-else-if="setupStep === 'qr' && setupData" class="flex flex-col gap-5">
+          <!--
+            Scope reminder on Cloud — Cognito users may have a parallel
+            Google (or other federated) identity on the same email. 2FA
+            we set up here applies to their email/password sign-in only;
+            federated sign-ins are managed by the provider and won't be
+            challenged for this code. Surfacing the constraint up-front
+            so dual-identity users don't think the federated bypass is a
+            bug after enrolment.
+          -->
+          <div
+            v-if="appInfo?.isCloud"
+            class="rounded-md border border-nc-border-gray-medium bg-nc-bg-gray-extralight px-3 py-2 text-xs text-nc-content-gray-subtle"
+          >
+            {{ $t('labels.twoFactorScopeBanner') }}
+          </div>
           <div class="flex flex-col items-center gap-3">
             <img :src="setupData.qrUrl" alt="QR Code" class="w-60 h-60" />
             <div class="bg-nc-bg-gray-light rounded-lg px-3 py-2 flex items-center justify-center gap-2">
@@ -468,7 +603,7 @@ onMounted(() => {
       :title="$t('labels.disableTwoFactor')"
       :show-icon="false"
       :ok-text="$t('labels.disableTwoFactor')"
-      :ok-props="{ type: 'danger', loading: isLoading, disabled: hasPassword && !disablePassword }"
+      :ok-props="{ type: 'danger', loading: isLoading, disabled: !disablePassword }"
       @cancel="
         () => {
           disablePassword = ''
@@ -486,7 +621,7 @@ onMounted(() => {
           </template>
         </NcAlert>
 
-        <div v-if="hasPassword" class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
           <div class="text-sm">{{ $t('msg.enterPassword') }}</div>
           <a-input-password
             ref="disablePasswordInput"
@@ -497,7 +632,6 @@ onMounted(() => {
           />
           <div v-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
         </div>
-        <div v-else-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
       </template>
     </NcModalConfirm>
 

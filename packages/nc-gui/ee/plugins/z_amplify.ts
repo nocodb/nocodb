@@ -62,7 +62,13 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
                   cognitoOnly: true,
                 })
                 const route = useRoute()
-                if (/signin|signup/i.test(route.name)) {
+                // Only auto-navigate away from /signin or /signup once
+                // the user is actually signed in. The Cognito+2FA path
+                // returns from refreshToken WITHOUT signing in — the
+                // user is mid-challenge on /signin — so navigating to
+                // '/' here would just bounce them through the auth
+                // middleware right back to /signin.
+                if (signedIn.value && /signin|signup/i.test(route.name)) {
                   navigateTo('/')
                 }
               } catch (e) {

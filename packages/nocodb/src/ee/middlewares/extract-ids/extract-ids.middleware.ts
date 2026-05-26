@@ -1492,10 +1492,59 @@ export class AclMiddleware implements NestInterceptor {
           ? JSON.parse(workspace.meta)
           : workspace?.meta;
       if (meta?.force_2fa && !req.user?.totp_enabled) {
-        // SSO users (no password) cannot set up 2FA, so skip enforcement
-        const user = await User.get(req.user.id);
-        if (user?.password) {
+        // Only enforce when the *current session* was authenticated via
+        // a re-provable password — local NocoDB password or Cognito
+        // email/password. Other session flavours are exempt:
+        //   - Active SSO session (SAML / OIDC) — IdP owns MFA posture.
+        //   - Cognito federated session (Google / etc.), even when the
+        //     user also has an email/password Cognito identity. The
+        //     dual-identity user can still enrol voluntarily, but we
+        //     don't force them through the setup flow while they're
+        //     signed in via the federated path.
+        //
+        // Primary signal is `req.user.extra` (per-session, set by the
+        // sign-in strategy, carried across refresh via
+        // userRefreshToken.meta). For JWTs minted before this PR
+        // shipped the per-session field doesn't exist, so we also
+        // consult `user.meta.cognito_identity_type` as a fallback —
+        // matches `mfa.service.getSessionIdentity` so the middleware
+        // and the service can't disagree about whether a user is
+        // federated. The user.meta fallback is multi-device-stale
+        // (reflects last sign-in across all devices) but with
+        // single-session enforcement on the default path it's accurate
+        // within ~10h of deploy as legacy JWTs cycle out.
+        const extra = (req.user as any)?.extra ?? {};
+        const isSsoSession = !!extra.sso_client_id;
+
+        let isFederatedSession = extra.cognito_identity_type === 'federated';
+
+        // Pre-PR JWT — fall back to the user.meta tag.
+        const needsMetaFallback =
+          !isSsoSession && !extra.cognito_identity_type;
+        const user = needsMetaFallback
+          ? await User.get(req.user.id)
+          : null;
+        if (needsMetaFallback) {
+          const userMeta =
+            typeof user?.meta === 'string'
+              ? JSON.parse(user.meta || '{}')
+              : user?.meta || {};
+          if (userMeta?.cognito_identity_type === 'federated') {
+            isFederatedSession = true;
+          }
+        }
+
+        if (isSsoSession || isFederatedSession) {
+          // Skip enforcement.
+        } else if (isCloud) {
+          // Cloud: Cognito email/password or local password.
           NcError.mfaSetupRequired(req.ncWorkspaceId);
+        } else {
+          // Self-hosted: only local-password users can enrol.
+          const u = user ?? (await User.get(req.user.id));
+          if (u?.password) {
+            NcError.mfaSetupRequired(req.ncWorkspaceId);
+          }
         }
       }
     }

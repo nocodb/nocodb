@@ -16,7 +16,7 @@ const props = defineProps<{
   isLoading: boolean
   showColCallback?: (col: ColumnType) => boolean
   isHiddenCol?: boolean
-  /** Already lower-cased & trimmed in the parent */
+  /** Free-text query. fieldMatchesSearch normalizes internally so callers can pass raw input. */
   searchQuery?: string
   hideBlankFields?: boolean
   /** When true, render label + plain text instead of label + bordered input */

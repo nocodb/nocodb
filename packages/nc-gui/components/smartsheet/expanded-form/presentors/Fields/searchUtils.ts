@@ -14,7 +14,22 @@ const stringifyValue = (value: unknown): string => {
   return String(value)
 }
 
-export const fieldMatchesSearch = (col: ColumnType, normalizedQuery: string, row: Record<string, any> | undefined): boolean => {
+/**
+ * Match a column against the field-filters search query.
+ *
+ * Tries the column title first, then the stringified raw row value. Matches
+ * against RAW stored values, not formatted display values — searching for
+ * "Jun" against a date stored as `2026-06-15` or "$1,299" against a currency
+ * stored as `1299.99` will not match. Per-cell formatting is expensive and
+ * locale-dependent, so the trade-off is intentional.
+ *
+ * Normalization (trim + lowercase) is done inside the function so callers
+ * can pass the raw input safely. Callers that pre-normalize (e.g. in a
+ * `computed`) pay no real cost — the second normalization is a no-op on
+ * already-clean strings.
+ */
+export const fieldMatchesSearch = (col: ColumnType, query: string, row: Record<string, any> | undefined): boolean => {
+  const normalizedQuery = (query ?? '').trim().toLowerCase()
   if (!normalizedQuery) return true
 
   if ((col.title || '').toLowerCase().includes(normalizedQuery)) return true

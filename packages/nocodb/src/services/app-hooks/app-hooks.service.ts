@@ -496,7 +496,10 @@ export class AppHooksService {
     event:
       | AppEvents.DOCUMENT_CREATE
       | AppEvents.DOCUMENT_UPDATE
-      | AppEvents.DOCUMENT_DELETE,
+      | AppEvents.DOCUMENT_DELETE
+      | AppEvents.DOCUMENT_PUBLIC_SHARE_CREATE
+      | AppEvents.DOCUMENT_PUBLIC_SHARE_UPDATE
+      | AppEvents.DOCUMENT_PUBLIC_SHARE_DELETE,
     data: any,
   ): void;
   emit(

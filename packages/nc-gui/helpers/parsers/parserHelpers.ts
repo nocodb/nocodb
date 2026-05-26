@@ -1,4 +1,4 @@
-import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes, UITypesName } from 'nocodb-sdk'
+import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes, UITypesName, } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 import { pluralize } from 'inflection'
 
@@ -155,6 +155,32 @@ export const isUrlType = (colData: [], col?: number) =>
     // and cell data value can be number or any other types
     return v && isURL(v.toString())
   })
+
+
+export const isAttachmentType = (colData: [], col?: number) =>
+  colData.some((r: any) => {
+    const v = getColVal(r, col)
+    // Check string matches the format of an attachment: filename(url)
+    return v && typeof v === 'string' && /^.*\(https?:\/\/[^)]+\)$/.test(v.trim())
+  })
+
+export const getAttachmentValue = (value: any): (Attachment & { title: string })[] => {
+  if (!value) return [];
+  const attachments = [];
+  const parts = value.split(/,\s*/);
+  for (const part of parts) {
+    const match = part.match(/^(.*)\((https?:\/\/[^\)]+)\)$/);
+    if (match) {
+      const [, filename, url] = match;
+      attachments.push({
+        title: filename.trim(),
+        url: url.trim(),
+      });
+    }
+  }
+  return attachments;
+}
+
 
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
   const colProps = { uidt: defaultType }

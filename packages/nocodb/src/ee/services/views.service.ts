@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
 import { ViewsService as ViewsServiceCE } from 'src/services/views.service';
 import type {
@@ -28,6 +28,7 @@ export class ViewsService extends ViewsServiceCE {
   constructor(
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly baseTrashService: BaseTrashService,
+    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {
     super(appHooksServiceEE, metaDependencyEventHandler);

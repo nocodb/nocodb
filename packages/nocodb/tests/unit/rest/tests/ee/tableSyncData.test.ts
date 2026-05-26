@@ -1,0 +1,634 @@
+import 'mocha';
+import { expect } from 'chai';
+import request from 'supertest';
+import {
+  isLinksOrLTAR,
+  TableSyncOnDeleteAction,
+  TableSyncStatus,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
+import init from '~test/init';
+import { isEE } from '~test/utils/helpers';
+import { createProject } from '~test/factory/base';
+import { createTable } from '~test/factory/table';
+import { createView } from '~test/factory/view';
+import { createColumn, createLtarColumn2 } from '~test/factory/column';
+import { createRow, listRow } from '~test/factory/row';
+import {
+  tableSyncCreate,
+  waitForSyncSettled,
+} from '~test/factory/tableSync';
+import { internalPost } from '~test/factory/internal';
+import View from '~/models/View';
+import Model from '~/models/Model';
+import TableSync from '~/models/TableSync';
+
+/**
+ * Table Sync data-replication tests
+ *
+ * Each test wires up a source table + grid view with `allow_sync` enabled
+ * (auto-shares the view) and exercises one slice of the replication
+ * contract: schema mirror, row copy, update propagation, delete actions
+ * (MarkDeleted / Delete), view-filter scope, selected_fields, and LTAR
+ * handling (comma-separated text vs. shadow-table).
+ */
+function tableSyncDataTests() {
+  if (!isEE()) {
+    return;
+  }
+
+  describe('Table Sync — data replication', () => {
+    let context: Awaited<ReturnType<typeof init>>;
+    let workspaceId: string;
+    let sourceBase: any;
+    let destBase: any;
+    let sourceTable: Model;
+    let sourceView: View;
+    let sourceEnv: { workspaceId: string; baseId: string };
+    let destEnv: { workspaceId: string; baseId: string };
+
+    async function enableAllowSync(viewId: string, baseId: string) {
+      await request(context.app)
+        .patch(`/api/v2/meta/views/${viewId}`)
+        .set('xc-auth', context.token)
+        .send({ allow_sync: true })
+        .expect(200);
+
+      return View.get({ workspace_id: workspaceId, base_id: baseId }, viewId);
+    }
+
+    async function updateRow(table: Model, rowId: string | number, body: any) {
+      await request(context.app)
+        .patch(`/api/v1/db/data/noco/${sourceBase.id}/${table.id}/${rowId}`)
+        .set('xc-auth', context.token)
+        .send(body)
+        .expect(200);
+    }
+
+    async function deleteRow(table: Model, rowId: string | number) {
+      await request(context.app)
+        .delete(`/api/v1/db/data/noco/${sourceBase.id}/${table.id}/${rowId}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+    }
+
+    async function v3LinkAdd(
+      table: Model,
+      linkColId: string,
+      rowId: number,
+      refRowIds: number[],
+    ) {
+      await request(context.app)
+        .post(
+          `/api/v3/data/${sourceBase.id}/${table.id}/links/${linkColId}/${rowId}`,
+        )
+        .set('xc-auth', context.token)
+        .send(refRowIds.map((id) => ({ id })))
+        .expect(200);
+    }
+
+    async function addContainsFilter(viewId: string, columnId: string, value: string) {
+      await request(context.app)
+        .post(`/api/v1/db/meta/views/${viewId}/filters`)
+        .set('xc-auth', context.token)
+        .send({
+          fk_column_id: columnId,
+          comparison_op: 'eq',
+          value,
+          logical_op: 'and',
+        })
+        .expect(200);
+    }
+
+    async function resync(syncId: string) {
+      await internalPost(context, destEnv, {
+        operation: 'tableSyncResync',
+        tableSyncId: syncId,
+      }).expect(200);
+      return waitForSyncSettled(destEnv, syncId);
+    }
+
+    function mainDestTableId(sync: TableSync): string {
+      const main = (sync.mappings ?? []).find((m: any) => m.role === 'main');
+      expect(main, 'main mapping should exist').to.exist;
+      return main!.dest_table_id;
+    }
+
+    async function loadDestModel(dest_table_id: string): Promise<Model> {
+      const m = await Model.get(
+        { workspace_id: workspaceId, base_id: destBase.id },
+        dest_table_id,
+      );
+      expect(m, `dest model ${dest_table_id} should exist`).to.exist;
+      return m!;
+    }
+
+    async function destRows(destTable: Model): Promise<any[]> {
+      return (await listRow({
+        base: destBase,
+        table: destTable,
+      })) as any[];
+    }
+
+    async function destTitles(destTable: Model): Promise<string[]> {
+      const rows = await destRows(destTable);
+      return rows.map((r) => r.Title).sort();
+    }
+
+    beforeEach(async function () {
+      context = await init();
+      workspaceId = context.fk_workspace_id!;
+
+      sourceBase = await createProject(context, { title: 'DataSyncSourceBase' });
+      destBase = await createProject(context, { title: 'DataSyncDestBase' });
+      sourceEnv = { workspaceId, baseId: sourceBase.id };
+      destEnv = { workspaceId, baseId: destBase.id };
+
+      sourceTable = await createTable(context, sourceBase, {
+        table_name: 'Customers',
+        title: 'Customers',
+      });
+
+      sourceView = await createView(context, {
+        title: 'SyncFeed',
+        table: sourceTable,
+        type: ViewTypes.GRID,
+      });
+
+      sourceView = (await enableAllowSync(sourceView.id, sourceBase.id))!;
+    });
+
+    describe('initial copy + schema', () => {
+      it('copies pre-existing source rows into the destination on initial sync', async () => {
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 0 });
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 1 });
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 2 });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'CopySync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        expect(settled.status).to.eq(TableSyncStatus.Active);
+
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        expect(await destTitles(destTable)).to.deep.eq([
+          'test-0',
+          'test-1',
+          'test-2',
+        ]);
+      });
+
+      it('mirrors the destination schema from the source columns', async () => {
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'SchemaSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTable = await loadDestModel(mainDestTableId(settled));
+
+        const destColumns = await destTable.getColumns({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const destTitles = destColumns.map((c) => c.title);
+
+        const sourceColumns = await sourceTable.getColumns({
+          workspace_id: workspaceId,
+          base_id: sourceBase.id,
+        });
+        const expected = sourceColumns
+          .filter((c) => !c.system)
+          .map((c) => c.title);
+
+        for (const title of expected) {
+          expect(destTitles, `dest missing source column "${title}"`).to.include(
+            title,
+          );
+        }
+      });
+    });
+
+    describe('manual resync', () => {
+      it('starts empty when source is empty, then picks up new rows via tableSyncResync', async () => {
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'ResyncFlow',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+
+        const initial = await waitForSyncSettled(destEnv, created.body.id);
+        const destTable = await loadDestModel(mainDestTableId(initial));
+        expect(await destTitles(destTable)).to.deep.eq([]);
+
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 0 });
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 1 });
+
+        await resync(created.body.id);
+        expect(await destTitles(destTable)).to.deep.eq(['test-0', 'test-1']);
+      });
+
+      it('propagates source row updates after a resync', async () => {
+        const row = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'UpdateSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+
+        const initial = await waitForSyncSettled(destEnv, created.body.id);
+        const destTable = await loadDestModel(mainDestTableId(initial));
+        expect(await destTitles(destTable)).to.deep.eq(['test-0']);
+
+        await updateRow(sourceTable, row.Id, { Title: 'renamed' });
+
+        await resync(created.body.id);
+        expect(await destTitles(destTable)).to.deep.eq(['renamed']);
+      });
+    });
+
+    describe('delete propagation', () => {
+      it('marks dest rows RemoteDeleted=true when source row is removed (MarkDeleted, the default)', async () => {
+        const keep = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const drop = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 1,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'MarkDeletedSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // on_delete_action omitted → defaults to MarkDeleted server-side.
+        }).expect(200);
+
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        await deleteRow(sourceTable, drop.Id);
+        const settled = await resync(created.body.id);
+        expect(settled.on_delete_action).to.eq(
+          TableSyncOnDeleteAction.MarkDeleted,
+        );
+
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        const rows = await destRows(destTable);
+
+        // Both rows still exist on dest; the dropped one is flagged.
+        expect(rows).to.have.lengthOf(2);
+        const dropped = rows.find((r) => r.RemoteId === String(drop.Id));
+        const kept = rows.find((r) => r.RemoteId === String(keep.Id));
+        expect(dropped?.RemoteDeleted, 'dropped row should be tombstoned').to.eq(
+          true,
+        );
+        expect(dropped?.RemoteDeletedTime, 'tombstone time should be set').to.be
+          .a('string');
+        expect(kept?.RemoteDeleted, 'kept row should not be tombstoned').to.not.eq(
+          true,
+        );
+      });
+
+      it('hard-deletes dest rows when on_delete_action is Delete', async () => {
+        const keep = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const drop = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 1,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'HardDeleteSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          on_delete_action: TableSyncOnDeleteAction.Delete,
+        }).expect(200);
+
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        await deleteRow(sourceTable, drop.Id);
+        const settled = await resync(created.body.id);
+        expect(settled.on_delete_action).to.eq(TableSyncOnDeleteAction.Delete);
+
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        const rows = await destRows(destTable);
+
+        expect(rows).to.have.lengthOf(1);
+        expect(rows[0].RemoteId).to.eq(String(keep.Id));
+      });
+    });
+
+    describe('source view filter scope', () => {
+      it('only mirrors rows that match the source view filter', async () => {
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 0 });
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 1 });
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 2 });
+
+        // Restrict the source view to `Title = "test-1"`.
+        const sourceCols = await sourceTable.getColumns({
+          workspace_id: workspaceId,
+          base_id: sourceBase.id,
+        });
+        const titleCol = sourceCols.find((c) => c.title === 'Title');
+        expect(titleCol, 'source Title column should exist').to.exist;
+        await addContainsFilter(sourceView.id, titleCol!.id, 'test-1');
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'FilteredSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        expect(await destTitles(destTable)).to.deep.eq(['test-1']);
+      });
+    });
+
+    describe('selected_fields', () => {
+      it('only mirrors selected columns (plus the primary value) into the destination', async () => {
+        // Add an extra source column we will deliberately NOT select.
+        await createColumn(context, sourceTable, {
+          column_name: 'Note',
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+        // Refresh the source model so subsequent createRow sees the new column.
+        sourceTable = (await Model.get(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          sourceTable.id,
+        ))!;
+
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 0 });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'SelectedFieldsSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // PV (Title) is always synced; Note is the gated field.
+          selected_fields: ['Title'],
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTable = await loadDestModel(mainDestTableId(settled));
+
+        const destCols = await destTable.getColumns({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const destColTitles = destCols.map((c) => c.title);
+        expect(destColTitles).to.include('Title');
+        expect(destColTitles).to.not.include('Note');
+      });
+    });
+
+    describe('LTAR replication', () => {
+      let ordersTable: Model;
+      let ltarColumnTitle: string;
+
+      /**
+       * Build a Customers ⇄ Orders relation, then create the Customers sync
+       * view fresh so the new LTAR column is visible from the start. The
+       * top-level beforeEach already made a view — we rebuild it here.
+       */
+      async function setupLtar() {
+        ordersTable = await createTable(context, sourceBase, {
+          table_name: 'Orders',
+          title: 'Orders',
+        });
+
+        ltarColumnTitle = 'Orders';
+        await createLtarColumn2(context, {
+          title: ltarColumnTitle,
+          parentTable: sourceTable,
+          childTable: ordersTable,
+          type: 'mm',
+        });
+
+        sourceTable = (await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        ))!;
+
+        sourceView = await createView(context, {
+          title: `LtarFeed-${Date.now()}`,
+          table: sourceTable,
+          type: ViewTypes.GRID,
+        });
+        sourceView = (await enableAllowSync(sourceView.id, sourceBase.id))!;
+      }
+
+      async function ltarColumnId(): Promise<string> {
+        const cols = await sourceTable.getColumns({
+          workspace_id: workspaceId,
+          base_id: sourceBase.id,
+        });
+        const col = cols.find((c) => c.title === ltarColumnTitle);
+        expect(col, 'LTAR column should exist').to.exist;
+        return col!.id;
+      }
+
+      it('flattens LTAR to a comma-separated SingleLineText column when all-fields mode is used', async () => {
+        await setupLtar();
+
+        const customer = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const o1 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 0,
+        });
+        const o2 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 1,
+        });
+        await v3LinkAdd(sourceTable, await ltarColumnId(), customer.Id, [
+          o1.Id,
+          o2.Id,
+        ]);
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'LtarTextSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // selected_fields omitted → all-fields mode → LTAR forced to text.
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+
+        // No LinkedShadow mapping should have been created.
+        const linkedShadows = (settled.mappings ?? []).filter(
+          (m: any) => m.role === 'linked_shadow',
+        );
+        expect(
+          linkedShadows,
+          'no shadow tables expected in all-fields mode',
+        ).to.have.lengthOf(0);
+
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        const destCols = await destTable.getColumns({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const ordersDestCol = destCols.find((c) => c.title === ltarColumnTitle);
+        expect(ordersDestCol, 'dest LTAR column should exist').to.exist;
+        expect(
+          ordersDestCol!.uidt,
+          'LTAR should be flattened to SingleLineText on dest',
+        ).to.eq(UITypes.SingleLineText);
+        expect(
+          isLinksOrLTAR(ordersDestCol!),
+          'flattened col should not be a real relation',
+        ).to.eq(false);
+
+        const rows = await destRows(destTable);
+        expect(rows).to.have.lengthOf(1);
+        // Orders PVs are their `Title` values, comma-separated.
+        const linkedText = String(rows[0][ltarColumnTitle] ?? '');
+        const parts = linkedText.split(', ').sort();
+        expect(parts).to.deep.eq(['test-0', 'test-1']);
+      });
+
+      it('creates a shadow table and junction rows when linkViewByColumn picks a sync-enabled view', async () => {
+        await setupLtar();
+
+        // The linked table needs its own sync-enabled grid view.
+        const ordersView = await createView(context, {
+          title: 'OrdersFeed',
+          table: ordersTable,
+          type: ViewTypes.GRID,
+        });
+        await enableAllowSync(ordersView.id, sourceBase.id);
+
+        const customer = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const o1 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 0,
+        });
+        const o2 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 1,
+        });
+        await v3LinkAdd(sourceTable, await ltarColumnId(), customer.Id, [
+          o1.Id,
+          o2.Id,
+        ]);
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'LtarShadowSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // Specific mode: Title is the PV (auto-synced); Orders is selected
+          // AND a sync-enabled linked view is picked — triggers shadow path.
+          selected_fields: ['Title', ltarColumnTitle],
+          link_view_by_column: { [ltarColumnTitle]: ordersView.id },
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+
+        // A LinkedShadow mapping should now exist for Orders.
+        const linkedShadows = (settled.mappings ?? []).filter(
+          (m: any) => m.role === 'linked_shadow',
+        );
+        expect(
+          linkedShadows,
+          'shadow mapping should be created for the linked table',
+        ).to.have.lengthOf(1);
+        const shadowMapping = linkedShadows[0];
+        expect(shadowMapping.source_table_id).to.eq(ordersTable.id);
+        expect(shadowMapping.source_view_id).to.eq(ordersView.id);
+
+        const destMain = await loadDestModel(mainDestTableId(settled));
+        const destShadow = await loadDestModel(shadowMapping.dest_table_id);
+
+        // Shadow table should have the Orders rows.
+        const shadowRows = await destRows(destShadow);
+        expect(shadowRows.map((r) => r.Title).sort()).to.deep.eq([
+          'test-0',
+          'test-1',
+        ]);
+
+        // Main table's LTAR column should now be a real relation.
+        const mainCols = await destMain.getColumns({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const ltarOnMain = mainCols.find((c) => c.title === ltarColumnTitle);
+        expect(ltarOnMain, 'main dest should have an LTAR column').to.exist;
+        expect(
+          isLinksOrLTAR(ltarOnMain!),
+          'LTAR column on main should be a real relation',
+        ).to.eq(true);
+
+        // Confirm the junction (MM) table has the two link rows. The
+        // junction is keyed on RemoteId (source PK), not on the dest's
+        // own auto-id — see processor line 480 in table-sync.processor.ts.
+        const ltarColOptions = await (
+          ltarOnMain as any
+        ).getColOptions?.({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const mmModelId = ltarColOptions?.fk_mm_model_id;
+        expect(mmModelId, 'LTAR column should expose its junction model id').to
+          .be.a('string');
+
+        const junction = await loadDestModel(mmModelId!);
+        const junctionRows = await destRows(junction);
+        expect(
+          junctionRows,
+          'junction should hold one row per linked Order',
+        ).to.have.lengthOf(2);
+      });
+    });
+  });
+}
+
+export default tableSyncDataTests;

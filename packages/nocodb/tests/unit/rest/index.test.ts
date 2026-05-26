@@ -24,6 +24,7 @@ import { internalTests } from './tests/internal/index.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
+import { tableSyncGatingTests } from './tests/payment/tableSyncGating.test';
 import convertDateFormatTests from './tests/convertDateFormat.test';
 import linkPlaceholderTests from './tests/linkPlaceholder.test';
 import pgEnumTests from './tests/pg-enum.test';
@@ -43,6 +44,8 @@ let autoNumberTests = () => {};
 let recordTrashTest = () => {};
 let mfaTests = () => {};
 let patResourceFilterTest = () => {};
+let tableSyncTest = () => {};
+let tableSyncDataTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -59,6 +62,8 @@ if (process.env.EE === 'true') {
   recordTrashTest = require('./tests/ee/record-trash.test').default;
   mfaTests = require('./tests/ee/mfa.test').default;
   patResourceFilterTest = require('./tests/ee/patResourceFilter.test').default;
+  tableSyncTest = require('./tests/ee/tableSync.test').default;
+  tableSyncDataTest = require('./tests/ee/tableSyncData.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -97,6 +102,9 @@ function restTests() {
     integrationTest();
     paymentTest();
     planGatingTests();
+    tableSyncGatingTests();
+    tableSyncTest();
+    tableSyncDataTest();
     oauthTests();
     bulkV1Test();
     oauthDCRTest();

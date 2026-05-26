@@ -35,6 +35,7 @@ export class TablesService extends TableServiceCE {
     protected readonly linkPlaceholderServiceEE: LinkPlaceholderService,
     @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
+    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandlerEE: MetaDependencyEventHandler,
   ) {
     super(

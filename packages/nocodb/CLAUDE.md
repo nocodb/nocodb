@@ -603,6 +603,35 @@ pnpm test:unit:pg:ee        # PostgreSQL + EE
 Test context uses 3-layer pattern: IInitContext → ITestContext → test-specific setup.
 beforeEach helpers: `textBased`, `numberBased`, `selectBased`, `dateBased`, `linkBased`.
 
+### Test Import Paths — use aliases, no relative paths
+
+Both tsconfigs (`tests/unit/tsconfig.json`, `tests/unit/tsconfig.ee.json`) define two test-side aliases:
+
+| Alias | Resolves to | Use for |
+|-------|-------------|---------|
+| `~test/*` | `tests/unit/*` | `init`, `factory/*`, `utils/*` — anything under `tests/unit/` |
+| `~/*` | `src/*` (CE) or `src/ee/*` → `src/*` (EE) | Models, helpers, interfaces — anything under `src/` |
+
+**Always use aliases — never relative paths** (`../../../init`, `../../factory/base`, etc.). Aliases survive file moves and refactors; relative paths don't.
+
+`~/` follows the same edition-overlay rule as src code — never write `~/ee/models/Foo`; write `~/models/Foo` and let the EE tsconfig overlay pick the EE version automatically.
+
+**Standard import order** (matches the EE test convention — see `record-trash.test.ts`, `undo-redo-roundtrip.test.ts`):
+
+```typescript
+import 'mocha';
+import { expect } from 'chai';
+import request from 'supertest';
+import { UITypes, ViewTypes } from 'nocodb-sdk';  // SDK types
+import init from '~test/init';                    // init BEFORE factories
+import { isEE } from '~test/utils/helpers';
+import { createProject } from '~test/factory/base';
+import { createTable } from '~test/factory/table';
+import Model from '~/models/Model';               // src imports last
+```
+
+Factory helpers go in `tests/unit/factory/` and import via `~test/factory/internal` (or sibling factory files) — not relative. See `factory/tableSync.ts` for the pattern.
+
 ### API Testing (Live Backend)
 
 After implementing or modifying API endpoints, delegate to the **`nc-api-verifier` agent**. It builds/updates a test script at `.claude/branches/{branch}/test.py` and runs it against the live backend.

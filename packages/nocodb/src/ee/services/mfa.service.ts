@@ -6,9 +6,8 @@ import * as jwt from 'jsonwebtoken';
 import { generateSecret, generateURI, verifySync } from 'otplib';
 import { AppEvents } from 'nocodb-sdk';
 import {
-  AdminInitiateAuthCommand,
   CognitoIdentityProviderClient,
-  ListUsersCommand,
+  InitiateAuthCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -575,26 +574,28 @@ export class MfaService {
 
   /**
    * Re-verify a Cognito-native user's password by calling Cognito's
-   * `AdminInitiateAuth` with the `ADMIN_USER_PASSWORD_AUTH` flow.
+   * `InitiateAuth` with the `USER_PASSWORD_AUTH` flow.
    *
    * Used as the identity-proof step before flipping `totp_enabled` for
    * users who signed up via the Cognito User Pool directly (no NocoDB-
    * side bcrypt hash to compare against).
    *
-   * Why the admin flow:
-   *   - `USER_PASSWORD_AUTH` (client-side) is deliberately disabled on
-   *     the production User Pool — that flow is for SPAs and ships the
-   *     plaintext password from a browser.
-   *   - `ADMIN_USER_PASSWORD_AUTH` runs from a server with AWS creds,
-   *     which is exactly our shape. The same flow is already used by
-   *     `UsersService.changePassword` against the same pool, so we
-   *     know it's enabled on the App Client.
+   * Why the client-side flow (not the admin one):
+   *   - `InitiateAuth` is an unauthenticated Cognito API — it only needs
+   *     the App Client id (already public; the FE bundles it for Amplify
+   *     to consume). The BE doesn't have to hold AWS IAM creds.
+   *   - `AdminInitiateAuth` would be cleaner posture-wise but requires
+   *     the BE process to have AWS creds available, which preview /
+   *     self-hosted deployments don't always get (the SDK throws
+   *     `CredentialsProviderError` when the provider chain finds none).
+   *   - Cognito hashes the password server-side; the plaintext only
+   *     crosses TLS-protected hops we already trust (browser → our BE
+   *     → Cognito).
    *
-   * We mirror that service's pattern: `ListUsers` to find the native
-   * account record (filtering out `EXTERNAL_PROVIDER` shadows that
-   * federated sign-ins create), then `AdminInitiateAuth` keyed on the
-   * resolved username. A native-tagged user that has no native record
-   * is a data inconsistency — log and reject.
+   * Requires `ALLOW_USER_PASSWORD_AUTH` to be enabled on the App Client
+   * (`NC_COGNITO_AWS_USER_POOLS_WEB_CLIENT_ID`). If it's disabled,
+   * Cognito returns `InvalidParameterException: USER_PASSWORD_AUTH flow
+   * not enabled for this client`.
    *
    * Throws `NcError.badRequest('Incorrect password')` on a bad password.
    * Throws `NcError.internalServerError` if Cognito isn't configured.
@@ -607,11 +608,10 @@ export class MfaService {
       NcError.badRequest('Password is required');
     }
 
-    const userPoolId = process.env.NC_COGNITO_AWS_USER_POOLS_ID;
     const clientId = process.env.NC_COGNITO_AWS_USER_POOLS_WEB_CLIENT_ID;
     const region = process.env.NC_COGNITO_AWS_COGNITO_REGION;
 
-    if (!userPoolId || !clientId || !region) {
+    if (!clientId || !region) {
       this.logger.error(
         'verifyCognitoPassword called without Cognito config — user is tagged native but env vars are missing',
       );
@@ -621,47 +621,13 @@ export class MfaService {
     }
 
     const client = new CognitoIdentityProviderClient({ region });
-
-    let username: string;
-    try {
-      const { Users: candidates } = await client.send(
-        new ListUsersCommand({
-          UserPoolId: userPoolId,
-          Filter: `email = "${email}"`,
-        }),
-      );
-
-      // Federated sign-ins create a shadow record with
-      // UserStatus === 'EXTERNAL_PROVIDER' — skip those; we want the
-      // native row that has a real password attached.
-      const nativeAccount = (candidates ?? []).find(
-        (u) => u.UserStatus !== 'EXTERNAL_PROVIDER',
-      );
-
-      if (!nativeAccount?.Username) {
-        this.logger.error(
-          `verifyCognitoPassword: native-tagged user ${email} has no native Cognito record`,
-        );
-        NcError.badRequest('Could not verify password. Please try again.');
-      }
-
-      username = nativeAccount.Username;
-    } catch (e: any) {
-      this.logger.error(
-        `verifyCognitoPassword ListUsers failed for ${email}: ${e?.name ?? 'unknown'} ${e?.message ?? ''}`,
-        e?.stack,
-      );
-      NcError.badRequest('Could not verify password. Please try again.');
-    }
-
     try {
       await client.send(
-        new AdminInitiateAuthCommand({
-          UserPoolId: userPoolId,
+        new InitiateAuthCommand({
+          AuthFlow: 'USER_PASSWORD_AUTH',
           ClientId: clientId,
-          AuthFlow: 'ADMIN_USER_PASSWORD_AUTH',
           AuthParameters: {
-            USERNAME: username,
+            USERNAME: email,
             PASSWORD: password,
           },
         }),
@@ -678,7 +644,7 @@ export class MfaService {
         NcError.badRequest('Incorrect password');
       }
       this.logger.error(
-        `verifyCognitoPassword AdminInitiateAuth failed for ${email}: ${e?.name ?? 'unknown'} ${e?.message ?? ''}`,
+        `verifyCognitoPassword failed for ${email}: ${e?.name ?? 'unknown'} ${e?.message ?? ''}`,
         e?.stack,
       );
       NcError.badRequest('Could not verify password. Please try again.');

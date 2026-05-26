@@ -214,7 +214,36 @@ function mfaTests() {
       expect(res.body.federationProvider).to.equal('Google');
     });
 
-    it('should reject /setup for a Cognito-federated user', async () => {
+    it('should reject /setup for a Cognito-federated user without a native account', async () => {
+      const { User } = await import('~/models');
+      const user = await User.getByEmail(defaultUserArgs.email);
+      await User.update(user.id, {
+        // Clear the local password so the federated guard isn't shadowed
+        // by the bcrypt branch.
+        password: '',
+        meta: {
+          ...(user.meta ?? {}),
+          cognito_identity_type: 'federated',
+          cognito_federation_provider: 'Google',
+          // No `cognito_has_native_account` — federated-only.
+        },
+      });
+
+      // Federated-only users cannot enrol — backend short-circuits
+      // before the bcrypt/Cognito branch.
+      const res = await request(context.app)
+        .post('/api/v2/auth/mfa/setup')
+        .set('xc-auth', context.token)
+        .send({ password: defaultUserArgs.password });
+
+      expect(res.status).to.equal(403);
+    });
+
+    it('should report eligible: true for a dual-identity Cognito user', async () => {
+      // User currently signed in via Google but with a sticky
+      // `cognito_has_native_account` flag from a prior email/password
+      // sign-in. Should be allowed to enrol (the password reproof at
+      // /setup will hit Cognito's native record).
       const { User } = await import('~/models');
       const user = await User.getByEmail(defaultUserArgs.email);
       await User.update(user.id, {
@@ -222,17 +251,17 @@ function mfaTests() {
           ...(user.meta ?? {}),
           cognito_identity_type: 'federated',
           cognito_federation_provider: 'Google',
+          cognito_has_native_account: true,
         },
       });
 
-      // Even with a correct password, federated users cannot enrol —
-      // backend short-circuits before the bcrypt/Cognito branch.
       const res = await request(context.app)
-        .post('/api/v2/auth/mfa/setup')
+        .get('/api/v2/auth/mfa/status')
         .set('xc-auth', context.token)
-        .send({ password: defaultUserArgs.password });
+        .expect(200);
 
-      expect(res.status).to.equal(403);
+      expect(res.body.eligible).to.equal(true);
+      expect(res.body.ineligibleReason).to.equal(undefined);
     });
   });
 

@@ -277,8 +277,16 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
    * without re-decoding the Cognito JWT (which only the strategy sees).
    * Idempotent — no-op when the tag already matches.
    *
-   * `meta.cognito_identity_type`: 'native' | 'federated'
+   * `meta.cognito_identity_type`: 'native' | 'federated' — reflects the
+   *   identity used in *this* sign-in. Flips between sign-ins for users
+   *   who have both methods on the same email.
    * `meta.cognito_federation_provider`: 'Google' | 'SAML' | ... (federated only)
+   * `meta.cognito_has_native_account`: true once we've ever seen a
+   *   native sign-in. **Sticky** — never reset to false. Lets the MFA
+   *   service allow enrolment for users currently signed in via the
+   *   federated path who *also* have an email/password identity in
+   *   Cognito (the password reproof during setup hits the native record
+   *   regardless of which identity carried the active session).
    */
   private async persistCognitoIdentityTag(
     user: { id: string; meta?: any },
@@ -290,10 +298,15 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           ? JSON.parse(user.meta || '{}')
           : user.meta || {};
 
+      const hasNativeAccount =
+        existing.cognito_has_native_account === true ||
+        identity.type === 'native';
+
       if (
         existing.cognito_identity_type === identity.type &&
         existing.cognito_federation_provider ===
-          (identity.provider ?? undefined)
+          (identity.provider ?? undefined) &&
+        existing.cognito_has_native_account === hasNativeAccount
       ) {
         return;
       }
@@ -304,6 +317,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         ...(identity.type === 'federated'
           ? { cognito_federation_provider: identity.provider }
           : { cognito_federation_provider: undefined }),
+        ...(hasNativeAccount ? { cognito_has_native_account: true } : {}),
       };
 
       await User.update(user.id, { meta });

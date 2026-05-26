@@ -165,18 +165,24 @@ export class MfaService {
       if (!valid) {
         NcError.badRequest('Incorrect password');
       }
-    } else if (cognitoIdentity?.type === 'federated') {
-      // Google / SAML / etc. We can't password-verify against Cognito
-      // for these users (the password lives at their IdP), and the
-      // current PR scope is "native Cognito only" — point them at
-      // their IdP. The card is still shown on the FE with a disabled
-      // toggle + tooltip.
+    } else if (
+      cognitoIdentity?.type === 'federated' &&
+      !cognitoIdentity.hasNativeAccount
+    ) {
+      // Federated-only user (Google / SAML / etc.) with no email/password
+      // identity in Cognito on the same email. We can't password-verify
+      // against Cognito for them — the password lives at their IdP.
+      // Point them at their IdP; the FE card shows a disabled toggle + tooltip.
       NcError.forbidden(
         'Two-factor authentication for federated sign-in accounts must be configured at your identity provider.',
       );
-    } else if (cognitoIdentity?.type === 'native') {
-      // Native Cognito (email/password) — re-verify the supplied
-      // password against the Cognito User Pool via InitiateAuth.
+    } else if (cognitoIdentity?.hasNativeAccount) {
+      // Either signed in via Cognito-native this session, OR signed in
+      // via federated but has *also* signed in via email/password at
+      // some point (sticky flag). Reproof the supplied password against
+      // Cognito's native record via InitiateAuth — `USER_PASSWORD_AUTH`
+      // resolves to the native record because the federated shadow has
+      // no password attached.
       await this.verifyCognitoPassword(user.email, password ?? '');
     }
     // No-op branch: no local password AND no Cognito tag = legacy SSO
@@ -299,10 +305,15 @@ export class MfaService {
 
     const cognitoIdentity = this.getCognitoIdentity(user);
 
-    // `eligible` is the single switch the FE flips the toggle on. It's
-    // false only for federated Cognito users today; everyone else (local
-    // password, Cognito-native, legacy SSO without password) can enrol.
-    const eligible = cognitoIdentity?.type !== 'federated';
+    // `eligible` is the single switch the FE flips the toggle on.
+    // Blocked only when the user is federated AND has no native Cognito
+    // account on the same email (the sticky `hasNativeAccount` flag).
+    // Dual-identity users (Google + email/password) can still enrol
+    // via the password reproof, which hits Cognito's native record.
+    const eligible = !(
+      cognitoIdentity?.type === 'federated' &&
+      !cognitoIdentity.hasNativeAccount
+    );
 
     return {
       enabled: !!user.totp_enabled,
@@ -556,10 +567,20 @@ export class MfaService {
    * Returns `null` for legacy users predating the tag and for non-Cognito
    * accounts — callers should treat that as "no Cognito constraint
    * applies" and fall back to the existing local-password / SSO branches.
+   *
+   * `hasNativeAccount` is **sticky**: once true, it stays true even when
+   * the user's most recent sign-in was federated. It lets `setup` allow
+   * enrolment for dual-identity users (Google + email/password on the
+   * same email) currently signed in via the federated path — the
+   * password reproof against Cognito's native record is still possible.
    */
   private getCognitoIdentity(user: {
     meta?: any;
-  }): { type: 'native' | 'federated'; provider?: string | null } | null {
+  }): {
+    type: 'native' | 'federated';
+    provider?: string | null;
+    hasNativeAccount: boolean;
+  } | null {
     if (!user?.meta) return null;
     const meta =
       typeof user.meta === 'string'
@@ -569,6 +590,9 @@ export class MfaService {
     return {
       type: meta.cognito_identity_type,
       provider: meta.cognito_federation_provider ?? null,
+      hasNativeAccount:
+        meta.cognito_has_native_account === true ||
+        meta.cognito_identity_type === 'native',
     };
   }
 

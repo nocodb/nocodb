@@ -1,5 +1,5 @@
 import RowColorCondition from 'src/models/RowColorCondition';
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   comparisonOpList,
@@ -28,6 +28,7 @@ export class FiltersService {
   protected readonly logger = new Logger(FiltersService.name);
   constructor(
     protected readonly appHooksService: AppHooksService,
+    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
 

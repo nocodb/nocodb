@@ -194,6 +194,12 @@ export class TableDeleteTableSyncHandler implements MetaEventHandler {
             mainDest as Model,
             c as Column,
             buildSyncServiceReq(mainContext),
+            // Soft-fallback path: drop the LTAR + junction but KEEP the
+            // shadow as a regular (unsynced) table. The shadow conversion
+            // is handled below — letting removeSyncedField also drop it
+            // would race against `Model.updateSynced(false)` and leave the
+            // user with their data gone.
+            { keepShadow: true },
           );
         } catch (e) {
           this.logger.warn(

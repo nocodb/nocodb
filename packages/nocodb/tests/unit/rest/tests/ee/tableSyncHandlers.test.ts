@@ -443,13 +443,12 @@ function tableSyncHandlerTests() {
         }).expect(200);
         await waitForSyncSettled(destEnv, created.body.id);
 
-        // The UI un-share toggle is `meta.shared = false` via the
-        // share-base endpoint. We do it directly via the view PATCH that
-        // accepts `uuid: null`.
+        // Un-share via the dedicated share-delete endpoint. This clears
+        // `uuid` (and disables `allow_sync` if it was on), then emits the
+        // VIEW_UPDATED meta-dep event the view-change handler listens for.
         await request(context.app)
-          .patch(`/api/v2/meta/views/${sourceView.id}`)
+          .delete(`/api/v2/meta/views/${sourceView.id}/share`)
           .set('xc-auth', context.token)
-          .send({ uuid: null })
           .expect(200);
 
         const errored = await waitFor('sync flipped to Error on uuid clear', async () => {
@@ -947,9 +946,8 @@ function tableSyncHandlerTests() {
         await waitForSyncSettled(destEnv, created.body.id);
 
         await request(context.app)
-          .patch(`/api/v2/meta/views/${ordersView.id}`)
+          .delete(`/api/v2/meta/views/${ordersView.id}/share`)
           .set('xc-auth', context.token)
-          .send({ uuid: null })
           .expect(200);
 
         await waitFor(

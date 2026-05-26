@@ -278,6 +278,12 @@ export class TableSyncService {
       nextSelectedFields: string[] | null;
       linkViewByColumn: Record<string, string>;
       dropHiddenInView?: boolean;
+      /** Source col ids that should be considered "visible in the source
+       *  view" even if they aren't actually shown there. The column-add
+       *  handler passes the just-added col here — LTAR/Links cols default
+       *  to `show: false` in shared views, so without this override a new
+       *  LTAR would never auto-mirror in sync-all mode. */
+      includeColIds?: Set<string>;
       req: NcRequest;
     },
   ): Promise<{ added: boolean; removed: boolean }> {
@@ -351,11 +357,25 @@ export class TableSyncService {
     let anyAdded = false;
     let anyRemoved = false;
 
+    // Dest col ids the main loop has already deleted. `dropHiddenInView`
+    // below walks a snapshot of `destColsByTitle` taken before the loop ran
+    // and would otherwise try to delete them again — e.g. when a source
+    // column was renamed externally, the dest col's stored title no longer
+    // matches its source col's current title, so the two phases match by
+    // different keys (id vs. title) and both target the same row.
+    const removedDestColIds = new Set<string>();
+
     for (const col of sourceTable.columns ?? []) {
       if (col.system || !col.title || !col.uidt) continue;
       if (SYSTEM_REMOTE_TITLES.has(col.title)) continue;
       if (SKIP_UIDTS.has(col.uidt)) continue;
-      if (!col.id || !visibleSourceColIds.has(col.id)) continue;
+      if (!col.id) continue;
+      if (
+        !visibleSourceColIds.has(col.id) &&
+        !patch.includeColIds?.has(col.id)
+      ) {
+        continue;
+      }
       if (isLinksOrLTAR(col) && (isCrossBaseLink(col) || isCustomLink(col))) {
         continue;
       }
@@ -384,6 +404,7 @@ export class TableSyncService {
               existingDest,
               patch.req,
             );
+            if (existingDest.id) removedDestColIds.add(existingDest.id);
             await this.addSyncedField(
               context,
               sourceCtx,
@@ -434,6 +455,7 @@ export class TableSyncService {
           destCol,
           patch.req,
         );
+        if (destCol.id) removedDestColIds.add(destCol.id);
         anyRemoved = true;
       }
     }
@@ -452,6 +474,10 @@ export class TableSyncService {
       for (const [destTitle, destCol] of destColsByTitle.entries()) {
         if (SYSTEM_REMOTE_TITLES.has(destTitle)) continue;
         if (isSystemColumn(destCol)) continue;
+        // Already deleted by the main loop above (source col matched by id
+        // but its dest title is stale, so we'd otherwise re-target the same
+        // row by title).
+        if (destCol.id && removedDestColIds.has(destCol.id)) continue;
         const sourceCol = sourceColByTitle.get(destTitle);
         const visibleInNewView =
           !!sourceCol &&
@@ -887,6 +913,13 @@ export class TableSyncService {
     mainDest: Model,
     destCol: Column,
     req: NcRequest,
+    opts: {
+      /** Skip the ref-counted shadow-drop step. Used by the linked-source
+       *  table-delete handler, which wants the LTAR + junction torn down
+       *  but the shadow KEPT as a regular (now-unsynced) table — the
+       *  user's data still lives in it. */
+      keepShadow?: boolean;
+    } = {},
   ): Promise<void> {
     // Drop the column-mapping row first — failure later in the cascade
     // still leaves a usable state (mapping gone, dest col stuck readonly
@@ -980,7 +1013,7 @@ export class TableSyncService {
         await TableSyncMapping.deleteById(context, junctionMapping.id);
       }
 
-      if (shadowId && !stillReferencingShadow) {
+      if (shadowId && !stillReferencingShadow && !opts.keepShadow) {
         const shadowMapping = mappings.find(
           (m) =>
             m.role === TableSyncMappingRole.LinkedShadow &&
@@ -1789,6 +1822,15 @@ export class TableSyncService {
       }
     } else {
       for (const m of mappings) {
+        // Junction tables back custom-MM LTARs on the main mirror — their FK
+        // columns are created `readonly:true` so users can only mutate links
+        // via the parent LTAR's link-write path, never by editing junction
+        // rows directly. Unsync-keep-data must preserve that contract: leave
+        // the junction table as-is (still `synced=true`, FKs still readonly)
+        // so the LTAR on the main mirror keeps routing through it. The
+        // mapping row itself is cleaned up by `TableSync.delete` below.
+        if (m.role === TableSyncMappingRole.Junction) continue;
+
         const destCtx: NcContext = { ...context, base_id: m.dest_base_id };
         try {
           const model = await Model.get(destCtx, m.dest_table_id);

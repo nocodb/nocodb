@@ -1,5 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  MetaEventType,
+  PlanFeatureTypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { ViewsService as ViewsServiceCE } from 'src/services/views.service';
 import type {
   SharedViewReqType,
@@ -119,6 +125,11 @@ export class ViewsService extends ViewsServiceCE {
       owner,
       req: param.req,
       context,
+    });
+
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.VIEW_DELETED,
+      oldEntity: view,
     });
 
     NocoSocket.broadcastEvent(

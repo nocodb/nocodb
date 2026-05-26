@@ -105,6 +105,7 @@ export class ColumnAddTableSyncHandler implements MetaEventHandler {
             nextSelectedFields: null,
             linkViewByColumn: {},
             dropHiddenInView: false,
+            includeColIds: col?.id ? new Set([col.id]) : undefined,
             req: buildSyncServiceReq(destContext),
           },
         );

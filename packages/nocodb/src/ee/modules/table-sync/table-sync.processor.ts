@@ -268,17 +268,59 @@ export class TableSyncProcessor {
         const syncRunIdCol = destColumnsByTitle.get('SyncRunId');
         const remoteIdCol = destColumnsByTitle.get('RemoteId');
 
+        const sourcePkCol = sourceModel.columns?.find((c) => c.pk);
+
+        // Realtime incrementals always carry the source ids that changed
+        // (set by hook-handler from the write event). When the LMT-cursor
+        // path isn't usable — typically because the source has no
+        // LastModifiedTime column — scope the upsert fetch to those ids
+        // instead of paging the entire view. Mirrors the tombstone phase
+        // below (`Id IN affectedIds`); turns O(view) into O(affectedIds)
+        // per write and sidesteps offset-pagination stability concerns.
+        const scopeByAffectedIds =
+          mode === 'incremental' &&
+          !useCursor &&
+          (affectedIds?.length ?? 0) > 0 &&
+          !!sourcePkCol?.id;
+
         const label = isMain
           ? `main table "${sourceModel.title}"`
           : `linked table "${sourceModel.title}"`;
         if (isFullMode) logBasic(`Mirroring ${label}…`);
 
         // ── Paged fetch with one-ahead prefetch ──────────────────────────
-        // For incremental with cursor: filter `LastModifiedTime > cursor`
-        // and sort ascending so the next cursor read picks up cleanly.
-        // Otherwise just paginate the view.
+        // Three fetch strategies, selected per mapping:
+        //  - scopeByAffectedIds: walk `affectedIds` in PAGE_SIZE chunks
+        //    via `Id IN <chunk>`. `offset` indexes into `affectedIds`.
+        //  - useCursor: filter `LastModifiedTime > cursor` and sort
+        //    ascending so the next cursor read picks up cleanly.
+        //  - fallback: paginate the view by offset.
         const fetchAt = async (offset: number): Promise<any[]> => {
           try {
+            if (scopeByAffectedIds) {
+              const chunk = (affectedIds ?? []).slice(
+                offset,
+                offset + PAGE_SIZE,
+              );
+              if (!chunk.length) return [];
+              const page = await this.dataTableService.dataList(sourceCtx, {
+                modelId: mapping.source_table_id,
+                viewId: mapping.source_view_id,
+                getHiddenColumns: true,
+                ignorePagination: true,
+                query: {
+                  filterArrJson: JSON.stringify([
+                    {
+                      fk_column_id: sourcePkCol!.id,
+                      comparison_op: 'in',
+                      value: chunk,
+                      logical_op: 'and',
+                    },
+                  ]),
+                },
+              });
+              return page.list ?? [];
+            }
             const page = await this.dataTableService.dataList(sourceCtx, {
               modelId: mapping.source_table_id,
               viewId: mapping.source_view_id,
@@ -324,11 +366,29 @@ export class TableSyncProcessor {
         try {
           for (;;) {
             const records = await nextPage;
-            if (!records.length) break;
 
-            offset += records.length;
-            const isLast = records.length < PAGE_SIZE;
+            // Advance and decide termination per fetch strategy.
+            //  - scopeByAffectedIds: `offset` indexes into `affectedIds`;
+            //    walk chunk-by-chunk. An empty page is expected when a
+            //    chunk's ids have all left the view — don't break on it.
+            //  - cursor / unscoped offset: empty page = no more rows.
+            let isLast: boolean;
+            if (scopeByAffectedIds) {
+              const total = affectedIds?.length ?? 0;
+              const consumed = Math.min(PAGE_SIZE, Math.max(0, total - offset));
+              offset += consumed;
+              isLast = offset >= total;
+            } else {
+              if (!records.length) break;
+              offset += records.length;
+              isLast = records.length < PAGE_SIZE;
+            }
             nextPage = isLast ? Promise.resolve([]) : fetchAt(offset);
+
+            if (!records.length) {
+              if (isLast) break;
+              continue;
+            }
 
             totalFetched += records.length;
 
@@ -951,7 +1011,6 @@ export class TableSyncProcessor {
           // `Id IN affectedIds`; anything missing has left the view
           // (hard delete, soft delete, or filter-change). Realtime
           // delete propagation lives here — no tombstones table needed.
-          const sourcePkCol = sourceModel.columns?.find((c) => c.pk);
           if (
             sourcePkCol?.id &&
             remoteIdCol?.id &&

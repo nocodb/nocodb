@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { nanoid } from 'nanoid';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
 import {
   AppEvents,
@@ -977,13 +978,20 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
   /**
    * Debounce policy (window: `TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS`):
-   *  - First write for a sync: schedule a job with that delay; jobId is
-   *    stable per sync.
-   *  - Subsequent write while the job is queued: remove the pending job
-   *    and re-add it with a fresh delay, carrying merged
-   *    `affectedIdsBySource`. The job fires one window after the LAST write.
-   *  - Subsequent write while the job is processing: `remove()` rejects;
-   *    we bail and the running job uses its snapshot.
+   *  - First write for a sync: schedule a job in the primary slot.
+   *  - Subsequent write while the primary job is delayed/waiting: remove
+   *    and re-add it carrying merged `affectedIdsBySource`. The job fires
+   *    one window after the LAST write.
+   *  - Subsequent write while the primary job is processing: `remove()`
+   *    rejects, so we fall through to an overflow slot
+   *    (`${jobId}:overflow`) — same merge-on-rewrite policy. The running
+   *    job's snapshot doesn't pick up ids that arrived after it became
+   *    active, so overflow is what carries them forward. Critical for
+   *    DELETE: deleted rows leave no LMT trail, so if their id isn't in a
+   *    later job's `affectedIdsBySource` the dest tombstone never fires.
+   *  - If both primary AND overflow are active (long-running primary that
+   *    outlasted the overflow's delay): fall through to a unique-suffix
+   *    slot so ids are still enqueued.
    * `affectedIdsBySource[modelId]` is what lets the processor detect
    * deletes / view-exits: any id present here but not returned by the
    * source view query has disappeared and needs tombstoning.
@@ -995,7 +1003,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
     idsFromEvent: string[],
   ): Promise<void> {
     const syncId = mapping.fk_table_sync_id;
-    const jobId = `tableSync:${syncId}:incremental`;
+    const baseJobId = `tableSync:${syncId}:incremental`;
     const sourceTableId = param.modelId;
 
     const destContext: NcContext = {
@@ -1031,6 +1039,53 @@ export class HookHandlerService extends HookHandlerServiceCE {
       return;
     }
 
+    const slots = [
+      baseJobId,
+      `${baseJobId}:overflow`,
+      `${baseJobId}:overflow:${nanoid(6)}`,
+    ];
+
+    for (let i = 0; i < slots.length; i++) {
+      const jobId = slots[i];
+      const result = await this.enqueueIncrementalSlot({
+        jobId,
+        destContext,
+        context,
+        syncId,
+        sourceTableId,
+        newIds: idsFromEvent,
+      });
+
+      if (result === 'scheduled' || result === 'failed') return;
+
+      if (i < slots.length - 1) {
+        this.logger.warn(
+          `Incremental ${jobId} active — deferring ${idsFromEvent.length} ids to fallback slot`,
+        );
+      } else {
+        this.logger.error(
+          `Incremental ${baseJobId}: all slots unavailable; ${idsFromEvent.length} ids could not be enqueued`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Add (or merge-and-re-add) a single incremental table-sync job in the
+   * named slot. Returns `'scheduled'` on success, `'slot-active'` if an
+   * existing job in that slot is processing and can't be removed (caller
+   * falls through to the next slot), and `'failed'` if enqueue throws.
+   */
+  private async enqueueIncrementalSlot(args: {
+    jobId: string;
+    destContext: NcContext;
+    context: NcContext;
+    syncId: string;
+    sourceTableId: string;
+    newIds: string[];
+  }): Promise<'scheduled' | 'slot-active' | 'failed'> {
+    const { jobId, destContext, context, syncId, sourceTableId, newIds } = args;
+
     const existing = await this.nocoJobsService.getJob(jobId);
     const existingData =
       (existing?.data as { affectedIdsBySource?: Record<string, string[]> }) ??
@@ -1038,11 +1093,8 @@ export class HookHandlerService extends HookHandlerServiceCE {
     const merged: Record<string, string[]> = {
       ...(existingData.affectedIdsBySource ?? {}),
     };
-    if (idsFromEvent.length) {
-      merged[sourceTableId] = arrUniqMerge(
-        merged[sourceTableId] ?? [],
-        idsFromEvent,
-      );
+    if (newIds.length) {
+      merged[sourceTableId] = arrUniqMerge(merged[sourceTableId] ?? [], newIds);
     }
     const affectedIdsBySource = Object.keys(merged).length ? merged : undefined;
 
@@ -1051,11 +1103,9 @@ export class HookHandlerService extends HookHandlerServiceCE {
         await existing.remove();
       } catch (e) {
         this.logger.warn(
-          `Incremental ${jobId} dropped ${
-            idsFromEvent.length
-          } ids — prior job still processing (${(e as Error).message})`,
+          `Incremental ${jobId} remove failed (${(e as Error).message})`,
         );
-        return;
+        return 'slot-active';
       }
     }
 
@@ -1087,11 +1137,13 @@ export class HookHandlerService extends HookHandlerServiceCE {
           removeOnFail: true,
         },
       );
+      return 'scheduled';
     } catch (e) {
       this.logger.error({
         error: e,
         message: `Failed to enqueue table-sync job ${jobId}`,
       });
+      return 'failed';
     }
   }
 }

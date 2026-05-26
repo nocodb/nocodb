@@ -70,12 +70,12 @@ export function describeRowError(
   //   4. value embedded in message → match against the row dict
   const driverColumn =
     typeof (err as { column?: unknown }).column === 'string'
-      ? ((err as { column: string }).column)
+      ? (err as { column: string }).column
       : undefined;
   const extractorColumn =
     extracted?.details &&
     typeof (extracted.details as { column?: unknown }).column === 'string'
-      ? ((extracted.details as { column: string }).column)
+      ? (extracted.details as { column: string }).column
       : undefined;
   const rawMsg =
     typeof (err as { message?: unknown }).message === 'string'

@@ -384,7 +384,9 @@ export const FormColumnUpdateContract: OperationContract<
 // restore via inverse. Each carries its own `entity` MetaTable so audit
 // rows and cache scopes resolve correctly.
 
-type TimelineColumnBody = z.infer<typeof timelineColumnUpdateSchema>['timeline'];
+type TimelineColumnBody = z.infer<
+  typeof timelineColumnUpdateSchema
+>['timeline'];
 
 interface TimelineColumnUpdateExtra {
   fkViewId?: string;

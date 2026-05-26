@@ -72,10 +72,7 @@ const up = async (knex: Knex) => {
 
 const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.DATE_DEPENDENCY, (table) => {
-    table.dropUnique(
-      ['fk_gantt_view_id'],
-      'nc_date_dep_gantt_view_id_unique',
-    );
+    table.dropUnique(['fk_gantt_view_id'], 'nc_date_dep_gantt_view_id_unique');
     table.dropIndex(
       ['fk_model_id', 'fk_gantt_view_id'],
       'nc_date_dep_model_view_idx',

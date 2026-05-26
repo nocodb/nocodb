@@ -17,8 +17,14 @@ const { navigateToView, onOpenViewCreateModal, showUpgradeToUseListView } = view
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseGanttView, blockListView, blockTimelineView, blockGanttView } =
-  useEeConfig()
+const {
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+} = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 

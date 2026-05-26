@@ -17,6 +17,13 @@ const mfaEnabled = ref(false)
 const hasPassword = ref(true)
 const isLoading = ref(false)
 
+// Cognito identity gating — set by /mfa/status. Federated Cognito users
+// (Google / SAML) can't be password-verified by us, so enrolment is
+// disabled for them and the card shows a tooltip pointing at their IdP.
+const mfaEligible = ref(true)
+const ineligibleReason = ref<'federated' | null>(null)
+const federationProvider = ref<string | null>(null)
+
 // Setup wizard state
 const showSetupModal = ref(false)
 const setupData = ref<{ secret: string; qrUrl: string; backupCodes: string[] } | null>(null)
@@ -53,23 +60,59 @@ async function fetchStatus() {
     const response = await api.instance.get('/api/v2/auth/mfa/status')
     mfaEnabled.value = response.data.enabled
     hasPassword.value = response.data.hasPassword ?? true
+    // Older backends won't echo `eligible` — default to true so the
+    // existing CE / on-prem behaviour is preserved.
+    mfaEligible.value = response.data.eligible ?? true
+    ineligibleReason.value = response.data.ineligibleReason ?? null
+    federationProvider.value = response.data.federationProvider ?? null
   } catch {
     // ignore
   }
 }
 
 // Eligibility for the enrollment flow:
-//   - Account has a local password set → classic password-confirm flow.
-//   - On Cloud → email/password is disabled, the only sign-in path is
-//     Cognito SSO. We let those users enrol too; the backend skips the
-//     password reproof for accounts with no local password and treats
-//     the active session JWT as the proof (see mfa.service.setup).
-// Anywhere else (on-prem with SSO and no local password) we still gate
-// the button — there's no way to enrol without a password those users
-// could actually use, so showing the button would be misleading.
-const canSetup2fa = computed(() => hasPassword.value || appInfo.value?.isCloud)
+//   - Account has a local password → classic password-confirm flow.
+//   - On Cloud, Cognito-native (signed up via email/password to the
+//     User Pool) → backend re-verifies the supplied password against
+//     Cognito's InitiateAuth, so we DO render the password step here.
+//   - On Cloud, Cognito-federated (Google etc.) → backend rejects with
+//     403; FE marks `mfaEligible=false` so the toggle is disabled and
+//     the tooltip points the user at their IdP.
+// `mfaEligible` is the single switch; the explicit ineligible reason
+// today is only `federated`.
+const canSetup2fa = computed(() => mfaEligible.value && (hasPassword.value || appInfo.value?.isCloud))
 
-const skipPasswordReproof = computed(() => !hasPassword.value || appInfo.value?.disableEmailAuth)
+// Skip the password reproof step only when there is genuinely no
+// password to verify — i.e. SSO accounts on platforms where email
+// password sign-in is also disabled, AND the user isn't a Cognito-
+// native account on Cloud (those CAN be reproved via InitiateAuth).
+//
+// Cognito-native users on Cloud have `hasPassword=false` (no local
+// bcrypt hash) but ARE re-provable, so we need the password step for
+// them. Federated users never reach this computed — `canSetup2fa` is
+// already false above.
+const skipPasswordReproof = computed(() => {
+  if (hasPassword.value) return false
+  // No local password. On Cloud the no-local-password user is Cognito —
+  // we have a way to reprove them (native) OR they're federated and
+  // can't enrol at all. Either way, render the password step.
+  if (appInfo.value?.isCloud) return false
+  // On-prem SSO with no local password — fall back to "session JWT is
+  // the proof" behaviour from before this PR.
+  return !!appInfo.value?.disableEmailAuth
+})
+
+// Tooltip copy shown over the disabled toggle for federated users.
+// Names the IdP so the user knows where to configure MFA.
+const ineligibleTooltip = computed(() => {
+  if (mfaEligible.value) return ''
+  if (ineligibleReason.value === 'federated') {
+    return federationProvider.value
+      ? t('labels.twoFactorFederatedNotAvailable', { provider: federationProvider.value })
+      : t('labels.twoFactorFederatedNotAvailableGeneric')
+  }
+  return t('labels.twoFactorSsoNotAvailable')
+})
 
 function startSetup() {
   if (blockMfa.value) {
@@ -312,7 +355,7 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex-shrink-0">
-                  <NcTooltip v-if="!mfaEnabled" :disabled="canSetup2fa" :title="$t('labels.twoFactorSsoNotAvailable')">
+                  <NcTooltip v-if="!mfaEnabled" :disabled="canSetup2fa" :title="ineligibleTooltip">
                     <NcButton
                       v-e="['c:account:security:enable-2fa']"
                       :type="blockMfa ? 'secondary' : 'primary'"

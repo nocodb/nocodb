@@ -5,6 +5,10 @@ import * as QRCode from 'qrcode';
 import * as jwt from 'jsonwebtoken';
 import { generateSecret, generateURI, verifySync } from 'otplib';
 import { AppEvents } from 'nocodb-sdk';
+import {
+  CognitoIdentityProviderClient,
+  InitiateAuthCommand,
+} from '@aws-sdk/client-cognito-identity-provider';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -149,21 +153,36 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is already enabled');
     }
 
-    // Identity re-proof:
-    //   - Local-password accounts: bcrypt-compare the supplied password.
-    //   - SSO accounts (no local password, e.g. Cognito on Cloud): the
-    //     active session JWT is the proof — they're already authenticated
-    //     via their IdP, and verifySetup below still requires the user to
-    //     scan and submit a fresh TOTP code before `totp_enabled` flips.
-    // TODO: revisit with team whether to add a stronger reproof for SSO
-    // (email magic-link / Cognito re-prompt) once we have telemetry on
-    // session-hijack risk in Cloud.
+    // Identity re-proof. Branches on whether the account is local-password,
+    // Cognito-native, or Cognito-federated. The `cognito_identity_type` tag
+    // on `user.meta` is written by the Cognito strategy on every sign-in
+    // (see CognitoStrategy.persistCognitoIdentityTag).
+    const cognitoIdentity = this.getCognitoIdentity(user);
+
     if (user.password) {
+      // Local password account — bcrypt re-confirm.
       const valid = await bcrypt.compare(password ?? '', user.password);
       if (!valid) {
         NcError.badRequest('Incorrect password');
       }
+    } else if (cognitoIdentity?.type === 'federated') {
+      // Google / SAML / etc. We can't password-verify against Cognito
+      // for these users (the password lives at their IdP), and the
+      // current PR scope is "native Cognito only" — point them at
+      // their IdP. The card is still shown on the FE with a disabled
+      // toggle + tooltip.
+      NcError.forbidden(
+        'Two-factor authentication for federated sign-in accounts must be configured at your identity provider.',
+      );
+    } else if (cognitoIdentity?.type === 'native') {
+      // Native Cognito (email/password) — re-verify the supplied
+      // password against the Cognito User Pool via InitiateAuth.
+      await this.verifyCognitoPassword(user.email, password ?? '');
     }
+    // No-op branch: no local password AND no Cognito tag = legacy SSO
+    // (OIDC/SAML provisioned without a password). Session JWT remains
+    // the proof; verifySetup still gates `totp_enabled` on a fresh
+    // TOTP submission.
 
     const secret = generateSecret();
     const otpauthUrl = generateURI({
@@ -278,7 +297,26 @@ export class MfaService {
     const user = await User.get(userId);
     if (!user) NcError.userNotFound(userId);
 
-    return { enabled: !!user.totp_enabled, hasPassword: !!user.password };
+    const cognitoIdentity = this.getCognitoIdentity(user);
+
+    // `eligible` is the single switch the FE flips the toggle on. It's
+    // false only for federated Cognito users today; everyone else (local
+    // password, Cognito-native, legacy SSO without password) can enrol.
+    const eligible = cognitoIdentity?.type !== 'federated';
+
+    return {
+      enabled: !!user.totp_enabled,
+      hasPassword: !!user.password,
+      eligible,
+      ...(eligible
+        ? {}
+        : {
+            ineligibleReason: 'federated' as const,
+            // E.g. 'Google' — surfaced in the tooltip so the user knows
+            // where to go (their IdP) to configure MFA.
+            federationProvider: cognitoIdentity?.provider ?? null,
+          }),
+    };
   }
 
   async verifySignin(twoFactorToken: string, code: string, req: NcRequest) {
@@ -509,5 +547,100 @@ export class MfaService {
     });
 
     return { backupCodes };
+  }
+
+  /**
+   * Read the Cognito identity tag stamped onto `user.meta` by
+   * `CognitoStrategy.persistCognitoIdentityTag` on each sign-in.
+   *
+   * Returns `null` for legacy users predating the tag and for non-Cognito
+   * accounts — callers should treat that as "no Cognito constraint
+   * applies" and fall back to the existing local-password / SSO branches.
+   */
+  private getCognitoIdentity(user: {
+    meta?: any;
+  }): { type: 'native' | 'federated'; provider?: string | null } | null {
+    if (!user?.meta) return null;
+    const meta =
+      typeof user.meta === 'string'
+        ? safeJsonParse(user.meta)
+        : user.meta;
+    if (!meta?.cognito_identity_type) return null;
+    return {
+      type: meta.cognito_identity_type,
+      provider: meta.cognito_federation_provider ?? null,
+    };
+  }
+
+  /**
+   * Re-verify a Cognito-native user's password by calling Cognito's
+   * `InitiateAuth` (USER_PASSWORD_AUTH flow) server-side. Used as the
+   * identity-proof step before flipping `totp_enabled` for users who
+   * signed up via the Cognito User Pool directly (no NocoDB-side bcrypt
+   * hash to compare against).
+   *
+   * Throws `NcError.badRequest('Incorrect password')` on a bad password.
+   * Throws `NcError.internalServerError` if Cognito isn't configured
+   * (defensive — this branch should only be entered when the user's
+   * `cognito_identity_type === 'native'`, which presupposes Cognito is up).
+   */
+  private async verifyCognitoPassword(
+    email: string,
+    password: string,
+  ): Promise<void> {
+    if (!password) {
+      NcError.badRequest('Password is required');
+    }
+
+    const userPoolClientId =
+      process.env.NC_COGNITO_AWS_USER_POOLS_WEB_CLIENT_ID;
+    const region = process.env.NC_COGNITO_AWS_COGNITO_REGION;
+
+    if (!userPoolClientId || !region) {
+      this.logger.error(
+        'verifyCognitoPassword called without Cognito config — user is tagged native but env vars are missing',
+      );
+      NcError.internalServerError(
+        'Two-factor setup is temporarily unavailable. Please try again later.',
+      );
+    }
+
+    const client = new CognitoIdentityProviderClient({ region });
+    try {
+      await client.send(
+        new InitiateAuthCommand({
+          AuthFlow: 'USER_PASSWORD_AUTH',
+          ClientId: userPoolClientId,
+          AuthParameters: {
+            USERNAME: email,
+            PASSWORD: password,
+          },
+        }),
+      );
+      // Successful response (`AuthenticationResult` populated) is the
+      // proof — we don't need the tokens themselves.
+    } catch (e: any) {
+      // Cognito returns one of: NotAuthorizedException (bad password),
+      // UserNotFoundException, PasswordResetRequiredException,
+      // UserNotConfirmedException, TooManyRequestsException, etc.
+      // Surface a generic "incorrect password" for the bad-password case;
+      // anything else is a server-side problem we don't want to leak.
+      if (e?.name === 'NotAuthorizedException') {
+        NcError.badRequest('Incorrect password');
+      }
+      this.logger.error(
+        `verifyCognitoPassword failed for ${email}: ${e?.name ?? 'unknown'} ${e?.message ?? ''}`,
+        e?.stack,
+      );
+      NcError.badRequest('Could not verify password. Please try again.');
+    }
+  }
+}
+
+function safeJsonParse(s: string): any {
+  try {
+    return JSON.parse(s || '{}');
+  } catch {
+    return {};
   }
 }

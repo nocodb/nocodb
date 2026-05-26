@@ -178,6 +178,62 @@ function mfaTests() {
 
       expect(res.body.enabled).to.equal(true);
     });
+
+    it('should return eligible: true for a default local-password user', async () => {
+      const res = await request(context.app)
+        .get('/api/v2/auth/mfa/status')
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      // Bare local-password account — not tagged as Cognito-federated,
+      // so enrolment is allowed.
+      expect(res.body.eligible).to.equal(true);
+      expect(res.body.ineligibleReason).to.equal(undefined);
+    });
+
+    it('should return eligible: false for a Cognito-federated user', async () => {
+      // Tag the user as federated directly on `nc_users.meta`, mimicking
+      // what the Cognito strategy would write on a Google sign-in.
+      const { User } = await import('~/models');
+      const user = await User.getByEmail(defaultUserArgs.email);
+      await User.update(user.id, {
+        meta: {
+          ...(user.meta ?? {}),
+          cognito_identity_type: 'federated',
+          cognito_federation_provider: 'Google',
+        },
+      });
+
+      const res = await request(context.app)
+        .get('/api/v2/auth/mfa/status')
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      expect(res.body.eligible).to.equal(false);
+      expect(res.body.ineligibleReason).to.equal('federated');
+      expect(res.body.federationProvider).to.equal('Google');
+    });
+
+    it('should reject /setup for a Cognito-federated user', async () => {
+      const { User } = await import('~/models');
+      const user = await User.getByEmail(defaultUserArgs.email);
+      await User.update(user.id, {
+        meta: {
+          ...(user.meta ?? {}),
+          cognito_identity_type: 'federated',
+          cognito_federation_provider: 'Google',
+        },
+      });
+
+      // Even with a correct password, federated users cannot enrol —
+      // backend short-circuits before the bcrypt/Cognito branch.
+      const res = await request(context.app)
+        .post('/api/v2/auth/mfa/setup')
+        .set('xc-auth', context.token)
+        .send({ password: defaultUserArgs.password });
+
+      expect(res.status).to.equal(403);
+    });
   });
 
   // --- Signin with 2FA ---

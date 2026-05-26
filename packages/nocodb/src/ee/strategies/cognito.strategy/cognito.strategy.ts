@@ -14,6 +14,32 @@ import { User } from '~/models';
 import { isDisposableEmail } from '~/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
+/**
+ * Inspect a Cognito ID-token payload to determine whether the user is
+ * `'native'` (signed up directly with email+password in our User Pool)
+ * or `'federated'` (signed in via Google / SAML / etc.). Federated
+ * tokens carry an `identities[]` array whose first entry names the
+ * upstream provider. Native tokens omit the claim entirely.
+ *
+ * Used to gate NocoDB-side 2FA enrolment: only native users can be
+ * password-re-verified by us via Cognito's `InitiateAuth`, so federated
+ * users are pointed back to their IdP for MFA. See
+ * `mfa.service.setup` and `Security.vue:canSetup2fa`.
+ */
+function extractCognitoIdentity(payload: any): {
+  type: 'native' | 'federated';
+  provider?: string;
+} {
+  const identities = payload?.identities;
+  if (Array.isArray(identities) && identities.length > 0) {
+    return {
+      type: 'federated',
+      provider: identities[0]?.providerName ?? identities[0]?.providerType,
+    };
+  }
+  return { type: 'native' };
+}
+
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
   constructor(
@@ -112,10 +138,17 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           );
         }
 
+        // Decide native-vs-federated up-front so we can persist the
+        // tag on the user record below — `mfa.service.setup` reads
+        // it back to gate enrolment (only native users can be
+        // re-verified against Cognito's password store).
+        const identity = extractCognitoIdentity(payload);
+
         // Login: use exact email match to avoid returning wrong user
         const user = await User.getByEmail(rawEmail);
 
         if (user) {
+          await this.persistCognitoIdentityTag(user, identity);
           return callback(null, {
             ...sanitiseUserObj(user),
             provider: 'cognito',
@@ -135,6 +168,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
             salt,
             req,
           });
+          await this.persistCognitoIdentityTag(newUser, identity);
 
           return callback(null, {
             ...sanitiseUserObj(newUser),
@@ -234,6 +268,48 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
       });
     } catch (err) {
       return callback(err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  /**
+   * Stash the user's Cognito identity flavour on `nc_users.meta` so
+   * `mfa.service.setup` and `/api/v2/auth/mfa/status` can read it back
+   * without re-decoding the Cognito JWT (which only the strategy sees).
+   * Idempotent — no-op when the tag already matches.
+   *
+   * `meta.cognito_identity_type`: 'native' | 'federated'
+   * `meta.cognito_federation_provider`: 'Google' | 'SAML' | ... (federated only)
+   */
+  private async persistCognitoIdentityTag(
+    user: { id: string; meta?: any },
+    identity: { type: 'native' | 'federated'; provider?: string },
+  ): Promise<void> {
+    try {
+      const existing =
+        typeof user.meta === 'string'
+          ? JSON.parse(user.meta || '{}')
+          : user.meta || {};
+
+      if (
+        existing.cognito_identity_type === identity.type &&
+        existing.cognito_federation_provider ===
+          (identity.provider ?? undefined)
+      ) {
+        return;
+      }
+
+      const meta = {
+        ...existing,
+        cognito_identity_type: identity.type,
+        ...(identity.type === 'federated'
+          ? { cognito_federation_provider: identity.provider }
+          : { cognito_federation_provider: undefined }),
+      };
+
+      await User.update(user.id, { meta });
+    } catch (_e) {
+      // Best-effort — a meta-write failure shouldn't block sign-in.
+      // Worst case: the next sign-in re-tries the write.
     }
   }
 }

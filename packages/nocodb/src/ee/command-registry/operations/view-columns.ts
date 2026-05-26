@@ -602,6 +602,16 @@ export const ListColumnUpdateContract: OperationContract<
         params.list ?? {},
       ) as Partial<ListColumnBody>;
 
+      // First-resize undo: list_view_columns.width has no default in the
+      // schema (unlike grid_view_columns which defaults to '200px'), so a
+      // fresh row stores width=null. Swagger GridColumnReq.width requires
+      // a string matching ^[0-9]+(px|%)$, so replaying width=null fails
+      // payload validation in listColumnUpdate. Drop the field when
+      // there's no prior value — undo becomes a no-op for that property.
+      if (prevList && prevList.width == null && 'width' in prevList) {
+        delete prevList.width;
+      }
+
       return {
         parentEntityTitle: view?.title,
         extra: {

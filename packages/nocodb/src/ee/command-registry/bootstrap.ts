@@ -12,8 +12,11 @@ import { registerFiltersV3Handlers } from '~/command-registry/operations/filters
 import { registerSortHandlers } from '~/command-registry/operations/sorts';
 import {
   registerFormColumnHandlers,
+  registerGanttColumnHandlers,
   registerGridColumnHandlers,
+  registerListColumnHandlers,
   registerShowHideAllHandlers,
+  registerTimelineColumnHandlers,
   registerViewColumnHandlers,
 } from '~/command-registry/operations/view-columns';
 import { registerHookHandlers } from '~/command-registry/operations/hooks';
@@ -50,6 +53,9 @@ import { SortsService } from '~/services/sorts.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { FormColumnsService } from '~/services/form-columns.service';
+import { TimelineColumnsService } from '~/services/timeline-columns.service';
+import { GanttColumnsService } from '~/services/gantt-columns.service';
+import { ListColumnsService } from '~/services/list-columns.service';
 import { HooksService } from '~/services/hooks.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -92,6 +98,9 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly viewColumnsSvc: ViewColumnsService,
     private readonly gridColumnsSvc: GridColumnsService,
     private readonly formColumnsSvc: FormColumnsService,
+    private readonly timelineColumnsSvc: TimelineColumnsService,
+    private readonly ganttColumnsSvc: GanttColumnsService,
+    private readonly listColumnsSvc: ListColumnsService,
     private readonly hooksSvc: HooksService,
     private readonly extensionsSvc: ExtensionsService,
     private readonly dashboardsSvc: DashboardsService,
@@ -135,6 +144,9 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerViewColumnHandlers(this.viewColumnsSvc);
     registerGridColumnHandlers(this.gridColumnsSvc);
     registerFormColumnHandlers(this.formColumnsSvc);
+    registerTimelineColumnHandlers(this.timelineColumnsSvc);
+    registerGanttColumnHandlers(this.ganttColumnsSvc);
+    registerListColumnHandlers(this.listColumnsSvc);
     registerShowHideAllHandlers(this.viewsSvc);
     registerHookHandlers(this.hooksSvc);
     registerExtensionHandlers(this.extensionsSvc);

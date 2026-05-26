@@ -63,6 +63,61 @@ export const gridColumnUpdateSchema = z
   })
   .strict();
 
+// Per-view-type column bodies — each matches the corresponding service's
+// `extractProps` whitelist exactly. Frontend technically sends
+// `Partial<GridColumnReqType>` (a broader surface) to every column-update
+// op, but the backend silently drops fields not in extractProps; replaying
+// those extras would be wasted work, so the recorded params + inverse
+// snapshot only carry the persisted subset.
+//
+// Authoritative source per service:
+//   grid-columns.service.ts extractProps     → show, order, width, group_by, group_by_order, group_by_sort, aggregation
+//   timeline-columns.service.ts extractProps → show, order, group_by, group_by_order, group_by_sort, aggregation   (no width)
+//   gantt-columns.service.ts extractProps    → show, order, group_by, group_by_order, group_by_sort, aggregation   (no width)
+//   list-columns.service.ts extractProps     → show, order, width                                                  (no group_by/aggregation)
+
+/** Body persisted by Timeline / Gantt column-update services. */
+const timelineGanttColumnBodySchema = z
+  .object({
+    show: nullableBoolType.optional(),
+    order: z.number().nullable().optional(),
+    group_by: nullableBoolType.optional(),
+    group_by_order: z.number().nullable().optional(),
+    group_by_sort: z.string().nullable().optional(),
+    aggregation: z.string().nullable().optional(),
+  })
+  .strict();
+
+export const timelineColumnUpdateSchema = z
+  .object({
+    timelineViewColumnId: z.string(),
+    timeline: timelineGanttColumnBodySchema,
+  })
+  .strict();
+
+export const ganttColumnUpdateSchema = z
+  .object({
+    ganttViewColumnId: z.string(),
+    gantt: timelineGanttColumnBodySchema,
+  })
+  .strict();
+
+/** Body persisted by List column-update service. */
+const listColumnBodySchema = z
+  .object({
+    show: nullableBoolType.optional(),
+    order: z.number().nullable().optional(),
+    width: z.string().nullable().optional(),
+  })
+  .strict();
+
+export const listColumnUpdateSchema = z
+  .object({
+    listViewColumnId: z.string(),
+    list: listColumnBodySchema,
+  })
+  .strict();
+
 /** `nc_form_view_columns` body. */
 const formColumnBodySchema = z
   .object({

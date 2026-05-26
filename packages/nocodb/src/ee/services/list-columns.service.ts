@@ -1,23 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
 import { Column, View } from '~/models';
 import ListViewColumn from '~/models/ListViewColumn';
 import { extractProps } from '~/helpers/extractProps';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class ListColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.listColumnUpdate)
   async listColumnUpdate(
     context: NcContext,
     param: {
@@ -39,6 +44,13 @@ export class ListColumnsService {
       ncMeta,
     );
 
+    if (!oldListViewColumn) {
+      NcError.get(context).genericNotFound(
+        'List view column',
+        param.listViewColumnId,
+      );
+    }
+
     const column = await Column.get(
       context,
       {
@@ -53,6 +65,10 @@ export class ListColumnsService {
       false,
       ncMeta,
     );
+
+    if (!view) {
+      NcError.get(context).viewNotFound(oldListViewColumn.fk_view_id);
+    }
 
     const viewWebhookManager =
       param.viewWebhookManager ??

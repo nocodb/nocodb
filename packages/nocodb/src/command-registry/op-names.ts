@@ -52,6 +52,9 @@ export const OperationName = {
   viewColumnUpdate: 'viewColumnUpdate',
   gridColumnUpdate: 'gridColumnUpdate',
   formColumnUpdate: 'formColumnUpdate',
+  timelineColumnUpdate: 'timelineColumnUpdate',
+  ganttColumnUpdate: 'ganttColumnUpdate',
+  listColumnUpdate: 'listColumnUpdate',
   showAllColumns: 'showAllColumns',
   hideAllColumns: 'hideAllColumns',
 

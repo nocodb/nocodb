@@ -241,15 +241,22 @@ const invalidTooltipFor = (reason: 'date-violation' | 'cycle' | null, otherId: s
   return ''
 }
 
-// Inspector-level summary: does any edge touching THIS record violate?
-// Drives the "Fix invalid dependencies" link visibility at the bottom of
-// the dep section. We only surface the action when there's something to
-// fix on the open record's chain (don't dangle a global action under a
-// per-record view).
-const hasInvalidEdgeOnRecord = computed(() => {
+// Inspector-level summary, split by failure mode so the bottom-of-section
+// notice can be specific. Cycles need different remediation than date
+// violations — telling a user to "adjust the dates" when the actual issue
+// is a loop is misleading, so we surface a dedicated cyclic-dependency
+// notice with its own hint.
+const hasCycleEdgeOnRecord = computed(() => {
   return (
-    predecessorIds.value.some((id) => predecessorInvalidReasonFor(id)) ||
-    successorIds.value.some((id) => successorInvalidReasonFor(id))
+    predecessorIds.value.some((id) => predecessorInvalidReasonFor(id) === 'cycle') ||
+    successorIds.value.some((id) => successorInvalidReasonFor(id) === 'cycle')
+  )
+})
+
+const hasDateViolationEdgeOnRecord = computed(() => {
+  return (
+    predecessorIds.value.some((id) => predecessorInvalidReasonFor(id) === 'date-violation') ||
+    successorIds.value.some((id) => successorInvalidReasonFor(id) === 'date-violation')
   )
 })
 
@@ -793,15 +800,28 @@ const formatDisplay = (raw: string | null | undefined) => {
         />
       </div>
 
-      <!-- Invalid-dependency notice — visible only when at least one edge
-           touching the current record violates the dep contract. Mirrors
-           Airtable's bottom-of-inspector affordance, but as a passive
-           informational badge (not a button). The hint surfaces on hover
-           via tooltip — clicking does nothing because the auto-fix
-           cascade algorithm isn't implemented yet, and presenting it as
-           a button led users to expect an action that wasn't there. -->
-      <div v-if="depCol && hasInvalidEdgeOnRecord && !isPublic" class="pt-3 mt-2 border-t border-nc-border-gray-light">
-        <NcTooltip :title="$t('msg.dependencyFixInvalidHint')" placement="top">
+      <!-- Invalid-dependency notices — split by failure mode so the
+           remediation hint matches the actual problem. Cycles get their
+           own notice because "adjust the dates" doesn't fix a loop; the
+           user has to remove an edge instead. Both notices are passive
+           informational badges (not buttons) — clicking does nothing
+           because the auto-fix cascade algorithm isn't implemented yet,
+           and presenting them as buttons led users to expect an action
+           that wasn't there. -->
+      <div
+        v-if="depCol && (hasCycleEdgeOnRecord || hasDateViolationEdgeOnRecord) && !isPublic"
+        class="pt-3 mt-2 border-t border-nc-border-gray-light flex flex-col gap-1.5"
+      >
+        <NcTooltip v-if="hasCycleEdgeOnRecord" :title="$t('msg.dependencyCycleHint')" placement="top">
+          <div
+            class="inline-flex items-center gap-1.5 text-xs text-nc-content-red-dark cursor-help"
+            data-testid="nc-gantt-inspector-cycle-warning"
+          >
+            <GeneralIcon icon="alertTriangle" class="!w-3.5 !h-3.5" />
+            {{ $t('labels.dateDependency.cyclicDependencies') }}
+          </div>
+        </NcTooltip>
+        <NcTooltip v-if="hasDateViolationEdgeOnRecord" :title="$t('msg.dependencyFixInvalidHint')" placement="top">
           <div
             class="inline-flex items-center gap-1.5 text-xs text-nc-content-red-dark cursor-help"
             data-testid="nc-gantt-inspector-fix-invalid"

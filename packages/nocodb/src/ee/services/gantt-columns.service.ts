@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -17,11 +18,14 @@ import GanttViewColumn from '~/models/GanttViewColumn';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class GanttColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.ganttColumnUpdate)
   async ganttColumnUpdate(
     context: NcContext,
     param: {

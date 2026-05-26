@@ -716,7 +716,11 @@ export class PublicDatasService {
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
-    if (view.type !== ViewTypes.GRID) {
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.TIMELINE &&
+      view.type !== ViewTypes.GANTT
+    ) {
       NcError.notFound('Not found');
     }
 
@@ -747,7 +751,11 @@ export class PublicDatasService {
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
-    if (view.type !== ViewTypes.GRID) {
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.TIMELINE &&
+      view.type !== ViewTypes.GANTT
+    ) {
       NcError.notFound('Not found');
     }
 

@@ -536,6 +536,25 @@ const visibleRecords = computed(() => {
     })
 })
 
+// Compute the painted viewport's date range. `props.visibleDates` spans
+// the full date-axis buffer (months wider than what's on screen under
+// infinite scroll), so using its first/last entries reports "visible"
+// for any bar inside the buffer — far too generous for the clipped-bar
+// nav arrows. Translate scrollLeft + viewportWidth into buffer indices
+// to derive the actual painted edges, clamped to buffer bounds.
+const viewportEdges = computed<{ first: dayjs.Dayjs; last: dayjs.Dayjs } | null>(() => {
+  const buffer = props.visibleDates
+  const cw = colWidth.value
+  const vw = storeViewportWidth.value
+  if (!buffer?.length || !cw || !vw) return null
+  const firstIdx = Math.max(0, Math.floor(storeScrollLeft.value / cw))
+  const lastIdx = Math.min(buffer.length - 1, Math.ceil((storeScrollLeft.value + vw) / cw) - 1)
+  const first = buffer[firstIdx]
+  const last = buffer[lastIdx]
+  if (!first || !last) return null
+  return { first, last }
+})
+
 // Swimlane packing: group non-overlapping records into lanes so bars sit side
 // by side. Each entry carries pre-computed bar geometry (parsed dates,
 // visibility flags, leftPx/widthPx) so the per-scroll-tick render path
@@ -545,9 +564,17 @@ const swimlanes = computed<BarMeta[][]>(() => {
   const range = props.timelineRange[0]
   if (!range) return []
 
-  const firstVisibleDate = props.visibleDates[0]
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-  if (!firstVisibleDate || !lastVisibleDate) return []
+  const firstBufferDate = props.visibleDates[0]
+  const lastBufferDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!firstBufferDate || !lastBufferDate) return []
+
+  // Visibility flags drive the per-bar nav arrows + corner rounding — they
+  // must reflect the painted viewport, not the wider buffer. Fall back to
+  // the buffer edges until measurements anchor (avoids a flash of stray
+  // arrows on first paint).
+  const edges = viewportEdges.value
+  const viewportFirst = edges?.first ?? firstBufferDate
+  const viewportLast = edges?.last ?? lastBufferDate
 
   const cw = colWidth.value
   const lanes: Array<{ records: BarMeta[]; lastEnd: dayjs.Dayjs }> = []
@@ -560,11 +587,15 @@ const swimlanes = computed<BarMeta[][]>(() => {
     const effectiveEnd = endDate || startDate
     if (endDate && effectiveEnd.isBefore(startDate, 'day')) return
 
-    const startVisible = !startDate.isBefore(firstVisibleDate, 'day')
-    const endVisible = !effectiveEnd.isAfter(lastVisibleDate, 'day')
-    const clampedStart = startVisible ? startDate : firstVisibleDate
-    const clampedEnd = endVisible ? effectiveEnd : lastVisibleDate
-    const startOffset = clampedStart.diff(firstVisibleDate, 'day')
+    const startVisible = !startDate.isBefore(viewportFirst, 'day')
+    const endVisible = !effectiveEnd.isAfter(viewportLast, 'day')
+    // Clamp to the buffer (not the viewport) for geometry — leftPx/widthPx
+    // are buffer-relative offsets so the bar paints at its real date even
+    // when it extends past the viewport. Buffer clamping only kicks in
+    // when the bar's dates fall outside the buffer entirely.
+    const clampedStart = startDate.isBefore(firstBufferDate, 'day') ? firstBufferDate : startDate
+    const clampedEnd = effectiveEnd.isAfter(lastBufferDate, 'day') ? lastBufferDate : effectiveEnd
+    const startOffset = clampedStart.diff(firstBufferDate, 'day')
     const duration = clampedEnd.diff(clampedStart, 'day') + 1
 
     const colorStyle = extractRowBackgroundColorStyle(record)
@@ -608,19 +639,15 @@ const swimlanes = computed<BarMeta[][]>(() => {
 
 // Pure arithmetic — no dayjs allocations, no string parsing. Reactive on
 // `storeScrollLeft` / `storeViewportWidth`; everything else comes from the
-// pre-computed `BarMeta`. The 28px reserves for the per-bar nav arrows
-// only apply when the matching bar edge is actually in the viewport — once
-// the user has scrolled past a bar edge, the arrow is off-screen too and
-// the label can hug the visible portion with the smaller padding.
+// pre-computed `BarMeta`. The 28px reserves room for the per-bar nav arrows,
+// which now anchor to the painted viewport edges (see arrow template). When
+// an arrow is rendered (`!startVisible` / `!endVisible`), the label sticks
+// past it; otherwise the label hugs the bar with the smaller default padding.
 const getLabelStyle = (bar: BarMeta) => {
   const vpLeft = storeScrollLeft.value
-  const vpRight = vpLeft + storeViewportWidth.value
-  const barRightPx = bar.leftPx + bar.widthPx
 
-  const leftArrowInView = !bar.startVisible && bar.leftPx >= vpLeft
-  const rightArrowInView = !bar.endVisible && barRightPx <= vpRight
-  const startPad = leftArrowInView ? 28 : 10
-  const endPad = rightArrowInView ? 28 : 8
+  const startPad = !bar.startVisible ? 28 : 10
+  const endPad = !bar.endVisible ? 28 : 8
 
   const scrolledPast = Math.max(0, vpLeft - bar.leftPx)
   const minLabelWidth = 8
@@ -997,110 +1024,124 @@ const onGridMouseLeave = () => {
             <div class="absolute inset-0 nc-timeline-row-hover transition-colors" />
 
             <!-- Bars in this lane -->
-            <NcTooltip
-              v-for="(bar, barIdx) in lane"
-              :key="bar.key"
-              :disabled="isInteracting"
-              placement="top"
-              class="absolute top-1"
-              :style="{ left: `${bar.leftPx}px`, width: `${bar.widthPx}px` }"
-            >
-              <template #title>
-                <span class="text-xs font-semibold">{{ getBarTooltip(bar) }}</span>
-              </template>
+            <template v-for="(bar, barIdx) in lane" :key="bar.key">
+              <NcTooltip
+                :disabled="isInteracting"
+                placement="top"
+                class="absolute top-1"
+                :style="{ left: `${bar.leftPx}px`, width: `${bar.widthPx}px` }"
+              >
+                <template #title>
+                  <span class="text-xs font-semibold">{{ getBarTooltip(bar) }}</span>
+                </template>
+                <div
+                  class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
+                  :class="{
+                    'cursor-grabbing': dragInProgress && dragRecord === bar.record && canDrag,
+                    'cursor-grab': !isInteracting && canDrag,
+                    'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
+                    'pointer-events-none opacity-30': isInteracting && interactionRecord !== bar.record,
+                    'z-100 shadow-lg': isInteracting && interactionRecord === bar.record,
+                    'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !bar.hasBgColor,
+                    'rounded-l-md': bar.startVisible,
+                    'rounded-r-md': bar.endVisible,
+                  }"
+                  :style="{
+                    height: `${ROW_HEIGHT - 8}px`,
+                    ...bar.bgStyle,
+                  }"
+                  :data-lane="laneIdx"
+                  :data-bar="barIdx"
+                  data-testid="nc-timeline-bar"
+                  :data-unique-id="bar.record.rowMeta?.id"
+                  role="button"
+                  tabindex="0"
+                  @click="!isInteracting && !justFinishedResize && emit('expandRecord', bar.record)"
+                  @keydown="onBarKeydown($event, bar.record, laneIdx, barIdx)"
+                  @mousedown.stop="onDragStart($event, bar.record)"
+                >
+                  <!-- #17: Left border color accent — only when the record's start is in the visible range -->
+                  <div
+                    v-if="bar.startVisible"
+                    class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
+                    :style="bar.borderStyle"
+                  />
+                  <!-- Left resize handle (start date) — offset past the accent -->
+                  <div
+                    v-if="canResizeLeft"
+                    class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                    @mousedown.stop="onResizeStart('left', $event, bar.record)"
+                  >
+                    <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+
+                  <span class="absolute top-0 bottom-0 truncate inline-flex items-center" :style="getLabelStyle(bar)">
+                    <template v-for="field in fields" :key="field.id">
+                      <LazySmartsheetPlainCell
+                        v-if="!isRowEmpty(bar.record, field!)"
+                        v-model="bar.record.row[field!.title!]"
+                        class="text-xs"
+                        :bold="fieldStyles[field.id]?.bold"
+                        :column="field"
+                        :italic="fieldStyles[field.id]?.italic"
+                        :underline="fieldStyles[field.id]?.underline"
+                      />
+                    </template>
+                  </span>
+
+                  <!-- Right resize handle (end date) — only when end date column exists -->
+                  <div
+                    v-if="canResizeRight && timelineRange[0]?.fk_to_col"
+                    class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                    @mousedown.stop="onResizeStart('right', $event, bar.record)"
+                  >
+                    <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+              </NcTooltip>
+
+              <!-- Per-bar nav chevrons — siblings of the bar's NcTooltip and
+                   anchored to the painted viewport edges (not the bar's own
+                   edges, which scroll out of view under the infinite-scroll
+                   buffer). Pattern matches Gantt's clipped-bar nav arrows. -->
               <div
-                class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
-                :class="{
-                  'cursor-grabbing': dragInProgress && dragRecord === bar.record && canDrag,
-                  'cursor-grab': !isInteracting && canDrag,
-                  'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
-                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== bar.record,
-                  'z-100 shadow-lg': isInteracting && interactionRecord === bar.record,
-                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !bar.hasBgColor,
-                  'rounded-l-md': bar.startVisible,
-                  'rounded-r-md': bar.endVisible,
-                }"
-                :style="{
-                  height: `${ROW_HEIGHT - 8}px`,
-                  ...bar.bgStyle,
-                }"
-                :data-lane="laneIdx"
-                :data-bar="barIdx"
-                data-testid="nc-timeline-bar"
-                :data-unique-id="bar.record.rowMeta?.id"
+                v-if="!bar.startVisible"
+                class="nc-timeline-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
+                :style="{ left: `${storeScrollLeft}px` }"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && emit('expandRecord', bar.record)"
-                @keydown="onBarKeydown($event, bar.record, laneIdx, barIdx)"
-                @mousedown.stop="onDragStart($event, bar.record)"
+                :aria-label="$t('labels.previous')"
+                @click.stop="emit('navigateTo', bar.startDate)"
+                @keydown.enter.prevent="emit('navigateTo', bar.startDate)"
+                @keydown.space.prevent="emit('navigateTo', bar.startDate)"
+                @mousedown.stop
               >
-                <!-- #17: Left border color accent — only when the record's start is in the visible range -->
                 <div
-                  v-if="bar.startVisible"
-                  class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
-                  :style="bar.borderStyle"
-                />
-                <!-- Left resize handle (start date) — offset past the accent -->
-                <div
-                  v-if="canResizeLeft"
-                  class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('left', $event, bar.record)"
+                  class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
                 >
-                  <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-
-                <span class="absolute top-0 bottom-0 truncate inline-flex items-center" :style="getLabelStyle(bar)">
-                  <template v-for="field in fields" :key="field.id">
-                    <LazySmartsheetPlainCell
-                      v-if="!isRowEmpty(bar.record, field!)"
-                      v-model="bar.record.row[field!.title!]"
-                      class="text-xs"
-                      :bold="fieldStyles[field.id]?.bold"
-                      :column="field"
-                      :italic="fieldStyles[field.id]?.italic"
-                      :underline="fieldStyles[field.id]?.underline"
-                    />
-                  </template>
-                </span>
-
-                <!-- Per-bar left nav arrow — when start is clipped -->
-                <div
-                  v-if="!bar.startVisible"
-                  class="nc-timeline-nav-arrow absolute left-0 top-0 h-full z-20 flex items-center"
-                  @click.stop="emit('navigateTo', bar.startDate)"
-                  @mousedown.stop
-                >
-                  <div
-                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
-                  >
-                    <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
-                  </div>
-                </div>
-
-                <!-- Right resize handle (end date) — only when end date column exists -->
-                <div
-                  v-if="canResizeRight && timelineRange[0]?.fk_to_col"
-                  class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('right', $event, bar.record)"
-                >
-                  <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-
-                <!-- Per-bar right nav arrow — when end is clipped -->
-                <div
-                  v-if="!bar.endVisible"
-                  class="nc-timeline-nav-arrow absolute right-0 top-0 h-full z-20 flex items-center"
-                  @click.stop="emit('navigateTo', bar.endDate)"
-                  @mousedown.stop
-                >
-                  <div
-                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
-                  >
-                    <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
-                  </div>
+                  <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
                 </div>
               </div>
-            </NcTooltip>
+
+              <div
+                v-if="!bar.endVisible"
+                class="nc-timeline-nav-arrow absolute top-1 bottom-1 z-20 flex items-center"
+                :style="{ right: `${Math.max(0, totalGridWidth - storeScrollLeft - storeViewportWidth)}px` }"
+                role="button"
+                tabindex="0"
+                :aria-label="$t('labels.next')"
+                @click.stop="emit('navigateTo', bar.endDate)"
+                @keydown.enter.prevent="emit('navigateTo', bar.endDate)"
+                @keydown.space.prevent="emit('navigateTo', bar.endDate)"
+                @mousedown.stop
+              >
+                <div
+                  class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
+                >
+                  <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- Empty row for inserting a new record (flat mode only) -->

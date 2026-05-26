@@ -204,11 +204,14 @@ test.describe('Sign-in: 2FA challenge & recovery', () => {
     // Click "Set up" → routes to /account/security?openEnrollment=true.
     await dlg.locator('.nc-modal-confirm-ok-btn').click();
 
-    // Wait for the URL change.
-    await page.waitForURL(/\/account\/security\?openEnrollment=true/, { timeout: 10000 });
+    // Wait for the URL change. `router.replace` in Security.vue strips
+    // `?openEnrollment=true` after consuming it, so we may catch the
+    // bare path or the queried form depending on race. The password-
+    // modal check below is the actual user-visible assertion.
+    await page.waitForURL(/\/account\/security/, { timeout: 15000 });
 
     // The enrollment modal auto-opens with the password step.
-    await page.getByTestId('nc-2fa-setup-password').waitFor({ state: 'visible', timeout: 10000 });
+    await page.getByTestId('nc-2fa-setup-password').waitFor({ state: 'visible', timeout: 15000 });
 
     // Cleanup happens in afterEach (flips force_2fa off via API) so the
     // next test's owner isn't locked out of their own workspace.

@@ -216,64 +216,71 @@ describe('MFA Helpers', () => {
       void cacheDelStub;
     });
 
-    it('skips bcrypt compare entirely when user has no local password', async () => {
+    it('rejects setup when the user has no password and the session has no identity tag', async () => {
+      // Post per-session-identity PR, a user with no local password
+      // AND no `req.user.extra.cognito_identity_type` AND no
+      // `sso_client_id` can't be re-proved — the legacy "session JWT
+      // is the proof" fallthrough was a real regression (XSS / cookie
+      // theft could enrol with no challenge). We refuse the setup
+      // instead of silently allowing it.
       userGetStub.resolves({
         id: 'usr_sso',
         email: 'sso@example.com',
         password: null,
         totp_enabled: false,
+        meta: null,
       } as any);
 
-      // Spy on bcrypt.compare so we can assert it was NEVER called.
       const bcryptSpy = sinon.spy(bcrypt, 'compare');
 
-      const result = await service.setup(
-        'usr_sso',
-        // Any string — should be ignored when user.password is null.
-        'irrelevant-password',
-        { user: { id: 'usr_sso' } } as any,
-      );
+      let thrown: Error | undefined;
+      try {
+        await service.setup(
+          'usr_sso',
+          'irrelevant',
+          { user: { id: 'usr_sso' } } as any,
+        );
+      } catch (e) {
+        thrown = e as Error;
+      }
 
-      expect(bcryptSpy.called, 'bcrypt.compare must not run for SSO users').to
-        .be.false;
+      expect(thrown, 'should reject zero-reproof setup').to.exist;
+      expect(thrown!.message).to.match(/email and password/i);
 
-      expect(result).to.have.property('secret').that.is.a('string');
-      expect(result).to.have.property('qrUrl').that.is.a('string');
-      expect(result.qrUrl).to.match(/^data:image\/png;base64,/);
-      expect(result).to.have.property('backupCodes').that.is.an('array');
-      expect(result.backupCodes).to.have.lengthOf(10);
+      // bcrypt.compare must not run — there's nothing to compare.
+      expect(bcryptSpy.called).to.be.false;
 
-      // Stored secret + backup codes via metaUpdate
-      expect(ncMetaStub.metaUpdate.calledOnce, 'metaUpdate called').to.be.true;
-      const fields = ncMetaStub.metaUpdate.getCall(0).args[3];
-      expect(fields).to.have.property('totp_secret').that.is.a('string');
-      expect(fields).to.have.property('totp_backup_codes').that.is.a('string');
-      // totp_enabled is NOT flipped here — verifySetup does that
-      expect(fields).to.not.have.property('totp_enabled');
-
-      // App hook emitted
-      expect(appHooksMock.emit.calledOnce, 'USER_MFA_SETUP emitted').to.be
-        .true;
+      // No state mutation when the gate rejects.
+      expect(ncMetaStub.metaUpdate.called).to.be.false;
+      expect(appHooksMock.emit.called).to.be.false;
     });
 
-    it('skips bcrypt compare when user.password is an empty string', async () => {
+    it('rejects setup when user.password is an empty string and no Cognito tag', async () => {
       userGetStub.resolves({
         id: 'usr_sso2',
         email: 'sso2@example.com',
         password: '',
         totp_enabled: false,
+        meta: null,
       } as any);
 
       const bcryptSpy = sinon.spy(bcrypt, 'compare');
 
-      const result = await service.setup(
-        'usr_sso2',
-        'irrelevant',
-        { user: { id: 'usr_sso2' } } as any,
-      );
+      let thrown: Error | undefined;
+      try {
+        await service.setup(
+          'usr_sso2',
+          'irrelevant',
+          { user: { id: 'usr_sso2' } } as any,
+        );
+      } catch (e) {
+        thrown = e as Error;
+      }
 
+      expect(thrown, 'should reject zero-reproof setup').to.exist;
+      expect(thrown!.message).to.match(/email and password/i);
       expect(bcryptSpy.called).to.be.false;
-      expect(result.secret).to.be.a('string');
+      expect(ncMetaStub.metaUpdate.called).to.be.false;
     });
 
     it('still bcrypt-compares when the user has a local password (success)', async () => {

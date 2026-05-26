@@ -5,6 +5,28 @@ import { AccountPage } from '../../pages/Account';
 import { generateTotp } from '../utils/totp';
 
 /**
+ * After successful enrolment, `Security.vue.closeSetupModal` triggers
+ * `signOut({ redirectToSignin: true })` to force re-auth under the new
+ * 2FA-protected session (mfa.service.verifySetup rotated
+ * `token_version`, so the current cookie is dead anyway). Re-sign-in
+ * via the UI through the TOTP challenge, then go back to Security to
+ * verify the disable round-trip.
+ */
+async function signInThroughTotpChallenge(page, email: string, password: string, totpSecret: string) {
+  await page.waitForURL(/\/signin/, { timeout: 15000 });
+  await page.getByTestId('nc-form-signin__email').fill(email);
+  await page.getByTestId('nc-form-signin__password').fill(password);
+  await page.getByTestId('nc-form-signin__submit').click();
+  await page.getByTestId('nc-form-signin__2fa-code').waitFor({ state: 'visible', timeout: 15000 });
+  await page.getByTestId('nc-form-signin__2fa-code').fill(generateTotp(totpSecret));
+  await page.getByTestId('nc-form-signin__2fa-submit').click();
+  await page
+    .locator('[data-testid="nc-sidebar-userinfo"], .nc-home-sidebar, .nc-treeview-container')
+    .first()
+    .waitFor({ timeout: 30000 });
+}
+
+/**
  * Account → Security 2FA round-trip via the UI: enrol with the test
  * owner's password, verify the QR/secret/backup-code states, then
  * disable. Each test self-cleans (disables 2FA via the UI at the end)
@@ -34,7 +56,7 @@ test.describe('Account → Security: 2FA enrolment', () => {
     await unsetup(context);
   });
 
-  test('enrol then disable round-trip', async () => {
+  test('enrol then disable round-trip', async ({ page }) => {
     // ─── Pre-condition: Account → Security renders Enable 2FA ─────────
     await accountPage.security.goto();
     await expect(accountPage.security.enableBtn()).toBeVisible();
@@ -72,12 +94,21 @@ test.describe('Account → Security: 2FA enrolment', () => {
       expect(c).toMatch(/^[0-9a-f]{4}-[0-9a-f]{4}$/);
     }
 
-    // ─── Step 5: close modal → Disable 2FA button visible ────────────
+    // ─── Step 5: close backup-codes modal → forced sign-out → re-auth ──
+    // The FE calls `signOut({ redirectToSignin: true })` once the user
+    // dismisses the backup-codes step (verifySetup rotated
+    // `token_version` so the current cookie is dead; re-auth surfaces
+    // the new 2FA-gated flow rather than letting them sit on /account
+    // with a stale token).
     await accountPage.security.closeSetupAfterBackupCodes();
+    await signInThroughTotpChallenge(page, context.rootUser.email, DEFAULT_PWD, secret);
+
+    // ─── Step 6: back on Account → Security, Disable button is shown ──
+    await accountPage.security.goto();
     await expect(accountPage.security.disableBtn()).toBeVisible();
     await expect(accountPage.security.enableBtn()).toHaveCount(0);
 
-    // ─── Step 6: disable round-trip cleans up state ──────────────────
+    // ─── Step 7: disable round-trip cleans up state ──────────────────
     await accountPage.security.clickDisable();
     await accountPage.security.fillDisablePasswordAndConfirm(DEFAULT_PWD);
 

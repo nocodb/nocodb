@@ -55,6 +55,20 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       // ignore error
     }
 
+    // Drop any leftover 2FA challenge state. `useTwoFactorSignin` is a
+    // shared composable (VueUse singleton), not a Pinia store, so the
+    // pn._s loop below doesn't touch it. Without this, a logout right
+    // after a successful TOTP verify leaves `twoFactorRequired = true`
+    // in the singleton, and the next render of /signin shows the TOTP
+    // form instead of the email/password form.
+    try {
+      await nuxtApp.runWithContext(() => {
+        useTwoFactorSignin().reset()
+      })
+    } catch {
+      // composable may not have been instantiated yet — safe to ignore
+    }
+
     // todo: update type in swagger.json
     if (!skipRedirect && (signoutRes as any)?.redirect_url) {
       location.href = (signoutRes as any).redirect_url

@@ -117,6 +117,12 @@ export const useTwoFactorSignin = createSharedComposable(() => {
         window.localStorage.setItem('continueAfterSignIn', response.data.extra.continueAfterSignIn)
       }
       $e('a:signin:2fa-verified', { method: useBackupCode.value ? 'backup_code' : 'totp' })
+      // The challenge is done — clear the shared state so a later
+      // logout returning the user to /signin doesn't re-show the TOTP
+      // form from leftover flags. Keep `postVerifyRedirect` set so the
+      // caller can read it synchronously after this resolves; it gets
+      // cleared on full reset (signOut).
+      resetState({ keepRedirect: true })
       return true
     } catch (e: any) {
       twoFactorError.value = await extractSdkResponseErrorMsg(e)
@@ -125,6 +131,30 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     } finally {
       twoFactorLoading.value = false
     }
+  }
+
+  function resetState({ keepRedirect = false }: { keepRedirect?: boolean } = {}) {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(PENDING_TWO_FACTOR_TOKEN_KEY)
+    }
+    twoFactorRequired.value = false
+    twoFactorToken.value = ''
+    twoFactorCode.value = ''
+    twoFactorError.value = ''
+    twoFactorLoading.value = false
+    useBackupCode.value = false
+    twoFactorSource.value = null
+    if (!keepRedirect) {
+      postVerifyRedirect.value = undefined
+    }
+  }
+
+  /**
+   * Full reset, including `postVerifyRedirect`. Called from signOut so
+   * the singleton state doesn't carry over into the next sign-in.
+   */
+  function reset() {
+    resetState()
   }
 
   async function cancelTwoFactor() {
@@ -147,20 +177,7 @@ export const useTwoFactorSignin = createSharedComposable(() => {
       }
     }
 
-    if (typeof window !== 'undefined') {
-      // Drop any staged token so a hard reload of /signin after
-      // Cancel doesn't auto-rehydrate the prompt.
-      window.sessionStorage.removeItem(PENDING_TWO_FACTOR_TOKEN_KEY)
-    }
-
-    twoFactorRequired.value = false
-    twoFactorToken.value = ''
-    twoFactorCode.value = ''
-    twoFactorError.value = ''
-    twoFactorLoading.value = false
-    useBackupCode.value = false
-    postVerifyRedirect.value = undefined
-    twoFactorSource.value = null
+    resetState()
   }
 
   function toggleBackupCode() {
@@ -182,5 +199,6 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     verifyTwoFactor,
     cancelTwoFactor,
     toggleBackupCode,
+    reset,
   }
 })

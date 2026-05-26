@@ -9,7 +9,7 @@ const { $e } = useNuxtApp()
 
 const { blockMfa, showUpgradeToUseMfa, isEEFeatureBlocked } = useEeConfig()
 
-const { appInfo } = useGlobal()
+const { appInfo, signOut } = useGlobal()
 
 const { copy } = useCopy()
 
@@ -185,7 +185,17 @@ async function confirmSetup() {
   }
 }
 
-function closeSetupModal() {
+async function closeSetupModal() {
+  // If the user is closing the modal after seeing the backup codes,
+  // enrolment has succeeded — the BE rotated `token_version` to
+  // invalidate every existing session (mfa.service.verifySetup). The
+  // current FE still holds the now-stale token, and without an API
+  // call to surface the 401 the user can sit on /account forever
+  // until they navigate or refresh. Force the sign-out → /signin
+  // round trip so they immediately re-authenticate under the new
+  // 2FA-protected flow.
+  const justEnrolled = setupStep.value === 'backup'
+
   showSetupModal.value = false
   setupData.value = null
   setupCode.value = ''
@@ -193,6 +203,10 @@ function closeSetupModal() {
   setupError.value = ''
   setupStep.value = 'password'
   isLoading.value = false
+
+  if (justEnrolled) {
+    await signOut({ redirectToSignin: true })
+  }
 }
 
 async function confirmDisable() {

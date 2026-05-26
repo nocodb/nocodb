@@ -1314,6 +1314,14 @@ export class TableSyncService {
         linkedDestTableId: string;
       }[] = [];
 
+      // Share a single shadow table across LTARs that point at the same
+      // (linked table, picked view) pair. Without this, two LTARs from the
+      // main source to the same linked table create duplicate shadow
+      // mappings + duplicate dest tables holding the same data.
+      // Keyed by `${linkedTable.id}|${pickedViewId}` — different picked
+      // views need separate shadows (different filter / visibility set).
+      const shadowByLinkedKey = new Map<string, string>();
+
       for (const col of sourceTable.columns ?? []) {
         if (col.system || !col.title || !col.uidt) continue;
         if (SYSTEM_REMOTE_TITLES.has(col.title)) continue;
@@ -1436,6 +1444,20 @@ export class TableSyncService {
 
           if (!linkedTable) continue;
 
+          // Reuse an existing shadow if this (linkedTable, pickedView) pair
+          // is already known from a prior LTAR in this same createSync.
+          const shadowKey = `${linkedTable.id}|${resolvedView.id}`;
+          const existingShadowId = shadowByLinkedKey.get(shadowKey);
+          if (existingShadowId) {
+            pendingLinks.push({
+              sourceColumnTitle: col.title,
+              sourceColumnName:
+                col.column_name ?? sanitizeColumnName(col.title),
+              linkedDestTableId: existingShadowId,
+            });
+            continue;
+          }
+
           const pickedViewColumns = await View.getColumns(
             sourceCtx,
             resolvedView.id,
@@ -1508,6 +1530,8 @@ export class TableSyncService {
             dest_table_id: linkedDest.id,
             role: TableSyncMappingRole.LinkedShadow,
           });
+
+          shadowByLinkedKey.set(shadowKey, linkedDest.id);
 
           pendingLinks.push({
             sourceColumnTitle: col.title,

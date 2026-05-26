@@ -1,5 +1,9 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { MetaEventType } from 'nocodb-sdk';
+import {
+  MetaEventType,
+  TableSyncMappingRole,
+  UITypes as UITypesEnum,
+} from 'nocodb-sdk';
 import type { NcContext, UITypes } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
@@ -140,7 +144,11 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
   }
 
   /** Drop the dest col + (LTAR-only) junction + ref-counted shadow, plus
-   *  strip the title from `selected_fields` if specific-fields mode. */
+   *  strip the title from `selected_fields` if specific-fields mode.
+   *
+   *  Errors are not caught here — the per-mapping loop in `doWork` wraps
+   *  this call, logs failures, and moves on. The guards below are pure
+   *  control flow (idempotency + race avoidance), not error handling. */
   private async applyDelete(
     destContext: NcContext,
     sync: TableSync,
@@ -148,12 +156,41 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
     oldTitle: string | undefined,
   ): Promise<void> {
     const destModel = await Model.get(destContext, cm.dest_table_id);
-    if (!destModel) return;
+    if (!destModel) {
+      // Dest table already gone — drop the dangling mapping and stop.
+      await TableSyncColumnMapping.deleteById(destContext, cm.id);
+      return;
+    }
     await destModel.getColumns(destContext);
     const destCol = (destModel.columns ?? []).find(
       (c) => c.id === cm.dest_column_id,
     );
-    if (!destCol) return;
+    if (!destCol) {
+      // Dest col already removed (e.g. by the primary LTAR's cascade below).
+      // Drop the stale mapping so the next reconcile doesn't trip on it.
+      await TableSyncColumnMapping.deleteById(destContext, cm.id);
+      return;
+    }
+
+    // Deleting a source LTAR fires COLUMN_DELETED for the primary col AND
+    // its auto-generated reverse on the linked table. Each event triggers
+    // its own detached doWork, so both would otherwise race against shared
+    // dest entities (junction, index, shadow). The primary side owns the
+    // tear-down — its `columnDelete` cascade already drops the inverse LTAR
+    // (`columns.service.ts:4794`). For the reverse-side event (an LTAR col
+    // that lives on a shadow, not the main mirror) we just drop the mapping
+    // row and bail, so only one teardown ever runs.
+    const mainMapping = (sync.mappings ?? []).find(
+      (m) => m.role === TableSyncMappingRole.Main,
+    );
+    if (
+      destCol.uidt === UITypesEnum.LinkToAnotherRecord &&
+      mainMapping &&
+      mainMapping.dest_table_id !== cm.dest_table_id
+    ) {
+      await TableSyncColumnMapping.deleteById(destContext, cm.id);
+      return;
+    }
 
     await this.tableSyncService.removeSyncedField(
       destContext,

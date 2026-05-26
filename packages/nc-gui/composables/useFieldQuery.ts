@@ -101,7 +101,7 @@ export function useFieldQuery() {
 
     if (!params.getWhereQueryAs) return searchQuery ?? ''
 
-    const sqlUi = tableMeta?.source_id ? sqlUis.value[tableMeta.source_id] : Object.values(sqlUis.value)[0]
+    const sqlUi = (tableMeta?.source_id && sqlUis.value[tableMeta.source_id]) || Object.values(sqlUis.value)[0]
 
     if (
       (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&

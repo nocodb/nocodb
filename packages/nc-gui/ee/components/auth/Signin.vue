@@ -103,10 +103,26 @@ async function verifyTwoFactor() {
     // Cognito callback stashes `window.location` before redirecting
     // here). Falls back to dashboard root for the email/password path
     // which doesn't currently set one.
+    //
+    // Defense-in-depth: the redirect is FE-sourced (window.location at
+    // sign-in entry) and only echoed through a server-signed JWT, so a
+    // remote attacker can't inject an arbitrary URL today. Still — this
+    // is the only client-side gate before navigation, and historically
+    // browsers have normalised forms like `/\evil.com` as protocol-
+    // relative URLs after parsing. Cheap to harden: require relative
+    // path, reject backslash-prefixed, and re-parse through URL with
+    // same-origin enforcement before navigating.
     const redirect = postVerifyRedirect.value
-    if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-      await navigateTo(redirect)
-      return
+    if (redirect && redirect.startsWith('/') && !redirect.startsWith('//') && !redirect.startsWith('/\\')) {
+      try {
+        const url = new URL(redirect, window.location.origin)
+        if (url.origin === window.location.origin) {
+          await navigateTo(url.pathname + url.search + url.hash)
+          return
+        }
+      } catch {
+        // Malformed redirect — fall through to dashboard.
+      }
     }
 
     await navigateTo({

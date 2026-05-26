@@ -39,13 +39,7 @@ const setupData = ref<{ secret: string; qrUrl: string; backupCodes: string[] } |
 const setupCode = ref('')
 const setupError = ref('')
 const setupPassword = ref('')
-// `loading` is used by the SSO path (no local password) — there's no
-// password step to render, so the modal shows a spinner while the
-// initial `/setup` call is in flight. `ssoSetupError` is the terminal
-// state for SSO callers whose `/setup` call failed: render the error
-// message + Close affordance, but never fall back to the password
-// input (which they can't fill out).
-const setupStep = ref<'password' | 'loading' | 'qr' | 'verify' | 'backup' | 'ssoSetupError'>('password')
+const setupStep = ref<'password' | 'qr' | 'verify' | 'backup'>('password')
 const setupCodeInput = ref<HTMLInputElement>()
 const setupPasswordInput = ref<HTMLInputElement>()
 
@@ -91,25 +85,15 @@ async function fetchStatus() {
 // today is only `federated`.
 const canSetup2fa = computed(() => mfaEligible.value && (hasPassword.value || appInfo.value?.isCloud))
 
-// Skip the password reproof step only when there is genuinely no
-// password to verify — i.e. SSO accounts on platforms where email
-// password sign-in is also disabled, AND the user isn't a Cognito-
-// native account on Cloud (those CAN be reproved via InitiateAuth).
-//
-// Cognito-native users on Cloud have `hasPassword=false` (no local
-// bcrypt hash) but ARE re-provable, so we need the password step for
-// them. Federated users never reach this computed — `canSetup2fa` is
-// already false above.
-const skipPasswordReproof = computed(() => {
-  if (hasPassword.value) return false
-  // No local password. On Cloud the no-local-password user is Cognito —
-  // we have a way to reprove them (native) OR they're federated and
-  // can't enrol at all. Either way, render the password step.
-  if (appInfo.value?.isCloud) return false
-  // On-prem SSO with no local password — fall back to "session JWT is
-  // the proof" behaviour from before this PR.
-  return !!appInfo.value?.disableEmailAuth
-})
+// Note: this component intentionally does NOT branch the reproof flow
+// based on identity source. After mfa.service.setup was tightened to
+// reject every reachable path that doesn't carry a password (Cognito
+// native InitiateAuth, local bcrypt, or 403), the FE-side matrix
+// became redundant — every `canSetup2fa` user goes through the
+// password step, and the BE picks bcrypt vs InitiateAuth from
+// `req.user.extra` + `user.password`. Keeping the FE oblivious to
+// the matrix means we only have to evolve one side when the rules
+// change.
 
 // Tooltip copy shown over the disabled toggle for ineligible users.
 // Tailored per reason — federated names the IdP, SSO points the user
@@ -143,22 +127,12 @@ function startSetup() {
   setupPassword.value = ''
   setupError.value = ''
   showSetupModal.value = true
-
-  if (skipPasswordReproof.value) {
-    // SSO accounts without a local password — show a loading state
-    // while the initial /setup call runs (BE accepts an empty password
-    // for these). The QR step renders only after the response lands.
-    setupStep.value = 'loading'
-    confirmPassword()
-    return
-  }
-
   setupStep.value = 'password'
   nextTick(() => setupPasswordInput.value?.focus())
 }
 
 async function confirmPassword() {
-  if (!skipPasswordReproof.value && !setupPassword.value) return
+  if (!setupPassword.value) return
 
   isLoading.value = true
   setupError.value = ''
@@ -171,11 +145,6 @@ async function confirmPassword() {
     setupStep.value = 'qr'
   } catch (e: any) {
     setupError.value = await extractSdkResponseErrorMsg(e)
-    if (skipPasswordReproof.value) {
-      // SSO callers have no password input to fall back to — land on a
-      // dedicated error step that only shows the message + Close.
-      setupStep.value = 'ssoSetupError'
-    }
   } finally {
     isLoading.value = false
   }
@@ -227,18 +196,20 @@ async function closeSetupModal() {
 }
 
 async function confirmDisable() {
-  // Same reproof matrix as setup: require a password whenever the BE
-  // expects one (local password OR Cognito-native on Cloud). Federated
-  // / SSO sessions can't be re-proved here — the BE rejects with 403
-  // and we surface the error message inline.
-  if (!skipPasswordReproof.value && !disablePassword.value) return
+  // Always send the password — BE picks bcrypt vs Cognito InitiateAuth
+  // from the session context. Federated / SSO sessions get rejected by
+  // the BE with 403 before this codepath even renders (the Disable
+  // button is hidden for ineligible users); but we keep the password
+  // requirement here so the BE/FE stay consistent if eligibility ever
+  // expands.
+  if (!disablePassword.value) return
 
   isLoading.value = true
   disableError.value = ''
 
   try {
     await api.instance.post('/api/v2/auth/mfa/disable', {
-      ...(skipPasswordReproof.value ? {} : { password: disablePassword.value }),
+      password: disablePassword.value,
     })
     showDisableModal.value = false
     disablePassword.value = ''
@@ -495,37 +466,13 @@ onMounted(async () => {
       </template>
       <template #content>
         <span v-if="setupStep === 'password'">{{ $t('labels.confirmPasswordToSetup') }}</span>
-        <span v-else-if="setupStep === 'loading'">{{ $t('labels.preparingTwoFactor') }}</span>
         <span v-else-if="setupStep === 'qr'">{{ $t('labels.scanQrCodeDescription') }}</span>
         <span v-else-if="setupStep === 'verify'">{{ $t('labels.enterCodeFromApp') }}</span>
         <span v-else-if="setupStep === 'backup'">{{ $t('labels.saveBackupCodes') }}</span>
       </template>
       <template #extraContent>
-        <!-- SSO loading state — no password step to render while the
-             initial /setup call is in flight. -->
-        <div
-          v-if="setupStep === 'loading'"
-          class="flex flex-col items-center justify-center gap-3 py-8"
-          data-testid="nc-2fa-setup-loading"
-        >
-          <GeneralLoader size="large" />
-          <div class="text-sm text-nc-content-gray-subtle">{{ $t('labels.preparingTwoFactor') }}</div>
-        </div>
-
-        <!-- SSO terminal-error state — the /setup call failed and the
-             caller has no password to retry with. Show the error + a
-             Close affordance only. -->
-        <div v-else-if="setupStep === 'ssoSetupError'" class="flex flex-col gap-4" data-testid="nc-2fa-setup-sso-error">
-          <div class="text-sm text-red-500">{{ setupError || $t('msg.error.somethingWentWrong') }}</div>
-          <div class="flex flex-row justify-end">
-            <NcButton type="secondary" size="small" @click="closeSetupModal">
-              {{ $t('general.close') }}
-            </NcButton>
-          </div>
-        </div>
-
         <!-- Step 0: Password confirmation -->
-        <div v-else-if="setupStep === 'password'" class="flex flex-col gap-5">
+        <div v-if="setupStep === 'password'" class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <span class="text-sm">{{ $t('labels.password') }}</span>
             <a-input-password
@@ -660,7 +607,7 @@ onMounted(async () => {
       :title="$t('labels.disableTwoFactor')"
       :show-icon="false"
       :ok-text="$t('labels.disableTwoFactor')"
-      :ok-props="{ type: 'danger', loading: isLoading, disabled: !skipPasswordReproof && !disablePassword }"
+      :ok-props="{ type: 'danger', loading: isLoading, disabled: !disablePassword }"
       @cancel="
         () => {
           disablePassword = ''
@@ -678,7 +625,7 @@ onMounted(async () => {
           </template>
         </NcAlert>
 
-        <div v-if="!skipPasswordReproof" class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
           <div class="text-sm">{{ $t('msg.enterPassword') }}</div>
           <a-input-password
             ref="disablePasswordInput"
@@ -689,7 +636,6 @@ onMounted(async () => {
           />
           <div v-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
         </div>
-        <div v-else-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
       </template>
     </NcModalConfirm>
 

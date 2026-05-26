@@ -695,7 +695,7 @@ export class TableSyncProcessor {
                 }
 
                 const toCheck = Array.from(referenced).filter(
-                  (id) => !knownPresent!.has(id),
+                  (id) => !knownPresent.has(id),
                 );
                 if (!toCheck.length) continue;
 
@@ -790,7 +790,7 @@ export class TableSyncProcessor {
                 }
 
                 const missingIds = toCheck.filter(
-                  (id) => !knownPresent!.has(id),
+                  (id) => !knownPresent.has(id),
                 );
                 if (!missingIds.length) continue;
 

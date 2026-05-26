@@ -119,22 +119,26 @@ export class TableSyncService {
       !!mainMappingBefore &&
       patch.source_view_id !== mainMappingBefore.source_view_id;
 
-    if (sourceViewChanged) {
+    if (sourceViewChanged && mainMappingBefore) {
       // Re-bind the sync to a different source view. The new view must
       // live on the same source table (the dest schema is structurally
       // bound — swapping tables would orphan every column), be a Grid
       // view with `allow_sync = true` and a non-null `uuid`, and supply
       // the share password if paste-mode and the view is protected.
+      //
+      // Combining the `mainMappingBefore` truthy check into the `if` (vs.
+      // relying on `sourceViewChanged`'s internal `!!mainMappingBefore`)
+      // lets TS narrow it through the whole block — no `!` assertions.
       const newSourceViewId = patch.source_view_id!;
       const sourceCtx: NcContext = {
-        workspace_id: mainMappingBefore!.source_workspace_id,
-        base_id: mainMappingBefore!.source_base_id,
+        workspace_id: mainMappingBefore.source_workspace_id,
+        base_id: mainMappingBefore.source_base_id,
       };
       const newView = await View.get(sourceCtx, newSourceViewId);
       if (!newView) {
         NcError.get(sourceCtx).viewNotFound(newSourceViewId);
       }
-      if (newView.fk_model_id !== mainMappingBefore!.source_table_id) {
+      if (newView.fk_model_id !== mainMappingBefore.source_table_id) {
         NcError.get(sourceCtx).invalidRequestBody(
           'New source view must live on the same source table as the existing sync',
         );
@@ -172,7 +176,7 @@ export class TableSyncService {
         }
       }
 
-      await TableSyncMapping.update(context, mainMappingBefore!.id, {
+      await TableSyncMapping.update(context, mainMappingBefore.id, {
         source_view_id: newView.id,
         source_uuid: newView.uuid,
         source_password_hash: newView.password ?? null,
@@ -903,12 +907,16 @@ export class TableSyncService {
           type?: string;
         }
       | undefined;
-    const isCustomMM =
-      destCol.uidt === UITypes.LinkToAnotherRecord && !!colOpts?.fk_mm_model_id;
 
-    if (isCustomMM) {
-      const junctionId = colOpts!.fk_mm_model_id!;
-      const shadowId = colOpts!.fk_related_model_id;
+    // Inline the M2M LTAR check directly into the `if` so TS narrows
+    // `colOpts` and `colOpts.fk_mm_model_id` to non-null inside the
+    // block — no `!` assertions on access.
+    if (
+      destCol.uidt === UITypes.LinkToAnotherRecord &&
+      colOpts?.fk_mm_model_id
+    ) {
+      const junctionId = colOpts.fk_mm_model_id;
+      const shadowId = colOpts.fk_related_model_id;
 
       await this.columnsService.columnDelete(
         { ...context, socket_id: null },

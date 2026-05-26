@@ -26,6 +26,7 @@ export class MetaDependencyEventHandler {
     FILTER_UPDATED: [],
     FILTER_DELETED: [],
     VIEW_UPDATED: [],
+    VIEW_DELETED: [],
     TABLE_DELETED: [],
   };
 

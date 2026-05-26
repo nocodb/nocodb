@@ -663,6 +663,15 @@ export class ViewsService {
       });
     }
 
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.VIEW_DELETED,
+        oldEntity: view,
+      },
+      ncMeta,
+    );
+
     NocoSocket.broadcastEvent(
       context,
       {

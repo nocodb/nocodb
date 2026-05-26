@@ -33,23 +33,26 @@ import Noco from '~/Noco';
 export class ViewChangeTableSyncHandler implements MetaEventHandler {
   private logger = new Logger(ViewChangeTableSyncHandler.name);
 
-  triggerMetaEvents: MetaEventType[] = [MetaEventType.VIEW_UPDATED];
+  triggerMetaEvents: MetaEventType[] = [
+    MetaEventType.VIEW_UPDATED,
+    MetaEventType.VIEW_DELETED,
+  ];
 
   async getAffectedDependency(
     context: NcContext,
     param: MetaDependencyEventRequest,
     ncMeta = Noco.ncMeta,
   ): Promise<AffectedDependencyResult | undefined> {
-    const newView = param.newEntity as ViewType | undefined;
-    if (!newView?.id) return undefined;
+    const view = (param.newEntity ?? param.oldEntity) as ViewType | undefined;
+    if (!view?.id) return undefined;
     const mappings = await TableSyncMapping.listBySourceView(
       context.workspace_id,
       context.base_id,
-      newView.id,
+      view.id,
       ncMeta,
     );
     if (!mappings.length) return undefined;
-    return { views: [newView] };
+    return { views: [view] };
   }
 
   async handle(
@@ -70,7 +73,8 @@ export class ViewChangeTableSyncHandler implements MetaEventHandler {
     context: NcContext,
     param: MetaDependencyEventRequest,
   ): Promise<void> {
-    const view = param.newEntity as ViewType;
+    const isDelete = param.eventType === MetaEventType.VIEW_DELETED;
+    const view = (param.newEntity ?? param.oldEntity) as ViewType;
     if (!view?.id) return;
 
     const mappings = await TableSyncMapping.listBySourceView(
@@ -80,8 +84,8 @@ export class ViewChangeTableSyncHandler implements MetaEventHandler {
     );
     if (!mappings.length) return;
 
-    const liveView = await View.get(context, view.id);
-    if (!liveView) return;
+    const liveView = isDelete ? null : await View.get(context, view.id);
+    if (!isDelete && !liveView) return;
 
     const seen = new Set<string>();
     for (const mapping of mappings) {
@@ -89,20 +93,27 @@ export class ViewChangeTableSyncHandler implements MetaEventHandler {
       seen.add(mapping.fk_table_sync_id);
 
       let reason: string | null = null;
-      if (!liveView.allow_sync) {
+      if (isDelete) {
         reason = `Source view "${
-          liveView.title || liveView.id
-        }" had "Allow sync" disabled`;
-      } else if (!liveView.uuid) {
-        reason = `Source view "${
-          liveView.title || liveView.id
-        }" is no longer publicly shared`;
-      } else if (
-        (liveView.password ?? null) !== (mapping.source_password_hash ?? null)
-      ) {
-        reason = `Source view "${
-          liveView.title || liveView.id
-        }" share password has changed`;
+          view.title || view.id
+        }" was deleted`;
+      } else if (liveView) {
+        if (!liveView.allow_sync) {
+          reason = `Source view "${
+            liveView.title || liveView.id
+          }" had "Allow sync" disabled`;
+        } else if (!liveView.uuid) {
+          reason = `Source view "${
+            liveView.title || liveView.id
+          }" is no longer publicly shared`;
+        } else if (
+          (liveView.password ?? null) !==
+          (mapping.source_password_hash ?? null)
+        ) {
+          reason = `Source view "${
+            liveView.title || liveView.id
+          }" share password has changed`;
+        }
       }
       if (!reason) continue;
 

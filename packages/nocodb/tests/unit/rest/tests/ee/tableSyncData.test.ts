@@ -17,6 +17,7 @@ import { createColumn, createLtarColumn2 } from '~test/factory/column';
 import { createRow, listRow } from '~test/factory/row';
 import {
   tableSyncCreate,
+  tableSyncUpdate,
   waitForSyncSettled,
 } from '~test/factory/tableSync';
 import { internalPost } from '~test/factory/internal';
@@ -626,6 +627,106 @@ function tableSyncDataTests() {
           junctionRows,
           'junction should hold one row per linked Order',
         ).to.have.lengthOf(2);
+      });
+
+      /**
+       * Regression: adding an LTAR with a picked view via `updateSync` (not at
+       * create time) goes through `reconcileFields` → `addSyncedField`. Before
+       * the fix, `reconcileFields` walked the STALE `oldSync.mappings` to
+       * write column-mappings, so the new LinkedShadow mapping inserted
+       * inside `addSyncedField` was skipped and its dest cols got zero
+       * column-mapping rows. The processor's `buildColumnPlan` then produced
+       * empty `forwardFields`, and the shadow rows landed with only
+       * system fields populated.
+       *
+       * This test asserts (a) the LinkedShadow's column-mappings DO get
+       * written when an LTAR is added via update, and (b) the resulting
+       * shadow rows carry real data (PV value), not just system fields.
+       */
+      it('writes column-mappings for the shadow when an LTAR is added via updateSync', async () => {
+        await setupLtar();
+
+        const ordersView = await createView(context, {
+          title: 'OrdersFeed',
+          table: ordersTable,
+          type: ViewTypes.GRID,
+        });
+        await enableAllowSync(ordersView.id, sourceBase.id);
+
+        const customer = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const o1 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 0,
+        });
+        const o2 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 1,
+        });
+        await v3LinkAdd(sourceTable, await ltarColumnId(), customer.Id, [
+          o1.Id,
+          o2.Id,
+        ]);
+
+        // 1) Create sync WITHOUT the shadow path — LTAR is excluded from
+        //    selected_fields, so no LinkedShadow / Junction mapping yet.
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'LtarAddedViaUpdate',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          selected_fields: ['Title'],
+        }).expect(200);
+
+        const initial = await waitForSyncSettled(destEnv, created.body.id);
+        const initialShadows = (initial.mappings ?? []).filter(
+          (m: any) => m.role === 'linked_shadow',
+        );
+        expect(
+          initialShadows,
+          'no shadow mapping at create time',
+        ).to.have.lengthOf(0);
+
+        // 2) Update the sync to include the LTAR + pick the Orders view.
+        //    This is the path that hits `reconcileFields` → `addSyncedField`
+        //    which inserts a new LinkedShadow mapping.
+        await tableSyncUpdate(context, destEnv, created.body.id, {
+          selected_fields: ['Title', ltarColumnTitle],
+          link_view_by_column: { [ltarColumnTitle]: ordersView.id },
+        }).expect(200);
+
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+
+        // (a) LinkedShadow mapping should now exist.
+        const linkedShadows = (settled.mappings ?? []).filter(
+          (m: any) => m.role === 'linked_shadow',
+        );
+        expect(
+          linkedShadows,
+          'shadow mapping should be created by updateSync',
+        ).to.have.lengthOf(1);
+        const shadowMapping = linkedShadows[0];
+
+        // (b) The bug: shadow rows must carry the source PV, not just
+        //     system fields. If `writeColumnMappingsForTableMapping` skipped
+        //     the new mapping, `forwardFields` would be empty and Title
+        //     would be undefined on each row.
+        const destShadow = await loadDestModel(shadowMapping.dest_table_id);
+        const shadowRows = await destRows(destShadow);
+        expect(shadowRows, 'shadow rows should be populated').to.have.lengthOf(
+          2,
+        );
+        const titles = shadowRows.map((r) => r.Title).sort();
+        expect(
+          titles,
+          'each shadow row should carry the source Title (not just system fields)',
+        ).to.deep.eq(['test-0', 'test-1']);
       });
     });
   });

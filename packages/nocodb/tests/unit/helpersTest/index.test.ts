@@ -19,6 +19,7 @@ let patResourceFilterTest = () => {};
 let dynamicFieldFilterTests = () => {};
 let onPremPlanResolutionTests = () => {};
 let modelStatTests = () => {};
+let tableSyncHelpersTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
@@ -36,6 +37,8 @@ if (process.env.EE === 'true') {
   onPremPlanResolutionTests =
     require('./ee/onPremPlanResolution.test').onPremPlanResolutionTests;
   modelStatTests = require('./ee/modelStat.test').modelStatTests;
+  tableSyncHelpersTests =
+    require('./ee/tableSyncHelpers.test').tableSyncHelpersTests;
 }
 
 function _helperTests() {
@@ -43,6 +46,7 @@ function _helperTests() {
   NcConcurrentTest();
   attachmentHelpersTest();
   emailUtilsTest();
+  tableSyncHelpersTests();
   jobsProcessorTest();
   dateTimeFilterHandlerTest();
   describeRowErrorTests();

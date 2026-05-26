@@ -4342,6 +4342,18 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.COLUMN_ADDED,
+        newEntity: newColumn ?? {
+          ...param.column,
+          fk_model_id: table.id,
+        },
+      },
+      ncMeta,
+    );
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -6415,6 +6427,11 @@ export class ColumnsService implements IColumnsService {
         columns: await refTable.getCachedColumns(context),
       });
 
+      await this.metaDependencyEventHandler.handleEvent(refContext, {
+        eventType: MetaEventType.COLUMN_ADDED,
+        newEntity: parentRelCol,
+      });
+
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: table,
         column: savedColumn,
@@ -6422,6 +6439,11 @@ export class ColumnsService implements IColumnsService {
         req: param.req,
         context,
         columns: await table.getCachedColumns(context),
+      });
+
+      await this.metaDependencyEventHandler.handleEvent(context, {
+        eventType: MetaEventType.COLUMN_ADDED,
+        newEntity: savedColumn,
       });
 
       // todo: create index for virtual relations as well

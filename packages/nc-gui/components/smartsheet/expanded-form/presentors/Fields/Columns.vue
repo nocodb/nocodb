@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import { fieldMatchesSearch, isBlankFieldValue } from './searchUtils'
 
 const props = defineProps<{
@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const isLoading = toRef(props, 'isLoading')
 
-const { loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const { isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
@@ -31,7 +31,16 @@ const isSearching = computed(() => normalizedSearch.value.length > 0)
 
 const isFiltering = computed(() => isSearching.value || !!props.hideBlankFields)
 
-const passesActiveFilters = (col: ColumnType) => {
+// Mirror ColumnList.showCol's baseVisible gate so counts stay in sync with what
+// actually renders. The hidden list uses `isFormula` as its showColCallback in
+// the template below — pass the same callback here so visibleHiddenFieldsCount
+// can't drift from the rendered count.
+const passesBaseVisible = (col: ColumnType, showColCallback?: (col: ColumnType) => boolean) => {
+  return !!(showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col))
+}
+
+const passesActiveFilters = (col: ColumnType, showColCallback?: (col: ColumnType) => boolean) => {
+  if (!passesBaseVisible(col, showColCallback)) return false
   if (!fieldMatchesSearch(col, normalizedSearch.value, _row.value?.row)) return false
   if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title])) return false
   return true
@@ -39,17 +48,26 @@ const passesActiveFilters = (col: ColumnType) => {
 
 const visibleHiddenFieldsCount = computed(() => {
   if (!isFiltering.value) return props.hiddenFields.length
-  return props.hiddenFields.filter(passesActiveFilters).length
+  return props.hiddenFields.filter((col) => passesActiveFilters(col, isFormula)).length
 })
 
 const visibleFieldsCount = computed(() => {
   if (!isFiltering.value) return props.fields.length
-  return props.fields.filter(passesActiveFilters).length
+  return props.fields.filter((col) => passesActiveFilters(col)).length
 })
 
 const showEmptyState = computed(() => isFiltering.value && visibleFieldsCount.value === 0 && visibleHiddenFieldsCount.value === 0)
 
 const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields.value)
+
+// While filtering, hide the hidden-fields section entirely if nothing in it
+// matches — a "0 hidden fields" pill carries no useful signal.
+const showHiddenFieldsSection = computed(() => {
+  if (props.hiddenFields.length === 0) return false
+  if (showEmptyState.value) return false
+  if (isFiltering.value && visibleHiddenFieldsCount.value === 0) return false
+  return true
+})
 </script>
 
 <template>
@@ -66,7 +84,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
       :hide-blank-fields="hideBlankFields"
       :compact-mode="compactMode"
     />
-    <div v-if="hiddenFields.length > 0 && !showEmptyState" class="flex w-full <lg:(px-1) items-center py-6">
+    <div v-if="showHiddenFieldsSection" class="flex w-full <lg:(px-1) items-center py-6">
       <div class="flex-grow h-px mr-1 bg-nc-bg-gray-light" />
       <NcButton
         :size="isMobileMode ? 'medium' : 'small'"
@@ -92,7 +110,7 @@ const effectiveShowHidden = computed(() => isFiltering.value || showHiddenFields
       <div class="flex-grow h-px ml-1 bg-nc-bg-gray-light" />
     </div>
     <SmartsheetExpandedFormPresentorsFieldsColumnList
-      v-if="hiddenFields.length > 0 && effectiveShowHidden && !showEmptyState"
+      v-if="showHiddenFieldsSection && effectiveShowHidden"
       :fields="hiddenFields"
       is-hidden-col
       :force-vertical-mode="forceVerticalMode"

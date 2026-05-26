@@ -196,7 +196,7 @@ export class MfaService {
       // to populate the tag rather than fall through to the legacy
       // session-JWT-as-proof branch.
       NcError.forbidden(
-        'Two-factor authentication is only available for accounts that sign in with email and password. Please sign out and sign in again to refresh your session.',
+        'To set up two-factor authentication, sign out and sign in with email and password.',
       );
     } else if (!user.password) {
       // Belt-and-braces guard. By this point we've ruled out:
@@ -331,7 +331,7 @@ export class MfaService {
     } else if (session.isLegacyCloudSession) {
       // Same reasoning as `setup` — can't classify, force re-sign-in.
       NcError.forbidden(
-        'Two-factor authentication is only available for accounts that sign in with email and password. Please sign out and sign in again to refresh your session.',
+        'To set up two-factor authentication, sign out and sign in with email and password.',
       );
     } else if (isCloud) {
       // Belt-and-braces: on Cloud, every active session post-this-PR

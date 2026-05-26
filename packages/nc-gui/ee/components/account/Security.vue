@@ -31,6 +31,9 @@ const isLoading = ref(false)
 //                         sign out + back in to refresh the tag.
 const mfaEligible = ref(true)
 const ineligibleReason = ref<'sso' | 'federated' | 'legacy_session' | null>(null)
+// Provider name (e.g. 'Google') surfaced by `/mfa/status` for the
+// federated case so the tooltip can name the IdP the user is signed in
+// with. Falls back to the generic "identity provider" copy when absent.
 const federationProvider = ref<string | null>(null)
 
 // Setup wizard state
@@ -95,10 +98,9 @@ const canSetup2fa = computed(() => mfaEligible.value && (hasPassword.value || ap
 // the matrix means we only have to evolve one side when the rules
 // change.
 
-// Tooltip copy shown over the disabled toggle for ineligible users.
-// Tailored per reason — federated names the IdP, SSO points the user
-// at their workspace's identity provider, legacy_session asks the user
-// to re-sign-in to pick up the per-session identity tag.
+// Tooltip copy for ineligible-toggle users. Each variant names the
+// auth method the user is currently signed in with, then gives one
+// uniform directive: sign in with email and password to set up 2FA.
 const ineligibleTooltip = computed(() => {
   if (mfaEligible.value) return ''
   if (ineligibleReason.value === 'federated') {
@@ -106,12 +108,8 @@ const ineligibleTooltip = computed(() => {
       ? t('labels.twoFactorFederatedNotAvailable', { provider: federationProvider.value })
       : t('labels.twoFactorFederatedNotAvailableGeneric')
   }
-  if (ineligibleReason.value === 'sso') {
-    return t('labels.twoFactorSsoSessionNotAvailable')
-  }
-  if (ineligibleReason.value === 'legacy_session') {
-    return t('labels.twoFactorLegacySession')
-  }
+  if (ineligibleReason.value === 'sso') return t('labels.twoFactorSsoSessionNotAvailable')
+  if (ineligibleReason.value === 'legacy_session') return t('labels.twoFactorLegacySession')
   return t('labels.twoFactorSsoNotAvailable')
 })
 

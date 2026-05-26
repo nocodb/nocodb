@@ -25,10 +25,8 @@ import { isCloud } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { randomTokenString } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {
-  decryptPropIfRequired,
-  encryptPropIfRequired,
-} from '~/utils/encryptDecrypt';
+import CryptoJS from 'crypto-js';
+import { getCredentialEncryptSecret } from '~/utils/encryptDecrypt';
 
 export function normalizeCode(code: string): string {
   return code.replace(/[-\s]/g, '').toLowerCase();
@@ -617,25 +615,42 @@ export class MfaService {
     return hashes;
   }
 
+  /**
+   * Encrypt the base32 TOTP secret for at-rest storage.
+   *
+   * Uses CryptoJS AES directly rather than the shared
+   * encryptPropIfRequired / decryptPropIfRequired helpers — those
+   * helpers JSON.stringify objects on encrypt and JSON.parse strings on
+   * decrypt, designed for the integration-config object pipeline. A
+   * raw base32 string would be encrypted as-is (no JSON.stringify
+   * because it's already a string) and then the decrypt side would
+   * choke on `JSON.parse("JBSWY3DPEHPK3PXP")` → SyntaxError → outer
+   * catch returns the ciphertext → otplib fails → "Invalid
+   * verification code". This silently broke 2FA on every environment
+   * where NC_CONNECTION_ENCRYPT_KEY was set.
+   */
   private encryptSecret(secret: string): string {
-    const wrapper = { secret };
-    const encrypted = encryptPropIfRequired({
-      data: wrapper,
-      prop: 'secret',
-    });
-    return encrypted ?? secret;
+    const key = getCredentialEncryptSecret();
+    if (!key) return secret;
+    return CryptoJS.AES.encrypt(secret, key).toString();
   }
 
   private decryptSecret(encrypted: string): string {
+    const key = getCredentialEncryptSecret();
+    if (!key) return encrypted;
+
+    // CryptoJS emits ciphertexts that base64-decode to the literal
+    // "Salted__" marker — encoded that's the prefix `U2FsdGVkX1`.
+    // Anything else is treated as legacy plaintext (pre-encryption
+    // data, or env minted before the key was set).
+    if (!encrypted.startsWith('U2FsdGVkX1')) return encrypted;
+
     try {
-      const wrapper = { secret: encrypted };
-      const decrypted = decryptPropIfRequired({
-        data: wrapper,
-        prop: 'secret',
-      });
-      return typeof decrypted === 'string' ? decrypted : encrypted;
+      const decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(
+        CryptoJS.enc.Utf8,
+      );
+      return decrypted || encrypted;
     } catch {
-      // Fallback: value is likely plaintext (pre-encryption data)
       return encrypted;
     }
   }

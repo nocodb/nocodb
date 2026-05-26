@@ -152,6 +152,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           return callback(null, {
             ...sanitiseUserObj(user),
             provider: 'cognito',
+            extra: this.cognitoIdentityExtra(identity),
           });
         }
 
@@ -173,6 +174,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           return callback(null, {
             ...sanitiseUserObj(newUser),
             provider: 'cognito',
+            extra: this.cognitoIdentityExtra(identity),
           });
         } catch (err) {
           this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
@@ -269,6 +271,31 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
     } catch (err) {
       return callback(err instanceof Error ? err : new Error(String(err)));
     }
+  }
+
+  /**
+   * Build the per-session `extra` payload that rides along on the
+   * sign-in's JWT — and, crucially, on `userRefreshToken.meta`, so
+   * refresh-token-based JWT regen carries the same identity flavour
+   * forward (`services/users/users.service.setRefreshToken` persists
+   * `req.user?.extra` into the refresh-token row's meta).
+   *
+   * This is the *per-session* signal that `mfa.service` reads.
+   * `user.meta.cognito_identity_type` (written by
+   * `persistCognitoIdentityTag` below) reflects the *latest* Cognito
+   * sign-in across all sessions / browsers / devices and can therefore
+   * be wrong for any given session in a multi-device scenario.
+   */
+  private cognitoIdentityExtra(identity: {
+    type: 'native' | 'federated';
+    provider?: string;
+  }): Record<string, any> {
+    return {
+      cognito_identity_type: identity.type,
+      ...(identity.type === 'federated' && identity.provider
+        ? { cognito_federation_provider: identity.provider }
+        : {}),
+    };
   }
 
   /**

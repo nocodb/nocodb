@@ -49,15 +49,21 @@ export function generateTwoFactorToken(
     secret?: string;
     redirect?: string;
     extra?: Record<string, any>;
+    userExtra?: Record<string, any>;
   },
 ): string {
   const jwtSecret = opts?.secret ?? Noco.getConfig().auth.jwt.secret;
-  // Carry an optional `redirect` (the URL the user was originally going
-  // to) and an `extra` blob (sign-in-flow specific payload — e.g.
-  // `continueAfterSignIn` set by the OpenID/Cognito strategies) inside
-  // the token so the post-verify response can hand them back to the FE
-  // without keeping any server-side session state. Sign-only, no
-  // encryption — both fields must be treated as untrusted on the FE.
+  // `redirect` and `extra` carry post-verify hand-back state for the FE
+  // (e.g. `continueAfterSignIn` from the OIDC state replay).
+  // `userExtra` carries the per-session identity payload the sign-in
+  // strategy stamped on `req.user.extra` — `cognito_identity_type`
+  // etc. — so the post-verify controller can re-attach it to the
+  // refresh-token meta and the final JWT. Without this, the
+  // multi-device per-session signal we just wired up would be lost
+  // for 2FA-enabled Cognito accounts.
+  //
+  // Sign-only, no encryption. None of these fields should be treated
+  // as trusted on the FE.
   return jwt.sign(
     {
       id: user.id,
@@ -65,6 +71,7 @@ export function generateTwoFactorToken(
       purpose: 'mfa',
       ...(opts?.redirect ? { redirect: opts.redirect } : {}),
       ...(opts?.extra ? { extra: opts.extra } : {}),
+      ...(opts?.userExtra ? { userExtra: opts.userExtra } : {}),
     },
     jwtSecret,
     { expiresIn: '5m' },
@@ -153,11 +160,13 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is already enabled');
     }
 
-    // Identity re-proof. Branches on whether the account is local-password,
-    // Cognito-native, or Cognito-federated. The `cognito_identity_type` tag
-    // on `user.meta` is written by the Cognito strategy on every sign-in
-    // (see CognitoStrategy.persistCognitoIdentityTag).
-    const cognitoIdentity = this.getCognitoIdentity(user);
+    // Per-session sign-in classification. All reads come from
+    // `req.user.extra`, which is populated by JwtStrategy from the JWT
+    // payload — itself set by the sign-in strategy and carried across
+    // refresh-token regeneration via `userRefreshToken.meta`. This is
+    // intentionally NOT `user.meta` (which reflects the *last* Cognito
+    // sign-in across all sessions and would be wrong on multi-device).
+    const session = this.getSessionIdentity(req, user);
 
     if (user.password) {
       // Local password account — bcrypt re-confirm.
@@ -165,24 +174,20 @@ export class MfaService {
       if (!valid) {
         NcError.badRequest('Incorrect password');
       }
-    } else if (
-      cognitoIdentity?.type === 'federated' &&
-      !cognitoIdentity.hasNativeAccount
-    ) {
-      // Federated-only user (Google / SAML / etc.) with no email/password
-      // identity in Cognito on the same email. We can't password-verify
-      // against Cognito for them — the password lives at their IdP.
-      // Point them at their IdP; the FE card shows a disabled toggle + tooltip.
+    } else if (session.isSso) {
+      // SAML / OIDC sign-in. IdP owns this user's MFA posture.
+      NcError.forbidden(
+        'Two-factor authentication for SSO sign-in accounts must be configured at your identity provider.',
+      );
+    } else if (session.cognitoType === 'federated') {
+      // Cognito federated (Google etc.). Same reasoning — IdP owns MFA.
+      // Dual-identity users (federated + native on same email) must
+      // switch to the email/password sign-in to enrol.
       NcError.forbidden(
         'Two-factor authentication for federated sign-in accounts must be configured at your identity provider.',
       );
-    } else if (cognitoIdentity?.hasNativeAccount) {
-      // Either signed in via Cognito-native this session, OR signed in
-      // via federated but has *also* signed in via email/password at
-      // some point (sticky flag). Reproof the supplied password against
-      // Cognito's native record via InitiateAuth — `USER_PASSWORD_AUTH`
-      // resolves to the native record because the federated shadow has
-      // no password attached.
+    } else if (session.cognitoType === 'native') {
+      // Cognito email/password — re-verify via InitiateAuth.
       await this.verifyCognitoPassword(user.email, password ?? '');
     }
     // No-op branch: no local password AND no Cognito tag = legacy SSO
@@ -267,8 +272,25 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is not enabled');
     }
 
+    // Reproof matrix MUST be symmetric with `setup` — otherwise a
+    // session-cookie attacker on a Cognito-native or SSO account could
+    // flip 2FA off without supplying the password.
+    const session = this.getSessionIdentity(req, user);
+
+    if (session.isSso) {
+      NcError.forbidden(
+        'Disabling two-factor authentication is not allowed from an SSO session. Please sign in with your password to disable.',
+      );
+    }
+
+    if (session.cognitoType === 'federated') {
+      NcError.forbidden(
+        'Disabling two-factor authentication is not allowed from a federated sign-in session. Please sign in with your password to disable.',
+      );
+    }
+
     if (user.password) {
-      // User has a password (non-SSO) — require password re-confirmation
+      // Local password — bcrypt re-confirm.
       if (!password) {
         NcError.badRequest('Password is required');
       }
@@ -277,6 +299,11 @@ export class MfaService {
       if (!valid) {
         NcError.badRequest('Incorrect password');
       }
+    } else if (session.cognitoType === 'native') {
+      // Cognito email/password account — re-verify against Cognito.
+      // Without this branch, a stolen session cookie on a Cognito-native
+      // account could disable 2FA in a single POST.
+      await this.verifyCognitoPassword(user.email, password ?? '');
     }
 
     // Disable 2FA and clear secrets
@@ -299,21 +326,25 @@ export class MfaService {
     return { msg: 'Two-factor authentication has been disabled' };
   }
 
-  async status(userId: string) {
+  async status(userId: string, req?: NcRequest) {
     const user = await User.get(userId);
     if (!user) NcError.userNotFound(userId);
 
-    const cognitoIdentity = this.getCognitoIdentity(user);
+    const session = this.getSessionIdentity(req, user);
 
     // `eligible` is the single switch the FE flips the toggle on.
-    // Blocked only when the user is federated AND has no native Cognito
-    // account on the same email (the sticky `hasNativeAccount` flag).
-    // Dual-identity users (Google + email/password) can still enrol
-    // via the password reproof, which hits Cognito's native record.
-    const eligible = !(
-      cognitoIdentity?.type === 'federated' &&
-      !cognitoIdentity.hasNativeAccount
-    );
+    // Blocked for sessions we can't re-prove via password — SSO sessions
+    // and Cognito-federated sessions. Local-password and Cognito-native
+    // pass through. Dual-identity Cognito users have to switch to the
+    // email/password sign-in to enrol.
+    let ineligibleReason: 'sso' | 'federated' | null = null;
+    if (session.isSso) {
+      ineligibleReason = 'sso';
+    } else if (session.cognitoType === 'federated') {
+      ineligibleReason = 'federated';
+    }
+
+    const eligible = ineligibleReason === null;
 
     return {
       enabled: !!user.totp_enabled,
@@ -322,10 +353,13 @@ export class MfaService {
       ...(eligible
         ? {}
         : {
-            ineligibleReason: 'federated' as const,
+            ineligibleReason,
             // E.g. 'Google' — surfaced in the tooltip so the user knows
-            // where to go (their IdP) to configure MFA.
-            federationProvider: cognitoIdentity?.provider ?? null,
+            // where to go (their IdP) to configure MFA. Only meaningful
+            // for the 'federated' reason.
+            ...(ineligibleReason === 'federated'
+              ? { federationProvider: session.federationProvider }
+              : {}),
           }),
     };
   }
@@ -339,6 +373,7 @@ export class MfaService {
       purpose: string;
       redirect?: string;
       extra?: Record<string, any>;
+      userExtra?: Record<string, any>;
     };
     try {
       payload = jwt.verify(twoFactorToken, config.auth.jwt.secret) as any;
@@ -396,6 +431,10 @@ export class MfaService {
       userId: user.id,
       redirect: payload.redirect,
       extra: payload.extra,
+      // Per-session identity carried over from the original sign-in's
+      // `req.user.extra` — the post-verify controller re-attaches this
+      // so refresh-token meta + the freshly-minted JWT keep it.
+      userExtra: payload.userExtra,
     };
   }
 
@@ -410,14 +449,34 @@ export class MfaService {
    */
   async getTwoFactorTokenIfEnabled(
     userId: string,
-    opts?: { redirect?: string; extra?: Record<string, any> },
+    opts?: {
+      redirect?: string;
+      extra?: Record<string, any>;
+      // The per-session payload the sign-in strategy stamped on
+      // `req.user.extra` — propagated through the 2FA token so the
+      // post-verify controller can re-attach it to the refresh-token
+      // meta. Must include `cognito_identity_type` for Cognito
+      // sign-ins so subsequent JWTs (including refresh regen) keep
+      // the per-session identity tag the mfa gating relies on.
+      userExtra?: Record<string, any>;
+    },
   ): Promise<string | null> {
     const user = await User.get(userId);
     if (!user?.totp_enabled) return null;
 
+    // Cognito-federated bypass — the IdP (Google etc.) owns this
+    // user's MFA posture. Symmetric with disable() and
+    // workspace-level enforcement; SAML / OIDC controllers don't
+    // call this function at all so they bypass implicitly.
+    if (opts?.userExtra?.cognito_identity_type === 'federated') return null;
+
     return generateTwoFactorToken(
       { id: user.id, email: user.email },
-      { redirect: opts?.redirect, extra: opts?.extra },
+      {
+        redirect: opts?.redirect,
+        extra: opts?.extra,
+        userExtra: opts?.userExtra,
+      },
     );
   }
 
@@ -561,39 +620,57 @@ export class MfaService {
   }
 
   /**
-   * Read the Cognito identity tag stamped onto `user.meta` by
-   * `CognitoStrategy.persistCognitoIdentityTag` on each sign-in.
+   * Classify the current session so MFA gating (setup / disable /
+   * status / signin-challenge) can apply per-session rules.
    *
-   * Returns `null` for legacy users predating the tag and for non-Cognito
-   * accounts — callers should treat that as "no Cognito constraint
-   * applies" and fall back to the existing local-password / SSO branches.
+   * Reads from `req.user.extra` — the per-session payload populated by
+   * `JwtStrategy.validate` from the JWT's whitelisted fields. The
+   * underlying source is whatever the sign-in strategy put on
+   * `req.user.extra` at sign-in time, which `setRefreshToken`
+   * persists into `userRefreshToken.meta` and refresh-token regen
+   * spreads back into the new JWT. Therefore the value reflects the
+   * *current session*, not the last sign-in across all devices.
    *
-   * `hasNativeAccount` is **sticky**: once true, it stays true even when
-   * the user's most recent sign-in was federated. It lets `setup` allow
-   * enrolment for dual-identity users (Google + email/password on the
-   * same email) currently signed in via the federated path — the
-   * password reproof against Cognito's native record is still possible.
+   * Falls back to `user.meta.cognito_identity_type` only when the
+   * per-session field is absent — covers sessions issued before this
+   * field was added to the JWT whitelist. New sign-ins always set the
+   * per-session field so the fallback fades organically.
+   *
+   * `req` is optional so callers that don't have a request (e.g.
+   * background hooks) can still consult; in that case we only get the
+   * user-meta view.
    */
-  private getCognitoIdentity(user: {
-    meta?: any;
-  }): {
-    type: 'native' | 'federated';
-    provider?: string | null;
-    hasNativeAccount: boolean;
-  } | null {
-    if (!user?.meta) return null;
-    const meta =
-      typeof user.meta === 'string'
-        ? safeJsonParse(user.meta)
-        : user.meta;
-    if (!meta?.cognito_identity_type) return null;
-    return {
-      type: meta.cognito_identity_type,
-      provider: meta.cognito_federation_provider ?? null,
-      hasNativeAccount:
-        meta.cognito_has_native_account === true ||
-        meta.cognito_identity_type === 'native',
-    };
+  private getSessionIdentity(
+    req: NcRequest | undefined,
+    user: { meta?: any },
+  ): {
+    isSso: boolean;
+    cognitoType: 'native' | 'federated' | null;
+    federationProvider: string | null;
+  } {
+    const extra = (req as any)?.user?.extra ?? {};
+    const isSso = !!extra.sso_client_id;
+
+    let cognitoType: 'native' | 'federated' | null = null;
+    let federationProvider: string | null = null;
+
+    if (extra.cognito_identity_type) {
+      cognitoType = extra.cognito_identity_type;
+      federationProvider = extra.cognito_federation_provider ?? null;
+    } else {
+      // Pre-PR fallback. Stale for multi-session users but better
+      // than treating them as un-classifiable.
+      const meta =
+        typeof user?.meta === 'string'
+          ? safeJsonParse(user.meta)
+          : user?.meta ?? {};
+      if (meta?.cognito_identity_type) {
+        cognitoType = meta.cognito_identity_type;
+        federationProvider = meta.cognito_federation_provider ?? null;
+      }
+    }
+
+    return { isSso, cognitoType, federationProvider };
   }
 
   /**

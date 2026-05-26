@@ -1492,15 +1492,35 @@ export class AclMiddleware implements NestInterceptor {
           ? JSON.parse(workspace.meta)
           : workspace?.meta;
       if (meta?.force_2fa && !req.user?.totp_enabled) {
-        // On Cloud, Cognito users can now enrol TOTP via NocoDB — so
-        // they're eligible for force_2fa enforcement (FE intercepts
-        // `mfaSetupRequired` and redirects to Account → Security to
-        // enrol, grace mode). On other deployments, an SSO user without
-        // a local password still has no way to enrol, so we exempt them
-        // to avoid a permanent lockout.
-        if (isCloud) {
+        // Only enforce when the *current session* was authenticated via
+        // a re-provable password — local NocoDB password or Cognito
+        // email/password. Other session flavours are exempt:
+        //   - Active SSO session (SAML / OIDC) — IdP owns MFA posture.
+        //   - Cognito federated session (Google / etc.), even when the
+        //     user also has an email/password Cognito identity. The
+        //     dual-identity user can still enrol voluntarily, but we
+        //     don't force them through the setup flow while they're
+        //     signed in via the federated path.
+        //
+        // Both signals come from `req.user.extra`, which is populated
+        // by JwtStrategy from JWT-payload fields seeded by the sign-in
+        // strategy (CognitoStrategy.cognitoIdentityExtra) and carried
+        // across refresh-token regen via userRefreshToken.meta. We
+        // deliberately do NOT read `user.meta.cognito_identity_type`
+        // here — that field reflects the latest Cognito sign-in across
+        // all sessions and can be wrong for any given session in a
+        // multi-device scenario.
+        const extra = (req.user as any)?.extra ?? {};
+        const isSsoSession = !!extra.sso_client_id;
+        const isFederatedSession = extra.cognito_identity_type === 'federated';
+
+        if (isSsoSession || isFederatedSession) {
+          // Skip enforcement.
+        } else if (isCloud) {
+          // Cloud: Cognito email/password or local password.
           NcError.mfaSetupRequired(req.ncWorkspaceId);
         } else {
+          // Self-hosted: only local-password users can enrol.
           const user = await User.get(req.user.id);
           if (user?.password) {
             NcError.mfaSetupRequired(req.ncWorkspaceId);

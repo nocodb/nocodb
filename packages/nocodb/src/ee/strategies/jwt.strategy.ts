@@ -94,6 +94,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         workspace_id: jwtPayload.workspace_id,
         sso_client_id: jwtPayload.sso_client_id,
         sso_client_type: jwtPayload.sso_client_type,
+        // Per-session Cognito identity — see CognitoStrategy.cognitoIdentityExtra.
+        // Used by mfa.service + extract-ids.middleware to decide MFA gating
+        // without falling back on `user.meta.cognito_identity_type`, which
+        // can be stale across multiple concurrent sessions.
+        cognito_identity_type: jwtPayload.cognito_identity_type,
+        cognito_federation_provider: jwtPayload.cognito_federation_provider,
       },
     };
   }

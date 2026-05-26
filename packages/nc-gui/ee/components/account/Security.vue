@@ -17,11 +17,15 @@ const mfaEnabled = ref(false)
 const hasPassword = ref(true)
 const isLoading = ref(false)
 
-// Cognito identity gating — set by /mfa/status. Federated Cognito users
-// (Google / SAML) can't be password-verified by us, so enrolment is
-// disabled for them and the card shows a tooltip pointing at their IdP.
+// MFA-enrolment gating — set by /mfa/status. Two ineligible cases:
+//   - 'sso'        — current session is SAML / OIDC. Block enrolment;
+//                    2FA should be configured at the IdP.
+//   - 'federated'  — Cognito-federated (Google) with no email/password
+//                    on the same account. Same reasoning.
+// In both cases the toggle is disabled and the tooltip points at the
+// IdP.
 const mfaEligible = ref(true)
-const ineligibleReason = ref<'federated' | null>(null)
+const ineligibleReason = ref<'sso' | 'federated' | null>(null)
 const federationProvider = ref<string | null>(null)
 
 // Setup wizard state
@@ -102,14 +106,18 @@ const skipPasswordReproof = computed(() => {
   return !!appInfo.value?.disableEmailAuth
 })
 
-// Tooltip copy shown over the disabled toggle for federated users.
-// Names the IdP so the user knows where to configure MFA.
+// Tooltip copy shown over the disabled toggle for ineligible users.
+// Tailored per reason — federated names the IdP, SSO points the user
+// at their workspace's identity provider.
 const ineligibleTooltip = computed(() => {
   if (mfaEligible.value) return ''
   if (ineligibleReason.value === 'federated') {
     return federationProvider.value
       ? t('labels.twoFactorFederatedNotAvailable', { provider: federationProvider.value })
       : t('labels.twoFactorFederatedNotAvailableGeneric')
+  }
+  if (ineligibleReason.value === 'sso') {
+    return t('labels.twoFactorSsoSessionNotAvailable')
   }
   return t('labels.twoFactorSsoNotAvailable')
 })
@@ -210,14 +218,18 @@ async function closeSetupModal() {
 }
 
 async function confirmDisable() {
-  if (hasPassword.value && !disablePassword.value) return
+  // Same reproof matrix as setup: require a password whenever the BE
+  // expects one (local password OR Cognito-native on Cloud). Federated
+  // / SSO sessions can't be re-proved here — the BE rejects with 403
+  // and we surface the error message inline.
+  if (!skipPasswordReproof.value && !disablePassword.value) return
 
   isLoading.value = true
   disableError.value = ''
 
   try {
     await api.instance.post('/api/v2/auth/mfa/disable', {
-      ...(hasPassword.value ? { password: disablePassword.value } : {}),
+      ...(skipPasswordReproof.value ? {} : { password: disablePassword.value }),
     })
     mfaEnabled.value = false
     showDisableModal.value = false
@@ -605,7 +617,7 @@ onMounted(async () => {
       :title="$t('labels.disableTwoFactor')"
       :show-icon="false"
       :ok-text="$t('labels.disableTwoFactor')"
-      :ok-props="{ type: 'danger', loading: isLoading, disabled: hasPassword && !disablePassword }"
+      :ok-props="{ type: 'danger', loading: isLoading, disabled: !skipPasswordReproof && !disablePassword }"
       @cancel="
         () => {
           disablePassword = ''
@@ -623,7 +635,7 @@ onMounted(async () => {
           </template>
         </NcAlert>
 
-        <div v-if="hasPassword" class="flex flex-col gap-2">
+        <div v-if="!skipPasswordReproof" class="flex flex-col gap-2">
           <div class="text-sm">{{ $t('msg.enterPassword') }}</div>
           <a-input-password
             ref="disablePasswordInput"

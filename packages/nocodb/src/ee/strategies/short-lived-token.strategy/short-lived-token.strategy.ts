@@ -52,6 +52,8 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
         workspace_id: jwtPayload.workspace_id,
         sso_client_id: jwtPayload.sso_client_id,
         sso_client_type: jwtPayload.sso_client_type,
+        cognito_identity_type: jwtPayload.cognito_identity_type,
+        cognito_federation_provider: jwtPayload.cognito_federation_provider,
       },
       saml: jwtPayload.saml,
       ...(await User.getWithRoles(req.context, user.id, {

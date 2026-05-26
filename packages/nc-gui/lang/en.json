@@ -2259,6 +2259,7 @@
     "twoFactorSsoNotAvailable": "Two-factor authentication isn't available — this account has no password set. Use 'Forgot password' to set one, then return here.",
     "twoFactorFederatedNotAvailable": "Two-factor authentication isn't available for {provider} sign-in. Enable 2-Step Verification in your {provider} Account to add an extra layer of security.",
     "twoFactorFederatedNotAvailableGeneric": "Two-factor authentication isn't available for accounts signed in through a third-party provider.",
+    "twoFactorSsoSessionNotAvailable": "Two-factor authentication is managed by your identity provider when signing in through SSO. Configure it there.",
     "twoFactorSsoBanner": "You'll be asked for this code every time you sign in, in addition to your usual sign-in challenge.",
     "preparingTwoFactor": "Preparing two-factor authentication…",
     "controlAppearance": "Control your Appearance.",

@@ -1,3 +1,5 @@
+import { Auth } from '@aws-amplify/auth'
+
 /**
  * sessionStorage key used to hand a pending two-factor token from one
  * sign-in surface (e.g. the Cognito callback in `useGlobal/actions.ts`)
@@ -7,9 +9,10 @@ const PENDING_TWO_FACTOR_TOKEN_KEY = 'nc.pendingTwoFactorToken'
 
 /**
  * Shared composable — single instance across all callers in the page
- * tree. The Cognito flow primes sessionStorage and navigates; Signin.vue
- * hydrates from it. If a second consumer were ever added (e.g. a TOTP
- * step rendered inline elsewhere), it must see the same state ref.
+ * tree. The Cognito flow primes the reactive state (and sessionStorage
+ * as a hard-reload fallback) so Signin.vue picks up the challenge
+ * without remounting. If a second consumer were ever added (e.g. a
+ * TOTP step rendered inline elsewhere), it must see the same state ref.
  */
 export const useTwoFactorSignin = createSharedComposable(() => {
   const { signIn: _signIn } = useGlobal()
@@ -25,12 +28,38 @@ export const useTwoFactorSignin = createSharedComposable(() => {
   const twoFactorLoading = ref(false)
   const useBackupCode = ref(false)
   const postVerifyRedirect = ref<string | undefined>(undefined)
+  // Which sign-in path raised the 2FA challenge. cancelTwoFactor needs
+  // this to clean up source-specific session state (drop the still-
+  // active Cognito session for the SSO path so the next route eval
+  // doesn't immediately re-stage the same prompt).
+  const twoFactorSource = ref<'cognito' | 'password' | null>(null)
 
   /**
-   * Pick up a token deposited by another sign-in path (today: Cognito).
-   * The page hosting the TOTP UI should call this once on mount; if a
-   * pending token is found, the caller can render the TOTP step
-   * directly without going through `handleSigninResponse`.
+   * Stage a 2FA token from a non-form sign-in path (today: Cognito).
+   * Writes to sessionStorage AND flips the reactive state so an
+   * already-mounted Signin.vue switches to the TOTP UI without
+   * remounting — `navigateTo('/signin')` from `/signin` is a no-op
+   * in the SPA case (same URL), so the `onBeforeMount` hydration
+   * path doesn't re-run. sessionStorage stays for the hard-reload
+   * case where the user refreshes the page after staging.
+   */
+  function stagePendingToken(token: string) {
+    if (!token) return
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(PENDING_TWO_FACTOR_TOKEN_KEY, token)
+    }
+    twoFactorRequired.value = true
+    twoFactorToken.value = token
+    twoFactorSource.value = 'cognito'
+    $e('c:signin:2fa-prompted', { source: 'cognito' })
+  }
+
+  /**
+   * Pick up a token deposited by another sign-in path (today: Cognito)
+   * during a hard reload. SPA flows do NOT rely on this — they call
+   * `stagePendingToken` directly so the reactive state updates without
+   * needing the consuming page to remount. Returns true if the token
+   * was found and consumed.
    */
   function hydrateFromPendingToken(): boolean {
     if (typeof window === 'undefined') return false
@@ -39,6 +68,7 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     window.sessionStorage.removeItem(PENDING_TWO_FACTOR_TOKEN_KEY)
     twoFactorRequired.value = true
     twoFactorToken.value = pending
+    twoFactorSource.value = 'cognito'
     $e('c:signin:2fa-prompted', { source: 'cognito' })
     return true
   }
@@ -51,6 +81,7 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     if (response.twoFactorRequired) {
       twoFactorRequired.value = true
       twoFactorToken.value = response.twoFactorToken
+      twoFactorSource.value = 'password'
       $e('c:signin:2fa-prompted')
       return true
     }
@@ -96,8 +127,32 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     }
   }
 
-  function cancelTwoFactor() {
-    $e('c:signin:2fa-cancelled')
+  async function cancelTwoFactor() {
+    $e('c:signin:2fa-cancelled', { source: twoFactorSource.value })
+
+    // Cognito-sourced challenge: the IdP session is still active in
+    // Amplify. Without clearing it, the next route eval (z_amplify
+    // watch fire, auth middleware re-entry) immediately re-issues
+    // `/auth/cognito`, the BE re-stages the 2FA token, and we land
+    // straight back on the TOTP prompt — an inescapable loop. Sign
+    // the user out of Cognito so Cancel actually returns them to a
+    // clean `/signin` (email/password form).
+    if (twoFactorSource.value === 'cognito') {
+      try {
+        await Auth.signOut()
+      } catch {
+        // Best-effort — even if Amplify sign-out errors, we still
+        // reset local state below so the user isn't locked into the
+        // TOTP prompt.
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      // Drop any staged token so a hard reload of /signin after
+      // Cancel doesn't auto-rehydrate the prompt.
+      window.sessionStorage.removeItem(PENDING_TWO_FACTOR_TOKEN_KEY)
+    }
+
     twoFactorRequired.value = false
     twoFactorToken.value = ''
     twoFactorCode.value = ''
@@ -105,6 +160,7 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     twoFactorLoading.value = false
     useBackupCode.value = false
     postVerifyRedirect.value = undefined
+    twoFactorSource.value = null
   }
 
   function toggleBackupCode() {
@@ -122,6 +178,7 @@ export const useTwoFactorSignin = createSharedComposable(() => {
     postVerifyRedirect,
     handleSigninResponse,
     hydrateFromPendingToken,
+    stagePendingToken,
     verifyTwoFactor,
     cancelTwoFactor,
     toggleBackupCode,

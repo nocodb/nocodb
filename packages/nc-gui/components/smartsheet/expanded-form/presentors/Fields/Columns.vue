@@ -94,11 +94,14 @@ const showHiddenFieldsSection = computed(() => {
         @click="showHiddenFields = !showHiddenFields"
       >
         <template v-if="isFiltering">
-          {{ visibleHiddenFieldsCount }} hidden {{ visibleHiddenFieldsCount === 1 ? 'field' : 'fields' }}
+          {{ $t('labels.hiddenFieldCount', { count: visibleHiddenFieldsCount }, visibleHiddenFieldsCount) }}
         </template>
         <template v-else>
-          {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
-          {{ hiddenFields.length > 1 ? `fields` : `field` }}
+          {{
+            showHiddenFields
+              ? $t('labels.hideHiddenFields', { count: hiddenFields.length }, hiddenFields.length)
+              : $t('labels.showHiddenFields', { count: hiddenFields.length }, hiddenFields.length)
+          }}
         </template>
         <GeneralIcon
           v-if="!isFiltering"

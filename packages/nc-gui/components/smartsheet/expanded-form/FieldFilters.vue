@@ -37,11 +37,11 @@ const hideBlankFields = defineModel<boolean>('hideBlankFields', { default: false
       <NcButton
         v-if="searchQuery"
         v-e="[`${props.telemetryPrefix}:search:clear`]"
-        class="nc-expanded-form-search-clear flex-none"
-        :class="[props.compact ? '!w-4 !h-4' : '!w-5 !h-5']"
+        class="nc-expanded-form-search-clear flex-none !px-0"
+        :class="[props.compact ? '!w-4 !h-4 !min-w-4' : '!w-5 !h-5 !min-w-5']"
         data-testid="nc-expanded-form-search-clear"
         type="text"
-        size="xs"
+        size="xxsmall"
         @click="searchQuery = ''"
       >
         <GeneralIcon icon="close" class="h-3 w-3 text-nc-content-gray-muted" />

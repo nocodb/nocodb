@@ -17,7 +17,8 @@ const { navigateToView, onOpenViewCreateModal, showUpgradeToUseListView } = view
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView } = useEeConfig()
+const { showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseGanttView, blockListView, blockTimelineView, blockGanttView } =
+  useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -294,6 +295,25 @@ async function onOpenModal({
                     <PaymentUpgradeBadge
                       v-if="blockTimelineView"
                       :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
+                      :plan-title="PlanTitles.BUSINESS"
+                      remove-click
+                      show-as-lock
+                    />
+                  </div>
+                </a-menu-item>
+                <a-menu-item
+                  v-if="isEeUI && showEEFeatures"
+                  data-testid="topbar-view-create-gantt"
+                  @click="showUpgradeToUseGanttView({ successCallback: () => onOpenModal({ type: ViewTypes.GANTT }) })"
+                >
+                  <div class="nc-viewlist-submenu-popup-item justify-between">
+                    <div class="flex items-center gap-2">
+                      <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
+                      {{ $t('objects.viewType.gantt') }}
+                    </div>
+                    <PaymentUpgradeBadge
+                      v-if="blockGanttView"
+                      :feature="PlanFeatureTypes.FEATURE_GANTT_VIEW"
                       :plan-title="PlanTitles.BUSINESS"
                       remove-click
                       show-as-lock

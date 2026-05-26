@@ -28,8 +28,16 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView, blockDocs } =
-  useEeConfig()
+const {
+  isEEFeatureBlocked,
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseGanttView,
+  blockListView,
+  blockTimelineView,
+  blockGanttView,
+  blockDocs,
+} = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -336,6 +344,23 @@ const hasDocumentCreateAccess = computed(() => {
                 <PaymentUpgradeBadge
                   v-if="blockTimelineView"
                   :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
+                  :plan-title="PlanTitles.BUSINESS"
+                  remove-click
+                  show-as-lock
+                />
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI && showEEFeatures"
+                data-testid="mini-sidebar-view-create-gantt"
+                inner-class="w-full"
+                @click="showUpgradeToUseGanttView({ successCallback: () => onOpenModal({ type: ViewTypes.GANTT }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
+                <div class="flex-1">{{ $t('objects.viewType.gantt') }}</div>
+
+                <PaymentUpgradeBadge
+                  v-if="blockGanttView"
+                  :feature="PlanFeatureTypes.FEATURE_GANTT_VIEW"
                   :plan-title="PlanTitles.BUSINESS"
                   remove-click
                   show-as-lock

@@ -236,11 +236,17 @@ async function confirmDisable() {
     await api.instance.post('/api/v2/auth/mfa/disable', {
       ...(skipPasswordReproof.value ? {} : { password: disablePassword.value }),
     })
-    mfaEnabled.value = false
     showDisableModal.value = false
     disablePassword.value = ''
     $e('a:account:security:2fa-disabled')
     message.success(t('msg.success.twoFactorDisabled'))
+    // Symmetric with enrol: the BE rotated `token_version` on disable
+    // (mfa.service.disable), invalidating every existing session. The
+    // FE still holds the now-stale token, so the next API call would
+    // 401 silently — e.g. clicking Enable again to re-enrol would hit
+    // /mfa/setup with the stale token and get the user kicked out
+    // mid-flow. Force the sign-out → /signin round trip immediately.
+    await signOut({ redirectToSignin: true })
   } catch (e: any) {
     disableError.value = await extractSdkResponseErrorMsg(e)
   } finally {

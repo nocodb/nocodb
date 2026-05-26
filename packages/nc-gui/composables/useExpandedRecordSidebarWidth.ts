@@ -48,5 +48,12 @@ export const useExpandedRecordSidebarWidth = createSharedComposable(() => {
     window.addEventListener('mouseup', onResizeEnd)
   }
 
+  // Safety net: if the composable's scope is disposed mid-drag (e.g. user
+  // hit Esc and closed the form before releasing mouse), tear down the
+  // window listeners and reset the cursor — otherwise they'd leak.
+  tryOnScopeDispose(() => {
+    if (isResizing.value) onResizeEnd()
+  })
+
   return { sidebarWidth, isResizing, onResizeStart, MIN_WIDTH, MAX_WIDTH }
 })

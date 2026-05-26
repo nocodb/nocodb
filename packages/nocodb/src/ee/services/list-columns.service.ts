@@ -9,6 +9,7 @@ import {
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
 import { Column, View } from '~/models';
 import ListViewColumn from '~/models/ListViewColumn';
 import { extractProps } from '~/helpers/extractProps';
@@ -42,6 +43,13 @@ export class ListColumnsService {
       ncMeta,
     );
 
+    if (!oldListViewColumn) {
+      NcError.get(context).genericNotFound(
+        'List view column',
+        param.listViewColumnId,
+      );
+    }
+
     const column = await Column.get(
       context,
       {
@@ -56,6 +64,10 @@ export class ListColumnsService {
       false,
       ncMeta,
     );
+
+    if (!view) {
+      NcError.get(context).viewNotFound(oldListViewColumn.fk_view_id);
+    }
 
     const viewWebhookManager =
       param.viewWebhookManager ??

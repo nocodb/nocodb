@@ -155,7 +155,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
       param,
       ncMeta,
     );
-    const invite_token = param.invite_token || uuidv4();
     const error = [];
     const emailUserMap = new Map<string, User>();
     const postOperations = [];
@@ -164,6 +163,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
     try {
       for (const email of emails) {
+        const invite_token = param.invite_token || uuidv4();
         const { postOperations: eachPostOperations } =
           await this.unhandledUserInviteByEmail(
             context,
@@ -232,7 +232,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         msg: 'The user has been invited successfully',
       };
     } else {
-      return { invite_token, emails, error };
+      return { msg: 'success', emails, error };
     }
   }
 
@@ -460,7 +460,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
                   base: base,
                   role: (roles || 'editor') as ProjectRoles,
                   token: param.registeredEmails?.includes(user.email)
-                    ? invite_token
+                    ? user.invite_token
                     : null,
                 },
               })

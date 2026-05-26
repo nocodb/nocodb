@@ -6441,10 +6441,6 @@ export class ColumnsService implements IColumnsService {
         columns: await table.getCachedColumns(context),
       });
 
-      await this.metaDependencyEventHandler.handleEvent(context, {
-        eventType: MetaEventType.COLUMN_ADDED,
-        newEntity: savedColumn,
-      });
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg

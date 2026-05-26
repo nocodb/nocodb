@@ -351,7 +351,7 @@ export class TablesService {
 
       await table.getColumns(context, ncMeta, undefined, true, true);
 
-      if (table.mm) {
+      if (table.mm && !param.forceDeleteSyncs) {
         const columns = await table.getColumns(
           context,
           ncMeta,

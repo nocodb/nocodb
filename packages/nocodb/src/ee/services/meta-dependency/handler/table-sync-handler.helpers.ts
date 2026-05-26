@@ -6,7 +6,7 @@ import {
 } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { NocoJobsService } from '~/services/noco-jobs.service';
-import type TableSync from '~/models/TableSync';
+import { TableSync } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -68,11 +68,14 @@ export async function scheduleReactiveResync(
     },
   );
 
-  NocoSocket.broadcastEvent(destContext, {
-    event: EventType.META_EVENT,
-    payload: {
-      action: 'table_sync_update',
-      payload: { id: sync.id, base_id: destContext.base_id },
-    },
-  });
+  const fullSync = await TableSync.get(destContext, sync.id);
+  if (fullSync) {
+    NocoSocket.broadcastEvent(destContext, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'table_sync_update',
+        payload: { ...fullSync, base_id: destContext.base_id },
+      },
+    });
+  }
 }

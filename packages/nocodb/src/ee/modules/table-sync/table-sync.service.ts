@@ -470,8 +470,16 @@ export class TableSyncService {
     // removes have their row deleted inside removeSyncedField. The helper
     // is idempotent: existing mappings are skipped, only new dest cols get
     // a row inserted. Cheap walk over each mapping's columns.
+    //
+    // Re-fetch the sync's mappings — adding an LTAR with a picked view
+    // inserts a NEW LinkedShadow mapping inside `addSyncedField` that is
+    // NOT in the stale `oldSync.mappings` we were handed. Walking the
+    // stale list would skip the new shadow and leave it with zero
+    // column-mappings, so the shadow rows would later land with system
+    // fields only.
     if (anyAdded || anyRemoved) {
-      for (const m of oldSync.mappings ?? []) {
+      const freshSync = await TableSync.get(context, oldSync.id);
+      for (const m of freshSync?.mappings ?? []) {
         if (m.role === TableSyncMappingRole.Junction) continue;
         await this.writeColumnMappingsForTableMapping(m);
       }
@@ -944,6 +952,7 @@ export class TableSyncService {
               tableId: junctionMapping.dest_table_id,
               req,
               forceDeleteSyncs: true,
+              forceDeleteRelations: true,
               skipTrash: true,
             },
           );
@@ -1949,7 +1958,7 @@ export class TableSyncService {
 
     const destByTitle = new Map<string, Column>();
     for (const c of destModel.columns ?? []) {
-      if (c.title && c.readonly) destByTitle.set(c.title, c as Column);
+      if (c.title) destByTitle.set(c.title, c as Column);
     }
 
     for (const sourceCol of sourceModel.columns ?? []) {

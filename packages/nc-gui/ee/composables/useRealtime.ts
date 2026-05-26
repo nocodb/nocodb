@@ -577,7 +577,7 @@ export const useRealtime = createSharedComposable(() => {
       const idx = list.findIndex((s) => s.id === payload.id)
       const next = [...list]
       if (idx === -1) next.push(payload)
-      else next[idx] = payload
+      else next[idx] = { ...next[idx], ...payload }
       tableSyncs.value.set(payload.base_id, next)
     } else if (event.action === 'table_sync_delete') {
       const { payload } = event

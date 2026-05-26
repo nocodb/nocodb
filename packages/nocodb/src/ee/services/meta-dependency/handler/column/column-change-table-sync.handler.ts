@@ -204,6 +204,7 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
         },
         user: req.user,
         req,
+        bypassSyncedFieldGuard: true,
       } as any,
     );
   }

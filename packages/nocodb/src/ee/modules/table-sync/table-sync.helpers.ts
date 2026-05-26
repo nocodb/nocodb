@@ -173,7 +173,6 @@ export async function buildColumnPlan(
     const destCol = destColById.get(cm.dest_column_id);
     if (!sourceCol || !destCol) continue;
     if (!sourceCol.title || !destCol.title) continue;
-    if (!destCol.readonly) continue;
     if (
       destCol.uidt === UITypes.CreatedTime ||
       destCol.uidt === UITypes.LastModifiedTime ||

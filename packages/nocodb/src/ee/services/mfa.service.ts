@@ -356,10 +356,14 @@ export class MfaService {
       totp_backup_codes: null,
     });
 
-    // Rotate token_version to invalidate all existing sessions
-    await User.update(userId, {
-      token_version: randomTokenString(),
-    });
+    // No token_version rotation on disable. Other sessions for this
+    // user were authenticated under 2FA — they're already through the
+    // higher-trust gate, so weakening the requirement doesn't justify
+    // killing them. Password reproof above (bcrypt for local pw,
+    // Cognito InitiateAuth for native) covers the "session-cookie-only
+    // attacker disables 2FA" threat model, and rotating here just adds
+    // user-facing friction (forced re-sign-in on the current device
+    // for no security gain).
 
     this.appHooksService.emit(AppEvents.USER_MFA_DISABLED, {
       user: user as any as UserType,

@@ -5,10 +5,31 @@ import {
   PermissionEntity,
   PermissionKey,
   type TableType,
+  UITypes,
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
 import { fieldMatchesSearch, isBlankFieldValue } from './searchUtils'
+
+// Cells whose editor paints a format hint (e.g. "YYYY-MM-DD") as its own
+// placeholder when empty — skip '--' overlay for these so the two don't
+// stack. Their *readonly* variant has no such hint (see
+// cell/Date/Readonly.vue), so '--' is still shown when the cell is rendered
+// read-only — see showCompactEmptyHint below.
+const COMPACT_FORMAT_HINT_UIDTS = new Set<string>([UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year])
+
+// Cells that always paint their own visible empty-state UI in both editable
+// and readonly modes — '--' would stack on top, so always skip:
+//   Attachment → upload prompt / file list
+//   Rating     → zero filled stars
+//   Checkbox   → unchecked indicator
+//   Button     → button label / icon
+const COMPACT_ALWAYS_SKIP_UIDTS = new Set<string>([
+  UITypes.Attachment,
+  UITypes.Rating,
+  UITypes.Checkbox,
+  UITypes.Button,
+])
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -46,6 +67,16 @@ const { getMeta } = useMetas()
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
+
+// In compact view, show '--' for an empty cell unless the cell already
+// renders its own empty-state UI. Format-hint cells (date/time) only paint
+// their hint in the editable variant — keep '--' when they mount read-only.
+const showCompactEmptyHint = (col: ColumnType, isAllowed: boolean) => {
+  if (!col.uidt) return true
+  if (COMPACT_ALWAYS_SKIP_UIDTS.has(col.uidt)) return false
+  if (!COMPACT_FORMAT_HINT_UIDTS.has(col.uidt)) return true
+  return readOnly.value || !isAllowed || isSyncedColumn(col) || showReadonlyColumnTooltip(col)
+}
 
 /**
  * Check if an LTAR column points back to the parent table that opened this blueprint form.
@@ -237,8 +268,8 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
               ]"
             >
               <span
-                v-if="compactMode && col.title && isBlankFieldValue(_row.row[col.title])"
-                class="nc-compact-empty-placeholder absolute left-1 top-0 z-10 text-nc-content-gray-muted text-[13px] pointer-events-none select-none"
+                v-if="compactMode && col.title && isBlankFieldValue(_row.row[col.title]) && showCompactEmptyHint(col, isAllowed)"
+                class="nc-compact-empty-placeholder absolute left-1 inset-y-0 z-10 flex items-center text-nc-content-gray-muted text-[13px] pointer-events-none select-none"
               >
                 --
               </span>

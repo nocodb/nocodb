@@ -1378,6 +1378,31 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "docHistory": {
+      "title": "Version history",
+      "retention": "Versions are kept for {count} day on your plan. | Versions are kept for {count} days on your plan.",
+      "previewEmptyTitle": "Select a version to preview",
+      "previewEmptySubtitle": "Pick one from the list on the right to see the page as it was at that point. Changes against the current version are highlighted inline.",
+      "currentVersion": "Current version · {author}",
+      "loadOlder": "Load older",
+      "emptyTitle": "No versions saved yet",
+      "emptySubtitle": "A version is recorded each time the page is saved. Saves made within 2 minutes by the same author are merged into one.",
+      "restoreConfirmTitle": "Restore this version?",
+      "restoreConfirmContent": "Your current version will be saved in history before restoring.",
+      "restored": "Restored to selected version",
+      "noRestorePermission": "You do not have permission to restore revisions",
+      "authorFallback": "Someone",
+      "savedBy": {
+        "restored": "Restored by {author} · {when}",
+        "saved": "Saved by {author} · {when}",
+        "edited": "Edited by {author} · {when}"
+      },
+      "listAction": {
+        "restored": "{author} restored",
+        "saved": "{author} saved",
+        "edited": "{author} edited"
+      }
+    },
     "changePassword": "Change Password",
     "changeViewPassword": "Change View Password",
     "changeDashboardPassword": "Change Dashboard Password",

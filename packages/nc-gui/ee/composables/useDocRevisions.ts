@@ -1,4 +1,5 @@
 import type { DocRevisionSource } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 
 export interface DocRevisionListItem {
   id: string
@@ -29,6 +30,7 @@ export const useDocRevisions = createSharedComposable(() => {
   const { user } = useGlobal()
   const { isUIAllowed } = useRoles()
   const { $api, $e } = useNuxtApp()
+  const { t } = getI18n().global
   const basesStore = useBases()
   const { basesUser } = storeToRefs(basesStore)
   const documentsStore = useDocumentsStore()
@@ -224,7 +226,7 @@ export const useDocRevisions = createSharedComposable(() => {
     if (!activeDocId.value) return false
     if (!activeWorkspaceId.value || !activeProjectId.value) return false
     if (!isUIAllowed('documentRevisionRestore')) {
-      message.error('You do not have permission to restore revisions')
+      message.error(t('labels.docHistory.noRestorePermission'))
       return false
     }
 

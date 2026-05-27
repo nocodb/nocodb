@@ -19,15 +19,3 @@ export interface DocumentRevisionType {
   created_at?: string;
   updated_at?: string;
 }
-
-export interface DocumentRevisionListItem {
-  id: string;
-  fk_doc_id: string;
-  version: number;
-  title: string;
-  created_by: string;
-  created_by_email?: string;
-  created_by_display_name?: string;
-  source: DocRevisionSource;
-  created_at: string;
-}

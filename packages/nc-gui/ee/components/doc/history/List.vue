@@ -12,6 +12,8 @@ const { docId } = toRefs(props)
 
 const { revisions, isLoading, hasMore, selectedRevisionId, loadRevisions, loadMore, selectRevision } = useDocRevisions()
 
+const { t } = useI18n()
+
 // On mount / docId change: load revisions and auto-select the most recent
 // one so the viewer pane lands in a useful state immediately.
 async function loadAndAutoSelect(id: string) {
@@ -64,10 +66,14 @@ function formatTimestampFull(iso: string): string {
   })
 }
 
-function sourceVerb(source: DocRevisionSource): string {
-  if (source === DocRevisionSource.RESTORE) return 'restored'
-  if (source === DocRevisionSource.MANUAL) return 'saved'
-  return 'edited'
+// Full localized "{author} {verb}" line for a non-current revision. Built as a
+// complete sentence per source (rather than injecting a verb) so locales can
+// reorder author/verb naturally.
+function actionLabel(rev: DocRevisionListItem): string {
+  const author = authorLabel(rev)
+  if (rev.source === DocRevisionSource.RESTORE) return t('labels.docHistory.listAction.restored', { author })
+  if (rev.source === DocRevisionSource.MANUAL) return t('labels.docHistory.listAction.saved', { author })
+  return t('labels.docHistory.listAction.edited', { author })
 }
 
 function userTile(rev: DocRevisionListItem) {
@@ -80,7 +86,7 @@ function userTile(rev: DocRevisionListItem) {
 }
 
 function authorLabel(rev: DocRevisionListItem): string {
-  return rev.created_by_display_name ?? rev.created_by_email ?? 'Someone'
+  return rev.created_by_display_name ?? rev.created_by_email ?? t('labels.docHistory.authorFallback')
 }
 
 function onSelect(rev: DocRevisionListItem) {
@@ -100,9 +106,9 @@ function onSelect(rev: DocRevisionListItem) {
       <div class="flex items-center justify-center w-12 h-12 rounded-full bg-nc-bg-gray-light mb-3">
         <GeneralIcon icon="ncHistory" class="text-nc-content-gray-subtle w-6 h-6" />
       </div>
-      <span class="text-sm font-medium text-nc-content-gray">No versions saved yet</span>
+      <span class="text-sm font-medium text-nc-content-gray">{{ $t('labels.docHistory.emptyTitle') }}</span>
       <span class="text-xs text-nc-content-gray-muted mt-1.5 leading-relaxed max-w-[240px]">
-        A version is recorded each time the page is saved. Saves made within 2 minutes by the same author are merged into one.
+        {{ $t('labels.docHistory.emptySubtitle') }}
       </span>
     </div>
 
@@ -133,15 +139,15 @@ function onSelect(rev: DocRevisionListItem) {
           <div class="nc-doc-history-content">
             <div class="text-xs font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
             <div class="text-xs text-nc-content-gray-muted mt-0.5">
-              <template v-if="idx === 0"> Current version · {{ authorLabel(rev) }} </template>
-              <template v-else> {{ authorLabel(rev) }} {{ sourceVerb(rev.source) }} </template>
+              <template v-if="idx === 0">{{ $t('labels.docHistory.currentVersion', { author: authorLabel(rev) }) }}</template>
+              <template v-else>{{ actionLabel(rev) }}</template>
             </div>
           </div>
         </div>
       </NcTooltip>
 
       <NcButton v-if="hasMore" size="small" type="text" class="w-full mt-2" :loading="isLoading" @click="loadMore">
-        Load older
+        {{ $t('labels.docHistory.loadOlder') }}
       </NcButton>
     </div>
   </div>

@@ -29,11 +29,13 @@ const {
   retentionDays,
 } = useDocRevisions()
 
+const { t } = useI18n()
+
 // Banner copy for the retention window. `null` retentionDays means
 // unlimited (Enterprise / certain on-prem tiers) — render nothing.
 const retentionLabel = computed(() => {
   if (retentionDays.value === null) return ''
-  return `Versions are kept for ${retentionDays.value} day${retentionDays.value === 1 ? '' : 's'} on your plan.`
+  return t('labels.docHistory.retention', { count: retentionDays.value }, retentionDays.value)
 })
 
 interface TitleSeg {
@@ -101,7 +103,7 @@ function diffTitleSegments(prev: string, next: string): TitleSeg[] {
 // Header metadata for the viewer pane. Mirrors the doc-editor's title strip:
 // title prominently, then a subtle line with "Current version · Author" or
 // "Edited/Restored by Author on <date>".
-const headerTitle = computed(() => selectedRevisionContent.value?.title || 'Untitled')
+const headerTitle = computed(() => selectedRevisionContent.value?.title || t('general.untitled'))
 
 // When the prior revision's title differs from the selected revision's title,
 // surface the rename inline so the user can see what changed at this step
@@ -116,9 +118,9 @@ const titleSegments = computed<TitleSeg[]>(() => {
 const headerSubtitle = computed(() => {
   const rev = selectedRevisionContent.value
   if (!rev) return ''
-  const author = rev.created_by_display_name ?? rev.created_by_email ?? 'Unknown'
+  const author = rev.created_by_display_name ?? rev.created_by_email ?? t('general.unknown')
   const isCurrent = revisions.value[0]?.id === rev.id
-  if (isCurrent) return `Current version · ${author}`
+  if (isCurrent) return t('labels.docHistory.currentVersion', { author })
 
   const when = rev.created_at
     ? new Date(rev.created_at).toLocaleString(undefined, {
@@ -126,9 +128,13 @@ const headerSubtitle = computed(() => {
         timeStyle: 'short',
       })
     : ''
-  const verb =
-    rev.source === DocRevisionSource.RESTORE ? 'Restored' : rev.source === DocRevisionSource.MANUAL ? 'Saved' : 'Edited'
-  return `${verb} by ${author} · ${when}`
+  const key =
+    rev.source === DocRevisionSource.RESTORE
+      ? 'labels.docHistory.savedBy.restored'
+      : rev.source === DocRevisionSource.MANUAL
+      ? 'labels.docHistory.savedBy.saved'
+      : 'labels.docHistory.savedBy.edited'
+  return t(key, { author, when })
 })
 
 const hasChanges = computed(() => diffChangeCount.value > 0)
@@ -172,16 +178,16 @@ function onClose() {
 async function onRestore() {
   if (!selectedRevisionId.value) return
   showWarningModal({
-    title: 'Restore this version?',
-    content: 'Your current version will be saved in history before restoring.',
-    okText: 'Restore',
+    title: t('labels.docHistory.restoreConfirmTitle'),
+    content: t('labels.docHistory.restoreConfirmContent'),
+    okText: t('general.restore'),
     showCancelBtn: true,
     okCallback: async () => {
       const id = selectedRevisionId.value
       if (!id) return
       const ok = await restoreRevision(id)
       if (ok) {
-        message.toast('Restored to selected version')
+        message.toast(t('labels.docHistory.restored'))
         emit('update:visible', false)
       }
     },
@@ -217,10 +223,9 @@ async function onRestore() {
           <div class="flex items-center justify-center w-14 h-14 rounded-full bg-nc-bg-gray-light mb-4">
             <GeneralIcon icon="ncHistory" class="text-nc-content-gray-subtle w-7 h-7" />
           </div>
-          <span class="text-base font-medium text-nc-content-gray">Select a version to preview</span>
+          <span class="text-base font-medium text-nc-content-gray">{{ $t('labels.docHistory.previewEmptyTitle') }}</span>
           <span class="text-sm text-nc-content-gray-muted mt-2 leading-relaxed max-w-[380px]">
-            Pick one from the list on the right to see the page as it was at that point. Changes against the current version are
-            highlighted inline.
+            {{ $t('labels.docHistory.previewEmptySubtitle') }}
           </span>
         </div>
         <div v-else class="max-w-[772px] mx-auto px-10 py-8">
@@ -246,7 +251,7 @@ async function onRestore() {
       <div class="nc-doc-history-pane w-80 flex-none flex flex-col border-l-1 border-nc-border-gray-medium bg-nc-bg-default">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
-          <span class="font-semibold text-base text-nc-content-gray">Version history</span>
+          <span class="font-semibold text-base text-nc-content-gray">{{ $t('labels.docHistory.title') }}</span>
           <NcButton size="xsmall" type="text" data-testid="nc-doc-history-close-btn" @click="onClose">
             <GeneralIcon icon="close" />
           </NcButton>
@@ -296,7 +301,7 @@ async function onRestore() {
             data-testid="nc-doc-history-restore-btn"
             @click="onRestore"
           >
-            Restore
+            {{ $t('general.restore') }}
           </NcButton>
         </div>
       </div>

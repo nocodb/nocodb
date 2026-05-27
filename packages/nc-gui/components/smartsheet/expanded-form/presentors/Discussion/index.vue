@@ -3,22 +3,48 @@
 
 const props = defineProps<{
   isUnsavedDuplicatedRecordExist: boolean
+  /** Force-hide the right-side sidebar (fields summary) regardless of the
+   * user's commentsDrawer preference. Used by the EE docked panel at narrow
+   * widths. */
+  hideSidebar?: boolean
+  /** Render the sidebar's fields in compact mode. */
+  compactMode?: boolean
 }>()
 
 const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordExist')
 
 /* stores */
 
-const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, hasMoreAudits, loadMoreAudits } =
-  useExpandedFormStoreOrThrow()
+const {
+  saveComment,
+  commentsDrawer,
+  isNew,
+  audits,
+  comments,
+  auditCommentGroups,
+  hasMoreAudits,
+  loadMoreAudits,
+  primaryKey,
+  resetAuditPages,
+} = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
+const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
+
+// Audits accumulate via unshift() in the store and are only reset by explicit
+// callers. The legacy Sidebar/Audits.vue watches primaryKey for this; mirror
+// the same here so switching rows in the docked panel's Discussion mode shows
+// the new row's history instead of the previous row's.
+watch(primaryKey, () => {
+  resetAuditPages()
+})
+
 /* flags */
 
-const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
+const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 onMounted(() => {
   scrollToBottom()
@@ -78,12 +104,12 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="w-[680px] max-w-full flex-grow flex flex-col px-6 2xl:px-0">
+      <div class="w-[680px] max-w-full flex-grow flex flex-col pl-3 pr-6 2xl:px-0">
         <div
           class="w-full h-0 flex-grow ml-15.8 rtl:(mr-15.8 ml-0 border-l-0 border-r-1) border-l-1 border-nc-border-gray-dark"
         />
       </div>
-      <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
+      <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col pl-3 pr-6 2xl:px-0">
         <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-nc-border-gray-dark relative">
           <NcButton
             size="small"
@@ -96,7 +122,7 @@ export default {
         </div>
       </div>
       <div class="w-[680px] max-w-full pb-4">
-        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-6 2xl:px-0">
+        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full pl-3 pr-6 2xl:px-0">
           <template v-if="group.type === 'audit'">
             <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
           </template>
@@ -106,7 +132,7 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('commentEdit')"
-          class="w-full border-t border-nc-border-gray-medium px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
+          class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
         >
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
@@ -124,7 +150,7 @@ export default {
             @keydown.enter.exact.prevent="handleCreatingNewComment"
           />
         </div>
-        <div v-else class="w-full px-6 2xl:px-0">
+        <div v-else class="w-full pl-3 pr-6 2xl:px-0">
           <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-nc-border-gray-dark" />
         </div>
 
@@ -133,12 +159,14 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-default h-full xs:hidden rounded-br-2xl flex-shrink-0"
+      :style="{ width: `${sidebarWidth}px` }"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper />
+      <div class="nc-sidebar-resize-handle" @mousedown.prevent="onResizeStart" />
+      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :compact-mode="compactMode" />
     </div>
   </div>
 </template>
@@ -155,5 +183,12 @@ export default {
   &::placeholder {
     @apply !text-gray-400;
   }
+}
+
+.nc-sidebar-resize-handle {
+  @apply absolute left-0 top-0 h-full w-1 cursor-col-resize z-50 transition-colors;
+}
+.nc-sidebar-resize-handle:hover {
+  @apply bg-nc-border-gray-medium;
 }
 </style>

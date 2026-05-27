@@ -2,24 +2,13 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { ExpandedFormMode } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { useStorage } from '@vueuse/core'
 
 const panelStore = useExpandedFormPanelOrThrow()
 
-const {
-  isOpen,
-  activeRow,
-  activeRowId,
-  activeRowState,
-  panelWidth,
-  isLoading,
-  isFullscreen,
-  activityExpanded,
-  activeActivityTab,
-  hasPrev,
-  hasNext,
-} = panelStore
+const { isOpen, activeRow, activeRowId, activeRowState, panelWidth, isLoading, isFullscreen, hasPrev, hasNext } = panelStore
 
-const { closePanel, setFullscreen, navigatePrev, navigateNext, toggleActivity } = panelStore
+const { closePanel, setFullscreen, navigatePrev, navigateNext } = panelStore
 
 const { requestSwitch } = panelStore
 
@@ -27,15 +16,13 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const { appInfo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const panelRef = ref<HTMLElement>()
 
@@ -45,9 +32,39 @@ const isResizing = ref(false)
 const resizeStartX = ref(0)
 const resizeStartWidth = ref(0)
 
-const MIN_WIDTH = 320
+// Tuned so the header's icon row (prev / next, save, 3-tab mode selector,
+// sidebar toggle, more, fullscreen, close) all stay visible — the title
+// shrinks to zero before this floor is reached.
+const MIN_WIDTH = 360
 
-const getMaxWidth = () => {
+// Below this width the docked panel renders only the main pane (no sidebar);
+// at or above this width — or anytime fullscreen — the presenter's right-side
+// drawer (comments/audits/fields) is allowed to show. The docked panel uses a
+// vertical (label-above-value) field layout, which lets us split far earlier
+// than fullscreen's horizontal layout would allow — ~280 px main + ~280 px
+// sidebar + chrome.
+const DUAL_PANE_THRESHOLD = 600
+
+const useDualPane = computed(() => isFullscreen.value || panelWidth.value >= DUAL_PANE_THRESHOLD)
+
+// Manual toggle for the sidebar in docked mode — paired with the header's
+// show/hide-sidebar button. Click in single-pane bumps the panel up to the
+// dual-pane threshold so the sidebar becomes visible; click in dual-pane
+// collapses to a single-pane-friendly width. Honors the resize handle bounds.
+const SIDEBAR_COLLAPSED_WIDTH = 480
+
+const toggleSidebar = () => {
+  if (panelWidth.value >= DUAL_PANE_THRESHOLD) {
+    panelWidth.value = SIDEBAR_COLLAPSED_WIDTH
+  } else {
+    panelWidth.value = DUAL_PANE_THRESHOLD
+  }
+}
+// Resolved once on drag start and reused throughout the drag — avoids paying
+// for a parent-chain walk + getComputedStyle on every mousemove tick.
+const resizeMaxWidth = ref(0)
+
+const resolveMaxWidth = () => {
   // The panel sits inside a `display: contents` wrapper in Smartsheet.vue
   // (kept so toggling SmartText visibility doesn't remount the panel). Such
   // a wrapper has clientWidth 0, which would clamp the panel to MIN_WIDTH
@@ -58,13 +75,13 @@ const getMaxWidth = () => {
     el = el.parentElement
   }
   const containerWidth = el?.clientWidth ?? 0
-  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.6))
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
 }
 
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
   const delta = resizeStartX.value - e.clientX
-  panelWidth.value = Math.max(MIN_WIDTH, Math.min(getMaxWidth(), resizeStartWidth.value + delta))
+  panelWidth.value = Math.max(MIN_WIDTH, Math.min(resizeMaxWidth.value, resizeStartWidth.value + delta))
 }
 
 const onResizeEnd = () => {
@@ -79,6 +96,7 @@ const onResizeStart = (e: MouseEvent) => {
   isResizing.value = true
   resizeStartX.value = e.clientX
   resizeStartWidth.value = panelWidth.value
+  resizeMaxWidth.value = resolveMaxWidth()
   document.body.style.cursor = 'col-resize'
 
   window.addEventListener('mousemove', onResizeMove)
@@ -113,7 +131,6 @@ const {
   save: _save,
   formatSaveError,
   loadComments,
-  loadAudits,
   clearColumns,
   baseRoles,
   fields,
@@ -144,32 +161,26 @@ commentsDrawer.value = true
 
 const route = useRoute()
 
-// Deep-links like ?rowId=2&commentId=… should surface the Comments tab so the
-// linked comment is visible. SidebarComments handles the scroll/highlight +
-// URL cleanup itself, but only once it's actually mounted — which happens
-// only when activityExpanded is true and the tab is 'comments'.
-// Watch commentId too so clicking another notification while the panel is
-// already open also flips to Comments.
+// Deep-links like ?rowId=2&commentId=… should open the sidebar's Comments tab
+// so the linked comment is visible. The sidebar reads `isExpandedFormCommentMode`
+// from the config store to decide its initial tab; SidebarComments handles the
+// scroll/highlight + URL cleanup itself once it mounts. In single-pane state the
+// sidebar isn't rendered — bump the panel to dual-pane width so it becomes
+// visible.
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 watch(
   [isOpen, () => route.query.commentId],
   ([open, commentId]) => {
     if (open && commentId) {
-      activeActivityTab.value = 'comments'
-      activityExpanded.value = true
+      isExpandedFormCommentMode.value = true
+      if (!isFullscreen.value && panelWidth.value < DUAL_PANE_THRESHOLD) {
+        panelWidth.value = DUAL_PANE_THRESHOLD
+      }
     }
   },
   { immediate: true },
 )
-
-watch([() => activityExpanded.value, () => activeActivityTab.value], async ([expanded, tab]) => {
-  if (!isOpen.value || !expanded || !primaryKey.value) return
-
-  if (tab === 'comments') {
-    await loadComments(primaryKey.value, false)
-  } else if (tab === 'audits') {
-    await loadAudits(primaryKey.value, false)
-  }
-})
 
 const isSaveDisabled = computed(() => {
   // Enable save whenever there's anything to commit: explicit cell edits OR
@@ -219,10 +230,6 @@ watch(
       await nextTick()
       clearColumns()
     }
-
-    if (activityExpanded.value && activeActivityTab.value === 'audits') {
-      await loadAudits(primaryKey.value ?? undefined, false)
-    }
   },
   { immediate: true },
 )
@@ -256,7 +263,6 @@ const save = async (): Promise<boolean> => {
 // Save button is visible — the user has to manually find the Fields tab before
 // they can change anything.
 const onAfterDuplicate = () => {
-  activityExpanded.value = false
   activeViewMode.value = ExpandedFormMode.FIELD
 }
 
@@ -576,11 +582,42 @@ const panelClasses = computed(() => {
   return base
 })
 
-const showActivity = computed(() => {
-  return !isNew.value && isUIAllowed('commentList', baseRoles.value) && !isPublic.value && !isSqlView.value
+// Every EE build (licensed + unlicensed on-prem + cloud) gets the unified
+// Fields / File / Discussion presenter — unlicensed users see the tabs and
+// hit the upgrade modal on click. CE has no File/Discussion modes and falls
+// through to the Fields-only body below. Kept in sync with ViewModeSelector's
+// own `isEeUI` gate so the tabs and the body unlock together.
+const useEePresenter = computed(() => isEeUI)
+
+const searchQuery = ref('')
+
+const hideBlankFields = ref(false)
+
+// Compact view — when on, fields render as label + plain text (no input box).
+// Persisted across sessions because it's a viewing preference, not transient
+// state.
+const isCompactMode = useStorage('nc-expanded-form-panel-compact', false)
+
+const showFieldFilters = computed(() => {
+  if (isLoading.value) return false
+  // New-record forms have no values to search or hide-blank against — the
+  // strip would just truncate the form to nothing or be a no-op.
+  if (isNew.value) return false
+  return activeViewMode.value === ExpandedFormMode.FIELD
 })
 
-const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.value.ee)
+watch(isOpen, (v) => {
+  if (!v) {
+    searchQuery.value = ''
+    hideBlankFields.value = false
+  }
+})
+
+// Row navigation resets the per-record search; hide-blank is a viewing
+// preference that persists across rows in the same panel session.
+watch(activeRowId, () => {
+  searchQuery.value = ''
+})
 </script>
 
 <template>
@@ -626,25 +663,9 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
         </span>
         <div v-else class="flex-1" />
 
-        <!-- Save -->
-        <NcTooltip
-          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
-          :title="isNew ? $t('general.create') : $t('general.save')"
-        >
-          <NcButton
-            v-e="['c:row-expand-panel:save']"
-            :disabled="isSaveDisabled"
-            :loading="isSaving"
-            class="!px-1"
-            data-testid="nc-expanded-form-save"
-            type="primary"
-            size="xs"
-            @click="save"
-          >
-            <GeneralIcon icon="save" class="w-4 h-4" />
-          </NcButton>
-        </NcTooltip>
-
+        <!-- Prev / Next — sits adjacent to the title since these navigate
+             which record the title refers to; grouping them avoids Save
+             interrupting the record-navigator cluster. -->
         <div v-if="!isNew" class="flex items-center">
           <NcTooltip :title="$t('labels.prevRow')">
             <NcButton
@@ -672,59 +693,65 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
           </NcTooltip>
         </div>
 
-        <!-- EE fullscreen: Fields / Attachments / Discussion. CE fullscreen
-             uses the activity pill below instead. -->
+        <!-- Save — boundary between record navigation and mode switcher.
+             Visually prominent (primary type, blue when there are unsaved
+             changes), so position is less load-bearing than visual state. -->
+        <NcTooltip
+          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+          :title="isNew ? $t('general.create') : $t('general.save')"
+        >
+          <NcButton
+            v-e="['c:row-expand-panel:save']"
+            :disabled="isSaveDisabled"
+            :loading="isSaving"
+            class="!px-1"
+            data-testid="nc-expanded-form-save"
+            type="primary"
+            size="xs"
+            @click="save"
+          >
+            <GeneralIcon icon="save" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
+
+        <!-- EE: Fields / File / Discussion mode selector — shown in both
+             side-panel and fullscreen. CE falls through to the legacy
+             fields-only body. -->
         <SmartsheetExpandedFormViewModeSelector
-          v-if="useEeFullscreenSelector"
+          v-if="useEePresenter"
           v-model="activeViewMode"
           :view="view"
           class="nc-expanded-form-mode-switch"
         />
 
-        <!-- Activity pill — side-panel mode in any edition, plus CE fullscreen. -->
-        <div
-          v-if="showActivity && !useEeFullscreenSelector"
-          class="nc-panel-mode-selector flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
-        >
-          <NcTooltip :title="$t('objects.fields')">
-            <div
-              v-e="['c:row-expand-panel:mode:fields']"
-              class="nc-panel-mode-tab"
-              :class="{ active: !activityExpanded }"
-              @click="activityExpanded = false"
-            >
-              <GeneralIcon icon="menu" class="nc-panel-mode-tab-icon" />
-            </div>
-          </NcTooltip>
-          <NcTooltip :title="$t('general.comments')">
-            <div
-              v-e="['c:row-expand-panel:mode:comments']"
-              class="nc-panel-mode-tab"
-              :class="{ active: activityExpanded && activeActivityTab === 'comments' }"
-              data-testid="nc-expanded-form-panel-comments-toggle"
-              @click="toggleActivity('comments')"
-            >
-              <GeneralIcon icon="messageCircle" class="nc-panel-mode-tab-icon" />
-            </div>
-          </NcTooltip>
-          <NcTooltip :title="$t('labels.revisionHistory')">
-            <div
-              v-e="['c:row-expand-panel:mode:audits']"
-              class="nc-panel-mode-tab"
-              :class="{ active: activityExpanded && activeActivityTab === 'audits' }"
-              data-testid="nc-expanded-form-panel-audits-toggle"
-              @click="toggleActivity('audits')"
-            >
-              <GeneralIcon icon="audit" class="nc-panel-mode-tab-icon" />
-            </div>
-          </NcTooltip>
-        </div>
+        <!-- Show / Hide sidebar — only meaningful in docked mode (fullscreen
+             always renders the dual pane). Single-pane state bumps to the
+             dual-pane threshold; dual-pane state collapses to a single-pane
+             width. Mirrors the left-sidebar toggle pattern. -->
+        <NcTooltip v-if="!isFullscreen" :title="useDualPane ? $t('title.hideSidebar') : $t('title.showSidebar')">
+          <NcButton
+            v-e="[`c:row-expand-panel:${useDualPane ? 'hide' : 'show'}-sidebar`]"
+            size="xs"
+            type="text"
+            data-testid="nc-expanded-form-panel-toggle-sidebar"
+            class="!px-1"
+            @click="(e) => { toggleSidebar(); (e.currentTarget as HTMLElement)?.blur?.() }"
+          >
+            <GeneralIcon
+              icon="sidebar"
+              class="w-3.5 h-3.5 transform scale-x-[-1]"
+              :class="useDualPane ? '!text-nc-content-brand' : ''"
+            />
+          </NcButton>
+        </NcTooltip>
 
         <div class="flex items-center gap-1">
           <SmartsheetExpandedFormMoreOptionsMenu
+            v-model:compact-mode="isCompactMode"
             :is-loading="isLoading"
             :view="view"
             :row-id="activeRowId ?? undefined"
+            :show-compact-toggle="!isFullscreen"
             compact
             @after-delete="closePanel"
             @duplicate-applied="onAfterDuplicate"
@@ -756,54 +783,73 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
         </div>
       </div>
 
-      <div class="flex-1 min-h-0 overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-hidden flex flex-col">
         <div v-if="isLoading" class="flex items-center justify-center h-full">
           <GeneralLoader />
         </div>
 
-        <!-- EE fullscreen: presentor-driven (Fields / Attachments / Discussion) -->
-        <template v-else-if="useEeFullscreenSelector">
-          <SmartsheetExpandedFormPresentorsFields
-            v-if="activeViewMode === ExpandedFormMode.FIELD"
-            :row-id="primaryKey"
-            :fields="fields ?? []"
-            :hidden-fields="hiddenFields"
-            :is-unsaved-duplicated-record-exist="false"
-            :is-unsaved-form-exist="false"
-            :is-loading="isLoading"
-            :is-saving="isSaving"
-          />
-          <SmartsheetExpandedFormPresentorsAttachments
-            v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
-            :row-id="primaryKey"
-            :view="view"
-            :fields="fields ?? []"
-            :hidden-fields="hiddenFields"
-            :is-unsaved-duplicated-record-exist="false"
-            :is-unsaved-form-exist="false"
-            :is-loading="isLoading"
-            :is-saving="isSaving"
-          />
-          <SmartsheetExpandedFormPresentorsDiscussion
-            v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
-            :is-unsaved-duplicated-record-exist="false"
-          />
-        </template>
-
-        <!-- Side-panel (any edition) or CE fullscreen — activity-pill driven.
-             Same content components in both layouts; only width differs. -->
         <template v-else>
-          <div class="h-full overflow-y-auto nc-scrollbar-thin">
-            <template v-if="activityExpanded && activeActivityTab === 'comments'">
-              <SmartsheetExpandedFormSidebarComments />
+          <!-- Field filters strip — shown in Fields mode, above both EE & CE
+               branches. -->
+          <SmartsheetExpandedFormFieldFilters
+            v-if="showFieldFilters"
+            v-model:search-query="searchQuery"
+            v-model:hide-blank-fields="hideBlankFields"
+            :is-new="isNew"
+            telemetry-prefix="c:row-expand-panel"
+            compact
+          />
+
+          <!-- Presenter body wrapper. flex-1 + min-h-0 bounds the presenter's
+               own `h-full` so it doesn't add up against the strip and push the
+               comments composer past the panel's bottom. -->
+          <div class="flex-1 min-h-0 overflow-hidden">
+            <!-- EE: presentor-driven (Fields / File / Discussion) for both
+                 side-panel and fullscreen. Side-panel passes vertical / compact
+                 / hide-sidebar so the presenters fit the narrow layout. -->
+            <template v-if="useEePresenter">
+              <SmartsheetExpandedFormPresentorsFields
+                v-if="activeViewMode === ExpandedFormMode.FIELD"
+                :row-id="primaryKey"
+                :fields="fields ?? []"
+                :hidden-fields="hiddenFields"
+                :is-unsaved-duplicated-record-exist="false"
+                :is-unsaved-form-exist="false"
+                :is-loading="isLoading"
+                :is-saving="isSaving"
+                :search-query="searchQuery"
+                :hide-blank-fields="hideBlankFields"
+                :hide-sidebar="!useDualPane"
+                :force-vertical-mode="!isFullscreen"
+                :compact-mode="!isFullscreen && isCompactMode"
+              />
+              <SmartsheetExpandedFormPresentorsAttachments
+                v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
+                :row-id="primaryKey"
+                :view="view"
+                :fields="fields ?? []"
+                :hidden-fields="hiddenFields"
+                :is-unsaved-duplicated-record-exist="false"
+                :is-unsaved-form-exist="false"
+                :is-loading="isLoading"
+                :is-saving="isSaving"
+                :hide-sidebar="!useDualPane"
+                :compact-mode="!isFullscreen && isCompactMode"
+                compact-layout
+              />
+              <SmartsheetExpandedFormPresentorsDiscussion
+                v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
+                :is-unsaved-duplicated-record-exist="false"
+                :hide-sidebar="!useDualPane"
+                :compact-mode="!isFullscreen && isCompactMode"
+              />
             </template>
-            <template v-else-if="activityExpanded && activeActivityTab === 'audits'">
-              <SmartsheetExpandedFormSidebarAudits />
-            </template>
-            <!-- CE fullscreen uses the wide PresentorsFields layout for the
-                 Fields tab; side-panel mode uses the compact FieldsColumns. -->
+
+            <!-- CE: Fields only. The presenter renders its own sidebar with
+                 Comments + History tabs; in single-pane state the sidebar is
+                 hidden and reachable via the header's show-sidebar toggle. -->
             <SmartsheetExpandedFormPresentorsFields
-              v-else-if="isFullscreen"
+              v-else
               :row-id="primaryKey"
               :fields="fields ?? []"
               :hidden-fields="hiddenFields"
@@ -811,14 +857,11 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
               :is-unsaved-form-exist="false"
               :is-loading="isLoading"
               :is-saving="isSaving"
-            />
-            <SmartsheetExpandedFormPresentorsFieldsColumns
-              v-else
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-loading="isLoading"
-              force-vertical-mode
-              class="nc-panel-fields-compact"
+              :search-query="searchQuery"
+              :hide-blank-fields="hideBlankFields"
+              :hide-sidebar="!useDualPane"
+              :force-vertical-mode="!isFullscreen"
+              :compact-mode="!isFullscreen && isCompactMode"
             />
           </div>
         </template>
@@ -846,6 +889,14 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
   &:not(.active) {
     @apply hover:text-nc-content-gray-extreme;
   }
+}
+
+.nc-expanded-form-search-input,
+.nc-expanded-form-search-input:focus,
+.nc-expanded-form-search-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 /* Edge tabs need no side border. :first-child / :last-child on the tab itself
@@ -914,6 +965,17 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
 </style>
 
 <style lang="scss">
+/* Slightly smaller checkbox inside the field-filters strip — NcCheckbox's
+   `size` prop is unused, so override the hardcoded 16px (h-4/w-4) with 14px. */
+.nc-expanded-form-field-filters {
+  .nc-checkbox > .ant-checkbox,
+  .nc-checkbox > .ant-checkbox > .ant-checkbox-input,
+  .nc-checkbox > .ant-checkbox::after,
+  .nc-checkbox > .ant-checkbox > .ant-checkbox-inner {
+    @apply !h-3.5 !w-3.5;
+  }
+}
+
 /* Thinner, subtler grid scrollbar when panel is open (panel is sibling of grid's parent) */
 :has(> .nc-expanded-form-panel) .custom-scrollbar-track.vertical {
   width: 4px;
@@ -959,9 +1021,14 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
       }
 
       svg.nc-icon:not(.invisible):not(.nc-column-context-menu):not(.nc-column-lock-icon) {
-        @apply !w-3.5 !h-3.5 !mx-0;
+        @apply !w-3 !h-3 !mx-0;
       }
     }
+  }
+
+  /* Tighten label-to-input gap in vertical/compact mode (label container has mb-2 by default) */
+  .nc-expanded-form-row .nc-expanded-cell > :first-child {
+    @apply !mb-1;
   }
 }
 
@@ -1022,8 +1089,38 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && appInfo.val
 .nc-expanded-form-panel .nc-data-cell {
   box-shadow: none !important;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):hover {
+  /* Skip borderless cell types — these widgets render no input chrome (just
+     icons / buttons / barcodes / image strips), so the hover shadow ring
+     reads as wrong. Each :has() targets the actual descendant class set by
+     the cell component itself. */
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-data-cell-compact):not(:has(.form-attachment-cell)):not(
+      :has(.nc-cell-button)
+    ):not(:has(.barcode-wrapper)):not(:has(.nc-qrcode-container)):not(:has(.nc-cell-longtext-ai .nc-expanded-form-open)):hover {
     box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.12) !important;
   }
+}
+
+/* Compact view — strip every visible chrome layer (border / background /
+   shadow) at all states. Cells stay editable; the inner widget shows its own
+   feedback (text cursor, picker overlay, dropdown). Uses `border: none` so
+   the 1px transparent border from `!border-1 !border-nc-border-brand` doesn't
+   eat layout space. */
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact,
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact:hover,
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact:focus-within {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Compact view — shrink the label text by 1px (12px -> 11px) and force
+   uppercase. The existing rule chains through .nc-panel-fields-compact >
+   .nc-expanded-cell-header > .nc-cell-name-wrapper > .name.truncate > span
+   (specificity 5 classes + 1 element), so beat it by adding .nc-row-compact
+   AND keeping the full chain. */
+.nc-panel-fields-compact .nc-row-compact .nc-expanded-cell-header .nc-cell-name-wrapper .name.truncate span,
+.nc-panel-fields-compact .nc-row-compact .nc-expanded-cell-header .nc-virtual-cell-name-wrapper .name.truncate span {
+  font-size: 11px !important;
+  text-transform: uppercase !important;
 }
 </style>

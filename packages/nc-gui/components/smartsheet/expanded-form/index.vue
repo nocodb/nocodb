@@ -1015,7 +1015,7 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
+      <div ref="wrapper" class="flex-grow w-full min-h-0">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <div v-if="isMobileMode && mobileDiscussionMode && showMobileDiscussionToggle" class="h-full">
             <SmartsheetExpandedFormSidebar />

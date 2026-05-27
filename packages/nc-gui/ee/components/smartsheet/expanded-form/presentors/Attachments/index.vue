@@ -8,6 +8,17 @@ const props = defineProps<{
   hiddenFields: ColumnType[]
   view?: ViewType
   isUnsavedDuplicatedRecordExist: boolean
+  /** Force-hide the right-side sidebar (fields / comments / audits) regardless
+   * of the user's commentsDrawer preference. Used by the EE docked panel at
+   * narrow widths. */
+  hideSidebar?: boolean
+  /** Render the sidebar's Fields tab in compact mode. */
+  compactMode?: boolean
+  /** Side-panel layout: preview on top, horizontal thumbnail strip at the
+   * bottom (with a '+' tile to add files), field selector as an icon-only
+   * dropdown in the top-left. When false (fullscreen), the original
+   * vertical rail + preview layout is used. */
+  compactLayout?: boolean
 }>()
 
 const { fields, hiddenFields, isUnsavedDuplicatedRecordExist } = toRefs(props)
@@ -24,9 +35,11 @@ const { isUIAllowed } = useRoles()
 
 const viewsStore = useViewsStore()
 
+const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
+
 /* flags */
 
-const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
+const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
@@ -208,6 +221,43 @@ export default {
               </div>
             </div>
           </template>
+          <template v-else-if="compactLayout">
+            <!-- Side-panel layout: preview on top, horizontal strip at bottom -->
+            <div class="flex-1 flex flex-col relative w-full">
+              <!-- Field selector — always present so the user knows which field
+                   they're viewing; behaves as a single-item indicator when
+                   only one attachment field exists. z-30 keeps it above the
+                   carousel's full-height nav arrows (z-20) so clicks land on
+                   the dropdown, not the left arrow. -->
+              <div class="absolute top-3 left-3 z-30">
+                <NcDropdownSelect
+                  v-model="selectedFieldId"
+                  class="nc-files-current-field-dropdown"
+                  :items="attachmentFields.map((field) => ({ label: field.title || field.id!, value: field.id! }))"
+                  overlay-class-name="w-[288px]"
+                >
+                  <NcTooltip :title="selectedField?.title" placement="bottom">
+                    <button
+                      class="nc-files-field-icon-btn flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 backdrop-blur-md border-1 border-white/20 hover:bg-white/20 transition-all"
+                    >
+                      <GeneralIcon icon="cellAttachment" class="w-4 h-4 text-white" />
+                    </button>
+                  </NcTooltip>
+                </NcDropdownSelect>
+              </div>
+              <div class="flex-1 min-h-0 overflow-hidden">
+                <SmartsheetExpandedFormPresentorsAttachmentsInlinePreviewCarousel
+                  v-model:active-index="activeAttachmentIndex"
+                  :attachments="selectedFieldValue"
+                  :is-edit-allowed="!readOnly"
+                  @download="(att) => refAttachmentCell?.downloadAttachment?.(att)"
+                  @rename="(att, idx) => refAttachmentCell?.renameAttachment?.(att, idx)"
+                  @remove="(idx) => refAttachmentCell?.removeAttachment?.(idx)"
+                  @add-file="openFilePicker()"
+                />
+              </div>
+            </div>
+          </template>
           <template v-else>
             <SmartsheetExpandedFormPresentorsAttachmentsPreviewBar
               v-model:active-attachment-index="activeAttachmentIndex"
@@ -226,12 +276,14 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight h-full xs:hidden rounded-br-2xl flex-shrink-0"
+      :style="{ width: `${sidebarWidth}px` }"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar show-fields-tab />
+      <div class="nc-sidebar-resize-handle" @mousedown.prevent="onResizeStart" />
+      <SmartsheetExpandedFormSidebar show-fields-tab :compact-mode="compactMode" />
     </div>
   </div>
 </template>
@@ -322,5 +374,12 @@ export default {
 }
 :deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
   @apply px-0;
+}
+
+.nc-sidebar-resize-handle {
+  @apply absolute left-0 top-0 h-full w-1 cursor-col-resize z-50 transition-colors;
+}
+.nc-sidebar-resize-handle:hover {
+  @apply bg-nc-border-gray-medium;
 }
 </style>

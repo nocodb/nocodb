@@ -5,9 +5,31 @@ import {
   PermissionEntity,
   PermissionKey,
   type TableType,
+  UITypes,
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
+import { fieldMatchesSearch, isBlankFieldValue } from './searchUtils'
+
+// Cells whose editor paints a format hint (e.g. "YYYY-MM-DD") as its own
+// placeholder when empty — skip '--' overlay for these so the two don't
+// stack. Their *readonly* variant has no such hint (see
+// cell/Date/Readonly.vue), so '--' is still shown when the cell is rendered
+// read-only — see showCompactEmptyHint below.
+const COMPACT_FORMAT_HINT_UIDTS = new Set<string>([UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year])
+
+// Cells that always paint their own visible empty-state UI in both editable
+// and readonly modes — '--' would stack on top, so always skip:
+//   Attachment → upload prompt / file list
+//   Rating     → zero filled stars
+//   Checkbox   → unchecked indicator
+//   Button     → button label / icon
+const COMPACT_ALWAYS_SKIP_UIDTS = new Set<string>([
+  UITypes.Attachment,
+  UITypes.Rating,
+  UITypes.Checkbox,
+  UITypes.Button,
+])
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -15,6 +37,11 @@ const props = defineProps<{
   isLoading: boolean
   showColCallback?: (col: ColumnType) => boolean
   isHiddenCol?: boolean
+  /** Free-text query. fieldMatchesSearch normalizes internally so callers can pass raw input. */
+  searchQuery?: string
+  hideBlankFields?: boolean
+  /** When true, render label + plain text instead of label + bordered input */
+  compactMode?: boolean
 }>()
 
 const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
@@ -40,6 +67,16 @@ const { getMeta } = useMetas()
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
+
+// In compact view, show '--' for an empty cell unless the cell already
+// renders its own empty-state UI. Format-hint cells (date/time) only paint
+// their hint in the editable variant — keep '--' when they mount read-only.
+const showCompactEmptyHint = (col: ColumnType, isAllowed: boolean) => {
+  if (!col.uidt) return true
+  if (COMPACT_ALWAYS_SKIP_UIDTS.has(col.uidt)) return false
+  if (!COMPACT_FORMAT_HINT_UIDTS.has(col.uidt)) return true
+  return readOnly.value || !isAllowed || isSyncedColumn(col) || showReadonlyColumnTooltip(col)
+}
 
 /**
  * Check if an LTAR column points back to the parent table that opened this blueprint form.
@@ -114,7 +151,11 @@ const getRelatedTableName = (col: ColumnType): string => {
 }
 
 const showCol = (col: ColumnType) => {
-  return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+  const baseVisible = props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+  if (!baseVisible) return false
+  if (!fieldMatchesSearch(col, props.searchQuery ?? '', _row.value?.row)) return false
+  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title])) return false
+  return true
 }
 
 const revertLocalOnlyChanges = (col: string) => {
@@ -133,7 +174,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
     v-for="col of fields"
     v-show="showCol(col)"
     :key="col.title"
-    :class="`nc-expand-col-${col.title}`"
+    :class="[`nc-expand-col-${col.title}`, { 'nc-row-compact': compactMode }]"
     :col-id="col.id"
     :data-testid="`nc-expand-col-${col.title}`"
     class="nc-expanded-form-row w-full"
@@ -212,14 +253,26 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
         >
           <template #default="{ isAllowed }">
             <SmartsheetDivDataCell
-              class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
-              :class="{
-                'w-full': props.forceVerticalMode,
-                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
-                  showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
-                '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
-              }"
+              class="flex-1 flex relative"
+              :class="[
+                compactMode
+                  ? 'min-h-4 items-start !bg-transparent pl-1 pr-1 -mt-0.5'
+                  : 'min-h-8 items-center bg-nc-bg-default px-1',
+                {
+                  'w-full': props.forceVerticalMode,
+                  '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
+                    showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
+                  '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
+                  'nc-data-cell-compact': compactMode,
+                },
+              ]"
             >
+              <span
+                v-if="compactMode && col.title && isBlankFieldValue(_row.row[col.title]) && showCompactEmptyHint(col, isAllowed)"
+                class="nc-compact-empty-placeholder absolute left-1 inset-y-0 z-10 flex items-center text-nc-content-gray-muted text-[13px] pointer-events-none select-none"
+              >
+                --
+              </span>
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(col)"
                 v-model="_row.row[col.title]"
@@ -299,7 +352,9 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
   @apply !rounded-lg;
   transition: all 0.3s;
 
-  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
+  &:not(:focus-within):not(.nc-data-cell-compact):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(
+      .nc-virtual-cell-button
+    ) {
     @apply !border-1;
 
     &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
@@ -327,7 +382,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
     @apply !border-nc-border-gray-medium;
   }
 
-  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-data-cell-compact) {
     @apply !shadow-selected;
   }
 
@@ -387,7 +442,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
   @apply !border-nc-border-brand !border-1;
 }
 
-.nc-data-cell:focus-within {
+.nc-data-cell:focus-within:not(.nc-data-cell-compact) {
   @apply !border-1 !border-nc-border-brand;
 }
 
@@ -405,5 +460,47 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
 
 :deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
   @apply px-0;
+}
+
+/* Compact view — strip vertical padding from the inner widget so rows pack
+   tighter. Horizontal padding (px-2) is preserved so values still have left
+   breathing room. Targets the textarea/input/select widgets that have their
+   own hardcoded !py-1 (e.g. cell/Text/index.vue). */
+:deep(.nc-data-cell-compact textarea),
+:deep(.nc-data-cell-compact input),
+:deep(.nc-data-cell-compact .ant-select-selector),
+:deep(.nc-data-cell-compact .nc-cell-field) {
+  @apply !py-0 !pl-0;
+}
+
+/* Compact view — make the inner widgets' background transparent so the
+   absolute-positioned empty-state '--' placeholder behind them remains
+   visible. */
+:deep(.nc-data-cell-compact textarea),
+:deep(.nc-data-cell-compact input) {
+  background: transparent !important;
+}
+
+/* Compact view — flatten the field label too: remove its own pt-0.5 (added by
+   SmartsheetHeaderCell in expanded-form mode) and the label-container's mb-2
+   so the label sits flush with the value below. */
+.nc-row-compact .nc-expanded-cell-header {
+  @apply !py-0;
+}
+.nc-row-compact .nc-expanded-cell > :first-child {
+  @apply !mb-0;
+}
+
+/* Compact view — drop the field-type icon (T / calendar / link / etc.) from
+   the label line so the label text starts at the wrapper edge. */
+.nc-row-compact :deep(.nc-cell-icon),
+.nc-row-compact :deep(.nc-virtual-cell-icon) {
+  display: none !important;
+}
+
+/* Compact view — hide the empty-cell '--' placeholder once the user clicks
+   into the cell to edit. */
+.nc-data-cell-compact:focus-within .nc-compact-empty-placeholder {
+  display: none !important;
 }
 </style>

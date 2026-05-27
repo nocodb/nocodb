@@ -105,17 +105,19 @@ watch(selectedFieldId, () => {
             'preview-cell-wrapper-active': activeAttachmentIndex === index,
           }"
         >
-          <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
-            v-model:is-file-content-menu-open="isFileContentMenuOpen"
-            :attachment="attachment"
-            :selected-field="selectedField"
-            :active="activeAttachmentIndex === index"
-            :attachment-index="index"
-            class="nc-files-preview-cell"
-            :is-expanded="isExpanded"
-            @click="activeAttachmentIndex = index"
-            @expand="isExpanded = $event"
-          />
+          <NcTooltip :title="attachment.title" placement="right" :disabled="isExpanded">
+            <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
+              v-model:is-file-content-menu-open="isFileContentMenuOpen"
+              :attachment="attachment"
+              :selected-field="selectedField"
+              :active="activeAttachmentIndex === index"
+              :attachment-index="index"
+              class="nc-files-preview-cell"
+              :is-expanded="isExpanded"
+              @click="activeAttachmentIndex = index"
+              @expand="isExpanded = $event"
+            />
+          </NcTooltip>
         </div>
       </div>
     </div>

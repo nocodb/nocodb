@@ -53,6 +53,8 @@ export class RemoteImportHandler {
       ['schema', this.handleSchema.bind(this)],
       ['users', this.handleUsers.bind(this)],
       ['base', this.handleBase.bind(this)],
+      ['documents', this.handleDocuments.bind(this)],
+      ['dashboards', this.handleDashboards.bind(this)],
       ['data', this.handleData.bind(this)],
       ['link', this.handleLink.bind(this)],
       ['workspaceProgress', this.handleWorkspaceProgress.bind(this)],
@@ -234,6 +236,37 @@ export class RemoteImportHandler {
         });
 
       this.importPromises.push(p);
+    });
+  }
+
+  private handleDocuments(payload: MessagePayload) {
+    if (!payload.data?.length) return;
+
+    this.log(`Importing documents`);
+
+    this.enqueueTask(async () => {
+      await this.importService.importDocuments(this.context, {
+        user: this.user,
+        baseId: this.base.id,
+        data: payload.data,
+        req: this.req,
+      });
+    });
+  }
+
+  private handleDashboards(payload: MessagePayload) {
+    if (!payload.data?.length) return;
+
+    this.log(`Importing dashboards`);
+
+    this.enqueueTask(async () => {
+      await this.importService.importDashboards(this.context, {
+        user: this.user,
+        baseId: this.base.id,
+        data: payload.data,
+        req: this.req,
+        idMap: this.idMap,
+      });
     });
   }
 

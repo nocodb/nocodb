@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type AuditType, PlanLimitTypes } from 'nocodb-sdk'
+import { type AuditType, PlanLimitTypes, type TableType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
@@ -93,6 +93,8 @@ watch(
 
 const meta = inject(MetaInj, ref())
 
+const isSyncedTable = computed(() => !!(meta.value as TableType | undefined)?.synced)
+
 function safeJsonParse(json: string) {
   try {
     return JSON.parse(json)
@@ -100,6 +102,26 @@ function safeJsonParse(json: string) {
     return {}
   }
 }
+
+// Op types whose audit detail is a per-field change set (DATA_UPDATE family).
+const UPDATE_OP_TYPES = ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE']
+
+// On synced tables, an update that touched ONLY sync bookkeeping fields
+// (RemoteSyncedAt, SyncRunId, …) is pure sync noise — drop the whole entry so
+// the revision history only surfaces real data changes. Mixed entries still
+// render; AuditMiniItem hides their sync-system rows individually.
+const visibleAudits = computed(() => {
+  if (!isSyncedTable.value) return consolidatedAudits.value
+
+  return consolidatedAudits.value.filter((audit) => {
+    if (!UPDATE_OP_TYPES.includes(audit?.op_type)) return true
+
+    const changedKeys = Object.keys(safeJsonParse(audit.details as string)?.data ?? {})
+    if (!changedKeys.length) return true
+
+    return changedKeys.some((key) => !isSyncSystemColumnTitle(key))
+  })
+})
 
 function getLinkColumnType(audit: AuditType) {
   const details = safeJsonParse(audit.details as string)
@@ -127,7 +149,7 @@ function isV0Audit(audit: AuditType) {
     </div>
 
     <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
-      <template v-if="consolidatedAudits.length === 0">
+      <template v-if="visibleAudits.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
           <div class="text-center text-3xl text-nc-content-gray-subtle2">
             <MdiHistory />
@@ -161,7 +183,7 @@ function isV0Audit(audit: AuditType) {
         <div v-if="hasMoreAudits" class="p-3 text-center">
           <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
         </div>
-        <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
+        <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">

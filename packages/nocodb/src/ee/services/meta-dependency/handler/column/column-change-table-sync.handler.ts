@@ -210,11 +210,19 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
     // `reconcileFields` (which creates the dest col AND writes its column-
     // mapping), then doWork's resync fills the values. Keeps dest ↔ source
     // parity. Works in both specific-fields and sync-all mode.
-    if (oldTitle && (await this.sourceHasPlaceholder(sync, oldTitle))) {
+    const placeholder = oldTitle
+      ? await this.findSourcePlaceholder(sync, oldTitle)
+      : null;
+    if (placeholder?.id) {
+      // Placeholder cols inherit the deleted LTAR's per-view visibility, which
+      // for links is usually `show: false` — so pass its id via includeColIds
+      // to bypass reconcileFields' source-view visibility gate (same override
+      // the column-add handler uses for freshly-added links).
       await this.tableSyncService.reconcileFields(destContext, sync, {
         nextSelectedFields: sync.selected_fields ?? null,
         linkViewByColumn: {},
         dropHiddenInView: false,
+        includeColIds: new Set([placeholder.id]),
         req,
       });
       return;
@@ -234,18 +242,19 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
 
   /** NocoDB replaces a deleted link column with a `_nc_ph_*` SingleLineText
    *  placeholder (carrying the comma-joined display values) on the table the
-   *  link is removed from. Detect that same-title placeholder on the sync's
+   *  link is removed from. Find that same-title placeholder on the sync's
    *  MAIN source table so the field can be kept as plain text rather than
    *  dropped. The `_nc_ph_` prefix is link-placeholder-specific, so this only
-   *  matches a genuine link→placeholder replacement. */
-  private async sourceHasPlaceholder(
+   *  matches a genuine link→placeholder replacement. Returns the column (its
+   *  id feeds reconcileFields' includeColIds) or null. */
+  private async findSourcePlaceholder(
     sync: TableSync,
     title: string,
-  ): Promise<boolean> {
+  ): Promise<{ id?: string } | null> {
     const mainMapping = (sync.mappings ?? []).find(
       (m) => m.role === TableSyncMappingRole.Main,
     );
-    if (!mainMapping) return false;
+    if (!mainMapping) return null;
 
     const sourceCtx: NcContext = {
       workspace_id: mainMapping.source_workspace_id,
@@ -254,14 +263,16 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
     const srcModel = await Model.getWithInfo(sourceCtx, {
       id: mainMapping.source_table_id,
     });
-    if (!srcModel) return false;
+    if (!srcModel) return null;
     await srcModel.getColumns(sourceCtx);
 
-    return (srcModel.columns ?? []).some(
-      (c) =>
-        c.title === title &&
-        c.uidt === UITypesEnum.SingleLineText &&
-        (c.column_name?.startsWith('_nc_ph_') ?? false),
+    return (
+      (srcModel.columns ?? []).find(
+        (c) =>
+          c.title === title &&
+          c.uidt === UITypesEnum.SingleLineText &&
+          (c.column_name?.startsWith('_nc_ph_') ?? false),
+      ) ?? null
     );
   }
 

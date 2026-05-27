@@ -11,6 +11,35 @@ import {
   generateUniqueCopyName,
 } from 'nocodb-sdk'
 
+/**
+ * Titles of the system columns that table-sync (and legacy SaaS/Airtable sync)
+ * adds to every synced destination table — they hold sync bookkeeping (remote
+ * id, remote timestamps, run/config ids, raw payload). They're noise in a
+ * record's revision history, so the audit sidebar hides their changes on
+ * synced tables.
+ *
+ * Mirrors the backend source of truth: `syncSystemFields` /
+ * `SYSTEM_REMOTE_TITLES` in
+ * `@noco-local-integrations/core/src/sync/common.ts`. Keep in sync if a new
+ * system field is added there.
+ */
+const SYNC_SYSTEM_COLUMN_TITLES = new Set<string>([
+  'RemoteId',
+  'RemoteCreatedAt',
+  'RemoteUpdatedAt',
+  'RemoteDeletedTime',
+  'RemoteDeleted',
+  'RemoteRaw',
+  'RemoteSyncedAt',
+  'RemoteNamespace',
+  'SyncConfigId',
+  'SyncRunId',
+  'SyncProvider',
+])
+
+const isSyncSystemColumnTitle = (title?: string | null): boolean =>
+  !!title && SYNC_SYSTEM_COLUMN_TITLES.has(title)
+
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
   if (trigger === SyncTrigger.Schedule && cron) {
@@ -112,6 +141,8 @@ export {
   defaultIntegrationConfig,
   syncEntityToReadableMap,
   getDefaultSyncConfig,
+  SYNC_SYSTEM_COLUMN_TITLES,
+  isSyncSystemColumnTitle,
 }
 
 export type { IntegrationConfig, CustomSyncSchema }

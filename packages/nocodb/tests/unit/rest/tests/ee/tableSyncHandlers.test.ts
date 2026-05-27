@@ -1,6 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
+import sinon from 'sinon';
 import { TableSyncStatus, UITypes, ViewTypes } from 'nocodb-sdk';
 import init from '~test/init';
 import { isEE } from '~test/utils/helpers';
@@ -24,6 +25,7 @@ import { internalPost } from '~test/factory/internal';
 import View from '~/models/View';
 import Model from '~/models/Model';
 import TableSync from '~/models/TableSync';
+import { TableSyncService } from '~/modules/table-sync/table-sync.service';
 
 /**
  * Table Sync — reactive meta-dependency handlers
@@ -391,6 +393,60 @@ function tableSyncHandlerTests() {
           (m: any) => m.role === 'linked_shadow',
         );
         expect(shadows, 'no shadow until a view is picked').to.have.lengthOf(0);
+      });
+
+      /**
+       * Regression: `columnAdd` used to emit COLUMN_ADDED twice for an MM
+       * LTAR's forward column (once in `createLTARColumn`, once in the
+       * generic post-switch path). Both events drove a detached
+       * `reconcileFields`, and the loser of the race hit `duplicateAlias`.
+       * The forward column must now fire COLUMN_ADDED exactly once, so the
+       * sync handler reconciles exactly once.
+       */
+      it('MM LTAR add triggers exactly one reconcile (no duplicate COLUMN_ADDED)', async () => {
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'LtarSingleReconcile',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // selected_fields omitted → sync-all mode.
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+
+        // Spy only AFTER the initial sync settles, so we count just the
+        // reconcile triggered by the LTAR add below.
+        const svc = context.nestApp.get(TableSyncService, { strict: false });
+        const reconcileSpy = sinon.spy(svc, 'reconcileFields');
+
+        try {
+          const ordersTable = await createTable(context, sourceBase, {
+            table_name: 'Orders',
+            title: 'Orders',
+          });
+          await createLtarColumn2(context, {
+            title: 'OrderLinks',
+            parentTable: sourceTable,
+            childTable: ordersTable,
+            type: 'mm',
+          });
+
+          await waitFor('LTAR auto-mirrored on dest', async () => {
+            const col = await getDestCol(destTableId, 'OrderLinks');
+            return col ?? null;
+          });
+
+          // Settle window for any erroneous second reconcile to fire.
+          await new Promise((r) => setTimeout(r, 750));
+
+          expect(
+            reconcileSpy.callCount,
+            'forward MM LTAR add should reconcile exactly once',
+          ).to.eq(1);
+        } finally {
+          reconcileSpy.restore();
+        }
       });
     });
 

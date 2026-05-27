@@ -424,6 +424,39 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
 
   // ── Permanent Delete ───────────────────────────────────────
 
+  async beforePermanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<boolean> {
+    await super.beforePermanentDelete(ctx, trashEntry, ncMeta);
+
+    const existing = await Column.get(
+      ctx,
+      { colId: trashEntry.resource_id, includeDeleted: true },
+      ncMeta,
+    );
+    if (!existing) {
+      this.logger.log(
+        `Trash entry ${trashEntry.id} field ${trashEntry.resource_id} already gone; clearing entry.`,
+      );
+      return false;
+    }
+    const parentModel = await Model.get(
+      ctx,
+      existing.fk_model_id,
+      true,
+      ncMeta,
+    );
+    if (!parentModel) {
+      this.logger.log(
+        `Trash entry ${trashEntry.id} field ${trashEntry.resource_id} parent model ${existing.fk_model_id} already gone; clearing entry.`,
+      );
+      return false;
+    }
+    return true;
+  }
+
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,

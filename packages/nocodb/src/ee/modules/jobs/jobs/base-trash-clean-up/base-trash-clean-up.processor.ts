@@ -10,7 +10,7 @@ import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import { Base, BaseTrash } from '~/models';
+import { Base, BaseTrash, Workspace } from '~/models';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
@@ -75,6 +75,8 @@ export class BaseTrashCleanUpProcessor {
           'deleted_by',
           'resource_type',
           'resource_id',
+          'parent_type',
+          'parent_id',
           'meta',
         )
         .limit(BATCH_SIZE);
@@ -92,12 +94,19 @@ export class BaseTrashCleanUpProcessor {
           socket_id: null,
         };
 
-        const base = entry.base_id && (await Base.get(context, entry.base_id));
-        if (!base) {
+        const workspace =
+          entry.fk_workspace_id &&
+          (await Workspace.get(entry.fk_workspace_id, false, Noco.ncMeta, false));
+        const base =
+          workspace && entry.base_id && (await Base.get(context, entry.base_id));
+        if (!workspace || !base) {
+          const reason = !workspace
+            ? `parent workspace ${entry.fk_workspace_id} deleted`
+            : `parent base ${entry.base_id} deleted`;
           try {
             await BaseTrash.delete(context, entry.id);
             this.logger.log(
-              `Trash entry ${entry.id} orphaned (parent base ${entry.base_id} deleted); removed.`,
+              `Trash entry ${entry.id} orphaned (${reason}); removed.`,
             );
           } catch (delErr) {
             this.logger.error(
@@ -123,6 +132,42 @@ export class BaseTrashCleanUpProcessor {
           // between our batch read and permanentDelete. Not a failure — just
           // move on silently
           if (e?.error === NcErrorType.ERR_TRASH_NOT_FOUND) {
+            continue;
+          }
+          // Handler signaled the parent is still in trash. Defer this child
+          // until after the parent's cleanup runs — that pass cascades through
+          // children via BaseTrashService childTypes (with the parent temp-
+          // restored), which is the safe path for these handlers.
+          if (e?.error === NcErrorType.ERR_PARENT_IN_TRASH) {
+            try {
+              const parentTrash =
+                entry.parent_id && entry.parent_type
+                  ? await Noco.ncMeta
+                      .knex(MetaTable.TRASH)
+                      .where({
+                        fk_workspace_id: entry.fk_workspace_id,
+                        base_id: entry.base_id,
+                        resource_type: entry.parent_type,
+                        resource_id: entry.parent_id,
+                      })
+                      .first('cleanup_due_at')
+                  : null;
+              const parentDueAt = parentTrash?.cleanup_due_at
+                ? new Date(parentTrash.cleanup_due_at).getTime()
+                : Date.now() + RETRY_BACKOFF_MS;
+              const deferredDueAt = new Date(parentDueAt + 1000).toISOString();
+              await BaseTrash.update(context, entry.id, {
+                cleanup_due_at: deferredDueAt,
+              });
+              this.logger.debug(
+                `Trash entry ${entry.id} deferred — parent ${entry.parent_type}:${entry.parent_id} not yet cleaned.`,
+              );
+            } catch (deferErr) {
+              this.logger.error(
+                `Failed to defer trash entry ${entry.id}: ${deferErr.message}`,
+                deferErr.stack,
+              );
+            }
             continue;
           }
           // `recordNotTrashed` means the underlying soft-deleted rows are gone

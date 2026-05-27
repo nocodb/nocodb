@@ -4,6 +4,9 @@ import type { MetaService } from '~/meta/meta.service';
 import type BaseTrash from '~/models/BaseTrash';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 export interface TrashCallParam {
   user: Partial<UserType>;
@@ -96,6 +99,24 @@ export interface TrashHandler<T = any> {
   ): Promise<TrashLifecycleResult | void>;
 
   /**
+   * Lifecycle hook fired by `BaseTrashService.permanentDelete` before any
+   * state mutation. Returns:
+   *   - `true`  → proceed with child cleanup + `permanentDelete`
+   *   - `false` → the underlying entity is already gone (e.g. hard-deleted
+   *     out-of-band); skip child cleanup + `permanentDelete`, but still
+   *     drop the trash row so it doesn't accumulate retries.
+   *
+   * May throw `parentInTrash` when the entry's parent has its own trash
+   * row — the caller (cron) defers, the controller surfaces it to the
+   * user. Default impl on `BaseTrashHandler` does the parent check.
+   */
+  beforePermanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<boolean>;
+
+  /**
    * Optional pre-restore plan-limit check. Each handler decides whether the
    * resource type has a per-base / per-workspace cap and throws
    * NcError.planLimitExceeded when restoration would cross it. No-op if the
@@ -170,6 +191,43 @@ export abstract class BaseTrashHandler<T = any> implements TrashHandler<T> {
           break;
       }
     }
+  }
+
+  /**
+   * Lifecycle hook fired by `BaseTrashService.permanentDelete` before any
+   * state mutation. Returns:
+   *   - `true`  → proceed with child cleanup + `permanentDelete`
+   *   - `false` → underlying entity already gone (hard-deleted out-of-band);
+   *     skip child cleanup + `permanentDelete`, but still drop the trash
+   *     row so it doesn't accumulate retries.
+   *
+   * Default impl throws `parentInTrash` when the entry's parent has its own
+   * trash row — the retention cron catches and defers, the controller path
+   * surfaces it to the user, `emptyTrash` retries on later passes once the
+   * parent's cleanup cascades through this child.
+   *
+   * Subclasses override to add entity-existence checks that return `false`
+   * (see FieldTrashHandler, TableTrashHandler).
+   */
+  async beforePermanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!trashEntry.parent_id || !trashEntry.parent_type) return true;
+    const parentTrash = await ncMeta
+      .knex(MetaTable.TRASH)
+      .where({
+        fk_workspace_id: ctx.workspace_id,
+        base_id: ctx.base_id,
+        resource_type: trashEntry.parent_type,
+        resource_id: trashEntry.parent_id,
+      })
+      .first('id');
+    if (parentTrash) {
+      NcError.get(ctx).parentInTrash(trashEntry.parent_type);
+    }
+    return true;
   }
 }
 

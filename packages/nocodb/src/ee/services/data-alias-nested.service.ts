@@ -189,21 +189,12 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             )) ??
           refTable.views?.[0];
 
-        const mmLinkConditions = relColumn.meta?.enableConditions
-          ? (await Filter.rootFilterListByLink(
-              { ...baseModel.context, base_id: relColumn.base_id },
-              { columnId: relColumn.id },
-            )) || []
-          : [];
-
-        const mmReplaceWithValue = replaceDynamicFieldWithValue(
-          null,
-          parentId,
-          refTable.columns,
-          refBaseModel.readByPk.bind(refBaseModel),
-          param.query,
-        );
-        const customConditions = await mmReplaceWithValue(mmLinkConditions);
+        // Link-column filter conditions (relColumn.meta?.enableConditions /
+        // Filter.rootFilterListByLink) are intentionally NOT applied here.
+        // mmList returns records already linked via the junction table — the
+        // FK/PK join is the only filter that should apply. The link condition
+        // constrains which records can be linked (picker / mmExcludedList),
+        // not which already-linked records are visible.
 
         const enriched = await listQueryEnrichment(
           dbQueryClient,
@@ -224,7 +215,6 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
-          customConditions,
         });
 
         const finalQb = enriched.finalQb;
@@ -525,21 +515,9 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             )) ??
           childTable.views?.[0];
 
-        const hmLinkConditions = relColumn.meta?.enableConditions
-          ? (await Filter.rootFilterListByLink(
-              { ...baseModel.context, base_id: relColumn.base_id },
-              { columnId: relColumn.id },
-            )) || []
-          : [];
-
-        const hmReplaceWithValue = replaceDynamicFieldWithValue(
-          null,
-          rowId,
-          await childTable.getColumns(childBaseModel.context),
-          childBaseModel.readByPk.bind(childBaseModel),
-          param.query,
-        );
-        const customConditions = await hmReplaceWithValue(hmLinkConditions);
+        // Link-column filter conditions are intentionally NOT applied here —
+        // see the note in mmList above. hmList returns already-linked child
+        // records; only the FK/PK filter should apply.
 
         const enriched = await listQueryEnrichment(
           dbQueryClient,
@@ -559,7 +537,6 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           listArgs,
           throwErrorIfInvalidParams,
           innerQb: qb,
-          customConditions,
         });
 
         const finalQb = enriched.finalQb;

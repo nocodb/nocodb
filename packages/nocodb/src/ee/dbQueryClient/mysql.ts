@@ -82,6 +82,36 @@ export class MySqlDBQueryClient
     );
   }
 
+  // Builds the BT/OO nested record `json_object` from the display value and
+  // primary key columns that actually exist. A related table without a primary
+  // key (e.g. an external DB table lacking a PK constraint) yields an undefined
+  // `pkColumn` — emit only the columns we have instead of dereferencing it.
+  buildBtOoJsonObject({
+    knex,
+    alias,
+    pkColumn,
+    pvColumn,
+    title,
+  }: {
+    knex: XKnex;
+    alias: string;
+    pkColumn?: Column;
+    pvColumn?: Column;
+    title: string;
+  }) {
+    const jsonFields = [
+      ...(pvColumn ? [pvColumn] : []),
+      ...(pkColumn && pkColumn.id !== pvColumn?.id ? [pkColumn] : []),
+    ];
+    const paramsString = jsonFields.map(() => `?,??.??`).join(', ');
+    const paramsValueArr = [
+      ...jsonFields.flatMap((c) => [c.id, alias, sanitize(c.column_name)]),
+      title,
+    ];
+
+    return knex.raw(`json_object(${paramsString}) as ??`, paramsValueArr);
+  }
+
   async extractColumns(param) {
     return extractColumns({ extractColumn: this.extractColumn.bind(this) })(
       param,
@@ -197,7 +227,7 @@ export class MySqlDBQueryClient
             customDisplayCol.id !== pvColumn?.id
               ? [customDisplayCol]
               : []),
-          ];
+          ].filter(Boolean);
 
           if (listArgs?.fields === '*') {
             fields = relatedModel.columns;
@@ -471,15 +501,13 @@ export class MySqlDBQueryClient
                      (${knex
                        .from(btQb.as(alias2))
                        .select(
-                         knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
-                           pvColumn.id,
-                           alias2,
-                           sanitize(pvColumn.column_name),
-                           pkColumn.id,
-                           alias2,
-                           sanitize(pkColumn.column_name),
-                           getAs(column),
-                         ]),
+                         this.buildBtOoJsonObject({
+                           knex,
+                           alias: alias2,
+                           pkColumn,
+                           pvColumn,
+                           title: getAs(column),
+                         }),
                        )
                        .toQuery()}) as ?? ON true`,
                   [alias1],
@@ -567,15 +595,13 @@ export class MySqlDBQueryClient
                      (${knex
                        .from(btQb.as(alias2))
                        .select(
-                         knex.raw(`json_object(?,??.??, ?, ??.??) as ??`, [
-                           pvColumn.id,
-                           alias2,
-                           sanitize(pvColumn.column_name),
-                           pkColumn.id,
-                           alias2,
-                           sanitize(pkColumn.column_name),
-                           getAs(column),
-                         ]),
+                         this.buildBtOoJsonObject({
+                           knex,
+                           alias: alias2,
+                           pkColumn,
+                           pvColumn,
+                           title: getAs(column),
+                         }),
                        )
                        .toQuery()}) as ?? ON true`,
                     [alias1],

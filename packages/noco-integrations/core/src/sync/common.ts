@@ -3,6 +3,10 @@ import { SyncColumnDefinition } from './types';
 
 export { SyncCategory, TARGET_TABLES };
 
+// Canonical definition of the system metadata columns added to every synced
+// table. The titles here are mirrored by `SYNC_SYSTEM_COLUMN_TITLES` in
+// `nocodb-sdk` (lib/sync), which `isHiddenCol` uses to hide these columns in
+// the UI — keep the two lists in sync when adding or removing a field.
 export const syncSystemFields: SyncColumnDefinition[] = [
   // Generic System Fields
   {

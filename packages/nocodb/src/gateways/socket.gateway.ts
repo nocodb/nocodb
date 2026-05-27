@@ -48,6 +48,13 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   async onModuleInit() {
+    // CE socket only accepts telemetry beacons (`page`, `event`) — no data
+    // subscriptions, rooms, or privileged operations are wired up below, so
+    // anonymous connections cannot reach any sensitive surface. JWT failures
+    // are swallowed on purpose so authenticated clients still get `user` on
+    // the handshake while unauthenticated telemetry pings are accepted.
+    // EE replaces this gateway entirely with `src/ee/gateways/socket.gateway.ts`,
+    // which enforces handshake-based JWT auth before registering any handler.
     this.server
       .use(async (socket, next) => {
         try {

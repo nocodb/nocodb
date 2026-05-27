@@ -277,6 +277,164 @@ function tableSyncHandlerTests() {
           return Array.isArray(sel) && !sel.includes('Note') ? sync : null;
         });
       });
+
+      /**
+       * Retype where the NEW source uidt is NOT a key in `REMAP_UIDTS` (the
+       * fallback path): `applyRetype` mirrors the source uidt to the dest
+       * verbatim. Attachment isn't remapped, so a source Number → Attachment
+       * change must flip the dest Number → Attachment too.
+       *
+       * (The remapped branch — source uidt that IS a `REMAP_UIDTS` key — only
+       * arises at create time via `toDestColumnDef`, since NocoDB has no
+       * in-place conversion of a physical column to the virtual remap-key
+       * types (Formula/Rollup/Lookup); that mapping is unit-tested in
+       * `tableSyncHelpers.test.ts`.)
+       */
+      it('source uidt change to a non-remapped type mirrors directly on dest (fallback)', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Calc',
+          uidt: UITypes.Number,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'FallbackRetype',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+
+        const initialDestCol = await getDestCol(destTableId, 'Calc');
+        expect(initialDestCol).to.exist;
+        expect(initialDestCol!.uidt).to.eq(UITypes.Number);
+
+        // Convert the source col Number → Attachment (not in REMAP_UIDTS).
+        const refreshedSource = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const calcCol = refreshedSource!.columns!.find((c) => c.title === 'Calc');
+        await updateColumn(context, {
+          table: sourceTable,
+          column: calcCol as any,
+          attr: { uidt: UITypes.Attachment },
+        });
+
+        // Dest must flip Number → Attachment (mirrored verbatim — no remap).
+        await waitFor('dest col mirrored to Attachment', async () => {
+          const col = await getDestCol(destTableId, 'Calc');
+          return col?.uidt === UITypes.Attachment ? col : null;
+        });
+      });
+
+      /**
+       * Rename + retype in a SINGLE source update. The rename half is a no-op
+       * on the dest (id-based mapping keeps the original title); the retype
+       * half still applies. Guards against the combined event being misread as
+       * a title-only diff (which `resolveAction` treats as a no-op).
+       */
+      it('rename + retype in one update: dest keeps title, uidt still flips', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Spot',
+          uidt: UITypes.GeoData,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'RenamePlusRetype',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+
+        const initialDestCol = await getDestCol(destTableId, 'Spot');
+        expect(initialDestCol).to.exist;
+        expect(initialDestCol!.uidt).to.eq(UITypes.GeoData);
+
+        // One PATCH changes BOTH title and uidt.
+        const refreshedSource = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const spotCol = refreshedSource!.columns!.find((c) => c.title === 'Spot');
+        await updateColumn(context, {
+          table: sourceTable,
+          column: spotCol as any,
+          attr: { title: 'Location', uidt: UITypes.SingleLineText },
+        });
+
+        // Retype half: dest uidt flips to SingleLineText (fallback — SLT is
+        // not in REMAP_UIDTS).
+        await waitFor('dest col uidt to flip on combined update', async () => {
+          const col = await getDestCol(destTableId, 'Spot');
+          return col?.uidt === UITypes.SingleLineText ? col : null;
+        });
+
+        // Rename half: dest keeps its original title, NOT the new source title.
+        expect(
+          await getDestCol(destTableId, 'Spot'),
+          'dest col keeps its original title (rename is a no-op)',
+        ).to.exist;
+        expect(
+          await getDestCol(destTableId, 'Location'),
+          'dest col title must NOT follow the source rename',
+        ).to.not.exist;
+      });
+
+      /**
+       * Column delete in sync-all mode (`selected_fields === null`). The
+       * specific-fields case is covered above; here there's no
+       * `selected_fields` array to strip, so the only effect is the dest col
+       * being dropped.
+       */
+      it('source column delete in sync-all mode drops dest col (no selected_fields to strip)', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Temp',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'DropOnSourceDeleteAllFields',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // selected_fields omitted → sync-all mode.
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        expect(await getDestCol(destTableId, 'Temp')).to.exist;
+
+        // selected_fields stays null throughout — sanity check before delete.
+        expect(settled.selected_fields ?? null).to.eq(null);
+
+        const refreshedSource = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const tempCol = refreshedSource!.columns!.find((c) => c.title === 'Temp');
+        await deleteColumn(context, {
+          table: sourceTable,
+          column: tempCol as any,
+        });
+
+        // Dest col should disappear.
+        await waitFor('dest col dropped in sync-all mode', async () => {
+          const col = await getDestCol(destTableId, 'Temp');
+          return col ? false : (true as any);
+        });
+
+        // sync-all mode → selected_fields remains null (nothing to strip).
+        const after = await TableSync.get(
+          { workspace_id: workspaceId, base_id: destBase.id },
+          created.body.id,
+        );
+        expect(after?.selected_fields ?? null).to.eq(null);
+      });
     });
 
     describe('column-add handler', () => {

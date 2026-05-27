@@ -88,17 +88,14 @@ export class TableSyncProcessor {
     }
 
     // Serialize incremental runs per sync — only one executes at a time, so two
-    // overlapping runs can't double-insert or race on tombstones/cursor for the
-    // same dest table. A second dispatched run bails here and parks its ids in
-    // the buffer for the holder to drain on completion.
+    // overlapping runs can't double-insert or race on tombstones. A second run
+    // bails here and parks its ids in the buffer for the holder to drain.
     const incrementalLockKey = `lock:tableSync:incremental:${syncId}`;
     const incrementalLockId = randomUUID();
     let holdsIncrementalLock = false;
     if (mode === 'incremental') {
-      // try-once (maxWait 0): if another run holds the lock, don't queue — bail
-      // and let that run drain our buffered ids. The 10-min TTL is only a crash
-      // safety net; the run releases the lock in the `finally` below. Backed by
-      // the shared cache (Redis, or the in-memory mock when Redis isn't set).
+      // try-once (maxWait 0) — don't queue behind the holder. The 10-min TTL is
+      // only a crash safety net; the run releases the lock in `finally` below.
       holdsIncrementalLock = await acquireLock(
         incrementalLockKey,
         incrementalLockId,
@@ -244,13 +241,29 @@ export class TableSyncProcessor {
             ? affectedIdsBySource?.[mapping.source_table_id]
             : undefined;
 
-        // ── Cursor + LMT resolution (incremental only) ───────────────────
-        // Cursor lives IN the dest: max `RemoteUpdatedAt` of any row tagged
-        // with this sync's `SyncConfigId` + `RemoteNamespace`. Next run
-        // fetches source rows with `LastModifiedTime > cursor`.
+        const sourcePkCol = sourceModel.columns?.find((c) => c.pk);
+
+        // Realtime incrementals carry the exact source ids that changed (set by
+        // the hook from the write event). When present they are authoritative:
+        // fetch precisely those rows (`Id IN affectedIds`), turning O(view) into
+        // O(affectedIds) per write. They take precedence over the LMT cursor — a
+        // prior run can advance the cursor to (or past) a buffered id's
+        // timestamp (cursors are stored at second granularity and filtered with
+        // strict `>`), which would silently drop the very id this run was told
+        // to replicate.
+        const scopeByAffectedIds =
+          mode === 'incremental' &&
+          (affectedIds?.length ?? 0) > 0 &&
+          !!sourcePkCol?.id;
+
+        // ── Cursor + LMT resolution (incremental catch-up only) ──────────────
+        // For runs with no explicit ids (scheduled/manual catch-up): the cursor
+        // lives IN the dest — max `RemoteUpdatedAt` of any row tagged with this
+        // sync's `SyncConfigId` + `RemoteNamespace`; fetch source rows with
+        // `LastModifiedTime > cursor`.
         let cursor: string | null = null;
         let lastModifiedColId: string | null = null;
-        if (mode === 'incremental') {
+        if (mode === 'incremental' && !scopeByAffectedIds) {
           const remoteUpdatedAtCol = destColumnsByTitle.get('RemoteUpdatedAt');
           const syncConfigIdCol = destColumnsByTitle.get('SyncConfigId');
           const remoteNamespaceCol = destColumnsByTitle.get('RemoteNamespace');
@@ -292,7 +305,10 @@ export class TableSyncProcessor {
             )?.id ?? null;
         }
         const useCursor =
-          mode === 'incremental' && cursor != null && !!lastModifiedColId;
+          mode === 'incremental' &&
+          !scopeByAffectedIds &&
+          cursor != null &&
+          !!lastModifiedColId;
 
         // Lookups used both during the page loop (existing-row check) and the
         // tombstone phase. Lifted here so the upsert path can scope by sync.
@@ -301,21 +317,6 @@ export class TableSyncProcessor {
         const remoteDeletedCol = destColumnsByTitle.get('RemoteDeleted');
         const syncRunIdCol = destColumnsByTitle.get('SyncRunId');
         const remoteIdCol = destColumnsByTitle.get('RemoteId');
-
-        const sourcePkCol = sourceModel.columns?.find((c) => c.pk);
-
-        // Realtime incrementals always carry the source ids that changed
-        // (set by hook-handler from the write event). When the LMT-cursor
-        // path isn't usable — typically because the source has no
-        // LastModifiedTime column — scope the upsert fetch to those ids
-        // instead of paging the entire view. Mirrors the tombstone phase
-        // below (`Id IN affectedIds`); turns O(view) into O(affectedIds)
-        // per write and sidesteps offset-pagination stability concerns.
-        const scopeByAffectedIds =
-          mode === 'incremental' &&
-          !useCursor &&
-          (affectedIds?.length ?? 0) > 0 &&
-          !!sourcePkCol?.id;
 
         const label = isMain
           ? `main table "${sourceModel.title}"`
@@ -1190,7 +1191,7 @@ export class TableSyncProcessor {
         });
       }
       if (mode === 'incremental') {
-        await this.drainAndRequeueIncremental(job, context, syncId, req);
+        await this.drainAndRequeueIncremental(context, syncId, req);
       }
     } catch (e) {
       const rawMessage = ((e as Error)?.message ?? String(e)).slice(0, 1000);
@@ -1231,31 +1232,27 @@ export class TableSyncProcessor {
   /**
    * Trailing drain for realtime incremental sync. Ids buffered while this run
    * was processing (see `scheduleIncrementalTableSync`) are drained and re-run
-   * once. The slot id is this very job, and Bull ignores `add()` for an id
-   * that's still active — so we free our own id first (`releaseLock` + `remove`,
-   * mirroring `JobsProcessor.requeue`), then re-add it with the drained ids.
-   * Wrapped so a buffer/queue hiccup never fails an otherwise-successful run.
+   * once. `scheduleIncrementalRun` skips this still-running job's slot and lands
+   * the re-run in the other slot — re-adding our own id would be clobbered when
+   * we complete. Wrapped so a buffer/queue hiccup never fails an otherwise-
+   * successful run.
    */
   private async drainAndRequeueIncremental(
-    job: Job<TableSyncJobData>,
     context: NcContext,
     syncId: string,
     req: TableSyncJobData['req'],
   ): Promise<void> {
     // Draining deletes the ids from the buffer, so they live only in memory
-    // until re-scheduled. If anything below throws (releaseLock/remove/add) or
-    // the re-add is rejected, put them back so the next run picks them up
-    // rather than dropping them.
+    // until re-scheduled. If the re-add is rejected (or throws), put them back
+    // so the next run picks them up rather than dropping them.
     let pending: Record<string, string[]> | undefined;
     try {
       pending = await drainPendingIncrementalIds(context, syncId);
       if (!pending) return;
 
-      // Free our own slot before re-adding under the same id. `releaseLock`
-      // only exists on the Bull job (not the in-memory fallback), so guard it.
-      if (typeof job.releaseLock === 'function') await job.releaseLock();
-      await job.remove();
-
+      // `scheduleIncrementalRun` skips this still-running job's slot and lands
+      // the re-run in the other slot — re-adding our own id would be clobbered
+      // when we complete. No self-remove needed.
       const scheduled = await scheduleIncrementalRun(this.nocoJobsService, {
         syncId,
         baseJobData: { context, syncId, mode: 'incremental', req },

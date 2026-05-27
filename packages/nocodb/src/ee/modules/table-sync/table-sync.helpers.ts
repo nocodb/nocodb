@@ -528,12 +528,10 @@ const pendingIncrementalKey = (syncId: string) =>
   `tableSyncPendingIncremental:${syncId}`;
 
 /**
- * Overflow buffer for realtime incremental ids that arrive while a run is in
- * flight — once the job is processing it can't be coalesced into, so its ids
- * park here. A cache hash keyed by sync, one field per id (`sourceTableId:id`)
- * so concurrent writers append atomically without a read-modify-write race. The
- * running job drains it at the end and re-runs itself once. Relies on the
- * shared cache, which the jobs system already requires.
+ * Overflow buffer for ids that arrive while a run is in flight (a processing
+ * job can't be coalesced into). A cache hash, one field per id
+ * (`sourceTableId:id`), so concurrent writers append atomically — no
+ * read-modify-write race. Drained by the processor at the end of a run.
  */
 export async function bufferPendingIncrementalIds(
   context: NcContext,
@@ -581,12 +579,16 @@ export async function drainPendingIncrementalIds(
 }
 
 /**
- * Schedule the single incremental job for a sync (`…:incremental`). If its job
- * is still delayed, remove + re-add it with the new ids merged in (resets the
- * 5s debounce). If it's already processing, `remove()` rejects and we return
- * `false` so the caller buffers the ids instead. Shared by the hook handler (on
- * write) and the processor's trailing re-enqueue — the processor frees the slot
- * first (it's its own job), so the add here always succeeds for that path.
+ * Schedule an incremental run into the first non-busy of the sync's two slots
+ * (`…:incremental`, `…:incremental:overflow`): a delayed slot is removed +
+ * re-added with merged ids (resets the debounce); a *processing* slot is
+ * skipped. Returns `false` when both are busy, so the caller buffers instead.
+ *
+ * Two slots, and we never touch a running job, because a job can't re-add its
+ * own id — the queue keys completion by id, so the original's completion would
+ * remove the re-add (see the `re-runs itself` test). "Running" is detected via
+ * `getState()`, not `remove()` rejecting (the in-memory fallback doesn't
+ * reject). The per-sync lock still ensures only one slot executes at a time.
  */
 export async function scheduleIncrementalRun(
   nocoJobsService: NocoJobsService,
@@ -596,44 +598,51 @@ export async function scheduleIncrementalRun(
     newIdsBySource: Record<string, string[]>;
   },
 ): Promise<boolean> {
-  const jobId = `tableSync:${args.syncId}:incremental`;
-  const existing = await nocoJobsService.getJob(jobId);
+  const base = `tableSync:${args.syncId}:incremental`;
 
-  // Union the slot's pending ids with the new ones, per source table.
-  const merged: Record<string, string[]> = {
-    ...((existing?.data as { affectedIdsBySource?: Record<string, string[]> })
-      ?.affectedIdsBySource ?? {}),
-  };
-  for (const [tableId, ids] of Object.entries(args.newIdsBySource)) {
-    if (ids?.length) {
-      merged[tableId] = arrUniqMerge(merged[tableId] ?? [], ids);
+  for (const jobId of [base, `${base}:overflow`]) {
+    const existing = await nocoJobsService.getJob(jobId);
+
+    // Skip a processing slot — re-adding its id gets clobbered on completion.
+    if (existing && (await existing.getState()) === 'active') continue;
+
+    const merged: Record<string, string[]> = {
+      ...((existing?.data as { affectedIdsBySource?: Record<string, string[]> })
+        ?.affectedIdsBySource ?? {}),
+    };
+    for (const [tableId, ids] of Object.entries(args.newIdsBySource)) {
+      if (ids?.length) {
+        merged[tableId] = arrUniqMerge(merged[tableId] ?? [], ids);
+      }
     }
-  }
 
-  if (existing) {
+    if (existing) {
+      try {
+        await existing.remove();
+      } catch {
+        continue; // raced into processing — try the other slot
+      }
+    }
+
     try {
-      await existing.remove();
+      await nocoJobsService.add(
+        JobTypes.TableSyncRun,
+        {
+          ...args.baseJobData,
+          affectedIdsBySource: Object.keys(merged).length ? merged : undefined,
+        },
+        {
+          jobId,
+          delay: TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+      return true;
     } catch {
-      return false; // job is processing — caller buffers
+      return false;
     }
   }
 
-  try {
-    await nocoJobsService.add(
-      JobTypes.TableSyncRun,
-      {
-        ...args.baseJobData,
-        affectedIdsBySource: Object.keys(merged).length ? merged : undefined,
-      },
-      {
-        jobId,
-        delay: TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS,
-        removeOnComplete: true,
-        removeOnFail: true,
-      },
-    );
-    return true;
-  } catch {
-    return false; // queue rejected the add — caller buffers
-  }
+  return false;
 }

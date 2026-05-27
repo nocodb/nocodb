@@ -978,15 +978,18 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
   /**
    * Realtime incremental debounce (window: `TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS`).
-   * One job per sync (`…:incremental`):
-   *  - First write: schedule the job (delayed one window).
-   *  - Write while the job is still delayed: remove + re-add it with merged
+   * Two fixed slots per sync (`…:incremental` + `…:incremental:overflow`); see
+   * `scheduleIncrementalRun`:
+   *  - First write: schedule a slot (delayed one window).
+   *  - Write while a slot's job is still delayed: remove + re-add it with merged
    *    `affectedIdsBySource`, so it fires one window after the LAST write.
-   *  - Write while the job is processing: `remove()` rejects, so we buffer the
-   *    ids in a cache hash keyed by sync instead of spawning another job. The
-   *    running job drains that buffer when it finishes and re-runs itself once
-   *    (see `drainAndRequeueIncremental` in the processor) — so ids are never
-   *    lost and there's only ever one job per sync.
+   *  - Write while a slot is processing: it's skipped (we never re-add a running
+   *    job's id — its completion would clobber the re-add). If a free slot
+   *    exists the write lands there; if both slots are processing we buffer the
+   *    ids in a cache hash keyed by sync. The running job drains that buffer on
+   *    completion and re-runs into the other slot
+   *    (`drainAndRequeueIncremental`). The per-sync lock guarantees only one
+   *    slot executes at a time, so ids are never lost or double-applied.
    * `affectedIdsBySource[modelId]` is what lets the processor detect deletes /
    * view-exits: any id present here but not returned by the source view query
    * has disappeared and needs tombstoning — critical for DELETE, which leaves

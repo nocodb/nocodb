@@ -3,8 +3,11 @@ import { expect } from 'chai';
 import request from 'supertest';
 import {
   isLinksOrLTAR,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
   TableSyncOnDeleteAction,
   TableSyncStatus,
+  TableSyncTrigger,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -22,9 +25,19 @@ import {
   waitForSyncSettled,
 } from '~test/factory/tableSync';
 import { internalPost } from '~test/factory/internal';
+import { randomUUID } from 'crypto';
 import View from '~/models/View';
 import Model from '~/models/Model';
 import TableSync from '~/models/TableSync';
+import Noco from '~/Noco';
+import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
+import {
+  bufferPendingIncrementalIds,
+  drainPendingIncrementalIds,
+} from '~/modules/table-sync/table-sync.helpers';
+import { TableSyncProcessor } from '~/modules/table-sync/table-sync.processor';
+import { NocoJobsService } from '~/services/noco-jobs.service';
+import { JobTypes } from '~/interface/Jobs';
 
 /**
  * Table Sync data-replication tests
@@ -217,6 +230,173 @@ function tableSyncDataTests() {
             title,
           );
         }
+      });
+    });
+
+    describe('concurrent incremental — no id loss', () => {
+      // The core safety property: while one incremental run is in flight (holds
+      // the per-sync lock), any incremental runs that fire concurrently must
+      // park their ids in the buffer rather than drop them — so a delete that
+      // arrives mid-run is never lost. Here we hold the lock ourselves to
+      // stand in for an in-flight run, fire several real incremental jobs
+      // through the processor, then assert every id survives.
+      it('buffers ids from runs blocked by an in-flight run, losing none', async () => {
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'ConcurrentSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const syncId = created.body.id;
+        const settled = await waitForSyncSettled(destEnv, syncId);
+        expect(settled.status).to.eq(TableSyncStatus.Active);
+
+        const processor = Noco.nestApp.get(TableSyncProcessor);
+        const destCtx = { workspace_id: workspaceId, base_id: destBase.id };
+        const lockKey = `lock:tableSync:incremental:${syncId}`;
+
+        // An in-flight run holds the lock; nobody else can take it.
+        const holderId = randomUUID();
+        expect(await acquireLock(lockKey, holderId, 0, 600)).to.eq(true);
+        expect(await acquireLock(lockKey, randomUUID(), 0, 600)).to.eq(false);
+
+        // Fire real incremental jobs while the lock is held. Each bails on the
+        // lock and buffers its ids. The bail path returns before it touches
+        // job.id / logging, so a minimal job object is enough — no mocking of
+        // the processor itself.
+        const runIncremental = (ids: string[]) =>
+          processor.job({
+            data: {
+              context: destCtx,
+              syncId,
+              mode: 'incremental',
+              affectedIdsBySource: { [sourceTable.id]: ids },
+              req: {},
+            },
+          } as any);
+
+        await runIncremental(['s1', 's2']);
+        await runIncremental(['s2', 's3']); // s2 overlaps — must dedupe
+        await runIncremental(['s4']);
+
+        // The in-flight run finishes; the lock frees for the next run.
+        await releaseLock(lockKey, holderId);
+        const nextId = randomUUID();
+        expect(await acquireLock(lockKey, nextId, 0, 600)).to.eq(true);
+        await releaseLock(lockKey, nextId);
+
+        // Every id from every blocked run survived (deduped) — none dropped.
+        const drained = await drainPendingIncrementalIds(destCtx, syncId);
+        expect(drained, 'buffered ids should survive the contention').to.exist;
+        expect([...drained![sourceTable.id]].sort()).to.deep.eq([
+          's1',
+          's2',
+          's3',
+          's4',
+        ]);
+        // Draining clears the buffer.
+        expect(await drainPendingIncrementalIds(destCtx, syncId)).to.eq(
+          undefined,
+        );
+      });
+
+      // The trailing path: a run that finishes with a non-empty buffer drains
+      // it and schedules a follow-up run (into the sync's free slot) that must
+      // replicate the buffered ids. Two things have to hold for r1 to land:
+      // (1) the queue cleanly runs the scheduled follow-up, and (2) the
+      // follow-up fetches by its explicit affectedIds — NOT the LMT cursor,
+      // which a prior run (r0) advances to the same second and would drop r1
+      // via a strict `>` filter. Manual trigger keeps source writes from
+      // auto-scheduling, so the ONLY thing that can replicate r1 is this
+      // trailing run. No stubs: real queue, real processor, real DB.
+      it('finishes, drains its buffer, and re-runs itself to replicate the buffered ids', async function () {
+        this.timeout(40000);
+
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 0 }); // test-0
+        await createRow(context, { base: sourceBase, table: sourceTable, index: 1 }); // test-1
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'TrailingSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          sync_trigger: TableSyncTrigger.Manual,
+        }).expect(200);
+        const syncId = created.body.id;
+        const settled = await waitForSyncSettled(destEnv, syncId);
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        expect(await destTitles(destTable)).to.deep.eq(['test-0', 'test-1']);
+
+        const srcRows = (await listRow({
+          base: sourceBase,
+          table: sourceTable,
+        })) as any[];
+        const r0 = srcRows.find((r) => r.Title === 'test-0');
+        const r1 = srcRows.find((r) => r.Title === 'test-1');
+
+        // Manual trigger ⇒ these writes schedule no incremental job.
+        await updateRow(sourceTable, r0.Id, { Title: 'CHANGED0' });
+        await updateRow(sourceTable, r1.Id, { Title: 'TRAILING' });
+
+        // r1's id is parked in the buffer (as if it arrived mid-run). Nothing
+        // else will replicate it.
+        const destCtx = { workspace_id: workspaceId, base_id: destBase.id };
+        await bufferPendingIncrementalIds(destCtx, syncId, {
+          [sourceTable.id]: [String(r1.Id)],
+        });
+
+        // One real incremental job for r0. On completion it drains [r1] and
+        // schedules a follow-up run for it; that run replicates r1. If the
+        // follow-up never runs, or runs but fetches by the (now-advanced)
+        // cursor instead of its affectedIds, r1 stays 'test-1'.
+        const jobs = Noco.nestApp.get(NocoJobsService);
+        await jobs.add(
+          JobTypes.TableSyncRun,
+          {
+            context: destCtx,
+            syncId,
+            mode: 'incremental',
+            affectedIdsBySource: { [sourceTable.id]: [String(r0.Id)] },
+            req: {
+              user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+              ncWorkspaceId: workspaceId,
+              ncBaseId: destBase.id,
+              ncSiteUrl: '',
+              dashboardUrl: '',
+              headers: {},
+              query: {},
+              body: {},
+              params: {},
+            },
+          },
+          {
+            jobId: `tableSync:${syncId}:incremental`,
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
+        );
+
+        // Wait for the direct run (r0 → CHANGED0) and the trailing re-run
+        // (r1 → TRAILING, reachable only via the self-remove path).
+        const deadline = Date.now() + 30000;
+        let titles: string[] = [];
+        do {
+          titles = await destTitles(destTable);
+          if (titles.includes('CHANGED0') && titles.includes('TRAILING')) break;
+          await new Promise((r) => setTimeout(r, 500));
+        } while (Date.now() < deadline);
+
+        expect(
+          titles,
+          'trailing re-run should replicate the buffered id',
+        ).to.deep.eq(['CHANGED0', 'TRAILING']);
+
+        // Buffer fully drained by the re-run.
+        expect(await drainPendingIncrementalIds(destCtx, syncId)).to.eq(
+          undefined,
+        );
       });
     });
 

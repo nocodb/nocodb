@@ -1,12 +1,16 @@
 import 'mocha';
+import { randomUUID } from 'crypto';
 import { expect } from 'chai';
 import { NcBaseError, UITypes } from 'nocodb-sdk';
 import {
+  bufferPendingIncrementalIds,
   buildSyncSystemFields,
+  drainPendingIncrementalIds,
   extractShareUuid,
   extractSourcePk,
   normalizeLinkValue,
   REMAP_UIDTS,
+  scheduleIncrementalRun,
   SYSTEM_REMOTE_TITLES,
   toDestColumnDef,
   toDestRow,
@@ -16,6 +20,8 @@ import type {
   SyncRunMeta,
 } from '~/modules/table-sync/table-sync.helpers';
 import { toUserFacingSyncError } from '~/modules/table-sync/table-sync-error.helper';
+import { JobTypes } from '~/interface/Jobs';
+import NocoCache from '~/cache/NocoCache';
 
 /**
  * Pure-function unit tests for table-sync helpers.
@@ -568,6 +574,170 @@ export function tableSyncHelpersTests() {
       it('never returns the raw SQL/stack for a non-DB error', () => {
         const out = toUserFacingSyncError(new Error('SELECT boom FROM nope'));
         expect(out).to.not.match(/SELECT|boom|nope/);
+      });
+    });
+
+    describe('scheduleIncrementalRun', () => {
+      const baseJobData = {
+        context: { workspace_id: 'ws', base_id: 'base' },
+        syncId: 's1',
+        mode: 'incremental' as const,
+        req: {} as any,
+      };
+
+      // Minimal NocoJobsService stub. `getJob` returns the configured existing
+      // job (or null) for every slot id; `getState` reports the job's state
+      // ('delayed' by default, 'active' to simulate a processing job that must
+      // be skipped); `add` records its calls so tests can assert the payload.
+      const makeJobs = (opts: {
+        existingData?: { affectedIdsBySource?: Record<string, string[]> };
+        state?: string;
+        removeThrows?: boolean;
+        addThrows?: boolean;
+      }) => {
+        const added: Array<{ name: string; data: any; opts: any }> = [];
+        let removeCalled = false;
+        const svc = {
+          getJob: async () =>
+            opts.existingData !== undefined
+              ? {
+                  data: opts.existingData,
+                  getState: async () => opts.state ?? 'delayed',
+                  remove: async () => {
+                    removeCalled = true;
+                    if (opts.removeThrows) throw new Error('job is locked');
+                  },
+                }
+              : null,
+          add: async (name: string, data: any, jobOpts: any) => {
+            if (opts.addThrows) throw new Error('queue unavailable');
+            added.push({ name, data, opts: jobOpts });
+          },
+        } as any;
+        return { svc, added, removeCalled: () => removeCalled };
+      };
+
+      it('no existing job → schedules the primary slot', async () => {
+        const { svc, added } = makeJobs({});
+        const ok = await scheduleIncrementalRun(svc, {
+          syncId: 's1',
+          baseJobData,
+          newIdsBySource: { t1: ['a', 'b'] },
+        });
+        expect(ok).to.eq(true);
+        expect(added).to.have.length(1);
+        expect(added[0].name).to.eq(JobTypes.TableSyncRun);
+        expect(added[0].opts.jobId).to.eq('tableSync:s1:incremental');
+        expect(added[0].opts.delay).to.eq(5000);
+        expect(added[0].opts.removeOnComplete).to.eq(true);
+        expect(added[0].opts.removeOnFail).to.eq(true);
+        expect(added[0].data.affectedIdsBySource).to.deep.eq({ t1: ['a', 'b'] });
+      });
+
+      it('existing delayed job → removes it and re-adds with merged, deduped ids', async () => {
+        const { svc, added, removeCalled } = makeJobs({
+          existingData: { affectedIdsBySource: { t1: ['a', 'b'] } },
+        });
+        const ok = await scheduleIncrementalRun(svc, {
+          syncId: 's1',
+          baseJobData,
+          newIdsBySource: { t1: ['b', 'c'], t2: ['x'] },
+        });
+        expect(ok).to.eq(true);
+        expect(removeCalled()).to.eq(true);
+        expect(added).to.have.length(1);
+        const merged = added[0].data.affectedIdsBySource;
+        expect([...merged.t1].sort()).to.deep.eq(['a', 'b', 'c']);
+        expect(merged.t2).to.deep.eq(['x']);
+      });
+
+      it('both slots processing (getState active) → returns false, schedules nothing', async () => {
+        const { svc, added, removeCalled } = makeJobs({
+          existingData: { affectedIdsBySource: { t1: ['a'] } },
+          state: 'active',
+        });
+        const ok = await scheduleIncrementalRun(svc, {
+          syncId: 's1',
+          baseJobData,
+          newIdsBySource: { t1: ['z'] },
+        });
+        expect(ok).to.eq(false);
+        expect(added).to.have.length(0);
+        // a running job is skipped, never removed
+        expect(removeCalled()).to.eq(false);
+      });
+
+      it('add failure → returns false', async () => {
+        const { svc } = makeJobs({ addThrows: true });
+        const ok = await scheduleIncrementalRun(svc, {
+          syncId: 's1',
+          baseJobData,
+          newIdsBySource: { t1: ['a'] },
+        });
+        expect(ok).to.eq(false);
+      });
+
+      it('no ids → schedules with affectedIdsBySource undefined (cursor-based run)', async () => {
+        const { svc, added } = makeJobs({});
+        const ok = await scheduleIncrementalRun(svc, {
+          syncId: 's1',
+          baseJobData,
+          newIdsBySource: {},
+        });
+        expect(ok).to.eq(true);
+        expect(added[0].data.affectedIdsBySource).to.eq(undefined);
+      });
+    });
+
+    describe('pending incremental buffer (buffer/drain)', () => {
+      // Buffer/drain ride NocoCache — init the in-memory mock (used when no
+      // Redis is configured). Skip if the cache is explicitly disabled.
+      before(function () {
+        NocoCache.init();
+        if (NocoCache.isCacheDisabled) this.skip();
+      });
+
+      const ctx = { workspace_id: 'wsBuf', base_id: 'baseBuf' } as any;
+      const sortGroups = (g?: Record<string, string[]>) =>
+        g &&
+        Object.fromEntries(
+          Object.entries(g).map(([k, v]) => [k, [...v].sort()]),
+        );
+
+      it('round-trips ids grouped by source table, then clears', async () => {
+        const syncId = `buf-${randomUUID()}`;
+        await bufferPendingIncrementalIds(ctx, syncId, {
+          t1: ['a', 'b'],
+          t2: ['x'],
+        });
+        const drained = await drainPendingIncrementalIds(ctx, syncId);
+        expect(sortGroups(drained)).to.deep.eq({ t1: ['a', 'b'], t2: ['x'] });
+        // second drain is empty — the buffer was cleared
+        expect(await drainPendingIncrementalIds(ctx, syncId)).to.eq(undefined);
+      });
+
+      it('dedups repeated ids (one hash field per id)', async () => {
+        const syncId = `buf-${randomUUID()}`;
+        await bufferPendingIncrementalIds(ctx, syncId, { t1: ['a', 'a', 'b'] });
+        await bufferPendingIncrementalIds(ctx, syncId, { t1: ['a'] });
+        const drained = await drainPendingIncrementalIds(ctx, syncId);
+        expect(sortGroups(drained)).to.deep.eq({ t1: ['a', 'b'] });
+      });
+
+      it('splits the field on the first colon (ids may contain colons)', async () => {
+        const syncId = `buf-${randomUUID()}`;
+        await bufferPendingIncrementalIds(ctx, syncId, {
+          tbl: ['id:with:colons'],
+        });
+        const drained = await drainPendingIncrementalIds(ctx, syncId);
+        expect(drained).to.deep.eq({ tbl: ['id:with:colons'] });
+      });
+
+      it('empty input is a no-op and drains to undefined', async () => {
+        const syncId = `buf-${randomUUID()}`;
+        await bufferPendingIncrementalIds(ctx, syncId, {});
+        await bufferPendingIncrementalIds(ctx, syncId, { t1: [] });
+        expect(await drainPendingIncrementalIds(ctx, syncId)).to.eq(undefined);
       });
     });
   });

@@ -101,6 +101,7 @@ export class GridColumnsService {
       'group_by',
       'group_by_order',
       'group_by_sort',
+      'group_by_enabled',
       'aggregation',
     ]);
 

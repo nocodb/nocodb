@@ -26,6 +26,7 @@ export default class GridViewColumn implements GridColumnType {
   group_by?: BoolType;
   group_by_order?: number;
   group_by_sort?: string;
+  group_by_enabled?: BoolType;
 
   aggregation?: string;
 
@@ -120,6 +121,7 @@ export default class GridViewColumn implements GridColumnType {
       'group_by',
       'group_by_order',
       'group_by_sort',
+      'group_by_enabled',
     ]);
 
     insertObj.order =
@@ -189,6 +191,7 @@ export default class GridViewColumn implements GridColumnType {
       'group_by',
       'group_by_order',
       'group_by_sort',
+      'group_by_enabled',
       'aggregation',
     ]);
 

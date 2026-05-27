@@ -520,6 +520,9 @@ const rolePermissions:
       relationDataRemove: true,
       relationDataAdd: true,
 
+      dataImportPreview: true,
+      dataImportFile: true,
+
       nestedDataLink: true,
       nestedDataUnlink: true,
       nestedListCopyPasteOrDeleteAll: true,

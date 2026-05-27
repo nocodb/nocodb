@@ -999,6 +999,9 @@ const rolePermissions:
       relationDataRemove: true,
       relationDataAdd: true,
 
+      dataImportPreview: true,
+      dataImportFile: true,
+
       // TODO implement this
       // upload: true,
       // uploadViaURL: true,

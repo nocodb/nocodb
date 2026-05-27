@@ -209,7 +209,7 @@ export class PGDBQueryClient
             customDisplayCol.id !== pvColumn?.id
               ? [customDisplayCol]
               : []),
-          ];
+          ].filter(Boolean);
 
           if (listArgs?.fields === '*') {
             fields = relatedModel.columns;

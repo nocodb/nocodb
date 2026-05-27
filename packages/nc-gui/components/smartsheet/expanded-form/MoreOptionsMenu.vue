@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits<{
+  newRecord: []
   duplicateStart: []
   duplicateApplied: []
   afterDelete: []
@@ -71,6 +72,7 @@ const duplicatingRowInProgress = ref(false)
 const visibleMoreOptions = computed(() => {
   if (props.templateMode || props.blueprintMode) {
     return {
+      newRecord: false,
       reloadRecord: false,
       copyRecordUrl: false,
       sendRecord: false,
@@ -83,6 +85,7 @@ const visibleMoreOptions = computed(() => {
   }
 
   const result = {
+    newRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     reloadRecord: !isEeUI && !!props.rowId,
     copyRecordUrl: !isNew.value && !!props.rowId,
     sendRecord: appInfo.value.ee && !isNew.value && !!props.rowId && !isPublic.value,
@@ -99,7 +102,7 @@ const visibleMoreOptions = computed(() => {
     // Only meaningful when there's a standalone copy-URL button — in compact mode
     // the dropdown is the ONLY surface for copy-URL, so it must always render.
     allHiddenExceptCopyRecordUrl:
-      !props.compact && !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
+      !props.compact && !result.newRecord && !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
   }
 })
 
@@ -231,6 +234,37 @@ const onConfirmDeleteRowClick = async () => {
             {{ $t('activity.sendRecord') }}
           </div>
         </NcMenuItem>
+        <NcTooltip v-if="visibleMoreOptions.newRecord && meta?.synced" placement="left">
+          <template #title>
+            {{ $t('msg.info.insertNotAvailableForSyncedTable') }}
+          </template>
+          <NcMenuItem disabled>
+            <div class="flex gap-2 items-center" data-testid="nc-expanded-form-new-record">
+              <component :is="iconMap.plus" class="cursor-pointer" />
+              <span class="-ml-0.25">
+                {{ $t('activity.newRecord') }}
+              </span>
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+        <PermissionsTooltip
+          v-else-if="visibleMoreOptions.newRecord"
+          :entity="PermissionEntity.TABLE"
+          :entity-id="meta?.id"
+          :permission="PermissionKey.TABLE_RECORD_ADD"
+          placement="right"
+        >
+          <template #default="{ isAllowed }">
+            <NcMenuItem :disabled="!isAllowed" @click="isAllowed && emits('newRecord')">
+              <div v-e="['c:row-expand:new-record']" class="flex gap-2 items-center" data-testid="nc-expanded-form-new-record">
+                <component :is="iconMap.plus" class="cursor-pointer" />
+                <span class="-ml-0.25">
+                  {{ $t('activity.newRecord') }}
+                </span>
+              </div>
+            </NcMenuItem>
+          </template>
+        </PermissionsTooltip>
         <NcTooltip v-if="visibleMoreOptions.duplicateRecord && meta?.synced" placement="left">
           <template #title>
             {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}

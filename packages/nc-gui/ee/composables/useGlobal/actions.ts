@@ -232,7 +232,9 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         return await checkForCognitoToken({
           axiosInstance,
         })
-      } else if (state.token.value && state.user.value) {
+      } else if (state.token.value) {
+        // Clear even when user state is missing — a stale token can
+        // persist without a populated user after a tab restart.
         await signOut({
           skipApiCall: true,
         })

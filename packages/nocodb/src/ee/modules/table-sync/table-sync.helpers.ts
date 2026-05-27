@@ -20,6 +20,8 @@ export const REMAP_UIDTS: Partial<Record<string, UITypes>> = {
   [UITypes.LastModifiedBy]: UITypes.SingleLineText,
   [UITypes.CreatedTime]: UITypes.DateTime,
   [UITypes.LastModifiedTime]: UITypes.DateTime,
+  [UITypes.UUID]: UITypes.SingleLineText,
+  [UITypes.AutoNumber]: UITypes.Number,
 };
 
 export interface DestColumnDef {

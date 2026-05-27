@@ -47,6 +47,12 @@ export function tableSyncHelpersTests() {
         expect(REMAP_UIDTS[UITypes.CreatedTime]).to.eq(UITypes.DateTime);
         expect(REMAP_UIDTS[UITypes.LastModifiedTime]).to.eq(UITypes.DateTime);
       });
+      it('UUID → SingleLineText (mirror value, not a re-generated uuid)', () => {
+        expect(REMAP_UIDTS[UITypes.UUID]).to.eq(UITypes.SingleLineText);
+      });
+      it('AutoNumber → Number (mirror value, not a re-incremented seq)', () => {
+        expect(REMAP_UIDTS[UITypes.AutoNumber]).to.eq(UITypes.Number);
+      });
       it('untouched uidts (e.g. SingleLineText, Number) are NOT in the remap', () => {
         expect(REMAP_UIDTS[UITypes.SingleLineText]).to.eq(undefined);
         expect(REMAP_UIDTS[UITypes.Number]).to.eq(undefined);

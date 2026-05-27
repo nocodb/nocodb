@@ -898,6 +898,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
               context,
               affectedRowColorConditionId,
             );
+            if (!rowColorCondition) continue;
             commitHandlers.push(() =>
               this.deleteRowColoringCondition(context, {
                 fk_view_id: rowColorCondition.fk_view_id,

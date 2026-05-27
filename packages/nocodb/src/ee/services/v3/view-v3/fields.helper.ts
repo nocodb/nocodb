@@ -6,6 +6,7 @@ import {
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import { Model } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 export const handleFieldsRequestBody = async (
   context: NcContext,
@@ -28,11 +29,14 @@ export const handleFieldsRequestBody = async (
   if (ncIsNullOrUndefined(param.fields)) {
     return {};
   }
-  const modelColumns =
-    param.modelColumns ??
-    (await (
-      await Model.get(context, param.tableId, false, ncMeta)
-    ).getColumns(context, ncMeta));
+  let modelColumns = param.modelColumns;
+  if (!modelColumns) {
+    const model = await Model.get(context, param.tableId, false, ncMeta);
+    if (!model) {
+      NcError.get(context).tableNotFound(param.tableId);
+    }
+    modelColumns = await model.getColumns(context, ncMeta);
+  }
 
   // when given empty array, every column except pv is show = false
   if (Array.isArray(param.fields) && param.fields.length === 0) {

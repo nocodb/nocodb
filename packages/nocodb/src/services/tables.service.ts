@@ -336,7 +336,11 @@ export class TablesService {
     try {
       table = await Model.getByIdOrName(context, { id: param.tableId }, ncMeta);
 
-      if (table?.synced && !param.forceDeleteSyncs) {
+      if (!table) {
+        NcError.get(context).tableNotFound(param.tableId);
+      }
+
+      if (table.synced && !param.forceDeleteSyncs) {
         NcError.get(context).invalidRequestBody(
           'Synced tables cannot be deleted',
         );

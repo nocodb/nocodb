@@ -5878,11 +5878,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (found) return found;
     }
 
+    if (!ownColOpts) return undefined;
+
     // Fallback: paired LTAR direction may carry the override. The paired
     // column lives on the table this LTAR links to, which is `refModel` if
     // the caller passed it that way, or otherwise resolved via colOpts.
     const { refContext } = ownColOpts.getRelContext(this.context);
-    const linkedModelId = ownColOpts?.fk_related_model_id ?? refModel.id;
+    const linkedModelId = ownColOpts.fk_related_model_id ?? refModel.id;
 
     let pairedColumns: Column[] | undefined;
     if (linkedModelId === refModel.id) {

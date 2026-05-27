@@ -69,6 +69,10 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       ncMeta,
     );
 
+    if (!table) {
+      NcError.get(ctx).parentInTrash('table');
+    }
+
     const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
     const source = base.sources.find((s) => s.id === table.source_id);
     if (!source?.isMeta()) {

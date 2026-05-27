@@ -18,10 +18,12 @@ import { User } from '~/models';
 //   - API tokens are NOT affected (the JWT strategy short-circuits before the
 //     token_version check on is_api_token).
 //
-// Note on assertions: /auth/user/me uses GlobalGuard which silently falls
-// back to a guest user when JWT validation fails (returns 200 with
-// `roles.guest: true`). We check `response.body.email` instead of status
-// code to distinguish "valid session" from "JWT rejected, treated as guest".
+// Note on assertions: GlobalGuard silently falls back to a guest user when
+// JWT validation fails, but `/auth/user/me` explicitly rejects that fallback
+// when an `xc-auth` header (or `nc_token` cookie) was supplied — it surfaces
+// 401 so the client can refresh or sign out instead of consuming a guest
+// identity. We treat 200 (with the expected email) as "valid session" and
+// 401 as "JWT rejected".
 
 function singleSessionLoginTests() {
   let context: Awaited<ReturnType<typeof init>>;
@@ -63,12 +65,14 @@ function singleSessionLoginTests() {
   }
 
   // Helper: returns true if the JWT is accepted by GlobalGuard (real user).
-  // Returns false if the JWT is rejected (guard falls back to guest).
+  // Returns false if `/auth/user/me` rejects it with 401 (guard's guest
+  // fallback is now surfaced as an unauthorized error).
   async function isJwtValid(token: string): Promise<boolean> {
     const res = await request(context.app)
       .get('/api/v1/auth/user/me')
-      .set('xc-auth', token)
-      .expect(200);
+      .set('xc-auth', token);
+    if (res.status === 401) return false;
+    expect(res.status).to.equal(200);
     return res.body?.email === defaultUserArgs.email && !res.body?.roles?.guest;
   }
 

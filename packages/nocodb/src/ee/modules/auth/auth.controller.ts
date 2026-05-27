@@ -167,6 +167,17 @@ export class AuthController extends AuthControllerCE {
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Req() req: NcRequest) {
+    // GlobalGuard silently falls back to a guest user when JWT validation
+    // fails. If the caller supplied a JWT (xc-auth header or nc_token cookie)
+    // and we ended up as guest, the token is invalid/expired — surface 401
+    // before any DB / cache work so the client can refresh or sign out.
+    if (
+      (req.headers?.['xc-auth'] || req.cookies?.nc_token) &&
+      (req.user as any)?.roles?.guest
+    ) {
+      NcError.unauthorized('Token Expired. Please login again.');
+    }
+
     const featureFlags: Record<string, boolean> = (
       await Promise.all([
         (async () => {

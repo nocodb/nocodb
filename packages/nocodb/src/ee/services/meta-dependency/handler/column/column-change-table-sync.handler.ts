@@ -21,6 +21,15 @@ import {
   scheduleReactiveResync,
 } from '~/services/meta-dependency/handler/table-sync-handler.helpers';
 
+const LINK_PLACEHOLDER_PREFIXES = ['_nc_ph_', '_nc_trash_ph_'] as const;
+
+function isLinkPlaceholderColumnName(columnName?: string | null): boolean {
+  return (
+    !!columnName &&
+    LINK_PLACEHOLDER_PREFIXES.some((p) => columnName.startsWith(p))
+  );
+}
+
 /** Reacts to source-side column changes on synced tables. Three branches:
  *
  *  - `COLUMN_DELETED` → drop dest col(s) (LTAR cascade via
@@ -240,13 +249,14 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
     }
   }
 
-  /** NocoDB replaces a deleted link column with a `_nc_ph_*` SingleLineText
-   *  placeholder (carrying the comma-joined display values) on the table the
-   *  link is removed from. Find that same-title placeholder on the sync's
-   *  MAIN source table so the field can be kept as plain text rather than
-   *  dropped. The `_nc_ph_` prefix is link-placeholder-specific, so this only
-   *  matches a genuine link→placeholder replacement. Returns the column (its
-   *  id feeds reconcileFields' includeColIds) or null. */
+  /** NocoDB replaces a deleted link column with a SingleLineText placeholder
+   *  (carrying the comma-joined display values) on the table the link is
+   *  removed from. Find that same-title placeholder on the sync's MAIN source
+   *  table so the field can be kept as plain text rather than dropped. Matched
+   *  by the link-placeholder `column_name` prefixes (see
+   *  isLinkPlaceholderColumnName), so this only fires on a genuine
+   *  link→placeholder replacement. Returns the column (its id feeds
+   *  reconcileFields' includeColIds) or null. */
   private async findSourcePlaceholder(
     sync: TableSync,
     title: string,
@@ -271,7 +281,7 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
         (c) =>
           c.title === title &&
           c.uidt === UITypesEnum.SingleLineText &&
-          (c.column_name?.startsWith('_nc_ph_') ?? false),
+          isLinkPlaceholderColumnName(c.column_name),
       ) ?? null
     );
   }

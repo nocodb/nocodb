@@ -1,11 +1,15 @@
-import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import { arrUniqMerge, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import { syncSystemFieldsMap } from '@noco-local-integrations/core';
 import type { ColumnType, NcContext } from 'nocodb-sdk';
 import type Column from '~/models/Column';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type Model from '~/models/Model';
+import type { TableSyncJobData } from '~/interface/Jobs';
+import type { NocoJobsService } from '~/services/noco-jobs.service';
 import { sanitizeColumnName } from '~/helpers/columnHelpers';
+import NocoCache from '~/cache/NocoCache';
+import { JobTypes } from '~/interface/Jobs';
 
 /** Source uidt → dest uidt remap. Anything not listed mirrors the source
  *  uidt directly. Also imported by `ColumnChangeTableSyncHandler` so a
@@ -510,4 +514,126 @@ export function buildSyncSystemFields(opts: {
     SyncRunId: opts.runMeta.runId,
     SyncProvider: 'nocodb-table-sync',
   };
+}
+
+/** Debounce window for realtime incremental table-sync. Writes within the
+ *  window coalesce into a single delayed job. */
+export const TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS = 5000;
+
+/** Buffer is short-lived (drained at the end of every run); the TTL only guards
+ *  against a sync deleted mid-buffer leaving an orphan key. */
+const PENDING_INCREMENTAL_TTL_S = 60 * 60;
+
+const pendingIncrementalKey = (syncId: string) =>
+  `tableSyncPendingIncremental:${syncId}`;
+
+/**
+ * Overflow buffer for realtime incremental ids that arrive while a run is in
+ * flight — once the job is processing it can't be coalesced into, so its ids
+ * park here. A cache hash keyed by sync, one field per id (`sourceTableId:id`)
+ * so concurrent writers append atomically without a read-modify-write race. The
+ * running job drains it at the end and re-runs itself once. Relies on the
+ * shared cache, which the jobs system already requires.
+ */
+export async function bufferPendingIncrementalIds(
+  context: NcContext,
+  syncId: string,
+  idsBySource: Record<string, string[]>,
+): Promise<void> {
+  const key = pendingIncrementalKey(syncId);
+  let wrote = false;
+  for (const [sourceTableId, ids] of Object.entries(idsBySource)) {
+    for (const id of ids ?? []) {
+      // Table ids are nanoids (no `:`), so `sourceTableId:id` splits cleanly on
+      // the first colon even when the id itself contains one.
+      await NocoCache.setHashField(context, key, `${sourceTableId}:${id}`, '1');
+      wrote = true;
+    }
+  }
+  if (wrote)
+    await NocoCache.expireHash(context, key, PENDING_INCREMENTAL_TTL_S);
+}
+
+/**
+ * Snapshot + clear the overflow buffer. Deletes only the fields it read, so ids
+ * written concurrently during the drain survive for the next drain instead of
+ * being dropped.
+ */
+export async function drainPendingIncrementalIds(
+  context: NcContext,
+  syncId: string,
+): Promise<Record<string, string[]> | undefined> {
+  const key = pendingIncrementalKey(syncId);
+  const hash = await NocoCache.getHash(context, key);
+  const fields = Object.keys(hash ?? {});
+  if (!fields.length) return undefined;
+
+  const result: Record<string, string[]> = {};
+  for (const field of fields) {
+    const sep = field.indexOf(':');
+    if (sep === -1) continue;
+    const sourceTableId = field.slice(0, sep);
+    const id = field.slice(sep + 1);
+    (result[sourceTableId] ??= []).push(id);
+    await NocoCache.delHashField(context, key, field);
+  }
+  return Object.keys(result).length ? result : undefined;
+}
+
+/**
+ * Schedule the single incremental job for a sync (`…:incremental`). If its job
+ * is still delayed, remove + re-add it with the new ids merged in (resets the
+ * 5s debounce). If it's already processing, `remove()` rejects and we return
+ * `false` so the caller buffers the ids instead. Shared by the hook handler (on
+ * write) and the processor's trailing re-enqueue — the processor frees the slot
+ * first (it's its own job), so the add here always succeeds for that path.
+ */
+export async function scheduleIncrementalRun(
+  nocoJobsService: NocoJobsService,
+  args: {
+    syncId: string;
+    baseJobData: Omit<TableSyncJobData, 'affectedIdsBySource'>;
+    newIdsBySource: Record<string, string[]>;
+  },
+): Promise<boolean> {
+  const jobId = `tableSync:${args.syncId}:incremental`;
+  const existing = await nocoJobsService.getJob(jobId);
+
+  // Union the slot's pending ids with the new ones, per source table.
+  const merged: Record<string, string[]> = {
+    ...((existing?.data as { affectedIdsBySource?: Record<string, string[]> })
+      ?.affectedIdsBySource ?? {}),
+  };
+  for (const [tableId, ids] of Object.entries(args.newIdsBySource)) {
+    if (ids?.length) {
+      merged[tableId] = arrUniqMerge(merged[tableId] ?? [], ids);
+    }
+  }
+
+  if (existing) {
+    try {
+      await existing.remove();
+    } catch {
+      return false; // job is processing — caller buffers
+    }
+  }
+
+  try {
+    await nocoJobsService.add(
+      JobTypes.TableSyncRun,
+      {
+        ...args.baseJobData,
+        affectedIdsBySource: Object.keys(merged).length ? merged : undefined,
+      },
+      {
+        jobId,
+        delay: TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS,
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
+    return true;
+  } catch {
+    return false; // queue rejected the add — caller buffers
+  }
 }

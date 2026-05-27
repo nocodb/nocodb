@@ -1,9 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
 import {
   AppEvents,
-  arrUniqMerge,
   type HookType,
   ncIsObject,
   NOCO_SERVICE_USERS,
@@ -15,11 +13,11 @@ import {
   WebhookEvents,
 } from 'nocodb-sdk';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
-import { NcContext } from '~/interface/config';
+import { NcContext, NcRequest } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 // @ts-ignore importing directly will cause circular dependency error
 import { type WorkflowExecutionService } from '~/services/workflow-execution.service';
-import { JobTypes } from '~/interface/Jobs';
+import { JobTypes, type TableSyncJobData } from '~/interface/Jobs';
 import {
   Base,
   Filter,
@@ -42,6 +40,10 @@ import { MailService } from '~/services/mail/mail.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import {
+  bufferPendingIncrementalIds,
+  scheduleIncrementalRun,
+} from '~/modules/table-sync/table-sync.helpers';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 
@@ -53,8 +55,6 @@ const TABLE_SYNC_HOOKS_OF_INTEREST = new Set([
   'after.delete',
   'after.bulkDelete',
 ]);
-
-const TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS = 5000;
 
 @Injectable()
 export class HookHandlerService extends HookHandlerServiceCE {
@@ -977,24 +977,20 @@ export class HookHandlerService extends HookHandlerServiceCE {
   }
 
   /**
-   * Debounce policy (window: `TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS`):
-   *  - First write for a sync: schedule a job in the primary slot.
-   *  - Subsequent write while the primary job is delayed/waiting: remove
-   *    and re-add it carrying merged `affectedIdsBySource`. The job fires
-   *    one window after the LAST write.
-   *  - Subsequent write while the primary job is processing: `remove()`
-   *    rejects, so we fall through to an overflow slot
-   *    (`${jobId}:overflow`) — same merge-on-rewrite policy. The running
-   *    job's snapshot doesn't pick up ids that arrived after it became
-   *    active, so overflow is what carries them forward. Critical for
-   *    DELETE: deleted rows leave no LMT trail, so if their id isn't in a
-   *    later job's `affectedIdsBySource` the dest tombstone never fires.
-   *  - If both primary AND overflow are active (long-running primary that
-   *    outlasted the overflow's delay): fall through to a unique-suffix
-   *    slot so ids are still enqueued.
-   * `affectedIdsBySource[modelId]` is what lets the processor detect
-   * deletes / view-exits: any id present here but not returned by the
-   * source view query has disappeared and needs tombstoning.
+   * Realtime incremental debounce (window: `TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS`).
+   * One job per sync (`…:incremental`):
+   *  - First write: schedule the job (delayed one window).
+   *  - Write while the job is still delayed: remove + re-add it with merged
+   *    `affectedIdsBySource`, so it fires one window after the LAST write.
+   *  - Write while the job is processing: `remove()` rejects, so we buffer the
+   *    ids in a cache hash keyed by sync instead of spawning another job. The
+   *    running job drains that buffer when it finishes and re-runs itself once
+   *    (see `drainAndRequeueIncremental` in the processor) — so ids are never
+   *    lost and there's only ever one job per sync.
+   * `affectedIdsBySource[modelId]` is what lets the processor detect deletes /
+   * view-exits: any id present here but not returned by the source view query
+   * has disappeared and needs tombstoning — critical for DELETE, which leaves
+   * no LMT trail.
    */
   private async scheduleIncrementalTableSync(
     mapping: TableSyncMapping,
@@ -1003,7 +999,6 @@ export class HookHandlerService extends HookHandlerServiceCE {
     idsFromEvent: string[],
   ): Promise<void> {
     const syncId = mapping.fk_table_sync_id;
-    const baseJobId = `tableSync:${syncId}:incremental`;
     const sourceTableId = param.modelId;
 
     const destContext: NcContext = {
@@ -1039,111 +1034,38 @@ export class HookHandlerService extends HookHandlerServiceCE {
       return;
     }
 
-    const slots = [
-      baseJobId,
-      `${baseJobId}:overflow`,
-      `${baseJobId}:overflow:${nanoid(6)}`,
-    ];
-
-    for (let i = 0; i < slots.length; i++) {
-      const jobId = slots[i];
-      const result = await this.enqueueIncrementalSlot({
-        jobId,
-        destContext,
+    const baseJobData: Omit<TableSyncJobData, 'affectedIdsBySource'> = {
+      context: destContext,
+      syncId,
+      mode: 'incremental',
+      req: {
         context,
-        syncId,
-        sourceTableId,
-        newIds: idsFromEvent,
-      });
-
-      if (result === 'scheduled' || result === 'failed') return;
-
-      if (i < slots.length - 1) {
-        this.logger.warn(
-          `Incremental ${jobId} active — deferring ${idsFromEvent.length} ids to fallback slot`,
-        );
-      } else {
-        this.logger.error(
-          `Incremental ${baseJobId}: all slots unavailable; ${idsFromEvent.length} ids could not be enqueued`,
-        );
-      }
-    }
-  }
-
-  /**
-   * Add (or merge-and-re-add) a single incremental table-sync job in the
-   * named slot. Returns `'scheduled'` on success, `'slot-active'` if an
-   * existing job in that slot is processing and can't be removed (caller
-   * falls through to the next slot), and `'failed'` if enqueue throws.
-   */
-  private async enqueueIncrementalSlot(args: {
-    jobId: string;
-    destContext: NcContext;
-    context: NcContext;
-    syncId: string;
-    sourceTableId: string;
-    newIds: string[];
-  }): Promise<'scheduled' | 'slot-active' | 'failed'> {
-    const { jobId, destContext, context, syncId, sourceTableId, newIds } = args;
-
-    const existing = await this.nocoJobsService.getJob(jobId);
-    const existingData =
-      (existing?.data as { affectedIdsBySource?: Record<string, string[]> }) ??
-      {};
-    const merged: Record<string, string[]> = {
-      ...(existingData.affectedIdsBySource ?? {}),
+        user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+        ncWorkspaceId: context?.workspace_id,
+        ncBaseId: context?.base_id,
+        ncSiteUrl: '',
+        dashboardUrl: '',
+        headers: {},
+        query: {},
+        body: {},
+        params: {},
+      } as NcRequest,
     };
-    if (newIds.length) {
-      merged[sourceTableId] = arrUniqMerge(merged[sourceTableId] ?? [], newIds);
-    }
-    const affectedIdsBySource = Object.keys(merged).length ? merged : undefined;
+    const newIdsBySource = { [sourceTableId]: idsFromEvent };
 
-    if (existing) {
-      try {
-        await existing.remove();
-      } catch (e) {
-        this.logger.warn(
-          `Incremental ${jobId} remove failed (${(e as Error).message})`,
-        );
-        return 'slot-active';
-      }
-    }
+    const scheduled = await scheduleIncrementalRun(this.nocoJobsService, {
+      syncId,
+      baseJobData,
+      newIdsBySource,
+    });
 
-    try {
-      await this.nocoJobsService.add(
-        JobTypes.TableSyncRun,
-        {
-          context: destContext,
-          syncId,
-          mode: 'incremental',
-          affectedIdsBySource,
-          req: {
-            context,
-            user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
-            ncWorkspaceId: context?.workspace_id,
-            ncBaseId: context?.base_id,
-            ncSiteUrl: '',
-            dashboardUrl: '',
-            headers: {},
-            query: {},
-            body: {},
-            params: {},
-          },
-        },
-        {
-          jobId,
-          delay: TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS,
-          removeOnComplete: true,
-          removeOnFail: true,
-        },
+    // The job is already processing — park the ids in the buffer. The running
+    // job drains them on completion and re-runs itself once.
+    if (!scheduled) {
+      await bufferPendingIncrementalIds(destContext, syncId, newIdsBySource);
+      this.logger.warn(
+        `Incremental tableSync:${syncId}: run in progress — buffered ${idsFromEvent.length} ids`,
       );
-      return 'scheduled';
-    } catch (e) {
-      this.logger.error({
-        error: e,
-        message: `Failed to enqueue table-sync job ${jobId}`,
-      });
-      return 'failed';
     }
   }
 }

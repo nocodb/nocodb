@@ -10,14 +10,18 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Job } from 'bull';
+import { randomUUID } from 'crypto';
 import type { NcContext } from 'nocodb-sdk';
 import type { TableSyncJobData } from '~/interface/Jobs';
 import type { Column } from '~/models';
 import {
+  bufferPendingIncrementalIds,
   buildColumnPlan,
   buildSyncSystemFields,
+  drainPendingIncrementalIds,
   extractSourcePk,
   normalizeLinkValue,
+  scheduleIncrementalRun,
   type SyncRunMeta,
   toDestRow,
 } from '~/modules/table-sync/table-sync.helpers';
@@ -31,6 +35,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { DataTableService } from '~/services/data-table.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 
 const PAGE_SIZE = 100;
 const CHUNK_SIZE = 500;
@@ -80,6 +85,34 @@ export class TableSyncProcessor {
 
     if (mode === 'incremental' && sync.status !== TableSyncStatus.Active) {
       return;
+    }
+
+    // Serialize incremental runs per sync — only one executes at a time, so two
+    // overlapping runs can't double-insert or race on tombstones/cursor for the
+    // same dest table. A second dispatched run bails here and parks its ids in
+    // the buffer for the holder to drain on completion.
+    const incrementalLockKey = `lock:tableSync:incremental:${syncId}`;
+    const incrementalLockId = randomUUID();
+    let holdsIncrementalLock = false;
+    if (mode === 'incremental') {
+      // try-once (maxWait 0): if another run holds the lock, don't queue — bail
+      // and let that run drain our buffered ids. The 10-min TTL is only a crash
+      // safety net; the run releases the lock in the `finally` below. Backed by
+      // the shared cache (Redis, or the in-memory mock when Redis isn't set).
+      holdsIncrementalLock = await acquireLock(
+        incrementalLockKey,
+        incrementalLockId,
+        0,
+        600,
+      );
+      if (!holdsIncrementalLock) {
+        await bufferPendingIncrementalIds(
+          context,
+          syncId,
+          affectedIdsBySource ?? {},
+        );
+        return;
+      }
     }
 
     const verb = mode === 'incremental' ? 'Incremental sync' : 'Full sync';
@@ -1156,6 +1189,9 @@ export class TableSyncProcessor {
           },
         });
       }
+      if (mode === 'incremental') {
+        await this.drainAndRequeueIncremental(job, context, syncId, req);
+      }
     } catch (e) {
       const rawMessage = ((e as Error)?.message ?? String(e)).slice(0, 1000);
       // `last_error` surfaces in the UI — store a business-friendly message,
@@ -1185,6 +1221,64 @@ export class TableSyncProcessor {
         (e as Error)?.stack,
       );
       NcError.get(context).internalServerError(`${verb} failed`);
+    } finally {
+      if (holdsIncrementalLock) {
+        await releaseLock(incrementalLockKey, incrementalLockId);
+      }
+    }
+  }
+
+  /**
+   * Trailing drain for realtime incremental sync. Ids buffered while this run
+   * was processing (see `scheduleIncrementalTableSync`) are drained and re-run
+   * once. The slot id is this very job, and Bull ignores `add()` for an id
+   * that's still active — so we free our own id first (`releaseLock` + `remove`,
+   * mirroring `JobsProcessor.requeue`), then re-add it with the drained ids.
+   * Wrapped so a buffer/queue hiccup never fails an otherwise-successful run.
+   */
+  private async drainAndRequeueIncremental(
+    job: Job<TableSyncJobData>,
+    context: NcContext,
+    syncId: string,
+    req: TableSyncJobData['req'],
+  ): Promise<void> {
+    // Draining deletes the ids from the buffer, so they live only in memory
+    // until re-scheduled. If anything below throws (releaseLock/remove/add) or
+    // the re-add is rejected, put them back so the next run picks them up
+    // rather than dropping them.
+    let pending: Record<string, string[]> | undefined;
+    try {
+      pending = await drainPendingIncrementalIds(context, syncId);
+      if (!pending) return;
+
+      // Free our own slot before re-adding under the same id. `releaseLock`
+      // only exists on the Bull job (not the in-memory fallback), so guard it.
+      if (typeof job.releaseLock === 'function') await job.releaseLock();
+      await job.remove();
+
+      const scheduled = await scheduleIncrementalRun(this.nocoJobsService, {
+        syncId,
+        baseJobData: { context, syncId, mode: 'incremental', req },
+        newIdsBySource: pending,
+      });
+      if (scheduled) pending = undefined; // re-scheduled — nothing to restore
+    } catch (e) {
+      this.logger.error(
+        `Incremental requeue failed for sync ${syncId}: ${
+          (e as Error)?.message
+        }`,
+        (e as Error)?.stack,
+      );
+    }
+
+    if (pending) {
+      await bufferPendingIncrementalIds(context, syncId, pending).catch((e) =>
+        this.logger.error(
+          `Failed to re-buffer incremental ids for sync ${syncId}: ${
+            (e as Error)?.message
+          }`,
+        ),
+      );
     }
   }
 

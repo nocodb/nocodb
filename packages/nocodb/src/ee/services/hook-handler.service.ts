@@ -1037,7 +1037,10 @@ export class HookHandlerService extends HookHandlerServiceCE {
       return;
     }
 
-    const baseJobData: Omit<TableSyncJobData, 'affectedIdsBySource'> = {
+    const baseJobData: Omit<
+      TableSyncJobData,
+      'affectedIdsBySource' | 'jobName' | 'user'
+    > = {
       context: destContext,
       syncId,
       mode: 'incremental',

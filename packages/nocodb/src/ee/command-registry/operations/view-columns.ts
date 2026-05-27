@@ -255,6 +255,7 @@ export const GridColumnUpdateContract: OperationContract<
           'group_by',
           'group_by_order',
           'group_by_sort',
+          'group_by_enabled',
           'aggregation',
         ] as const,
         params.grid ?? {},

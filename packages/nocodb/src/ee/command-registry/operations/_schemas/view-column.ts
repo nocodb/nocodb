@@ -47,6 +47,7 @@ const gridColumnBodySchema = z
     group_by: nullableBoolType.optional(),
     group_by_order: z.number().nullable().optional(),
     group_by_sort: z.string().nullable().optional(),
+    group_by_enabled: nullableBoolType.optional(),
     /**
      * Aggregation values are domain-validated against the per-column
      * UIType in the runtime aggregation helper — schema accepts any
@@ -71,7 +72,7 @@ export const gridColumnUpdateSchema = z
 // snapshot only carry the persisted subset.
 //
 // Authoritative source per service:
-//   grid-columns.service.ts extractProps     → show, order, width, group_by, group_by_order, group_by_sort, aggregation
+//   grid-columns.service.ts extractProps     → show, order, width, group_by, group_by_order, group_by_sort, group_by_enabled, aggregation
 //   timeline-columns.service.ts extractProps → show, order, group_by, group_by_order, group_by_sort, aggregation   (no width)
 //   gantt-columns.service.ts extractProps    → show, order, group_by, group_by_order, group_by_sort, aggregation   (no width)
 //   list-columns.service.ts extractProps     → show, order, width                                                  (no group_by/aggregation)

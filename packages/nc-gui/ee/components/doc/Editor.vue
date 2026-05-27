@@ -1727,7 +1727,10 @@ if (isCellMode.value) {
     [() => props.initialContent, editor],
     ([val, ed]) => {
       if (!ed) return
-      const next = val ?? { type: 'doc', content: [{ type: 'paragraph' }] }
+      // Normalize to a valid PM doc — `val` may be a stringified JSON column
+      // (SQLite) or null on the public reader, which would otherwise render as
+      // literal text or choke setContent.
+      const next = parseDocContent(val)
       const current = ed.getJSON()
       if (JSON.stringify(current) === JSON.stringify(next)) return
       ed.commands.setContent(next as any, false)

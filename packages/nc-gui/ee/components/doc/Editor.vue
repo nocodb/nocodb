@@ -88,12 +88,14 @@ const { showShareModal } = storeToRefs(useShare())
 
 const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermissions } = useEeConfig()
 
+// Page context menu (3-dot) open state
+const isPageMenuOpen = ref(false)
+
 const openShareModal = () => {
   // Close the page menu first so it doesn't sit behind the share dialog
   // (the menu is anchored to the topbar and would otherwise overlap the
   // upper-right of the modal). Matches the pattern used by the download /
   // full-width / delete handlers below.
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   isPageMenuOpen.value = false
   // Gate public-share behind license/plan: unlicensed On-Prem (and CE,
   // which never reaches this since the button is hidden) routes to the
@@ -1880,8 +1882,6 @@ const onEditorBodyClick = (e: MouseEvent) => {
 }
 
 // --- Page context menu (3-dot) ---
-const isPageMenuOpen = ref(false)
-
 const onDuplicatePage = async () => {
   isPageMenuOpen.value = false
   if (!base.value?.id || !doc.value?.id) return

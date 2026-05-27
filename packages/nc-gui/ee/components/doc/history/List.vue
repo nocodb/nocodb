@@ -10,15 +10,7 @@ const props = defineProps<Props>()
 
 const { docId } = toRefs(props)
 
-const {
-  revisions,
-  isLoading,
-  hasMore,
-  selectedRevisionId,
-  loadRevisions,
-  loadMore,
-  selectRevision,
-} = useDocRevisions()
+const { revisions, isLoading, hasMore, selectedRevisionId, loadRevisions, loadMore, selectRevision } = useDocRevisions()
 
 // On mount / docId change: load revisions and auto-select the most recent
 // one so the viewer pane lands in a useful state immediately.
@@ -104,13 +96,8 @@ function onSelect(rev: DocRevisionListItem) {
     </div>
 
     <!-- Empty -->
-    <div
-      v-else-if="!revisions.length"
-      class="flex flex-col items-center justify-center flex-1 px-6 text-center"
-    >
-      <div
-        class="flex items-center justify-center w-12 h-12 rounded-full bg-nc-bg-gray-light mb-3"
-      >
+    <div v-else-if="!revisions.length" class="flex flex-col items-center justify-center flex-1 px-6 text-center">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-nc-bg-gray-light mb-3">
         <GeneralIcon icon="ncHistory" class="text-nc-content-gray-subtle w-6 h-6" />
       </div>
       <span class="text-sm font-medium text-nc-content-gray">No versions saved yet</span>
@@ -146,25 +133,14 @@ function onSelect(rev: DocRevisionListItem) {
           <div class="nc-doc-history-content">
             <div class="text-xs font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
             <div class="text-xs text-nc-content-gray-muted mt-0.5">
-              <template v-if="idx === 0">
-                Current version · {{ authorLabel(rev) }}
-              </template>
-              <template v-else>
-                {{ authorLabel(rev) }} {{ sourceVerb(rev.source) }}
-              </template>
+              <template v-if="idx === 0"> Current version · {{ authorLabel(rev) }} </template>
+              <template v-else> {{ authorLabel(rev) }} {{ sourceVerb(rev.source) }} </template>
             </div>
           </div>
         </div>
       </NcTooltip>
 
-      <NcButton
-        v-if="hasMore"
-        size="small"
-        type="text"
-        class="w-full mt-2"
-        :loading="isLoading"
-        @click="loadMore"
-      >
+      <NcButton v-if="hasMore" size="small" type="text" class="w-full mt-2" :loading="isLoading" @click="loadMore">
         Load older
       </NcButton>
     </div>
@@ -217,8 +193,12 @@ function onSelect(rev: DocRevisionListItem) {
     bottom: 0;
   }
 
-  &.nc-doc-history-row-first-in-day::before { display: none; }
-  &.nc-doc-history-row-last-in-day::after { display: none; }
+  &.nc-doc-history-row-first-in-day::before {
+    display: none;
+  }
+  &.nc-doc-history-row-last-in-day::after {
+    display: none;
+  }
 
   &:hover {
     background-color: var(--nc-bg-gray-light);

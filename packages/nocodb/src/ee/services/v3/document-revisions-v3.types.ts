@@ -41,9 +41,7 @@ export function toDocumentRevisionV3ListItem(
   };
 }
 
-export function toDocumentRevisionV3(
-  rev: DocRevision,
-): DocumentRevisionV3Type {
+export function toDocumentRevisionV3(rev: DocRevision): DocumentRevisionV3Type {
   return {
     ...toDocumentRevisionV3ListItem(rev),
     content: rev.content ?? { type: 'doc', content: [{ type: 'paragraph' }] },

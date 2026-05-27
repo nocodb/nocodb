@@ -18,9 +18,9 @@ import { DocColumnExtension, DocColumnsExtension } from '../DocColumnsExtension'
 import { DocTabExtension, DocTabsExtension } from '../DocTabsExtension'
 import { DocMathExtension } from '../DocMathExtension'
 import { DocBlockDirExtension } from '../DocBlockDirPlugin'
+import { DocDiffExtension, getDiffSteps, scrollToDiffChange, setDocDiffState } from './diffPlugin'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
-import { DocDiffExtension, getDiffSteps, scrollToDiffChange, setDocDiffState } from './diffPlugin'
 
 interface Props {
   content: Record<string, any> | null

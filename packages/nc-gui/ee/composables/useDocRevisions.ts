@@ -166,6 +166,11 @@ export const useDocRevisions = createSharedComposable(() => {
     return prev?.id ?? null
   }
 
+  // Monotonic ticket — incremented on each selectRevision call so that a
+  // late-arriving fetch from a superseded click can't overwrite the content
+  // shown for the newly-selected revision.
+  let selectionSeq = 0
+
   async function refreshComparisonContent(seq?: number) {
     if (!selectedRevisionId.value) {
       comparisonContent.value = null
@@ -186,11 +191,6 @@ export const useDocRevisions = createSharedComposable(() => {
     comparisonContent.value = rev?.content ?? null
     comparisonTitle.value = rev?.title ?? null
   }
-
-  // Monotonic ticket — incremented on each selectRevision call so that a
-  // late-arriving fetch from a superseded click can't overwrite the content
-  // shown for the newly-selected revision.
-  let selectionSeq = 0
 
   async function selectRevision(revisionId: string | null) {
     const seq = ++selectionSeq

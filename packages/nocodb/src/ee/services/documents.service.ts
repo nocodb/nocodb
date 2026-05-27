@@ -14,6 +14,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.service';
+import { DocRevisionSource } from 'nocodb-sdk';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -24,7 +25,6 @@ import {
 } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { DocRevision, Document, FileReference, Permission } from '~/models';
-import { DocRevisionSource } from 'nocodb-sdk';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';

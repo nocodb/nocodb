@@ -212,7 +212,7 @@ async function onRestore() {
       <!-- Viewer pane. Body is constrained to the live doc-editor's
            comfortable reading width (772px) and centred — matches what the
            user sees outside history mode. -->
-      <div class="flex-1 overflow-y-auto bg-nc-bg-default">
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin bg-nc-bg-default">
         <div v-if="isLoadingSelected" class="flex items-center justify-center min-h-[400px]">
           <GeneralLoader size="xlarge" />
         </div>
@@ -252,7 +252,7 @@ async function onRestore() {
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
           <span class="font-semibold text-base text-nc-content-gray">{{ $t('labels.docHistory.title') }}</span>
-          <NcButton size="xsmall" type="text" data-testid="nc-doc-history-close-btn" @click="onClose">
+          <NcButton size="small" type="text" data-testid="nc-doc-history-close-btn" class="-mr-1" @click="onClose">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>

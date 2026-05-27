@@ -114,7 +114,7 @@ function onSelect(rev: DocRevisionListItem) {
 
     <!-- List — flat, no day-group headers. The topmost row is the current
          version (most recent revision); every other row is a prior edit. -->
-    <div v-else class="flex-1 overflow-y-auto px-3 py-3">
+    <div v-else class="flex-1 overflow-y-auto nc-scrollbar-thin px-3 py-3">
       <NcTooltip
         v-for="(rev, idx) in revisions"
         :key="rev.id"
@@ -164,7 +164,10 @@ function onSelect(rev: DocRevisionListItem) {
   align-items: flex-start;
   gap: 10px;
   padding: 8px 8px 8px 10px;
-  margin-left: 4px; // align the timeline line with the avatar centre
+  // 2px breathing room between rows so adjacent hover / active backgrounds
+  // don't touch. Top-only (flex margins don't collapse, so a 2px top + 2px
+  // bottom would render as a 4px gap). First row zeroes this below.
+  margin-top: 2px;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.12s ease;
@@ -189,9 +192,12 @@ function onSelect(rev: DocRevisionListItem) {
   // avatar padding + 12px (half of the 24px avatar) = 24px from row top.
   // The `margin-top: 5px` on the avatar pulls it down to align with the
   // cap height of the timestamp text — these offsets follow that shift.
+  // Starts 2px above the row to bridge the inter-row margin, so the line
+  // joins the previous row's bottom segment continuously. Bottom still lands
+  // on the avatar centre (-2 + 26 = 24px). Hidden on the first row anyway.
   &::before {
-    top: 0;
-    height: 24px;
+    top: -2px;
+    height: 26px;
   }
 
   &::after {
@@ -204,6 +210,11 @@ function onSelect(rev: DocRevisionListItem) {
   }
   &.nc-doc-history-row-last-in-day::after {
     display: none;
+  }
+
+  // First row sits flush against the list's top padding — no leading gap.
+  &.nc-doc-history-row-first-in-day {
+    margin-top: 0;
   }
 
   &:hover {

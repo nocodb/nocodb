@@ -1085,16 +1085,29 @@ export class MetaDiffsService {
                   return;
                 }
 
-                const parentCol = await parentModel
-                  .getColumns(context)
-                  .then((cols) =>
-                    cols.find((c) => c.column_name === change.rcn),
+                const parentCols = await parentModel.getColumns(context);
+                const childCols = await childModel.getColumns(context);
+
+                // Skip relation creation if either side has no primary key.
+                // PK-less tables (e.g. PG junction tables without a PK
+                // constraint) can't be addressed by row id, so cascading
+                // deletes, link broadcasts, and undo all break downstream
+                // (see delByPk, updateLinkedRecordsOnDelete). Leave them as
+                // plain tables so the FK column is still imported, just
+                // without the LTAR virtual column.
+                if (!parentModel.primaryKey || !childModel.primaryKey) {
+                  logger?.(
+                    `Skipping relation creation between ${change.tn} and ${change.rtn} because one of the tables has no primary key.`,
                   );
-                const childCol = await childModel
-                  .getColumns(context)
-                  .then((cols) =>
-                    cols.find((c) => c.column_name === change.cn),
-                  );
+                  return;
+                }
+
+                const parentCol = parentCols.find(
+                  (c) => c.column_name === change.rcn,
+                );
+                const childCol = childCols.find(
+                  (c) => c.column_name === change.cn,
+                );
 
                 await Column.update(context, childCol.id, {
                   ...childCol,

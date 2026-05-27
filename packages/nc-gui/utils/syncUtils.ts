@@ -3,6 +3,7 @@ import {
   IntegrationsType,
   OnDeleteAction,
   OnDeleteActionMeta,
+  SYNC_SYSTEM_COLUMN_TITLES,
   SyncCategory,
   SyncTrigger,
   SyncTriggerMeta,
@@ -17,28 +18,11 @@ import {
  * id, remote timestamps, run/config ids, raw payload). They're noise in a
  * record's revision history, so the audit sidebar hides their changes on
  * synced tables.
- *
- * Mirrors the backend source of truth: `syncSystemFields` /
- * `SYSTEM_REMOTE_TITLES` in
- * `@noco-local-integrations/core/src/sync/common.ts`. Keep in sync if a new
- * system field is added there.
  */
-const SYNC_SYSTEM_COLUMN_TITLES = new Set<string>([
-  'RemoteId',
-  'RemoteCreatedAt',
-  'RemoteUpdatedAt',
-  'RemoteDeletedTime',
-  'RemoteDeleted',
-  'RemoteRaw',
-  'RemoteSyncedAt',
-  'RemoteNamespace',
-  'SyncConfigId',
-  'SyncRunId',
-  'SyncProvider',
-])
+const syncSystemColumnTitles = new Set<string>(SYNC_SYSTEM_COLUMN_TITLES)
 
 const isSyncSystemColumnTitle = (title?: string | null): boolean =>
-  !!title && SYNC_SYSTEM_COLUMN_TITLES.has(title)
+  !!title && syncSystemColumnTitles.has(title)
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
@@ -141,7 +125,6 @@ export {
   defaultIntegrationConfig,
   syncEntityToReadableMap,
   getDefaultSyncConfig,
-  SYNC_SYSTEM_COLUMN_TITLES,
   isSyncSystemColumnTitle,
 }
 

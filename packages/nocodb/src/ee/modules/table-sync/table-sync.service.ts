@@ -46,6 +46,7 @@ import {
   SYSTEM_REMOTE_TITLES,
   toDestColumnDef,
 } from '~/modules/table-sync/table-sync.helpers';
+import { toUserFacingSyncError } from '~/modules/table-sync/table-sync-error.helper';
 import { getMMColumnNames, sanitizeColumnName } from '~/helpers/columnHelpers';
 import { getJunctionTableName } from '~/services/columns.service';
 import NocoSocket from '~/socket/NocoSocket';
@@ -2175,7 +2176,7 @@ export class TableSyncService {
     } catch (e) {
       await TableSync.update(context, syncId, {
         status: TableSyncStatus.Error,
-        last_error: ((e as Error)?.message ?? String(e)).slice(0, 1000),
+        last_error: toUserFacingSyncError(e, context),
         sync_job_id: null,
       });
       throw e;

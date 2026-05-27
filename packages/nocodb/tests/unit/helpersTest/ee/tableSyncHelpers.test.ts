@@ -1,6 +1,6 @@
 import 'mocha';
 import { expect } from 'chai';
-import { UITypes } from 'nocodb-sdk';
+import { NcBaseError, UITypes } from 'nocodb-sdk';
 import {
   buildSyncSystemFields,
   extractShareUuid,
@@ -15,6 +15,7 @@ import type {
   ColumnPlan,
   SyncRunMeta,
 } from '~/modules/table-sync/table-sync.helpers';
+import { toUserFacingSyncError } from '~/modules/table-sync/table-sync-error.helper';
 
 /**
  * Pure-function unit tests for table-sync helpers.
@@ -544,6 +545,29 @@ export function tableSyncHelpersTests() {
         const out = toDestRow(row, plan, '9', runMeta);
         expect(out.RemoteRaw).to.eq(JSON.stringify(row));
         expect(out.DestTitle).to.eq('x');
+      });
+    });
+
+    describe('toUserFacingSyncError', () => {
+      it('passes through an NcError message (already user-facing)', () => {
+        const e = new NcBaseError('Source view is no longer shared');
+        expect(toUserFacingSyncError(e)).to.eq(
+          'Source view is no longer shared',
+        );
+      });
+
+      it('collapses an unknown/internal error to a generic message (no raw leak)', () => {
+        const e = new Error(
+          'update "x"."y" set ... - column "Geo_data" does not exist',
+        );
+        expect(toUserFacingSyncError(e)).to.eq(
+          'Sync failed due to an unexpected error.',
+        );
+      });
+
+      it('never returns the raw SQL/stack for a non-DB error', () => {
+        const out = toUserFacingSyncError(new Error('SELECT boom FROM nope'));
+        expect(out).to.not.match(/SELECT|boom|nope/);
       });
     });
   });

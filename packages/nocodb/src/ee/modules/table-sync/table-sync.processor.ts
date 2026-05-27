@@ -21,6 +21,7 @@ import {
   type SyncRunMeta,
   toDestRow,
 } from '~/modules/table-sync/table-sync.helpers';
+import { toUserFacingSyncError } from '~/modules/table-sync/table-sync-error.helper';
 import { Untraced } from '~/decorators/trace-command.decorator';
 import { NcError } from '~/helpers/ncError';
 import TableSync from '~/models/TableSync';
@@ -1156,11 +1157,14 @@ export class TableSyncProcessor {
         });
       }
     } catch (e) {
-      const message = ((e as Error)?.message ?? String(e)).slice(0, 1000);
+      const rawMessage = ((e as Error)?.message ?? String(e)).slice(0, 1000);
+      // `last_error` surfaces in the UI — store a business-friendly message,
+      // never a raw SQL/stack. The raw error is still logged below.
+      const friendlyMessage = toUserFacingSyncError(e, context);
 
       const updated = await TableSync.update(context, syncId, {
         status: TableSyncStatus.Error,
-        last_error: message,
+        last_error: friendlyMessage,
         sync_job_id: null,
       });
 
@@ -1172,12 +1176,12 @@ export class TableSyncProcessor {
         },
       });
 
-      logBasic(`${verb} failed: ${message}`);
+      logBasic(`${verb} failed: ${friendlyMessage}`);
 
       if (e instanceof NcBaseError) throw e;
 
       this.logger.error(
-        `${verb} failed for sync ${syncId}: ${message}`,
+        `${verb} failed for sync ${syncId}: ${rawMessage}`,
         (e as Error)?.stack,
       );
       NcError.get(context).internalServerError(`${verb} failed`);

@@ -3030,10 +3030,14 @@ defineExpose({ editor })
   height: 100dvh;
 }
 
-// Dark-mode overrides for the code-block CSS variables defined further
-// down in `.nc-doc-editor`. NocoDB sets `theme='dark'` on `<html>` via
-// `useTheme()`, so this selector flips automatically on theme change.
-[theme='dark'] .nc-doc-editor {
+// Dark-mode overrides for the code-block CSS variables. This MUST target the
+// same element the light defaults are declared on (`.nc-doc-editor-content.ProseMirror`,
+// further down) — NOT the outer `.nc-doc-editor`. Custom properties resolve to
+// the nearest ancestor that sets them, so an override on the higher
+// `.nc-doc-editor` is shadowed by the unconditional light defaults on the
+// closer ProseMirror element, leaving code blocks white in dark mode. NocoDB
+// sets `theme='dark'` on `<html>` via `useTheme()`, so this flips automatically.
+[theme='dark'] .nc-doc-editor-content.ProseMirror {
   --nc-code-block-bg: #1f2937;
   --nc-code-block-text: #f9fafb;
   --nc-code-block-keyword: #ff7b72;
@@ -4018,10 +4022,10 @@ defineExpose({ editor })
   }
 
   // Code blocks — container colours + hljs tokens are theme-aware.
-  // Variables live on `.nc-doc-editor` so they cascade into the scoped
-  // `.nc-code-block-content` styles in `DocCodeBlockNode.vue`. Dark
-  // overrides hang off the `[theme='dark']` attribute that NocoDB's
-  // `useTheme()` puts on `<html>`. Light palette = GitHub Light, dark
+  // Variables live on this `.nc-doc-editor-content.ProseMirror` element so they
+  // cascade into the scoped `.nc-code-block-content` styles in
+  // `DocCodeBlockNode.vue`. The dark overrides (above) MUST target this SAME
+  // element — see the note there for why. Light palette = GitHub Light, dark
   // palette = GitHub Dark — both familiar to developers and well-tuned
   // for contrast.
   --nc-code-block-bg: #f6f8fa;

@@ -245,7 +245,7 @@ export class ListDatasService {
           );
         }
 
-        cteParts.push(`"__nc_l0_ids" AS (${levelQb.toQuery()})`);
+        cteParts.push(`"__nc_l0_ids" AS (${sanitize(levelQb.toQuery())})`);
       } else {
         // Child level: join parent CTE to scope children
         const levelQb = dbDriver.from(
@@ -323,7 +323,7 @@ export class ListDatasService {
           }
         }
 
-        cteParts.push(`"__nc_l${depth}_ids" AS (${levelQb.toQuery()})`);
+        cteParts.push(`"__nc_l${depth}_ids" AS (${sanitize(levelQb.toQuery())})`);
       }
 
       modelIds.push(model.id);
@@ -662,7 +662,7 @@ export class ListDatasService {
           );
         }
 
-        cteParts.push(`"__nc_l0_ids" AS (${levelQb.toQuery()})`);
+        cteParts.push(`"__nc_l0_ids" AS (${sanitize(levelQb.toQuery())})`);
       } else {
         // Child level: join parent CTE, ROW_NUMBER partitioned by parent FK
         const levelQb = dbDriver.from(
@@ -761,7 +761,7 @@ export class ListDatasService {
           }
         }
 
-        cteParts.push(`"__nc_l${depth}_ids" AS (${levelQb.toQuery()})`);
+        cteParts.push(`"__nc_l${depth}_ids" AS (${sanitize(levelQb.toQuery())})`);
       }
 
       // --- Build hydration QB for this depth (references "page" CTE) ---
@@ -896,7 +896,7 @@ export class ListDatasService {
       if (globalCteSql.endsWith(',')) {
         globalCteSql = globalCteSql.slice(0, -1).trim();
       }
-      allCteParts.push(globalCteSql);
+      allCteParts.push(sanitize(globalCteSql));
     }
 
     // 9. Add thin index + flat_index + page CTEs
@@ -909,7 +909,9 @@ export class ListDatasService {
 
     // 10. Add hydration CTEs (reference "page" CTE)
     for (let d = 0; d < N; d++) {
-      allCteParts.push(`"l${d}_hydrated" AS (${hydrationQbs[d].toQuery()})`);
+      allCteParts.push(
+        `"l${d}_hydrated" AS (${sanitize(hydrationQbs[d].toQuery())})`,
+      );
     }
 
     // 11. Final SELECT — page LEFT JOIN hydration CTEs, pack per-depth data as JSONB

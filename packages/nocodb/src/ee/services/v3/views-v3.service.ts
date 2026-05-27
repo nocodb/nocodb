@@ -1085,11 +1085,14 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     if ((param.fieldIds?.length ?? 0) === 0) {
       return { modelColumns: undefined };
     }
-    const columns =
-      param.modelColumns ??
-      (await (
-        await Model.get(context, param.tableId, false, ncMeta)
-      ).getColumns(context, ncMeta));
+    let columns = param.modelColumns;
+    if (!columns) {
+      const model = await Model.get(context, param.tableId, false, ncMeta);
+      if (!model) {
+        NcError.get(context).tableNotFound(param.tableId);
+      }
+      columns = await model.getColumns(context, ncMeta);
+    }
     const existingColumnKeys = columns.map((k) => k.id);
     const invalidField = param.fieldIds.find(
       (col) => !existingColumnKeys.includes(col),

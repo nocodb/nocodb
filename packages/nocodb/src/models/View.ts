@@ -385,9 +385,21 @@ export default class View implements ViewType {
       // Include trashed columns so brand-new views still get a view-column
       // row for them (with show: false). Without this, restoring a trashed
       // column wouldn't surface it in views created during the trash window.
-      let columns: any[] = await (
-        await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
-      ).getColumns(context, ncMeta, undefined, true, true);
+      const parentModel = await Model.getByIdOrName(
+        context,
+        { id: view.fk_model_id },
+        ncMeta,
+      );
+      if (!parentModel) {
+        NcError.get(context).tableNotFound(view.fk_model_id);
+      }
+      let columns: any[] = await parentModel.getColumns(
+        context,
+        ncMeta,
+        undefined,
+        true,
+        true,
+      );
 
       const levelIdMap = new Map<string, string>();
       let defaultLevelId: string | undefined;

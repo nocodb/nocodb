@@ -17,6 +17,7 @@ import { createColumn, createLtarColumn2 } from '~test/factory/column';
 import { createRow, listRow } from '~test/factory/row';
 import {
   tableSyncCreate,
+  tableSyncDelete,
   tableSyncUpdate,
   waitForSyncSettled,
 } from '~test/factory/tableSync';
@@ -727,6 +728,81 @@ function tableSyncDataTests() {
           titles,
           'each shadow row should carry the source Title (not just system fields)',
         ).to.deep.eq(['test-0', 'test-1']);
+      });
+
+      /**
+       * Regression: dropTables on an LTAR sync must drop main + shadow +
+       * junction with no orphan left behind. Before the fix, dropping the
+       * main first left a dangling COL_RELATIONS row, and deleting the
+       * junction null-deref'd in tableDelete (the MM-reference guard) — caught
+       * as a warning, so the junction table lingered. delete() now passes
+       * forceDeleteRelations + skips already-gone tables.
+       */
+      it('dropTables=true on an LTAR sync drops main + shadow + junction with no orphans', async () => {
+        await setupLtar();
+
+        const ordersView = await createView(context, {
+          title: 'OrdersFeed',
+          table: ordersTable,
+          type: ViewTypes.GRID,
+        });
+        await enableAllowSync(ordersView.id, sourceBase.id);
+
+        const customer = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const o1 = await createRow(context, {
+          base: sourceBase,
+          table: ordersTable,
+          index: 0,
+        });
+        await v3LinkAdd(sourceTable, await ltarColumnId(), customer.Id, [o1.Id]);
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'DropLtarSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          selected_fields: ['Title', ltarColumnTitle],
+          link_view_by_column: { [ltarColumnTitle]: ordersView.id },
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+
+        const tableIds = (settled.mappings ?? []).map(
+          (m: any) => m.dest_table_id,
+        );
+        // main + shadow + junction
+        expect(
+          tableIds.length,
+          'expected main + shadow + junction mappings',
+        ).to.be.greaterThan(2);
+
+        await tableSyncDelete(context, destEnv, created.body.id, {
+          dropTables: true,
+        }).expect(200);
+
+        // Sync row gone.
+        expect(
+          await TableSync.get(
+            { workspace_id: workspaceId, base_id: destBase.id },
+            created.body.id,
+          ),
+        ).to.be.null;
+
+        // Every mapped dest table gone — including the junction that used to
+        // linger after the null-deref.
+        for (const tid of tableIds) {
+          expect(
+            await Model.get(
+              { workspace_id: workspaceId, base_id: destBase.id },
+              tid,
+            ),
+            `dest table ${tid} should be dropped`,
+          ).to.not.exist;
+        }
       });
     });
 

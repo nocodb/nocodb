@@ -772,4 +772,5 @@ export enum OperationSource {
   MIGRATION = 'migration',
   WORKFLOW = 'workflow',
   PLUGINS = 'plugins',
+  SYNC = 'sync',
 }

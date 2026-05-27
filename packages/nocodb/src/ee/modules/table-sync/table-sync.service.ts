@@ -8,6 +8,7 @@ import {
   isSystemColumn,
   NcApiVersion,
   NcContext,
+  OperationSource,
   PlanFeatureTypes,
   RelationTypes,
   TableSyncInputMode,
@@ -1222,6 +1223,22 @@ export class TableSyncService {
 
     const sourceWorkspaceId = source_workspace_id ?? context.workspace_id;
 
+    // Browse mode trusts workspace ACL for source authorization (the caller
+    // is operating inside this workspace and never sees the share password),
+    // so it is only valid when the source lives in the SAME workspace. A
+    // cross-workspace source must use paste mode, where the share-link
+    // password is the sole credential and is verified below. Without this
+    // gate, browse mode could pull any allow_sync view from any workspace,
+    // bypassing its share password.
+    if (
+      source_input_mode === TableSyncInputMode.Browse &&
+      sourceWorkspaceId !== context.workspace_id
+    ) {
+      NcError.get(context).forbidden(
+        'Browse mode can only sync from a source in the same workspace. Use a share link to sync from another workspace.',
+      );
+    }
+
     await this.assertUniqueTitle(context, title);
 
     const sourceCtx: NcContext = {
@@ -1826,16 +1843,21 @@ export class TableSyncService {
 
     if (dropTables) {
       for (const m of mappings) {
+        const destCtx: NcContext = {
+          ...context,
+          base_id: m.dest_base_id,
+          socket_id: null,
+        };
+        const exists = await Model.get(destCtx, m.dest_table_id);
+        if (!exists) continue;
         try {
-          await this.tablesService.tableDelete(
-            { ...context, base_id: m.dest_base_id, socket_id: null },
-            {
-              tableId: m.dest_table_id,
-              req,
-              forceDeleteSyncs: true,
-              skipTrash: true,
-            },
-          );
+          await this.tablesService.tableDelete(destCtx, {
+            tableId: m.dest_table_id,
+            req,
+            forceDeleteSyncs: true,
+            forceDeleteRelations: true,
+            skipTrash: true,
+          });
         } catch (e) {
           this.logger.warn(
             `delete(dropTables): failed to drop dest table ${
@@ -2086,7 +2108,7 @@ export class TableSyncService {
 
     const allColumns = [
       ...spec.columns,
-      ...syncSystemFields.map((f) => ({ ...f, readonly: true })),
+      ...syncSystemFields.map((f) => ({ ...f, readonly: true, system: true })),
     ];
 
     const model = await this.tablesService.tableCreate(
@@ -2100,6 +2122,7 @@ export class TableSyncService {
         },
         apiVersion: NcApiVersion.V3,
         synced: true,
+        operationSource: OperationSource.SYNC,
         user: req.user,
         req,
       },

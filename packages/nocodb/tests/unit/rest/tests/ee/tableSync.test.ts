@@ -509,6 +509,28 @@ function tableSyncTests() {
         ).expect(200);
       });
     });
+
+    // ──────────────────────────────────────────────────────────────────
+    // BROWSE-MODE WORKSPACE RESTRICTION
+    // ──────────────────────────────────────────────────────────────────
+    // Browse mode trusts workspace ACL for source authorization, so it is
+    // only valid when the source lives in the caller's own workspace. A
+    // cross-workspace source must use paste mode (with the share password).
+    describe('browse-mode workspace restriction', () => {
+      it('rejects browse-mode create when the source is in another workspace', async () => {
+        const res = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({
+            title: 'CrossWsBrowse',
+            source_input_mode: 'browse',
+            source_workspace_id: 'ws_otherworkspace00',
+          }),
+        ).expect(403);
+        const msg = res.body.message ?? res.body.msg ?? '';
+        expect(msg).to.match(/workspace/i);
+      });
+    });
   });
 }
 

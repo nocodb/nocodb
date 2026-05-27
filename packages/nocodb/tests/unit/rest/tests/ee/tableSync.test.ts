@@ -1,12 +1,14 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { ViewTypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import init from '~test/init';
 import { isEE } from '~test/utils/helpers';
 import { createProject } from '~test/factory/base';
 import { createTable } from '~test/factory/table';
 import { createView } from '~test/factory/view';
+import { createColumn } from '~test/factory/column';
+import { createRow } from '~test/factory/row';
 import {
   tableSyncCreate,
   tableSyncDelete,
@@ -15,8 +17,10 @@ import {
   tableSyncList,
   tableSyncResume,
   tableSyncUpdate,
+  waitForSyncSettled,
 } from '~test/factory/tableSync';
 import View from '~/models/View';
+import Model from '~/models/Model';
 import TableSync from '~/models/TableSync';
 
 /**
@@ -220,6 +224,21 @@ function tableSyncTests() {
         expect(reloaded!.title).to.eq('RenamedSync');
       });
 
+      it('rejects updating a sync title to one that already exists', async () => {
+        // A second sync to collide with the lifecycle sync ('LifecycleSync').
+        const other = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({ title: 'OtherSync' }),
+        ).expect(200);
+
+        const res = await tableSyncUpdate(context, destEnv, other.body.id, {
+          title: 'LifecycleSync',
+        }).expect(400);
+        const msg = res.body.message ?? res.body.msg ?? '';
+        expect(msg).to.match(/already exists/i);
+      });
+
       it('freezes then resumes the sync', async () => {
         const frozen = await tableSyncFreeze(context, destEnv, syncId).expect(
           200,
@@ -234,6 +253,25 @@ function tableSyncTests() {
         expect(resumed.body.status).to.be.oneOf(['syncing', 'active']);
       });
 
+      it('resuming an already-active sync is a no-op', async () => {
+        const created = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({ title: 'NoopResume' }),
+        ).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        expect(settled.status).to.eq('active');
+
+        // resume() short-circuits when already Active — no new job, status
+        // stays put.
+        const res = await tableSyncResume(
+          context,
+          destEnv,
+          created.body.id,
+        ).expect(200);
+        expect(res.body.status).to.eq('active');
+      });
+
       it('deletes the sync', async () => {
         await tableSyncDelete(context, destEnv, syncId).expect(200);
 
@@ -242,6 +280,233 @@ function tableSyncTests() {
           syncId,
         );
         expect(deleted, 'sync should be removed').to.be.null;
+      });
+    });
+
+    // ──────────────────────────────────────────────────────────────────
+    // DELETE + RECONCILE SEMANTICS
+    // ──────────────────────────────────────────────────────────────────
+    // The two delete modes (drop-tables vs unsync-keep-data) and the
+    // selected_fields removal path are distinct contracts that the basic
+    // lifecycle tests above don't exercise.
+    describe('delete and reconcile semantics', () => {
+      const destCtx = () => ({
+        workspace_id: workspaceId,
+        base_id: destBase.id,
+      });
+
+      function mainDestTableId(sync: TableSync): string {
+        const main = (sync.mappings ?? []).find(
+          (m: any) => m.role === 'main',
+        );
+        expect(main, 'main mapping should exist').to.exist;
+        return main!.dest_table_id;
+      }
+
+      async function getDestCol(destTableId: string, title: string) {
+        const m = await Model.get(destCtx(), destTableId);
+        expect(m, `dest model ${destTableId} should exist`).to.exist;
+        const cols = await m!.getColumns(destCtx());
+        return cols.find((c) => c.title === title);
+      }
+
+      /**
+       * `dropTables: true` is the "remove everything" path — every mapped
+       * dest table (main + any shadows/junctions) is hard-dropped, then the
+       * sync row is removed. After this, the main dest model should not
+       * resolve at all.
+       */
+      it('delete with dropTables=true drops the destination tables', async () => {
+        await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+
+        const created = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({ title: 'DropTablesSync' }),
+        ).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        expect(await Model.get(destCtx(), destTableId)).to.exist;
+
+        await tableSyncDelete(context, destEnv, created.body.id, {
+          dropTables: true,
+        }).expect(200);
+
+        // Both the sync row and the dest table should be gone.
+        expect(await TableSync.get(destCtx(), created.body.id)).to.be.null;
+        expect(
+          await Model.get(destCtx(), destTableId),
+          'dest table should be hard-dropped',
+        ).to.not.exist;
+      });
+
+      /**
+       * `dropTables: false` (the default) is "unsync but keep my data" — the
+       * dest table survives but is flipped to a regular (non-synced) table:
+       * `synced` is no longer true and the previously-readonly synced columns
+       * become editable. The sync row itself is still removed.
+       */
+      it('delete with dropTables=false keeps the dest table but unsyncs it', async () => {
+        await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+
+        const created = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({ title: 'KeepDataSync' }),
+        ).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+
+        const before = await Model.get(destCtx(), destTableId);
+        expect(before!.synced, 'dest should be synced before delete').to.eq(
+          true,
+        );
+
+        await tableSyncDelete(context, destEnv, created.body.id, {
+          dropTables: false,
+        }).expect(200);
+
+        expect(await TableSync.get(destCtx(), created.body.id)).to.be.null;
+
+        const after = await Model.get(destCtx(), destTableId);
+        expect(after, 'dest table should be kept').to.exist;
+        expect(
+          after!.synced,
+          'kept dest table should be flipped to non-synced',
+        ).to.not.eq(true);
+
+        // The synced columns were created readonly; after unsync they should
+        // be editable again so the user can take over the data.
+        const cols = await after!.getColumns(destCtx());
+        const titleCol = cols.find((c) => c.title === 'Title');
+        expect(titleCol, 'dest Title column should exist').to.exist;
+        expect(
+          titleCol!.readonly,
+          'previously-synced col should no longer be readonly',
+        ).to.not.eq(true);
+      });
+
+      /**
+       * Removing a plain (non-PV) field from `selected_fields` via updateSync
+       * should drop the corresponding dest column. The PV (Title) is always
+       * synced and must survive. Only the LTAR-removal variant of this path
+       * was covered before.
+       */
+      it('tableSyncList is scoped to the destination base', async () => {
+        const created = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({ title: 'ScopedSync' }),
+        ).expect(200);
+
+        // A different dest base must NOT see this sync.
+        const otherBase = await createProject(context, {
+          title: 'OtherDestBase',
+        });
+        const otherList = await tableSyncList(context, {
+          workspaceId,
+          baseId: otherBase.id,
+        }).expect(200);
+        expect(
+          (otherList.body as any[]).some((s) => s.id === created.body.id),
+          'sync should not leak into another base list',
+        ).to.eq(false);
+
+        // The owning base does.
+        const ownList = await tableSyncList(context, destEnv).expect(200);
+        expect(
+          (ownList.body as any[]).some((s) => s.id === created.body.id),
+        ).to.eq(true);
+      });
+
+      it('removing a field from selected_fields drops the dest column', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const created = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({
+            title: 'FieldRemovalSync',
+            selected_fields: ['Title', 'Note'],
+          }),
+        ).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        expect(await getDestCol(destTableId, 'Note')).to.exist;
+
+        // Drop "Note" from the selection — PV stays.
+        await tableSyncUpdate(context, destEnv, created.body.id, {
+          selected_fields: ['Title'],
+        }).expect(200);
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        expect(
+          await getDestCol(destTableId, 'Note'),
+          'unselected field should be dropped from dest',
+        ).to.not.exist;
+        expect(
+          await getDestCol(destTableId, 'Title'),
+          'PV should always survive',
+        ).to.exist;
+      });
+    });
+
+    // ──────────────────────────────────────────────────────────────────
+    // PASTE-MODE PASSWORD
+    // ──────────────────────────────────────────────────────────────────
+    // Browse-mode (same-workspace) callers skip the source share password
+    // check. Paste-mode (a share link pasted from elsewhere) must present
+    // the correct share password at create time.
+    describe('paste-mode password', () => {
+      const SHARE_PW = 'sourceShareSecret';
+
+      async function setSharePassword(viewId: string) {
+        await request(context.app)
+          .patch(`/api/v2/meta/views/${viewId}/share`)
+          .set('xc-auth', context.token)
+          .send({ password: SHARE_PW })
+          .expect(200);
+      }
+
+      it('rejects paste-mode create with the wrong source share password', async () => {
+        await setSharePassword(sourceView.id);
+
+        const res = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({
+            title: 'PasteWrongPw',
+            source_input_mode: 'paste',
+            password: 'totally-wrong',
+          }),
+        ).expect(403);
+        const msg = res.body.message ?? res.body.msg ?? '';
+        expect(msg).to.match(/password/i);
+      });
+
+      it('accepts paste-mode create with the correct source share password', async () => {
+        await setSharePassword(sourceView.id);
+
+        await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({
+            title: 'PasteRightPw',
+            source_input_mode: 'paste',
+            password: SHARE_PW,
+          }),
+        ).expect(200);
       });
     });
   });

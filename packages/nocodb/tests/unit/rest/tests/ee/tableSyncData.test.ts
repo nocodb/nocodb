@@ -729,6 +729,135 @@ function tableSyncDataTests() {
         ).to.deep.eq(['test-0', 'test-1']);
       });
     });
+
+    describe('tombstone and delete-action edge cases', () => {
+      /**
+       * `on_delete_action` is editable via updateSync. Switching
+       * MarkDeleted → Delete should change behaviour on the NEXT resync:
+       * a row that was tombstoned while the sync was in MarkDeleted mode
+       * (and is still missing from the source) gets hard-deleted once the
+       * action flips to Delete.
+       */
+      it('switching on_delete_action MarkDeleted→Delete hard-deletes a previously-tombstoned row on the next resync', async () => {
+        const keep = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const drop = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 1,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'DeleteActionTransition',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          // default → MarkDeleted
+        }).expect(200);
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        // Delete the source row → resync → tombstoned (still present).
+        await deleteRow(sourceTable, drop.Id);
+        let settled = await resync(created.body.id);
+        expect(settled.on_delete_action).to.eq(
+          TableSyncOnDeleteAction.MarkDeleted,
+        );
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        let rows = await destRows(destTable);
+        expect(rows).to.have.lengthOf(2);
+        expect(
+          rows.find((r) => r.RemoteId === String(drop.Id))?.RemoteDeleted,
+          'dropped row should be tombstoned under MarkDeleted',
+        ).to.eq(true);
+
+        // Flip to hard-delete, resync — the still-missing tombstoned row
+        // should now be physically removed.
+        await tableSyncUpdate(context, destEnv, created.body.id, {
+          on_delete_action: TableSyncOnDeleteAction.Delete,
+        }).expect(200);
+        settled = await resync(created.body.id);
+        expect(settled.on_delete_action).to.eq(TableSyncOnDeleteAction.Delete);
+
+        rows = await destRows(destTable);
+        expect(rows, 'tombstoned row should be hard-deleted after the switch').to.have.lengthOf(
+          1,
+        );
+        expect(rows[0].RemoteId).to.eq(String(keep.Id));
+      });
+
+      /**
+       * Un-tombstone path: a row that left the source view (tombstoned via
+       * MarkDeleted) and later re-enters it should be re-upserted with
+       * RemoteDeleted reset to false — matched by RemoteId, so it's the
+       * SAME dest row, not a duplicate.
+       */
+      it('a row re-entering the source view is un-tombstoned (RemoteDeleted reset to false)', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Status',
+          uidt: UITypes.SingleLineText,
+        });
+        sourceTable = (await Model.get(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          sourceTable.id,
+        ))!;
+
+        const r0 = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 0,
+        });
+        const r1 = await createRow(context, {
+          base: sourceBase,
+          table: sourceTable,
+          index: 1,
+        });
+        await updateRow(sourceTable, r0.Id, { Status: 'Active' });
+        await updateRow(sourceTable, r1.Id, { Status: 'Inactive' });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'ResurfaceSync',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        let settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTable = await loadDestModel(mainDestTableId(settled));
+        expect(await destRows(destTable)).to.have.lengthOf(2);
+
+        // Filter source view to Active only → r1 leaves the view.
+        const statusCol = (
+          await sourceTable.getColumns({
+            workspace_id: workspaceId,
+            base_id: sourceBase.id,
+          })
+        ).find((c) => c.title === 'Status');
+        await addContainsFilter(sourceView.id, statusCol!.id, 'Active');
+
+        settled = await resync(created.body.id);
+        let rows = await destRows(destTable);
+        const tombstoned = rows.find((r) => r.RemoteId === String(r1.Id));
+        expect(
+          tombstoned?.RemoteDeleted,
+          'r1 should be tombstoned after leaving the view',
+        ).to.eq(true);
+
+        // r1 matches the filter again → re-enters the view.
+        await updateRow(sourceTable, r1.Id, { Status: 'Active' });
+        settled = await resync(created.body.id);
+        rows = await destRows(destTable);
+        const resurfaced = rows.find((r) => r.RemoteId === String(r1.Id));
+        expect(resurfaced, 'r1 dest row should still exist (same RemoteId)').to.exist;
+        expect(
+          resurfaced?.RemoteDeleted,
+          'r1 should be un-tombstoned after re-entering the view',
+        ).to.not.eq(true);
+      });
+    });
   });
 }
 

@@ -192,16 +192,36 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
       return;
     }
 
+    const req = buildSyncServiceReq(destContext);
+
     await this.tableSyncService.removeSyncedField(
       destContext,
       sync,
       destModel,
       destCol as any,
-      buildSyncServiceReq(destContext),
+      req,
     );
 
-    // selected_fields is title-keyed (user-facing); strip the old title
-    // so the next reconcile doesn't try to re-add it.
+    // Deleting a link on the source doesn't leave a hole — NocoDB replaces it
+    // with a `_nc_ph_*` SingleLineText placeholder (carrying the comma-joined
+    // display values) on the table the link was removed from, titled like the
+    // deleted link. When that placeholder exists on our source, keep the field
+    // synced as a plain text column instead of dropping it: re-derive via
+    // `reconcileFields` (which creates the dest col AND writes its column-
+    // mapping), then doWork's resync fills the values. Keeps dest ↔ source
+    // parity. Works in both specific-fields and sync-all mode.
+    if (oldTitle && (await this.sourceHasPlaceholder(sync, oldTitle))) {
+      await this.tableSyncService.reconcileFields(destContext, sync, {
+        nextSelectedFields: sync.selected_fields ?? null,
+        linkViewByColumn: {},
+        dropHiddenInView: false,
+        req,
+      });
+      return;
+    }
+
+    // No placeholder replacement — strip the title from `selected_fields`
+    // (title-keyed, user-facing) so the next reconcile doesn't re-add it.
     if (oldTitle && Array.isArray(sync.selected_fields)) {
       const next = sync.selected_fields.filter((t) => t !== oldTitle);
       if (next.length !== sync.selected_fields.length) {
@@ -210,6 +230,39 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
         });
       }
     }
+  }
+
+  /** NocoDB replaces a deleted link column with a `_nc_ph_*` SingleLineText
+   *  placeholder (carrying the comma-joined display values) on the table the
+   *  link is removed from. Detect that same-title placeholder on the sync's
+   *  MAIN source table so the field can be kept as plain text rather than
+   *  dropped. The `_nc_ph_` prefix is link-placeholder-specific, so this only
+   *  matches a genuine link→placeholder replacement. */
+  private async sourceHasPlaceholder(
+    sync: TableSync,
+    title: string,
+  ): Promise<boolean> {
+    const mainMapping = (sync.mappings ?? []).find(
+      (m) => m.role === TableSyncMappingRole.Main,
+    );
+    if (!mainMapping) return false;
+
+    const sourceCtx: NcContext = {
+      workspace_id: mainMapping.source_workspace_id,
+      base_id: mainMapping.source_base_id,
+    };
+    const srcModel = await Model.getWithInfo(sourceCtx, {
+      id: mainMapping.source_table_id,
+    });
+    if (!srcModel) return false;
+    await srcModel.getColumns(sourceCtx);
+
+    return (srcModel.columns ?? []).some(
+      (c) =>
+        c.title === title &&
+        c.uidt === UITypesEnum.SingleLineText &&
+        (c.column_name?.startsWith('_nc_ph_') ?? false),
+    );
   }
 
   /** Propagate a source uidt change. Uses the same `REMAP_UIDTS` rules

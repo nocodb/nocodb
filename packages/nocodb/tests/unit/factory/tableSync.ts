@@ -21,6 +21,7 @@ export interface CreateTableSyncBody {
   link_view_by_column?: Record<string, string>;
   on_delete_action?: string;
   sync_trigger?: string;
+  source_input_mode?: string;
   password?: string;
 }
 

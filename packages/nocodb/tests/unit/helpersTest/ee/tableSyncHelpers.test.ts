@@ -7,7 +7,13 @@ import {
   extractSourcePk,
   normalizeLinkValue,
   REMAP_UIDTS,
+  SYSTEM_REMOTE_TITLES,
   toDestColumnDef,
+  toDestRow,
+} from '~/modules/table-sync/table-sync.helpers';
+import type {
+  ColumnPlan,
+  SyncRunMeta,
 } from '~/modules/table-sync/table-sync.helpers';
 
 /**
@@ -296,6 +302,242 @@ export function tableSyncHelpersTests() {
         });
         expect(out.RemoteDeleted).to.eq(true);
         expect(out.RemoteDeletedTime).to.eq('2026-02-01T00:00:00.000Z');
+      });
+    });
+
+    describe('SYSTEM_REMOTE_TITLES', () => {
+      it('is a Set of the Remote*/Sync* system field titles', () => {
+        expect(SYSTEM_REMOTE_TITLES).to.be.instanceOf(Set);
+        expect(SYSTEM_REMOTE_TITLES.has('RemoteId')).to.eq(true);
+        expect(SYSTEM_REMOTE_TITLES.has('RemoteDeleted')).to.eq(true);
+        expect(SYSTEM_REMOTE_TITLES.has('SyncProvider')).to.eq(true);
+      });
+
+      it('does NOT contain ordinary user-field titles', () => {
+        expect(SYSTEM_REMOTE_TITLES.has('Title')).to.eq(false);
+        expect(SYSTEM_REMOTE_TITLES.has('Note')).to.eq(false);
+      });
+    });
+
+    describe('toDestRow', () => {
+      const runMeta: SyncRunMeta = {
+        syncId: 'sync-1',
+        runId: 'run-1',
+        syncedAtIso: '2026-01-01T00:00:00.000Z',
+        namespace: 'src-table/src-view',
+      };
+
+      function makePlan(overrides: Partial<ColumnPlan> = {}): ColumnPlan {
+        return {
+          orderTitle: null,
+          forwardFields: [],
+          createdAtTitle: null,
+          updatedAtTitle: null,
+          sourcePkTitle: 'Id',
+          linkPlans: [],
+          ...overrides,
+        };
+      }
+
+      it('copies forward fields and appends sync system fields', () => {
+        const plan = makePlan({
+          forwardFields: [{ sourceTitle: 'Title', destTitle: 'Title' }],
+        });
+        const out = toDestRow({ Title: 'Acme', Id: 7 }, plan, '7', runMeta);
+        expect(out.Title).to.eq('Acme');
+        expect(out.RemoteId).to.eq('7');
+        expect(out.RemoteRaw).to.eq(JSON.stringify({ Title: 'Acme', Id: 7 }));
+        expect(out.SyncProvider).to.eq('nocodb-table-sync');
+        expect(out.RemoteDeleted).to.eq(false);
+        expect(out.RemoteSyncedAt).to.eq(runMeta.syncedAtIso);
+      });
+
+      it('skips forward fields whose sourceTitle is absent from the row', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Title', destTitle: 'Title' },
+            { sourceTitle: 'Missing', destTitle: 'Missing' },
+          ],
+        });
+        const out = toDestRow({ Title: 'Acme' }, plan, '1', runMeta);
+        expect(out).to.have.property('Title', 'Acme');
+        expect(out).to.not.have.property('Missing');
+      });
+
+      it('reads sourceTitle but writes to a decoupled destTitle (source-rename survival)', () => {
+        const plan = makePlan({
+          forwardFields: [{ sourceTitle: 'Notes', destTitle: 'Note' }],
+        });
+        const out = toDestRow({ Notes: 'hello' }, plan, '1', runMeta);
+        expect(out.Note).to.eq('hello');
+        expect(out).to.not.have.property('Notes');
+      });
+
+      it('passes a value through untouched when displayTitles is omitted (even arrays)', () => {
+        const arr = [{ Id: 1 }];
+        const plan = makePlan({
+          forwardFields: [{ sourceTitle: 'Links', destTitle: 'Links' }],
+        });
+        const out = toDestRow({ Links: arr }, plan, '1', runMeta);
+        // No flattening — the raw reference is preserved verbatim.
+        expect(out.Links).to.eq(arr);
+      });
+
+      it('flattens an array of objects to comma text using displayTitles', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Orders', destTitle: 'Orders', displayTitles: ['Title'] },
+          ],
+        });
+        const out = toDestRow(
+          { Orders: [{ Title: 'A' }, { Title: 'B' }] },
+          plan,
+          '1',
+          runMeta,
+        );
+        expect(out.Orders).to.eq('A, B');
+      });
+
+      it('renders objects as empty string when displayTitles is null', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Orders', destTitle: 'Orders', displayTitles: null },
+          ],
+        });
+        const out = toDestRow(
+          { Orders: [{ Title: 'A' }, { Title: 'B' }] },
+          plan,
+          '1',
+          runMeta,
+        );
+        expect(out.Orders).to.eq('');
+      });
+
+      it('skips unresolvable objects without leaving double commas (mixed array)', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Orders', destTitle: 'Orders', displayTitles: ['Title'] },
+          ],
+        });
+        const out = toDestRow(
+          { Orders: [{ Title: 'A' }, { Other: 'x' }, { Title: 'B' }] },
+          plan,
+          '1',
+          runMeta,
+        );
+        expect(out.Orders).to.eq('A, B');
+      });
+
+      it('flattens primitive array items directly (no display title needed)', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Tags', destTitle: 'Tags', displayTitles: ['Title'] },
+          ],
+        });
+        const out = toDestRow({ Tags: [1, 'two', 3] }, plan, '1', runMeta);
+        expect(out.Tags).to.eq('1, two, 3');
+      });
+
+      it('treats a single non-array object as a one-item list', () => {
+        const plan = makePlan({
+          forwardFields: [
+            {
+              sourceTitle: 'Owner',
+              destTitle: 'Owner',
+              displayTitles: ['display_name', 'email'],
+            },
+          ],
+        });
+        const out = toDestRow(
+          { Owner: { email: 'a@b.com' } },
+          plan,
+          '1',
+          runMeta,
+        );
+        // display_name is absent → falls through to email.
+        expect(out.Owner).to.eq('a@b.com');
+      });
+
+      it('resolves boolean display values', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Flags', destTitle: 'Flags', displayTitles: ['active'] },
+          ],
+        });
+        const out = toDestRow(
+          { Flags: [{ active: true }, { active: false }] },
+          plan,
+          '1',
+          runMeta,
+        );
+        expect(out.Flags).to.eq('true, false');
+      });
+
+      it('passes a primitive value through unchanged even when displayTitles is set', () => {
+        const plan = makePlan({
+          forwardFields: [
+            { sourceTitle: 'Name', destTitle: 'Name', displayTitles: ['Title'] },
+          ],
+        });
+        const out = toDestRow({ Name: 'plain' }, plan, '1', runMeta);
+        expect(out.Name).to.eq('plain');
+      });
+
+      it('copies the order column when present and non-empty', () => {
+        const plan = makePlan({ orderTitle: 'nc_order' });
+        const out = toDestRow({ nc_order: 3 }, plan, '1', runMeta);
+        expect(out.nc_order).to.eq(3);
+      });
+
+      it('skips the order column when its value is empty string or null', () => {
+        const plan = makePlan({ orderTitle: 'nc_order' });
+        expect(
+          toDestRow({ nc_order: '' }, plan, '1', runMeta),
+        ).to.not.have.property('nc_order');
+        expect(
+          toDestRow({ nc_order: null }, plan, '1', runMeta),
+        ).to.not.have.property('nc_order');
+      });
+
+      it('does not copy an order column that is absent from the row', () => {
+        const plan = makePlan({ orderTitle: 'nc_order' });
+        const out = toDestRow({ Title: 'x' }, plan, '1', runMeta);
+        expect(out).to.not.have.property('nc_order');
+      });
+
+      it('lifts createdAt/updatedAt source titles onto the Remote timestamps', () => {
+        const plan = makePlan({
+          createdAtTitle: 'CreatedAt',
+          updatedAtTitle: 'UpdatedAt',
+        });
+        const out = toDestRow(
+          { CreatedAt: '2026-01-01', UpdatedAt: '2026-01-02' },
+          plan,
+          '1',
+          runMeta,
+        );
+        expect(out.RemoteCreatedAt).to.eq('2026-01-01');
+        expect(out.RemoteUpdatedAt).to.eq('2026-01-02');
+      });
+
+      it('createdAt/updatedAt titles absent from the row surface as null', () => {
+        const plan = makePlan({
+          createdAtTitle: 'CreatedAt',
+          updatedAtTitle: 'UpdatedAt',
+        });
+        const out = toDestRow({}, plan, '1', runMeta);
+        expect(out.RemoteCreatedAt).to.eq(null);
+        expect(out.RemoteUpdatedAt).to.eq(null);
+      });
+
+      it('RemoteRaw is the JSON of the full source row, not the shaped output', () => {
+        const plan = makePlan({
+          forwardFields: [{ sourceTitle: 'Title', destTitle: 'DestTitle' }],
+        });
+        const row = { Title: 'x', Secret: 'y' };
+        const out = toDestRow(row, plan, '9', runMeta);
+        expect(out.RemoteRaw).to.eq(JSON.stringify(row));
+        expect(out.DestTitle).to.eq('x');
       });
     });
   });

@@ -16,9 +16,11 @@ import {
 import { createRow } from '~test/factory/row';
 import {
   tableSyncCreate,
+  tableSyncResume,
   tableSyncUpdate,
   waitForSyncSettled,
 } from '~test/factory/tableSync';
+import { internalPost } from '~test/factory/internal';
 import View from '~/models/View';
 import Model from '~/models/Model';
 import TableSync from '~/models/TableSync';
@@ -1283,6 +1285,193 @@ function tableSyncHandlerTests() {
           },
           { timeoutMs: 60_000, pollMs: 500 },
         );
+      });
+
+      /**
+       * Source-side link teardown → placeholder parity.
+       *
+       * Deleting the reverse link on the linked (shadow-source) table tears
+       * down the relation; NocoDB leaves a `_nc_ph_*` SingleLineText
+       * placeholder (with comma-joined display values) on the MAIN source
+       * table, titled like the deleted link. The sync must keep that field —
+       * as a plain text column carrying the same values — not drop it.
+       * (See ColumnChangeTableSyncHandler.applyDelete placeholder branch.)
+       */
+      it('source-side link delete: main-source placeholder syncs to dest as text', async () => {
+        await setupLtarSource();
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'SourceLinkDeletePlaceholder',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          selected_fields: ['Title', LTAR_TITLE],
+          link_view_by_column: { [LTAR_TITLE]: ordersView.id },
+        }).expect(200);
+        const initial = await waitForSyncSettled(destEnv, created.body.id);
+        const mainDest = mainDestTableId(initial);
+        expect(
+          await getDestCol(mainDest, LTAR_TITLE),
+          'dest LTAR should exist initially',
+        ).to.exist;
+        expect(
+          await shadowMapping(created.body.id),
+          'shadow should exist initially',
+        ).to.exist;
+
+        // Find + delete the reverse LTAR on Orders (points back to Customers).
+        const ordersModel = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: ordersTable.id },
+        );
+        await ordersModel!.getColumns({
+          workspace_id: workspaceId,
+          base_id: sourceBase.id,
+        });
+        let reverseCol: any;
+        for (const c of ordersModel!.columns ?? []) {
+          if (
+            c.uidt !== UITypes.LinkToAnotherRecord &&
+            c.uidt !== UITypes.Links
+          ) {
+            continue;
+          }
+          const opt: any = await (c as any).getColOptions({
+            workspace_id: workspaceId,
+            base_id: sourceBase.id,
+          });
+          if (opt?.fk_related_model_id === sourceTable.id) {
+            reverseCol = c;
+            break;
+          }
+        }
+        expect(reverseCol, 'reverse LTAR on Orders should exist').to.exist;
+
+        await deleteColumn(context, {
+          table: ordersTable,
+          column: reverseCol,
+        });
+
+        // Sanity: the MAIN SOURCE now carries a placeholder SLT titled LTAR_TITLE.
+        await waitFor('main-source placeholder column created', async () => {
+          const m = await Model.getWithInfo(
+            { workspace_id: workspaceId, base_id: sourceBase.id },
+            { id: sourceTable.id },
+          );
+          await m!.getColumns({
+            workspace_id: workspaceId,
+            base_id: sourceBase.id,
+          });
+          const col = (m!.columns ?? []).find(
+            (c) => c.title === LTAR_TITLE && c.uidt === UITypes.SingleLineText,
+          );
+          return col ?? null;
+        });
+
+        // The detached handler should re-derive the field as a dest SLT col.
+        await waitFor('dest field re-derived as SingleLineText', async () => {
+          const col = await getDestCol(mainDest, LTAR_TITLE);
+          return col?.uidt === UITypes.SingleLineText ? col : null;
+        });
+
+        // Force a deterministic resync to fill the values, then assert parity.
+        await internalPost(context, destEnv, {
+          operation: 'tableSyncResync',
+          tableSyncId: created.body.id,
+        });
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        // (a) dest keeps the field as a SingleLineText placeholder column.
+        const destCol = await getDestCol(mainDest, LTAR_TITLE);
+        expect(destCol, 'dest should keep the field').to.exist;
+        expect(destCol!.uidt).to.eq(UITypes.SingleLineText);
+
+        // (b) the title stays in selected_fields (not stripped).
+        const reloaded = await TableSync.get(
+          { workspace_id: workspaceId, base_id: destBase.id },
+          created.body.id,
+        );
+        expect(
+          (reloaded?.selected_fields as string[] | null) ?? [],
+          'LTAR title should remain selected',
+        ).to.include(LTAR_TITLE);
+
+        // (c) the shadow is gone — it's plain text now, no relation.
+        expect(
+          await shadowMapping(created.body.id),
+          'shadow should be torn down',
+        ).to.eq(undefined);
+
+        // (d) values mirror the source placeholder (comma-joined order PVs).
+        const srcRows = await request(context.app)
+          .get(`/api/v1/db/data/noco/${sourceBase.id}/${sourceTable.id}`)
+          .set('xc-auth', context.token)
+          .expect(200);
+        const destRows = await request(context.app)
+          .get(`/api/v1/db/data/noco/${destBase.id}/${mainDest}`)
+          .set('xc-auth', context.token)
+          .expect(200);
+        const srcVal = String(srcRows.body.list?.[0]?.[LTAR_TITLE] ?? '');
+        const destVal = String(destRows.body.list?.[0]?.[LTAR_TITLE] ?? '');
+        expect(srcVal, 'source placeholder should carry order titles').to.match(
+          /test-0|test-1/,
+        );
+        expect(destVal, 'dest text value should mirror the source placeholder').to.eq(
+          srcVal,
+        );
+      });
+    });
+
+    // ──────────────────────────────────────────────────────────────────
+    // RESUME / RECOVERY
+    // ──────────────────────────────────────────────────────────────────
+    describe('resume recovery', () => {
+      /**
+       * The full recovery loop: a sync flipped to Error by an allow_sync
+       * revoke should come back to life when the source re-enables sharing
+       * and the user hits resume — status returns to Active and the stale
+       * last_error is cleared. The processor re-validates allow_sync / uuid
+       * / password-hash on the resync run (no password here, so the null
+       * hash still matches after the re-share).
+       */
+      it('resume after an allow_sync-revoke Error re-activates the sync and clears last_error', async () => {
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'ResumeRecovery',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        // Revoke allow_sync → view-change handler flips the sync to Error.
+        await request(context.app)
+          .patch(`/api/v2/meta/views/${sourceView.id}`)
+          .set('xc-auth', context.token)
+          .send({ allow_sync: false })
+          .expect(200);
+
+        const errored = await waitFor('sync flipped to Error', async () => {
+          const s = await TableSync.get(
+            { workspace_id: workspaceId, base_id: destBase.id },
+            created.body.id,
+          );
+          return s?.status === TableSyncStatus.Error ? s : null;
+        });
+        expect(errored.last_error).to.be.a('string');
+
+        // Source owner re-enables sharing.
+        await enableAllowSync(sourceView.id, sourceBase.id);
+
+        // Resume kicks off a fresh resync that should now succeed.
+        await tableSyncResume(context, destEnv, created.body.id).expect(200);
+        const recovered = await waitForSyncSettled(destEnv, created.body.id);
+        expect(recovered.status).to.eq(TableSyncStatus.Active);
+        expect(
+          recovered.last_error ?? null,
+          'last_error should be cleared on successful resume',
+        ).to.eq(null);
       });
     });
   });

@@ -61,6 +61,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockToggleFilter = computed(() => true)
 
+  const blockToggleGroupBy = computed(() => true)
+
   const blockPinnedFilter = computed(() => true)
 
   const blockCellColoring = computed(() => true)
@@ -183,6 +185,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseRowColoring = (..._args: any[]) => {}
 
   const showUpgradeToUseToggleFilter = (..._args: any[]) => {}
+
+  const showUpgradeToUseToggleGroupBy = (..._args: any[]) => {}
 
   const showUpgradeToUsePinnedFilter = (..._args: any[]) => {}
 
@@ -403,6 +407,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRowColoring,
     blockToggleFilter,
     showUpgradeToUseToggleFilter,
+    blockToggleGroupBy,
+    showUpgradeToUseToggleGroupBy,
     blockPinnedFilter,
     showUpgradeToUsePinnedFilter,
     blockCellColoring,

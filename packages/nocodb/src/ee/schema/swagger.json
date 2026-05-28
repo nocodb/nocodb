@@ -5942,6 +5942,7 @@
             "group_by": 0,
             "group_by_order": null,
             "group_by_sort": null,
+            "group_by_enabled": true,
             "aggregation": "sum"
           }
         ],
@@ -6023,6 +6024,10 @@
             "description": "Group By Sort",
             "example": "asc"
           },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this group-by is enabled. Disabled group-bys retain their config but are not applied."
+          },
           "aggregation": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Aggregation",
@@ -6077,6 +6082,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this group-by is enabled. Disabled group-bys retain their config but are not applied."
           },
           "show": {
             "$ref": "#/components/schemas/Bool",

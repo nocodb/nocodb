@@ -86,6 +86,7 @@ export enum PlanFeatureTypes {
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
+  FEATURE_TOGGLE_GROUPBY = 'feature_toggle_groupby',
   FEATURE_PINNED_FILTER = 'feature_pinned_filter',
   FEATURE_UUID_FIELD = 'feature_uuid_field',
   FEATURE_AUTONUMBER_FIELD = 'feature_autonumber_field',
@@ -369,6 +370,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',
+  [PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY]:
+    'to enable or disable individual group-bys.',
   [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
   [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
   [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',

@@ -466,7 +466,9 @@ export class BaseTrashService implements OnModuleInit {
         if (!param.ncMeta) await ncMeta.rollback();
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error(e.message, e.stack);
-        NcError.get(context).internalServerError('Failed to permanently delete');
+        NcError.get(context).internalServerError(
+          'Failed to permanently delete',
+        );
       }
 
       handler.invalidateCaches(

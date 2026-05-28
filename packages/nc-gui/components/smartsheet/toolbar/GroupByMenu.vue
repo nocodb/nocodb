@@ -36,6 +36,8 @@ const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } =
 
 const { fieldsToGroupBy, groupByLimit, localGroupBy, canSyncGroupBy, hideEmptyGroups } = useViewGroupByOrThrow()
 
+const { blockToggleGroupBy, showUpgradeToUseToggleGroupBy } = useEeConfig()
+
 const { $e } = useNuxtApp()
 
 const { isUserViewOwner, updateViewMeta } = useViewsStore()
@@ -48,6 +50,7 @@ interface Group {
   fk_column_id?: string
   sort: string
   order: number
+  enabled: boolean
 }
 
 const _groupBy = ref<Group[]>([])
@@ -61,12 +64,18 @@ const syncedGroupByEntries = computed<Group[]>(() => {
         fk_column_id: col.fk_column_id,
         sort: col.group_by_sort || 'asc',
         order: col.group_by_order || 1,
+        // normalize across DBs: both `false` and `0` mean disabled
+        enabled: col.group_by_enabled !== false && col.group_by_enabled !== 0,
       })
     }
   })
   tempGroupBy.sort((a, b) => a.order - b.order)
   return tempGroupBy
 })
+
+// Group-by enable/disable toggle is grid-only for now (other view types
+// persist via their own *ColumnUpdate ops which don't accept the field yet).
+const isGridView = computed(() => view.value?.type === ViewTypes.GRID)
 
 // All group-by column IDs for badge count and column filtering
 const groupedByColumnIds = computed(() => {
@@ -147,11 +156,23 @@ const saveGroupBy = async () => {
       for (const gby of _groupBy.value) {
         if (!gby.fk_column_id) continue
         const col = gridViewCols.value[gby.fk_column_id]
-        if (col && (!col.group_by || col.group_by_order !== gby.order || col.group_by_sort !== gby.sort)) {
+        const colEnabled = col?.group_by_enabled !== false && col?.group_by_enabled !== 0
+        if (
+          col &&
+          (!col.group_by ||
+            col.group_by_order !== gby.order ||
+            col.group_by_sort !== gby.sort ||
+            // group_by_enabled is grid-only (Timeline/Gantt column-update
+            // schemas reject the field), so don't let an enabled-state
+            // mismatch trigger a save on non-grid views.
+            (isGridView.value && colEnabled !== (gby.enabled !== false)))
+        ) {
           await updateGridViewColumn(gby.fk_column_id, {
             group_by: true,
             group_by_order: gby.order,
             group_by_sort: gby.sort,
+            // Only persist enabled-state on grid views — see comment above.
+            ...(isGridView.value ? { group_by_enabled: gby.enabled } : {}),
           })
         }
       }
@@ -186,6 +207,7 @@ const saveGroupBy = async () => {
         column: allColumns.find((c) => c.id === g.fk_column_id)!,
         sort: g.sort,
         order: i + 1,
+        enabled: g.enabled,
       }))
       .filter((g) => g.column)
 
@@ -204,9 +226,21 @@ const saveGroupBy = async () => {
 }
 
 const addFieldToGroupBy = (column: ColumnType) => {
-  _groupBy.value.push({ fk_column_id: column.id, sort: 'asc', order: _groupBy.value.length + 1 })
+  _groupBy.value.push({ fk_column_id: column.id, sort: 'asc', order: _groupBy.value.length + 1, enabled: true })
   saveGroupBy()
   showCreateGroupBy.value = false
+}
+
+// Toggle a group-by on/off without removing it.
+const onToggleGroupByEnabled = (group: Group) => {
+  if (blockToggleGroupBy.value) {
+    showUpgradeToUseToggleGroupBy()
+    return
+  }
+
+  group.enabled = group.enabled === false
+  $e('a:group-by:toggle-enabled', { enabled: group.enabled })
+  saveGroupBy()
 }
 
 const removeFieldFromGroupBy = async (group: Group) => {
@@ -387,56 +421,59 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               @change="onMove($event)"
             >
               <template #item="{ element: group }">
-                <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
-                  <NcButton
-                    v-if="appInfo.ee && !hideReorder"
-                    type="secondary"
-                    size="small"
-                    class="!border-r-transparent !rounded-r-none"
-                    :shadow="false"
+                <div
+                  :key="group.fk_column_id"
+                  class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center gap-2"
+                  :class="{ 'nc-group-by-disabled-row': appInfo.ee && isGridView && group.enabled === false }"
+                >
+                  <NcCheckbox
+                    v-if="appInfo.ee && isGridView"
+                    :checked="group.enabled !== false"
+                    size="default"
                     :disabled="isLocked"
-                  >
-                    <component :is="iconMap.drag" />
-                  </NcButton>
-                  <LazySmartsheetToolbarFieldListAutoCompleteDropdown
-                    v-model="group.fk_column_id"
-                    class="caption nc-group-field-select !w-36"
-                    :class="!appInfo.ee || hideReorder ? 'nc-disable-reorder' : ''"
-                    :columns="getFieldsToGroupBy(group)"
-                    :allow-empty="true"
-                    :meta="meta"
-                    :disabled="isLocked"
-                    @change="saveGroupBy"
-                    @click.stop
+                    class="nc-group-by-enabled-checkbox"
+                    @change="onToggleGroupByEnabled(group)"
                   />
-                  <NcSelect
-                    ref=""
-                    v-model:value="group.sort"
-                    class="flex flex-grow-1 w-full nc-group-sort-dir-select"
-                    :label="$t('labels.operation')"
-                    dropdown-class-name="sort-dir-dropdown nc-dropdown-group-sort-dir"
-                    :disabled="!group.fk_column_id || isLocked"
-                    @change="saveGroupBy"
-                    @click.stop
-                  >
-                    <a-select-option
-                      v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
-                      :key="j"
-                      :value="option.value"
+                  <!-- joined control group (no internal gap so the field/sort/drag/remove stay connected) -->
+                  <div class="flex items-center flex-1 min-w-0">
+                    <LazySmartsheetToolbarFieldListAutoCompleteDropdown
+                      v-model="group.fk_column_id"
+                      class="caption nc-group-field-select !w-36"
+                      :columns="getFieldsToGroupBy(group)"
+                      :allow-empty="true"
+                      :meta="meta"
+                      :disabled="isLocked"
+                      @change="saveGroupBy"
+                      @click.stop
+                    />
+                    <NcSelect
+                      ref=""
+                      v-model:value="group.sort"
+                      class="flex flex-grow-1 w-full nc-group-sort-dir-select"
+                      :label="$t('labels.operation')"
+                      dropdown-class-name="sort-dir-dropdown nc-dropdown-group-sort-dir"
+                      :disabled="!group.fk_column_id || isLocked"
+                      @change="saveGroupBy"
+                      @click.stop
                     >
-                      <div class="w-full flex items-center justify-between gap-2">
-                        <div class="truncate flex-1">{{ option.text }}</div>
-                        <component
-                          :is="iconMap.check"
-                          v-if="group.sort === option.value"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </NcSelect>
+                      <a-select-option
+                        v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(group.fk_column_id), true)"
+                        :key="j"
+                        :value="option.value"
+                      >
+                        <div class="w-full flex items-center justify-between gap-2">
+                          <div class="truncate flex-1">{{ option.text }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="group.sort === option.value"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
 
-                  <!--                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
+                    <!--                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
                   <NcButton
                     :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])"
                     class="!rounded-none !border-nc-border-gray-medium !border-l-transparent"
@@ -454,19 +491,30 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   </template>
                 </NcDropdown> -->
 
-                  <NcTooltip placement="top" title="Remove" class="flex-none">
                     <NcButton
-                      v-e="['c:group-by:remove']"
-                      class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none"
-                      size="small"
+                      v-if="appInfo.ee && !hideReorder"
                       type="secondary"
+                      size="small"
+                      class="nc-group-by-item-reorder-btn !border-l-transparent !rounded-none"
                       :shadow="false"
                       :disabled="isLocked"
-                      @click.stop="removeFieldFromGroupBy(group)"
                     >
-                      <component :is="iconMap.deleteListItem" />
+                      <component :is="iconMap.drag" />
                     </NcButton>
-                  </NcTooltip>
+                    <NcTooltip placement="top" title="Remove" class="flex-none">
+                      <NcButton
+                        v-e="['c:group-by:remove']"
+                        class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none"
+                        size="small"
+                        type="secondary"
+                        :shadow="false"
+                        :disabled="isLocked"
+                        @click.stop="removeFieldFromGroupBy(group)"
+                      >
+                        <component :is="iconMap.deleteListItem" />
+                      </NcButton>
+                    </NcTooltip>
+                  </div>
                 </div>
               </template>
             </Draggable>
@@ -564,8 +612,9 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 <style scoped lang="scss">
 :deep(.nc-group-field-select) {
   @apply !w-36;
+  // field is the leftmost control of the joined pill — round its left, square its right (joins sort)
   .ant-select-selector {
-    @apply !rounded-none !border-r-0 !border-nc-border-gray-medium !shadow-none !w-36;
+    @apply !rounded-l-lg !rounded-r-none !border-r-0 !border-nc-border-gray-medium !shadow-none !w-36;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
@@ -574,12 +623,6 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     .field-selection-tooltip-wrapper {
       @apply !max-w-21;
     }
-  }
-}
-
-:deep(.nc-group-field-select.nc-disable-reorder) {
-  .ant-select-selector {
-    @apply !rounded-l-lg;
   }
 }
 
@@ -593,6 +636,15 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 :deep(.nc-group-sort-dir-select) {
   .ant-select-selector {
     @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
+  }
+}
+
+// Disabled group-by: dim the field + sort controls, keep the checkbox,
+// reorder handle and remove button fully interactive.
+.nc-group-by-disabled-row {
+  .nc-group-field-select,
+  .nc-group-sort-dir-select {
+    @apply opacity-40 pointer-events-none;
   }
 }
 </style>

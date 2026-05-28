@@ -32,6 +32,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { appInfo } = useGlobal()
 
+    // Disabled group-bys are only honored when the toggle feature is
+    // available (mirrors Filter.supportToggle: when blocked, apply everything).
+    const { blockToggleGroupBy } = useEeConfig()
+
     const { base } = storeToRefs(useBase())
 
     const { sharedView, fetchSharedViewData, fetchBulkAggregatedData } = useSharedView()
@@ -47,10 +51,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
     const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
 
-    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number }[] | null>(null)
+    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number; enabled?: boolean }[] | null>(null)
 
-    const syncedGroupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
-      const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
+    // Full synced list — includes disabled group-bys (with their `enabled` flag).
+    // The query/render driver `groupBy` filters out disabled ones below.
+    const syncedGroupBy = computed<{ column: ColumnType; sort: string; order?: number; enabled?: boolean }[]>(() => {
+      const tempGroupBy: { column: ColumnType; sort: string; order?: number; enabled?: boolean }[] = []
       Object.values(gridViewCols.value).forEach((col) => {
         if (col.group_by) {
           const column = meta?.value?.columns?.find((f) => f.id === col.fk_column_id)
@@ -59,6 +65,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               column,
               sort: col.group_by_sort || 'asc',
               order: col.group_by_order || 1,
+              // normalize across DBs: both `false` and `0` mean disabled
+              enabled: col.group_by_enabled !== false && col.group_by_enabled !== 0,
             })
           }
         }
@@ -67,16 +75,21 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return tempGroupBy
     })
 
-    const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+    const groupBy = computed<{ column: ColumnType; sort: string; order?: number; enabled?: boolean }[]>(() => {
       // null = no override (use synced), [] = override with empty (no grouping)
-      if (localGroupBy.value !== null) {
-        return localGroupBy.value.map((e, i) => ({
-          column: e.column,
-          sort: e.sort,
-          order: e.order || i + 1,
-        }))
-      }
-      return syncedGroupBy.value
+      const source =
+        localGroupBy.value !== null
+          ? localGroupBy.value.map((e, i) => ({
+              column: e.column,
+              sort: e.sort,
+              order: e.order || i + 1,
+              enabled: e.enabled,
+            }))
+          : syncedGroupBy.value
+
+      // Honor disabled group-bys only when the toggle feature is available
+      // (mirrors Filter.supportToggle: when blocked, apply everything).
+      return blockToggleGroupBy.value ? source : source.filter((g) => g.enabled !== false)
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)

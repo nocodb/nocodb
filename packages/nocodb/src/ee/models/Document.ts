@@ -99,6 +99,25 @@ export default class Document extends DocumentCE implements DocumentType {
         ['content'],
       );
       doc.content = contentRow?.content;
+      // Content lives in the satellite docs-content DB and is attached after
+      // getMeta() already ran parseDocument, so it arrives here unparsed (a
+      // stringified JSON column on SQLite; an already-parsed object via PG
+      // jsonb). Parse it so get() honors the "returns parsed PM JSON" contract,
+      // matching Document.list and keeping every consumer — including the
+      // public content API — type-correct.
+      prepareForResponse(doc, ['content']);
+      // parseMetaProp falls back to {} on malformed JSON and leaves the field
+      // undefined when the doc has no content row yet. Collapse both to null so
+      // the contract is "valid PM object or null" — never a bare {}, which the
+      // editor can't render. Presentation layers supply the empty doc: the
+      // public response defaults null, and the editor's parseDocContent does.
+      if (
+        !doc.content ||
+        (typeof doc.content === 'object' &&
+          Object.keys(doc.content).length === 0)
+      ) {
+        doc.content = null;
+      }
     }
 
     return doc;

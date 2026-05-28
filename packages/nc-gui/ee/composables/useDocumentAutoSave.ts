@@ -212,24 +212,6 @@ export function useDocumentAutoSave({
     })
   }
 
-  /**
-   * Parse content from the API response into a Tiptap-compatible JSON object.
-   * The backend should return parsed JSON, but we defensively handle string
-   * values in case of cache inconsistencies.
-   */
-  const parseContent = (content: unknown): Record<string, any> | null => {
-    if (!content) return null
-    if (typeof content === 'object') return content as Record<string, any>
-    if (typeof content === 'string') {
-      try {
-        return JSON.parse(content)
-      } catch {
-        return null
-      }
-    }
-    return null
-  }
-
   const loadAndSetDoc = async (id: string) => {
     // Flush any pending save for the *previous* page before switching
     if (saveTimeout.value) {
@@ -252,23 +234,24 @@ export function useDocumentAutoSave({
       title.value = loaded.title === 'Untitled' ? '' : loaded.title || ''
       lastSavedTitle.value = loaded.title || 'Untitled'
 
-      const parsed = parseContent(loaded.content)
-      if (parsed) {
-        // useEditor creates the instance in onMounted — wait for it on first load
-        await waitForEditor()
+      // Always a valid PM doc (string/null/empty → empty paragraph), so the
+      // editor never skips applying content or chokes on a bare {}.
+      const parsed = parseDocContent(loaded.content)
 
-        // Discard if navigated away during editor wait
-        if (thisLoad !== loadSequence) return
+      // useEditor creates the instance in onMounted — wait for it on first load
+      await waitForEditor()
 
-        // Suppress onUpdate → debouncedSave while loading content programmatically
-        isSettingContent.value = true
-        editor.value!.commands.setContent(parsed)
+      // Discard if navigated away during editor wait
+      if (thisLoad !== loadSequence) return
 
-        // Wait a tick for ProseMirror to finish its transaction cycle
-        // before re-enabling user-edit saves
-        await nextTick()
-        isSettingContent.value = false
-      }
+      // Suppress onUpdate → debouncedSave while loading content programmatically
+      isSettingContent.value = true
+      editor.value!.commands.setContent(parsed)
+
+      // Wait a tick for ProseMirror to finish its transaction cycle
+      // before re-enabling user-edit saves
+      await nextTick()
+      isSettingContent.value = false
     }
     isLoaded.value = true
   }

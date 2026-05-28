@@ -18,7 +18,6 @@ import {
   YearValidationType,
 } from 'nocodb-sdk';
 import { ViewRowColorService } from './view-row-color.service';
-import { WhiteLabelService } from './white-label.service';
 import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -38,10 +37,7 @@ import { isOnPrem } from '~/utils/constants';
 
 @Injectable()
 export class PublicMetasService extends PublicMetasServiceCE {
-  constructor(
-    private readonly viewRowColorService: ViewRowColorService,
-    private readonly whiteLabelService: WhiteLabelService,
-  ) {
+  constructor(private readonly viewRowColorService: ViewRowColorService) {
     super();
   }
 
@@ -300,15 +296,10 @@ export class PublicMetasService extends PublicMetasServiceCE {
       workspace,
     );
 
-    // White-label is a parent of FEATURE_HIDE_BRANDING — when the instance is
-    // white-labelled, branding is force-hidden regardless of the per-form toggle
-    // or the workspace's plan tier.
-    const whiteLabelConfig = await this.whiteLabelService.getPublicConfig();
-    const isWhiteLabelled = !!whiteLabelConfig?.enabled;
-
-    const isHideBrandingEnabled =
-      isWhiteLabelled ||
-      (await getFeature(PlanFeatureTypes.FEATURE_HIDE_BRANDING, workspace));
+    const isHideBrandingEnabled = await getFeature(
+      PlanFeatureTypes.FEATURE_HIDE_BRANDING,
+      workspace,
+    );
 
     const isUrlRedirectionEnabled =
       isOnPrem ||
@@ -430,12 +421,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
           hide_banner: isHideBrandingEnabled
             ? parseProp(formView.meta).hide_banner
             : false,
-          // When white-labelled, force-hide regardless of the per-form toggle
-          // (FEATURE_HIDE_BRANDING is treated as a child of FEATURE_WHITE_LABEL).
-          // Otherwise fall back to the per-form toggle (when the plan allows it).
-          hide_branding: isWhiteLabelled
-            ? true
-            : isHideBrandingEnabled
+          hide_branding: isHideBrandingEnabled
             ? parseProp(formView.meta).hide_branding
             : false,
         },

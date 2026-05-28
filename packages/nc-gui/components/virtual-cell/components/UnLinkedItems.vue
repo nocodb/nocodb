@@ -32,6 +32,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const scrollContainerRef = ref<HTMLElement>()
+
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -353,50 +355,6 @@ const onDeletedRecord = async () => {
   loadChildrenExcludedList(rowState.value, true)
 }
 
-function focusListItemByIndex(idx: number) {
-  const items = scrollContainerRef.value
-    ? Array.from(scrollContainerRef.value.querySelectorAll<HTMLElement>('[data-testid="nc-excluded-list-item"]'))
-    : []
-  const wrapper = items[idx]
-  const focusable = wrapper?.querySelector<HTMLElement>('[tabindex="0"]') ?? wrapper
-  focusable?.focus()
-}
-
-function linkedShortcuts(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    vModel.value = false
-    return
-  }
-
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    const target = e.target as HTMLElement | null
-    const currentWrapper = target?.closest<HTMLElement>('[data-testid="nc-excluded-list-item"]')
-    if (!currentWrapper || !scrollContainerRef.value) return
-
-    e.preventDefault()
-
-    const items = Array.from(scrollContainerRef.value.querySelectorAll<HTMLElement>('[data-testid="nc-excluded-list-item"]'))
-    const idx = items.indexOf(currentWrapper)
-    if (idx === -1) return
-
-    if (e.key === 'ArrowDown') {
-      if (idx < items.length - 1) focusListItemByIndex(idx + 1)
-    } else if (e.key === 'ArrowUp') {
-      if (idx === 0) filterQueryRef.value?.focus()
-      else focusListItemByIndex(idx - 1)
-    }
-    return
-  }
-
-  if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    try {
-      filterQueryRef.value?.focus()
-    } catch (e) {}
-  }
-}
-
-const scrollContainerRef = ref<HTMLElement>()
-
 const ROW_VIRTUAL_MARGIN = 5
 
 const rowSlice = reactive({ start: 0, end: 0 })
@@ -457,7 +415,6 @@ const visibleRows = computed(() => {
 })
 
 onMounted(() => {
-  window.addEventListener('keydown', linkedShortcuts)
   loadRelatedTableMeta()
 
   // Load initial chunk
@@ -474,7 +431,6 @@ onUnmounted(() => {
   resetChildrenExcludedOffsetCount()
   resetExcludedCache()
   childrenExcludedListPagination.query = ''
-  window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
@@ -486,25 +442,21 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (!childrenExcludedListPagination.query) emit('escape')
-    filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
-    if (
-      childrenExcludedListPagination.query &&
-      ncIsArray(childrenExcludedList.value?.list) &&
-      childrenExcludedList.value?.list.length
-    ) {
-      onClick(childrenExcludedList.value?.list[0], '0')
-    }
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    focusListItemByIndex(0)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-  }
-}
+const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
+  scrollContainerRef,
+  filterQueryRef,
+  itemTestId: 'nc-excluded-list-item',
+  expandedFormDlg,
+  closeModal: () => {
+    vModel.value = false
+  },
+  getQuery: () => childrenExcludedListPagination.query,
+  onEscapeEmptyQuery: () => emit('escape'),
+  onEnterWithQuery: () => {
+    const list = childrenExcludedList.value?.list
+    if (ncIsArray(list) && list.length) onClick(list[0], '0')
+  },
+})
 </script>
 
 <template>

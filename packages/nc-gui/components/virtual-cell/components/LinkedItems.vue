@@ -48,6 +48,8 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const scrollContainerRef = ref<HTMLElement>()
+
 const { isDataReadOnly } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -347,51 +349,8 @@ watch([filterQueryRef, isDataExist], () => {
   }
 })
 
-function focusListItemByIndex(idx: number) {
-  const items = scrollContainerRef.value
-    ? Array.from(scrollContainerRef.value.querySelectorAll<HTMLElement>('[data-testid="nc-child-list-item"]'))
-    : []
-  const wrapper = items[idx]
-  const focusable = wrapper?.querySelector<HTMLElement>('[tabindex="0"]') ?? wrapper
-  focusable?.focus()
-}
-
-function linkedShortcuts(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    vModel.value = false
-    return
-  }
-
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    const target = e.target as HTMLElement | null
-    const currentWrapper = target?.closest<HTMLElement>('[data-testid="nc-child-list-item"]')
-    if (!currentWrapper || !scrollContainerRef.value) return
-
-    e.preventDefault()
-
-    const items = Array.from(scrollContainerRef.value.querySelectorAll<HTMLElement>('[data-testid="nc-child-list-item"]'))
-    const idx = items.indexOf(currentWrapper)
-    if (idx === -1) return
-
-    if (e.key === 'ArrowDown') {
-      if (idx < items.length - 1) focusListItemByIndex(idx + 1)
-    } else if (e.key === 'ArrowUp') {
-      if (idx === 0) filterQueryRef.value?.focus()
-      else focusListItemByIndex(idx - 1)
-    }
-    return
-  }
-
-  if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    try {
-      filterQueryRef.value?.focus()
-    } catch (e) {}
-  }
-}
-
 onMounted(() => {
   loadRelatedTableMeta()
-  window.addEventListener('keydown', linkedShortcuts)
 
   // Load initial chunk for virtual scroll
   fetchChildrenChunk(0)
@@ -402,8 +361,6 @@ onMounted(() => {
     filterQueryRef.value?.focus()
   }, 100)
 })
-
-const scrollContainerRef = ref<HTMLElement>()
 
 const ROW_VIRTUAL_MARGIN = 5
 
@@ -467,7 +424,6 @@ onUnmounted(() => {
   resetChildrenListOffsetCount()
   resetChildrenCache()
   childrenListPagination.query = ''
-  window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
@@ -479,23 +435,21 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (!childrenListPagination.query) emit('escape')
-    filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
+const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
+  scrollContainerRef,
+  filterQueryRef,
+  itemTestId: 'nc-child-list-item',
+  expandedFormDlg,
+  closeModal: () => {
+    vModel.value = false
+  },
+  getQuery: () => childrenListPagination.query,
+  onEscapeEmptyQuery: () => emit('escape'),
+  onEnterWithQuery: () => {
     const list = childrenList.value?.list ?? state.value?.[colTitle.value]
-
-    if (childrenListPagination.query && ncIsArray(list) && list.length) {
-      linkOrUnLink(list[0], '0')
-    }
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    focusListItemByIndex(0)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-  }
-}
+    if (ncIsArray(list) && list.length) linkOrUnLink(list[0], '0')
+  },
+})
 </script>
 
 <template>

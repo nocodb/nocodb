@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import {
-  detectColumnPropsChanged,
+  detectColumnSchemaPropsChanged,
   isPkRegression,
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
@@ -48,7 +48,7 @@ export function pkPreservationTests() {
       });
     });
 
-    describe('detectColumnPropsChanged', () => {
+    describe('detectColumnSchemaPropsChanged', () => {
       const same = {
         pk: false,
         rqd: false,
@@ -58,26 +58,26 @@ export function pkPreservationTests() {
       };
 
       it('returns false when nothing changed', () => {
-        expect(detectColumnPropsChanged(same, same)).to.equal(false);
+        expect(detectColumnSchemaPropsChanged(same, same)).to.equal(false);
       });
 
       it('returns true when DB gains a pk and NocoDB does not have one', () => {
         expect(
-          detectColumnPropsChanged(same, { ...same, pk: true }),
+          detectColumnSchemaPropsChanged(same, { ...same, pk: true }),
         ).to.equal(true);
       });
 
       it('returns false for a pk regression alone — user-set NocoDB pk must survive', () => {
         // NocoDB has manually-flagged pk:true; DB never declared PRIMARY KEY.
         expect(
-          detectColumnPropsChanged({ ...same, pk: true }, same),
+          detectColumnSchemaPropsChanged({ ...same, pk: true }, same),
         ).to.equal(false);
       });
 
       it('returns true when a sibling prop changed even alongside a pk regression', () => {
         // pk regression alone wouldn't fire — but the rqd flip still must.
         expect(
-          detectColumnPropsChanged(
+          detectColumnSchemaPropsChanged(
             { ...same, pk: true, rqd: false },
             { ...same, pk: false, rqd: true },
           ),
@@ -86,28 +86,28 @@ export function pkPreservationTests() {
 
       it('returns true on rqd / un / ai / unique changes individually', () => {
         expect(
-          detectColumnPropsChanged(same, { ...same, rqd: true }),
+          detectColumnSchemaPropsChanged(same, { ...same, rqd: true }),
         ).to.equal(true);
         expect(
-          detectColumnPropsChanged(same, { ...same, un: true }),
+          detectColumnSchemaPropsChanged(same, { ...same, un: true }),
         ).to.equal(true);
         expect(
-          detectColumnPropsChanged(same, { ...same, ai: true }),
+          detectColumnSchemaPropsChanged(same, { ...same, ai: true }),
         ).to.equal(true);
         expect(
-          detectColumnPropsChanged(same, { ...same, unique: true }),
+          detectColumnSchemaPropsChanged(same, { ...same, unique: true }),
         ).to.equal(true);
       });
 
       it('treats null / undefined as falsy when comparing', () => {
         expect(
-          detectColumnPropsChanged(
+          detectColumnSchemaPropsChanged(
             { pk: null, rqd: null, un: null, ai: null, unique: null },
             same,
           ),
         ).to.equal(false);
         expect(
-          detectColumnPropsChanged(
+          detectColumnSchemaPropsChanged(
             { pk: undefined, rqd: undefined, un: undefined, ai: undefined, unique: undefined },
             same,
           ),

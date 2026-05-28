@@ -16,7 +16,13 @@
  * behavior.
  */
 
-export interface ColumnPropsForDiff {
+/**
+ * Subset of column attributes that meta-sync compares against the DB
+ * schema: primary key, required (NOT NULL), unsigned, auto-increment,
+ * UNIQUE. These are physical / schema-level properties — *not*
+ * NocoDB-only metadata such as title, description, or uidt.
+ */
+export interface ColumnSchemaProps {
   pk?: boolean | null;
   rqd?: boolean | null;
   un?: boolean | null;
@@ -33,14 +39,18 @@ export function isPkRegression(
 }
 
 /**
- * Returns true if the diff between `oldCol` (NocoDB) and `dbCol` (DB)
- * should fire `TABLE_COLUMN_PROPS_CHANGED` and queue an apply.
+ * Returns true if the schema-level props on `oldCol` (NocoDB metadata)
+ * and `dbCol` (DB schema) disagree in a way that should fire
+ * `TABLE_COLUMN_PROPS_CHANGED` and queue an apply.
+ *
+ * Compares only physical/constraint-like attributes (pk, rqd, un, ai,
+ * unique) — not NocoDB-only metadata such as title or uidt.
  *
  * `pk` regressions alone do NOT fire — see module-level rationale.
  */
-export function detectColumnPropsChanged(
-  oldCol: ColumnPropsForDiff,
-  dbCol: ColumnPropsForDiff,
+export function detectColumnSchemaPropsChanged(
+  oldCol: ColumnSchemaProps,
+  dbCol: ColumnSchemaProps,
 ): boolean {
   const pkChanged =
     !!oldCol.pk !== !!dbCol.pk && !isPkRegression(oldCol.pk, dbCol.pk);

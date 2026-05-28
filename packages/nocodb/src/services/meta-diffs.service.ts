@@ -26,7 +26,7 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
 import { normalizeDr } from '~/helpers/dbHelpers';
 import {
-  detectColumnPropsChanged,
+  detectColumnSchemaPropsChanged,
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import NcHelp from '~/utils/NcHelp';
@@ -298,7 +298,7 @@ export class MetaDiffsService {
         }
         // Asymmetric on `pk` — preserve a user-set NocoDB PK across syncs.
         // See `~/services/meta-diffs/pk-preservation`.
-        if (detectColumnPropsChanged(oldCol, column)) {
+        if (detectColumnSchemaPropsChanged(oldCol, column)) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED,
             msg: `Column properties changed (${column.cn})`,

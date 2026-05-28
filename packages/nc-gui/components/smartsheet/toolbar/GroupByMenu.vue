@@ -162,13 +162,17 @@ const saveGroupBy = async () => {
           (!col.group_by ||
             col.group_by_order !== gby.order ||
             col.group_by_sort !== gby.sort ||
-            colEnabled !== (gby.enabled !== false))
+            // group_by_enabled is grid-only (Timeline/Gantt column-update
+            // schemas reject the field), so don't let an enabled-state
+            // mismatch trigger a save on non-grid views.
+            (isGridView.value && colEnabled !== (gby.enabled !== false)))
         ) {
           await updateGridViewColumn(gby.fk_column_id, {
             group_by: true,
             group_by_order: gby.order,
             group_by_sort: gby.sort,
-            group_by_enabled: gby.enabled,
+            // Only persist enabled-state on grid views — see comment above.
+            ...(isGridView.value ? { group_by_enabled: gby.enabled } : {}),
           })
         }
       }

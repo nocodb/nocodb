@@ -149,6 +149,7 @@ export class GridColumnsService {
         group_by: null,
         group_by_order: null,
         group_by_sort: null,
+        group_by_enabled: null,
         aggregation: 'none',
       });
     if (context.workspace_id) {

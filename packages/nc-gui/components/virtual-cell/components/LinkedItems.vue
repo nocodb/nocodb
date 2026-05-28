@@ -347,20 +347,42 @@ watch([filterQueryRef, isDataExist], () => {
   }
 })
 
-const linkedShortcuts = (e: KeyboardEvent) => {
+function focusListItemByIndex(idx: number) {
+  const items = scrollContainerRef.value
+    ? Array.from(scrollContainerRef.value.querySelectorAll<HTMLElement>('[data-testid="nc-child-list-item"]'))
+    : []
+  const wrapper = items[idx]
+  const focusable = wrapper?.querySelector<HTMLElement>('[tabindex="0"]') ?? wrapper
+  focusable?.focus()
+}
+
+function linkedShortcuts(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     vModel.value = false
-  } else if (e.key === 'ArrowDown') {
+    return
+  }
+
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const target = e.target as HTMLElement | null
+    const currentWrapper = target?.closest<HTMLElement>('[data-testid="nc-child-list-item"]')
+    if (!currentWrapper || !scrollContainerRef.value) return
+
     e.preventDefault()
-    try {
-      e.target?.nextElementSibling?.focus()
-    } catch (e) {}
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    try {
-      e.target?.previousElementSibling?.focus()
-    } catch (e) {}
-  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+
+    const items = Array.from(scrollContainerRef.value.querySelectorAll<HTMLElement>('[data-testid="nc-child-list-item"]'))
+    const idx = items.indexOf(currentWrapper)
+    if (idx === -1) return
+
+    if (e.key === 'ArrowDown') {
+      if (idx < items.length - 1) focusListItemByIndex(idx + 1)
+    } else if (e.key === 'ArrowUp') {
+      if (idx === 0) filterQueryRef.value?.focus()
+      else focusListItemByIndex(idx - 1)
+    }
+    return
+  }
+
+  if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
     try {
       filterQueryRef.value?.focus()
     } catch (e) {}
@@ -467,6 +489,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (childrenListPagination.query && ncIsArray(list) && list.length) {
       linkOrUnLink(list[0], '0')
     }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    focusListItemByIndex(0)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
   }
 }
 </script>

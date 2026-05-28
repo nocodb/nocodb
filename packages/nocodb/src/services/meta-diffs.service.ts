@@ -292,8 +292,17 @@ export class MetaDiffsService {
             column: oldCol,
           });
         }
+        // Preserve a user-set `pk: true` across syncs: a customer can mark
+        // a column as PK in NocoDB to recover from external schemas that
+        // declare uniqueness via `UNIQUE NOT NULL` instead of
+        // `PRIMARY KEY` (the source of the no-PK family of crashes). The
+        // diff is asymmetric here — propagate PK *gained* on the DB side,
+        // but never silently strip a manually-set NocoDB PK.
+        const pkRegression = !!oldCol.pk && !column.pk;
+        const pkChanged = !!oldCol.pk !== !!column.pk && !pkRegression;
+
         if (
-          !!oldCol.pk !== !!column.pk ||
+          pkChanged ||
           !!oldCol.rqd !== !!column.rqd ||
           !!oldCol.un !== !!column.un ||
           !!oldCol.ai !== !!column.ai ||
@@ -1001,7 +1010,11 @@ export class MetaDiffsService {
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const colMeta = columns.find((c) => c.cn === change.cn);
               if (!colMeta) break;
-              const { pk, ai, rqd, un, unique } = colMeta;
+              const { ai, rqd, un, unique } = colMeta;
+              // Preserve a user-set NocoDB PK when the DB column reports no
+              // PK — see the matching guard in the diff detector. Only
+              // *gain* the DB-declared PK, never strip an existing one.
+              const pk = colMeta.pk || change.column.pk;
               await Column.update(context, change.column.id, {
                 pk,
                 ai,

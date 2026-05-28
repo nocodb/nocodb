@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PlanLimitTypes } from 'nocodb-sdk'
+import type { PlanTitles } from 'nocodb-sdk'
 
 interface Props {
   // Current plan retention in days — drives the "{N} day page history" heading.
@@ -63,8 +64,10 @@ function onUpgrade() {
   // Cloud: straight to pricing with the per-item required plan pre-activated, so
   // the highlighted CTA matches what the user clicked (avoids a confirm modal
   // naming a different "next plan" derived from the active subscription).
+  // Narrow to cloud PlanTitles — on-prem returns above already, so by here
+  // requiredPlan is either a cloud tier or null.
   navigateToPricing({
-    ctaPlan: requiredPlan.value ?? undefined,
+    ctaPlan: (requiredPlan.value as PlanTitles | null) ?? undefined,
     limitOrFeature: PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS,
   })
 }

@@ -9,6 +9,7 @@ import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
+import CryptoJS from 'crypto-js';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -25,7 +26,6 @@ import { isCloud } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { randomTokenString } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import CryptoJS from 'crypto-js';
 import { getCredentialEncryptSecret } from '~/utils/encryptDecrypt';
 
 export function normalizeCode(code: string): string {
@@ -846,7 +846,9 @@ export class MfaService {
         NcError.badRequest('Incorrect password');
       }
       this.logger.error(
-        `verifyCognitoPassword failed for ${email}: ${e?.name ?? 'unknown'} ${e?.message ?? ''}`,
+        `verifyCognitoPassword failed for ${email}: ${e?.name ?? 'unknown'} ${
+          e?.message ?? ''
+        }`,
         e?.stack,
       );
       NcError.badRequest('Could not verify password. Please try again.');

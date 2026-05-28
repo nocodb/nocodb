@@ -1519,11 +1519,8 @@ export class AclMiddleware implements NestInterceptor {
         let isFederatedSession = extra.cognito_identity_type === 'federated';
 
         // Pre-PR JWT — fall back to the user.meta tag.
-        const needsMetaFallback =
-          !isSsoSession && !extra.cognito_identity_type;
-        const user = needsMetaFallback
-          ? await User.get(req.user.id)
-          : null;
+        const needsMetaFallback = !isSsoSession && !extra.cognito_identity_type;
+        const user = needsMetaFallback ? await User.get(req.user.id) : null;
         if (needsMetaFallback) {
           const userMeta =
             typeof user?.meta === 'string'

@@ -229,9 +229,17 @@ class PGClient extends PGClientCE {
               AND pk1.column_name = c.column_name
            
               left join
-                ( 
-                    select 
-                      pc.conrelid::regclass::text AS table_name,
+                (
+                    -- Catalog-based PK detection (works for read-only users,
+                    -- unlike information_schema.table_constraints which is
+                    -- restricted to roles with non-SELECT privilege).
+                    -- Use rel.relname (bare table name) consistently — the
+                    -- previous `pc.conrelid::regclass::text` comparison
+                    -- quoted mixed-case identifiers (e.g. `"Document"`) and
+                    -- failed to match the unquoted :table parameter,
+                    -- silently producing pk:false on the next sync.
+                    select
+                      rel.relname AS table_name,
                       pc.conname as constraint_name,
                       col.attname as column_name,
                       pc.contype as constraint_type,
@@ -245,13 +253,13 @@ class PGClient extends PGClientCE {
                     LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
                     LEFT JOIN pg_attribute col ON (col.attrelid = pc.conrelid AND col.attnum = u.attnum)
                     left join information_schema.key_column_usage as kc
-                      on pc.conname = kc.constraint_name 
+                      on pc.conname = kc.constraint_name
                       and col.attname = kc.column_name
                       and kc.constraint_schema = n.nspname
-                      and pc.conrelid::regclass::text = kc.table_name
+                      and rel.relname = kc.table_name
                     WHERE n.nspname = :schema
-                      AND rel.relname = :table 
-                      and pc.contype = 'p' and pc.conrelid::regclass::text = :table
+                      AND rel.relname = :table
+                      and pc.contype = 'p'
                  ) pk
                 on
                 pk.table_name = c.table_name and pk.column_name=c.column_name

@@ -526,14 +526,16 @@ defineExpose({
         </NcSwitch>
       </div>
 
-      <NcSwitch
-        v-model:checked="isAlphabetized"
-        v-e="['c:field:select:alphabetize:toggle', { enabled: isAlphabetized }]"
-        size="xsmall"
-        :disabled="isSyncedField"
-      >
-        {{ $t('labels.alphabetize') }}
-      </NcSwitch>
+      <div class="flex items-center">
+        <NcSwitch
+          v-model:checked="isAlphabetized"
+          size="xsmall"
+          :disabled="isSyncedField"
+          @change="(v) => $e('c:field:select:alphabetize:toggle', { enabled: v })"
+        >
+          {{ $t('labels.alphabetize') }}
+        </NcSwitch>
+      </div>
     </div>
 
     <div

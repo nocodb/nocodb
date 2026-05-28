@@ -41,6 +41,8 @@ const isUpgradeable = computed(() => {
 
 const meta = inject(MetaInj, ref())
 
+const { isMetaReadOnly } = useRoles()
+
 const filterRef = ref()
 
 const crossBase = ref(
@@ -672,9 +674,14 @@ const handleScrollIntoView = () => {
           >
         </span>
       </div>
-      <NcButton size="xs" type="primary" @click="emit('upgrade')">
-        {{ $t('general.upgrade') }}
-      </NcButton>
+      <GeneralSourceRestrictionTooltip
+        message="Field cannot be upgraded."
+        :enabled="!!isMetaReadOnly"
+      >
+        <NcButton size="xs" type="primary" :disabled="isMetaReadOnly" @click="emit('upgrade')">
+          {{ $t('general.upgrade') }}
+        </NcButton>
+      </GeneralSourceRestrictionTooltip>
     </div>
     <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI && !isEEFeatureBlocked">
       <a-switch

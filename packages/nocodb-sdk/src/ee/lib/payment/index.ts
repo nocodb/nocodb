@@ -106,6 +106,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: false,
       [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]: false,
       [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]: false,
+      [PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY]: false,
       [PlanFeatureTypes.FEATURE_PINNED_FILTER]: false,
       [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: false,
       [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]: false,

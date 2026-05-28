@@ -234,6 +234,10 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TOGGLE_FILTER)
   })
 
+  const blockToggleGroupBy = computed(() => {
+    return !getFeature(PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY)
+  })
+
   const blockPinnedFilter = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_PINNED_FILTER)
   })
@@ -1486,6 +1490,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseToggleGroupBy = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockToggleGroupBy.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseToggleGroupBy'),
+      content: t('upgrade.upgradeToUseToggleGroupBySubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.PLUS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY,
+    })
+
+    return true
+  }
+
   const showUpgradeToUsePinnedFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockPinnedFilter.value) return
 
@@ -2350,6 +2370,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRowColoring,
     blockToggleFilter,
     showUpgradeToUseToggleFilter,
+    blockToggleGroupBy,
+    showUpgradeToUseToggleGroupBy,
     blockPinnedFilter,
     showUpgradeToUsePinnedFilter,
     blockCellColoring,

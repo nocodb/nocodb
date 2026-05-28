@@ -36,7 +36,7 @@ const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } =
 
 const { fieldsToGroupBy, groupByLimit, localGroupBy, canSyncGroupBy, hideEmptyGroups } = useViewGroupByOrThrow()
 
-const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
+const { blockToggleGroupBy, showUpgradeToUseToggleGroupBy } = useEeConfig()
 
 const { $e } = useNuxtApp()
 
@@ -227,10 +227,10 @@ const addFieldToGroupBy = (column: ColumnType) => {
   showCreateGroupBy.value = false
 }
 
-// Toggle a group-by on/off without removing it (reuses the filter toggle's gate).
+// Toggle a group-by on/off without removing it.
 const onToggleGroupByEnabled = (group: Group) => {
-  if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+  if (blockToggleGroupBy.value) {
+    showUpgradeToUseToggleGroupBy()
     return
   }
 

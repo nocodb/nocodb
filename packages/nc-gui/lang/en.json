@@ -185,6 +185,8 @@
     "upgradeToUseButtonVisibilitySubtitle": "Upgrade to the {plan} plan to conditionally show or hide buttons based on record data, giving you precise control over button actions.",
     "upgradeToUseToggleFilter": "Upgrade to toggle individual filters",
     "upgradeToUseToggleFilterSubtitle": "Upgrade to the {plan} plan to enable or disable individual filters without removing them, giving you more control over your views.",
+    "upgradeToUseToggleGroupBy": "Upgrade to toggle individual group-bys",
+    "upgradeToUseToggleGroupBySubtitle": "Upgrade to the {plan} plan to enable or disable individual group-bys without removing them, giving you more control over your views.",
     "upgradeToUsePinnedFilter": "Upgrade to pin filters to toolbar",
     "upgradeToUsePinnedFilterSubtitle": "Upgrade to the {plan} plan to pin frequently used filters to the toolbar for quick, one-click access.",
     "upgradeToUseCellColoring": "Upgrade to use cell colouring",

@@ -32,9 +32,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { appInfo } = useGlobal()
 
-    // Reuses the filter toggle's gate: disabled group-bys are only honored
-    // when the toggle feature is available (mirrors Filter.supportToggle).
-    const { blockToggleFilter } = useEeConfig()
+    // Disabled group-bys are only honored when the toggle feature is
+    // available (mirrors Filter.supportToggle: when blocked, apply everything).
+    const { blockToggleGroupBy } = useEeConfig()
 
     const { base } = storeToRefs(useBase())
 
@@ -89,7 +89,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
       // Honor disabled group-bys only when the toggle feature is available
       // (mirrors Filter.supportToggle: when blocked, apply everything).
-      return blockToggleFilter.value ? source : source.filter((g) => g.enabled !== false)
+      return blockToggleGroupBy.value ? source : source.filter((g) => g.enabled !== false)
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)

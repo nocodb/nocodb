@@ -463,19 +463,19 @@ onMounted(async () => {
 
 /* ── Plan card ── */
 .nc-plan-card {
-  @apply flex flex-col p-5 rounded-2xl border-1 border-nc-border-gray-medium bg-white transition-all duration-300;
+  @apply flex flex-col p-5 rounded-2xl border-1 border-nc-border-gray-medium bg-nc-bg-default transition-all duration-300;
 
   &:hover {
-    box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06);
+    box-shadow: 0 0 8px 0 rgba(var(--rgb-base), 0.06);
   }
 }
 
 .nc-plan-card-popular {
-  border-color: #3366ff;
-  box-shadow: 0 0 0 4px rgba(41, 82, 204, 0.08);
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 4px rgba(var(--rgb-color-brand-600), 0.08);
 
   &:hover {
-    box-shadow: 0 0 0 4px rgba(41, 82, 204, 0.08), 0 0 8px 0 rgba(0, 0, 0, 0.06);
+    box-shadow: 0 0 0 4px rgba(var(--rgb-color-brand-600), 0.08), 0 0 8px 0 rgba(var(--rgb-base), 0.06);
   }
 }
 
@@ -512,8 +512,8 @@ onMounted(async () => {
 /* ── Lavender tagline pill ── */
 .nc-plan-tagline-pill {
   @apply mt-4 py-3 px-4 rounded-xl text-[13px] leading-[18px] font-semibold;
-  background-image: linear-gradient(90deg, #f0f3ff, #f3ecfa);
-  color: #7d26cd;
+  background-image: linear-gradient(90deg, var(--color-brand-50), var(--color-purple-50));
+  color: var(--color-purple-500);
   min-height: 70px;
   display: flex;
   align-items: center;
@@ -546,7 +546,7 @@ onMounted(async () => {
 }
 
 .nc-plan-feature-check {
-  @apply flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark;
+  @apply flex-none w-4 h-4 mt-0.5 text-green-700;
 }
 
 .nc-plan-feature-soon {

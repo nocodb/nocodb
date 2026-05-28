@@ -129,6 +129,8 @@ export enum PlanFeatureTypes {
   FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
+  /** On-prem Enterprise: instance-wide white-labeling (logo, product name, brand color, favicon) */
+  FEATURE_WHITE_LABEL = 'feature_white_label',
 }
 
 export enum PlanTitles {
@@ -481,6 +483,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_BOOKMARKS]: 'to use bookmarks.',
   [PlanFeatureTypes.FEATURE_MSSQL]:
     'to connect Microsoft SQL Server sources.',
+  [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
+    'to white-label this instance with your own logo, product name, and brand color.',
 };
 
 export const getUpgradeMessage = (

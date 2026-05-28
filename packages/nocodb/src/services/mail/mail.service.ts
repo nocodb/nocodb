@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ncIsArray, RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcRequest, WhiteLabelConfig } from 'nocodb-sdk';
 import type { MailParams, RawMailParams } from '~/interface/Mail';
 import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
@@ -16,8 +16,9 @@ import { ncSiteUrl } from '~/utils/envs';
 
 type TemplateComponent<K extends keyof typeof MailTemplates> =
   (typeof MailTemplates)[K];
-type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
-  TemplateComponent<K>
+type TemplateProps<K extends keyof typeof MailTemplates> = Omit<
+  ComponentProps<TemplateComponent<K>>,
+  'branding'
 >;
 
 @Injectable()
@@ -97,13 +98,35 @@ export class MailService {
     return false;
   }
 
+  /**
+   * Hook: subclasses (EE) override to return the active white-label config.
+   * CE returns null — emails ship with default NocoDB branding.
+   */
+  protected async getBranding(): Promise<WhiteLabelConfig | null> {
+    return null;
+  }
+
+  /**
+   * Build the subject line, substituting the product name when white-labelled.
+   * Templates can pass either a plain string or `(productName) => string`.
+   */
+  protected resolveSubject(
+    subject: string | ((productName: string) => string),
+    branding: WhiteLabelConfig | null,
+  ): string {
+    const productName = (branding?.enabled && branding.productName) || 'NocoDB';
+    if (typeof subject === 'function') return subject(productName);
+    return subject.replace(/NocoDB/g, productName);
+  }
+
   protected async renderMail<K extends keyof typeof MailTemplates>(
     template: K,
     props: TemplateProps<K>,
+    branding: WhiteLabelConfig | null,
   ) {
     const Component = MailTemplates[template];
     // TODO: Fix Type here
-    return await render(Component(props as TemplateProps<any>));
+    return await render(Component({ ...props, branding } as any));
   }
 
   /**
@@ -297,6 +320,8 @@ export class MailService {
       if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
 
+    const branding = await this.getBranding();
+
     try {
       switch (mailEvent) {
         case MailEvent.BASE_INVITE: {
@@ -308,19 +333,23 @@ export class MailService {
             fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been invited to a Base',
-            html: await this.renderMail('BaseInvite', {
-              baseTitle: base.title,
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-                token,
-              }),
-            }),
+            html: await this.renderMail(
+              'BaseInvite',
+              {
+                baseTitle: base.title,
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                  token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -333,20 +362,24 @@ export class MailService {
             fk_user_id: user.id,
             to: user.email,
             subject: 'Your Base role has been updated',
-            html: await this.renderMail('BaseRoleUpdate', {
-              baseTitle: base.title,
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              oldRole: RoleLabels[oldRole],
-              newRole: RoleLabels[newRole],
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-              }),
-            }),
+            html: await this.renderMail(
+              'BaseRoleUpdate',
+              {
+                baseTitle: base.title,
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                oldRole: RoleLabels[oldRole],
+                newRole: RoleLabels[newRole],
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -358,12 +391,16 @@ export class MailService {
             fk_user_id: user.id,
             to: user.email,
             subject: 'Reset your password',
-            html: await this.renderMail('PasswordReset', {
-              email: user.email,
-              link: this.buildUrl(req, {
-                resetPassword: (user as any).reset_password_token,
-              }),
-            }),
+            html: await this.renderMail(
+              'PasswordReset',
+              {
+                email: user.email,
+                link: this.buildUrl(req, {
+                  resetPassword: (user as any).reset_password_token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -375,12 +412,16 @@ export class MailService {
             fk_user_id: user.id,
             to: user.email,
             subject: 'Verify your email',
-            html: await this.renderMail('VerifyEmail', {
-              email: user.email,
-              link: this.buildUrl(req, {
-                verificationToken: (user as any).email_verification_token,
-              }),
-            }),
+            html: await this.renderMail(
+              'VerifyEmail',
+              {
+                email: user.email,
+                link: this.buildUrl(req, {
+                  verificationToken: (user as any).email_verification_token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -390,11 +431,15 @@ export class MailService {
             event: mailEvent,
             fk_user_id: user.id,
             to: user.email,
-            subject: 'Welcome to NocoDB!',
-            html: await this.renderMail('Welcome', {
-              email: user.email,
-              link: this.buildUrl(req, {}),
-            }),
+            subject: this.resolveSubject('Welcome to NocoDB!', branding),
+            html: await this.renderMail(
+              'Welcome',
+              {
+                email: user.email,
+                link: this.buildUrl(req, {}),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -405,17 +450,24 @@ export class MailService {
             event: mailEvent,
             fk_user_id: user.id,
             to: user.email,
-            subject: 'You have been invited to join NocoDB',
-            html: await this.renderMail('OrganizationInvite', {
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              link: this.buildUrl(req, {
-                token,
-              }),
-            }),
+            subject: this.resolveSubject(
+              'You have been invited to join NocoDB',
+              branding,
+            ),
+            html: await this.renderMail(
+              'OrganizationInvite',
+              {
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -426,17 +478,21 @@ export class MailService {
             event: mailEvent,
             fk_user_id: user.id,
             to: user.email,
-            subject: 'Role updated in NocoDB',
-            html: await this.renderMail('OrganizationRoleUpdate', {
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              oldRole: RoleLabels[oldRole],
-              newRole: RoleLabels[newRole],
-              link: this.buildUrl(req, {}),
-            }),
+            subject: this.resolveSubject('Role updated in NocoDB', branding),
+            html: await this.renderMail(
+              'OrganizationRoleUpdate',
+              {
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                oldRole: RoleLabels[oldRole],
+                newRole: RoleLabels[newRole],
+                link: this.buildUrl(req, {}),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -447,13 +503,21 @@ export class MailService {
           await this.dispatchAndLog(mailerAdapter, ncMeta, {
             event: mailEvent,
             to: emails.join(','),
-            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-            html: await this.renderMail('FormSubmission', {
-              formTitle: formView.title,
-              tableTitle: model.title,
-              submissionData: data,
-              baseTitle: base.title,
-            }),
+            subject: this.resolveSubject(
+              (productName) =>
+                `${productName} Forms: Someone has responded to ${formView.title}`,
+              branding,
+            ),
+            html: await this.renderMail(
+              'FormSubmission',
+              {
+                formTitle: formView.title,
+                tableTitle: model.title,
+                submissionData: data,
+                baseTitle: base.title,
+              },
+              branding,
+            ),
           });
 
           break;

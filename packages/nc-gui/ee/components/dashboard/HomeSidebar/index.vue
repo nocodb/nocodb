@@ -19,6 +19,8 @@ const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace, blockW
 
 const { $e } = useNuxtApp()
 
+const { productName, logoUrl, logoDarkUrl, isWhiteLabelled } = useBranding()
+
 const isCreateWsDlgOpen = ref(false)
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
@@ -138,8 +140,13 @@ const hasNoResults = computed(() => {
     <!-- Brand header — same pattern as SidebarHeaderWrapper -->
     <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
       <div class="pl-1">
-        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/full-logo.png" class="h-9" />
-        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" class="h-9" />
+        <template v-if="isWhiteLabelled && (isDark ? logoDarkUrl : logoUrl)">
+          <img :alt="productName" :src="(isDark ? logoDarkUrl : logoUrl) ?? ''" class="h-9 max-w-[180px] object-contain" />
+        </template>
+        <template v-else>
+          <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/full-logo.png" class="h-9" />
+          <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" class="h-9" />
+        </template>
       </div>
 
       <GeneralHideLeftSidebarBtn show-always />

@@ -104,7 +104,12 @@ export class AttachmentsService {
         try {
           const nanoId = nanoid(5);
 
+          // For scoped uploads the scope itself must appear in the stored
+          // `attachment.path` (otherwise the signed-URL controller falls
+          // back to `nc/uploads/...` because `param.split('/')[2]` won't be a
+          // known scope, and the file won't be found).
           const filePath = this.sanitizeUrlPath([
+            ...(param.scope ? [param.scope] : []),
             ...(param?.path?.toString()?.split('/') || ['']),
             ...(param.scope ? [nanoId] : []),
           ]);

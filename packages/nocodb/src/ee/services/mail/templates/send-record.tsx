@@ -13,6 +13,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -34,6 +35,7 @@ interface SendRecordTemplateProps {
     relationType?: RelationTypes;
   }>;
   recordUrl?: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 const SendRecord = ({
@@ -44,6 +46,7 @@ const SendRecord = ({
   message,
   recordData,
   recordUrl,
+  branding,
 }: SendRecordTemplateProps) => (
   <Html>
     <RootWrapper>
@@ -52,7 +55,7 @@ const SendRecord = ({
         {senderName} shared a record from {tableTitle}
       </Preview>
       <Body className="bg-white">
-        <ContentWrapper disableContainerPadding>
+        <ContentWrapper branding={branding} disableContainerPadding>
           <Section className="p-6 mx-auto">
             <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
               {senderName} shared a record with you
@@ -167,7 +170,7 @@ const SendRecord = ({
             )}
           </Section>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

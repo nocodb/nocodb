@@ -13,6 +13,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import { UITypes } from 'nocodb-sdk';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -30,6 +31,7 @@ interface FormSubmissionTemplateProps {
     columnTitle: string;
     uidt: UITypes | string;
   }>;
+  branding?: WhiteLabelConfig | null;
 }
 
 const FormSubmission = ({
@@ -37,13 +39,14 @@ const FormSubmission = ({
   baseTitle,
   tableTitle,
   submissionData,
+  branding,
 }: FormSubmissionTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>You have a new response!</Preview>
       <Body className="bg-white">
-        <ContentWrapper disableContainerPadding>
+        <ContentWrapper branding={branding} disableContainerPadding>
           <Section className="p-6 mx-auto">
             <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
               You have a new response!
@@ -136,7 +139,7 @@ const FormSubmission = ({
             </Section>
           </Section>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

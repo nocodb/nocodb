@@ -203,6 +203,7 @@ export const ATTACHMENT_ROOTS = [
   PublicAttachmentScope.WORKSPACEPICS,
   PublicAttachmentScope.PROFILEPICS,
   PublicAttachmentScope.ORGANIZATIONPICS,
+  PublicAttachmentScope.WHITELABEL,
 ];
 
 export const validateNumberOfFilesInCell = async (

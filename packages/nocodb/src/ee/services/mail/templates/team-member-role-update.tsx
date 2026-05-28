@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   Body,
   Button,
@@ -22,6 +23,7 @@ interface TeamMemberRoleUpdateTemplateProps {
   oldRoleLabel: string;
   newRoleLabel: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const TeamMemberRoleUpdate = ({
@@ -32,13 +34,14 @@ export const TeamMemberRoleUpdate = ({
   oldRoleLabel,
   newRoleLabel,
   link,
+  branding,
 }: TeamMemberRoleUpdateTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Your team role has been updated</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your team role has been updated
           </Heading>
@@ -56,7 +59,7 @@ export const TeamMemberRoleUpdate = ({
             <Text className="!my-[8px]">Open NocoDB</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

@@ -12,6 +12,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 import {
   ContentWrapper,
@@ -25,6 +26,7 @@ interface OrganizationRoleUpdateTemplateProps {
   name: string;
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const OrganizationRoleUpdate = ({
@@ -33,13 +35,14 @@ export const OrganizationRoleUpdate = ({
   email,
   name,
   link,
+  branding,
 }: OrganizationRoleUpdateTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Your organization role has been updated</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 !mb-0 text-center font-bold m-auto text-xl md:text-2xl">
             Your organization role has been updated
           </Heading>
@@ -75,7 +78,7 @@ export const OrganizationRoleUpdate = ({
             <Text className="!my-[8px]">Go to NocoDB</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

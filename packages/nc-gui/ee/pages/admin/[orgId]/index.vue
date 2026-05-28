@@ -193,6 +193,7 @@ onMounted(async () => {
                 <div class="select-none">{{ $t('title.sso') }}</div>
               </div>
             </NcMenuItem>
+
             <NcMenuItem
               key="billing"
               :class="{

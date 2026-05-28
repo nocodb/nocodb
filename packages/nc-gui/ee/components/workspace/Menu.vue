@@ -38,6 +38,8 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
 const baseStore = useBase()
 
 const { isSharedBase } = storeToRefs(baseStore)
+
+const { productName, logoUrl, logoDarkUrl, isWhiteLabelled } = useBranding()
 </script>
 
 <template>
@@ -51,7 +53,13 @@ const { isSharedBase } = storeToRefs(baseStore)
         data-testid="nc-workspace-menu"
         class="flex items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25 justify-center w-full"
       >
+        <template v-if="isWhiteLabelled && (isDark ? logoDarkUrl : logoUrl)">
+          <div class="w-24 min-w-10 p-1">
+            <img :alt="productName" :src="(isDark ? logoDarkUrl : logoUrl) ?? ''" class="max-w-full object-contain" />
+          </div>
+        </template>
         <a
+          v-else
           class="w-24 min-w-10 transition-all duration-200 p-1 transform"
           href="https://github.com/nocodb/nocodb"
           target="_blank"

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   Body,
   Button,
@@ -18,19 +19,21 @@ interface OrganizationInviteTemplateProps {
   name: string;
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const OrganizationInvite = ({
   name,
   email,
   link,
+  branding,
 }: OrganizationInviteTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>You’ve been invited to NocoDB</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             You’ve been invited to NocoDB
           </Heading>
@@ -45,7 +48,7 @@ export const OrganizationInvite = ({
             <Text className="!my-[8px]">Go to NocoDB</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

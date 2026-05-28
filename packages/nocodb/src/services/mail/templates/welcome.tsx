@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -18,15 +19,16 @@ import {
 interface WelcomeTemplateProps {
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
-export const Welcome = ({ email, link }: WelcomeTemplateProps) => (
+export const Welcome = ({ email, link, branding }: WelcomeTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Welcome to NocoDB!</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Welcome to NocoDB!
           </Heading>
@@ -55,7 +57,7 @@ export const Welcome = ({ email, link }: WelcomeTemplateProps) => (
             <Text className="!my-[8px]">Go to your Workspace</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

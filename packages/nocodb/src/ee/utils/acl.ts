@@ -92,6 +92,10 @@ const permissionScopes = {
     'ssoClientGet',
     'ssoClientTest',
 
+    // White-label
+    'whiteLabelGet',
+    'whiteLabelUpdate',
+
     // API Tokens
     'apiTokenList',
     'apiTokenCreate',
@@ -1432,6 +1436,9 @@ const permissionDescriptions: Record<string, string> = {
   ssoClientDelete: 'delete an SSO client',
   ssoClientGet: 'view SSO client details',
   ssoClientTest: 'test an SSO client',
+
+  whiteLabelGet: 'view white-label configuration',
+  whiteLabelUpdate: 'update white-label configuration',
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',

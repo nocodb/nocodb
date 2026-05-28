@@ -21,6 +21,8 @@ const { hooks } = useNuxtApp()
 
 const isDashboard = computed(() => !!route.params.typeOrId)
 
+const { productName, logoUrl, faviconUrl, isWhiteLabelled } = useBranding()
+
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
 hooks.hook('page:finish', () => {
   if (sidebar.value) {
@@ -49,8 +51,21 @@ hooks.hook('page:finish', () => {
               {{ currentVersion }}
             </template>
             <div class="flex items-center gap-2">
-              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
-              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+              <template v-if="isWhiteLabelled && logoUrl">
+                <img
+                  :width="isDashboard ? 25 : 120"
+                  :alt="productName"
+                  :src="logoUrl"
+                  :class="isDashboard ? 'h-6 object-contain' : 'max-h-10 object-contain'"
+                />
+              </template>
+              <template v-else-if="isWhiteLabelled && isDashboard && faviconUrl">
+                <img width="25" :alt="productName" :src="faviconUrl" class="object-contain" />
+              </template>
+              <template v-else>
+                <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
+                <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+              </template>
             </div>
           </a-tooltip>
         </div>

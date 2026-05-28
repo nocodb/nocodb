@@ -2,7 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
-import type { MapProvider } from 'nocodb-sdk'
+import type { MapProvider, WhiteLabelConfig } from 'nocodb-sdk'
 import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
@@ -71,6 +71,8 @@ export interface AppInfo {
   sendRecordMaxRecipients?: number
   mapProvider?: MapProvider
   defaultOrgId?: string
+  /** Sanitized white-label config — null when disabled or not licensed */
+  whiteLabel?: WhiteLabelConfig | null
 }
 
 export interface StoredState {

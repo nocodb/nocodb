@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -18,15 +19,16 @@ import {
 interface PasswordResetTemplateProps {
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
-export const PasswordReset = ({ email, link }: PasswordResetTemplateProps) => (
+export const PasswordReset = ({ email, link, branding }: PasswordResetTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Password reset requested</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Password reset requested
           </Heading>
@@ -44,7 +46,7 @@ export const PasswordReset = ({ email, link }: PasswordResetTemplateProps) => (
             <Text className="!my-[8px]">Reset Password</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

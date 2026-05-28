@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import type {
   HookErrorDigestPayload,
   WorkflowDraftReminderPayload,
@@ -11,10 +12,19 @@ import { MailEvent, MailParams } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
 import { extractDisplayNameFromEmail } from '~/utils';
+import { WhiteLabelService } from '~/services/white-label.service';
 import Noco from '~/Noco';
 
 @Injectable()
 export class MailService extends MailServiceCE {
+  constructor(protected readonly whiteLabelService: WhiteLabelService) {
+    super();
+  }
+
+  protected async getBranding(): Promise<WhiteLabelConfig | null> {
+    return this.whiteLabelService.getPublicConfig();
+  }
+
   @EEOnly()
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
@@ -26,6 +36,8 @@ export class MailService extends MailServiceCE {
     if (params.mailEvent !== MailEvent.FORM_SUBMISSION) {
       if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
+
+    const branding = await this.getBranding();
 
     try {
       switch (params.mailEvent) {
@@ -74,7 +86,7 @@ export class MailService extends MailServiceCE {
                     commentId: comment.id,
                   }),
                   baseTitle: base.title,
-                }),
+                }, branding),
               });
             }
           }
@@ -123,7 +135,7 @@ export class MailService extends MailServiceCE {
                   rowId,
                   columnId: column.id,
                 }),
-              }),
+              }, branding),
             });
           }
           break;
@@ -151,7 +163,7 @@ export class MailService extends MailServiceCE {
                 workspaceId: workspace.id,
                 token,
               }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -179,7 +191,7 @@ export class MailService extends MailServiceCE {
               link: this.buildUrl(req, {
                 workspaceId: workspace.id,
               }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -205,7 +217,7 @@ export class MailService extends MailServiceCE {
                 workspaceId: workspace.id,
               })}/settings?tab=billing`,
               limitOrFeature,
-            }),
+            }, branding),
           });
 
           break;
@@ -230,7 +242,7 @@ export class MailService extends MailServiceCE {
               inviterEmail: inviter.email,
               roleLabel: RoleLabels[workspaceRole] || workspaceRole,
               link: this.buildUrl(req, { workspaceId: workspace.id }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -255,7 +267,7 @@ export class MailService extends MailServiceCE {
                 workspaceId: base.fk_workspace_id,
                 baseId: base.id,
               }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -278,7 +290,7 @@ export class MailService extends MailServiceCE {
               inviterEmail: inviter.email,
               roleLabel: RoleLabels[teamRole] || teamRole,
               link: this.buildUrl(req, { workspaceId: workspace?.id }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -302,7 +314,7 @@ export class MailService extends MailServiceCE {
               oldRoleLabel: RoleLabels[oldTeamRole] || oldTeamRole,
               newRoleLabel: RoleLabels[teamRole] || teamRole,
               link: this.buildUrl(req, { workspaceId: workspace?.id }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -325,7 +337,7 @@ export class MailService extends MailServiceCE {
               removerEmail: remover.email,
               roleLabel: RoleLabels[teamRole] || teamRole,
               link: this.buildUrl(req, { workspaceId: workspace?.id }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -348,7 +360,7 @@ export class MailService extends MailServiceCE {
               removerEmail: remover.email,
               roleLabel: RoleLabels[workspaceRole] || workspaceRole,
               link: this.buildUrl(req, { workspaceId: workspace.id }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -378,7 +390,7 @@ export class MailService extends MailServiceCE {
               oldRoleLabel: RoleLabels[oldWorkspaceRole] || oldWorkspaceRole,
               newRoleLabel: RoleLabels[workspaceRole] || workspaceRole,
               link: this.buildUrl(req, { workspaceId: workspace.id }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -403,7 +415,7 @@ export class MailService extends MailServiceCE {
                 workspaceId: base.fk_workspace_id,
                 baseId: base.id,
               }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -430,7 +442,7 @@ export class MailService extends MailServiceCE {
                 workspaceId: base.fk_workspace_id,
                 baseId: base.id,
               }),
-            }),
+            }, branding),
           });
           break;
         }
@@ -467,7 +479,7 @@ export class MailService extends MailServiceCE {
               firstFailureTime,
               lastFailureTime,
               link,
-            }),
+            }, branding),
           });
           break;
         }
@@ -491,7 +503,7 @@ export class MailService extends MailServiceCE {
               baseTitle: base.title,
               draftAgeDays,
               link,
-            }),
+            }, branding),
           });
           break;
         }
@@ -529,7 +541,7 @@ export class MailService extends MailServiceCE {
               firstFailureTime,
               lastFailureTime,
               link,
-            }),
+            }, branding),
           });
           break;
         }
@@ -570,7 +582,7 @@ export class MailService extends MailServiceCE {
               message,
               recordData,
               recordUrl,
-            }),
+            }, branding),
           });
           break;
         }

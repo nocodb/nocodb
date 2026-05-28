@@ -23,6 +23,8 @@ useAntDvTheme()
 
 useTheme()
 
+useBrandingApply()
+
 const { isRtl } = useRtl()
 
 const antDirection = computed(() => (isRtl.value ? 'rtl' : 'ltr'))

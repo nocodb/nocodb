@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -20,6 +21,7 @@ interface BaseInviteTemplateProps {
   name: string;
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const BaseInvite = ({
@@ -27,13 +29,14 @@ export const BaseInvite = ({
   name,
   email,
   link,
+  branding,
 }: BaseInviteTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>You’ve been invited to a Base</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             You’ve been invited to a Base
           </Heading>
@@ -52,7 +55,7 @@ export const BaseInvite = ({
             <Text className="!my-[8px]">Accept Base Invite</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

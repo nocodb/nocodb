@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -22,6 +23,7 @@ interface WorkflowErrorDigestTemplateProps {
   firstFailureTime: string;
   lastFailureTime: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const WorkflowErrorDigest = ({
@@ -31,13 +33,14 @@ export const WorkflowErrorDigest = ({
   firstFailureTime,
   lastFailureTime,
   link,
+  branding,
 }: WorkflowErrorDigestTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Something went wrong with an automation: {workflowTitle}</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             {workflowTitle}
           </Heading>
@@ -60,7 +63,7 @@ export const WorkflowErrorDigest = ({
             <Text className="!my-[8px]">View last failure</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

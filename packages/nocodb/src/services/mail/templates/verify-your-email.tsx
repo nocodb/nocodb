@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -18,18 +19,20 @@ import {
 interface VerifyYourEmailTemplateProps {
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const VerifyYourEmail = ({
   email,
   link,
+  branding,
 }: VerifyYourEmailTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Verify your Email</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Verify your Email
           </Heading>
@@ -46,7 +49,7 @@ export const VerifyYourEmail = ({
             <Text className="!my-[8px]">Verify Email</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

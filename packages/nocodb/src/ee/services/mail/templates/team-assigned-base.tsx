@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   Body,
   Button,
@@ -21,6 +22,7 @@ interface TeamAssignedToBaseTemplateProps {
   inviterEmail: string;
   roleLabel: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const TeamAssignedToBase = ({
@@ -30,13 +32,14 @@ export const TeamAssignedToBase = ({
   inviterEmail,
   roleLabel,
   link,
+  branding,
 }: TeamAssignedToBaseTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Your team was added to a base</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your team was added to a base
           </Heading>
@@ -53,7 +56,7 @@ export const TeamAssignedToBase = ({
             <Text className="!my-[8px]">Open NocoDB</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

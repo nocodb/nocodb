@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   Body,
   Button,
@@ -21,6 +22,7 @@ interface TeamMemberRemovedTemplateProps {
   removerEmail: string;
   roleLabel: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const TeamMemberRemoved = ({
@@ -30,13 +32,14 @@ export const TeamMemberRemoved = ({
   removerEmail,
   roleLabel,
   link,
+  branding,
 }: TeamMemberRemovedTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>You've been removed from a team</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             You've been removed from a team
           </Heading>
@@ -56,7 +59,7 @@ export const TeamMemberRemoved = ({
             <Text className="!my-[8px]">Open NocoDB</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

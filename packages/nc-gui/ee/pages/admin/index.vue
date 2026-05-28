@@ -19,7 +19,10 @@ const {
   showUpgradeToUseScim,
   isWsAuditEnabled,
   showUpgradeToUseAudit,
+  getFeature,
 } = useEeConfig()
+
+const blockWhiteLabel = computed(() => !getFeature(PlanFeatureTypes.FEATURE_WHITE_LABEL))
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -46,6 +49,7 @@ type AdminTab =
   | 'license'
   | 'users-list'
   | 'settings'
+  | 'white-label'
 
 const validTabs: AdminTab[] = [
   'dashboard',
@@ -62,6 +66,7 @@ const validTabs: AdminTab[] = [
   'license',
   'users-list',
   'settings',
+  'white-label',
 ]
 
 const router = useRouter()
@@ -325,6 +330,25 @@ watch(
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="showEEFeatures"
+              key="white-label"
+              :class="{ active: activeTab === 'white-label' }"
+              class="item"
+              data-testid="nc-admin-white-label-nav"
+              @click="activeTab = 'white-label'"
+            >
+              <div class="w-full flex items-center space-x-2">
+                <GeneralIcon icon="ncImage" class="!h-4 !w-4" />
+                <div class="select-none flex-1">White Label</div>
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_WHITE_LABEL"
+                  :feature-enabled-callback="() => !blockWhiteLabel"
+                  remove-click
+                />
+              </div>
+            </NcMenuItem>
+
             <!-- System -->
             <NcMenuItem key="license" :class="{ active: activeTab === 'license' }" class="item" @click="activeTab = 'license'">
               <div class="flex items-center space-x-2">
@@ -355,6 +379,7 @@ watch(
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />
+              <AdminWhiteLabel v-else-if="activeTab === 'white-label'" />
             </div>
           </div>
         </div>

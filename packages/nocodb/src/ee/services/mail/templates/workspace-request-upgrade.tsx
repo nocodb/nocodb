@@ -8,6 +8,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -20,6 +21,7 @@ interface WorkspaceRequestUpgradeTemplateProps {
   email?: string;
   link: string;
   limitOrFeature: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const WorkspaceRequestUpgrade = ({
@@ -28,6 +30,7 @@ export const WorkspaceRequestUpgrade = ({
   email: _email,
   link,
   limitOrFeature: _limitOrFeature,
+  branding,
 }: WorkspaceRequestUpgradeTemplateProps) => (
   <Html>
     <RootWrapper>
@@ -36,7 +39,7 @@ export const WorkspaceRequestUpgrade = ({
         {name} Requested To Upgrade '{workspaceTitle}' Workspace
       </Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             {name} Requested To Upgrade '{workspaceTitle}' Workspace
           </Heading>
@@ -51,7 +54,7 @@ export const WorkspaceRequestUpgrade = ({
             <Text className="!my-[8px]">Continue to upgrade</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

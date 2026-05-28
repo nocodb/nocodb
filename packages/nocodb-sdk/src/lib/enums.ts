@@ -686,6 +686,7 @@ export enum PublicAttachmentScope {
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
   OAUTHCLIENTS = 'oauthClients',
+  WHITELABEL = 'whiteLabel',
 }
 
 export enum IconType {

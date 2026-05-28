@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -23,6 +24,7 @@ interface HookErrorDigestTemplateProps {
   firstFailureTime: string;
   lastFailureTime: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const HookErrorDigest = ({
@@ -33,13 +35,14 @@ export const HookErrorDigest = ({
   firstFailureTime,
   lastFailureTime,
   link,
+  branding,
 }: HookErrorDigestTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Something went wrong with a webhook: {hookTitle}</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             {hookTitle}
           </Heading>
@@ -63,7 +66,7 @@ export const HookErrorDigest = ({
             <Text className="!my-[8px]">View webhook logs</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

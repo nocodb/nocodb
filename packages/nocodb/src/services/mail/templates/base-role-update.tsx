@@ -12,6 +12,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -26,6 +27,7 @@ interface BaseRoleUpdateTemplateProps {
   name: string;
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const BaseRoleUpdate = ({
@@ -35,13 +37,14 @@ export const BaseRoleUpdate = ({
   oldRole,
   newRole,
   name,
+  branding,
 }: BaseRoleUpdateTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
       <Preview>Your base role has been updated</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your base role has been updated
           </Heading>
@@ -77,7 +80,7 @@ export const BaseRoleUpdate = ({
             <Text className="!my-[8px]">Go to Base</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

@@ -841,6 +841,9 @@ const permissionDescriptions: Record<string, string> = {
   ssoClientGet: 'view SSO client details',
   ssoClientTest: 'test an SSO client',
 
+  whiteLabelGet: 'view white-label configuration',
+  whiteLabelUpdate: 'update white-label configuration',
+
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
   apiTokenUpdate: 'update an API token',

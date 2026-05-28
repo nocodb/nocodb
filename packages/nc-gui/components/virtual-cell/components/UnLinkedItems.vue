@@ -32,6 +32,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const scrollContainerRef = ref<HTMLElement>()
+
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -353,28 +355,6 @@ const onDeletedRecord = async () => {
   loadChildrenExcludedList(rowState.value, true)
 }
 
-const linkedShortcuts = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    vModel.value = false
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    try {
-      e.target?.nextElementSibling?.focus()
-    } catch (e) {}
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    try {
-      e.target?.previousElementSibling?.focus()
-    } catch (e) {}
-  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    try {
-      filterQueryRef.value?.focus()
-    } catch (e) {}
-  }
-}
-
-const scrollContainerRef = ref<HTMLElement>()
-
 const ROW_VIRTUAL_MARGIN = 5
 
 const rowSlice = reactive({ start: 0, end: 0 })
@@ -435,7 +415,6 @@ const visibleRows = computed(() => {
 })
 
 onMounted(() => {
-  window.addEventListener('keydown', linkedShortcuts)
   loadRelatedTableMeta()
 
   // Load initial chunk
@@ -452,7 +431,6 @@ onUnmounted(() => {
   resetChildrenExcludedOffsetCount()
   resetExcludedCache()
   childrenExcludedListPagination.query = ''
-  window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
@@ -464,20 +442,21 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (!childrenExcludedListPagination.query) emit('escape')
-    filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
-    if (
-      childrenExcludedListPagination.query &&
-      ncIsArray(childrenExcludedList.value?.list) &&
-      childrenExcludedList.value?.list.length
-    ) {
-      onClick(childrenExcludedList.value?.list[0], '0')
-    }
-  }
-}
+const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
+  scrollContainerRef,
+  filterQueryRef,
+  itemTestId: 'nc-excluded-list-item',
+  expandedFormDlg,
+  closeModal: () => {
+    vModel.value = false
+  },
+  getQuery: () => childrenExcludedListPagination.query,
+  onEscapeEmptyQuery: () => emit('escape'),
+  onEnterWithQuery: () => {
+    const list = childrenExcludedList.value?.list
+    if (ncIsArray(list) && list.length) onClick(list[0], '0')
+  },
+})
 </script>
 
 <template>

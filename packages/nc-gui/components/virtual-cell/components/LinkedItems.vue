@@ -48,6 +48,8 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
+const scrollContainerRef = ref<HTMLElement>()
+
 const { isDataReadOnly } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -347,29 +349,8 @@ watch([filterQueryRef, isDataExist], () => {
   }
 })
 
-const linkedShortcuts = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    vModel.value = false
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    try {
-      e.target?.nextElementSibling?.focus()
-    } catch (e) {}
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    try {
-      e.target?.previousElementSibling?.focus()
-    } catch (e) {}
-  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
-    try {
-      filterQueryRef.value?.focus()
-    } catch (e) {}
-  }
-}
-
 onMounted(() => {
   loadRelatedTableMeta()
-  window.addEventListener('keydown', linkedShortcuts)
 
   // Load initial chunk for virtual scroll
   fetchChildrenChunk(0)
@@ -380,8 +361,6 @@ onMounted(() => {
     filterQueryRef.value?.focus()
   }, 100)
 })
-
-const scrollContainerRef = ref<HTMLElement>()
 
 const ROW_VIRTUAL_MARGIN = 5
 
@@ -445,7 +424,6 @@ onUnmounted(() => {
   resetChildrenListOffsetCount()
   resetChildrenCache()
   childrenListPagination.query = ''
-  window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
@@ -457,18 +435,21 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (!childrenListPagination.query) emit('escape')
-    filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
+const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
+  scrollContainerRef,
+  filterQueryRef,
+  itemTestId: 'nc-child-list-item',
+  expandedFormDlg,
+  closeModal: () => {
+    vModel.value = false
+  },
+  getQuery: () => childrenListPagination.query,
+  onEscapeEmptyQuery: () => emit('escape'),
+  onEnterWithQuery: () => {
     const list = childrenList.value?.list ?? state.value?.[colTitle.value]
-
-    if (childrenListPagination.query && ncIsArray(list) && list.length) {
-      linkOrUnLink(list[0], '0')
-    }
-  }
-}
+    if (ncIsArray(list) && list.length) linkOrUnLink(list[0], '0')
+  },
+})
 </script>
 
 <template>

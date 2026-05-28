@@ -76,8 +76,8 @@ overrides:
   cssstyle: 4.1.0
   oxc-resolver@<11.0.0: '>=11.19.1'
   handlebars@<4.7.9: '>=4.7.9'
-  '@node-saml/node-saml@<=5.0.1': '>=5.1.0'
-  '@node-saml/passport-saml@<=5.0.1': '>=5.1.0'
+  '@node-saml/node-saml': 5.0.1
+  '@node-saml/passport-saml': 5.0.1
   form-data@<2.5.4: '>=2.5.4'
   form-data@>=3.0.0 <3.0.4: '>=3.0.4'
   node-forge@<1.4.0: '>=1.4.0'
@@ -1026,8 +1026,8 @@ importers:
         specifier: ^10.4.19
         version: 10.4.19(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.0)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.22)(@nestjs/platform-socket.io@10.4.19)(reflect-metadata@0.2.2)(rxjs@7.8.1)
       '@node-saml/passport-saml':
-        specifier: '>=5.1.0'
-        version: 5.1.0
+        specifier: 5.0.1
+        version: 5.0.1
       '@octokit/plugin-throttling':
         specifier: ^11.0.3
         version: 11.0.3(@octokit/core@5.2.0)
@@ -6204,12 +6204,12 @@ packages:
   '@nodable/entities@2.1.0':
     resolution: {integrity: sha512-nyT7T3nbMyBI/lvr6L5TyWbFJAI9FTgVRakNoBqCD+PmID8DzFrrNdLLtHMwMszOtqZa8PAOV24ZqDnQrhQINA==}
 
-  '@node-saml/node-saml@5.1.0':
-    resolution: {integrity: sha512-t3cJnZ4aC7HhPZ6MGylGZULvUtBOZ6FzuUndaHGXjmIZHXnLfC/7L8a57O9Q9V7AxJGKAiRM5zu2wNm9EsvQpw==}
+  '@node-saml/node-saml@5.0.1':
+    resolution: {integrity: sha512-YQzFPEC+CnsfO9AFYnwfYZKIzOLx3kITaC1HrjHVLTo6hxcQhc+LgHODOMvW4VCV95Gwrz1MshRUWCPzkDqmnA==}
     engines: {node: '>= 18'}
 
-  '@node-saml/passport-saml@5.1.0':
-    resolution: {integrity: sha512-pBm+iFjv9eihcgeJuSUs4c0AuX1QEFdHwP8w1iaWCfDzXdeWZxUBU5HT2bY2S4dvNutcy+A9hYsH7ZLBGtgwDg==}
+  '@node-saml/passport-saml@5.0.1':
+    resolution: {integrity: sha512-fMztg3zfSnjLEgxvpl6HaDMNeh0xeQX4QHiF9e2Lsie2dc4qFE37XYbQZhVmn8XJ2awPpSWLQ736UskYgGU8lQ==}
     engines: {node: '>= 18'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -9293,9 +9293,6 @@ packages:
 
   '@types/connect-history-api-fallback@1.5.4':
     resolution: {integrity: sha512-n6Cr2xS1h4uAulPRdlw6Jl6s1oG8KrVilPN2yUITEs+K48EzMJJ3W1xy8K5eWuFvjp3R74AOIGSmp2UfBJ8HFw==}
-
-  '@types/connect@3.4.35':
-    resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
@@ -29164,7 +29161,7 @@ snapshots:
 
   '@nodable/entities@2.1.0': {}
 
-  '@node-saml/node-saml@5.1.0':
+  '@node-saml/node-saml@5.0.1':
     dependencies:
       '@types/debug': 4.1.12
       '@types/qs': 6.14.0
@@ -29181,9 +29178,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@node-saml/passport-saml@5.1.0':
+  '@node-saml/passport-saml@5.0.1':
     dependencies:
-      '@node-saml/node-saml': 5.1.0
+      '@node-saml/node-saml': 5.0.1
       '@types/express': 4.17.25
       '@types/passport': 1.0.17
       '@types/passport-strategy': 0.2.38
@@ -33001,7 +32998,7 @@ snapshots:
 
   '@types/body-parser@1.19.2':
     dependencies:
-      '@types/connect': 3.4.35
+      '@types/connect': 3.4.38
       '@types/node': 22.15.21
 
   '@types/bonjour@3.5.13':
@@ -33026,10 +33023,6 @@ snapshots:
   '@types/connect-history-api-fallback@1.5.4':
     dependencies:
       '@types/express-serve-static-core': 4.17.36
-      '@types/node': 22.15.21
-
-  '@types/connect@3.4.35':
-    dependencies:
       '@types/node': 22.15.21
 
   '@types/connect@3.4.38':
@@ -33201,7 +33194,7 @@ snapshots:
   '@types/express-serve-static-core@4.17.36':
     dependencies:
       '@types/node': 22.15.21
-      '@types/qs': 6.9.7
+      '@types/qs': 6.14.0
       '@types/range-parser': 1.2.4
       '@types/send': 0.17.1
 
@@ -43586,7 +43579,7 @@ snapshots:
 
   passport-saml-metadata@5.0.0:
     dependencies:
-      '@node-saml/node-saml': 5.1.0
+      '@node-saml/node-saml': 5.0.1
       '@xmldom/xmldom': 0.9.10
       axios: 1.16.1(debug@4.4.1)
       debug: 4.4.1

@@ -3,5 +3,6 @@ export type IDType = 'AG' | 'AI';
 export * from './MysqlUi';
 export * from './PgUi';
 export * from './SqliteUi';
+export * from './MssqlUi';
 export * from './SnowflakeUi';
 export * from './SqlUiFactory';

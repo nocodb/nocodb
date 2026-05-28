@@ -16735,6 +16735,7 @@
                       "enum": [
                         "mysql",
                         "mysql2",
+                        "mssql",
                         "pg",
                         "snowflake",
                         "sqlite3",
@@ -21983,6 +21984,7 @@
             "enum": [
               "mysql",
               "mysql2",
+              "mssql",
               "pg",
               "snowflake",
               "sqlite3",
@@ -22222,6 +22224,7 @@
             "enum": [
               "mysql",
               "mysql2",
+              "mssql",
               "pg",
               "snowflake",
               "sqlite3",

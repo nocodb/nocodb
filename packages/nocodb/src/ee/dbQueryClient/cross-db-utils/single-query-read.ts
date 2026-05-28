@@ -15,7 +15,7 @@ import {
   shouldSkipCache,
 } from '~/services/data-opt/common-helpers';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { getListArgs } from '~/db/BaseModelSqlv2';
+import { getListArgs } from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import {
   getSingleQueryCache,

@@ -352,6 +352,17 @@ export default class Source implements SourceType {
     return config;
   }
 
+  // MSSQL's tedious driver strictly requires a numeric port; persisted form
+  // values are strings (other dialects tolerate them). getConfig() is the one
+  // method every connection path funnels through — CE + EE getConnectionConfig
+  // and getSourceConfig all call it — so normalize here, guarded to mssql only.
+  protected normalizeMssqlPort(config: any): any {
+    if (config?.client === 'mssql' && config?.connection?.port) {
+      config.connection.port = +config.connection.port;
+    }
+    return config;
+  }
+
   public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
@@ -367,11 +378,11 @@ export default class Source implements SourceType {
     });
 
     if (skipIntegrationConfig) {
-      return config;
+      return this.normalizeMssqlPort(config);
     }
 
     if (!this.integration_config) {
-      return config;
+      return this.normalizeMssqlPort(config);
     }
 
     const integrationConfig = decryptPropIfRequired({
@@ -398,7 +409,7 @@ export default class Source implements SourceType {
       mergedConfig = { ...mergedConfig, searchPath: undefined };
     }
 
-    return mergedConfig;
+    return this.normalizeMssqlPort(mergedConfig);
   }
 
   public getSourceConfig(): any {

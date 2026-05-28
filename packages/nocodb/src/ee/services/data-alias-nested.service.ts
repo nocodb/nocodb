@@ -26,7 +26,7 @@ import { _wherePk } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { Filter, Model, Source } from '~/models';
-import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const debugDataAliasNested = debug('nc:db:query:DataAliasNested');

@@ -10,6 +10,8 @@ import { apiTokenPermissionTest } from './apiTokenPermission.test';
 import { mailAuditTests } from './mailAudit.test';
 import { jobsProcessorTest } from './jobsProcessor.test';
 import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
+import { dateTimeMssqlHandlerTest } from './dateTimeMssqlHandler.test';
+import { jsonMssqlHandlerTest } from './jsonMssqlHandler.test';
 import { describeRowErrorTests } from './dataImportProcessor.test';
 import { isTokenExpiredTest } from './isTokenExpired.test';
 import { pkPreservationTests } from './pkPreservation.test';
@@ -53,6 +55,8 @@ function _helperTests() {
   tableSyncHelpersTests();
   jobsProcessorTest();
   dateTimeFilterHandlerTest();
+  dateTimeMssqlHandlerTest();
+  jsonMssqlHandlerTest();
   describeRowErrorTests();
   pkPreservationTests();
   dashboardV3ConfigTransformTest();

@@ -1,9 +1,10 @@
+import { ClientType } from 'nocodb-sdk';
 import { GenericPgFieldHandler } from '../generic.pg';
 import { UserGeneralHandler } from './user.general.handler';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from '~/db/CustomKnex';
 import type { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
-import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export class UserLikeNLikePgHandler extends UserGeneralHandler {
   override singleLineTextHandler: GenericFieldHandler =
@@ -15,12 +16,9 @@ export class UserLikeNLikePgHandler extends UserGeneralHandler {
     needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
     delimiter?: string;
   }) {
-    const { knex, needleColumn, stack } = param;
-    return `(${replaceDelimitedWithKeyValuePg({
-      knex,
-      needleColumn,
-      stack,
-    })})`;
+    return `(${DBQueryClient.get(ClientType.PG).replaceDelimitedWithKeyValue(
+      param,
+    )})`;
   }
 }
 

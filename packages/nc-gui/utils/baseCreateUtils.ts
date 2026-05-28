@@ -32,6 +32,9 @@ interface DefaultConnection {
   password: string
   port: number | string
   ssl?: Record<CertTypes, string> | 'no-verify' | 'true'
+  // MSSQL (tedious) driver options — encrypt / trustServerCertificate / instanceName.
+  // Only populated for SQL Server connections; ignored by other dialects.
+  options?: Record<string, any>
 }
 
 interface SQLiteConnection {
@@ -76,6 +79,10 @@ export const clientTypes = [
   {
     text: 'SQLite',
     value: ClientType.SQLITE,
+  },
+  {
+    text: 'SQL Server',
+    value: ClientType.MSSQL,
   },
   {
     text: 'Snowflake',
@@ -125,6 +132,19 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     user: 'root',
     password: 'password',
     database: '_test',
+  },
+  [ClientType.MSSQL]: {
+    host: defaultHost,
+    port: '1433',
+    user: 'sa',
+    password: 'Password123!',
+    database: 'master',
+    // Permissive defaults for local/self-hosted SQL Server; Azure SQL needs
+    // encrypt: true. Full TLS/auth controls land in Phase 6.
+    options: {
+      encrypt: false,
+      trustServerCertificate: true,
+    },
   },
   [ClientType.SQLITE]: {
     client: ClientType.SQLITE,
@@ -190,7 +210,8 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   return {
     client,
     connection: sampleConnectionData[client],
-    searchPath: [ClientType.PG].includes(client) ? (client === ClientType.PG ? ['public'] : ['dbo']) : undefined,
+    searchPath:
+      client === ClientType.PG ? ['public'] : client === ClientType.MSSQL ? ['dbo'] : undefined,
   }
 }
 

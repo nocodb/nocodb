@@ -54,10 +54,15 @@ async function treatArgAsConditionalExp(
       condStr = `(:condArg) IS NOT NULL AND (:condArg) != ''`;
       bindings = { condArg };
       break;
-    case FormulaDataTypes.BOOLEAN:
-      condStr = `(:condArg) IS NOT NULL AND (:condArg) != false`;
+    case FormulaDataTypes.BOOLEAN: {
+      // T-SQL has no `false` literal — Checkbox columns are `bit` (0/1) and
+      // boolean-typed sub-expressions are CASE-materialized to 1/0 by the
+      // mssql binary-builder, so compare against the integer 0 instead.
+      const falseLit = args.knex.clientType() === 'mssql' ? '0' : 'false';
+      condStr = `(:condArg) IS NOT NULL AND (:condArg) != ${falseLit}`;
       bindings = { condArg };
       break;
+    }
     case FormulaDataTypes.DATE:
       condStr = `(:condArg) IS NOT NULL`;
       bindings = { condArg };
@@ -115,9 +120,14 @@ export default {
     }
 
     // helper: resolve an AST argument and wrap with a DB-specific text cast.
-    // PG: (?)::text, MySQL: CAST(? AS CHAR), SQLite: passthrough.
+    // PG: (?)::text, MySQL: CAST(? AS CHAR), MSSQL: CAST(? AS NVARCHAR(MAX)),
+    // SQLite: passthrough.
     // Returns { builder } (not a bare Raw) to avoid async-function thenable
     // unwrapping — knex.Raw implements .then() which would execute the SQL.
+    //
+    // T-SQL needs the explicit cast because CASE branches must unify to a
+    // single type via data-type precedence — mixing `'hello'` and `5` would
+    // otherwise try to convert 'hello' → int and fail ("Conversion failed").
     const castToString = async (arg: any) => {
       const { builder } = await args.fn(arg);
       const client = args.knex.clientType();
@@ -129,6 +139,10 @@ export default {
         client === 'maridb'
       ) {
         return { builder: args.knex.raw(`CAST(? AS CHAR)`, [builder]) };
+      } else if (client === 'mssql') {
+        return {
+          builder: args.knex.raw(`CAST(? AS NVARCHAR(MAX))`, [builder]),
+        };
       }
       return { builder };
     };

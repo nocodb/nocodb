@@ -547,8 +547,18 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   colPath,
                   NC_MAX_TEXT_LENGTH,
                 ]);
+            } else if (baseModel.isMssql) {
+              // T-SQL LEFT() rejects legacy text/ntext args
+              // ("Argument data type text is invalid for argument 1 of left
+              // function"). SUBSTRING accepts text/ntext as well as
+              // varchar(max)/nvarchar(max) and returns a truncated (n)varchar.
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`SUBSTRING(??, 1, ?)`, [
+                  colPath,
+                  NC_MAX_TEXT_LENGTH,
+                ]);
             } else {
-              // SQL Server / other databases - use LEFT function
+              // Snowflake / Databricks / other databases - use LEFT function
               res[sanitize(getAs(column) || column.column_name)] =
                 baseModel.dbDriver.raw(`LEFT(??, ?)`, [
                   colPath,

@@ -601,6 +601,12 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
     case 'sqlite3':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;
+    case 'mssql':
+      // STRING_AGG (SQL Server 2017+); cast so non-text lookup values aggregate.
+      this.select(
+        this.client.raw(`STRING_AGG(CAST(?? AS NVARCHAR(MAX)), ',')`, [cn]),
+      );
+      break;
   }
   return this;
 });

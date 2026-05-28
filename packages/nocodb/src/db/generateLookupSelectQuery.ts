@@ -674,6 +674,18 @@ export default async function generateLookupSelectQuery({
             .from(selectQb.as(subQueryAlias)),
           applyCte,
         };
+      } else if (baseModelSqlv2.isMssql) {
+        return {
+          builder: knex
+            .select(
+              knex.raw(`STRING_AGG(CAST(?? AS NVARCHAR(MAX)), ?)`, [
+                lookupColumn.id,
+                LOOKUP_VAL_SEPARATOR,
+              ]),
+            )
+            .from(selectQb.as(subQueryAlias)),
+          applyCte,
+        };
       }
 
       NcError.get(context).notImplemented(

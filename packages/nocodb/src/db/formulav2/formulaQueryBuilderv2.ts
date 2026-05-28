@@ -12,8 +12,6 @@ import {
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
-import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -30,6 +28,7 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -251,17 +250,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const columnName = await getColumnName(context, col, columns);
 
             // create nested replace statement for each user
-            if (knex.clientType() === 'pg') {
-              finalStatement = `(${replaceDelimitedWithKeyValuePg({
-                knex,
-                needleColumn: columnName,
-                stack: baseUsers.map((user) => ({
-                  key: user.id,
-                  value: `${user.email}`,
-                })),
-              })})`;
-            } else if (knex.clientType() === 'sqlite3') {
-              finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            if (knex.clientType() === 'pg' || knex.clientType() === 'sqlite3') {
+              finalStatement = `(${DBQueryClient.get(
+                knex.clientType() as ClientType,
+              ).replaceDelimitedWithKeyValue({
                 knex,
                 needleColumn: columnName,
                 stack: baseUsers.map((user) => ({
@@ -307,6 +299,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(`json_extract(??, '$.value')`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          } else if (knex.clientType() === 'mssql') {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
                   col.column_name,
                 ]),
               };

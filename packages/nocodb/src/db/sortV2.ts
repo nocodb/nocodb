@@ -21,6 +21,8 @@ export default async function sortV2(
 
   const context = baseModelSqlv2.context;
 
+  const mssqlUnsortableDt = new Set(['text', 'ntext', 'image', 'xml']);
+
   if (!sortList?.length) {
     return;
   }
@@ -45,6 +47,22 @@ export default async function sortV2(
     const model = await column.getModel(context);
 
     const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';
+
+    // text/ntext/image/xml can't be ORDER BY'd in T-SQL. They only ever back
+    // leaf SingleLineText/LongText columns (so column_name is always present),
+    // and casting to NVARCHAR(MAX) makes them sortable regardless of uidt — so
+    // handle them here, before the per-uidt switch.
+    if (
+      baseModelSqlv2.isMssql &&
+      mssqlUnsortableDt.has((column.dt ?? '').toLowerCase())
+    ) {
+      qb.orderBy(
+        sanitize(knex.raw('CAST(?? AS NVARCHAR(MAX))', [column.column_name])),
+        sort.direction || 'asc',
+        nulls,
+      );
+      continue;
+    }
 
     switch (column.uidt) {
       case UITypes.Rollup:
@@ -206,6 +224,8 @@ export default async function sortV2(
             ]);
           } else if (knex.clientType() === 'sqlite3') {
             col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
+          } else if (baseModelSqlv2.isMssql) {
+            col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
           }
 
           qb.orderBy(col, sort.direction || 'asc', nulls);

@@ -52,6 +52,7 @@ import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
 import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
 import { DateTimeMySQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mysql.handler';
 import { DateTimePGHandler } from '~/db/field-handler/handlers/date-time/date-time.pg.handler';
+import { DateTimeMssqlHandler } from '~/db/field-handler/handlers/date-time/date-time.mssql.handler';
 import { DecimalMysqlHandler } from '~/db/field-handler/handlers/decimal/decimal.mysql.handler';
 import { DecimalSqliteHandler } from '~/db/field-handler/handlers/decimal/decimal.sqlite.handler';
 import { NumberPgHandler } from '~/db/field-handler/handlers/number/number.pg.handler';
@@ -69,6 +70,7 @@ import { UserSqliteHandler } from '~/db/field-handler/handlers/user/user.sqlite.
 import { PhoneNumberGeneralHandler } from '~/db/field-handler/handlers/phone-number/phone-number.general.handler';
 import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
+import { JsonMssqlHandler } from '~/db/field-handler/handlers/json/json.mssql.handler';
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
 import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
@@ -189,24 +191,28 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMssqlHandler,
   },
   [UITypes.CreatedTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMssqlHandler,
   },
   [UITypes.LastModifiedTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMssqlHandler,
   },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},
   [UITypes.JSON]: {
     [ClientType.PG]: JsonPgHandler,
     [ClientType.MYSQL]: JsonMySqlHandler,
+    [ClientType.MSSQL]: JsonMssqlHandler,
     [CLIENT_DEFAULT]: JsonGeneralHandler,
   },
   [UITypes.SpecificDBType]: {},

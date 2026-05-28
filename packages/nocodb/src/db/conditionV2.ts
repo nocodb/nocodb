@@ -18,8 +18,8 @@ import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Column, Model } from '~/models';
-import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
-import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
+import { DBQueryClient } from '~/dbQueryClient';
+import { ClientType } from 'nocodb-sdk';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -387,17 +387,13 @@ const parseConditionV2 = async (
           let finalStatement = '';
 
           // create nested replace statement for each user
-          if (knex.clientType() === 'pg') {
-            finalStatement = `(${replaceDelimitedWithKeyValuePg({
-              knex,
-              needleColumn: column.column_name,
-              stack: users.map((user) => ({
-                key: user.id,
-                value: user.display_name || user.email,
-              })),
-            })})`;
-          } else if (knex.clientType() === 'sqlite3') {
-            finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+          if (
+            knex.clientType() === 'pg' ||
+            knex.clientType() === 'sqlite3'
+          ) {
+            finalStatement = `(${DBQueryClient.get(
+              knex.clientType() as ClientType,
+            ).replaceDelimitedWithKeyValue({
               knex,
               needleColumn: column.column_name,
               stack: users.map((user) => ({

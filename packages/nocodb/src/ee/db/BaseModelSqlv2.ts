@@ -120,6 +120,7 @@ import { getProjectRole } from '~/utils/roleHelper';
 import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
+import { singleQueryList as mssqlSingleQueryList } from '~/services/data-opt/mssql-helpers';
 import { Profiler } from '~/helpers/profiler';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
@@ -3160,6 +3161,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         });
       } else if (['pg', 'postgres', 'postgresql'].includes(source.type)) {
         chunkData = await singleQueryList(this.context, {
+          ...ctx,
+          skipPaginateWrapper: true,
+          params: ctx.params,
+          model: this.model,
+          apiVersion: args.apiVersion,
+        });
+      } else if (source.type === 'mssql') {
+        chunkData = await mssqlSingleQueryList(this.context, {
           ...ctx,
           skipPaginateWrapper: true,
           params: ctx.params,

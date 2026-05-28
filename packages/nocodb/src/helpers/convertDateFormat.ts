@@ -6,6 +6,7 @@ const SAFE_DEFAULTS: Record<string, string> = {
   mysql2: '%Y-%m-%d',
   sqlite3: '%Y-%m-%d',
   pg: 'YYYY-MM-DD',
+  mssql: 'yyyy-MM-dd',
 };
 
 export function convertDateFormat(date_format: string, type: string) {
@@ -39,6 +40,9 @@ export function convertDateFormat(date_format: string, type: string) {
     if (type === 'mysql2' || type === 'sqlite3') return '%d.%b.%Y';
   } else if (date_format === 'DD.MM.YY') {
     if (type === 'mysql2' || type === 'sqlite3') return '%d.%b.%y';
+  }
+  if (type === 'mssql') {
+    return date_format.replace(/Y/g, 'y').replace(/D/g, 'd');
   }
 
   // pg — the format string itself is valid (already allowlisted above)

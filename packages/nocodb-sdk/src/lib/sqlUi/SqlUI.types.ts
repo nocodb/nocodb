@@ -52,6 +52,11 @@ export interface SqlUi {
 
   getUIType(col: ColumnType): string;
 
+  // UIType for an introspected DB column during meta-sync (legacy
+  // ModelXcMeta.getUIDataType behaviour). Distinct from getUIType — see
+  // metaUiDataType.ts.
+  getMetaUIDataType(col: ColumnType): UITypes;
+
   getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType): any;
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[];
 

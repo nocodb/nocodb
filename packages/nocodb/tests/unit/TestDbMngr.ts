@@ -10,6 +10,10 @@ import type { DbConfig } from '~/interface/config';
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
   public static readonly sakilaDbName = 'test_sakila';
+  // Data DB for internal/default (is_meta) sources. Normally the same client
+  // as meta (pg/mysql/sqlite). Can be overridden to MSSQL via env so the suite
+  // runs with pg meta + mssql data — NocoDB picks it up via NC_DATA_DB_JSON.
+  public static readonly dataDbName = 'test_data';
   public static metaKnex: Knex;
   public static sakilaKnex: Knex;
 
@@ -249,6 +253,83 @@ export default class TestDbMngr {
       sakilaDbConfig.connection.filename = `${__dirname}/test_sakila.db`;
     }
     return sakilaDbConfig;
+  }
+
+  // --- MSSQL data DB (pg meta + mssql data) --------------------------------
+  // Enabled via NC_TEST_DATA_CLIENT=mssql. Connection from
+  // NC_TEST_DATA_{HOST,PORT,USER,PASSWORD,DATABASE} with local defaults.
+  // When enabled, NocoDB's internal/default (is_meta) source uses this DB via
+  // NC_DATA_DB_JSON — so the standard table builders create tables in MSSQL
+  // while meta stays on pg. Other dialects (pg/mysql/sqlite) leave NC_DATA_DB
+  // unset, so their data DB == meta DB as before.
+
+  static isMssqlDataDb() {
+    return (process.env.NC_TEST_DATA_CLIENT || '').toLowerCase() === 'mssql';
+  }
+
+  static getMssqlDataDbConfig() {
+    return {
+      client: 'mssql',
+      connection: {
+        host: process.env.NC_TEST_DATA_HOST || 'localhost',
+        port: Number(process.env.NC_TEST_DATA_PORT) || 1433,
+        user: process.env.NC_TEST_DATA_USER || 'sa',
+        password: process.env.NC_TEST_DATA_PASSWORD || 'Password123!',
+        database: process.env.NC_TEST_DATA_DATABASE || TestDbMngr.dataDbName,
+        options: { encrypt: false, trustServerCertificate: true },
+      },
+      searchPath: ['dbo'],
+    };
+  }
+
+  // Drop + recreate the MSSQL data DB and point NocoDB at it via
+  // NC_DATA_DB_JSON. Call once before server init.
+  static async setupDataDb() {
+    if (!TestDbMngr.isMssqlDataDb()) return;
+    const cfg = TestDbMngr.getMssqlDataDbConfig();
+    const dbName = cfg.connection.database;
+    const adminKnex = knex({
+      client: cfg.client,
+      connection: { ...cfg.connection, database: 'master' },
+      pool: { min: 0, max: 1 },
+    });
+    try {
+      await adminKnex.raw(
+        `IF DB_ID('${dbName}') IS NOT NULL BEGIN
+           ALTER DATABASE [${dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+           DROP DATABASE [${dbName}];
+         END`,
+      );
+      await adminKnex.raw(`CREATE DATABASE [${dbName}]`);
+    } finally {
+      await adminKnex.destroy();
+    }
+    // EE NcConnectionMgrv2.getDataConfig() reads this for is_meta sources.
+    process.env.NC_DATA_DB_JSON = JSON.stringify(cfg);
+  }
+
+  // Drop all FK constraints + tables in the MSSQL data DB (per-test reset).
+  static async cleanupDataDb() {
+    if (!TestDbMngr.isMssqlDataDb()) return;
+    const cfg = TestDbMngr.getMssqlDataDbConfig();
+    const dataKnex = knex({
+      client: cfg.client,
+      connection: cfg.connection,
+      pool: { min: 0, max: 1 },
+    });
+    try {
+      await dataKnex.raw(`
+        DECLARE @sql NVARCHAR(MAX) = N'';
+        SELECT @sql += 'ALTER TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.'
+          + QUOTENAME(OBJECT_NAME(parent_object_id)) + ' DROP CONSTRAINT '
+          + QUOTENAME(name) + ';' FROM sys.foreign_keys;
+        SELECT @sql += 'DROP TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.'
+          + QUOTENAME(name) + ';' FROM sys.tables;
+        IF LEN(@sql) > 0 EXEC sp_executesql @sql;
+      `);
+    } finally {
+      await dataKnex.destroy();
+    }
   }
 
   static async seedSakila() {

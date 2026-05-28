@@ -143,6 +143,13 @@ export const allIntegrations: IntegrationItemType[] = [
     isAvailable: true,
     isOssOnly: true,
   },
+  {
+    title: 'objects.syncData.mssql',
+    sub_type: ClientType.MSSQL,
+    icon: iconMap.mssqlServer,
+    type: IntegrationCategoryType.DATABASE,
+    isAvailable: true,
+  },
   // Temp removed
   // {
   //   title: 'objects.syncData.snowflake',

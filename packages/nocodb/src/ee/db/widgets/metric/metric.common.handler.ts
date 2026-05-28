@@ -1,7 +1,7 @@
-import { formatAggregation } from 'nocodb-sdk';
+import { formatAggregation, validateAggregationColType } from 'nocodb-sdk';
 import type { MetricWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
-import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
+import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   BaseWidgetHandler,
@@ -72,7 +72,7 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
           `Column has an error: ${column.colOptions.error}`,
         );
       } else if (
-        !validateAggregationColType(context, column, metric.aggregation, false)
+        !validateAggregationColType(column, metric.aggregation)
       ) {
         addError(
           'metric.aggregation',

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ClientType,
   isBtLikeV2Junction,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -7,6 +8,7 @@ import {
   RelationTypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { DBQueryClient } from '~/dbQueryClient';
 import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
@@ -110,13 +112,6 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
     if (view && view.type !== ViewTypes.GRID) {
       NcError.get(context).badRequest(
         'Aggregation is only supported on grid views',
@@ -133,9 +128,10 @@ export class DataTableService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    const data = await baseModel.aggregate(listArgs, view);
-
-    return data;
+    return await DBQueryClient.get(source.type as unknown as ClientType).aggregate(
+      context,
+      { model, view, source, args: listArgs },
+    );
   }
 
   @TraceCommand((_ctx, p) =>
@@ -1713,12 +1709,6 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
     if (view && view.type !== ViewTypes.GRID) {
       NcError.badRequest('Aggregation is only supported on grid views');
     }
@@ -1739,7 +1729,10 @@ export class DataTableService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+    return await DBQueryClient.get(source.type as unknown as ClientType).bulkAggregate(
+      context,
+      { model, view, source, args: listArgs, bulkFilterList },
+    );
   }
 
   async getLinkedDataList(

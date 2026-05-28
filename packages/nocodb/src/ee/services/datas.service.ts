@@ -14,7 +14,7 @@ import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
-import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 @Injectable()
 export class DatasService extends DatasServiceCE {

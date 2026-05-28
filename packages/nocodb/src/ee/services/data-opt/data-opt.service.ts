@@ -13,7 +13,11 @@ import {
   singleQueryList as mysqlSingleQueryList,
   singleQueryRead as mysqlSingleQueryRead,
 } from '~/services/data-opt/mysql-helpers';
-import { haveFormulaColumn } from '~/db/BaseModelSqlv2';
+import {
+  singleQueryList as mssqlSingleQueryList,
+  singleQueryRead as mssqlSingleQueryRead,
+} from '~/services/data-opt/mssql-helpers';
+import { haveFormulaColumn } from '~/helpers/dbHelpers';
 import { isTransientError } from '~/helpers/db-error/utils';
 
 @Injectable()
@@ -60,6 +64,12 @@ export class DataOptService {
           params,
         })) as PagedResponseImpl<Record<string, any>>;
       }
+      if (ctx.source.type === 'mssql') {
+        return (await mssqlSingleQueryList(context, {
+          ...ctx,
+          params,
+        })) as PagedResponseImpl<Record<string, any>>;
+      }
       return (await singleQueryList(context, {
         ...ctx,
         params,
@@ -96,6 +106,9 @@ export class DataOptService {
     try {
       if (['mysql', 'mysql2'].includes(ctx.source.type)) {
         return mysqlSingleQueryRead(context, ctx);
+      }
+      if (ctx.source.type === 'mssql') {
+        return mssqlSingleQueryRead(context, ctx);
       }
       return singleQueryRead(context, ctx);
     } catch (e) {

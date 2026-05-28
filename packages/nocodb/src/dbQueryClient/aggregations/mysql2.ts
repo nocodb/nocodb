@@ -20,6 +20,7 @@ export function genMysql2AggregatedQuery({
   parsedFormulaType,
   aggType,
   alias,
+  baseQuery,
 }: {
   column: Column;
   baseModelSqlv2: IBaseModelSqlV2;
@@ -34,10 +35,31 @@ export function genMysql2AggregatedQuery({
     | 'attachment'
     | 'unknown';
   alias?: string;
+  // Filtered FROM-table query. median / attachment-size build their own
+  // subquery, so they must run over the filtered row set — not the raw table —
+  // or filters / RLS / search / soft-delete are ignored.
+  baseQuery?: Knex.QueryBuilder;
 }) {
   let aggregationSql: Knex.Raw | undefined;
 
   const { dbDriver: knex } = baseModelSqlv2;
+
+  // Filtered derived table exposing the column value as a plain `nc_val` column.
+  // Used as the FROM source for the self-contained-subquery aggregates below so
+  // they honor filters; falls back to the raw table only when no baseQuery was
+  // supplied. (Inline aggregates keep using `column_query` over the outer query.)
+  const derivedInner = baseQuery
+    ? baseQuery
+        .clone()
+        .clearSelect()
+        .select(knex.raw(`(??) as nc_val`, [column_query]))
+    : undefined;
+  const subAggFrom: string | Knex.Raw = derivedInner
+    ? knex.raw(`(??) as nc_agg_sub`, [derivedInner])
+    : baseModelSqlv2.tnPath;
+  const subAggCol: string | Knex.QueryBuilder = derivedInner
+    ? 'nc_val'
+    : column_query;
 
   let condnValue: any = "''";
   if (
@@ -322,14 +344,7 @@ export function genMysql2AggregatedQuery({
       OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??) -- Calculate the median offset
     ) AS median_subquery
   )`,
-          [
-            column_query,
-            column_query,
-            baseModelSqlv2.tnPath,
-            column_query,
-            baseModelSqlv2.tnPath,
-            baseModelSqlv2.tnPath,
-          ],
+          [subAggCol, subAggCol, subAggFrom, subAggCol, subAggFrom, subAggFrom],
         );
         break;
       default:
@@ -392,7 +407,7 @@ export function genMysql2AggregatedQuery({
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
           `(SELECT SUM(JSON_EXTRACT(json_object, '$.size')) FROM ?? CROSS JOIN JSON_TABLE(CAST(?? AS JSON), '$[*]' COLUMNS (json_object JSON PATH '$')) AS json_array)`,
-          [baseModelSqlv2.tnPath, column_query],
+          [subAggFrom, subAggCol],
         );
         break;
     }

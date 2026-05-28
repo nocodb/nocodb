@@ -37,7 +37,7 @@ import {
   getAs,
   getColumnName,
   getListArgs,
-} from '~/db/BaseModelSqlv2';
+} from '~/helpers/dbHelpers';
 import conditionV2, { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';

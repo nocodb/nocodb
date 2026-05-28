@@ -467,7 +467,7 @@ export const binaryExpressionBuilder = async ({
     // comparing a date with empty string would throw
     // `ERROR: zero-length delimited identifier` in Postgres
     if (
-      knex.clientType() === 'pg' &&
+      (knex.clientType() === 'pg' || knex.clientType() === 'mssql') &&
       columnIdToUidt[(pt.left as IdentifierNode).name] === UITypes.Date
     ) {
       // The correct way to compare with Date should be using
@@ -490,7 +490,7 @@ export const binaryExpressionBuilder = async ({
       }
     }
     if (
-      knex.clientType() === 'pg' &&
+      (knex.clientType() === 'pg' || knex.clientType() === 'mssql') &&
       columnIdToUidt[(pt.right as IdentifierNode).name] === UITypes.Date
     ) {
       // The correct way to compare with Date should be using
@@ -548,27 +548,51 @@ export const binaryExpressionBuilder = async ({
           : (pt.right as any).value === ''
         : 0
     })`;
-  } else if (knex.clientType() === 'sqlite3' || knex.clientType() === 'pg') {
+  } else if (
+    knex.clientType() === 'sqlite3' ||
+    knex.clientType() === 'pg' ||
+    knex.clientType() === 'mssql'
+  ) {
+    // SQL Server has no `TEXT` cast (use NVARCHAR(MAX)) and no boolean literals
+    // (use 1/0 instead of true/false). NULLIF divide-by-zero works as-is.
+    const isMssql = knex.clientType() === 'mssql';
+    const textType = isMssql ? 'NVARCHAR(MAX)' : 'TEXT';
     if (pt.operator === '=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
-        sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
+        sql = `${right} IS NULL OR CAST(${right} AS ${textType}) = ''`;
       } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-        sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
+        sql = `${left} IS NULL OR CAST(${left} AS ${textType}) = ''`;
       }
     } else if (pt.operator === '!=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
-        sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
+        sql = `${right} IS NOT NULL AND CAST(${right} AS ${textType}) != ''`;
       } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-        sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
+        sql = `${left} IS NOT NULL AND CAST(${left} AS ${textType}) != ''`;
       }
     }
 
-    if (
-      (pt.operator === '=' || pt.operator === '!=') &&
+    // T-SQL has no boolean type, so bare predicates (`a > b`, `a = b`) are
+    // invalid in scalar contexts (SELECT list, IF condition, BOOLEAN-typed
+    // args of treatArgAsConditionalExp). CASE-materialize all comparisons
+    // to 1/0 outside AND/OR contexts where the parent expects a predicate.
+    // pg/sqlite already treat bare predicates as scalar values, so they
+    // only wrap `=`/`!=` to coerce them into a boolean-shaped expression.
+    const mssqlScalarComparisons = ['=', '!=', '<', '>', '<=', '>='];
+    const isMssqlComparisonInScalar =
+      isMssql &&
+      mssqlScalarComparisons.includes(pt.operator) &&
       prevBinaryOp !== 'AND' &&
-      prevBinaryOp !== 'OR'
+      prevBinaryOp !== 'OR';
+
+    if (
+      isMssqlComparisonInScalar ||
+      ((pt.operator === '=' || pt.operator === '!=') &&
+        prevBinaryOp !== 'AND' &&
+        prevBinaryOp !== 'OR')
     ) {
-      sql = `(CASE WHEN ${sql} THEN true ELSE false END )`;
+      sql = isMssql
+        ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
+        : `(CASE WHEN ${sql} THEN true ELSE false END )`;
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

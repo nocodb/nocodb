@@ -12,7 +12,7 @@ import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
-import { _wherePk, extractSortsObject, getListArgs } from '~/db/BaseModelSqlv2';
+import { _wherePk, extractSortsObject, getListArgs } from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import getAst from '~/helpers/getAst';

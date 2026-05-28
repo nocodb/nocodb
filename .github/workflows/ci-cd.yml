@@ -111,6 +111,32 @@ jobs:
       reflection: true
       test_set: 3
 
+  # PG meta + MSSQL data DB. Opt-in via the `mssql` label (or force) while the
+  # MSSQL dialect is in development — full suite goes green once DDL lands.
+  unit-tests-pg-mssql:
+    needs: pre-build-for-ci
+    if: ${{ !cancelled() && !failure() && (inputs.force == true || contains(github.event.pull_request.labels.*.name, 'mssql')) }}
+    uses: ./.github/workflows/unit-test-pg-mssql.yml
+    secrets: inherit
+    with:
+      test_set: 1
+
+  unit-tests-pg-mssql-2:
+    needs: pre-build-for-ci
+    if: ${{ !cancelled() && !failure() && (inputs.force == true || contains(github.event.pull_request.labels.*.name, 'mssql')) }}
+    uses: ./.github/workflows/unit-test-pg-mssql.yml
+    secrets: inherit
+    with:
+      test_set: 2
+
+  unit-tests-pg-mssql-3:
+    needs: pre-build-for-ci
+    if: ${{ !cancelled() && !failure() && (inputs.force == true || contains(github.event.pull_request.labels.*.name, 'mssql')) }}
+    uses: ./.github/workflows/unit-test-pg-mssql.yml
+    secrets: inherit
+    with:
+      test_set: 3
+
   # ── Pre-build UI (single job builds EE always, CE on develop push) ──
 
   pre-build-for-ci:

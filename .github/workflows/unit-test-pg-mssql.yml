@@ -1,0 +1,117 @@
+name: 'Unit Test PG meta + MSSQL data'
+
+# Runs the backend unit suite with PostgreSQL as the meta DB and Microsoft
+# SQL Server as the DATA DB. The :mssql script sets NC_TEST_DATA_CLIENT=mssql,
+# so TestDbMngr provisions an MSSQL data DB and points NocoDB at it via
+# NC_DATA_DB_JSON. The internal/default (is_meta) source then lives in MSSQL,
+# so the standard table/column builders create their tables in MSSQL —
+# exercising the MSSQL dialect (DDL + CRUD + filters/sorts/formulas).
+# Mirrors the pg:reflection variant: same suite, different data-layer flag.
+
+on:
+  workflow_call:
+    inputs:
+      test_set:
+        description: 'Test set number'
+        required: false
+        type: string
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      test_set:
+        description: 'Test set number'
+        required: false
+        type: string
+
+jobs:
+  unit-tests-pg-mssql:
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'Password123!'
+          MSSQL_PID: 'Developer'
+        ports:
+          - 1433:1433
+    env:
+      # Meta DB stays on pg (.pg.env); MSSQL is the data DB (NC_DATA_DB_JSON,
+      # set by TestDbMngr when NC_TEST_DATA_CLIENT=mssql — the :mssql script).
+      NC_TEST_DATA_HOST: localhost
+      NC_TEST_DATA_PORT: '1433'
+      NC_TEST_DATA_USER: sa
+      NC_TEST_DATA_PASSWORD: 'Password123!'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.14.0
+          cache: 'pnpm'
+      - name: Ensure pnpm store dir exists
+        run: mkdir -p "$(pnpm store path)"
+      - name: Cache integrations (node_modules + dists)
+        uses: actions/cache@v5
+        with:
+          path: |
+            packages/noco-integrations/node_modules
+            packages/noco-integrations/packages/*/node_modules
+            packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
+            packages/noco-integrations/.build-checksums.json
+          key: integrations-${{ hashFiles('packages/noco-integrations/pnpm-lock.yaml', 'packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          restore-keys: |
+            integrations-
+      - name: install dependencies
+        run: pnpm bootstrap
+      # The mssql image no longer ships sqlcmd, so poll readiness with the
+      # tedious driver (installed by bootstrap) instead of a service healthcheck.
+      - name: Wait for MSSQL to be ready
+        working-directory: ./packages/nocodb
+        run: |
+          node -e '
+            const knex = require("knex")({
+              client: "mssql",
+              connection: {
+                server: "localhost", port: 1433, user: "sa", password: "Password123!",
+                database: "master", options: { encrypt: false, trustServerCertificate: true },
+              },
+              pool: { min: 0, max: 1 },
+            });
+            (async () => {
+              for (let i = 0; i < 60; i++) {
+                try { await knex.raw("SELECT 1"); console.log("MSSQL ready"); await knex.destroy(); process.exit(0); }
+                catch (e) { console.log("waiting for mssql...", e.code || e.message); await new Promise((r) => setTimeout(r, 5000)); }
+              }
+              console.error("MSSQL did not become ready in time"); process.exit(1);
+            })();
+          '
+      - name: run sql-executor
+        working-directory: ./packages/nc-sql-executor
+        run: |
+          pnpm run dev &
+      - name: run unit tests (pg meta + mssql data)
+        working-directory: ./packages/nocodb
+        run: |
+          pnpm run test:unit:pg:ee:mssql --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}

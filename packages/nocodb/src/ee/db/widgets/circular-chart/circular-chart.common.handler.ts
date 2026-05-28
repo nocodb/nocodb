@@ -1,4 +1,9 @@
-import { ChartTypes, ncIsNullOrUndefined, ncIsNumber } from 'nocodb-sdk';
+import {
+  ChartTypes,
+  ncIsNullOrUndefined,
+  ncIsNumber,
+  validateAggregationColType,
+} from 'nocodb-sdk';
 import type {
   ChartWidgetType,
   DonutChartConfig,
@@ -10,7 +15,6 @@ import {
   type WidgetDependencies,
 } from '~/db/widgets/base-widget.handler';
 import { Column, Model, View } from '~/models';
-import { validateAggregationColType } from '~/db/aggregation';
 
 export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
   protected readonly MIN_CATEGORY_LIMIT = 10;
@@ -156,10 +160,8 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
         );
       } else if (
         !validateAggregationColType(
-          context,
           column,
           value.aggregation as unknown as string,
-          false,
         )
       ) {
         addError(

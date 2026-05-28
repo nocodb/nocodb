@@ -76,6 +76,7 @@ export default async function init(
 
   if (isFirstTimeRun()) {
     await resetAndSeedSakila();
+    await TestDbMngr.setupDataDb();
     const serverInitResult = await serverInit();
     server = serverInitResult.serverInstance;
     nestApp = serverInitResult.nestApp;
@@ -86,6 +87,7 @@ export default async function init(
     await cleanUpSakila(forceReset);
   }
   await cleanupMeta();
+  await TestDbMngr.cleanupDataDb();
 
   const { token, user } = await createUser({ app: server }, { roles });
 

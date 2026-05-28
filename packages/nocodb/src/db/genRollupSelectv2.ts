@@ -222,6 +222,21 @@ export default async function genRollupSelectv2(param: {
       return;
     }
 
+    // SQL Server's `bit` type is invalid for the sum/avg/min/max aggregate
+    // operators ("Operand data type bit is invalid for sum operator"). Cast to
+    // FLOAT so they all work: SUM stays exact, AVG keeps its fraction (CAST AS
+    // INT would integer-truncate AVG, e.g. 0.5 -> 0), MIN/MAX yield 0.0/1.0.
+    // COUNT/countDistinct accept `bit` directly and are intentionally excluded.
+    if (
+      baseModelSqlv2.isMssql &&
+      ['sum', 'sumDistinct', 'avgDistinct', 'avg', 'min', 'max'].includes(
+        columnOptions.rollup_function,
+      ) &&
+      ['bit', 'bool', 'boolean'].includes(rollupColumn.dt?.toLowerCase())
+    ) {
+      selectColumnName = knex.raw('CAST(?? AS FLOAT)', [selectColumnName]);
+    }
+
     if (
       ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
         columnOptions.rollup_function,

@@ -581,6 +581,7 @@ export enum ClientType {
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
+  MSSQL = 'mssql',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }

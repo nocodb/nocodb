@@ -69,6 +69,17 @@ const isColorCodeEnabled = computed({
   },
 })
 
+const isAlphabetized = computed({
+  get: () => {
+    const metaObj = parseProp(vModel.value.meta)
+    return metaObj.isAlphabetized === true
+  },
+  set: (val: boolean) => {
+    const metaObj = parseProp(vModel.value.meta)
+    vModel.value.meta = { ...metaObj, isAlphabetized: val }
+  },
+})
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const { t } = useI18n()
@@ -383,7 +394,7 @@ const predictOptions = async () => {
   }
 }
 
-const alphabetizeOptions = () => {
+const sortOptionsInPlace = () => {
   const activeOptions = options.value.filter((op) => op.status !== 'remove')
 
   const alreadySorted = activeOptions.every(
@@ -498,6 +509,12 @@ if (!isKanbanStack.value) {
     })
   })
 }
+
+defineExpose({
+  flushSort: () => {
+    if (isAlphabetized.value) sortOptionsInPlace()
+  },
+})
 </script>
 
 <template>
@@ -509,18 +526,14 @@ if (!isKanbanStack.value) {
         </NcSwitch>
       </div>
 
-      <NcButton
-        v-e="['c:field:select:alphabetize']"
-        type="text"
-        size="small"
+      <NcSwitch
+        v-model:checked="isAlphabetized"
+        v-e="['c:field:select:alphabetize:toggle', { enabled: isAlphabetized }]"
+        size="xsmall"
         :disabled="isSyncedField"
-        @click.stop="alphabetizeOptions"
       >
-        <template #icon>
-          <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
-        </template>
         {{ $t('labels.alphabetize') }}
-      </NcButton>
+      </NcSwitch>
     </div>
 
     <div
@@ -585,6 +598,11 @@ if (!isKanbanStack.value) {
               data-testid="nc-kanban-stack-title-input"
               :disabled="isLoadingPredictOptions || isSyncedField"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
+              @blur="
+                () => {
+                  if (isAlphabetized) sortOptionsInPlace()
+                }
+              "
               @change="() => {
                   kanbanStackOption!.status = undefined
                   optionChanged(kanbanStackOption!)
@@ -607,7 +625,7 @@ if (!isKanbanStack.value) {
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
-          :disabled="isSyncedField"
+          :disabled="isAlphabetized || isSyncedField"
           @change="onDragReorder"
         >
           <template #item="{ element, index }">
@@ -619,7 +637,8 @@ if (!isKanbanStack.value) {
               >
                 <div
                   v-if="!isKanban"
-                  class="nc-child-draggable-icon p-2 flex cursor-pointer text-nc-content-gray-subtle"
+                  class="nc-child-draggable-icon p-2 flex text-nc-content-gray-subtle"
+                  :class="isAlphabetized ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                   :data-testid="`select-option-column-handle-icon-${element.title}`"
                 >
                   <component :is="iconMap.dragVertical" small class="handle" />

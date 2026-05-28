@@ -428,6 +428,37 @@ export class MetaDiffsService {
         continue;
       }
 
+      // If either side of the relation no longer has a primary key, the
+      // LTAR is unusable — every read path that builds nested record JSON
+      // dereferences `relatedModel.primaryKey.column_name` and crashes.
+      // Mark it for removal so meta-sync naturally cleans up legacy bad
+      // state (LTARs created before the prevention guard in
+      // TABLE_RELATION_ADD shipped). The matching TABLE_RELATION_ADD path
+      // skips creation while PKs are still missing, so this won't oscillate
+      // — once the user re-flags `pk` (or the source schema gains a PK),
+      // the next sync recreates the LTAR.
+      await parentModel.getColumns(context);
+      await childModel.getColumns(context);
+      if (!parentModel.primaryKey || !childModel.primaryKey) {
+        const ownerModel = await relationCol.getModel(context);
+        if (ownerModel) {
+          const ownerTable = changes.find(
+            (t) => t.table_name === ownerModel.table_name,
+          );
+          if (ownerTable) {
+            ownerTable.detectedChanges.push({
+              type: MetaDiffType.TABLE_RELATION_REMOVE,
+              msg: `Relation removed (${
+                !parentModel.primaryKey ? 'parent' : 'child'
+              } table has no primary key)`,
+              colId: relationCol.id,
+              column: relationCol,
+            });
+          }
+        }
+        continue;
+      }
+
       // many to many relation (or any v2 junction-table-based relation)
       if (isMMOrMMLike(relationCol)) {
         const m2mModel = await colOpt.getMMModel(context);

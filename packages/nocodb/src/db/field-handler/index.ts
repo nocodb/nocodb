@@ -46,6 +46,7 @@ import { YearGeneralHandler } from '~/db/field-handler/handlers/year/year.genera
 import { UserGeneralHandler } from '~/db/field-handler/handlers/user/user.general.handler';
 import { DurationGeneralHandler } from '~/db/field-handler/handlers/duration/duration.general.handler';
 import { CheckboxSqliteHandler } from '~/db/field-handler/handlers/checkbox/checkbox.sqlite.handler';
+import { CheckboxMssqlHandler } from '~/db/field-handler/handlers/checkbox/checkbox.mssql.handler';
 import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
 import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
@@ -113,6 +114,7 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
     [ClientType.SQLITE]: CheckboxSqliteHandler,
+    [ClientType.MSSQL]: CheckboxMssqlHandler,
   },
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,

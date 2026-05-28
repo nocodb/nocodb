@@ -1849,6 +1849,19 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
+          } else if (driverType === 'mssql') {
+            // T-SQL: take everything before the first comma. Appending
+            // `+ ','` makes CHARINDEX always find a hit, so values without
+            // commas pass through unchanged (LEFT(x, LEN(x)) = x).
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = LEFT(??, CHARINDEX(',', ?? + ',') - 1)`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
           }
         } else {
           // Text to SingleSelect/MultiSelect
@@ -2816,6 +2829,19 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
+          } else if (driverType === 'mssql') {
+            // T-SQL: take everything before the first comma. Appending
+            // `+ ','` makes CHARINDEX always find a hit, so values without
+            // commas pass through unchanged (LEFT(x, LEN(x)) = x).
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = LEFT(??, CHARINDEX(',', ?? + ',') - 1)`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
           }
         }
 
@@ -2900,6 +2926,10 @@ export class ColumnsService implements IColumnsService {
             trimColumn = `BTRIM(??)`;
           } else if (driverType === 'sqlite3') {
             trimColumn = `TRIM(??)`;
+          } else if (driverType === 'mssql') {
+            // SQL Server 2008+ supports LTRIM(RTRIM(…)). Plain TRIM(…) is
+            // 2017+ only, so the nested form keeps older engines happy too.
+            trimColumn = `LTRIM(RTRIM(??))`;
           }
 
           setStatement = baseUsers

@@ -521,23 +521,28 @@ export class MssqlUi implements SqlUi {
         colProp.dt = 'nvarchar';
         break;
       case 'LongText':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Attachment':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'GeoData':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Checkbox':
         colProp.dt = 'bit';
         colProp.cdf = '0';
         break;
       case 'MultiSelect':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'SingleSelect':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Collaborator':
         colProp.dt = 'nvarchar';
@@ -568,7 +573,8 @@ export class MssqlUi implements SqlUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         colProp.validate = {
           func: ['isURL'],
           args: [''],

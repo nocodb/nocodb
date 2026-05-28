@@ -3646,23 +3646,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             );
           }
         } else {
-          const returningObj: Record<string, string> = {};
+          // Use the `'col as alias'` string-array form, NOT the plain-object
+          // form — knex's mssql dialect silently drops the plain object and
+          // emits a bare `OUTPUT` keyword (T-SQL "Incorrect syntax near
+          // 'values'"). The string form compiles to `RETURNING "col" AS
+          // "alias"` on pg and `OUTPUT inserted.[col] AS [alias]` on mssql.
+          // (The object-array form `[{alias: col}]` works at runtime too
+          // but isn't in knex's TS signature.)
+          const returningSpec = this.model.primaryKeys.map(
+            (col) => `${col.column_name} as ${col.title}`,
+          );
 
-          for (const col of this.model.primaryKeys) {
-            returningObj[col.title] = col.column_name;
-          }
-
-          // mssql `batchInsert(...).returning()` emits `OUTPUT INSERTED.*`
-          // per batch — same shape pg's RETURNING produces, so the
-          // `insertedDatas.push(...responses)` consumer sees `[{ alias: v }, …]`
-          // either way.
           responses =
             !raw && (this.isPg || this.isMssql)
               ? await trx
                   .batchInsert(this.tnPath, toInsert, chunkSize)
-                  .returning(
-                    this.model.primaryKeys?.length ? returningObj : '*',
-                  )
+                  .returning(returningSpec.length ? returningSpec : '*')
               : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
         }
 
@@ -8390,6 +8389,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
         .map((_pk) => `rn.?? = ??.??`)
         .join(' AND ')})`,
+      mssql: `UPDATE t SET ?? = s.rn FROM ?? t INNER JOIN (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s ON ${this.model.primaryKeys
+        .map((_pk) => `t.?? = s.??`)
+        .join(' AND ')}`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -8424,6 +8430,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.tnPath,
         orderColumn.column_name,
         ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
+      ],
+      mssql: [
+        orderColumn.column_name, // SET ??
+        this.tnPath, // FROM ?? t
+        ...primaryKeys, // SELECT (?? per pk)
+        orderColumn.column_name, // ORDER BY ?? (inside subquery)
+        this.tnPath, // FROM ?? (inside subquery)
+        ...primaryKeys.flatMap((pk) => [pk, pk]), // ON t.?? = s.?? per pk
       ],
     };
 
@@ -8520,6 +8534,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.Email,
             UITypes.JSON,
             UITypes.Currency,
+            UITypes.Checkbox
           ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (

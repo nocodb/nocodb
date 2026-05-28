@@ -247,6 +247,20 @@ class MssqlClient extends KnexClient {
     return v;
   }
 
+  // T-SQL has no `true`/`false` literal — Checkbox defaults arrive as those
+  // strings (set by the column-create code that's PG/MySQL-friendly). Map
+  // them to `1`/`0` for `bit`; everything else delegates to KnexClient.
+  override sanitiseDefaultValue(value: string | number | boolean) {
+    if (value === true || value === 1) return '1';
+    if (value === false || value === 0) return '0';
+    if (typeof value === 'string') {
+      const v = value.trim();
+      if (/^(true|TRUE)$/.test(v)) return '1';
+      if (/^(false|FALSE)$/.test(v)) return '0';
+    }
+    return super.sanitiseDefaultValue(value);
+  }
+
   async tableList(args: any = {}) {
     const _func = this.tableList.name;
     const result = new Result();
@@ -995,6 +1009,27 @@ class MssqlClient extends KnexClient {
           downStatements.push(
             this.genQuery(`ALTER TABLE ?? DROP COLUMN ??`, [tnArg, column.cn]),
           );
+
+          // T-SQL quirk: `ALTER TABLE … ADD col TYPE NULL DEFAULT v` is a
+          // metadata-only operation — existing rows keep NULL and only
+          // future inserts pick up the default. pg/mysql/sqlite backfill
+          // existing rows automatically. NOT NULL ADDs implicitly backfill
+          // (they have to, otherwise NULL would violate the constraint),
+          // and IDENTITY columns can't carry an explicit value, so this
+          // only applies to nullable, non-identity, non-empty defaults.
+          if (!column.ai && !column.rqd) {
+            const backfillDefault = this.sanitiseDefaultValue(column.cdf);
+            if (backfillDefault !== undefined && backfillDefault !== '') {
+              upStatements.push(
+                this.genQuery(
+                  `UPDATE ?? SET ?? = ${this.sanitize(
+                    backfillDefault,
+                  )} WHERE ?? IS NULL`,
+                  [tnArg, column.cn, column.cn],
+                ),
+              );
+            }
+          }
         } else if (column.altered & 2 || column.altered & 8) {
           // ---- CHANGE COLUMN ----
           const { up, down } = await this._changeColumnStatements(

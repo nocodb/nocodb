@@ -1191,13 +1191,29 @@ export class MssqlDBQueryClient
       }
 
       case UITypes.SingleSelect: {
-        qb.select(
-          knex.raw(`NULLIF(??.??, '') AS ??`, [
-            rootAlias,
-            sanitize(column.column_name),
-            getAs(column),
-          ]),
-        );
+        // T-SQL forbids `=` against the legacy text/ntext types, which
+        // breaks `NULLIF(col, '')` (it desugars to a CASE-WHEN equality).
+        // Pre-`nvarchar(MAX)` MssqlUi created SingleSelect as ntext, and
+        // imported external sources can still surface either. CAST to
+        // NVARCHAR(MAX) keeps the empty-string normalization working.
+        const dt = (column.dt ?? '').toLowerCase();
+        if (dt === 'text' || dt === 'ntext') {
+          qb.select(
+            knex.raw(`NULLIF(CAST(??.?? AS NVARCHAR(MAX)), '') AS ??`, [
+              rootAlias,
+              sanitize(column.column_name),
+              getAs(column),
+            ]),
+          );
+        } else {
+          qb.select(
+            knex.raw(`NULLIF(??.??, '') AS ??`, [
+              rootAlias,
+              sanitize(column.column_name),
+              getAs(column),
+            ]),
+          );
+        }
         break;
       }
 
@@ -1227,10 +1243,19 @@ export class MssqlDBQueryClient
           // empty entries when needed; here we drop empties to match pg/mysql.
           // JSON_QUERY: lets a parent FOR JSON inline the array when this
           // MultiSelect column appears nested in an LTAR's children.
+          //
+          // T-SQL `STRING_SPLIT` rejects text/ntext arguments — pre-fix
+          // MssqlUi created MultiSelect as ntext, and imported externals
+          // may surface either. CAST to NVARCHAR(MAX) when needed.
           const columnName = await getColumnName(context, column, columns);
+          const dt = (column.dt ?? '').toLowerCase();
+          const sourceExpr =
+            dt === 'text' || dt === 'ntext'
+              ? `CAST(??.?? AS NVARCHAR(MAX))`
+              : `??.??`;
           qb.select(
             knex.raw(
-              `JSON_QUERY(( SELECT [value] FROM STRING_SPLIT(??.??, ',') WHERE LTRIM(RTRIM([value])) <> '' FOR JSON PATH )) AS ??`,
+              `JSON_QUERY(( SELECT [value] FROM STRING_SPLIT(${sourceExpr}, ',') WHERE LTRIM(RTRIM([value])) <> '' FOR JSON PATH )) AS ??`,
               [rootAlias, sanitize(columnName), getAs(column)],
             ),
           );

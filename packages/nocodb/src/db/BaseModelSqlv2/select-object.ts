@@ -170,6 +170,12 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   .wrap('(', ')');
                 break;
               }
+            } else if (baseModel.isMssql) {
+              res[sanitize(getAs(column) || columnName)] =
+                baseModel.dbDriver.raw(`CONVERT(VARCHAR(19), ??, 120)`, [
+                  `${sanitize(alias || baseModel.tnPath)}.${columnName}`,
+                ]);
+              break;
             }
             res[sanitize(getAs(column) || columnName)] = sanitize(
               `${alias || baseModel.tnPath}.${columnName}`,
@@ -395,6 +401,23 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                     ),
                   );
                   break;
+                case 'mssql':
+                  // T-SQL has no JSON_OBJECT — synthesize the payload via a
+                  // single-row derived table + `FOR JSON PATH, WITHOUT_ARRAY_WRAPPER`.
+                  // `JSON_QUERY` lets a parent `FOR JSON` inline this as JSON
+                  // rather than re-stringifying.
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `JSON_QUERY(( SELECT ? AS [type], ? AS [label], ?? AS [url] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES )) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        getAs(column),
+                      ],
+                    ),
+                  );
+                  break;
                 default:
                   qb.select(
                     baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]),
@@ -440,6 +463,19 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   qb.select(
                     baseModel.dbDriver.raw(
                       `json_object('type', ?, 'label', ?, '${key}', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption[key],
+                        getAs(column),
+                      ],
+                    ),
+                  );
+                  break;
+                case 'mssql':
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `JSON_QUERY(( SELECT ? AS [type], ? AS [label], ? AS [${key}] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES )) as ??`,
                       [
                         colOption.type,
                         `${colOption.label}`,
@@ -516,6 +552,18 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             res[sanitize(getAs(column) || column.column_name)] = sanitize(
               `${alias || baseModel.tnPath}.${column.column_name}`,
             );
+          } else if (
+            baseModel.isMssql &&
+            ['text', 'ntext'].includes((column.dt ?? '').toLowerCase())
+          ) {
+            // T-SQL forbids `=` / `NULLIF` against the legacy text/ntext
+            // types. CAST to NVARCHAR(MAX) first so the empty-string
+            // normalization works (and matches the value semantics on
+            // nvarchar columns).
+            res[sanitize(getAs(column) || column.column_name)] =
+              baseModel.dbDriver.raw(`NULLIF(CAST(?? AS NVARCHAR(MAX)), '')`, [
+                sanitize(column.column_name),
+              ]);
           } else {
             res[sanitize(getAs(column) || column.column_name)] =
               baseModel.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [

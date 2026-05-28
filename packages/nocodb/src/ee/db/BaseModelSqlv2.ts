@@ -1213,6 +1213,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
         .map((_pk) => `rn.?? = ??.??`)
         .join(' AND ')})`,
+      mssql: `UPDATE t SET ?? = s.rn FROM ?? t INNER JOIN (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s ON ${this.model.primaryKeys
+        .map((_pk) => `t.?? = s.??`)
+        .join(' AND ')}`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -1247,6 +1254,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         this.tnPath,
         orderColumn.column_name,
         ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
+      ],
+      mssql: [
+        orderColumn.column_name, // SET ??
+        this.tnPath, // FROM ?? t
+        ...primaryKeys, // SELECT (?? per pk)
+        orderColumn.column_name, // ORDER BY ?? (inside subquery)
+        this.tnPath, // FROM ?? (inside subquery)
+        ...primaryKeys.flatMap((pk) => [pk, pk]), // ON t.?? = s.?? per pk
       ],
     };
 
@@ -3078,11 +3093,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       } else {
         const batches = [];
 
-        const returningObj: Record<string, string> = {};
-
-        for (const col of this.model.primaryKeys) {
-          returningObj[col.title] = col.column_name;
-        }
+        // String-array form (`'col as alias'`), not a plain object: knex's
+        // mssql dialect silently drops the plain-object form and emits a
+        // bare `OUTPUT` (T-SQL syntax error). The string form compiles to
+        // `RETURNING "col" AS "alias"` on pg and `OUTPUT inserted.[col] AS
+        // [alias]` on mssql — same `[{ alias: value }, ...]` row shape.
+        const returningSpec = this.model.primaryKeys.map(
+          (col) => `${col.column_name} as ${col.title}`,
+        );
 
         for (let i = 0; i < insertDatas.length; i += chunkSize) {
           batches.push(insertDatas.slice(i, i + chunkSize));
@@ -3090,16 +3108,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         for (const batch of batches) {
           if (this.isPg || this.isMssql) {
-            // mssql: knex emits `OUTPUT INSERTED.[col] AS [alias]` from the
-            // same returningObj shape pg uses for `RETURNING col AS alias`,
-            // so the bulk path returns the same `[{ alias: value }, ...]`
-            // payload pg does. (Bare `'*'` is also valid in T-SQL OUTPUT.)
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
-                .returning(
-                  this.model.primaryKeys?.length ? (returningObj as any) : '*',
-                )
+                .returning(returningSpec.length ? returningSpec : '*')
                 .toQuery(),
             );
           } else {
@@ -3727,11 +3739,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } else {
           const batches = [];
 
-          const returningObj: Record<string, string> = {};
-
-          for (const col of this.model.primaryKeys) {
-            returningObj[col.title] = col.column_name;
-          }
+          // See the upper bulk path for why the string-array form
+          // (`'col as alias'`) is required instead of a plain object
+          // (knex mssql dialect drops the plain-object form).
+          const returningSpec = this.model.primaryKeys.map(
+            (col) => `${col.column_name} as ${col.title}`,
+          );
 
           for (let i = 0; i < toInsert.length; i += chunkSize) {
             batches.push(toInsert.slice(i, i + chunkSize));
@@ -3739,17 +3752,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           for (const batch of batches) {
             if (this.isPg || this.isMssql) {
-              // Same RETURNING/OUTPUT pairing as the upper bulk path — mssql
-              // gets `OUTPUT INSERTED.[col] AS [alias]` so the caller sees
-              // the same payload shape pg returns.
               insertQueries.push(
                 this.dbDriver(this.tnPath)
                   .insert(batch)
-                  .returning(
-                    this.model.primaryKeys?.length
-                      ? (returningObj as any)
-                      : '*',
-                  )
+                  .returning(returningSpec.length ? returningSpec : '*')
                   .toQuery(),
               );
             } else {
@@ -3792,32 +3798,26 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           const wherePk = await this._wherePk(pkValues, true);
 
-          // remove pk from update data for databricks
-          if (this.isDatabricks) {
-            const dWithoutPk = {};
+          // databricks and mssql can't update PK columns — mssql rejects
+          // any UPDATE that touches an IDENTITY column (error 8102 "Cannot
+          // update identity column 'X'") even when the new value equals
+          // the old; databricks lacks IDENTITY UPDATE support too. Strip
+          // PK keys from the SET clause for both.
+          const dataToUpdate =
+            this.isDatabricks || this.isMssql
+              ? Object.fromEntries(
+                  Object.entries(d).filter(([k]) => !(k in wherePk)),
+                )
+              : d;
 
-            for (const k in d) {
-              if (!(k in wherePk)) {
-                dWithoutPk[k] = d[k];
-              }
-            }
-
-            const qb = this.dbDriver(this.tnPath)
-              .update(dWithoutPk)
-              .where(wherePk);
-            if (rlsFilterGroup.length) {
-              await conditionV2(this, rlsFilterGroup, qb, undefined, true);
-            }
-            if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
-            updateQueries.push(qb.toQuery());
-          } else {
-            const qb = this.dbDriver(this.tnPath).update(d).where(wherePk);
-            if (rlsFilterGroup.length) {
-              await conditionV2(this, rlsFilterGroup, qb, undefined, true);
-            }
-            if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
-            updateQueries.push(qb.toQuery());
+          const qb = this.dbDriver(this.tnPath)
+            .update(dataToUpdate)
+            .where(wherePk);
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, qb, undefined, true);
           }
+          if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
+          updateQueries.push(qb.toQuery());
         }
       }
 

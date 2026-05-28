@@ -7054,14 +7054,16 @@ export class ColumnsService implements IColumnsService {
     }
 
     const source = await Source.get(context, parentTable.source_id);
+
+    if (source?.is_schema_readonly) {
+      NcError.get(context).sourceMetaReadOnly(source.alias);
+    }
+
     const childSource =
       childTable.source_id === source.id
         ? source
         : await Source.get(childRefContext, childTable.source_id);
 
-    if (source?.is_schema_readonly) {
-      NcError.get(context).sourceMetaReadOnly(source.alias);
-    }
     if (childSource && childSource.id !== source.id && childSource.is_schema_readonly) {
       NcError.get(context).sourceMetaReadOnly(childSource.alias);
     }
@@ -7804,20 +7806,19 @@ export class ColumnsService implements IColumnsService {
     const relatedColumns = await relatedTable.getColumns(refContext);
 
     const source = await Source.get(context, sourceTable.source_id);
-    const relatedSource =
-      relatedTable.source_id === source.id
-        ? source
-        : await Source.get(refContext, relatedTable.source_id);
 
     if (source?.is_schema_readonly) {
       NcError.get(context).sourceMetaReadOnly(source.alias);
     }
-    if (
-      relatedSource &&
-      relatedSource.id !== source.id &&
-      relatedSource.is_schema_readonly
-    ) {
-      NcError.get(context).sourceMetaReadOnly(relatedSource.alias);
+
+    if (relatedTable.source_id !== source.id) {
+      const relatedSource = await Source.get(
+        refContext,
+        relatedTable.source_id,
+      );
+      if (relatedSource?.is_schema_readonly) {
+        NcError.get(context).sourceMetaReadOnly(relatedSource.alias);
+      }
     }
 
     let pairedColumn: Column | undefined;

@@ -232,6 +232,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseDocsExportPdf = (..._args: any[]) => {}
 
+  const revisionRetentionLadder = computed<{ title: string; days: number }[]>(() => [])
+
+  const requiredPlanForRevisionAge = (..._args: any[]): string | null => null
+
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
   const showUpgradeToUseCalendarRange = (..._args: any[]) => {}
@@ -438,6 +442,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,
     showUpgradeToUseDocsExportPdf,
+    revisionRetentionLadder,
+    requiredPlanForRevisionAge,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

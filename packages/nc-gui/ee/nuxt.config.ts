@@ -361,6 +361,7 @@ export default defineNuxtConfig({
         'monaco-editor',
         'monaco-editor/esm/vs/basic-languages/javascript/javascript',
         'papaparse',
+        'prosemirror-changeset',
         'rehype-sanitize',
         'rehype-stringify',
         'remark-parse',

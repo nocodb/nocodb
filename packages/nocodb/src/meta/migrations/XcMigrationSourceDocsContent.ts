@@ -1,8 +1,9 @@
 import * as nc_001_init from '~/meta/migrations/docs-content/nc_001_init';
+import * as nc_002_doc_revisions from '~/meta/migrations/docs-content/nc_002_doc_revisions';
 
 export default class XcMigrationSourceDocsContent {
   public getMigrations(): Promise<any> {
-    return Promise.resolve(['nc_001_init']);
+    return Promise.resolve(['nc_001_init', 'nc_002_doc_revisions']);
   }
 
   public getMigrationName(migration): string {
@@ -13,6 +14,8 @@ export default class XcMigrationSourceDocsContent {
     switch (migration) {
       case 'nc_001_init':
         return nc_001_init;
+      case 'nc_002_doc_revisions':
+        return nc_002_doc_revisions;
     }
   }
 }

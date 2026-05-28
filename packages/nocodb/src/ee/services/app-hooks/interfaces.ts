@@ -451,6 +451,16 @@ export interface DocumentUserMentionEvent extends NcBaseEvent {
   mentions: string[];
 }
 
+export interface DocumentRevisionRestoreEvent extends NcBaseEvent {
+  docId: string;
+  docTitle: string;
+  revisionId: string;
+  revisionCreatedAt: string;
+  /** User id of the revision's original author. */
+  revisionAuthor?: string | null;
+  revisionSource: 'auto' | 'manual' | 'restore';
+}
+
 export interface DocumentPublicShareCreateEvent extends NcBaseEvent {
   docId: string;
   docTitle: string;

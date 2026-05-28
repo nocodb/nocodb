@@ -137,6 +137,7 @@ export enum MetaTable {
   /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
+  DOC_REVISIONS = 'nc_doc_revisions_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',
   TRASH = 'nc_trash',
 }
@@ -206,6 +207,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.VIEW_SECTIONS,
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
+  MetaTable.DOC_REVISIONS,
   MetaTable.TRASH,
 ];
 
@@ -328,6 +330,7 @@ export const orderedMetaTables = [
   MetaTable.MODEL_STAT,
   MetaTable.CUSTOM_URLS,
   MetaTable.MCP_TOKENS,
+  MetaTable.DOC_REVISIONS,
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
   MetaTable.MODELS,

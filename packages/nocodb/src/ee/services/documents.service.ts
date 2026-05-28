@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import hash from 'object-hash';
 import {
   AppEvents,
   EventType,
@@ -13,6 +14,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.service';
+import { DocRevisionSource } from 'nocodb-sdk';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -22,7 +24,7 @@ import {
   getLimit,
 } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import { Document, FileReference, Permission } from '~/models';
+import { DocRevision, Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -359,6 +361,37 @@ export class DocumentsService extends DocumentsServiceCE {
   }
 
   /**
+   * Visibility-gated existence check for a document. Used by adjacent
+   * features (revisions, comments) that need to confirm a user is allowed
+   * to see a doc before exposing any of its history / sub-resources.
+   *
+   * Returns the doc (meta only — no content) on success. Throws
+   * `genericNotFound` when the doc is missing OR when document-level
+   * visibility hides it from this user — the same error in both cases so
+   * the endpoint cannot be used to enumerate hidden docs.
+   */
+  async assertDocVisible(context: NcContext, docId: string, req?: NcRequest) {
+    const doc = await Document.getMeta(context, docId);
+    if (!doc) {
+      NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_VISIBILITY,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).genericNotFound('Document', docId);
+      }
+    }
+
+    return doc;
+  }
+
+  /**
    * Fetch a single document with full content (ProseMirror JSON).
    *
    * SECURITY: `req` must be passed by all EE controller call-sites to enforce
@@ -544,6 +577,7 @@ export class DocumentsService extends DocumentsServiceCE {
     docId: string,
     payload: Partial<DocumentType>,
     req: NcRequest,
+    options?: { revisionSource?: DocRevisionSource },
   ) {
     await assertNotSandbox(
       context,
@@ -610,6 +644,9 @@ export class DocumentsService extends DocumentsServiceCE {
 
     // Reconcile FileReferences BEFORE saving — injects IDs into payload.content
     // so the persisted content contains FileReference IDs (same as attachment columns).
+    // `reviveIncoming` is on for restores so soft-deleted refs reintroduced by
+    // the restored content get flipped back inline — closing the brief window
+    // where the proxy would 404 if the revive ran post-update.
     if (payload.content) {
       try {
         await this.reconcileFileReferences(
@@ -618,6 +655,10 @@ export class DocumentsService extends DocumentsServiceCE {
           payload.content,
           req,
           existing.meta?.cover_image_file_ref_id,
+          {
+            reviveIncoming:
+              options?.revisionSource === DocRevisionSource.RESTORE,
+          },
         );
       } catch (e) {
         this.logger.error(e.message, e.stack);
@@ -640,6 +681,33 @@ export class DocumentsService extends DocumentsServiceCE {
     }
 
     const doc = await Document.update(context, docId, payload);
+
+    // Record a revision when content or title actually changed.
+    // Coalescing (same author + within window) is handled inside DocRevision.record().
+    // Hash compare avoids materialising two ~5 MB JSON strings per save.
+    const contentChanged =
+      payload.content !== undefined &&
+      hash(payload.content) !== hash(existing.content);
+    const titleChanged =
+      payload.title !== undefined && payload.title !== existing.title;
+    if (contentChanged || titleChanged) {
+      try {
+        await DocRevision.record(context, {
+          docId,
+          version: doc.version!,
+          content: doc.content,
+          title: doc.title!,
+          createdBy: req.user.id,
+          source: options?.revisionSource ?? DocRevisionSource.AUTO,
+        });
+      } catch (e) {
+        // Don't fail the user's save if revision capture errors.
+        this.logger.error(
+          `Failed to record revision for doc ${docId}: ${e.message}`,
+          e.stack,
+        );
+      }
+    }
 
     this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
       context,
@@ -929,6 +997,7 @@ export class DocumentsService extends DocumentsServiceCE {
     content: Record<string, any>,
     req: NcRequest,
     coverFileRefId?: string,
+    options?: { reviveIncoming?: boolean },
   ) {
     // 1. Walk content and collect all file nodes
     const fileNodes: {
@@ -971,9 +1040,23 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // 3. Diff: soft-delete FileReferences no longer in content
+    // 3. Revive soft-deleted FileReferences whose IDs are being reintroduced
+    // by this update — only on restore. Without it, IDs that were
+    // soft-deleted by a prior reconcile stay soft-deleted and the proxy
+    // 404s. Gated by `reviveIncoming` because reviveForDoc always emits a
+    // Redis incrHashField on the workspace storage counter, and running
+    // that on every normal save (where there is nothing to revive) would
+    // add a per-save roundtrip with no work to do.
+    const incomingIds = fileNodes
+      .map((n) => n.id)
+      .filter((id): id is string => !!id);
+    if (options?.reviveIncoming && incomingIds.length) {
+      await FileReference.reviveForDoc(context, docId, incomingIds);
+    }
+
+    // 4. Diff: soft-delete FileReferences no longer in content
     // Preserve the cover image FileReference — it lives in meta, not content.
-    const newIds = new Set(fileNodes.map((n) => n.id).filter(Boolean));
+    const newIds = new Set(incomingIds);
     const existingIds = await FileReference.listIdsForDoc(context, docId);
 
     const removedIds = existingIds.filter(

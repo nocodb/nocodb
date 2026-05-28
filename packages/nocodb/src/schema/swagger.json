@@ -21126,6 +21126,24 @@
           "in": "query",
           "description": "URL or Path of the attachment",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "docId",
+          "in": "query",
+          "description": "Document ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "revisionId",
+          "in": "query",
+          "description": "Document Revision ID",
+          "required": false
         }
       ]
     },

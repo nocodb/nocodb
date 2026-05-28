@@ -24,6 +24,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { notDeletedXcCondition } from '~/utils/trashUtils';
+import DocRevision from '~/ee/models/DocRevision';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -539,6 +540,9 @@ export default class Document extends DocumentCE implements DocumentType {
       MetaTable.DOC_CONTENT,
       { fk_doc_id: docId },
     );
+
+    // Cascade revision history.
+    await DocRevision.deleteForDoc(context, docId);
 
     await ncMeta.metaDelete(
       context.workspace_id,

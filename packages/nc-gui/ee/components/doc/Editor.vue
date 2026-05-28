@@ -88,12 +88,14 @@ const { showShareModal } = storeToRefs(useShare())
 
 const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermissions } = useEeConfig()
 
+// Page context menu (3-dot) open state
+const isPageMenuOpen = ref(false)
+
 const openShareModal = () => {
   // Close the page menu first so it doesn't sit behind the share dialog
   // (the menu is anchored to the topbar and would otherwise overlap the
   // upper-right of the modal). Matches the pattern used by the download /
   // full-width / delete handlers below.
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   isPageMenuOpen.value = false
   // Gate public-share behind license/plan: unlicensed On-Prem (and CE,
   // which never reaches this since the button is hidden) routes to the
@@ -214,6 +216,40 @@ const {
       }
     })()
   : useDocumentAutoSave({ editor, activeProjectId, isEditable })
+
+// Unsaved-changes safety net — mirrors the SmartTextPanel/Modal pattern.
+// `flushOnUnmount` already runs on component unmount (covers SPA navigation),
+// but the browser tears down the in-flight XHR if the tab is closed or
+// backgrounded before a pending debounced save fires. Hooking `beforeunload`
+// + `visibilitychange` triggers the same flush so the user doesn't lose the
+// last few seconds of edits to a destroyed request. Doc mode only — cell
+// mode is wrapped by SmartTextPanel/Modal which have their own listeners,
+// and `flushOnUnmount` is a no-op in that branch anyway. `flushOnUnmount`
+// self-guards (only fires when a save is actually pending) so unconditional
+// calls here are cheap.
+if (!isCellMode.value) {
+  useEventListener(window, 'beforeunload', () => flushOnUnmount())
+  useEventListener(document, 'visibilitychange', () => {
+    if (document.hidden) flushOnUnmount()
+  })
+}
+
+// Force a content reload after a revision restore. The auto-reload watcher
+// in useDocumentAutoSave bails out when the user has unsaved edits or a
+// pending debounced save, which would leave the editor's local PM state
+// stale — the next autosave would then overwrite the restored content with
+// whatever was in the editor before the restore.
+// `onRestored` returns an `{ off }` handle from createEventHook. The hook
+// lives for the lifetime of the singleton composable, so dropping the
+// handle would leak a listener on every doc navigation (Editor.vue
+// remounts via <NuxtPage>).
+const { onRestored } = useDocRevisions()
+const restoredSub = onRestored(({ docId }) => {
+  if (docId === doc.value?.id) {
+    reloadDocument()
+  }
+})
+onBeforeUnmount(() => restoredSub.off())
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
@@ -976,6 +1012,17 @@ const toggleCommentsPanel = () => {
   isCommentsPanelOpen.value = !isCommentsPanelOpen.value
 }
 
+// --- History modal state ---
+// Single modal containing both the version list (right pane) and the
+// diff viewer (left pane). No sidebar — opening the menu item just
+// flips this flag.
+const isHistoryModalOpen = ref(false)
+
+const onOpenHistory = () => {
+  isHistoryModalOpen.value = true
+  isPageMenuOpen.value = false
+}
+
 const { showUpgradeToUseDocsInlineComments, showUpgradeToUseDocsExportPdf } = useEeConfig()
 
 const onAddInlineComment = () => {
@@ -1244,7 +1291,7 @@ const _tiptapEditor = useEditor({
         return true
       }
 
-      // Progressive select-all (Notion-like):
+      // Progressive select-all:
       // 1st Cmd+A → select all text in the current block
       // 2nd Cmd+A → select entire document (default ProseMirror behavior)
       if (event.key === 'a' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey) {
@@ -1835,8 +1882,6 @@ const onEditorBodyClick = (e: MouseEvent) => {
 }
 
 // --- Page context menu (3-dot) ---
-const isPageMenuOpen = ref(false)
-
 const onDuplicatePage = async () => {
   isPageMenuOpen.value = false
   if (!base.value?.id || !doc.value?.id) return
@@ -2260,7 +2305,12 @@ defineExpose({ editor })
           </NcButton>
         </NcTooltip>
         <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
-          <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+          <NcButton
+            size="small"
+            type="secondary"
+            data-testid="nc-doc-page-menu-btn"
+            @click.stop="isPageMenuOpen = !isPageMenuOpen"
+          >
             <GeneralIcon icon="threeDotVertical" />
           </NcButton>
           <template #overlay>
@@ -2330,6 +2380,15 @@ defineExpose({ editor })
               <NcMenuItem v-e="['c:doc:comments:toggle']" @click="onToggleCommentsPanel">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
                 {{ $t('general.comments') }}
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isUIAllowed('documentRevisionList')"
+                v-e="['c:doc:history:open']"
+                data-testid="nc-doc-page-history"
+                @click="onOpenHistory"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncHistory" />
+                {{ $t('labels.history') }}
               </NcMenuItem>
               <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
@@ -2750,7 +2809,7 @@ defineExpose({ editor })
               <div ref="editorContentRef" class="relative">
                 <EditorContent :editor="editor" @click="onEditorClick" />
 
-                <!-- Link hover preview (Notion-style) -->
+                <!-- Link hover preview -->
                 <div
                   v-if="isLinkHoverVisible && !isLinkEditOpen"
                   :style="linkHoverStyle"
@@ -2910,7 +2969,7 @@ defineExpose({ editor })
             </template>
           </div>
 
-          <!-- Sub documents — direct children of the current doc, rendered after content (Notion-style) -->
+          <!-- Sub documents — direct children of the current doc, rendered after content -->
           <DocSubDocumentsList v-if="isLoaded" :doc-id="docId" :base-id="base?.id" />
         </div>
 
@@ -3021,10 +3080,18 @@ defineExpose({ editor })
          available when the doc page is open. The dispatcher renders the doc
          branch when activeDocument is set. -->
     <LazyDlgShareAndCollaborateView v-if="!embedded && !isCellMode" />
+
+    <!-- History modal: list + diff viewer in one surface. -->
+    <DocHistoryModal v-if="!isCellMode" v-model:visible="isHistoryModalOpen" :doc-id="docId" />
   </div>
 </template>
 
 <style lang="scss">
+// Loaded at the top per Sass 3.0 rules — the actual styles are emitted
+// later in the file via `@include doc.doc-content` so they cascade after
+// the editor chrome rules below.
+@use './_doc-content' as doc;
+
 .nc-doc-editor {
   background: var(--nc-bg-default);
   // Definite height so inner overflow-y-auto activates and only the editor content scrolls.
@@ -3220,7 +3287,7 @@ defineExpose({ editor })
   }
 }
 
-// --- Link hover preview (Notion-style) ---
+// --- Link hover preview ---
 .nc-link-hover-preview {
   display: flex;
   align-items: center;
@@ -3608,899 +3675,12 @@ defineExpose({ editor })
   }
 }
 
-// Doc editor typography — no prose class, clean styles
-.nc-doc-editor-content.ProseMirror {
-  // Highlight marks — keep text colour from parent, match native selection height
-  mark {
-    color: inherit;
-    padding: 2px 0;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
-  }
-
-  min-height: 60px;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--nc-content-gray);
-
-  ::selection {
-    background: color-mix(in srgb, var(--nc-fill-primary) 35%, transparent);
-  }
-
-  // Dark mode: pastel highlight backgrounds are barely visible on dark bg.
-  // Use dark text so the coloured mark creates readable contrast (like Notion).
-  // Hardcoded because all semantic text tokens map to light colours in dark mode.
-  html.dark & mark[data-color] {
-    color: #1f2937;
-  }
-
-  > * {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-
-  > * + * {
-    margin-top: 9px;
-  }
-
-  // Headings — H1/H2/H3 prefix labels and collapse chevrons sit outside
-  // via absolute positioning. Labels are bottom-aligned with the first line
-  // of heading text so they sit on the same baseline regardless of heading
-  // font size. Only visible when the editor is focused — hidden when the
-  // cursor is in the title input or elsewhere outside the editor.
-  //
-  // Three states:
-  //   Expanded + not hovered → "H1"/"H2"/"H3" text label
-  //   Expanded + hovered     → ▼ down chevron (click to collapse)
-  //   Collapsed (always)     → ▶ right chevron (click to expand)
-  h1,
-  h2,
-  h3 {
-    position: relative;
-    color: var(--nc-content-gray-emphasis);
-
-    &::before {
-      position: absolute;
-      right: 100%;
-      // padding (not margin) so the ::before box touches the heading's left edge —
-      // eliminates the hover dead zone when moving horizontally from text to chevron.
-      padding-right: 0.5em;
-      color: var(--nc-content-gray-muted);
-      font-size: 12px;
-      font-weight: 500;
-    }
-  }
-
-  h1 {
-    font-size: 1.625em;
-    font-weight: 600;
-    margin-top: 1.4em;
-    margin-bottom: 0.4em;
-    line-height: 1.3;
-  }
-
-  h2 {
-    font-size: 1.3em;
-    font-weight: 600;
-    margin-top: 1.2em;
-    margin-bottom: 0.35em;
-    line-height: 1.35;
-  }
-
-  h3 {
-    font-size: 1.125em;
-    font-weight: 600;
-    margin-top: 1em;
-    margin-bottom: 0.3em;
-    line-height: 1.4;
-  }
-
-  // Collapsed heading: remove bottom margin (section is hidden)
-  h1.nc-heading-collapsed,
-  h2.nc-heading-collapsed,
-  h3.nc-heading-collapsed {
-    margin-bottom: 0;
-  }
-
-  // Hidden section content
-  .nc-heading-section-hidden {
-    display: none !important;
-  }
-
-  // Chevron shared properties — 24px = 16px icon (pinned left via mask-position) + 8px gap.
-  // Base padding-right: 0.5em (from h1/h2/h3 ::before above) bridges hover to heading edge.
-  // Per-heading `top` aligns to baseline: font-size * line-height - 16px - 2px.
-  h1.nc-heading-collapsed::before,
-  h2.nc-heading-collapsed::before,
-  h3.nc-heading-collapsed::before {
-    content: '';
-    width: 24px;
-    height: 16px;
-    display: inline-block;
-    background-color: var(--nc-content-gray-muted);
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpolygon points='6,3 12,8 6,13'/%3E%3C/svg%3E");
-    mask-size: 16px 16px;
-    mask-position: left center;
-    mask-repeat: no-repeat;
-    cursor: pointer;
-  }
-  h1.nc-heading-collapsed::before {
-    top: calc(1.625em * 1.3 - 16px - 2px);
-  }
-  h2.nc-heading-collapsed::before {
-    top: calc(1.3em * 1.35 - 16px - 2px);
-  }
-  h3.nc-heading-collapsed::before {
-    top: calc(1.125em * 1.4 - 16px - 2px);
-  }
-
-  // --- Expanded state (editor focused): text labels + hover chevrons ---
-  &.ProseMirror-focused {
-    // Text labels — hidden for the heading with the cursor and for collapsed headings
-    h1:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before {
-      content: 'H1';
-      top: calc(1.625em * 1.3 - 12px - 2px);
-    }
-    h2:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before {
-      content: 'H2';
-      top: calc(1.3em * 1.35 - 12px - 2px);
-    }
-    h3:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before {
-      content: 'H3';
-      top: calc(1.125em * 1.4 - 12px - 2px);
-    }
-
-    // Hover: replace label with down chevron (▼)
-    h1:not(.nc-heading-collapsed):hover::before,
-    h2:not(.nc-heading-collapsed):hover::before,
-    h3:not(.nc-heading-collapsed):hover::before {
-      content: '';
-      width: 24px;
-      height: 16px;
-      display: inline-block;
-      background-color: var(--nc-content-gray-muted);
-      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpolygon points='3,6 13,6 8,12'/%3E%3C/svg%3E");
-      mask-size: 16px 16px;
-      mask-position: left center;
-      mask-repeat: no-repeat;
-      cursor: pointer;
-    }
-    h1:not(.nc-heading-collapsed):hover::before {
-      top: calc(1.625em * 1.3 - 16px - 2px);
-    }
-    h2:not(.nc-heading-collapsed):hover::before {
-      top: calc(1.3em * 1.35 - 16px - 2px);
-    }
-    h3:not(.nc-heading-collapsed):hover::before {
-      top: calc(1.125em * 1.4 - 16px - 2px);
-    }
-
-    // Blockquotes: no collapse support
-    blockquote h1::before,
-    blockquote h2::before,
-    blockquote h3::before {
-      content: none;
-    }
-  }
-
-  // Heading anchor icon — inline after heading text, zero-width so it doesn't
-  // affect text flow. Appears on heading hover right next to the last word.
-  .nc-heading-anchor-icon {
-    display: inline;
-    width: 0;
-    overflow: visible;
-    opacity: 0;
-    transition: opacity 0.15s ease;
-    user-select: none;
-    pointer-events: none;
-
-    &::after {
-      content: '';
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      margin-left: 6px;
-      padding: 2px;
-      vertical-align: middle;
-      background-color: var(--nc-content-gray-disabled);
-      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpath d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'/%3E%3C/svg%3E");
-      mask-size: 16px 16px;
-      mask-repeat: no-repeat;
-      cursor: pointer;
-      pointer-events: auto;
-      border-radius: 4px;
-    }
-
-    &:hover::after {
-      background-color: var(--nc-content-brand);
-    }
-  }
-
-  // Scale anchor icon proportionally to heading size
-  h1 > .nc-heading-anchor-icon::after {
-    vertical-align: baseline;
-    position: relative;
-    top: -0.1em;
-  }
-
-  h2 > .nc-heading-anchor-icon::after {
-    width: 15px;
-    height: 15px;
-    mask-size: 15px 15px;
-  }
-
-  h3 > .nc-heading-anchor-icon::after {
-    width: 14px;
-    height: 14px;
-    mask-size: 14px 14px;
-  }
-
-  h1:hover > .nc-heading-anchor-icon,
-  h2:hover > .nc-heading-anchor-icon,
-  h3:hover > .nc-heading-anchor-icon {
-    opacity: 1;
-  }
-
-  // Scroll-target highlight — brief flash when scrolling to an anchored heading
-  h1[data-heading-anchor]:target,
-  h2[data-heading-anchor]:target,
-  h3[data-heading-anchor]:target {
-    animation: nc-heading-flash 1.5s ease;
-  }
-
-  // Active divider — show a selection border when a horizontal rule is selected
-  hr.nc-active-block {
-    outline: 1px solid var(--nc-fill-primary);
-    outline-offset: 1px;
-    border-radius: 2px;
-  }
-
-  // Drag-selected node outline — only shown while the drag handle is active.
-  // Scoped to body.nc-doc-dragging to avoid overriding existing
-  // ProseMirror-selectednode styles for images, embeds, etc.
-  body.nc-doc-dragging & .ProseMirror-selectednode {
-    outline: 2px solid var(--nc-fill-primary);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  // Search match highlight decorations (DocSearchExtension).
-  // ProseMirror Decoration.inline creates <span> elements with these classes.
-  // Inactive matches are yellow; the active/current match is orange.
-  .nc-search-match {
-    background: rgba(255, 212, 0, 0.4);
-    border-radius: 2px;
-  }
-
-  .nc-search-match-active {
-    background: rgba(255, 150, 0, 0.6);
-    border-radius: 2px;
-  }
-
-  // Placeholder — shown on the focused empty paragraph (via Tiptap Placeholder extension)
-  p.is-empty::before,
-  p.is-editor-empty::before {
-    content: attr(data-placeholder);
-    float: left;
-    color: var(--nc-content-gray-disabled);
-    pointer-events: none;
-    height: 0;
-  }
-
-  // Slash command inline placeholder — "Type to search" hint after "/"
-  .nc-slash-placeholder {
-    color: var(--nc-content-gray-disabled);
-    pointer-events: none;
-    user-select: none;
-  }
-
-  // Lists — distinct markers for the first 3 nesting levels,
-  // then consistent dash (–) from level 4 onwards.
-  ul {
-    list-style-type: disc;
-    padding-left: 1.5em;
-
-    ul {
-      list-style-type: circle;
-
-      ul {
-        list-style-type: square;
-
-        ul {
-          list-style-type: '–  ';
-        }
-      }
-    }
-  }
-
-  ol {
-    list-style-type: decimal;
-    padding-left: 1.5em;
-  }
-
-  ul li,
-  ol li {
-    margin-top: 0.1em;
-    margin-bottom: 0.1em;
-  }
-
-  ul li p,
-  ol li p {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-
-  // Task lists — checkbox + text on a single row, no bullet marker
-  ul[data-type='taskList'] {
-    list-style: none;
-    padding-left: 0;
-
-    li {
-      display: flex;
-      flex-direction: row;
-      align-items: baseline;
-      margin-top: 0.1em;
-      margin-bottom: 0.1em;
-
-      > label {
-        flex: 0 0 auto;
-        margin-right: 0.4em;
-        user-select: none;
-        display: inline-flex;
-        align-items: center;
-
-        input[type='checkbox'] {
-          appearance: none;
-          -webkit-appearance: none;
-          cursor: pointer;
-          margin: 0;
-          position: relative;
-          top: 0.1em;
-          width: 16px;
-          height: 16px;
-          border: 2px solid var(--nc-content-gray-muted);
-          border-radius: 4px;
-          background: transparent;
-          transition: background 0.15s, border-color 0.15s;
-
-          &:checked {
-            background: var(--nc-content-brand);
-            border-color: var(--nc-content-brand);
-
-            &::after {
-              content: '';
-              position: absolute;
-              top: 1px;
-              left: 4px;
-              width: 5px;
-              height: 8px;
-              border: solid white;
-              border-width: 0 2px 2px 0;
-              border-radius: 0 0 1px 0;
-              transform: rotate(45deg);
-            }
-          }
-        }
-      }
-
-      > div {
-        flex: 1 1 auto;
-        min-width: 0;
-
-        p {
-          margin-top: 0;
-          margin-bottom: 0;
-        }
-      }
-    }
-
-    // Checked (completed) task items — strikethrough + muted text
-    li[data-checked='true'] > div {
-      text-decoration: line-through;
-      color: var(--nc-content-gray-muted);
-      text-decoration-color: var(--nc-content-gray-disabled);
-    }
-
-    // Nested task lists
-    ul[data-type='taskList'] {
-      padding-left: 1.2em;
-    }
-  }
-
-  // Blockquote
-  blockquote {
-    border-left: 3px solid var(--nc-bg-gray-extra-dark);
-    padding-left: 1em;
-    color: var(--nc-content-gray-subtle2);
-    margin: 0.75em 0;
-  }
-
-  // Code — !important needed to override global `* { font-family: Inter }`
-  code {
-    background-color: var(--nc-bg-gray-medium);
-    border-radius: 0.25em;
-    padding: 0.15em 0.3em;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
-    font-size: 0.875em;
-  }
-
-  // Code blocks — container colours + hljs tokens are theme-aware.
-  // Variables live on this `.nc-doc-editor-content.ProseMirror` element so they
-  // cascade into the scoped `.nc-code-block-content` styles in
-  // `DocCodeBlockNode.vue`. The dark overrides (above) MUST target this SAME
-  // element — see the note there for why. Light palette = GitHub Light, dark
-  // palette = GitHub Dark — both familiar to developers and well-tuned
-  // for contrast.
-  --nc-code-block-bg: #f6f8fa;
-  --nc-code-block-text: #24292f;
-  --nc-code-block-keyword: #d73a49;
-  --nc-code-block-title: #6f42c1;
-  --nc-code-block-attr: #005cc5;
-  --nc-code-block-string: #032f62;
-  --nc-code-block-built-in: #e36209;
-  --nc-code-block-comment: #6a737d;
-  --nc-code-block-name: #22863a;
-  --nc-code-block-section: #005cc5;
-  --nc-code-block-toolbar-bg: rgba(0, 0, 0, 0.05);
-  --nc-code-block-toolbar-bg-hover: rgba(0, 0, 0, 0.1);
-  --nc-code-block-toolbar-fg: rgba(0, 0, 0, 0.55);
-  --nc-code-block-toolbar-fg-hover: rgba(0, 0, 0, 0.85);
-
-  pre {
-    code {
-      background: none;
-      padding: 0;
-      color: inherit;
-      font-size: inherit;
-    }
-  }
-
-  .hljs-doctag,
-  .hljs-keyword,
-  .hljs-meta .hljs-keyword,
-  .hljs-template-tag,
-  .hljs-template-variable,
-  .hljs-type,
-  .hljs-variable.language_ {
-    color: var(--nc-code-block-keyword);
-  }
-
-  .hljs-title,
-  .hljs-title.class_,
-  .hljs-title.class_.inherited__,
-  .hljs-title.function_ {
-    color: var(--nc-code-block-title);
-  }
-
-  .hljs-attr,
-  .hljs-attribute,
-  .hljs-literal,
-  .hljs-meta,
-  .hljs-number,
-  .hljs-operator,
-  .hljs-variable,
-  .hljs-selector-attr,
-  .hljs-selector-class,
-  .hljs-selector-id {
-    color: var(--nc-code-block-attr);
-  }
-
-  .hljs-regexp,
-  .hljs-string,
-  .hljs-meta .hljs-string {
-    color: var(--nc-code-block-string);
-  }
-
-  .hljs-built_in,
-  .hljs-symbol {
-    color: var(--nc-code-block-built-in);
-  }
-
-  .hljs-comment,
-  .hljs-code,
-  .hljs-formula {
-    color: var(--nc-code-block-comment);
-  }
-
-  .hljs-name,
-  .hljs-quote,
-  .hljs-selector-tag,
-  .hljs-selector-pseudo {
-    color: var(--nc-code-block-name);
-  }
-
-  .hljs-subst {
-    color: var(--nc-code-block-text);
-  }
-
-  .hljs-section {
-    color: var(--nc-code-block-section);
-  }
-
-  // Horizontal rule — centered line with vertical breathing room.
-  // Uses a pseudo-element so the line sits in the vertical middle.
-  hr {
-    border: none;
-    height: 1em;
-    display: flex;
-    align-items: center;
-
-    &::after {
-      content: '';
-      display: block;
-      width: 100%;
-      border-top: 1px solid var(--nc-border-gray-medium);
-    }
-  }
-
-  // Links — neutral color with subtle underline (Notion-style)
-  a {
-    color: inherit;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-decoration-color: var(--nc-border-gray-medium);
-    text-underline-offset: 3px;
-  }
-
-  // Strikethrough — grey text and line (like Outline)
-  s,
-  del {
-    color: var(--nc-content-gray-disabled);
-    text-decoration-color: var(--nc-content-gray-disabled);
-  }
-
-  // Table — border-separate so border-radius works on corners
-  table {
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 20px 0 0 0;
-    overflow: hidden;
-    table-layout: fixed;
-    width: 100%;
-    border: 1px solid var(--nc-border-gray-medium);
-    border-radius: 8px;
-
-    td,
-    th {
-      border-right: 1px solid var(--nc-border-gray-medium);
-      border-bottom: 1px solid var(--nc-border-gray-medium);
-      box-sizing: border-box;
-      min-width: 1em;
-      padding: 6px 8px;
-      position: relative;
-      // Default vertical-align; overridden by inline style from verticalAlign attribute
-      vertical-align: top;
-
-      > * {
-        margin-bottom: 0;
-      }
-
-      // Remove right border on last column (outer border handles it)
-      &:last-child {
-        border-right: none;
-      }
-    }
-
-    // Remove bottom border on last row (outer border handles it)
-    tr:last-child td,
-    tr:last-child th {
-      border-bottom: none;
-    }
-
-    th {
-      background-color: var(--nc-bg-gray-light);
-      font-weight: bold;
-      text-align: left; // Override browser default (center) for <th>
-    }
-
-    // Round inner corners of corner cells to match outer radius
-    tr:first-child th:first-child,
-    tr:first-child td:first-child {
-      border-top-left-radius: 7px;
-    }
-    tr:first-child th:last-child,
-    tr:first-child td:last-child {
-      border-top-right-radius: 7px;
-    }
-    tr:last-child td:first-child,
-    tr:last-child th:first-child {
-      border-bottom-left-radius: 7px;
-    }
-    tr:last-child td:last-child,
-    tr:last-child th:last-child {
-      border-bottom-right-radius: 7px;
-    }
-
-    // Selected cell highlight (Tiptap adds this class)
-    .selectedCell::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      background: color-mix(in srgb, var(--nc-fill-primary) 25%, transparent);
-      pointer-events: none;
-      z-index: 2;
-    }
-  }
-
-  // File attachment cards
-  .nc-file-attachment-wrapper {
-    margin: 0.5em 0;
-  }
-
-  .nc-file-attachment-card {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border: 1px solid var(--nc-border-gray-medium);
-    border-radius: 8px;
-    background: var(--nc-bg-gray-extralight);
-    cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    max-width: 320px;
-    position: relative;
-
-    &:hover {
-      border-color: var(--nc-bg-gray-dark);
-      background: var(--nc-bg-gray-light);
-
-      .nc-file-attachment-delete {
-        opacity: 1;
-      }
-    }
-
-    &.nc-file-attachment-selected {
-      border-color: var(--nc-fill-primary);
-      box-shadow: 0 0 0 1px var(--nc-fill-primary);
-    }
-
-    &.nc-file-attachment-uploading {
-      opacity: 0.7;
-      cursor: default;
-    }
-  }
-
-  .nc-file-attachment-badge {
-    flex-shrink: 0;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1;
-    padding: 4px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-
-  .nc-file-attachment-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .nc-file-attachment-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--nc-content-gray);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .nc-file-attachment-size {
-    font-size: 11px;
-    color: var(--nc-content-gray-muted);
-    line-height: 1.3;
-  }
-
-  .nc-file-attachment-delete {
-    flex-shrink: 0;
-    opacity: 0;
-    color: var(--nc-content-gray-muted);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.15s, color 0.15s;
-
-    &:hover {
-      color: var(--nc-content-red-dark);
-    }
-  }
-
-  .nc-file-attachment-spinner {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-  }
-
-  // Embed (YouTube, Vimeo, etc.) cards
-  .nc-embed-wrapper {
-    margin: 0.75em 0;
-  }
-
-  .nc-embed-card {
-    position: relative;
-    border: 1px solid var(--nc-border-gray-medium);
-    border-radius: 8px;
-    overflow: hidden;
-    background: white;
-
-    :global(.dark) & {
-      background: black;
-    }
-    transition: border-color 0.15s, box-shadow 0.15s;
-
-    &:hover {
-      border-color: var(--nc-bg-gray-dark);
-
-      .nc-embed-delete {
-        opacity: 1;
-      }
-    }
-
-    &.nc-embed-selected {
-      border-color: var(--nc-fill-primary);
-      box-shadow: 0 0 0 1px var(--nc-fill-primary);
-    }
-  }
-
-  .nc-embed-delete {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 2;
-    opacity: 0;
-    color: white;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.15s, background-color 0.15s;
-    background: rgba(0, 0, 0, 0.5);
-    border: none;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.7);
-    }
-  }
-
-  .nc-embed-iframe-wrapper {
-    position: relative;
-    width: 100%;
-    // padding-bottom (16:9 default) or height (user-resized) set via inline style
-  }
-
-  .nc-embed-iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-
-    // User-resized embeds use static positioning (height is explicit)
-    &.nc-embed-iframe-fixed {
-      position: static;
-    }
-  }
-
-  // Callout (notice) blocks
-  .nc-callout {
-    display: flex;
-    gap: 10px;
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin: 0.75em 0;
-    border-left: 4px solid;
-
-    .nc-callout-icon {
-      flex-shrink: 0;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      // Match the first line height of editor content (0.95rem × 1.7)
-      height: calc(0.95rem * 1.7);
-      width: 18px;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: 18px 18px;
-    }
-
-    .nc-callout-content {
-      flex: 1;
-      min-width: 0;
-
-      > *:first-child {
-        margin-top: 0;
-      }
-      > *:last-child {
-        margin-bottom: 0;
-      }
-    }
-
-    // Each callout type: background color, border, and icon via CSS data URI
-    &.nc-callout-note {
-      background: var(--nc-bg-coloured-blue);
-      border-left-color: var(--nc-content-blue-medium);
-
-      .nc-callout-icon {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
-      }
-    }
-
-    &.nc-callout-warning {
-      background: var(--nc-bg-coloured-yellow);
-      border-left-color: var(--nc-content-yellow-medium);
-
-      .nc-callout-icon {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
-      }
-    }
-
-    &.nc-callout-tip {
-      background: var(--nc-bg-coloured-green);
-      border-left-color: var(--nc-content-green-medium);
-
-      .nc-callout-icon {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z'/%3E%3C/svg%3E");
-      }
-    }
-
-    &.nc-callout-important {
-      background: var(--nc-bg-coloured-red);
-      border-left-color: var(--nc-content-red-medium);
-
-      .nc-callout-icon {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
-      }
-    }
-  }
-
-  // 2-Column layout
-  .nc-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin: 0.75em 0;
-
-    .nc-column {
-      min-width: 0; // prevent grid blowout from long content
-
-      > *:first-child {
-        margin-top: 0;
-      }
-      > *:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  // @mention pills — mirrors .nc-rich-text .mention in style.scss
-  .mention {
-    @apply font-semibold rounded-md px-1 inline;
-
-    &.nc-current-user {
-      @apply bg-[#D4F7E0] text-[#17803D] dark:(bg-nc-bg-gray-medium text-green-500);
-    }
-
-    &:not(.nc-current-user) {
-      @apply bg-nc-bg-brand-inverted text-nc-content-brand;
-    }
-
-    > span:first-child {
-      display: none;
-    }
-  }
-}
+// Content rendering styles for the .nc-doc-editor-content.ProseMirror root
+// live in a shared partial so the read-only history Viewer renders identically.
+// The mixin is included here (rather than at the top of the file) so the
+// content rules land after the editor chrome above and override it where
+// the selectors overlap.
+@include doc.doc-content;
 
 // Paste link embed popup
 .nc-paste-link-menu {

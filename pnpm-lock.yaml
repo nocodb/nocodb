@@ -422,6 +422,9 @@ importers:
       posthog-js:
         specifier: ^1.224.0
         version: 1.224.0(@rrweb/types@2.0.0-alpha.17)
+      prosemirror-changeset:
+        specifier: ^2.2.1
+        version: 2.2.1
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4

@@ -237,6 +237,8 @@ enum AuditV1OperationTypes {
   DOCUMENT_UPDATE = 'DOCUMENT_UPDATE',
   DOCUMENT_DELETE = 'DOCUMENT_DELETE',
 
+  DOCUMENT_REVISION_RESTORE = 'DOCUMENT_REVISION_RESTORE',
+
   DOCUMENT_PUBLIC_SHARE_CREATE = 'DOCUMENT_PUBLIC_SHARE_CREATE',
   DOCUMENT_PUBLIC_SHARE_UPDATE = 'DOCUMENT_PUBLIC_SHARE_UPDATE',
   DOCUMENT_PUBLIC_SHARE_DELETE = 'DOCUMENT_PUBLIC_SHARE_DELETE',
@@ -1359,6 +1361,15 @@ export interface DocumentDeletePayload {
   document_id: string;
 }
 
+export interface DocumentRevisionRestorePayload {
+  document_title: string;
+  document_id: string;
+  revision_id: string;
+  revision_created_at: string;
+  revision_author?: string | null;
+  revision_source: 'auto' | 'manual' | 'restore';
+}
+
 export interface DocumentPublicShareCreatePayload {
   document_title: string;
   document_id: string;
@@ -1871,6 +1882,10 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DOCUMENT_DELETE]: (
     audit: AuditV1<DocumentDeletePayload>
   ) => `Document '${audit.details.document_title}' has been deleted`,
+  [AuditV1OperationTypes.DOCUMENT_REVISION_RESTORE]: (
+    audit: AuditV1<DocumentRevisionRestorePayload>
+  ) =>
+    `Document '${audit.details.document_title}' restored to the version from ${audit.details.revision_created_at}`,
   [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_CREATE]: (
     audit: AuditV1<DocumentPublicShareCreatePayload>
   ) =>

@@ -44,6 +44,7 @@ import type {
   DocumentPublicShareCreatePayload,
   DocumentPublicShareDeletePayload,
   DocumentPublicShareUpdatePayload,
+  DocumentRevisionRestorePayload,
   DocumentUpdatePayload,
   FilterCreatePayload,
   FilterDeletePayload,
@@ -165,6 +166,7 @@ import type {
   DocumentPublicShareCreateEvent,
   DocumentPublicShareDeleteEvent,
   DocumentPublicShareUpdateEvent,
+  DocumentRevisionRestoreEvent,
   DocumentUpdateEvent,
   FilterEvent,
   FilterUpdateEvent,
@@ -4985,6 +4987,27 @@ export class AppHooksListenerService
               details: {
                 document_title: param.doc.title ?? 'Untitled',
                 document_id: param.doc.id!,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_REVISION_RESTORE: {
+        const param = data as DocumentRevisionRestoreEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentRevisionRestorePayload>(
+            AuditV1OperationTypes.DOCUMENT_REVISION_RESTORE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.docTitle,
+                document_id: param.docId,
+                revision_id: param.revisionId,
+                revision_created_at: param.revisionCreatedAt,
+                revision_author: param.revisionAuthor ?? null,
+                revision_source: param.revisionSource,
               },
             },
           ),

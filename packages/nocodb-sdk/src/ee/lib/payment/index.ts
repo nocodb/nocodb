@@ -159,6 +159,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
       [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 3,
       // Automation & workflow
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
@@ -226,6 +227,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60,
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 30,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
@@ -259,6 +261,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 90,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 50000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
@@ -282,6 +285,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365,
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 365,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
@@ -486,6 +490,8 @@ export const OnPremPlanDefinitions: Record<
       // Docs — core feature available on unlicensed on-prem (matches paid cloud)
       [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: -1,
       [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
+      // Doc revision history kept for 3 days on unlicensed on-prem
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 3,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 0, // days
       // Everything else (AI, automations, workflows, extensions,
       // snapshots, scripts, dashboards, sandbox, teams, RLS)
@@ -517,6 +523,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 21, // days
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 90, // days
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
     },
   },
@@ -527,14 +534,18 @@ export const OnPremPlanDefinitions: Record<
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },
-    limits: {},
+    limits: {
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 180, // days
+    },
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     features: {
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },
-    limits: {},
+    limits: {
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 365, // days
+    },
   },
 };
 
@@ -654,6 +665,30 @@ export function resolveOnPremPlanMeta(
   }
 
   return meta;
+}
+
+// ---------------------------------------------------------------------------
+// getHighestPlan — top tier for a deployment mode, with resolved meta
+// ---------------------------------------------------------------------------
+// Cloud and on-prem have separate plan ladders, so pass `isOnPrem` to pick the
+// right one. Returns the highest tier (max plan order) plus its fully resolved
+// feature/limit meta — use it for "the most any plan offers" checks, e.g. the
+// longest doc revision retention beyond which history is permanently cut off.
+export function getHighestPlan(isOnPrem = false): {
+  title: PlanTitles | OnPremPlanTitles;
+  meta: Record<string, number | boolean>;
+} {
+  if (isOnPrem) {
+    const title = (Object.keys(OnPremPlanOrder) as OnPremPlanTitles[]).reduce(
+      (top, t) => (OnPremPlanOrder[t] > OnPremPlanOrder[top] ? t : top)
+    );
+    return { title, meta: resolveOnPremPlanMeta(title) };
+  }
+
+  const title = (Object.keys(PlanOrder) as PlanTitles[]).reduce((top, t) =>
+    PlanOrder[t] > PlanOrder[top] ? t : top
+  );
+  return { title, meta: resolvePlanMeta(title) };
 }
 
 // ---------------------------------------------------------------------------

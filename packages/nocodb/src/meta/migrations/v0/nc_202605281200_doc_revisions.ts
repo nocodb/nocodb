@@ -12,8 +12,9 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await createDocRevisions(knex);
 
+  // 40 chars to fit uuidv7 revision ids (36) — matches nc_doc_revisions_v2.id.
   await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
-    table.string('fk_revision_id', 20).nullable();
+    table.string('fk_revision_id', 40).nullable();
   });
 
   // Index supports lookups by revision (sync / bulk-delete of snapshot rows).

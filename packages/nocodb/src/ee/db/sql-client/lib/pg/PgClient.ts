@@ -233,11 +233,11 @@ class PGClient extends PGClientCE {
                     -- Catalog-based PK detection (works for read-only users,
                     -- unlike information_schema.table_constraints which is
                     -- restricted to roles with non-SELECT privilege).
-                    -- Use rel.relname (bare table name) consistently — the
-                    -- previous `pc.conrelid::regclass::text` comparison
-                    -- quoted mixed-case identifiers (e.g. `"Document"`) and
-                    -- failed to match the unquoted :table parameter,
-                    -- silently producing pk:false on the next sync.
+                    -- Uses rel.relname (bare table name) consistently. An
+                    -- earlier pc.conrelid::regclass::text comparison quoted
+                    -- mixed-case identifiers ("Document") and failed to
+                    -- match the unquoted :table parameter, silently
+                    -- producing pk:false on the next sync.
                     select
                       rel.relname AS table_name,
                       pc.conname as constraint_name,

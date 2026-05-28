@@ -326,6 +326,15 @@ const getAst = async (
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
+
+        if (!colOpt) {
+          logger.warn(
+            `Skipping column ${col.title}: LTAR colOptions missing for column ${col.id}`,
+          );
+          ast[getFieldKey(col)] = null;
+          continue;
+        }
+
         const model = await colOpt.getRelatedTable(context);
 
         if (!model) {
@@ -370,6 +379,14 @@ const getAst = async (
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );
+
+      if (!colOpt) {
+        logger.warn(
+          `Skipping column ${col.title}: LTAR colOptions missing for column ${col.id}`,
+        );
+        ast[getFieldKey(col)] = null;
+        continue;
+      }
 
       const { refContext: refTableContext } = colOpt.getRelContext(context);
 
@@ -633,6 +650,7 @@ const extractLookupDependencies = async (
   if (!relationColumn) return;
   const relationColumnOpts =
     await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  if (!relationColumnOpts) return;
   const { refContext } = relationColumnOpts.getRelContext(context);
   await extractRelationDependencies(context, relationColumn, dependencyFields);
   await extractDependencies(
@@ -657,6 +675,7 @@ const extractRelationDependencies = async (
   },
 ) => {
   const relationColumnOpts = await relationColumn.getColOptions(context);
+  if (!relationColumnOpts) return;
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:

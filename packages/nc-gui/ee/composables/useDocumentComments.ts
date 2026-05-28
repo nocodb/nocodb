@@ -114,16 +114,18 @@ export const useDocumentComments = createSharedComposable(() => {
   })
 
   const enrichComment = (comment: CommentType): DocCommentExtended => {
-    const creator = baseUsers.value.find((u) => u.id === comment.created_by)
-    const resolver = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
+    const creator = baseUsers.value.find((u) => u.id === comment.created_by) ?? findServiceUser(comment.created_by)
+    const resolver = comment.resolved_by
+      ? baseUsers.value.find((u) => u.id === comment.resolved_by) ?? findServiceUser(comment.resolved_by)
+      : null
     return {
       ...comment,
       created_display_name: creator?.display_name,
       created_display_name_short: creator?.display_name ?? extractNameFromEmail(creator?.email),
       resolved_display_name: resolver?.display_name,
       resolved_display_name_short: resolver?.display_name ?? extractNameFromEmail(resolver?.email),
-      created_by_meta: creator?.meta,
-      resolved_by_meta: resolver?.meta,
+      created_by_meta: (creator as { meta?: any })?.meta,
+      resolved_by_meta: (resolver as { meta?: any })?.meta,
     }
   }
 

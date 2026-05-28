@@ -69,16 +69,18 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       ).list || []) as Array<CommentTypeExtended>
 
       comments.value = res.map((comment) => {
-        const user = baseUsers.value.find((u) => u.id === comment.created_by)
-        const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
+        const user = baseUsers.value.find((u) => u.id === comment.created_by) ?? findServiceUser(comment.created_by)
+        const resolvedUser = comment.resolved_by
+          ? baseUsers.value.find((u) => u.id === comment.resolved_by) ?? findServiceUser(comment.resolved_by)
+          : null
         return {
           ...comment,
           created_display_name: user?.display_name,
           created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
           resolved_display_name: resolvedUser?.display_name,
           resolved_display_name_short: resolvedUser?.display_name ?? extractNameFromEmail(resolvedUser?.email),
-          created_by_meta: user?.meta,
-          resolved_by_meta: resolvedUser?.meta,
+          created_by_meta: (user as { meta?: any })?.meta,
+          resolved_by_meta: (resolvedUser as { meta?: any })?.meta,
         }
       })
     } catch (e: unknown) {

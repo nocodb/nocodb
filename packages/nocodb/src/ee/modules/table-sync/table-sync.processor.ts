@@ -127,10 +127,11 @@ export class TableSyncProcessor {
         (m) => m.role === TableSyncMappingRole.Main,
       );
       if (!mainMapping) {
-        if (isFullMode) {
-          this.logger.warn(`${verb}: ${sync.id} has no main mapping`);
-        }
-        return;
+        if (!isFullMode) return;
+        NcError.get(context).invalidRequestBody(
+          `Sync "${sync.title}" has no source mapping — the source was removed. ` +
+            `Delete this sync and recreate it from the source to re-establish the connection.`,
+        );
       }
       const linkedMappings = (sync.mappings ?? []).filter(
         (m) => m.role === TableSyncMappingRole.LinkedShadow,

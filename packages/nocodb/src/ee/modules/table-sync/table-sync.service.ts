@@ -427,14 +427,30 @@ export class TableSyncService {
       if (!wasIn && !willIn) continue;
 
       if (willIn) {
-        // Title collision guard — a user-created col (no `readonly`) is
-        // sitting in the slot a new synced field would claim.
-        const collision = destColsByTitle.get(col.title);
-        if (collision && !collision.readonly) {
-          NcError.get(context).invalidRequestBody(
-            `Field "${col.title}" already exists in the destination table. Rename or delete it before adding "${col.title}" from the source.`,
-          );
-        }
+        // Collision policy: when ANY column already
+        // occupies the source title OR column_name slot on the dest, keep it
+        // and still sync the new source field under a unique alternate title
+        // ("Foo" → "Foo 2"). Source/dest stay id-linked via the
+        // column-mapping row so subsequent source-side renames flow through.
+        //
+        // We rename on every collision (user-created OR a stale synced col
+        // whose source-side rename left the title slot occupied) — a non-
+        // renaming codepath here was producing "duplicate column alias"
+        // failures on Save in some sync configurations.
+        const candidate = {
+          title: col.title,
+          column_name: col.column_name ?? sanitizeColumnName(col.title),
+        };
+        const resolved = this.resolveUniqueDestColumnName(
+          mainDest.columns ?? [],
+          candidate,
+        );
+        const destOverride =
+          resolved.title !== candidate.title ||
+          resolved.column_name !== candidate.column_name
+            ? resolved
+            : undefined;
+
         await this.addSyncedField(
           context,
           sourceCtx,
@@ -444,7 +460,32 @@ export class TableSyncService {
           col,
           patch.linkViewByColumn,
           patch.req,
+          destOverride,
         );
+
+        // When the dest col was renamed, the title-matching backfill in
+        // `writeColumnMappingsForTableMapping` can't pair source ↔ dest;
+        // insert the mapping row directly so the id link is preserved.
+        if (destOverride && col.id) {
+          await mainDest.getColumns(context);
+          const newDestCol = (mainDest.columns ?? []).find(
+            (c) => c.title === destOverride.title,
+          );
+          if (newDestCol?.id) {
+            await TableSyncColumnMapping.insert(context, {
+              fk_table_sync_id: oldSync.id,
+              fk_table_sync_mapping_id: mainMapping.id,
+              source_workspace_id: mainMapping.source_workspace_id,
+              source_base_id: mainMapping.source_base_id,
+              source_table_id: mainMapping.source_table_id,
+              source_column_id: col.id,
+              dest_base_id: mainMapping.dest_base_id,
+              dest_table_id: mainMapping.dest_table_id,
+              dest_column_id: newDestCol.id,
+            });
+          }
+        }
+
         anyAdded = true;
       } else {
         // Drop the dest col we previously synced for this source col id.
@@ -520,6 +561,93 @@ export class TableSyncService {
     return { added: anyAdded, removed: anyRemoved };
   }
 
+  /** Airtable-style "keep both" rename on a dest title/column_name conflict.
+   *  Returns the input unchanged if neither side collides with any column in
+   *  `destColumns`; otherwise walks `${base} N` (N starts at 2) until both
+   *  `title` and `column_name` are free. Suffixing column_name flows through
+   *  `sanitizeColumnName` so the DB-level name stays a valid identifier even
+   *  when the user-facing title has spaces / punctuation.
+   *
+   *  Used everywhere we materialise a synced column on the destination, so a
+   *  pre-existing column (user-created OR a stale synced col from a prior
+   *  source rename) never causes columnAdd to throw "duplicate column alias". */
+  private resolveUniqueDestColumnName(
+    destColumns: { title?: string | null; column_name?: string | null }[],
+    candidate: { title: string; column_name: string },
+  ): { title: string; column_name: string } {
+    const usedTitles = new Set(
+      destColumns.map((c) => c.title).filter(Boolean) as string[],
+    );
+    const usedColumnNames = new Set(
+      destColumns.map((c) => c.column_name).filter(Boolean) as string[],
+    );
+
+    if (
+      !usedTitles.has(candidate.title) &&
+      !usedColumnNames.has(candidate.column_name)
+    ) {
+      return candidate;
+    }
+
+    let i = 2;
+    while (true) {
+      const candidateTitle = `${candidate.title} ${i}`;
+      const candidateColumnName = sanitizeColumnName(
+        `${candidate.column_name}_${i}`,
+      );
+      if (
+        !usedTitles.has(candidateTitle) &&
+        !usedColumnNames.has(candidateColumnName)
+      ) {
+        return {
+          title: candidateTitle,
+          column_name: candidateColumnName,
+        };
+      }
+      i++;
+    }
+  }
+
+  /** Convenience wrapper around `resolveUniqueDestColumnName` for source-col
+   *  inputs — derives the candidate from `sourceCol.title` /
+   *  `sourceCol.column_name`. */
+  private pickUniqueDestColumnName(
+    destColumns: { title?: string | null; column_name?: string | null }[],
+    sourceCol: ColumnType,
+  ): { title: string; column_name: string } {
+    return this.resolveUniqueDestColumnName(destColumns, {
+      title: sourceCol.title!,
+      column_name:
+        sourceCol.column_name ?? sanitizeColumnName(sourceCol.title!),
+    });
+  }
+
+  /** Dedupe an array of synced column defs (used at `tableCreate` time before
+   *  the dest table exists, so we can't ask the DB for taken slots — we
+   *  carry-forward a running "seen" set instead). Each def whose `title` or
+   *  `column_name` collides with a prior def in the same batch gets bumped to
+   *  `${base} 2` / `${base} 3` ... so a source with duplicate aliases never
+   *  produces a duplicate-alias failure at table creation. */
+  private dedupeSyncedColumnDefs<
+    T extends { title?: string | null; column_name?: string | null },
+  >(defs: T[]): T[] {
+    const seen: { title: string; column_name: string }[] = [];
+    return defs.map((d) => {
+      const candidate = {
+        title: d.title ?? '',
+        column_name:
+          d.column_name ?? sanitizeColumnName(String(d.title ?? '')),
+      };
+      const resolved = this.resolveUniqueDestColumnName(seen, candidate);
+      seen.push(resolved);
+      return {
+        ...d,
+        title: resolved.title,
+        column_name: resolved.column_name,
+      };
+    });
+  }
+
   /** Add a single field to a live sync. Mirrors createSync's per-column
    *  branching: Links → Number; LTAR with a valid picked view → shadow +
    *  junction + custom MM LTAR; LTAR without a picked view → SingleLineText
@@ -533,8 +661,17 @@ export class TableSyncService {
     col: ColumnType,
     linkViewByColumn: Record<string, string>,
     req: NcRequest,
+    /** Title/column_name to use on the dest side when the source's own title
+     *  collides with a pre-existing user-created column. See the collision
+     *  branch in `reconcileFields` for the rename policy. */
+    destOverride?: { title: string; column_name: string },
   ): Promise<void> {
     const destBaseId = context.base_id;
+    const destTitle = destOverride?.title ?? col.title!;
+    const destColumnName =
+      destOverride?.column_name ??
+      col.column_name ??
+      sanitizeColumnName(col.title!);
 
     if (isLinksOrLTAR(col)) {
       if (col.uidt === UITypes.Links) {
@@ -543,8 +680,8 @@ export class TableSyncService {
           {
             tableId: mainDest.id,
             column: {
-              title: col.title!,
-              column_name: col.column_name ?? sanitizeColumnName(col.title!),
+              title: destTitle,
+              column_name: destColumnName,
               uidt: UITypes.Number,
               readonly: true,
             } as unknown as Parameters<
@@ -631,8 +768,8 @@ export class TableSyncService {
           {
             tableId: mainDest.id,
             column: {
-              title: col.title!,
-              column_name: col.column_name ?? sanitizeColumnName(col.title!),
+              title: destTitle,
+              column_name: destColumnName,
               uidt: UITypes.SingleLineText,
               readonly: true,
             } as unknown as Parameters<
@@ -718,19 +855,24 @@ export class TableSyncService {
         mainDest,
         linkedDest,
         {
-          sourceColumnTitle: col.title!,
-          sourceColumnName: col.column_name ?? sanitizeColumnName(col.title!),
+          sourceColumnTitle: destTitle,
+          sourceColumnName: destColumnName,
         },
         req,
       );
       return;
     }
 
+    const defaultDef = toDestColumnDef(col);
     await this.columnsService.columnAdd(
       { ...context, socket_id: null },
       {
         tableId: mainDest.id,
-        column: toDestColumnDef(col) as unknown as Parameters<
+        column: {
+          ...defaultDef,
+          title: destTitle,
+          column_name: destColumnName,
+        } as unknown as Parameters<
           typeof this.columnsService.columnAdd
         >[1]['column'],
         user: req.user,
@@ -1530,7 +1672,7 @@ export class TableSyncService {
             destBaseId,
             {
               title: linkedTable.title || linkedTable.id!,
-              columns: linkedColumns,
+              columns: this.dedupeSyncedColumnDefs(linkedColumns),
             },
             req,
           );
@@ -1565,12 +1707,37 @@ export class TableSyncService {
         mainColumns.push(toDestColumnDef(col));
       }
 
+      // Dedupe so two source cols sharing a title/column_name (or two that
+      // collapse to the same sanitized column_name) don't trip tableCreate's
+      // duplicate-alias check. Carry the renamed titles back into the
+      // pendingLinks rows below so the custom-MM LTAR landing on the dest
+      // points at the renamed cols (and the column-mapping writer can pair
+      // source ↔ dest by title).
+      const dedupedMainColumns = this.dedupeSyncedColumnDefs(mainColumns);
+      const mainColumnTitleRemap = new Map<string, string>();
+      const mainColumnNameRemap = new Map<string, string>();
+      for (let i = 0; i < mainColumns.length; i++) {
+        const before = mainColumns[i];
+        const after = dedupedMainColumns[i];
+        if (before.title !== after.title && before.title) {
+          mainColumnTitleRemap.set(before.title, after.title!);
+        }
+        if (before.column_name !== after.column_name && before.column_name) {
+          mainColumnNameRemap.set(before.column_name, after.column_name!);
+        }
+      }
+      for (const link of pendingLinks) {
+        const newTitle = mainColumnTitleRemap.get(link.sourceColumnTitle);
+        const newName = mainColumnNameRemap.get(link.sourceColumnName);
+        if (newTitle) link.sourceColumnTitle = newTitle;
+        if (newName) link.sourceColumnName = newName;
+      }
       const mainDest = await this.createDestinationTable(
         context,
         destBaseId,
         {
           title: sourceTable.title || sourceTable.id!,
-          columns: mainColumns,
+          columns: dedupedMainColumns,
         },
         req,
       );
@@ -1662,13 +1829,26 @@ export class TableSyncService {
           );
         }
 
+        // Defensive: the LTAR title was set from the source's column title,
+        // which can collide with a same-titled regular column already on the
+        // main dest (e.g. source has both "Foo" Text and "Foo" Link). Resolve
+        // against live mainDest cols to avoid a duplicate-alias failure.
+        await mainDest.getColumns(context);
+        const ltarResolved = this.resolveUniqueDestColumnName(
+          mainDest.columns ?? [],
+          {
+            title: link.sourceColumnTitle,
+            column_name: link.sourceColumnName,
+          },
+        );
+
         await this.columnsService.columnAdd(
           { ...context, socket_id: null },
           {
             tableId: mainDest.id,
             column: {
-              title: link.sourceColumnTitle,
-              column_name: link.sourceColumnName,
+              title: ltarResolved.title,
+              column_name: ltarResolved.column_name,
               uidt: UITypes.LinkToAnotherRecord,
               type: RelationTypes.MANY_TO_MANY,
               readonly: true,
@@ -2072,6 +2252,12 @@ export class TableSyncService {
 
       const destCol = destByTitle.get(sourceCol.title);
       if (!destCol?.id) continue;
+
+      // User-created dest col happens to share the source title — the rename branch in reconcileFields already
+      // synced the source col under a different title and inserted its
+      // mapping directly. Skip so we don't overwrite the user's column with
+      // a stray sync mapping.
+      if (!destCol.readonly) continue;
 
       // Idempotent — if a column-mapping for this dest col already exists,
       // skip (a re-run shouldn't double-insert).

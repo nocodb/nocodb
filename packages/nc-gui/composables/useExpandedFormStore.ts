@@ -262,13 +262,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         audits.value.unshift(
           ...res.map((audit) => {
-            const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
+            const user =
+              baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user) ??
+              findServiceUser(audit.fk_user_id) ??
+              findServiceUser(audit.user)
             return {
               ...audit,
               created_display_name: user?.display_name,
               created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
               created_by_email: user?.email,
-              created_by_meta: user?.meta,
+              created_by_meta: (user as { meta?: any })?.meta,
             }
           }),
         )

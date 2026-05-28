@@ -34,7 +34,7 @@ export interface DestColumnDef {
   uidt: UITypes;
   readonly: boolean;
   pv?: boolean;
-  colOptions?: { options: { title: string }[] };
+  colOptions?: { options: { title: string; color?: string }[] };
 }
 
 export function toDestColumnDef(col: ColumnType): DestColumnDef {
@@ -46,13 +46,23 @@ export function toDestColumnDef(col: ColumnType): DestColumnDef {
   };
   if (col.pv) def.pv = true;
   const options = (
-    col.colOptions as { options?: { title?: string }[] } | undefined
+    col.colOptions as
+      | { options?: { title?: string; color?: string | null }[] }
+      | undefined
   )?.options;
   if (Array.isArray(options)) {
+    // Forward the source's `color` per option so the dest's Single/MultiSelect
+    // starts with identical swatches. Column.insert spreads the provided option
+    // over its `selectColors[i % len]` default (Column.ts:473-477, 506-509), so
+    // any option missing a color still gets a sensible fallback.
     def.colOptions = {
       options: options
-        .filter((o): o is { title: string } => !!o.title)
-        .map((o) => ({ title: o.title })),
+        .filter((o): o is { title: string; color?: string | null } => !!o.title)
+        .map((o) => {
+          const out: { title: string; color?: string } = { title: o.title };
+          if (o.color) out.color = o.color;
+          return out;
+        }),
     };
   }
   return def;

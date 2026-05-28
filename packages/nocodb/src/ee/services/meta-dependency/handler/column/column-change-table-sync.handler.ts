@@ -123,7 +123,12 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
         if (action.kind === 'delete') {
           await this.applyDelete(destContext, sync, cm, action.oldTitle);
         } else {
-          await this.applyRetype(destContext, cm, action.newDestUidt);
+          await this.applyRetype(
+            destContext,
+            cm,
+            action.newDestUidt,
+            action.newSourceOptions,
+          );
         }
       } catch (e) {
         this.logger.error(
@@ -288,11 +293,18 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
 
   /** Propagate a source uidt change. Uses the same `REMAP_UIDTS` rules
    *  as create-time, so a source Formula → Number still becomes
-   *  SingleLineText on dest (formula values are stored as text snapshot). */
+   *  SingleLineText on dest (formula values are stored as text snapshot).
+   *
+   *  When retyping to Single/MultiSelect, `newSourceOptions` carries the
+   *  source's option list including `color`. Without it, `columnUpdate`
+   *  re-derives options from existing dest text data and assigns default
+   *  `selectColors[i % len]` swatches — making dest swatches drift from
+   *  source. See Column.ts:473-477,506-509 for the colour-fallback rule. */
   private async applyRetype(
     destContext: NcContext,
     cm: TableSyncColumnMappingType,
     newDestUidt: UITypes,
+    newSourceOptions?: { title: string; color?: string }[],
   ): Promise<void> {
     const destModel = await Model.get(destContext, cm.dest_table_id);
     if (!destModel) return;
@@ -303,16 +315,31 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
     if (!destCol?.id) return;
     if (destCol.uidt === newDestUidt) return;
 
+    const columnPayload: Record<string, any> = {
+      ...(destCol as any),
+      uidt: newDestUidt,
+      readonly: true,
+    };
+    if (
+      (newDestUidt === UITypesEnum.SingleSelect ||
+        newDestUidt === UITypesEnum.MultiSelect) &&
+      newSourceOptions?.length
+    ) {
+      columnPayload.colOptions = {
+        options: newSourceOptions.map((o) => {
+          const out: { title: string; color?: string } = { title: o.title };
+          if (o.color) out.color = o.color;
+          return out;
+        }),
+      };
+    }
+
     const req = buildSyncServiceReq(destContext);
     await this.columnsService.columnUpdate(
       { ...destContext, socket_id: null },
       {
         columnId: destCol.id,
-        column: {
-          ...(destCol as any),
-          uidt: newDestUidt,
-          readonly: true,
-        },
+        column: columnPayload,
         user: req.user,
         req,
         bypassSyncedFieldGuard: true,
@@ -322,13 +349,19 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
 
   /** Returns the action to take for this event, or null for no-ops:
    *  - `COLUMN_DELETED` → delete
-   *  - `COLUMN_UPDATED` with uidt change → retype
+   *  - `COLUMN_UPDATED` with uidt change → retype (carries newSourceOptions
+   *    when the source col is now Single/MultiSelect, so dest swatches match)
    *  - `COLUMN_UPDATED` with title-only diff → null (id matching covers it) */
   private resolveAction(
     param: MetaDependencyEventRequest,
   ):
     | { kind: 'delete'; sourceColumnId: string; oldTitle: string | undefined }
-    | { kind: 'retype'; sourceColumnId: string; newDestUidt: UITypes }
+    | {
+        kind: 'retype';
+        sourceColumnId: string;
+        newDestUidt: UITypes;
+        newSourceOptions?: { title: string; color?: string }[];
+      }
     | null {
     if (param.eventType === MetaEventType.COLUMN_DELETED) {
       const id = param.oldEntity?.id;
@@ -346,10 +379,38 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
       if (oldEntity.uidt === newEntity.uidt) return null;
       const newDestUidt = (REMAP_UIDTS[newEntity.uidt as UITypes] ??
         newEntity.uidt) as UITypes;
+
+      // Forward source's option list (incl. colors) when retyping to a Select
+      // type. `Column.get` (used to build `newEntity`) populates `colOptions`
+      // for Single/MultiSelect with `{ id, title, color, order }` per option.
+      let newSourceOptions: { title: string; color?: string }[] | undefined;
+      if (
+        newDestUidt === UITypesEnum.SingleSelect ||
+        newDestUidt === UITypesEnum.MultiSelect
+      ) {
+        const opts = (
+          newEntity.colOptions as
+            | { options?: { title?: string; color?: string | null }[] }
+            | undefined
+        )?.options;
+        if (Array.isArray(opts)) {
+          newSourceOptions = opts
+            .filter(
+              (o): o is { title: string; color?: string | null } => !!o?.title,
+            )
+            .map((o) => {
+              const out: { title: string; color?: string } = { title: o.title };
+              if (o.color) out.color = o.color;
+              return out;
+            });
+        }
+      }
+
       return {
         kind: 'retype',
         sourceColumnId: oldEntity.id,
         newDestUidt,
+        newSourceOptions,
       };
     }
     return null;

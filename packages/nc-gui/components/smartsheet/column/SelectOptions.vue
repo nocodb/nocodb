@@ -30,7 +30,7 @@ const { $e } = useNuxtApp()
 
 const { isDark, getColor } = useTheme()
 
-const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column, isSyncedField } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
@@ -509,7 +509,13 @@ if (!isKanbanStack.value) {
         </NcSwitch>
       </div>
 
-      <NcButton v-e="['c:field:select:alphabetize']" type="text" size="small" @click.stop="alphabetizeOptions">
+      <NcButton
+        v-e="['c:field:select:alphabetize']"
+        type="text"
+        size="small"
+        :disabled="isSyncedField"
+        @click.stop="alphabetizeOptions"
+      >
         <template #icon>
           <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
         </template>
@@ -537,7 +543,7 @@ if (!isKanbanStack.value) {
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
-              :disabled="isLoadingPredictOptions"
+              :disabled="isLoadingPredictOptions || isSyncedField"
               use-backdrop
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
@@ -577,7 +583,7 @@ if (!isKanbanStack.value) {
               placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
-              :disabled="isLoadingPredictOptions"
+              :disabled="isLoadingPredictOptions || isSyncedField"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
                   kanbanStackOption!.status = undefined
@@ -601,6 +607,7 @@ if (!isKanbanStack.value) {
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
+          :disabled="isSyncedField"
           @change="onDragReorder"
         >
           <template #item="{ element, index }">
@@ -618,7 +625,13 @@ if (!isKanbanStack.value) {
                   <component :is="iconMap.dragVertical" small class="handle" />
                 </div>
 
-                <NcDropdown v-if="isColorCodeEnabled" v-model:visible="colorMenus[index]" :auto-close="false" use-backdrop>
+                <NcDropdown
+                  v-if="isColorCodeEnabled"
+                  v-model:visible="colorMenus[index]"
+                  :auto-close="false"
+                  :disabled="isSyncedField"
+                  use-backdrop
+                >
                   <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                     <div
                       class="h-6 w-6 rounded flex items-center"
@@ -651,14 +664,14 @@ if (!isKanbanStack.value) {
                   v-model:value="element.title"
                   class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
                   :data-testid="`select-column-option-input-${index}`"
-                  :disabled="element.status === 'remove'"
+                  :disabled="element.status === 'remove' || isSyncedField"
                   @keydown.enter.prevent="element.title?.trim() && addNewOption()"
                   @change="optionChanged(element)"
                 />
               </div>
 
               <div
-                v-if="element.status !== 'remove'"
+                v-if="element.status !== 'remove' && !isSyncedField"
                 :data-testid="`select-column-option-remove-${index}`"
                 class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="removeRenderedOption(index)"
@@ -666,7 +679,7 @@ if (!isKanbanStack.value) {
                 <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
               </div>
               <div
-                v-else
+                v-else-if="element.status === 'remove' && !isSyncedField"
                 :data-testid="`select-column-option-remove-undo-${index}`"
                 class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
@@ -714,7 +727,7 @@ if (!isKanbanStack.value) {
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
     <div
-      v-if="!isKanbanStack"
+      v-if="!isKanbanStack && !isSyncedField"
       class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
@@ -763,7 +776,7 @@ if (!isKanbanStack.value) {
         </NcButton>
       </NcTooltip>
     </div>
-    <div v-else-if="!kanbanStackOption?.id" class="mt-2 pl-1">
+    <div v-else-if="!kanbanStackOption?.id && !isSyncedField" class="mt-2 pl-1">
       <NcTooltip v-if="isAiFeaturesEnabled" class="w-full" placement="bottom">
         <template #title>
           {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}

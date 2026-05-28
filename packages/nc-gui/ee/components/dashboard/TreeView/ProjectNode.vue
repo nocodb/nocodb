@@ -73,6 +73,8 @@ const currentUserRole = computed(() => {
 
 const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = useTablesStore()
 
+const { loadSyncs: loadTableSyncs } = useTableSyncStore()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { allRecentViews } = storeToRefs(useViewsStore())
@@ -264,6 +266,8 @@ const addNewProjectChildEntity = async (showSourceSelector = true) => {
     // Only con would be while saving table duplicate table name FE validation might not work
     // If the table list api takes time to load before the table name validation
     loadProjectTables(base.value.id!)
+
+    loadTableSyncs(base.value.id!)
   }
 
   try {
@@ -344,6 +348,8 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
       if (!isProjectPopulated) {
         await loadProjectTables(base.id!)
+        // Fire-and-forget — sync status is non-blocking UI metadata.
+        loadTableSyncs(base.id!)
       }
       break
     default:

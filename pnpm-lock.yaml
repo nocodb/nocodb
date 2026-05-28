@@ -109,8 +109,8 @@ overrides:
   glob@>=10.2.0 <10.5.0: '>=10.5.0'
   '@fastify/static@<=9.1.0': '>=9.1.1'
   '@nuxt/devtools@<2.6.4': '>=2.6.4'
-  '@xmldom/xmldom@<0.8.13': '>=0.8.13'
-  '@xmldom/xmldom@>=0.9.0 <0.9.10': '>=0.9.10'
+  '@xmldom/xmldom@<0.8.13': ~0.8.13
+  '@xmldom/xmldom@>=0.9.0 <0.9.10': ~0.9.10
   body-parser@>=2.2.0 <2.2.1: '>=2.2.1'
   brace-expansion@<=1.1.11: '>=1.1.12'
   brace-expansion@>=2.0.0 <2.0.3: '>=2.0.3'
@@ -10311,14 +10311,13 @@ packages:
     resolution: {integrity: sha512-CJDxIgE5I0FH+ttq/Fxy6nRpxP70+e2O048EPe85J2use3XKdatVM7dDVvFNjQudd9B49NPoZ+8PG49zj4Er8Q==}
     engines: {node: '>= 16'}
 
+  '@xmldom/xmldom@0.8.13':
+    resolution: {integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw==}
+    engines: {node: '>=10.0.0'}
+
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
-
-  '@xmldom/xmldom@0.9.8':
-    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
-    engines: {node: '>=14.6'}
-    deprecated: this version has critical issues, please update to the latest version
 
   '@xstate/vue@0.8.1':
     resolution: {integrity: sha512-m4Ejd08eUHzlTD7P6aGscwpjeHRXVZQ5iVyv5RxYi5WKoFqOMeurO2dxvI8QDfTxF27NqODj30LWYsMzZZ9lsg==}
@@ -29168,7 +29167,7 @@ snapshots:
       '@types/xml-encryption': 1.2.4
       '@types/xml2js': 0.4.14
       '@xmldom/is-dom-node': 1.0.1
-      '@xmldom/xmldom': 0.9.10
+      '@xmldom/xmldom': 0.8.13
       debug: 4.4.3
       xml-crypto: 6.1.2
       xml-encryption: 3.1.0
@@ -34323,9 +34322,9 @@ snapshots:
 
   '@xmldom/is-dom-node@1.0.1': {}
 
-  '@xmldom/xmldom@0.9.10': {}
+  '@xmldom/xmldom@0.8.13': {}
 
-  '@xmldom/xmldom@0.9.8': {}
+  '@xmldom/xmldom@0.9.10': {}
 
   '@xstate/vue@0.8.1(vue@3.5.14(typescript@5.8.3))(xstate@4.38.2)':
     dependencies:
@@ -39292,7 +39291,7 @@ snapshots:
 
   html-to-json-parser@2.0.1:
     dependencies:
-      '@xmldom/xmldom': 0.9.8
+      '@xmldom/xmldom': 0.8.13
 
   html-to-text@9.0.5:
     dependencies:
@@ -48529,12 +48528,12 @@ snapshots:
   xml-crypto@6.1.2:
     dependencies:
       '@xmldom/is-dom-node': 1.0.1
-      '@xmldom/xmldom': 0.9.10
+      '@xmldom/xmldom': 0.8.13
       xpath: 0.0.33
 
   xml-encryption@3.1.0:
     dependencies:
-      '@xmldom/xmldom': 0.9.10
+      '@xmldom/xmldom': 0.8.13
       escape-html: 1.0.3
       xpath: 0.0.32
 

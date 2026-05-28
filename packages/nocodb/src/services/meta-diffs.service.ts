@@ -428,9 +428,23 @@ export class MetaDiffsService {
       // skips creation while PKs are still missing, so this won't oscillate
       // — once the user re-flags `pk` (or the source schema gains a PK),
       // the next sync recreates the LTAR.
+      //
+      // Predict the post-sync pk state instead of reading only the stale
+      // NocoDB metadata. A column-prop-changed apply earlier in this same
+      // sync may set `pk:true` from what the sqlClient reports — without
+      // this prediction, the LTAR-removal flag would be raised in the same
+      // pass that's about to restore the pk, and the removal would still
+      // apply later, undoing the recovery.
       await parentModel.getColumns(context);
       await childModel.getColumns(context);
-      if (!parentModel.primaryKey || !childModel.primaryKey) {
+      const hasPostSyncPk = (model: Model): boolean => {
+        if (model.primaryKey) return true;
+        const dbCols = colListRef[model.table_name];
+        return !!(dbCols && dbCols.find((c: any) => c.pk));
+      };
+      const parentHasPk = hasPostSyncPk(parentModel);
+      const childHasPk = hasPostSyncPk(childModel);
+      if (!parentHasPk || !childHasPk) {
         const ownerModel = await relationCol.getModel(context);
         if (ownerModel) {
           const ownerTable = changes.find(
@@ -440,7 +454,7 @@ export class MetaDiffsService {
             ownerTable.detectedChanges.push({
               type: MetaDiffType.TABLE_RELATION_REMOVE,
               msg: `Relation removed (${
-                !parentModel.primaryKey ? 'parent' : 'child'
+                !parentHasPk ? 'parent' : 'child'
               } table has no primary key)`,
               colId: relationCol.id,
               column: relationCol,

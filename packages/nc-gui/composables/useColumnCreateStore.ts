@@ -413,6 +413,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             } as typeof updateData
           }
 
+          if (isSyncedField.value) {
+            updateData = {
+              meta: updateData.meta,
+              description: updateData.description,
+            } as typeof updateData
+          }
+
           try {
             oldCol = column.value
             await $api.internal.postOperation(

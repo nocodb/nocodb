@@ -1013,6 +1013,7 @@ export class TableSyncService {
           user: req.user,
           req,
           apiVersion: NcApiVersion.V3,
+          bypassSyncedFieldGuard: true,
         },
       );
     }
@@ -1915,6 +1916,7 @@ export class TableSyncService {
               user: req.user,
               req,
               apiVersion: NcApiVersion.V3,
+              bypassSyncedFieldGuard: true,
             },
           );
         }

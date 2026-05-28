@@ -65,7 +65,13 @@ const { isPg, isMysql } = useBase()
 const tempSelectedOptsState = reactive<SelectInputOptionType[]>([])
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
+  () =>
+    !isPublic.value &&
+    !disableOptionCreation &&
+    isUIAllowed('fieldEdit') &&
+    !isMetaReadOnly.value &&
+    !isForm.value &&
+    !column.value?.readonly,
 )
 
 const options = computed(() => {

@@ -514,6 +514,7 @@ export class SyncModuleService implements OnModuleInit {
                   user: req.user,
                   req,
                   apiVersion: NcApiVersion.V3,
+                  bypassSyncedFieldGuard: true,
                 },
               );
             }
@@ -941,6 +942,7 @@ export class SyncModuleService implements OnModuleInit {
                       forceUpdateSystem: true,
                       user: req.user,
                       req,
+                      bypassSyncedFieldGuard: true,
                     },
                   );
                 } else {

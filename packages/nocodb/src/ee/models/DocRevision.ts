@@ -186,6 +186,15 @@ export default class DocRevision implements DocumentRevisionType {
    * List revisions for a doc, newest first. Keyset paginated by
    * `(created_at, id)` — `id` is a stable tiebreaker for same-second writes.
    * Content is not included; use `get()` for the full payload.
+   *
+   * Does NOT apply the current plan's retention window — out-of-window
+   * revisions are still listed (metadata only) so the UI can render them as
+   * locked rows with an upgrade nudge. Content access is what that window
+   * gates — see `get()`/`restore()`.
+   *
+   * `maxAgeDays` is a separate HARD cutoff (the longest retention any plan
+   * offers): revisions older than it are dropped entirely, since no upgrade
+   * could ever surface them. Omit for no cutoff.
    */
   static async list(
     context: NcContext,
@@ -193,12 +202,7 @@ export default class DocRevision implements DocumentRevisionType {
     options: {
       limit?: number;
       before?: string;
-      /**
-       * Per-plan retention window. Revisions older than `now - retentionDays`
-       * are hidden from the result; set to `undefined` (or omit) for no
-       * filter. The pruning job uses the same window to hard-delete.
-       */
-      retentionDays?: number;
+      maxAgeDays?: number;
     } = {},
   ): Promise<DocRevision[]> {
     const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
@@ -226,12 +230,12 @@ export default class DocRevision implements DocumentRevisionType {
       );
 
     if (
-      options.retentionDays !== undefined &&
-      Number.isFinite(options.retentionDays) &&
-      options.retentionDays > 0
+      options.maxAgeDays !== undefined &&
+      Number.isFinite(options.maxAgeDays) &&
+      options.maxAgeDays > 0
     ) {
       const cutoff = new Date(
-        Date.now() - options.retentionDays * 86400000,
+        Date.now() - options.maxAgeDays * 86400000,
       ).toISOString();
       query.where('created_at', '>=', cutoff);
     }

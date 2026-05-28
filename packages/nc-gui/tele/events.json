@@ -219,6 +219,8 @@
     "c:doc:history:open": "Open document revision history from doc kebab menu",
     "c:doc:history:restore": "Click restore in doc revision history modal",
     "c:doc:history:select-version": "Select a revision row in doc revision history list",
+    "c:doc:history:select-locked-version": "Select a locked (out-of-retention) revision row in doc revision history list",
+    "c:doc:history:upgrade": "Click upgrade in doc revision history locked-revision panel",
     "c:doc:permissions": "Click document permissions menu item in doc topbar kebab",
     "c:doc:presence:visibility:toggle": "Toggle document presence visibility",
     "c:doc:share:open": "Click share button in doc topbar or kebab",

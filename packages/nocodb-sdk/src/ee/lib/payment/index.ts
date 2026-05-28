@@ -668,6 +668,30 @@ export function resolveOnPremPlanMeta(
 }
 
 // ---------------------------------------------------------------------------
+// getHighestPlan — top tier for a deployment mode, with resolved meta
+// ---------------------------------------------------------------------------
+// Cloud and on-prem have separate plan ladders, so pass `isOnPrem` to pick the
+// right one. Returns the highest tier (max plan order) plus its fully resolved
+// feature/limit meta — use it for "the most any plan offers" checks, e.g. the
+// longest doc revision retention beyond which history is permanently cut off.
+export function getHighestPlan(isOnPrem = false): {
+  title: PlanTitles | OnPremPlanTitles;
+  meta: Record<string, number | boolean>;
+} {
+  if (isOnPrem) {
+    const title = (Object.keys(OnPremPlanOrder) as OnPremPlanTitles[]).reduce(
+      (top, t) => (OnPremPlanOrder[t] > OnPremPlanOrder[top] ? t : top)
+    );
+    return { title, meta: resolveOnPremPlanMeta(title) };
+  }
+
+  const title = (Object.keys(PlanOrder) as PlanTitles[]).reduce((top, t) =>
+    PlanOrder[t] > PlanOrder[top] ? t : top
+  );
+  return { title, meta: resolvePlanMeta(title) };
+}
+
+// ---------------------------------------------------------------------------
 // LICENSE_REQUIRED_OPS → PlanFeatureTypes mapping for on-prem
 // ---------------------------------------------------------------------------
 // Maps internal controller operation names to PlanFeatureTypes.

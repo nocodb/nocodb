@@ -9,6 +9,12 @@ export interface DocumentRevisionV3ListItemType {
   created_by?: string;
   source: DocRevisionSource;
   created_at: string;
+  /**
+   * True when this revision is older than the plan's retention window.
+   * Its content can't be fetched or restored — the UI renders it as a
+   * locked row with an upgrade nudge.
+   */
+  locked: boolean;
 }
 
 export interface DocumentRevisionV3Type extends DocumentRevisionV3ListItemType {
@@ -29,6 +35,7 @@ export interface DocumentRevisionV3ListResponseType {
 
 export function toDocumentRevisionV3ListItem(
   rev: DocRevision,
+  locked = false,
 ): DocumentRevisionV3ListItemType {
   return {
     id: rev.id!,
@@ -38,6 +45,7 @@ export function toDocumentRevisionV3ListItem(
     created_by: rev.created_by,
     source: rev.source!,
     created_at: rev.created_at!,
+    locked,
   };
 }
 

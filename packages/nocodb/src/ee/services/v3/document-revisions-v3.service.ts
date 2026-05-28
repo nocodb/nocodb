@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, DocRevisionSource, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  DocRevisionSource,
+  getHighestPlan,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DocumentRevisionV3ListResponseType,
   DocumentRevisionV3Type,
 } from '~/services/v3/document-revisions-v3.types';
 import type { DocumentV3Type } from '~/services/v3/documents-v3.types';
+import { isOnPrem } from '~/utils';
 import {
   toDocumentRevisionV3,
   toDocumentRevisionV3ListItem,
@@ -45,6 +51,25 @@ export class DocumentRevisionsV3Service {
   }
 
   /**
+   * The longest retention any plan offers — the hard cutoff beyond which
+   * revisions are dropped from the response entirely. Versions older than this
+   * can never be unlocked by upgrading, so there's no point returning them.
+   * Returns `undefined` if any plan grants unlimited retention (then nothing
+   * is cut off).
+   */
+  private resolveMaxRetentionDays(): number | undefined {
+    // Longest retention the top tier offers, for the active deployment mode
+    // (cloud vs on-prem ladders differ).
+    const days = Number(
+      getHighestPlan(isOnPrem).meta[
+        PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS
+      ],
+    );
+    // -1 / unset on the top plan means unlimited — no hard cutoff.
+    return Number.isFinite(days) && days > 0 ? days : undefined;
+  }
+
+  /**
    * List revisions for a doc, newest first. `before` is an opaque cursor
    * round-tripped from `nextCursor`. Content is not included in list items.
    */
@@ -69,11 +94,21 @@ export class DocumentRevisionsV3Service {
 
     const retentionDays = await this.resolveRetentionDays(context);
 
-    // Fetch one extra row to detect whether a next page exists.
+    // Hard cutoff: when the current plan caps retention, drop revisions older
+    // than the longest retention ANY plan offers — no upgrade can surface them,
+    // so they're not returned at all (not even as locked rows). When the
+    // current plan is unlimited (retentionDays === undefined) nothing is cut.
+    const maxRetentionDays =
+      retentionDays !== undefined ? this.resolveMaxRetentionDays() : undefined;
+
+    // Fetch one extra row to detect whether a next page exists. Rows between the
+    // current plan's window and the cutoff come back flagged as locked so the
+    // UI can render them with an upgrade nudge; content stays gated in
+    // get()/restore().
     const rows = await DocRevision.list(context, param.docId, {
       limit: limit + 1,
       before: param.before,
-      retentionDays,
+      maxAgeDays: maxRetentionDays,
     });
 
     const hasMore = rows.length > limit;
@@ -82,8 +117,19 @@ export class DocumentRevisionsV3Service {
       ? DocRevision.encodeCursor(page[page.length - 1])
       : '';
 
+    // Flag rows outside the plan's retention window. Uses the same cutoff
+    // get()/restore() enforce, so lock state and content-access always agree.
+    const cutoffMs =
+      retentionDays !== undefined
+        ? Date.now() - retentionDays * 86400000
+        : null;
+    const isLocked = (rev: DocRevision): boolean =>
+      cutoffMs !== null &&
+      !!rev.created_at &&
+      new Date(rev.created_at).getTime() < cutoffMs;
+
     return {
-      list: page.map(toDocumentRevisionV3ListItem),
+      list: page.map((rev) => toDocumentRevisionV3ListItem(rev, isLocked(rev))),
       nextCursor,
       retentionDays: retentionDays ?? null,
     };

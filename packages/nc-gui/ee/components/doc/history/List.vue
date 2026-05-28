@@ -123,7 +123,7 @@ function onSelect(rev: DocRevisionListItem) {
         :mouse-enter-delay="0.4"
       >
         <div
-          v-e="['c:doc:history:select-version']"
+          v-e="[rev.locked ? 'c:doc:history:select-locked-version' : 'c:doc:history:select-version']"
           class="nc-doc-history-row"
           :class="{
             'nc-doc-history-row-active': selectedRevisionId === rev.id,
@@ -143,6 +143,12 @@ function onSelect(rev: DocRevisionListItem) {
               <template v-else>{{ actionLabel(rev) }}</template>
             </div>
           </div>
+          <!-- Locked: revision predates the plan's retention window. -->
+          <GeneralIcon
+            v-if="rev.locked"
+            icon="ncLock"
+            class="nc-doc-history-lock flex-none w-3.5 h-3.5 mt-1 text-nc-content-gray-muted"
+          />
         </div>
       </NcTooltip>
 

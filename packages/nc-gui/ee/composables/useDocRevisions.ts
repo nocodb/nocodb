@@ -14,6 +14,12 @@ export interface DocRevisionListItem {
   created_by_meta?: Record<string, any> | null
   source: DocRevisionSource
   created_at: string
+  /**
+   * True when this revision predates the plan's retention window. Its content
+   * can't be fetched — the list shows it with a lock icon and clicking it
+   * surfaces the upgrade panel instead of the diff viewer.
+   */
+  locked: boolean
 }
 
 export interface DocRevisionFull extends DocRevisionListItem {
@@ -55,6 +61,14 @@ export const useDocRevisions = createSharedComposable(() => {
   const selectedRevisionContent = ref<DocRevisionFull | null>(null)
   const isLoadingSelected = ref(false)
   const isRestoring = ref(false)
+
+  // True when the selected revision is locked (outside the retention window).
+  // The modal swaps the diff viewer for the upgrade panel and disables Restore.
+  const selectedRevisionLocked = ref(false)
+
+  // created_at of the selected locked revision — lets the upgrade panel compute
+  // its age and name the lowest plan whose retention would cover it.
+  const selectedRevisionCreatedAt = ref<string | null>(null)
 
   // Diff state — paired with the selected revision. We always compare to
   // the chronologically prior revision; the basis selector + highlight toggle
@@ -164,8 +178,11 @@ export const useDocRevisions = createSharedComposable(() => {
   function resolveComparisonRevisionId(selectedId: string): string | null {
     const idx = revisions.value.findIndex((r) => r.id === selectedId)
     if (idx < 0) return null
+    // The chronologically prior revision. If it's locked (outside the
+    // retention window) its content can't be fetched, so there's nothing to
+    // diff against — the selected revision renders without highlights.
     const prev = revisions.value[idx + 1]
-    return prev?.id ?? null
+    return prev && !prev.locked ? prev.id : null
   }
 
   // Monotonic ticket — incremented on each selectRevision call so that a
@@ -202,8 +219,20 @@ export const useDocRevisions = createSharedComposable(() => {
     comparisonTitle.value = null
     diffChangeCount.value = 0
     currentChangeIndex.value = 0
+    selectedRevisionLocked.value = false
+    selectedRevisionCreatedAt.value = null
 
     if (!revisionId || !activeDocId.value) return
+
+    // Locked revisions are outside the plan's retention window — their content
+    // is gated server-side. Skip the fetch and flag it so the modal swaps the
+    // diff viewer for the upgrade panel.
+    const item = revisions.value.find((r) => r.id === revisionId)
+    if (item?.locked) {
+      selectedRevisionLocked.value = true
+      selectedRevisionCreatedAt.value = item.created_at
+      return
+    }
 
     try {
       isLoadingSelected.value = true
@@ -294,6 +323,8 @@ export const useDocRevisions = createSharedComposable(() => {
     hasMore.value = false
     selectedRevisionId.value = null
     selectedRevisionContent.value = null
+    selectedRevisionLocked.value = false
+    selectedRevisionCreatedAt.value = null
     comparisonContent.value = null
     comparisonTitle.value = null
     diffChangeCount.value = 0
@@ -308,6 +339,8 @@ export const useDocRevisions = createSharedComposable(() => {
     hasMore,
     selectedRevisionId,
     selectedRevisionContent,
+    selectedRevisionLocked,
+    selectedRevisionCreatedAt,
     isLoadingSelected,
     isRestoring,
     comparisonContent,

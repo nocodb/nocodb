@@ -16,6 +16,8 @@ export interface DocumentRevisionType {
   created_by?: string;
   fk_tab_id?: string;
   source?: DocRevisionSource;
+  /** True when older than the plan's retention window — content is gated. */
+  locked?: boolean;
   created_at?: string;
   updated_at?: string;
 }

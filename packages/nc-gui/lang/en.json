@@ -1380,7 +1380,13 @@
   "labels": {
     "docHistory": {
       "title": "Version history",
-      "retention": "Versions are kept for {count} day on your plan. | Versions are kept for {count} days on your plan.",
+      "lockedTitle": "{count} day page history",
+      "lockedDescWithPlan": "Please upgrade to the {plan} plan to access versions older than {count} day. | Please upgrade to the {plan} plan to access versions older than {count} days.",
+      "lockedDescGeneric": "Upgrade your plan to access versions older than {count} day. | Upgrade your plan to access versions older than {count} days.",
+      "lockedDescOnPrem": "Enter your license key to access versions older than {count} day. | Enter your license key to access versions older than {count} days.",
+      "upgradeNow": "Upgrade now",
+      "retentionByPlanTitle": "Version history by plan",
+      "retentionByPlanDays": "{count} day | {count} days",
       "previewEmptyTitle": "Select a version to preview",
       "previewEmptySubtitle": "Pick one from the list on the right to see the page as it was at that point. Changes against the current version are highlighted inline.",
       "currentVersion": "Current version · {author}",

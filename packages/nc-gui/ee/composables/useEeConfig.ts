@@ -13,6 +13,7 @@ import {
   PlanLimitTypes,
   PlanTitles,
   getUpgradeMessage,
+  resolveOnPremPlanMeta as sdkResolveOnPremPlanMeta,
   resolvePlanMeta as sdkResolvePlanMeta,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
@@ -1280,6 +1281,34 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  // Document revision retention ladder — [{ title, days }] sorted ascending by
+  // each plan's retention cap. Mode-aware: cloud uses CloudPlanDefinitions
+  // (Free 3 · Plus 30 · Business 90 · Enterprise 365), on-prem uses
+  // OnPremPlanDefinitions (Free 3 · Self-hosted Business 90 · Scale 180 ·
+  // Enterprise 365). Drives the per-revision required plan and the retention-
+  // by-plan reference rendered in the upgrade panel.
+  const revisionRetentionLadder = computed<{ title: PlanTitles | OnPremPlanTitles; days: number }[]>(() => {
+    const titles: (PlanTitles | OnPremPlanTitles)[] = isOnPrem.value
+      ? (Object.values(OnPremPlanTitles) as OnPremPlanTitles[])
+      : (Object.values(PlanTitles) as PlanTitles[])
+    const resolveMeta = isOnPrem.value ? sdkResolveOnPremPlanMeta : sdkResolvePlanMeta
+    return titles
+      .map((title) => ({
+        title,
+        days: Number(resolveMeta(title)?.[PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]),
+      }))
+      .filter((p) => Number.isFinite(p.days) && p.days > 0)
+      .sort((a, b) => a.days - b.days)
+  })
+
+  // Lowest plan whose retention covers a revision of the given age (in days) —
+  // the plan the user must upgrade to in order to view it. null when no plan
+  // covers it (older than every plan's cap). Mode-aware: returns a cloud tier
+  // on cloud, an on-prem tier on on-prem.
+  const requiredPlanForRevisionAge = (ageDays: number): PlanTitles | OnPremPlanTitles | null => {
+    return revisionRetentionLadder.value.find((p) => p.days >= ageDays)?.title ?? null
+  }
+
   const showScriptPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewScript.value) return
 
@@ -2402,6 +2431,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,
     showUpgradeToUseDocsExportPdf,
+    revisionRetentionLadder,
+    requiredPlanForRevisionAge,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

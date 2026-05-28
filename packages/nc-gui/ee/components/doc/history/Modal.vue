@@ -15,6 +15,7 @@ const emit = defineEmits<{
 const {
   selectedRevisionId,
   selectedRevisionContent,
+  selectedRevisionLocked,
   isLoadingSelected,
   isRestoring,
   comparisonContent,
@@ -27,16 +28,10 @@ const {
   prevChange,
   reset,
   retentionDays,
+  selectedRevisionCreatedAt,
 } = useDocRevisions()
 
 const { t } = useI18n()
-
-// Banner copy for the retention window. `null` retentionDays means
-// unlimited (Enterprise / certain on-prem tiers) — render nothing.
-const retentionLabel = computed(() => {
-  if (retentionDays.value === null) return ''
-  return t('labels.docHistory.retention', { count: retentionDays.value }, retentionDays.value)
-})
 
 interface TitleSeg {
   type: 'eq' | 'ins' | 'del'
@@ -213,7 +208,13 @@ async function onRestore() {
            comfortable reading width (772px) and centred — matches what the
            user sees outside history mode. -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin bg-nc-bg-default">
-        <div v-if="isLoadingSelected" class="flex items-center justify-center min-h-[400px]">
+        <!-- Locked revision (outside retention window): upsell instead of content. -->
+        <DocHistoryUpgradePanel
+          v-if="selectedRevisionLocked"
+          :retention-days="retentionDays"
+          :created-at="selectedRevisionCreatedAt"
+        />
+        <div v-else-if="isLoadingSelected" class="flex items-center justify-center min-h-[400px]">
           <GeneralLoader size="xlarge" />
         </div>
         <div
@@ -257,17 +258,6 @@ async function onRestore() {
           </NcButton>
         </div>
 
-        <!-- Plan-retention banner. Suppressed when retention is unlimited.
-             Sits between the header and the list so users see it before
-             scanning for an older revision that may have been pruned. -->
-        <div
-          v-if="retentionLabel"
-          class="px-4 py-2 text-xs text-nc-content-gray-muted bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium flex-none"
-          data-testid="nc-doc-history-retention-banner"
-        >
-          {{ retentionLabel }}
-        </div>
-
         <!-- List (scrollable middle) -->
         <div class="flex-1 overflow-hidden">
           <DocHistoryList v-if="props.visible" :doc-id="props.docId" />
@@ -296,7 +286,7 @@ async function onRestore() {
             size="small"
             type="primary"
             :loading="isRestoring"
-            :disabled="!selectedRevisionId || isSelectedCurrentVersion"
+            :disabled="!selectedRevisionId || isSelectedCurrentVersion || selectedRevisionLocked"
             class="!px-5"
             data-testid="nc-doc-history-restore-btn"
             @click="onRestore"

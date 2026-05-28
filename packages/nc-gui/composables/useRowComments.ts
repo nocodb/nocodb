@@ -79,8 +79,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
           resolved_display_name: resolvedUser?.display_name,
           resolved_display_name_short: resolvedUser?.display_name ?? extractNameFromEmail(resolvedUser?.email),
-          created_by_meta: (user as { meta?: any })?.meta,
-          resolved_by_meta: (resolvedUser as { meta?: any })?.meta,
+          created_by_meta: user?.meta,
+          resolved_by_meta: resolvedUser?.meta,
         }
       })
     } catch (e: unknown) {

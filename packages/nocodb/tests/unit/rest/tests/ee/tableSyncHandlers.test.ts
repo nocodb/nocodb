@@ -435,6 +435,150 @@ function tableSyncHandlerTests() {
         );
         expect(after?.selected_fields ?? null).to.eq(null);
       });
+
+      /**
+       * Select option colours must flow from source → dest at sync-create
+       * time. Pre-fix `toDestColumnDef` stripped `color` from each option, so
+       * `Column.insert` fell back to `selectColors[i % len]` on the dest and
+       * the swatches drifted from the source. The colours here are deliberate
+       * RGB primaries not present in `enumColors.light` so any default-palette
+       * fallback would be visible.
+       */
+      it('source select option colours flow through to dest on sync-create', async () => {
+        const SOURCE_OPTIONS = [
+          { title: 'Red', color: '#ff0000' },
+          { title: 'Green', color: '#00ff00' },
+          { title: 'Blue', color: '#0000ff' },
+        ];
+
+        await createColumn(context, sourceTable, {
+          title: 'Priority',
+          uidt: UITypes.SingleSelect,
+          column_name: 'priority',
+          dt: 'text',
+          colOptions: { options: SOURCE_OPTIONS },
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'SelectColourCarry',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+
+        const destCol = await getDestCol(destTableId, 'Priority');
+        expect(destCol, 'dest Priority col should exist').to.exist;
+        expect(destCol!.uidt).to.eq(UITypes.SingleSelect);
+
+        const opts: any = await (destCol as any).getColOptions({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const destOptions: { title: string; color: string }[] = (
+          opts?.options ?? []
+        ).map((o: any) => ({ title: o.title, color: o.color }));
+
+        // Compare unordered by title — dest ordering is implementation-defined,
+        // but every source option must have an identically-coloured dest twin.
+        for (const src of SOURCE_OPTIONS) {
+          const match = destOptions.find((o) => o.title === src.title);
+          expect(
+            match,
+            `dest should have option "${src.title}"`,
+          ).to.exist;
+          expect(
+            match!.color,
+            `dest option "${src.title}" should keep source colour`,
+          ).to.eq(src.color);
+        }
+      });
+
+      /**
+       * Same colour invariant as above, but for the retype path: source Text
+       * is flipped to SingleSelect with custom-coloured options AFTER the sync
+       * already exists. Pre-fix `applyRetype` called `columnUpdate` with no
+       * `colOptions`, so the dest re-derived options from dest text data and
+       * gave them `selectColors[i % len]` colours — drifting from source.
+       *
+       * Now `applyRetype` forwards `param.newEntity.colOptions.options` (incl.
+       * `color`) so the source-defined swatches survive the retype.
+       */
+      it('source Text → Select retype carries option colours to dest', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Stage',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'RetypeColourCarry',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+
+        const initialDestCol = await getDestCol(destTableId, 'Stage');
+        expect(initialDestCol).to.exist;
+        expect(initialDestCol!.uidt).to.eq(UITypes.SingleLineText);
+
+        const SOURCE_OPTIONS = [
+          { title: 'Todo', color: '#ff0000' },
+          { title: 'Doing', color: '#00ff00' },
+          { title: 'Done', color: '#0000ff' },
+        ];
+
+        // Convert source col Text → SingleSelect with explicit per-option
+        // colours. The source-side text-to-select branch merges any DISTINCT
+        // data values on top, but Stage has no rows so options stay exactly
+        // as provided.
+        const refreshedSource = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const stageCol = refreshedSource!.columns!.find(
+          (c) => c.title === 'Stage',
+        );
+        await updateColumn(context, {
+          table: sourceTable,
+          column: stageCol as any,
+          attr: {
+            uidt: UITypes.SingleSelect,
+            colOptions: { options: SOURCE_OPTIONS },
+          },
+        });
+
+        // Wait for the dest col to flip uidt.
+        await waitFor('dest col retyped to SingleSelect', async () => {
+          const col = await getDestCol(destTableId, 'Stage');
+          return col?.uidt === UITypes.SingleSelect ? col : null;
+        });
+
+        const destCol = await getDestCol(destTableId, 'Stage');
+        const opts: any = await (destCol as any).getColOptions({
+          workspace_id: workspaceId,
+          base_id: destBase.id,
+        });
+        const destOptions: { title: string; color: string }[] = (
+          opts?.options ?? []
+        ).map((o: any) => ({ title: o.title, color: o.color }));
+
+        for (const src of SOURCE_OPTIONS) {
+          const match = destOptions.find((o) => o.title === src.title);
+          expect(
+            match,
+            `dest should have retyped option "${src.title}"`,
+          ).to.exist;
+          expect(
+            match!.color,
+            `dest option "${src.title}" should keep source colour after retype`,
+          ).to.eq(src.color);
+        }
+      });
     });
 
     describe('column-add handler', () => {

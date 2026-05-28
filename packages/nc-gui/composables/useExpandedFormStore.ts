@@ -271,7 +271,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
               created_display_name: user?.display_name,
               created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
               created_by_email: user?.email,
-              created_by_meta: (user as { meta?: any })?.meta,
+              created_by_meta: user?.meta,
             }
           }),
         )

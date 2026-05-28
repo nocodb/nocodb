@@ -608,20 +608,6 @@ export class TableSyncService {
     }
   }
 
-  /** Convenience wrapper around `resolveUniqueDestColumnName` for source-col
-   *  inputs — derives the candidate from `sourceCol.title` /
-   *  `sourceCol.column_name`. */
-  private pickUniqueDestColumnName(
-    destColumns: { title?: string | null; column_name?: string | null }[],
-    sourceCol: ColumnType,
-  ): { title: string; column_name: string } {
-    return this.resolveUniqueDestColumnName(destColumns, {
-      title: sourceCol.title!,
-      column_name:
-        sourceCol.column_name ?? sanitizeColumnName(sourceCol.title!),
-    });
-  }
-
   /** Dedupe an array of synced column defs (used at `tableCreate` time before
    *  the dest table exists, so we can't ask the DB for taken slots — we
    *  carry-forward a running "seen" set instead). Each def whose `title` or
@@ -1482,6 +1468,14 @@ export class TableSyncService {
       // views need separate shadows (different filter / visibility set).
       const shadowByLinkedKey = new Map<string, string>();
 
+      // Per-dest-table source-title → dest-title remap captured at dedupe
+      // time. `dedupeSyncedColumnDefs` may rename a column on the dest when
+      // its sanitized column_name collides with a prior sibling (even if
+      // titles differ) — the remap lets `writeColumnMappingsForTableMapping`
+      // pair source ↔ dest cols by the renamed dest title instead of by
+      // source title equality. Keyed by dest table id.
+      const remapByDestTableId = new Map<string, Map<string, string>>();
+
       for (const col of sourceTable.columns ?? []) {
         if (col.system || !col.title || !col.uidt) continue;
         if (SYSTEM_REMOTE_TITLES.has(col.title)) continue;
@@ -1667,16 +1661,31 @@ export class TableSyncService {
             linkedColumns.push(toDestColumnDef(lcol));
           }
 
+          const dedupedLinkedColumns =
+            this.dedupeSyncedColumnDefs(linkedColumns);
+          const linkedColumnTitleRemap = new Map<string, string>();
+          for (let i = 0; i < linkedColumns.length; i++) {
+            const before = linkedColumns[i];
+            const after = dedupedLinkedColumns[i];
+            if (before.title !== after.title && before.title) {
+              linkedColumnTitleRemap.set(before.title, after.title!);
+            }
+          }
+
           const linkedDest = await this.createDestinationTable(
             context,
             destBaseId,
             {
               title: linkedTable.title || linkedTable.id!,
-              columns: this.dedupeSyncedColumnDefs(linkedColumns),
+              columns: dedupedLinkedColumns,
             },
             req,
           );
           createdDestIds.push(linkedDest.id);
+
+          if (linkedColumnTitleRemap.size) {
+            remapByDestTableId.set(linkedDest.id, linkedColumnTitleRemap);
+          }
 
           await TableSyncMapping.insert(context, {
             fk_table_sync_id: sync.id,
@@ -1742,6 +1751,10 @@ export class TableSyncService {
         req,
       );
       createdDestIds.push(mainDest.id);
+
+      if (mainColumnTitleRemap.size) {
+        remapByDestTableId.set(mainDest.id, mainColumnTitleRemap);
+      }
 
       const mainRemoteIdColId = mainDest.columns?.find(
         (c) => c.title === 'RemoteId',
@@ -1935,12 +1948,16 @@ export class TableSyncService {
 
       // All dest tables + TableSyncMappings exist now — write per-column
       // mappings so source-side events (rename, type change, delete) can
-      // find their dest cols by id rather than title.
+      // find their dest cols by id rather than title. Pass any dedupe
+      // remap so cols renamed at create time still pair source ↔ dest.
       const fullSync = await TableSync.get(context, sync.id);
       if (fullSync) {
         for (const m of fullSync.mappings ?? []) {
           if (m.role === TableSyncMappingRole.Junction) continue;
-          await this.writeColumnMappingsForTableMapping(m);
+          await this.writeColumnMappingsForTableMapping(
+            m,
+            remapByDestTableId.get(m.dest_table_id),
+          );
         }
       }
 
@@ -2211,8 +2228,22 @@ export class TableSyncService {
    *  time (no other identifier has been written yet). After this run, all
    *  subsequent lookups go through `source_column_id`, which survives
    *  source-side renames. */
+  /** Title-keyed source→dest column mapping writer.
+   *
+   *  `sourceTitleToDestTitle` carries forward any renames that happened on
+   *  the dest at creation time (see `dedupeSyncedColumnDefs` —
+   *  `resolveUniqueDestColumnName` bumps both `title` and `column_name`
+   *  when EITHER collides, so two source cols with different titles whose
+   *  sanitized `column_name`s collide produce a dest col whose title no
+   *  longer matches the source). Without this remap, the title-equality
+   *  lookup below would silently drop those mappings — leaving the renamed
+   *  source col unmapped and subsequent rename/type/delete events on it
+   *  with no dest col to apply against. `reconcileFields` handles the
+   *  equivalent live-sync case by inserting the mapping inline
+   *  (`table-sync.service.ts:469-486`). */
   private async writeColumnMappingsForTableMapping(
     mapping: TableSyncMapping,
+    sourceTitleToDestTitle?: Map<string, string>,
   ): Promise<void> {
     if (!mapping.source_table_id) return; // Junction — no source
 
@@ -2250,7 +2281,12 @@ export class TableSyncService {
         continue;
       }
 
-      const destCol = destByTitle.get(sourceCol.title);
+      // Honor any rename applied by `dedupeSyncedColumnDefs` at create
+      // time — the dest col may live under a different title than the
+      // source.
+      const lookupTitle =
+        sourceTitleToDestTitle?.get(sourceCol.title) ?? sourceCol.title;
+      const destCol = destByTitle.get(lookupTitle);
       if (!destCol?.id) continue;
 
       // User-created dest col happens to share the source title — the rename branch in reconcileFields already

@@ -816,17 +816,11 @@ onMounted(async () => {
                 <GeneralIcon icon="alertTriangle" class="text-nc-content-red h-4 w-4 mt-0.5 flex-none" />
                 <div class="flex flex-col gap-1 min-w-0">
                   <div class="text-bodyDefaultSm font-weight-600 text-nc-content-gray">
-                    {{
-                      sourceTableMissing
-                        ? $t('msg.error.syncSourceTableDeleted')
-                        : $t('msg.error.syncMainMappingMissing')
-                    }}
+                    {{ sourceTableMissing ? $t('msg.error.syncSourceTableDeleted') : $t('msg.error.syncMainMappingMissing') }}
                   </div>
                   <div class="text-bodySm text-nc-content-gray-muted">
                     {{
-                      sourceTableMissing
-                        ? $t('msg.error.syncSourceTableDeletedDesc')
-                        : $t('msg.error.syncMainMappingMissingDesc')
+                      sourceTableMissing ? $t('msg.error.syncSourceTableDeletedDesc') : $t('msg.error.syncMainMappingMissingDesc')
                     }}
                   </div>
                 </div>
@@ -1085,20 +1079,21 @@ onMounted(async () => {
                       @click="toggleField(field)"
                     >
                       <div class="flex items-center gap-2 min-w-0 flex-1">
-                        <NcCheckbox
-                          :checked="isFieldChecked(field.title)"
-                          :disabled="field.locked"
-                          @click.stop
-                          @change="toggleField(field)"
-                        />
+                        <NcTooltip :disabled="!field.locked || !field.lockReason" :title="field.lockReason" placement="top">
+                          <span class="inline-flex">
+                            <NcCheckbox
+                              :checked="isFieldChecked(field.title)"
+                              :disabled="field.locked"
+                              @click.stop
+                              @change="toggleField(field)"
+                            />
+                          </span>
+                        </NcTooltip>
                         <SmartsheetHeaderIcon :column="field.column" class="flex-none !mx-0 !text-nc-content-gray-muted" />
                         <NcTooltip show-on-truncate-only class="truncate text-caption text-nc-content-gray">
                           {{ field.title }}
                         </NcTooltip>
                       </div>
-                      <NcTooltip v-if="field.locked && field.lockReason" :title="field.lockReason" placement="left">
-                        <GeneralIcon icon="lock" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-                      </NcTooltip>
                     </div>
 
                     <div v-if="field.linkedTableId && isFieldChecked(field.title)" class="pl-7 flex flex-col gap-1" @click.stop>

@@ -255,6 +255,15 @@ export const extractUserDisplayNameOrEmail = (user?: UserType | Record<string, s
 }
 
 /**
+ * The subset of `UserType` audit/comment feeds read off a resolved user.
+ * `meta` is included even though `NOCO_SERVICE_USERS` literals never carry
+ * one — `meta?: MetaType` is optional on `UserType`, so the literal still
+ * structurally satisfies this type, AND it lets callers `?.meta` without
+ * a cast when unioning with a real `baseUsers` entry.
+ */
+export type ResolvedUserLike = Pick<UserType, 'id' | 'email' | 'display_name' | 'meta'>
+
+/**
  * Resolves a built-in NocoDB service user (sync, automation, workflow, trash-cleanup)
  * by id or email. Returns `undefined` if no match.
  *
@@ -262,7 +271,7 @@ export const extractUserDisplayNameOrEmail = (user?: UserType | Record<string, s
  * feeds need this fallback to render `display_name` (e.g. "NocoDB Sync") instead of
  * the raw service email (e.g. "sync-service@nocodb.com").
  */
-export const findServiceUser = (idOrEmail?: string | null) => {
+export const findServiceUser = (idOrEmail?: string | null): ResolvedUserLike | undefined => {
   if (!idOrEmail) return undefined
 
   return Object.values(NOCO_SERVICE_USERS).find((su) => su.id === idOrEmail || su.email === idOrEmail)

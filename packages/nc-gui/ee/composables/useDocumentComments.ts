@@ -124,8 +124,8 @@ export const useDocumentComments = createSharedComposable(() => {
       created_display_name_short: creator?.display_name ?? extractNameFromEmail(creator?.email),
       resolved_display_name: resolver?.display_name,
       resolved_display_name_short: resolver?.display_name ?? extractNameFromEmail(resolver?.email),
-      created_by_meta: (creator as { meta?: any })?.meta,
-      resolved_by_meta: (resolver as { meta?: any })?.meta,
+      created_by_meta: creator?.meta,
+      resolved_by_meta: resolver?.meta,
     }
   }
 

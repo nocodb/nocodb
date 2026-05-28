@@ -12,6 +12,17 @@ export function getAliasGenerator(prefix = '__nc_') {
 export const ROOT_ALIAS = '__nc_root';
 
 /**
+ * Alias used by nested-list paths (hmList / mmList / btList) when they
+ * wrap a pre-filtered base query as `qb.as(SOURCE_ALIAS)` to give
+ * `listQueryEnrichment` a derived-table source. Wrapping isolates the
+ * pagination/outer-sort layer from the inner filter/formula scope on
+ * dialects that accept ORDER BY inside a derived table (pg, mysql,
+ * sqlite). Mssql doesn't accept that and skips the wrap entirely —
+ * see the caller in `data-alias-nested.service.ts`.
+ */
+export const SOURCE_ALIAS = 'source_qb';
+
+/**
  * Calculate a 32 bit FNV-1a hash
  * Found here: https://gist.github.com/vaiorabbit/5657561
  * Ref.: http://isthe.com/chongo/tech/comp/fnv/

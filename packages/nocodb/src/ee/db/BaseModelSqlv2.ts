@@ -54,7 +54,7 @@ import type {
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { DisplacedRecord, LinkChange } from '~/command-registry/types';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 // import type { SelectOption } from '~/models';
@@ -323,16 +323,49 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    let data;
-
-    if (this.dbDriver.isExternal) {
-      data = await runExternal(this.sanitizeQuery(query), this.dbDriver.extDb);
-    } else {
-      data = await this.execAndGetRows(query);
+    // TEMP MSSQL debug: log every query + surface the exact one that throws.
+    if (this.isMssql) {
+      // eslint-disable-next-line no-console
+      console.log('[MSSQL-EXEC-DEBUG] query:', query);
     }
 
+    let data;
+    try {
+      if (this.dbDriver.isExternal) {
+        data = await runExternal(
+          this.sanitizeQuery(query),
+          this.dbDriver.extDb,
+        );
+      } else {
+        data = await this.execAndGetRows(query);
+      }
+    } catch (e) {
+      if (this.isMssql) {
+        // eslint-disable-next-line no-console
+        console.error(
+          '[MSSQL-EXEC-DEBUG] FAILED query:\n',
+          query,
+          '\n  error:',
+          e?.message,
+        );
+      }
+      throw e;
+    }
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);
+    }
+
+    // MSSQL preprocessing — applied BEFORE every converter so the rest of the
+    // pipeline sees the same shape pg produces. Skipped for raw / bulkAggregate
+    // paths (those bypass the converter pipeline entirely).
+    if (
+      this.isMssql &&
+      !options.raw &&
+      !options.bulkAggregate &&
+      Array.isArray(data) &&
+      data.length
+    ) {
+      data = await this.preProcessMssqlRows(data, dependencyColumns);
     }
 
     // we need to post process lookup fields based on the looked up column instead of the lookup column
@@ -424,6 +457,179 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return data;
   }
 
+  /**
+   * MSSQL-only: parse FOR JSON nvarchar payloads for relational columns into
+   * JS objects/arrays. Mirrors what node-pg's json type does automatically.
+   *
+   * Three column shapes the EE mssql client produces and we must recover here:
+   *   • LTAR / Links(as-LTAR)   → JSON object (BT/OO) or array of objects (HM/MM)
+   *   • Lookup scalar (BT/OO)   → JSON `{"_lkv": value}` — unwrap to value
+   *   • Lookup scalar (HM/MM)   → JSON `[{"_lkv": v1}, …]`  — unwrap to `[v1, …]`
+   *
+   * Lookups whose target is itself an LTAR aren't flattened here — FOR JSON
+   * nests the inner object structure naturally; substituteColumnIdsWithColumnTitles
+   * handles the array-of-objects path.
+   *
+   * Also normalizes `null` → `[]` for known array-shaped relational columns
+   * (HM / MM / MM-like LTARs and HM / MM Lookups). MSSQL's FOR JSON subquery
+   * returns SQL NULL for an empty result set, where pg's `json_agg` typically
+   * returns `[]` via `COALESCE`. Normalizing here keeps downstream consumers
+   * (frontend, scripts, hooks) from having to null-guard.
+   */
+  // Per-instance cache of the expensive Lookup-shape determination
+  // (`array` vs `scalar`). Keyed by column id; values survive for the
+  // lifetime of the BaseModel instance (typically one per request).
+  private _mssqlLookupShape?: Map<string, 'array' | 'scalar'>;
+
+  protected async preProcessMssqlRows(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]> {
+    if (!Array.isArray(data) || !data.length) return data;
+
+    const cols = (this.model?.columns ?? []).concat(dependencyColumns ?? []);
+    // Per-call classification (cheap — sets of column ids).
+    const ltarArrayIds = new Set<string>(); // HM / MM / MMlike — parse + null→[]
+    const ltarObjectIds = new Set<string>(); // BT / OO — parse, leave null as null
+    const lookupArrayIds = new Set<string>(); // HM / MM Lookup — parse + `_lkv` unwrap + null→[]
+    const lookupScalarIds = new Set<string>(); // BT / OO Lookup — parse + `_lkv` unwrap
+    const linksMaybeLtarIds = new Set<string>(); // Links — heuristic parse only
+
+    const shapeCache =
+      this._mssqlLookupShape ?? (this._mssqlLookupShape = new Map());
+
+    for (const col of cols) {
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        // LTAR shape comes from colOptions.type — cheap, no IO needed.
+        const relType = (col.colOptions as LinkToAnotherRecordColumn)?.type;
+        const isMMLike = isMMOrMMLike(col);
+        const isArrayShape =
+          isMMLike ||
+          relType === RelationTypes.HAS_MANY ||
+          relType === RelationTypes.MANY_TO_MANY ||
+          (relType === RelationTypes.ONE_TO_ONE && !col.meta?.bt);
+        (isArrayShape ? ltarArrayIds : ltarObjectIds).add(col.id);
+      } else if (col.uidt === UITypes.Links) {
+        linksMaybeLtarIds.add(col.id);
+      } else if (col.uidt === UITypes.Lookup) {
+        // Cache the expensive walk-through-to-relation per column id.
+        let shape = shapeCache.get(col.id);
+        if (!shape) {
+          try {
+            const rel = await (
+              col.colOptions as LookupColumn
+            )?.getRelationColumn?.(this.context);
+            const relOpts = rel
+              ? await rel.getColOptions<LinkToAnotherRecordColumn>(this.context)
+              : null;
+            const isMMLike = rel ? isMMOrMMLike(rel) : false;
+            const isArray =
+              isMMLike ||
+              relOpts?.type === RelationTypes.HAS_MANY ||
+              (relOpts?.type === RelationTypes.ONE_TO_ONE && !rel?.meta?.bt);
+            shape = isArray ? 'array' : 'scalar';
+          } catch {
+            // On lookup-resolution failure, treat as scalar. If the value is
+            // actually an array string, the JSON.parse + Array.isArray branch
+            // below still produces something rather than crashing.
+            shape = 'scalar';
+          }
+          shapeCache.set(col.id, shape);
+        }
+        (shape === 'array' ? lookupArrayIds : lookupScalarIds).add(col.id);
+      }
+    }
+
+    if (
+      !ltarArrayIds.size &&
+      !ltarObjectIds.size &&
+      !lookupScalarIds.size &&
+      !lookupArrayIds.size &&
+      !linksMaybeLtarIds.size
+    ) {
+      return data;
+    }
+
+    const flattenLookupArray = (parsed: any) => {
+      if (!Array.isArray(parsed)) return parsed;
+      return parsed.map((o) =>
+        o && typeof o === 'object' && '_lkv' in o ? o._lkv : o,
+      );
+    };
+    const flattenLookupScalar = (parsed: any) => {
+      if (
+        parsed &&
+        typeof parsed === 'object' &&
+        !Array.isArray(parsed) &&
+        '_lkv' in parsed
+      ) {
+        return parsed._lkv;
+      }
+      return parsed;
+    };
+
+    const tryParse = (v: any) => {
+      if (typeof v !== 'string') return v;
+      const t = v.trimStart();
+      if (t.startsWith('[') || t.startsWith('{')) {
+        try {
+          return JSON.parse(v);
+        } catch {
+          return v;
+        }
+      }
+      return v;
+    };
+
+    // Materialize the classification Sets into arrays once — iterating
+    // string[] avoids any down-leveling issues with Set iteration in the
+    // webpack/ts-loader path.
+    const ltarArrayList = Array.from(ltarArrayIds);
+    const ltarObjectList = Array.from(ltarObjectIds);
+    const lookupScalarList = Array.from(lookupScalarIds);
+    const lookupArrayList = Array.from(lookupArrayIds);
+    const linksMaybeLtarList = Array.from(linksMaybeLtarIds);
+
+    for (const row of data) {
+      // Array-shaped LTAR — parse, then normalize null → [].
+      for (let i = 0; i < ltarArrayList.length; i++) {
+        const id = ltarArrayList[i];
+        const v = row[id];
+        if (v == null) row[id] = [];
+        else row[id] = tryParse(v);
+      }
+      // Object-shaped LTAR — parse, leave null as null (matches pg).
+      for (let i = 0; i < ltarObjectList.length; i++) {
+        const id = ltarObjectList[i];
+        if (row[id] != null) row[id] = tryParse(row[id]);
+      }
+      // Scalar Lookup — parse + unwrap `_lkv`.
+      for (let i = 0; i < lookupScalarList.length; i++) {
+        const id = lookupScalarList[i];
+        if (row[id] != null) row[id] = flattenLookupScalar(tryParse(row[id]));
+      }
+      // Array Lookup — parse + unwrap `_lkv` items + normalize null → [].
+      for (let i = 0; i < lookupArrayList.length; i++) {
+        const id = lookupArrayList[i];
+        const v = row[id];
+        if (v == null) row[id] = [];
+        else row[id] = flattenLookupArray(tryParse(v));
+      }
+      // Links — count (number) OR linksAsLtar JSON payload. Only parse strings
+      // that look like JSON; leave numeric counts and null alone.
+      for (let i = 0; i < linksMaybeLtarList.length; i++) {
+        const id = linksMaybeLtarList[i];
+        const v = row[id];
+        if (typeof v === 'string') {
+          const t = v.trimStart();
+          if (t.startsWith('[') || t.startsWith('{')) row[id] = tryParse(v);
+        }
+      }
+    }
+
+    return data;
+  }
+
   public async handleRichTextMentions(
     prevData,
     newData: Record<string, any> | Array<Record<string, any>>,
@@ -503,7 +709,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // const driver = trx ? trx : this.dbDriver;
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
-      if (this.isPg && this.model.primaryKey) {
+      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
@@ -778,9 +984,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
 
+      const wherePkClause = await this._wherePk(id, true);
+
+      // mssql rejects UPDATEs that touch an IDENTITY column (error 8102:
+      // "Cannot update identity column 'X'") even when the new value
+      // equals the old.
+      const updateObjForDriver = this.isMssql
+        ? Object.fromEntries(
+            Object.entries(updateObj).filter(([k]) => !(k in wherePkClause)),
+          )
+        : updateObj;
+
       const query = this.dbDriver(this.tnPath)
-        .update(updateObj)
-        .where(await this._wherePk(id, true));
+        .update(updateObjForDriver)
+        .where(wherePkClause);
 
       const rlsConditions = await this.getRlsConditions();
       if (rlsConditions.length) {
@@ -2872,7 +3089,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
 
         for (const batch of batches) {
-          if (this.isPg) {
+          if (this.isPg || this.isMssql) {
+            // mssql: knex emits `OUTPUT INSERTED.[col] AS [alias]` from the
+            // same returningObj shape pg uses for `RETURNING col AS alias`,
+            // so the bulk path returns the same `[{ alias: value }, ...]`
+            // payload pg does. (Bare `'*'` is also valid in T-SQL OUTPUT.)
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
@@ -3517,7 +3738,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
 
           for (const batch of batches) {
-            if (this.isPg) {
+            if (this.isPg || this.isMssql) {
+              // Same RETURNING/OUTPUT pairing as the upper bulk path — mssql
+              // gets `OUTPUT INSERTED.[col] AS [alias]` so the caller sees
+              // the same payload shape pg returns.
               insertQueries.push(
                 this.dbDriver(this.tnPath)
                   .insert(batch)
@@ -3929,11 +4153,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           const wherePk = await this._wherePk(pk, true);
 
-          const dataToUpdate = this.isDatabricks
-            ? Object.fromEntries(
-                Object.entries(data).filter(([k]) => !(k in wherePk)),
-              )
-            : data;
+          // databricks and mssql both reject UPDATEs that touch the PK
+          // column. T-SQL specifically: "Cannot update identity column 'X'"
+          // (error 8102) — fires even when the new value equals the old.
+          // NocoDB never legitimately changes a PK through the update flow,
+          // so dropping the PK keys from the payload is safe on every
+          // dialect; we only opt in for the ones that error to avoid
+          // churning the cached SQL on pg/mysql/sqlite.
+          const dataToUpdate =
+            this.isDatabricks || this.isMssql
+              ? Object.fromEntries(
+                  Object.entries(data).filter(([k]) => !(k in wherePk)),
+                )
+              : data;
 
           toBeUpdated.push({ d: dataToUpdate, wherePk });
 

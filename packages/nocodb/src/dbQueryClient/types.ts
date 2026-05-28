@@ -98,4 +98,16 @@ export interface DBQueryClient {
     expressions: Record<string, string>,
     alias: string,
   ): Knex.Raw;
+
+  /**
+   * Last-resort ORDER BY injection on a list/sub-list query right before
+   * pagination is applied. Called by cross-db list orchestration AFTER the
+   * usual ORDER BY branches (user sorts, view sorts, Order column, PK,
+   * system CreatedTime) have had a chance to add one.
+   *
+   * Implementations MUST be idempotent — they may be called even if an
+   * ORDER BY is already attached. The simplest correct implementation
+   * inspects `qb` and short-circuits.
+   */
+  ensurePaginationOrderBy(qb: Knex.QueryBuilder, model: Model): void;
 }

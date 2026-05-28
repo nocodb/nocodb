@@ -5,6 +5,7 @@ import type {
 } from '~/dbQueryClient/types';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Model } from '~/models';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 import { genMssqlAggregateQuery } from '~/dbQueryClient/aggregations/mssql';
 
@@ -26,6 +27,32 @@ export class MssqlDBQueryClient
 
   generateAggregateQuery(params: AggregationGeneratorParams) {
     return genMssqlAggregateQuery(params);
+  }
+
+  /**
+   * T-SQL `OFFSET … FETCH NEXT …` requires an ORDER BY in the same query.
+   * The generic list pipeline already attaches one for the common cases
+   * (user sorts, view sorts, NocoDB Order column, ai-PK, system
+   * CreatedTime) — but external sources that miss every branch (e.g. a
+   * view with no PK) leave the subquery sortless and T-SQL rejects it.
+   *
+   * Appending `(SELECT NULL)` as a *trailing* sort key handles both
+   * shapes with the same one-liner — no introspection of knex internals
+   * required:
+   *
+   *   1. ORDER BY already present (`pk` or user sort): the query becomes
+   *      `ORDER BY pk, (SELECT NULL)`. `(SELECT NULL)` returns the same
+   *      constant for every row, so it never reorders rows — purely
+   *      cosmetic noise on the existing order.
+   *   2. No ORDER BY: the query becomes `ORDER BY (SELECT NULL)`, the
+   *      canonical T-SQL no-op order that just satisfies the syntax
+   *      rule. Pagination is non-deterministic in this case — the same
+   *      silent behavior pg/mysql/sqlite already exhibit on PK-less
+   *      views.
+   *
+   */
+  ensurePaginationOrderBy(qb: Knex.QueryBuilder, _model: Model): void {
+    qb.orderByRaw('(SELECT NULL)');
   }
 
   bulkAggregateRowSelector(

@@ -333,6 +333,8 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     });
 
     if (!ctx.ignorePagination) {
+      client.ensurePaginationOrderBy(rootQb, ctx.model);
+
       if (!skipCache && ctx.limitOffsetPlaceholder) {
         rootQb.limit(ctx.limitOffsetPlaceholder);
         rootQb.offset(ctx.limitOffsetPlaceholder);

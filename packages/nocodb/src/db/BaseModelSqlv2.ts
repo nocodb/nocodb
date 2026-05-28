@@ -102,6 +102,7 @@ import {
   _wherePk,
   applyPaginate,
   dataWrapper,
+  displayValueMapKey,
   extractSortsObject,
   formatDataForAudit,
   getBaseModelSqlFromModelId,
@@ -209,16 +210,6 @@ interface RelationLoaderArgs {
 class DataLoaderWithArgs<K, V> extends DataLoader<K, V> {
   args?: RelationLoaderArgs;
 }
-
-// Stable key for `fetchDisplayValueMap`. Two LTAR columns can resolve to the
-// same (model, row) but pull different display columns (each LTAR can override
-// `fk_display_value_column_id`); without the column id in the key the second
-// `set()` would silently overwrite the first.
-export const displayValueMapKey = (props: {
-  model: Model;
-  id: any;
-  displayColumn?: Column;
-}): string => `${props.model.id}:${props.id}:${props.displayColumn?.id ?? ''}`;
 
 /**
  * Base class for models
@@ -2775,9 +2766,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
       }
 
+      const wherePkClause = await this._wherePk(id, true);
+
+      // mssql rejects UPDATEs that touch an IDENTITY column (error 8102:
+      // "Cannot update identity column 'X'") even when the new value
+      // equals the old. NocoDB never legitimately changes a PK through
+      // the update flow, so dropping the PK keys from the payload is
+      // safe — only opt in for mssql to avoid churning cached SQL on
+      // the other dialects.
+      const updateObjForDriver = this.isMssql
+        ? Object.fromEntries(
+            Object.entries(updateObj).filter(([k]) => !(k in wherePkClause)),
+          )
+        : updateObj;
+
       const query = this.dbDriver(this.tnPath)
-        .update(updateObj)
-        .where(await this._wherePk(id, true));
+        .update(updateObjForDriver)
+        .where(wherePkClause);
 
       await this.execAndParse(query, null, { raw: true });
 
@@ -2997,7 +3002,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
 
-      if (this.isPg && this.model.primaryKey) {
+      // pg + mssql both support inline RETURNING/OUTPUT — knex's mssql
+      // dialect translates `.returning('col as alias')` to
+      // `OUTPUT INSERTED.[col] AS [alias]`, returning the same
+      // `[{ alias: value }]` shape the downstream extractor expects.
+      // Without this, mssql falls into the generic else-branch (shaped
+      // for mysql's `insertId`), the new PK gets read as the raw
+      // rows-affected count, and `extractCompositePK` returns '' →
+      // ERR_INVALID_PK_VALUE.
+      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
@@ -3590,7 +3603,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const pkValues = this.extractPksValues(data);
           updatedPks.push(pkValues);
           const wherePk = await this._wherePk(pkValues, true);
-          await trx(this.tnPath).update(data).where(wherePk);
+          // mssql: drop PK keys from the SET — IDENTITY columns reject
+          // any UPDATE including same-value writes (error 8102).
+          const dataToUpdate = this.isMssql
+            ? Object.fromEntries(
+                Object.entries(data).filter(([k]) => !(k in wherePk)),
+              )
+            : data;
+          await trx(this.tnPath).update(dataToUpdate).where(wherePk);
         }
       }
 
@@ -3632,8 +3652,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             returningObj[col.title] = col.column_name;
           }
 
+          // mssql `batchInsert(...).returning()` emits `OUTPUT INSERTED.*`
+          // per batch — same shape pg's RETURNING produces, so the
+          // `insertedDatas.push(...responses)` consumer sees `[{ alias: v }, …]`
+          // either way.
           responses =
-            !raw && this.isPg
+            !raw && (this.isPg || this.isMssql)
               ? await trx
                   .batchInsert(this.tnPath, toInsert, chunkSize)
                   .returning(
@@ -4104,7 +4128,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
 
           const wherePk = await this._wherePk(pk, true);
-          toBeUpdated.push({ d: data, wherePk });
+
+          // mssql rejects UPDATEs that touch an IDENTITY column ("Cannot
+          // update identity column 'X'", error 8102) even when the new
+          // value equals the old. NocoDB never legitimately changes a PK
+          // through the update flow, so dropping the PK keys from the
+          // payload is safe — only opt in for mssql to avoid churning
+          // cached SQL on the other dialects.
+          const dataToUpdate = this.isMssql
+            ? Object.fromEntries(
+                Object.entries(data).filter(([k]) => !(k in wherePk)),
+              )
+            : data;
+
+          toBeUpdated.push({ d: dataToUpdate, wherePk });
 
           updatePkValues.push(
             this.extractPksValues(
@@ -4349,7 +4386,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           event: AuditV1OperationTypes.DATA_BULK_UPDATE,
         });
 
-        qb.update(updateData);
+        // mssql rejects UPDATEs that touch an IDENTITY column even when
+        // the new value equals the old (error 8102). Strip PK columns
+        // from the payload — bulkUpdateAll targets rows by filter, so
+        // the PK should never appear here, but a caller could include
+        // it and we'd silently fail.
+        const updateDataForDriver = this.isMssql
+          ? Object.fromEntries(
+              Object.entries(updateData).filter(
+                ([k]) =>
+                  !this.model.primaryKeys.some((pk) => pk.column_name === k),
+              ),
+            )
+          : updateData;
+
+        qb.update(updateDataForDriver);
 
         await this.execAndParse(qb, null, { raw: true });
       }
@@ -6804,7 +6855,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    let data = await this.execAndGetRows(query);
+    // TEMP MSSQL debug: log every query + surface the exact one that throws.
+    if (this.isMssql) {
+      // eslint-disable-next-line no-console
+      console.log('[MSSQL-EXEC-DEBUG] query:', query);
+    }
+
+    let data;
+    try {
+      data = await this.execAndGetRows(query);
+    } catch (e) {
+      if (this.isMssql) {
+        // eslint-disable-next-line no-console
+        console.error(
+          '[MSSQL-EXEC-DEBUG] FAILED query:\n',
+          query,
+          '\n  error:',
+          e?.message,
+        );
+      }
+      throw e;
+    }
 
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);

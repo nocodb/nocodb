@@ -9,6 +9,7 @@ import type { NcContext } from '~/interface/config';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Knex, XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Model } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { aggregate as aggregateOrchestration } from '~/dbQueryClient/cross-db-utils/aggregate';
 import { bulkAggregate as bulkAggregateOrchestration } from '~/dbQueryClient/cross-db-utils/bulk-aggregate';
@@ -132,4 +133,12 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
     expressions: Record<string, string>,
     alias: string,
   ): Knex.Raw;
+
+  /**
+   * pg/mysql/sqlite — `LIMIT/OFFSET` runs without ORDER BY, so nothing
+   * to do. Mssql overrides this to satisfy T-SQL's OFFSET/FETCH rule.
+   */
+  ensurePaginationOrderBy(_qb: Knex.QueryBuilder, _model: Model): void {
+    // no-op
+  }
 }

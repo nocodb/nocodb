@@ -8,7 +8,7 @@ import {
   RelationTypes,
 } from 'nocodb-sdk';
 import { extractCorrespondingLinkColumn } from './BaseModelSqlv2/add-remove-links';
-import { displayValueMapKey } from './BaseModelSqlv2';
+import { displayValueMapKey } from '~/helpers/dbHelpers';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';

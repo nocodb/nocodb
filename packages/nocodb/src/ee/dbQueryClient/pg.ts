@@ -14,7 +14,6 @@ import {
 import { Logger } from '@nestjs/common';
 import type { NcContext } from 'nocodb-sdk/build/main/lib';
 import type { Knex } from 'knex';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { DBQueryClient, ExtractColumnsParam } from '~/dbQueryClient/types';
@@ -827,7 +826,7 @@ export class PGDBQueryClient
 
           let relQb;
           const relTableAlias = getAlias();
-          let refBaseModel: BaseModelSqlv2;
+          let refBaseModel: IBaseModelSqlV2;
 
           const relType = isMMLike
             ? RelationTypes.MANY_TO_MANY
@@ -1573,7 +1572,7 @@ export class PGDBQueryClient
       validateFormula?: boolean;
       ignorePagination?: boolean;
       limitOverride?: number;
-      baseModel?: BaseModelSqlv2;
+      baseModel?: IBaseModelSqlV2;
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;

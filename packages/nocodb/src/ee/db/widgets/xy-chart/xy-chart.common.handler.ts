@@ -225,6 +225,23 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
     _sortField: string,
     _orderDirection: string,
   ) {}
+
+  /**
+   * Apply the GROUP BY for the top-N x-axis aggregation.
+   *
+   * Most dialects accept the SELECT-list alias (PG/MySQL extension) so the
+   * default groups by `xAxisAlias`. T-SQL rejects aliases in GROUP BY —
+   * the MSSQL override repeats the underlying expression instead.
+   */
+  protected applyTopNGroupBy(
+    query: Knex.QueryBuilder,
+    xAxisAlias: string,
+    _xAxisColumnNameQuery: { builder: string | Knex.QueryBuilder },
+    _baseModel: IBaseModelSqlV2,
+  ): void {
+    query.groupBy(xAxisAlias);
+  }
+
   protected async buildOthersQuery(
     baseModel: IBaseModelSqlV2,
     _buildBaseQuery: () => Promise<{ builder: Knex.QueryBuilder }>,
@@ -360,8 +377,14 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
           xAxisAlias,
         ]),
       )
-      .groupBy(xAxisAlias)
       .count('* as record_count');
+
+    this.applyTopNGroupBy(
+      topNQuery,
+      xAxisAlias,
+      xAxisColumnNameQuery,
+      baseModel,
+    );
 
     // Add Y-axis aggregations to top N query
     yAxisSelections.forEach(({ alias, aggSql }) => {

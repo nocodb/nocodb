@@ -117,6 +117,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         },
       } as any);
 
+      this.stashDbMajorVersion(knex, source);
       this.connectionRefs.set(source.id, knex);
       return knex;
     }
@@ -197,6 +198,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       },
     );
 
+    this.stashDbMajorVersion(knex, source);
     this.connectionRefs.set(source.id, knex);
     return knex;
   }
@@ -230,14 +232,14 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   }
 
   public static async getDataConfig?() {
-    // if data db is set, use it for generating knex connection
     if (process.env.NC_DATA_DB) {
-      if (!this.dataConfig)
+      if (!this.dataConfig) {
         this.dataConfig = await metaUrlToDbConfig(process.env.NC_DATA_DB);
-
+      }
       return this.dataConfig;
-      // if data db json is set, use it for generating knex connection
-    } else if (process.env.NC_DATA_DB_JSON) {
+    }
+
+    if (process.env.NC_DATA_DB_JSON) {
       try {
         this.dataConfig = JSON.parse(process.env.NC_DATA_DB_JSON);
       } catch (e) {
@@ -246,8 +248,10 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         );
         NcError.internalServerError(`Something went wrong`);
       }
-      // if data db json file is set, use it for generating knex connection
-    } else if (process.env.NC_DATA_DB_JSON_FILE) {
+      return this.dataConfig;
+    }
+
+    if (process.env.NC_DATA_DB_JSON_FILE) {
       const filePath = process.env.NC_DATA_DB_JSON_FILE;
 
       if (!(await promisify(fs.exists)(filePath))) {
@@ -266,15 +270,18 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         );
         NcError.internalServerError('Something went wrong');
       }
-      // if jdbc url is set, use it for generating knex connection
-    } else if (process.env.DATA_DATABASE_URL) {
-      this.dataConfig = await jdbcToXcConfig(process.env.DATA_DATABASE_URL);
-    } else {
-      if (!this.dataConfig) {
-        this.dataConfig = Noco.getConfig()?.meta?.db;
-      }
       return this.dataConfig;
     }
+
+    if (process.env.DATA_DATABASE_URL) {
+      this.dataConfig = await jdbcToXcConfig(process.env.DATA_DATABASE_URL);
+      return this.dataConfig;
+    }
+
+    if (!this.dataConfig) {
+      this.dataConfig = Noco.getConfig()?.meta?.db;
+    }
+    return this.dataConfig;
   }
 
   public static async getWorkspaceDataConfig(workspaceId: string) {

@@ -1,10 +1,5 @@
-import {
-  extractFilterFromXwhere,
-  FormulaDataTypes,
-  isLinksOrLTAR,
-  isSystemColumn,
-  UITypes,
-} from 'nocodb-sdk';
+import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
+import type { ClientType } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -15,8 +10,7 @@ import type {
   RollupColumn,
   View,
 } from '~/models';
-import applyAggregation from '~/db/aggregation';
-import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
+import { DBQueryClient } from '~/dbQueryClient';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
@@ -28,9 +22,8 @@ import {
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, GridViewColumn, Sort } from '~/models';
+import { BaseUser, Column, Filter, Sort } from '~/models';
 import { getAliasGenerator } from '~/utils';
-import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
 // PR review fix #2: Shared helper for UUID group-by to avoid 4x code duplication.
@@ -62,14 +55,21 @@ const sqlNullIfBlank = ({
 }) => {
   if (baseModel.isPg && !isStringType) {
     return baseModel.dbDriver.raw(
-      `CASE 
-        WHEN (pg_typeof(:column:) = 'text'::regtype 
-          OR pg_typeof(:column:) = 'varchar'::regtype 
-          OR pg_typeof(:column:) = 'char'::regtype) 
-          AND (:column:)::text = '' 
+      `CASE
+        WHEN (pg_typeof(:column:) = 'text'::regtype
+          OR pg_typeof(:column:) = 'varchar'::regtype
+          OR pg_typeof(:column:) = 'char'::regtype)
+          AND (:column:)::text = ''
         THEN NULL
         ELSE :column:
       END`,
+      { column: columnName },
+    );
+  }
+
+  if (baseModel.isMssql && !isStringType) {
+    return baseModel.dbDriver.raw(
+      `CASE WHEN CAST(:column: AS NVARCHAR(MAX)) = '' THEN NULL ELSE :column: END`,
       { column: columnName },
     );
   }
@@ -234,6 +234,17 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               `strftime('%Y-%m-%d %H:%M:00', ??)`,
               [columnName],
             );
+          } else if (baseModel.isMssql) {
+            // SQL Server 2022 (major version 16) introduced native DATETRUNC;
+            // older versions need a CONVERT round-trip (style 120
+            // -> 'yyyy-mm-dd hh:mi:ss'; VARCHAR(16) keeps 'yyyy-mm-dd hh:mi').
+            const dbVersion = (await baseModel.getSource())?.meta?.dbVersion;
+            const major = parseInt(`${dbVersion ?? ''}`.split('.')[0], 10) || 0;
+            const truncSql =
+              major >= 16
+                ? `DATETRUNC(MINUTE, ??)`
+                : `CONVERT(DATETIME, CONVERT(VARCHAR(16), ??, 120))`;
+            columnQuery = baseModel.dbDriver.raw(truncSql, [columnName]);
           } else {
             columnQuery = baseModel.dbDriver.raw('DATE(??)', [columnName]);
           }
@@ -312,7 +323,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     const qb = baseModel.dbDriver(baseModel.tnPath);
 
     // get aggregated count of each group
-    qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
+    // mssql skips the inner COUNT — it can't push COUNT(*) into a projection
+    // that the outer derived table then groups against. Counting is done on
+    // the outer derived table for mssql.
+    if (!baseModel.isMssql) {
+      qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
+    }
 
     if (subGroupColumnName) {
       // Sanitize at the leaf so the inner `.toSQL()` chain doesn't trip
@@ -320,24 +336,36 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       const subGroupQuery = baseModel.sanitizeQuery(
         await processColumn(subGroupColumnName, true),
       );
-      // The template literal below coerces the wrapped Raw via `.toString()`
-      // → `.toQuery()`, whose `formatQuery` step unescapes `\?` back to `?`.
-      // We must re-sanitize the composed string before feeding it to the
-      // outer `raw(...)` — otherwise those bare `?` chars get counted as
-      // placeholders and Knex throws "Expected 1 bindings, saw N".
-      const innerExpr = baseModel.sanitizeQuery(
-        `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
-          columnName: baseModel.dbDriver.raw(
-            baseModel.isPg ? '(??)::text' : '??',
-            [baseModel.dbDriver.raw(subGroupQuery)],
-          ),
-          baseModel,
-          isStringType: true,
-        })}, '__null__'))`,
-      );
-      qb.select(
-        baseModel.dbDriver.raw(`${innerExpr} as ??`, ['__sub_group_count__']),
-      );
+      if (baseModel.isMssql) {
+        // mssql projects the sub-group expression as a real NVARCHAR column
+        // (__nc_sub_group_col__) on the inner derived table; the outer
+        // aggregation then computes COUNT(DISTINCT COALESCE(...)).
+        qb.select(
+          baseModel.dbDriver.raw(`CAST(?? AS NVARCHAR(MAX)) as ??`, [
+            baseModel.dbDriver.raw(subGroupQuery),
+            '__nc_sub_group_col__',
+          ]),
+        );
+      } else {
+        // The template literal below coerces the wrapped Raw via `.toString()`
+        // → `.toQuery()`, whose `formatQuery` step unescapes `\?` back to `?`.
+        // We must re-sanitize the composed string before feeding it to the
+        // outer `raw(...)` — otherwise those bare `?` chars get counted as
+        // placeholders and Knex throws "Expected 1 bindings, saw N".
+        const innerExpr = baseModel.sanitizeQuery(
+          `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
+            columnName: baseModel.dbDriver.raw(
+              baseModel.isPg ? '(??)::text' : '??',
+              [baseModel.dbDriver.raw(subGroupQuery)],
+            ),
+            baseModel,
+            isStringType: true,
+          })}, '__null__'))`,
+        );
+        qb.select(
+          baseModel.dbDriver.raw(`${innerExpr} as ??`, ['__sub_group_count__']),
+        );
+      }
     }
 
     qb.select(...selectors);
@@ -406,23 +434,72 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
     }
 
-    // group by using the column aliases
-    qb.groupBy(...groupBySelectors);
+    // group by using the column aliases. mssql cannot GROUP BY a select
+    // alias or a correlated subquery (rollup / lookup keys), so the group
+    // keys are projected into a derived table and aggregated / grouped by
+    // those real columns below.
+    if (!baseModel.isMssql) {
+      qb.groupBy(...groupBySelectors);
 
-    // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
-    if (args.minCount !== undefined && args.minCount > 0) {
-      qb.havingRaw('COUNT(??) >= ?', [
-        baseModel.model.primaryKey?.column_name || '*',
-        args.minCount,
-      ]);
+      // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
+      if (args.minCount !== undefined && args.minCount > 0) {
+        qb.havingRaw('COUNT(??) >= ?', [
+          baseModel.model.primaryKey?.column_name || '*',
+          args.minCount,
+        ]);
+      }
     }
 
-    // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
-    // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
-    const outerQb = baseModel.dbDriver
-      .with('grouped', qb.clone())
-      .select('*')
-      .from({ g: 'grouped' });
+    let outerQb: Knex.QueryBuilder;
+    if (baseModel.isMssql) {
+      // mssql aggregation: SELECT count(*) [, sub-group COUNT(DISTINCT...)],
+      // <aliases> FROM (<qb>) __nc_grp_src__ GROUP BY <aliases>
+      // [HAVING COUNT(*) >= minCount]
+      const aliasRefs = groupBySelectors.map(() => '??');
+      const aliasBindings = groupBySelectors;
+
+      const subGroupCountSelect = subGroupColumnName
+        ? `, COUNT(DISTINCT COALESCE(??, '__null__')) as ??`
+        : '';
+      const subGroupCountBindings = subGroupColumnName
+        ? ['__nc_sub_group_col__', '__sub_group_count__']
+        : [];
+
+      const grouped = baseModel.dbDriver
+        .select(
+          baseModel.dbDriver.raw(
+            `count(*) as ??${subGroupCountSelect}${
+              groupBySelectors.length ? `, ${aliasRefs.join(', ')}` : ''
+            }`,
+            ['count', ...subGroupCountBindings, ...aliasBindings],
+          ),
+        )
+        .from(baseModel.dbDriver.raw('(??) as ??', [qb, '__nc_grp_src__']));
+
+      if (groupBySelectors.length) {
+        grouped.groupByRaw(aliasRefs.join(', '), aliasBindings);
+      }
+
+      if (args.minCount !== undefined && args.minCount > 0) {
+        grouped.havingRaw('COUNT(*) >= ?', [args.minCount]);
+      }
+
+      // Same `WITH grouped AS (...) SELECT *` shape as the default path so
+      // the orchestration's order-by block can reference `g.<alias>`.
+      // T-SQL forbids wrapping a CTE in a derived table, so the final
+      // `__nc_group_alias` wrap is skipped below.
+      outerQb = baseModel.dbDriver
+        .with('grouped', grouped.clone())
+        .select('*')
+        .from({ g: 'grouped' });
+    } else {
+      // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
+      // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
+      outerQb = baseModel.dbDriver
+        .with('grouped', qb.clone())
+        .select('*')
+        .from({ g: 'grouped' });
+    }
 
     if (!NC_DISABLE_GROUP_BY_LIMIT) {
       applyPaginate(outerQb, rest);
@@ -450,17 +527,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           isStringType: true,
         });
         let finalStatement = '';
-        if (baseModel.dbDriver.clientType() === 'pg') {
-          finalStatement = `(${replaceDelimitedWithKeyValuePg({
-            knex: baseModel.dbDriver,
-            needleColumn: groupedColQb as any,
-            stack: baseUsers.map((user) => ({
-              key: user.id,
-              value: user.display_name || user.email,
-            })),
-          })})`;
-        } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
-          finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+        if (
+          baseModel.dbDriver.clientType() === 'pg' ||
+          baseModel.dbDriver.clientType() === 'sqlite3'
+        ) {
+          finalStatement = `(${DBQueryClient.get(
+            baseModel.dbDriver.clientType() as ClientType,
+          ).replaceDelimitedWithKeyValue({
             knex: baseModel.dbDriver,
             needleColumn: groupedColQb as any,
             stack: baseUsers.map((user) => ({
@@ -515,6 +588,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           );
         }
       }
+    }
+
+    if (baseModel.isMssql) {
+      // T-SQL forbids wrapping a CTE in a derived table — skip the outer
+      // `__nc_group_alias` wrap.
+      return await baseModel.execAndParse(outerQb);
     }
 
     return await baseModel.execAndParse(
@@ -689,6 +768,20 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                     },
                   ),
                 );
+              } else if (baseModel.isMssql) {
+                // SQL Server 2022+ has native DATETRUNC; older versions
+                // round-trip through CONVERT to truncate to the minute.
+                const dbVersion = (await baseModel.getSource())?.meta
+                  ?.dbVersion;
+                const major =
+                  parseInt(`${dbVersion ?? ''}`.split('.')[0], 10) || 0;
+                const truncSql =
+                  major >= 16
+                    ? `DATETRUNC(MINUTE, ??) as ??`
+                    : `CONVERT(DATETIME, CONVERT(VARCHAR(16), ??, 120)) as ??`;
+                selectors.push(
+                  baseModel.dbDriver.raw(truncSql, [columnName, getAs(column)]),
+                );
               } else {
                 selectors.push(
                   baseModel.dbDriver.raw('DATE(??) as ??', [
@@ -756,7 +849,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     // Build the group-by query
     const qb = baseModel.dbDriver(baseModel.tnPath);
-    qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
+    // mssql counts via nested derived tables — the inner projection here
+    // does NOT add a COUNT aggregate (would conflict with the outer grouping).
+    if (!baseModel.isMssql) {
+      qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
+    }
     qb.select(...selectors);
 
     const aliasColObjMap = await baseModel.model.getAliasColObjMap(
@@ -803,25 +900,55 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       qb.where(softDeleteFilterCount);
     }
 
-    qb.groupBy(...groupBySelectors);
+    // mssql can't GROUP BY select aliases — push grouping to the outer
+    // derived table below. For other engines, GROUP BY + HAVING on `qb`.
+    if (!baseModel.isMssql) {
+      qb.groupBy(...groupBySelectors);
 
-    // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
-    if (args.minCount !== undefined && args.minCount > 0) {
-      qb.havingRaw('COUNT(??) >= ?', [
-        baseModel.model.primaryKey?.column_name || '*',
-        args.minCount,
-      ]);
+      // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
+      if (args.minCount !== undefined && args.minCount > 0) {
+        qb.havingRaw('COUNT(??) >= ?', [
+          baseModel.model.primaryKey?.column_name || '*',
+          args.minCount,
+        ]);
+      }
     }
 
-    // Wrap in a CTE so that we can reference grouped columns safely in all engines
-    // SELECT COUNT(*) FROM (WITH grouped AS (<qb>) SELECT * FROM grouped g) sub
-    const groupedCte = baseModel.dbDriver
-      .with('grouped', qb.clone())
-      .select('*')
-      .from({ g: 'grouped' });
-    const qbP = baseModel.dbDriver
-      .count('*', { as: 'count' })
-      .from(groupedCte.as('sub'));
+    let qbP: Knex.QueryBuilder;
+    if (baseModel.isMssql) {
+      // mssql: nested derived tables —
+      //   SELECT count(*) FROM (
+      //     SELECT <aliases> FROM (qb) sub GROUP BY <aliases>
+      //   ) grouped
+      const aliasRefs = groupBySelectors.map(() => '??');
+      const aliasBindings = groupBySelectors;
+
+      const inner = baseModel.dbDriver
+        .select(
+          groupBySelectors.length
+            ? baseModel.dbDriver.raw(aliasRefs.join(', '), aliasBindings)
+            : baseModel.dbDriver.raw('1'),
+        )
+        .from(baseModel.dbDriver.raw('(??) as ??', [qb, 'sub']));
+
+      if (groupBySelectors.length) {
+        inner.groupByRaw(aliasRefs.join(', '), aliasBindings);
+      }
+
+      qbP = baseModel.dbDriver
+        .count('*', { as: 'count' })
+        .from(baseModel.dbDriver.raw('(??) as ??', [inner, 'grouped']));
+    } else {
+      // Wrap in a CTE so that we can reference grouped columns safely in all engines
+      // SELECT COUNT(*) FROM (WITH grouped AS (<qb>) SELECT * FROM grouped g) sub
+      const groupedCte = baseModel.dbDriver
+        .with('grouped', qb.clone())
+        .select('*')
+        .from({ g: 'grouped' });
+      qbP = baseModel.dbDriver
+        .count('*', { as: 'count' })
+        .from(groupedCte.as('sub'));
+    }
 
     return (await baseModel.execAndParse(qbP, null, { raw: true, first: true }))
       ?.count;

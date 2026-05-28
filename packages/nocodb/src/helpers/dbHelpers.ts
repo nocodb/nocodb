@@ -438,6 +438,18 @@ export function getAs(column: Column) {
   return column.asId || column.id;
 }
 
+/**
+ * Cache-key builder for display-value lookups.
+ * Composite-key ids contain `_` and may collide once mapped to a single
+ * string; callers are responsible for using `set()` carefully so the first
+ * value isn't silently overwritten.
+ */
+export const displayValueMapKey = (props: {
+  model: Model;
+  id: any;
+  displayColumn?: Column;
+}): string => `${props.model.id}:${props.id}:${props.displayColumn?.id ?? ''}`;
+
 export function replaceDynamicFieldWithValue(
   _row: any,
   _rowId,

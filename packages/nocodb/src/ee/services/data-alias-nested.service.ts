@@ -11,6 +11,7 @@ import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
 import { listQueryEnrichment } from '../dbQueryClient/cross-db-utils/list-query-enrichment';
 import { canUseOptimisedQuery } from '../utils';
 import { getDataWithCountCache } from '../dbQueryClient/cross-db-utils/get-data-with-count-cache';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { DBQueryClient as DBQueryClientType } from '~/dbQueryClient/types';
@@ -26,10 +27,41 @@ import { _wherePk } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { Filter, Model, Source } from '~/models';
+import { SOURCE_ALIAS } from '~/utils';
 import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const debugDataAliasNested = debug('nc:db:query:DataAliasNested');
+
+/**
+ * Build the `sourceQb`/`innerQb` pair that `listQueryEnrichment` consumes
+ * for nested-list paths (hmList / mmList / btList).
+ *
+ * On pg/mysql/sqlite the pre-filtered base query is wrapped as
+ * `(qb) AS source_qb` and passed as `sourceQb`, with the raw `qb` as
+ * `innerQb`. The wrap gives the enrichment layer two independent levels:
+ * filters/sorts on the inner (formula table name stays in scope) and
+ * pagination on the outer. Those dialects flatten ORDER BY inside a
+ * derived table, so the inner sort survives.
+ *
+ * Mssql doesn't. T-SQL rejects ORDER BY in a derived table without
+ * TOP/OFFSET/FOR XML — applying the wrap would force every nested list
+ * to fail. We skip the wrap and let `baseQb === rootQb === qb`, so the
+ * inner sort lives on the same level as the pagination's
+ * `OFFSET … FETCH NEXT …` clause and the whole query is valid T-SQL.
+ */
+function buildNestedListEnrichmentSource(
+  qb: Knex.QueryBuilder,
+  baseModel: IBaseModelSqlV2,
+): { sourceQb: Knex.QueryBuilder; innerQb?: Knex.QueryBuilder } {
+  if (baseModel.isMssql) {
+    return { sourceQb: qb };
+  }
+  return {
+    sourceQb: baseModel.dbDriver.from(qb.as(SOURCE_ALIAS)),
+    innerQb: qb,
+  };
+}
 
 @Injectable()
 export class DataAliasNestedService extends DataAliasNestedServiceCE {
@@ -200,8 +232,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           dbQueryClient,
           this.logger,
         ).enrich(refContext, {
-          sourceQb: baseModel.dbDriver.from(qb.as('source_qb')),
-          innerQb: qb,
+          ...buildNestedListEnrichmentSource(qb, baseModel),
           model: refTable,
           baseModel: refBaseModel,
           view: useView,
@@ -381,9 +412,12 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           dbQueryClient,
           this.logger,
         ).enrich(refBaseModel.context, {
-          // we need to wrap it with alias
-          // otherwise ambiguous field can happen due to join
-          sourceQb: refBaseModel.dbDriver.from(qb.as('source_qb')),
+          // For pg/mysql/sqlite the inner is wrapped as
+          // `(qb) AS source_qb` so the enrichment layer can sort the
+          // inner without ambiguous-field issues from the join, while
+          // pagination lives on the wrap. Mssql skips the wrap — see
+          // `buildNestedListEnrichmentSource`.
+          ...buildNestedListEnrichmentSource(qb, refBaseModel),
           model: refTable,
           baseModel: refBaseModel,
           view: useView,
@@ -396,7 +430,6 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
-          innerQb: qb,
           customConditions,
         });
 
@@ -523,7 +556,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           dbQueryClient,
           this.logger,
         ).enrich(refContext, {
-          sourceQb: baseModel.dbDriver.from(qb.as('source_qb')),
+          ...buildNestedListEnrichmentSource(qb, baseModel),
           model: childTable,
           baseModel: childBaseModel,
           view: useView,
@@ -536,7 +569,6 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           validateFormula: false,
           listArgs,
           throwErrorIfInvalidParams,
-          innerQb: qb,
         });
 
         const finalQb = enriched.finalQb;
@@ -679,9 +711,12 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           dbQueryClient,
           this.logger,
         ).enrich(refBaseModel.context, {
-          // we need to wrap it with alias
-          // otherwise ambiguous field can happen due to join
-          sourceQb: refBaseModel.dbDriver.from(qb.as('source_qb')),
+          // For pg/mysql/sqlite the inner is wrapped as
+          // `(qb) AS source_qb` so the enrichment layer can sort the
+          // inner without ambiguous-field issues from the join, while
+          // pagination lives on the wrap. Mssql skips the wrap — see
+          // `buildNestedListEnrichmentSource`.
+          ...buildNestedListEnrichmentSource(qb, refBaseModel),
           model: refTable,
           baseModel: refBaseModel,
           view: useView,
@@ -694,7 +729,6 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
-          innerQb: qb,
           customConditions,
         });
 

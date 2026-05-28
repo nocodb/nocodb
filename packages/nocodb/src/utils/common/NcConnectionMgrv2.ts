@@ -75,6 +75,35 @@ export default class NcConnectionMgrv2 {
     });
   }
 
+  /**
+   * Cache the data source's major version on the knex client config so
+   * dialect-aware code paths (e.g. MSSQL formula compilation) can read it
+   * via `~/db/util/dbVersion.getDbMajor` without an extra round-trip.
+   *
+   * Source of truth: `source.meta.dbVersion` — populated for every dialect
+   * by `populateMeta` via `SqlClient.version()`. The first dot-separated
+   * component is always the major.
+   */
+  protected static stashDbMajorVersion(knex: XKnex, source: Source) {
+    if (!knex?.client?.config) return;
+    const meta = source.meta;
+    let dbVersion: string | undefined;
+    if (meta && typeof meta === 'object') {
+      dbVersion = (meta as any).dbVersion;
+    } else if (typeof meta === 'string') {
+      try {
+        dbVersion = JSON.parse(meta)?.dbVersion;
+      } catch {
+        // ignore — fall through to lazy detection
+      }
+    }
+    if (!dbVersion) return;
+    const major = parseInt(String(dbVersion).split('.')[0], 10);
+    if (Number.isFinite(major) && major > 0) {
+      (knex.client.config as any).nocoDbMajorVersion = major;
+    }
+  }
+
   public static async get(source: Source): Promise<XKnex> {
     if (source.isMeta()) return Noco.ncMeta.knex;
 
@@ -119,6 +148,7 @@ export default class NcConnectionMgrv2 {
       },
     } as any);
 
+    this.stashDbMajorVersion(knex, source);
     this.connectionRefs.set(source.id, knex);
     return knex;
   }

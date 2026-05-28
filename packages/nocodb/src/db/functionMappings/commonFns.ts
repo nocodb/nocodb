@@ -55,9 +55,8 @@ async function treatArgAsConditionalExp(
       bindings = { condArg };
       break;
     case FormulaDataTypes.BOOLEAN: {
-      // T-SQL has no `false` literal — Checkbox columns are `bit` (0/1) and
-      // boolean-typed sub-expressions are CASE-materialized to 1/0 by the
-      // mssql binary-builder, so compare against the integer 0 instead.
+      // T-SQL has no `false` literal; use 0 (matches bit columns and the
+      // 1/0 CASE materialization from the mssql binary-builder).
       const falseLit = args.knex.clientType() === 'mssql' ? '0' : 'false';
       condStr = `(:condArg) IS NOT NULL AND (:condArg) != ${falseLit}`;
       bindings = { condArg };
@@ -124,10 +123,6 @@ export default {
     // SQLite: passthrough.
     // Returns { builder } (not a bare Raw) to avoid async-function thenable
     // unwrapping — knex.Raw implements .then() which would execute the SQL.
-    //
-    // T-SQL needs the explicit cast because CASE branches must unify to a
-    // single type via data-type precedence — mixing `'hello'` and `5` would
-    // otherwise try to convert 'hello' → int and fail ("Conversion failed").
     const castToString = async (arg: any) => {
       const { builder } = await args.fn(arg);
       const client = args.knex.clientType();

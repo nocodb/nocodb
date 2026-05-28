@@ -571,21 +571,17 @@ export const binaryExpressionBuilder = async ({
       }
     }
 
-    // T-SQL has no boolean type, so bare predicates (`a > b`, `a = b`) are
-    // invalid in scalar contexts (SELECT list, IF condition, BOOLEAN-typed
-    // args of treatArgAsConditionalExp). CASE-materialize all comparisons
-    // to 1/0 outside AND/OR contexts where the parent expects a predicate.
-    // pg/sqlite already treat bare predicates as scalar values, so they
-    // only wrap `=`/`!=` to coerce them into a boolean-shaped expression.
-    const mssqlScalarComparisons = ['=', '!=', '<', '>', '<=', '>='];
-    const isMssqlComparisonInScalar =
+    // T-SQL has no boolean type, so bare predicates are invalid in scalar
+    // contexts. CASE-materialize all comparisons to 1/0 on mssql; pg/sqlite
+    // only need `=`/`!=` wrapped to coerce them into a boolean-shaped value.
+    const isMssqlScalarComparison =
       isMssql &&
-      mssqlScalarComparisons.includes(pt.operator) &&
+      ['=', '!=', '<', '>', '<=', '>='].includes(pt.operator) &&
       prevBinaryOp !== 'AND' &&
       prevBinaryOp !== 'OR';
 
     if (
-      isMssqlComparisonInScalar ||
+      isMssqlScalarComparison ||
       ((pt.operator === '=' || pt.operator === '!=') &&
         prevBinaryOp !== 'AND' &&
         prevBinaryOp !== 'OR')

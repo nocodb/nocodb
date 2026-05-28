@@ -13,6 +13,15 @@ const { size, animate } = toRefs(props)
 
 const { isDark } = useTheme()
 
+const { isWhiteLabelled, productName, logoUrl, logoDarkUrl, faviconUrl } = useBranding()
+
+// Prefer the favicon (typically square — close to the icon shape we replace);
+// fall back to the dark/light logo when a favicon isn't configured.
+const brandIcon = computed(() => {
+  if (!isWhiteLabelled.value) return null
+  return faviconUrl.value || (isDark.value ? logoDarkUrl.value || logoUrl.value : logoUrl.value)
+})
+
 const ping = autoResetRef(false, 1000)
 
 const onClick = useThrottleFn(() => {
@@ -28,17 +37,27 @@ const onClick = useThrottleFn(() => {
   >
     <div class="relative">
       <img
-        v-if="isDark"
-        class="hidden dark:block"
+        v-if="brandIcon"
         :width="size"
         :height="size"
-        alt="NocoDB"
-        src="~/assets/img/icons/256x256-trans.png"
+        :alt="productName"
+        :src="brandIcon"
+        class="object-contain"
       />
-      <img v-else :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <template v-else>
+        <img
+          v-if="isDark"
+          class="hidden dark:block"
+          :width="size"
+          :height="size"
+          alt="NocoDB"
+          src="~/assets/img/icons/256x256-trans.png"
+        />
+        <img v-else :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      </template>
 
       <TransitionGroup name="layout" :duration="500">
-        <template v-if="animate || ping">
+        <template v-if="!brandIcon && (animate || ping)">
           <div
             :class="ping ? 'bg-primary bg-opacity-100' : 'animated-bg-gradient'"
             :style="{

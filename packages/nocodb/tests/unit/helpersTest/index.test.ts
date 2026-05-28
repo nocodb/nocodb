@@ -11,6 +11,7 @@ import { jobsProcessorTest } from './jobsProcessor.test';
 import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
 import { describeRowErrorTests } from './dataImportProcessor.test';
 import { isTokenExpiredTest } from './isTokenExpired.test';
+import { pkPreservationTests } from './pkPreservation.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -52,6 +53,7 @@ function _helperTests() {
   jobsProcessorTest();
   dateTimeFilterHandlerTest();
   describeRowErrorTests();
+  pkPreservationTests();
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();

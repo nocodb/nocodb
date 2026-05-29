@@ -66,6 +66,18 @@ const mssql = {
   // --- renames (NocoDB name -> T-SQL name) ---
   REPEAT: 'REPLICATE',
 
+  // T-SQL `LEN` over an `nvarchar(MAX)` argument returns BIGINT, which the
+  // tedious driver serializes as a JS string (to avoid precision loss). NocoDB
+  // maps MSSQL text columns to `nvarchar(MAX)`, so `LEN({TextField})` — and any
+  // numeric formula / rollup built on top of it (e.g. `MAX(LEN(..)) + 1`) —
+  // would surface as a string instead of a number. Cast to INT so the result
+  // comes back as a JS number, matching pg/mysql/sqlite. A string's length
+  // always fits INT (nvarchar(max) caps at 2^31-1 chars).
+  LEN: async ({ fn, knex, pt }: MapFnArgs) => {
+    const arg = (await fn(pt.arguments[0])).builder;
+    return { builder: knex.raw(`CAST(LEN(?) AS INT)`, [arg]) };
+  },
+
   MIN: leastGreatestFn('LEAST'),
   MAX: leastGreatestFn('GREATEST'),
 
@@ -123,8 +135,13 @@ const mssql = {
     const precision = pt?.arguments[1]
       ? (await fn(pt.arguments[1])).builder
       : 0;
+    // T-SQL ROUND preserves the input type. NocoDB Number columns map to
+    // BIGINT, so `ROUND({Number}, 2)` would return BIGINT → tedious
+    // stringifies it. Cast to FLOAT so the result comes back as a JS
+    // number, matching pg/mysql/sqlite. NULL propagates through CAST.
+    // Same rationale as the LEN override above.
     return {
-      builder: knex.raw(`ROUND((?), ?)`, [source, precision]),
+      builder: knex.raw(`CAST(ROUND((?), ?) AS FLOAT)`, [source, precision]),
     };
   },
   ROUNDUP: async ({ fn, knex, pt }: MapFnArgs) => {

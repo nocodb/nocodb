@@ -44,6 +44,11 @@ const globalSearchRef = ref<HTMLInputElement>()
 
 const globalSearchWrapperRef = ref<HTMLInputElement>()
 
+const toolbarElRef = ref<HTMLElement | null>(null)
+
+// Bumped on every toolbar width change to force the search dropdown to re-align — see usage below.
+const realignTick = ref(0)
+
 const isSearchButtonVisible = computed(() => {
   return !search.value.query && !showSearchBox.value
 })
@@ -182,7 +187,21 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
 
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
+// Re-align the search dropdown when the toolbar width changes. Opening/resizing the
+// expanded-form, extension or action side panels shrinks the view (and the toolbar
+// inside it), which moves the dropdown's anchor. Ant does not re-align a teleported
+// popup on a position-only shift of its trigger, so the open dropdown would otherwise
+// stay put and overlap the side panel. Bumping `realignTick` makes WrapperDropdown
+// nudge the popup's `align` prop, which forces ant to re-align to the moved trigger.
+useResizeObserver(toolbarElRef, () => {
+  if (isSearchButtonVisible.value) return
+
+  realignTick.value++
+})
+
 onMounted(() => {
+  toolbarElRef.value = globalSearchWrapperRef.value?.closest('.nc-table-toolbar') ?? null
+
   if (search.value.query && !showSearchBox.value) {
     showSearchBox.value = true
   }
@@ -235,7 +254,7 @@ watch(
     >
       <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
     </NcButton>
-    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
+    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true" :realign-tick="realignTick">
       <div
         class="overflow-hidden"
         :class="{

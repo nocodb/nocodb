@@ -17,6 +17,16 @@ export class UserGeneralHandler extends GenericFieldHandler {
   protected singleLineTextHandler: GenericFieldHandler =
     new GenericFieldHandler();
 
+  // For MySQL/MSSQL (and any dialect without a specific User handler),
+  // `like`/`nlike` against a User-style column needs the user-id → display-name
+  // substitution so the filter matches against the visible name. The
+  // dialect-specific PG/SQLite handlers override these to use their own
+  // GROUP_CONCAT/string_agg-based replace functions.
+  override filterLike = (...args: Parameters<typeof this.filterLikeNlike>) =>
+    this.filterLikeNlike(...args);
+  override filterNlike = (...args: Parameters<typeof this.filterLikeNlike>) =>
+    this.filterLikeNlike(...args);
+
   override async filter(
     knex: CustomKnex,
     filter: Filter,

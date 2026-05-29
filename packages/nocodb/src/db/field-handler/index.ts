@@ -48,6 +48,7 @@ import { DurationGeneralHandler } from '~/db/field-handler/handlers/duration/dur
 import { CheckboxSqliteHandler } from '~/db/field-handler/handlers/checkbox/checkbox.sqlite.handler';
 import { CheckboxMssqlHandler } from '~/db/field-handler/handlers/checkbox/checkbox.mssql.handler';
 import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
+import { LongTextMysqlHandler } from '~/db/field-handler/handlers/long-text/long-text.mysql.handler';
 import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
 import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
@@ -68,6 +69,17 @@ import { PercentPgHandler } from '~/db/field-handler/handlers/percent/percent.pg
 import { PercentSqliteHandler } from '~/db/field-handler/handlers/percent/percent.sqlite.handler';
 import { UserPgHandler } from '~/db/field-handler/handlers/user/user.pg.handler';
 import { UserSqliteHandler } from '~/db/field-handler/handlers/user/user.sqlite.handler';
+import { GenericPgFieldHandler } from '~/db/field-handler/handlers/generic.pg';
+import { GenericMysqlFieldHandler } from '~/db/field-handler/handlers/generic.mysql';
+import { GenericSqliteFieldHandler } from '~/db/field-handler/handlers/generic.sqlite';
+import {
+  CreatedByGeneralHandler,
+  CreatedByPgHandler,
+  CreatedBySqliteHandler,
+  LastModifiedByGeneralHandler,
+  LastModifiedByPgHandler,
+  LastModifiedBySqliteHandler,
+} from '~/db/field-handler/handlers/user/created-modified-by.handlers';
 import { PhoneNumberGeneralHandler } from '~/db/field-handler/handlers/phone-number/phone-number.general.handler';
 import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
@@ -77,6 +89,7 @@ import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.gen
 import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 import { TimeGeneralHandler } from '~/db/field-handler/handlers/time/time.general.handler';
 import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.handler';
+import { TimeMssqlHandler } from '~/db/field-handler/handlers/time/time.mssql.handler';
 import { UuidPgHandler } from '~/db/field-handler/handlers/uuid/uuid.pg.handler';
 
 const CLIENT_DEFAULT = '_default';
@@ -107,6 +120,7 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
+    [ClientType.MYSQL]: LongTextMysqlHandler,
   },
   [UITypes.Attachment]: {
     [CLIENT_DEFAULT]: AttachmentGeneralHandler,
@@ -118,9 +132,15 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
+    [ClientType.PG]: GenericPgFieldHandler,
+    [ClientType.MYSQL]: GenericMysqlFieldHandler,
+    [ClientType.SQLITE]: GenericSqliteFieldHandler,
   },
   [UITypes.SingleSelect]: {
     [CLIENT_DEFAULT]: SingleSelectGeneralHandler,
+    [ClientType.PG]: GenericPgFieldHandler,
+    [ClientType.MYSQL]: GenericMysqlFieldHandler,
+    [ClientType.SQLITE]: GenericSqliteFieldHandler,
   },
   [UITypes.Date]: {
     [CLIENT_DEFAULT]: DateGeneralHandler,
@@ -131,6 +151,7 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Time]: {
     [CLIENT_DEFAULT]: TimeGeneralHandler,
     [ClientType.MYSQL]: TimeMysqlHandler,
+    [ClientType.MSSQL]: TimeMssqlHandler,
   },
   [UITypes.PhoneNumber]: {
     [CLIENT_DEFAULT]: PhoneNumberGeneralHandler,
@@ -236,10 +257,14 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: UserSqliteHandler,
   },
   [UITypes.CreatedBy]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: CreatedByGeneralHandler,
+    [ClientType.PG]: CreatedByPgHandler,
+    [ClientType.SQLITE]: CreatedBySqliteHandler,
   },
   [UITypes.LastModifiedBy]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: LastModifiedByGeneralHandler,
+    [ClientType.PG]: LastModifiedByPgHandler,
+    [ClientType.SQLITE]: LastModifiedBySqliteHandler,
   },
 };
 

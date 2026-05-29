@@ -49,6 +49,12 @@ const dbTypes = [
   'sql_variant',
   'rowversion',
   'timestamp',
+  // SQL Server 2025+ — k-NN / similarity search. Stored as a fixed-length
+  // float vector; tedious returns as a string of comma-separated floats
+  // wrapped in brackets (e.g. `[1.0, 2.0, 3.0]`). Treated as opaque string
+  // for read; column-create from NocoDB requires the user to specify
+  // dimensions explicitly via dtxp (no sensible default).
+  'vector',
 ];
 
 export class MssqlUi implements SqlUi {
@@ -476,6 +482,9 @@ export class MssqlUi implements SqlUi {
     ) {
       return 'LongText';
     }
+    if (dt === 'uniqueidentifier') {
+      return 'UUID';
+    }
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';
@@ -585,10 +594,17 @@ export class MssqlUi implements SqlUi {
         colProp.dt = 'bigint';
         break;
       case 'Decimal':
+        // T-SQL `decimal` without precision/scale resolves to `decimal(18, 0)`
+        // — fractional values truncate ("12.34" stored as 12). Default to
+        // (18, 4) so 4 decimal places fit;
         colProp.dt = 'decimal';
+        colProp.dtxp = '18';
+        colProp.dtxs = '4';
         break;
       case 'Currency':
         colProp.dt = 'decimal';
+        colProp.dtxp = '18';
+        colProp.dtxs = '4';
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
@@ -600,6 +616,8 @@ export class MssqlUi implements SqlUi {
         break;
       case 'Duration':
         colProp.dt = 'decimal';
+        colProp.dtxp = '18';
+        colProp.dtxs = '4';
         break;
       case 'Rating':
         colProp.dt = 'smallint';
@@ -637,14 +655,26 @@ export class MssqlUi implements SqlUi {
         colProp.dt = 'nvarchar';
         break;
       case 'JSON':
-        // SQL Server stores JSON in (n)varchar columns.
-        colProp.dt = 'ntext';
+        // SQL Server has no scalar JSON type before 2025 — store as
+        // `nvarchar(max)` rather than the deprecated `ntext`. nvarchar(max)
+        // supports the full set of string operators (=, DISTINCT, GROUP BY,
+        // ORDER BY, LIKE) directly, while ntext requires CAST workarounds.
+        // Existing ntext columns introspected via meta-sync still map to
+        // JSON / LongText and continue to work via the legacy CAST paths.
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Meta':
-        colProp.dt = 'ntext';
+        colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Order':
+        // BigNumber-style fractional row ordering. Match `getNewTableColumns`
+        // (decimal(38, 20)). Without explicit precision, decimal defaults to
+        // (18, 0) and loses every fractional reorder.
         colProp.dt = 'decimal';
+        colProp.dtxp = '38';
+        colProp.dtxs = '20';
         break;
       case UITypes.Deleted:
         colProp.dt = 'bit';

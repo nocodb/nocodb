@@ -25,6 +25,7 @@ import conditionV2 from '~/db/conditionV2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   _wherePk,
+  deletedColValue,
   getCompositePkValue,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
@@ -95,7 +96,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
 
     const qb = baseModel
       .dbDriver(baseModel.tnPath)
-      .where(deletedColumn.column_name, true)
+      .where(deletedColumn.column_name, deletedColValue(baseModel, true))
       .where(lmtCol.column_name, parsed.deletedAt.toISOString())
       .select(pkColNames.map((c) => baseModel.dbDriver.ref(c)))
       .orderBy(primaryKeys[0].column_name, 'asc')
@@ -231,7 +232,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     };
 
     const restorePayload: Record<string, any> = {
-      [deletedColumn.column_name]: false,
+      [deletedColumn.column_name]: deletedColValue(baseModel, false),
     };
     const lmtCol = model.columns.find(
       (c) => c.uidt === UITypes.LastModifiedTime && c.system,
@@ -419,7 +420,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     }
 
     const restorePayload: Record<string, any> = {
-      [deletedColumn.column_name]: false,
+      [deletedColumn.column_name]: deletedColValue(baseModel, false),
     };
     const lmtCol = model.columns.find(
       (c) => c.uidt === UITypes.LastModifiedTime && c.system,
@@ -446,7 +447,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     if (lmtCol) {
       const tupleQb = baseModel
         .dbDriver(baseModel.tnPath)
-        .where(deletedColumn.column_name, true)
+        .where(deletedColumn.column_name, deletedColValue(baseModel, true))
         .distinct(lmtCol.column_name)
         .select(lmtCol.column_name);
       if (lmbCol) {
@@ -591,7 +592,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
         const lmts = [...new Set(entryTuples.map((t) => t.deletedAt))];
         const groupQb = baseModel
           .dbDriver(baseModel.tnPath)
-          .where(deletedColumn.column_name, true)
+          .where(deletedColumn.column_name, deletedColValue(baseModel, true))
           .whereIn(lmtCol.column_name, lmts)
           .select(lmtCol.column_name)
           .count('* as count')
@@ -757,7 +758,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
 
     const qb = baseModel
       .dbDriver(baseModel.tnPath)
-      .where(deletedColumn.column_name, true)
+      .where(deletedColumn.column_name, deletedColValue(baseModel, true))
       .where(lmtCol.column_name, parsed.deletedAt.toISOString())
       .count('* as count');
 
@@ -1208,7 +1209,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
             primaryKeys,
             cleanIds,
           )
-            .where(deletedColumn.column_name, true)
+            .where(deletedColumn.column_name, deletedColValue(baseModel, true))
             .update(restorePayload);
         }
 
@@ -1220,7 +1221,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
           await baseModel
             .dbDriver(baseModel.tnPath)
             .where(_wherePk(primaryKeys, id, true))
-            .where(deletedColumn.column_name, true)
+            .where(deletedColumn.column_name, deletedColValue(baseModel, true))
             .update(update);
         }
       } else {
@@ -1229,7 +1230,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
           primaryKeys,
           batchIds,
         )
-          .where(deletedColumn.column_name, true)
+          .where(deletedColumn.column_name, deletedColValue(baseModel, true))
           .update(restorePayload);
       }
     } catch (e: any) {

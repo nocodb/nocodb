@@ -88,6 +88,12 @@ import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
 import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
 import {
+  mssqlBuildBulkInsertWithCapture,
+  mssqlChunkSize,
+  mssqlNeedsIdentityInsert,
+  mssqlTableHasTriggers,
+} from '~/db/BaseModelSqlv2/mssql-insert-sql';
+import {
   addOrRemoveLinks,
   extractCorrespondingLinkColumn,
 } from '~/db/BaseModelSqlv2/add-remove-links';
@@ -102,6 +108,7 @@ import {
   _wherePk,
   applyPaginate,
   dataWrapper,
+  deletedColValue,
   displayValueMapKey,
   extractSortsObject,
   formatDataForAudit,
@@ -828,7 +835,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (deletedOnly) {
       const deletedCol = this.model.columns.find((c) => isDeletedCol(c));
       if (deletedCol) {
-        qb.where(deletedCol.column_name, true);
+        qb.where(deletedCol.column_name, deletedColValue(this, true));
       } else {
         // No soft-delete column — no trashed records can exist, return nothing
         qb.whereRaw('1 = 0');
@@ -2127,6 +2134,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb.orderByRaw('RAND()');
     } else if (this.isPg || this.isSqlite) {
       qb.orderByRaw('RANDOM()');
+    } else if (this.isMssql) {
+      qb.orderByRaw('NEWID()');
     }
   }
 
@@ -2185,7 +2194,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const where = await this._wherePk(id);
         const operationNow = this.now();
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(this, true),
         };
         // Stamp deleted-at / deleted-by so the trash UI can display them
         const lmtCol = this.model.columns.find(
@@ -2837,7 +2846,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
-    if (this.isPg && this.schema) {
+    if ((this.isPg || this.isMssql) && this.schema) {
       return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
     } else if (this.isSnowflake) {
       return `${[
@@ -2859,6 +2868,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       isSqlite: this.isSqlite,
       isPg: this.isPg,
       isMySQL: this.isMySQL,
+      isMssql: this.isMssql,
       // isSnowflake: this.isSnowflake,
     };
   }
@@ -3014,7 +3024,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query, null, { raw: true });
+
+        if (this.isMssql) {
+          // Trigger tables and explicit-IDENTITY inserts can't use the
+          // bare OUTPUT INSERTED.* form knex emits — route through the
+          // OUTPUT-INTO-table-variable pattern.
+          const aiCol = this.model.columns.find((c) => c.ai);
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiCol,
+          );
+          const hasTriggers = await mssqlTableHasTriggers(this);
+          if (hasTriggers || explicitIdentity) {
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: this.dbDriver,
+              tnPath: this.tnPath,
+              rows: [insertObj],
+              pkCols: this.model.primaryKeys ?? [],
+              explicitIdentity,
+              aliasField: 'id',
+            });
+            response = await this.execAndParse(sql, null, { raw: true });
+          } else {
+            response = await this.execAndParse(query, null, { raw: true });
+          }
+        } else {
+          response = await this.execAndParse(query, null, { raw: true });
+        }
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -3657,12 +3693,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             (col) => `${col.column_name} as ${col.title}`,
           );
 
-          responses =
-            !raw && (this.isPg || this.isMssql)
-              ? await trx
-                  .batchInsert(this.tnPath, toInsert, chunkSize)
-                  .returning(returningSpec.length ? returningSpec : '*')
-              : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
+          if (!raw && this.isMssql && toInsert.length) {
+            // MSSQL bulk path — uses the OUTPUT-INTO-table-variable pattern
+            // that's safe across all three quirks (triggers, IDENTITY_INSERT,
+            // 2100-param cap). See `mssql-insert-sql.ts` for the SQL shape.
+            const chunk = mssqlChunkSize(toInsert, chunkSize);
+            const explicitIdentity = mssqlNeedsIdentityInsert(
+              toInsert,
+              aiPkCol,
+            );
+            const hasTriggers = await mssqlTableHasTriggers(this);
+
+            if (!hasTriggers && !explicitIdentity) {
+              responses = await trx
+                .batchInsert(this.tnPath, toInsert, chunk)
+                .returning(returningSpec.length ? returningSpec : '*');
+            } else {
+              responses = [];
+              for (let i = 0; i < toInsert.length; i += chunk) {
+                const slice = toInsert.slice(i, i + chunk);
+                const sql = mssqlBuildBulkInsertWithCapture({
+                  knex: this.dbDriver,
+                  tnPath: this.tnPath,
+                  rows: slice,
+                  pkCols: this.model.primaryKeys ?? [],
+                  explicitIdentity,
+                });
+                const result: any = await trx.raw(sql);
+                const rows: any[] = Array.isArray(result)
+                  ? result
+                  : (result?.rows ?? result?.recordset ?? []);
+                responses.push(...rows);
+              }
+            }
+          } else {
+            responses =
+              !raw && this.isPg
+                ? await trx
+                    .batchInsert(this.tnPath, toInsert, chunkSize)
+                    .returning(returningSpec.length ? returningSpec : '*')
+                : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
+          }
         }
 
         if (!foreign_key_checks) {
@@ -3946,11 +4017,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   // Helper method to format date
   private formatDate(val: string): Knex.Raw | string {
-    const { isMySQL, isSqlite, isPg } = this.clientMeta;
+    const { isMySQL, isSqlite, isPg, isMssql } = this.clientMeta;
     if (val.indexOf('-') < 0 && val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
       // if no timezone is given,
       // then append +00:00 to make it as UTC
       val += '+00:00';
+    }
+    if (isMssql) {
+      // T-SQL `datetime` / `datetime2` types reject the `+00:00` offset
+      // suffix ("Conversion failed when converting date and/or time from
+      // character string"). NocoDB stores UTC wall-clock without TZ for
+      // mssql, so strip the offset after computing the UTC instant —
+      // mirrors `DateTimeMssqlHandler.parseUserInput`.
+      return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
     }
     if (isMySQL) {
       // first convert the value to utc
@@ -4158,7 +4237,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       try {
         if (
           this.model.primaryKeys.length === 1 &&
-          (this.isPg || this.isMySQL || this.isSqlite)
+          (this.isPg || this.isMySQL || this.isSqlite || this.isMssql)
         ) {
           await batchUpdate(
             transaction,
@@ -4519,7 +4598,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // Soft-delete: flag records instead of removing them, skip link cleanup
         const operationNow = this.now();
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(this, true),
         };
         // Stamp deleted-at / deleted-by so the trash UI can display them
         const lmtCol = this.model.columns.find(
@@ -6606,6 +6685,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.model.columns.find((c) => c.column_name === 'created_at')
       ) {
         qb.orderBy('created_at');
+      } else if (this.isMssql) {
+        // T-SQL `OFFSET … FETCH` (emitted by knex's mssql dialect when
+        // `.offset(N)` is set) requires an ORDER BY in the same query.
+        // For external mssql tables without an ai PK or system
+        // `created_at`, none of the branches above add one — fall back to
+        // the PK (any kind) when available, else a no-op `(SELECT NULL)`
+        // (same fallback ladder used in `list-query-enrichment.ts`).
+        if (this.model.primaryKey) {
+          qb.orderBy(this.model.primaryKey.column_name);
+        } else {
+          qb.orderByRaw('(SELECT NULL)');
+        }
       }
 
       const groupedQb = this.dbDriver.from(
@@ -6696,11 +6787,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // NULLIF(col, '') casts '' to col's type; native PG enums reject ''
       // with "invalid input value for enum". Native enum cells can't hold
       // '' anyway, so skip the normalization for them.
-      qb.groupBy(
-        this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
-          column.column_name,
-        ]),
-      );
+      const dt = (column.dt ?? '').toLowerCase();
+      if (this.isMssql && (dt === 'text' || dt === 'ntext')) {
+        // T-SQL forbids `=` / `NULLIF` against the legacy text/ntext types.
+        // CAST to NVARCHAR(MAX) first — matches the equivalent guard in
+        // select-object.ts's SingleSelect branch.
+        qb.groupBy(
+          this.dbDriver.raw(`NULLIF(CAST(?? AS NVARCHAR(MAX)), '')`, [
+            column.column_name,
+          ]),
+        );
+      } else {
+        qb.groupBy(
+          this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
+            column.column_name,
+          ]),
+        );
+      }
     } else {
       qb.groupBy(column.column_name);
     }
@@ -6798,6 +6901,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
+    } else if (this.isMssql) {
+      // T-SQL forbids ORDER BY in a derived-table / subquery without TOP /
+      // OFFSET / FOR XML — and the `__nc_alias` wrapper below would turn
+      // any ORDER-BY-bearing query into exactly that ("ORDER BY clause is
+      // invalid in views, inline functions, derived tables, subqueries,
+      // and common table expressions, unless TOP, OFFSET or FOR XML is
+      // also specified"). Tedious returns the row array directly from
+      // `trx.raw`, so we can skip the wrap entirely.
+      return await trx.raw(query);
     } else if (SELECT_REGEX.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {
@@ -9001,9 +9113,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public now() {
-    return dayjs()
-      .utc()
-      .format(this.isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+    // T-SQL `datetime`/`datetime2` reject the `+00:00` offset suffix that
+    // dayjs's `Z` token produces; mysql also stores in local-zone wall
+    // clock so it drops the offset. Both dialects share the offset-less
+    // shape. pg/sqlite preserve the offset to disambiguate stored TZ.
+    const fmt =
+      this.isMySQL || this.isMssql
+        ? 'YYYY-MM-DD HH:mm:ss'
+        : 'YYYY-MM-DD HH:mm:ssZ';
+    return dayjs().utc().format(fmt);
   }
 
   async getCustomConditionsAndApply(params: {
@@ -9724,8 +9842,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const source = await this.getSource();
       if (!source.isMeta() || !this.model.isTrashEnabled) return null;
       const columnName = deletedColumn.column_name;
+      const notDeletedValue = deletedColValue(this, false);
       return function () {
-        this.whereNull(columnName).orWhere(columnName, false);
+        this.whereNull(columnName).orWhere(columnName, notDeletedValue);
       };
     })();
 

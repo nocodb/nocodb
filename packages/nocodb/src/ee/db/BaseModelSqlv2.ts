@@ -61,6 +61,12 @@ import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 import { PrincipalAssignment, Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
+  mssqlBuildBulkInsertWithCapture,
+  mssqlChunkSize,
+  mssqlNeedsIdentityInsert,
+  mssqlTableHasTriggers,
+} from '~/db/BaseModelSqlv2/mssql-insert-sql';
+import {
   batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
@@ -265,7 +271,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
-    if (this.isPg && this.schema) {
+    if ((this.isPg || this.isMssql) && this.schema) {
       return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
     } else if (this.isSnowflake) {
       return `${[
@@ -713,7 +719,42 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query, null, { raw: true });
+
+        if (this.isMssql) {
+          // MSSQL: route through the OUTPUT-INTO-table-variable pattern in
+          // `mssql-insert-sql.ts` when triggers (T-SQL error 334 on bare
+          // OUTPUT INSERTED) or explicit IDENTITY values (error 544) are
+          // present. Standard `.returning()` path stays for the fast case
+          // (no triggers, no explicit identity) so we don't pay the
+          // DECLARE @table + SELECT round-trip overhead unnecessarily.
+          //
+          // Both paths execute through `execAndParse`, which routes via
+          // `runExternal` for external sources and `dbDriver.raw` for
+          // internal — so a single SQL batch (the SET ON/OFF + INSERT
+          // OUTPUT INTO + SELECT) runs on one connection regardless of
+          // source type.
+          const aiColForInsert = this.model.columns.find((c) => c.ai);
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiColForInsert,
+          );
+          const hasTriggers = await mssqlTableHasTriggers(this);
+          if (hasTriggers || explicitIdentity) {
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: this.dbDriver,
+              tnPath: this.tnPath,
+              rows: [insertObj],
+              pkCols: this.model.primaryKeys ?? [],
+              explicitIdentity,
+              aliasField: 'id',
+            });
+            response = await this.execAndParse(sql, null, { raw: true });
+          } else {
+            response = await this.execAndParse(query, null, { raw: true });
+          }
+        } else {
+          response = await this.execAndParse(query, null, { raw: true });
+        }
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -1529,8 +1570,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // instances (bulkUpdate creates a new instance internally).
     if (this.context.additionalContext?.isDatePropagating) return;
 
-    // Recursive CTE: PostgreSQL and MySQL 8+ only
-    if (!this.isPg && !this.isMySQL) return;
+    // Recursive CTE: PostgreSQL, MySQL 8+, and SQL Server (T-SQL 2008+) only.
+    // sqlite + databricks have no support for the cycle-detection +
+    // recursive-CTE shape `buildDateDependencyPropagationSQL` generates.
+    if (!this.isPg && !this.isMySQL && !this.isMssql) return;
 
     const rules = await DateDependency.listByModelId(
       this.context,
@@ -1692,7 +1735,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
       bufferDays: rule.dependency_buffer_days ?? 0,
       seedIds,
-      dialect: (this.isPg ? 'pg' : 'mysql') as 'pg' | 'mysql',
+      dialect: (this.isPg
+        ? 'pg'
+        : this.isMssql
+        ? 'mssql'
+        : 'mysql') as 'pg' | 'mysql' | 'mssql',
       includeWeekends: rule.include_weekends ?? true,
       junction: junctionInfo,
     };
@@ -2232,7 +2279,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const operationNow = this.now();
         const where = await this._wherePk(id);
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(this, true),
         };
         // Stamp deleted-at / deleted-by so the trash UI can display them
         const lmtCol = this.model.columns.find(
@@ -2858,7 +2905,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   col.uidt === UITypes.DateTime &&
                   dayjs(val).isValid()
                 ) {
-                  const { isMySQL, isSqlite, isPg } = this.clientMeta;
+                  const { isMySQL, isSqlite, isPg, isMssql } = this.clientMeta;
                   if (
                     val.indexOf('-') < 0 &&
                     val.indexOf('+') < 0 &&
@@ -2868,7 +2915,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     // then append +00:00 to make it as UTC
                     val += '+00:00';
                   }
-                  if (isMySQL) {
+                  if (isMssql) {
+                    // T-SQL `datetime` / `datetime2` types reject a
+                    // `+00:00` offset suffix. NocoDB stores UTC wall-clock
+                    // without TZ on mssql — strip the offset after
+                    // computing the UTC instant (mirrors
+                    // `DateTimeMssqlHandler.parseUserInput`).
+                    val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+                  } else if (isMySQL) {
                     // first convert the value to utc
                     // from UI
                     // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
@@ -3091,7 +3145,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           queries.push(this.dbDriver(this.tnPath).insert(insertData).toQuery());
         }
       } else {
-        const batches = [];
+        // MSSQL: route through the OUTPUT-INTO-table-variable pattern in
+        // mssql-insert-sql.ts when triggers or explicit IDENTITY values are
+        // present (or pre-emptively, for chunk-cap safety). Standard
+        // .returning() path stays for non-mssql.
+        const mssqlExplicitIdentity =
+          this.isMssql && mssqlNeedsIdentityInsert(insertDatas, aiPkCol);
+        const mssqlHasTriggers = this.isMssql
+          ? await mssqlTableHasTriggers(this)
+          : false;
+        // Per-dialect effective chunk size — mssql also enforces the
+        // 2100-param cap.
+        const effectiveChunkSize = this.isMssql
+          ? mssqlChunkSize(insertDatas, chunkSize)
+          : chunkSize;
+
+        const batches: any[][] = [];
+        for (let i = 0; i < insertDatas.length; i += effectiveChunkSize) {
+          batches.push(insertDatas.slice(i, i + effectiveChunkSize));
+        }
 
         // String-array form (`'col as alias'`), not a plain object: knex's
         // mssql dialect silently drops the plain-object form and emits a
@@ -3102,12 +3174,31 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           (col) => `${col.column_name} as ${col.title}`,
         );
 
-        for (let i = 0; i < insertDatas.length; i += chunkSize) {
-          batches.push(insertDatas.slice(i, i + chunkSize));
-        }
-
         for (const batch of batches) {
-          if (this.isPg || this.isMssql) {
+          if (this.isMssql) {
+            if (mssqlHasTriggers || mssqlExplicitIdentity) {
+              // OUTPUT-INTO pattern — survives triggers and wraps with
+              // SET IDENTITY_INSERT when needed.
+              queries.push(
+                mssqlBuildBulkInsertWithCapture({
+                  knex: this.dbDriver,
+                  tnPath: this.tnPath,
+                  rows: batch,
+                  pkCols: this.model.primaryKeys ?? [],
+                  explicitIdentity: mssqlExplicitIdentity,
+                }),
+              );
+            } else {
+              // Fast path — knex's standard OUTPUT INSERTED.* works when
+              // no triggers and no explicit identity.
+              queries.push(
+                this.dbDriver(this.tnPath)
+                  .insert(batch)
+                  .returning(returningSpec.length ? returningSpec : '*')
+                  .toQuery(),
+              );
+            }
+          } else if (this.isPg) {
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
@@ -3737,7 +3828,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             );
           }
         } else {
-          const batches = [];
+          // MSSQL: see EE bulkInsert path for the rationale. Same pattern —
+          // OUTPUT-INTO-table-variable when triggers / explicit identity,
+          // standard knex .returning() otherwise. 2100-param cap enforced
+          // via mssqlChunkSize.
+          const bulkUpsertAiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+          const mssqlExplicitIdentity =
+            this.isMssql && mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiPkCol);
+          const mssqlHasTriggers = this.isMssql
+            ? await mssqlTableHasTriggers(this)
+            : false;
+          const effectiveChunkSize = this.isMssql
+            ? mssqlChunkSize(toInsert, chunkSize)
+            : chunkSize;
+
+          const batches: any[][] = [];
+          for (let i = 0; i < toInsert.length; i += effectiveChunkSize) {
+            batches.push(toInsert.slice(i, i + effectiveChunkSize));
+          }
 
           // See the upper bulk path for why the string-array form
           // (`'col as alias'`) is required instead of a plain object
@@ -3746,12 +3854,27 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             (col) => `${col.column_name} as ${col.title}`,
           );
 
-          for (let i = 0; i < toInsert.length; i += chunkSize) {
-            batches.push(toInsert.slice(i, i + chunkSize));
-          }
-
           for (const batch of batches) {
-            if (this.isPg || this.isMssql) {
+            if (this.isMssql) {
+              if (mssqlHasTriggers || mssqlExplicitIdentity) {
+                insertQueries.push(
+                  mssqlBuildBulkInsertWithCapture({
+                    knex: this.dbDriver,
+                    tnPath: this.tnPath,
+                    rows: batch,
+                    pkCols: this.model.primaryKeys ?? [],
+                    explicitIdentity: mssqlExplicitIdentity,
+                  }),
+                );
+              } else {
+                insertQueries.push(
+                  this.dbDriver(this.tnPath)
+                    .insert(batch)
+                    .returning(returningSpec.length ? returningSpec : '*')
+                    .toQuery(),
+                );
+              }
+            } else if (this.isPg) {
               insertQueries.push(
                 this.dbDriver(this.tnPath)
                   .insert(batch)
@@ -4197,7 +4320,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (
         this.model.primaryKeys.length === 1 &&
-        (this.isPg || this.isMySQL || this.isSqlite)
+        (this.isPg || this.isMySQL || this.isSqlite || this.isMssql)
       ) {
         const batchQb = batchUpdate(
           this.dbDriver,
@@ -4600,10 +4723,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let bulkOperationNow: string | null = null;
       if (isSoftDelete) {
-        // Soft-delete: flag records instead of removing them, skip link cleanup
+        // Soft-delete: flag records instead of removing them, skip link cleanup.
+        // Mssql gets 1 (bit) not `true` — see #__nc_deleted note above.
         bulkOperationNow = this.now();
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(this, true),
         };
         const lmtCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedTime && c.system,

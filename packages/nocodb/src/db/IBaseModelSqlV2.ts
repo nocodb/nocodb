@@ -435,6 +435,7 @@ export interface IBaseModelSqlV2 {
     isSqlite: boolean;
     isPg: boolean;
     isMySQL: boolean;
+    isMssql: boolean;
   };
 
   /**

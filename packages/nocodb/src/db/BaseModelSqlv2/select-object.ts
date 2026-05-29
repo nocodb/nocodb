@@ -631,6 +631,67 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             }
           }
 
+          if (baseModel.isMssql) {
+            // tedious returns these T-SQL types as raw Node `Buffer` values
+            // (or driver-specific blobs). Without a server-side wrap they
+            // serialize as `{type:"Buffer", data:[…]}` in the JSON response
+            // — broken for users. Wrap each with the canonical T-SQL
+            // conversion so the client sees a usable string:
+            //
+            //   binary/varbinary/image  → `CONVERT(VARCHAR(MAX), col, 1)` —
+            //     style 1 emits `0xABCD…` hex per cast-and-convert docs.
+            //   hierarchyid             → `col.ToString()` emits the path
+            //     syntax (`/1/2/3/`) per hierarchyid method reference.
+            //   geography / geometry    → `col.STAsText()` emits the WKT
+            //     form (`POINT(1 2)`) per spatial type reference.
+            //
+            // sql_variant returns its underlying type by default so doesn't
+            // need a wrap; xml returns as nvarchar already.
+            const mssqlDt = (column.dt ?? '').toLowerCase();
+            const tnPart = alias || baseModel.tnPath;
+            if (
+              mssqlDt === 'binary' ||
+              mssqlDt === 'varbinary' ||
+              mssqlDt === 'image'
+            ) {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`CONVERT(VARCHAR(MAX), ??.??, 1)`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+            if (mssqlDt === 'hierarchyid') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`??.??.ToString()`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+            if (mssqlDt === 'geography' || mssqlDt === 'geometry') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`??.??.STAsText()`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+            // Fixed-length `char(n)` / `nchar(n)` are space-padded to the
+            // declared length — e.g. Sakila's `language.name CHAR(20)`
+            // returns `"English             "` (13 trailing spaces).
+            // RTRIM at SELECT time so the cell value matches what users
+            // see in SSMS by default. No-op for varchar/nvarchar.
+            if (mssqlDt === 'char' || mssqlDt === 'nchar') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`RTRIM(??.??)`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+          }
+
           res[sanitize(getAs(column) || column.column_name)] = sanitize(
             `${alias || baseModel.tnPath}.${column.column_name}`,
           );

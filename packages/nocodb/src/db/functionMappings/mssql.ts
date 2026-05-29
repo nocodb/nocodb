@@ -69,6 +69,20 @@ const mssql = {
   MIN: leastGreatestFn('LEAST'),
   MAX: leastGreatestFn('GREATEST'),
 
+  // NocoDB formula spec is `LOG([base], value)` (matches pg/mysql/sqlite);
+  // T-SQL's signature is reversed: `LOG(float, base)`. Swap the args so
+  // `LOG(2, 1024)` returns 10 on mssql like every other dialect.
+  // Single-arg LOG = natural log (base e) — identical signature on both.
+  LOG: async ({ fn, knex, pt }: MapFnArgs) => {
+    if (pt.arguments.length >= 2) {
+      const base = (await fn(pt.arguments[0])).builder;
+      const value = (await fn(pt.arguments[1])).builder;
+      return { builder: knex.raw(`LOG(?, ?)`, [value, base]) };
+    }
+    const value = (await fn(pt.arguments[0])).builder;
+    return { builder: knex.raw(`LOG(?)`, [value]) };
+  },
+
   // Scalar TRIM was added in SQL Server 2017; fall back to LTRIM(RTRIM(...))
   // on older versions (identical behavior for the default whitespace charset).
   TRIM: async ({ fn, knex, pt }: MapFnArgs) => {

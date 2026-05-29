@@ -2,7 +2,11 @@ import { UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { Column, Model } from '~/models';
 import { Filter } from '~/models';
-import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  deletedColValue,
+  getCompositePkValue,
+} from '~/helpers/dbHelpers';
 import { decodeEventId, encodeEventId } from '~/ee/helpers/trashHelpers';
 import conditionV2 from '~/db/conditionV2';
 
@@ -171,7 +175,7 @@ export function makeTrashBatchIterator(
 
     const qb = baseModel
       .dbDriver(baseModel.tnPath)
-      .where(deletedColumn.column_name, true)
+      .where(deletedColumn.column_name, deletedColValue(baseModel, true))
       .where(lmtCol.column_name, lmtValue)
       .orderBy(pkOrderCol)
       .limit(TRASH_BATCH_SIZE)
@@ -233,7 +237,7 @@ export async function filterRowIdsByRls(
   ).select(pkColNames);
 
   if (opts.requireDeleted !== false) {
-    qb.where(deletedColumn.column_name, true);
+    qb.where(deletedColumn.column_name, deletedColValue(baseModel, true));
   }
 
   const rlsConditions = await baseModel.getRlsConditions();

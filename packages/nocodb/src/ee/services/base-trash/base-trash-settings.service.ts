@@ -14,7 +14,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TRASH_BATCH_SIZE } from '~/services/base-trash/record-trash.helpers';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { resolveTrashRetentionDays } from '~/ee/helpers/trashHelpers';
-import { getCompositePkValue } from '~/helpers/dbHelpers';
+import { deletedColValue, getCompositePkValue } from '~/helpers/dbHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -162,7 +162,7 @@ export class BaseTrashSettingsService {
       const qb = baseModel
         .dbDriver(baseModel.tnPath)
         .select(pkColNames)
-        .where(deletedColumn.column_name, true)
+        .where(deletedColumn.column_name, deletedColValue(baseModel, true))
         .limit(TRASH_BATCH_SIZE);
 
       const rows = await baseModel.execAndParse(qb, null, { raw: true });

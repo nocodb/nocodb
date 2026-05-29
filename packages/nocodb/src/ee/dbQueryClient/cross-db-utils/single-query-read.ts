@@ -15,7 +15,7 @@ import {
   shouldSkipCache,
 } from '~/services/data-opt/common-helpers';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { getListArgs } from '~/helpers/dbHelpers';
+import { deletedColValue, getListArgs } from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import {
   getSingleQueryCache,
@@ -135,7 +135,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
     if (ctx.deletedOnly) {
       const deletedCol = ctx.model.columns?.find((c) => isDeletedCol(c));
       if (deletedCol) {
-        rootQb.where(deletedCol.column_name, true);
+        rootQb.where(deletedCol.column_name, deletedColValue(knex, true));
       } else {
         rootQb.whereRaw('1 = 0');
       }

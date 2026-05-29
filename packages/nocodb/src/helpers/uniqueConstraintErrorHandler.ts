@@ -433,10 +433,25 @@ export async function handleUniqueConstraintError({
   const hasUniqueConstraintMessage =
     /unique constraint|duplicate key|duplicate entry/i.test(errorMessage);
 
+  // T-SQL unique constraint violations surface through tedious's
+  // `RequestError` as numeric error codes:
+  //   2601 — Cannot insert duplicate key row in object 'X' with unique index 'Y'
+  //   2627 — Violation of UNIQUE KEY (or PRIMARY KEY) constraint 'Y' on table 'X'
+  // Both are emitted on `code === 'EREQUEST'` with `number` set to the
+  // corresponding numeric value.
+  const mssqlErrorNumber =
+    error?.number ??
+    error?.original?.number ??
+    error?.nativeError?.number;
+  const isMssqlUniqueViolation =
+    (clientType === 'mssql' || clientType === 'mssql2') &&
+    (mssqlErrorNumber === 2601 || mssqlErrorNumber === 2627);
+
   const isUniqueViolation =
     errorCode === '23505' || // PostgreSQL
     errorCode === 'ER_DUP_ENTRY' || // MySQL
     (errorCode === 'SQLITE_CONSTRAINT' && /UNIQUE/i.test(errorMessage)) || // SQLite
+    isMssqlUniqueViolation || // SQL Server (2601 / 2627)
     isExtractedDbError || // Error already processed by extractor
     (hasUniqueConstraintMessage &&
       (clientType === 'pg' || clientType === 'postgres')); // Fallback for PostgreSQL

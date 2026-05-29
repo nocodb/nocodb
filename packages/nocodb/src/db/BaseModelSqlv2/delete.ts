@@ -15,6 +15,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import {
   _wherePk,
+  deletedColValue,
   getCompositePkValue,
   shouldCascadeLinkCleanup,
 } from '~/helpers/dbHelpers';
@@ -475,7 +476,7 @@ export class BaseModelDelete {
         // Soft-delete: mark rows as deleted instead of removing them
         // Also stamp LastModifiedTime/LastModifiedBy so the trash UI shows who deleted and when
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(trx, true),
         };
         const lmtCol = columns.find(
           (c) => c.uidt === UITypes.LastModifiedTime && c.system,

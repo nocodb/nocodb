@@ -12,7 +12,12 @@ import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
-import { _wherePk, extractSortsObject, getListArgs } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  deletedColValue,
+  extractSortsObject,
+  getListArgs,
+} from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import getAst from '~/helpers/getAst';
@@ -235,7 +240,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     if (ctx.deletedOnly) {
       const deletedCol = columns.find((c) => isDeletedCol(c));
       if (deletedCol) {
-        baseQb.where(deletedCol.column_name, true);
+        baseQb.where(deletedCol.column_name, deletedColValue(baseQb, true));
       } else {
         baseQb.whereRaw('1 = 0');
       }

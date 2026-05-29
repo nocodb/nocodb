@@ -886,6 +886,47 @@ export function generateRecursiveCTE(_params: {
   return false;
 }
 
+/**
+ * Anything that lets us detect the underlying knex dialect: a Knex /
+ * Knex.QueryBuilder / Knex.Raw exposes `.client.config.client`, while
+ * `BaseModelSqlv2`-like objects expose `.isMssql` directly (and the
+ * driver via `.dbDriver`).
+ */
+export type DialectAware =
+  | { isMssql: boolean }
+  | { dbDriver: { client: { config: { client: string } } } }
+  | { client: { config: { client: string } } };
+
+/**
+ * Returns the dialect-correct value for a `bit`/`boolean` column
+ * comparison or write — used by every soft-delete (`__nc_deleted`)
+ * code path.
+ *
+ * MSSQL `bit` columns can't compare against or accept the bare T-SQL
+ * identifiers `true` / `false` that knex inlines for JS booleans
+ * ("Invalid column name 'true'" / `'false'`). Use 1/0 instead.
+ *
+ * PG `boolean` columns reject `boolean = integer` — pg needs the real
+ * boolean literal. MySQL `tinyint(1)` and SQLite numeric-bool tolerate
+ * both; we keep them on `true`/`false` for consistency.
+ */
+export function deletedColValue(
+  knexOrModel: DialectAware,
+  isDeleted: boolean,
+): boolean | number {
+  const m = knexOrModel as Partial<{
+    isMssql: boolean;
+    dbDriver: { client: { config: { client: string } } };
+    client: { config: { client: string } };
+  }>;
+  const isMssql =
+    typeof m.isMssql === 'boolean'
+      ? m.isMssql
+      : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
+        'mssql';
+  return isMssql ? (isDeleted ? 1 : 0) : isDeleted;
+}
+
 export const dataWrapper = (data: any) => {
   return {
     getByColumnNameTitleOrId: (column: {

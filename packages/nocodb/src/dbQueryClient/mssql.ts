@@ -22,7 +22,9 @@ export class MssqlDBQueryClient
   }
 
   simpleCast(field: string, asType: string) {
-    return `CAST(${field} AS ${asType})`;
+    const useAsType =
+      asType.toUpperCase() === 'TEXT' ? 'NVARCHAR(MAX)' : asType;
+    return `CAST(${field} AS ${useAsType})`;
   }
 
   generateAggregateQuery(params: AggregationGeneratorParams) {

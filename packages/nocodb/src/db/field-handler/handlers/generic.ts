@@ -677,11 +677,27 @@ export class GenericFieldHandler
     };
   }
 
-  // to be implemented on checkbox itself
-  filterChecked = unsupportedFilter;
+  async filterChecked(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ): Promise<FilterOperationResult> {
+    return unsupportedFilter(args, rootArgs, options) as any;
+  }
 
-  // to be implemented on checkbox itself
-  filterNotchecked = unsupportedFilter;
+  async filterNotchecked(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ): Promise<FilterOperationResult> {
+    return unsupportedFilter(args, rootArgs, options) as any;
+  }
   // endregion filter comparisons
 
   async verifyFilter(

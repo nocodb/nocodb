@@ -3094,7 +3094,7 @@
     "scopeFullAccess": "Full read and write access to all resources including tables, fields, views, webhooks, and users.",
     "scopeCustom": "Pick individual permissions per category for fine-grained control.",
     "variableInheritance": "Controls how this variable behaves in managed apps and sandboxes derived from this base",
-    "viewHasVisibilityRestrictions": "This view has visibility restrictions",
+    "viewHasVisibilityRestrictions": "Limited access — not everyone can see this view",
     "inheritedMembersInfo": "These members belong to a parent team and inherit access to resources assigned to this team.",
     "teamScopeThisOnly": "This team only — click to include sub-teams",
     "teamScopeIncludesSubTeams": "Includes sub-teams — click to match this team only",

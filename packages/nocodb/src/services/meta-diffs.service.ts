@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
-  ClientType,
   isAIPromptCol,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -9,7 +8,6 @@ import {
   MetaEventType,
   ModelTypes,
   RelationTypes,
-  SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
@@ -55,6 +53,38 @@ const applyChangesPriorityOrder = [
   MetaDiffType.VIEW_COLUMN_REMOVE,
   MetaDiffType.TABLE_RELATION_REMOVE,
 ];
+
+/**
+ * Returns true when a column's database type (or its length/precision for
+ * parameterised types) has changed in a way that NocoDB must sync.
+ *
+ * Extracted as a pure function so it can be unit-tested independently of the
+ * full getMetaDiff / syncBaseMeta pipeline.
+ */
+export function isColumnTypeChanged(
+  sourceType: string,
+  oldCol: { dt?: string; dtxp?: any; udt_typtype?: string; internal_meta?: any },
+  column: { dt?: string; dtxp?: any; udt_typtype?: string; data_type_custom?: string },
+): boolean {
+  return (
+    // Base type changed
+    oldCol.dt !== column.dt ||
+    // MySQL: enum/set option list changed
+    (['mysql', 'mysql2'].includes(sourceType) &&
+      ['set', 'enum'].includes(column.dt) &&
+      column.dtxp !== oldCol.dtxp) ||
+    // PG: length-parameterised types — detect varchar(n) length changes even
+    // when the base dt string stays 'character varying'.
+    (sourceType === 'pg' &&
+      ['character varying', 'char', 'character'].includes(column.dt) &&
+      String(column.dtxp ?? '') !== String(oldCol.dtxp ?? '')) ||
+    // PG native enum: option list or underlying enum type name changed
+    (sourceType === 'pg' &&
+      column.udt_typtype === 'e' &&
+      (column.dtxp !== oldCol.dtxp ||
+        column.data_type_custom !== oldCol.internal_meta?.pg_enum_type_name))
+  );
+}
 
 type MetaDiff = {
   title?: string;
@@ -270,19 +300,7 @@ export class MetaDiffsService {
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
         if (
-          oldCol.dt !== column.dt ||
-          // if mysql and data type is set or enum then compare dtxp as well
-          (['mysql', 'mysql2'].includes(source.type) &&
-            ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp) ||
-          // PG native enum: dt stays 'USER-DEFINED' but option list can
-          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
-          // type itself can be swapped (different udt_name).
-          (source.type === 'pg' &&
-            column.udt_typtype === 'e' &&
-            (column.dtxp !== oldCol.dtxp ||
-              column.data_type_custom !==
-                oldCol.internal_meta?.pg_enum_type_name))
+          isColumnTypeChanged(source.type, oldCol, column)
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -712,19 +730,7 @@ export class MetaDiffsService {
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
         if (
-          oldCol.dt !== column.dt ||
-          // if mysql and data type is set or enum then compare dtxp as well
-          (['mysql', 'mysql2'].includes(source.type) &&
-            ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp) ||
-          // PG native enum: dt stays 'USER-DEFINED' but option list can
-          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
-          // type itself can be swapped (different udt_name).
-          (source.type === 'pg' &&
-            column.udt_typtype === 'e' &&
-            (column.dtxp !== oldCol.dtxp ||
-              column.data_type_custom !==
-                oldCol.internal_meta?.pg_enum_type_name))
+          isColumnTypeChanged(source.type, oldCol, column)
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -852,7 +858,6 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-    const sqlUi = SqlUiFactory.create({ client: source.type ?? ClientType.PG });
     const changes = await this.getMetaDiff(context, sqlClient, base, source);
 
     /* Get all relations */
@@ -982,12 +987,16 @@ export class MetaDiffsService {
                 {},
               );
 
-              // check if new type is compatible with old uidt
-              const allowedDatatypes = sqlUi.getDataTypeListForUiType(column);
-
-              // if UIDT not compatible with new type then change uidt
-              if (!allowedDatatypes?.includes(column.dt)) {
+              // When the base data type (dt) has changed (e.g. text →
+              // character varying), recompute the UI type from the new DB
+              // type so the column reflects reality.
+              // When only the length/precision changed (same dt, different
+              // dtxp) preserve the stored uidt — the user may have
+              // intentionally chosen a different UI type for that column.
+              if (column.dt !== change.column.dt) {
                 column.uidt = metaFact.getUIDataType(column);
+              } else {
+                column.uidt = change.column.uidt;
               }
 
               column.title = change.column.title;

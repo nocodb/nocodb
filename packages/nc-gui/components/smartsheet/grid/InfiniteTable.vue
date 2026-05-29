@@ -28,7 +28,7 @@ const props = defineProps<{
   data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
-  callAddEmptyRow?: (addAfter?: number) => Row | undefined
+  callAddEmptyRow?: (addAfter?: number, metaValue?: TableType, rowOverwrite?: Record<string, any>) => Row | undefined
   deleteRow?: (rowIndex: number) => Promise<void>
   updateOrSaveRow?: (
     row: Row,
@@ -2052,6 +2052,35 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
   }
 }
 
+const duplicateRow = (context: { row: number; col: number }) => {
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
+  const sourceRow = cachedRows.value.get(context.row)
+  if (!sourceRow) return
+
+  clearInvalidRows?.()
+  if (rowSortRequiredRows.value.length) {
+    applySorting?.(rowSortRequiredRows.value)
+  }
+
+  // Clone the record's values (identity markers + system columns stripped, link
+  // values kept) so the insert creates a brand-new record (see getDuplicateRowData).
+  const clonedRow = getDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+
+  // Insert immediately below the source row. `before` is the pk of the row
+  // currently one position down, so the copy lands right after the original
+  // (same mechanism as the Insert below action).
+  const rowBelow = cachedRows.value.get(context.row + 1)
+  const beforeRowId = rowBelow ? extractPkFromRow(rowBelow.row, meta.value?.columns as ColumnType[]) : undefined
+
+  const rowObj = callAddEmptyRow?.(context.row + 1, undefined, clonedRow)
+  if (!rowObj) return
+
+  saveEmptyRow(rowObj, beforeRowId ?? undefined)
+
+  message.toast(t('msg.success.rowDuplicated'))
+}
+
 const onRecordDragStart = (row: Row) => {
   activeCell.row = null
   activeCell.col = null
@@ -2947,6 +2976,17 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 <div v-e="['a:row:insert:below']" class="flex gap-2 items-center">
                   <GeneralIcon icon="ncChevronDown" />
                   {{ $t('general.insertBelow') }}
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="contextMenuTarget"
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-duplicate-row"
+                @click="duplicateRow(contextMenuTarget)"
+              >
+                <div v-e="['a:row:duplicate']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="duplicate" />
+                  {{ $t('labels.duplicateRecord') }}
                 </div>
               </NcMenuItem>
               <NcDivider v-if="contextMenuTarget" />

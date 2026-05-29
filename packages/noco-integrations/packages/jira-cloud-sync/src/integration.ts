@@ -127,7 +127,9 @@ export default class JiraCloudSyncIntegration extends SyncIntegration<JiraSyncPa
                 TARGET_TABLES.TICKETING_COMMENT,
               ];
 
-        const jqlParts: string[] = [`project in (${projects.join(' ')})`];
+        const jqlParts: string[] = [
+          `project in (${projects.map((key) => `"${key}"`).join(', ')})`,
+        ];
 
         if (!includeClosed) {
           // Exclude issues in the Done status category when includeClosed is false

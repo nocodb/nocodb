@@ -44,7 +44,40 @@ const globalSearchRef = ref<HTMLInputElement>()
 
 const globalSearchWrapperRef = ref<HTMLInputElement>()
 
+const toolbarElRef = ref<HTMLElement | null>(null)
+
+// The flex-1 spacer that sits immediately to the left of the search box in the toolbar.
+const spacerElRef = ref<HTMLElement | null>(null)
+
+// Bumped on every toolbar width change to force the search dropdown to re-align — see usage below.
+const realignTick = ref(0)
+
+const { width: spacerWidth } = useElementSize(spacerElRef)
+
+const { width: wrapperWidth } = useElementSize(globalSearchWrapperRef)
+
+// State-independent measure of the space available to the search box: the spacer width plus the
+// wrapper's own in-flow width. Expanded, the box is a 0-footprint teleported overlay (wrapper ≈ 0,
+// spacer ≈ all free space); collapsed, the wrapper holds the ~28px icon and the spacer shrinks by the
+// same amount — so the sum stays constant and the collapse decision below never flaps on toggle.
+const freeSpaceForSearch = computed(() => spacerWidth.value + wrapperWidth.value)
+
+// Approx width the expanded search box needs (field selector + input + padding). Quick heuristic —
+// can later be refined by measuring the box. Driven off real free space (not raw toolbar width) so it
+// does not mis-fire in icon mode, where the toolbar buttons collapse to icons and free up space.
+const EXPANDED_SEARCH_MIN_WIDTH = 320
+
+const shouldCollapseSearch = computed(
+  () => freeSpaceForSearch.value > 0 && freeSpaceForSearch.value < EXPANDED_SEARCH_MIN_WIDTH - 20,
+)
+
 const isSearchButtonVisible = computed(() => {
+  // Toolbar too narrow: keep the search collapsed to its icon unless the user explicitly expands it —
+  // even with an active query (the icon shows an indicator dot instead of expanding over the toolbar).
+  if (shouldCollapseSearch.value) {
+    return !showSearchBox.value
+  }
+
   return !search.value.query && !showSearchBox.value
 })
 
@@ -173,7 +206,13 @@ const handleEscapeKey = () => {
 
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
-  if (search.value.query || targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
+  if (targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
+    return
+  }
+
+  // With room, an active query keeps the box open (existing behaviour). When the toolbar is too
+  // narrow we instead fold it back to the indicator icon so it stops overlapping the toolbar.
+  if (search.value.query && !shouldCollapseSearch.value) {
     return
   }
 
@@ -182,8 +221,23 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
 
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
+// Re-align the search dropdown when the toolbar width changes. Opening/resizing the
+// expanded-form, extension or action side panels shrinks the view (and the toolbar
+// inside it), which moves the dropdown's anchor. Ant does not re-align a teleported
+// popup on a position-only shift of its trigger, so the open dropdown would otherwise
+// stay put and overlap the side panel. Bumping `realignTick` makes WrapperDropdown
+// nudge the popup's `align` prop, which forces ant to re-align to the moved trigger.
+useResizeObserver(toolbarElRef, () => {
+  if (isSearchButtonVisible.value) return
+
+  realignTick.value++
+})
+
 onMounted(() => {
-  if (search.value.query && !showSearchBox.value) {
+  toolbarElRef.value = globalSearchWrapperRef.value?.closest('.nc-table-toolbar') ?? null
+  spacerElRef.value = (globalSearchWrapperRef.value?.previousElementSibling as HTMLElement) ?? null
+
+  if (search.value.query && !showSearchBox.value && !shouldCollapseSearch.value) {
     showSearchBox.value = true
   }
 })
@@ -225,17 +279,24 @@ watch(
 
 <template>
   <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper relative">
-    <NcButton
-      v-if="isSearchButtonVisible"
-      size="small"
-      type="text"
-      class="nc-toolbar-btn !rounded-lg !h-7 !px-1.5"
-      data-testid="nc-global-search-show-input"
-      @click="handleShowSearchInput"
-    >
-      <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
-    </NcButton>
-    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
+    <NcTooltip v-if="isSearchButtonVisible" :disabled="!search.query" placement="bottom">
+      <template #title> {{ $t('general.searchIn') }} {{ displayColumnLabel ?? '' }}: {{ search.query }} </template>
+      <NcButton
+        size="small"
+        type="text"
+        class="nc-toolbar-btn !rounded-lg !h-7 !px-1.5 relative"
+        data-testid="nc-global-search-show-input"
+        @click="handleShowSearchInput"
+      >
+        <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
+        <span
+          v-if="search.query"
+          class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-nc-fill-primary"
+          data-testid="nc-global-search-active-indicator"
+        />
+      </NcButton>
+    </NcTooltip>
+    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true" :realign-tick="realignTick">
       <div
         class="overflow-hidden"
         :class="{

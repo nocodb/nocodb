@@ -366,42 +366,88 @@ export default class TestDbMngr {
     }
   }
 
+  private static _dialect(
+    knexClient: any,
+  ): 'sqlite' | 'pg' | 'mysql' | 'mssql' {
+    const c = knexClient?.client?.config?.client;
+    if (c === 'sqlite3' || c === 'sqlite') return 'sqlite';
+    if (c === 'pg') return 'pg';
+    if (c === 'mssql') return 'mssql';
+    if (c === 'mysql' || c === 'mysql2') return 'mysql';
+    // Unknown client — fall back to the meta-DB helpers so we keep behaving
+    // the way the caller expects from before this dispatch existed.
+    if (TestDbMngr.isSqlite()) return 'sqlite';
+    if (TestDbMngr.isPg()) return 'pg';
+    return 'mysql';
+  }
+
   static async disableForeignKeyChecks(knexClient) {
-    if (TestDbMngr.isSqlite()) {
-      await knexClient.raw('PRAGMA foreign_keys = OFF');
-    } else if (TestDbMngr.isPg()) {
-      await knexClient.raw(`SET session_replication_role = 'replica'`);
-    } else {
-      await knexClient.raw(`SET FOREIGN_KEY_CHECKS = 0`);
+    switch (TestDbMngr._dialect(knexClient)) {
+      case 'sqlite':
+        return knexClient.raw(`PRAGMA foreign_keys = OFF`);
+      case 'pg':
+        return knexClient.raw(`SET session_replication_role = 'replica'`);
+      case 'mssql':
+        // T-SQL has no session-level FK toggle; `sp_msforeachtable`
+        // iterates every user table in the current DB.
+        return knexClient.raw(
+          `EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'`,
+        );
+      case 'mysql':
+        return knexClient.raw(`SET FOREIGN_KEY_CHECKS = 0`);
     }
   }
 
   static async enableForeignKeyChecks(knexClient) {
-    if (TestDbMngr.isSqlite()) {
-      await knexClient.raw(`PRAGMA foreign_keys = ON;`);
-    } else if (TestDbMngr.isPg()) {
-      await knexClient.raw(`SET session_replication_role = 'origin'`);
-    } else {
-      await knexClient.raw(`SET FOREIGN_KEY_CHECKS = 1`);
+    switch (TestDbMngr._dialect(knexClient)) {
+      case 'sqlite':
+        return knexClient.raw(`PRAGMA foreign_keys = ON`);
+      case 'pg':
+        return knexClient.raw(`SET session_replication_role = 'origin'`);
+      case 'mssql':
+        // `WITH CHECK CHECK CONSTRAINT ALL` re-enables AND re-validates the
+        // FK against existing rows — `CHECK CONSTRAINT ALL` (no `WITH
+        // CHECK`) would re-enable without validating.
+        return knexClient.raw(
+          `EXEC sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'`,
+        );
+      case 'mysql':
+        return knexClient.raw(`SET FOREIGN_KEY_CHECKS = 1`);
     }
   }
 
-  static async showAllTables(knexClient) {
-    if (TestDbMngr.isSqlite()) {
-      const tables = await knexClient.raw(
-        `SELECT name FROM sqlite_master WHERE type='table'`,
-      );
-      return tables
-        .filter((t) => t.name !== 'sqlite_sequence' && t.name !== '_evolutions')
-        .map((t) => t.name);
-    } else if (TestDbMngr.isPg()) {
-      const tables = await knexClient.raw(
-        `SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';`,
-      );
-      return tables.rows.map((t) => t.tablename);
-    } else {
-      const response = await knexClient.raw(`SHOW TABLES`);
-      return response[0].map((table) => Object.values(table)[0]);
+  static async showAllTables(knexClient): Promise<string[]> {
+    switch (TestDbMngr._dialect(knexClient)) {
+      case 'sqlite': {
+        const rows = await knexClient.raw(
+          `SELECT name FROM sqlite_master WHERE type='table'`,
+        );
+        return rows
+          .filter(
+            (t: any) => t.name !== 'sqlite_sequence' && t.name !== '_evolutions',
+          )
+          .map((t: any) => t.name);
+      }
+      case 'pg': {
+        const rows = await knexClient.raw(
+          `SELECT tablename FROM pg_catalog.pg_tables
+            WHERE schemaname NOT IN ('pg_catalog', 'information_schema')`,
+        );
+        return rows.rows.map((t: any) => t.tablename);
+      }
+      case 'mssql': {
+        // tedious returns array-of-rows directly (no `.rows` wrapper).
+        const rows = await knexClient.raw(
+          `SELECT t.name AS table_name
+             FROM sys.tables t
+            WHERE t.is_ms_shipped = 0`,
+        );
+        return rows.map((t: any) => t.table_name);
+      }
+      case 'mysql': {
+        const rows = await knexClient.raw(`SHOW TABLES`);
+        return rows[0].map((row: any) => Object.values(row)[0] as string);
+      }
     }
   }
 }

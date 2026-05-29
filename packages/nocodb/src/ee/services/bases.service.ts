@@ -15,6 +15,7 @@ import {
 } from 'nocodb-sdk';
 import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import type {
+  BaseReqType,
   NcApiVersion,
   ProjectReqType,
   ProjectUpdateReqType,
@@ -234,7 +235,7 @@ export class BasesService extends BasesServiceCE {
         const db = await NcConnectionMgrv2.getDataConfig();
         baseBody.sources = [
           {
-            type: db?.client,
+            type: db?.client as BaseReqType['type'],
             config: null,
             is_meta: true,
             inflection_column: 'camelize',

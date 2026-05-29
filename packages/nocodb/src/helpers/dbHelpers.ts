@@ -897,8 +897,8 @@ export function generateRecursiveCTE(_params: {
  */
 export type DialectAware =
   | { isMssql: boolean }
-  | { dbDriver: { client: { config: { client: string } } } }
-  | { client: { config: { client: string } } };
+  | { dbDriver: { client: { config: { client?: unknown } } } }
+  | { client: { config: { client?: unknown } } };
 
 /**
  * Returns the dialect-correct value for a `bit`/`boolean` column
@@ -919,8 +919,8 @@ export function deletedColValue(
 ): boolean | number {
   const m = knexOrModel as Partial<{
     isMssql: boolean;
-    dbDriver: { client: { config: { client: string } } };
-    client: { config: { client: string } };
+    dbDriver: { client: { config: { client?: unknown } } };
+    client: { config: { client?: unknown } };
   }>;
   const isMssql =
     typeof m.isMssql === 'boolean'
@@ -950,8 +950,8 @@ export function boolSqlLiteral(
 ): string {
   const m = knexOrModel as Partial<{
     isMssql: boolean;
-    dbDriver: { client: { config: { client: string } } };
-    client: { config: { client: string } };
+    dbDriver: { client: { config: { client?: unknown } } };
+    client: { config: { client?: unknown } };
   }>;
   const isMssql =
     typeof m.isMssql === 'boolean'

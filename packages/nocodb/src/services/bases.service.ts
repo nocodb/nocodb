@@ -14,6 +14,7 @@ import {
   validateEntityName,
 } from 'nocodb-sdk';
 import type {
+  BaseReqType,
   NcApiVersion,
   ProjectReqType,
   ProjectUpdateReqType,
@@ -331,7 +332,7 @@ export class BasesService {
         const db = await NcConnectionMgrv2.getDataConfig();
         baseBody.sources = [
           {
-            type: db?.client,
+            type: db?.client as BaseReqType['type'],
             config: null,
             is_meta: true,
             inflection_column: 'camelize',

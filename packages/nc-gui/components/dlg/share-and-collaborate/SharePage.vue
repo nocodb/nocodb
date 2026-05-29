@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
-import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, ViewTypes } from 'nocodb-sdk'
+import {
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+  PermissionEntity,
+  PermissionGrantedType,
+  PermissionKey,
+  PermissionRole,
+  ViewTypes,
+  getPermissionLabel,
+  getPermissionOptionValue,
+} from 'nocodb-sdk'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -52,6 +61,27 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
 
 const restrictedSharing = computed(() => {
   return isPrivateBase.value && activeView.value?.type !== ViewTypes.FORM
+})
+
+// VIEW_VISIBILITY (an EE permissions feature) does NOT apply to shared
+// public links — anyone with the link bypasses it. Warn the owner so the
+// "I made this view restricted" mental model isn't silently violated by
+// the share-link side channel.
+const { permissionsByEntity } = usePermissions()
+
+const viewVisibilityRestriction = computed<string | null>(() => {
+  if (!activeView.value?.id) return null
+  const perms = permissionsByEntity.value[`${PermissionEntity.VIEW}_${activeView.value.id}`] ?? []
+  const visibility = perms.find((p: any) => p.permission === PermissionKey.VIEW_VISIBILITY)
+  if (!visibility) return null
+  // Default — Viewers & up — is functionally unrestricted; skip the warning
+  if (
+    visibility.granted_type === PermissionGrantedType.ROLE &&
+    visibility.granted_role === PermissionRole.VIEWER
+  ) {
+    return null
+  }
+  return getPermissionLabel(getPermissionOptionValue(visibility.granted_type, visibility.granted_role))
 })
 
 const isPublicShared = computed(() => {
@@ -531,6 +561,19 @@ const copyCustomUrl = async (custUrl = '') => {
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
+    <NcAlert
+      v-if="viewVisibilityRestriction"
+      type="warning"
+      align="top"
+      class="!p-3 !items-start mt-2.5"
+      data-testid="nc-share-view-permissions-warning"
+    >
+      <template #description>
+        <div class="text-nc-content-gray">
+          {{ $t('msg.info.shareLinkBypassesViewPermissions', { audience: viewVisibilityRestriction }) }}
+        </div>
+      </template>
+    </NcAlert>
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-nc-border-gray-medium border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
         <div class="text-nc-content-gray-emphasis font-medium">

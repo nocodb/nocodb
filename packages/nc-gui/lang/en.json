@@ -3691,6 +3691,8 @@
       "onlyBaseOwnersCanConfigureViewVisibility": "Only base owners can configure view visibility permissions",
       "viewPermissionsNotAvailableForPersonalViews": "View visibility permissions cannot be set on personal views",
       "viewInheritsTableVisibility": "Limited by table visibility ({audience}). View permissions can narrow access further but not extend it.",
+      "viewPermissionsShareLinkActive": "This view has an active public link. Anyone with the link can view it regardless of these permissions.",
+      "shareLinkBypassesViewPermissions": "View permissions ({audience}) don't apply to public links — anyone with this link can access the view.",
       "viewHiddenFromRoles": "This view is hidden from {roles} on this base.",
       "viewHiddenFromAllExceptSelected": "This view is hidden from everyone except the selected users and base owners.",
       "tableHiddenFromRoles": "No other view in this table is accessible to {roles} — {emphasis}",

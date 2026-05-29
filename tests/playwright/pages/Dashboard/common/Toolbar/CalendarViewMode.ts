@@ -23,7 +23,7 @@ export class ToolbarCalendarViewModePage extends BasePage {
       await this.get().click({ force: true });
       await this.rootPage.waitForTimeout(500);
 
-      await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${title}"`).click();
+      await this.rootPage.getByTestId(`nc-calendar-view-mode-option-${title}`).click();
     }
 
     // Wait for view mode to change

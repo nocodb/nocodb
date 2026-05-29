@@ -97,7 +97,11 @@ watch(activeCalendarView, () => {
     <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
     <a-select-option v-for="option in modes" :key="option" :value="option" :label="$t(modeI18nKey(option))">
-      <div class="w-full flex gap-2 items-center justify-between text-[13px]" :title="$t(modeI18nKey(option))">
+      <div
+        class="w-full flex gap-2 items-center justify-between text-[13px]"
+        :data-testid="`nc-calendar-view-mode-option-${option}`"
+        :title="$t(modeI18nKey(option))"
+      >
         <div class="flex items-center gap-1">
           <NcTooltip class="flex-1 mt-0.5 truncate text-[13px]" show-on-truncate-only>
             <template #title>

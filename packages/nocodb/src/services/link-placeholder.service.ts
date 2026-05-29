@@ -79,11 +79,7 @@ export class LinkPlaceholderService {
     typeProps.dtxs = sqlUi.getDefaultScaleForDatatype(typeProps.dt);
 
     try {
-      const sqlMgr = ProjectMgrv2.getSqlMgr(
-        ctx,
-        { id: source.base_id },
-        ncMeta,
-      );
+      const sqlMgr = ProjectMgrv2.getSqlMgr(ctx, { id: source.base_id });
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
         ...table,
@@ -218,11 +214,7 @@ export class LinkPlaceholderService {
           CacheDelDirection.CHILD_TO_PARENT,
         );
 
-        const sqlMgr = ProjectMgrv2.getSqlMgr(
-          ctx,
-          { id: source.base_id },
-          ncMeta,
-        );
+        const sqlMgr = ProjectMgrv2.getSqlMgr(ctx, { id: source.base_id });
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
           ...table,
           tn: table.table_name,
@@ -552,6 +544,19 @@ export class LinkPlaceholderService {
             srcTn,
             phCn,
           )} = ${pvExprAliased} WHERE ${qCol(
+            srcTn,
+            childCol.column_name,
+          )} IS NOT NULL`,
+          null,
+          { raw: true },
+        );
+      } else if (baseModel.isMssql) {
+        await baseModel.execAndParse(
+          `UPDATE ${srcTn} SET ${qi(
+            phCn,
+          )} = (SELECT ${pvExprAliased} FROM ${relTn} AS ${relAliasQ} WHERE ${relAliasQ}.${qi(
+            parentCol.column_name,
+          )} = ${qCol(srcTn, childCol.column_name)}) WHERE ${qCol(
             srcTn,
             childCol.column_name,
           )} IS NOT NULL`,

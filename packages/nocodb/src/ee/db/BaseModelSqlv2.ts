@@ -494,6 +494,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const lookupArrayIds = new Set<string>(); // HM / MM Lookup — parse + `_lkv` unwrap + null→[]
     const lookupScalarIds = new Set<string>(); // BT / OO Lookup — parse + `_lkv` unwrap
     const linksMaybeLtarIds = new Set<string>(); // Links — heuristic parse only
+    // Numeric coercion — tedious returns MSSQL `bigint` / `decimal` / `numeric`
+    // as JS strings (to preserve precision beyond 2^53). NocoDB's API contract
+    // on pg/mysql/sqlite is to return these as JS numbers; without coercion
+    // here a Duration like `10` comes back as `'10'` and downstream assertions
+    // / clients break. Number → bigint, Decimal / Currency / Duration → decimal.
+    const numericIds = new Set<string>();
 
     const shapeCache =
       this._mssqlLookupShape ?? (this._mssqlLookupShape = new Map());
@@ -511,6 +517,26 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (isArrayShape ? ltarArrayIds : ltarObjectIds).add(col.id);
       } else if (col.uidt === UITypes.Links) {
         linksMaybeLtarIds.add(col.id);
+      } else if (
+        col.uidt === UITypes.Number ||
+        col.uidt === UITypes.Decimal ||
+        col.uidt === UITypes.Currency ||
+        col.uidt === UITypes.Duration
+      ) {
+        // Skip when the underlying SQL type is one tedious already returns
+        // as a JS number (int family, float, money). Only `bigint`,
+        // `decimal`, and `numeric` need coercion. dt is unset for nullable
+        // formula-derived columns — fall back to coercion in that case.
+        const dt = (col.dt ?? '').toLowerCase();
+        const tediousReturnsNumber =
+          dt === 'int' ||
+          dt === 'smallint' ||
+          dt === 'tinyint' ||
+          dt === 'float' ||
+          dt === 'real' ||
+          dt === 'money' ||
+          dt === 'smallmoney';
+        if (!tediousReturnsNumber) numericIds.add(col.id);
       } else if (col.uidt === UITypes.Lookup) {
         // Cache the expensive walk-through-to-relation per column id.
         let shape = shapeCache.get(col.id);
@@ -545,7 +571,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       !ltarObjectIds.size &&
       !lookupScalarIds.size &&
       !lookupArrayIds.size &&
-      !linksMaybeLtarIds.size
+      !linksMaybeLtarIds.size &&
+      !numericIds.size
     ) {
       return data;
     }
@@ -589,6 +616,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const lookupScalarList = Array.from(lookupScalarIds);
     const lookupArrayList = Array.from(lookupArrayIds);
     const linksMaybeLtarList = Array.from(linksMaybeLtarIds);
+    const numericList = Array.from(numericIds);
 
     for (const row of data) {
       // Array-shaped LTAR — parse, then normalize null → [].
@@ -629,6 +657,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const t = v.trimStart();
           if (t.startsWith('[') || t.startsWith('{')) row[id] = tryParse(v);
         }
+      }
+      // Numeric coercion — bigint / decimal / numeric come back from tedious
+      // as strings. Coerce to JS number so the response shape matches pg /
+      // mysql / sqlite. Non-finite results (e.g. '1.7976931348623157e+308'
+      // overflowing, or non-numeric strings) are left as-is — better to
+      // surface the original string than silently emit `Infinity` / `NaN`.
+      for (let i = 0; i < numericList.length; i++) {
+        const id = numericList[i];
+        if (!(id in row)) continue;
+        const v = row[id];
+        if (typeof v !== 'string') continue;
+        const n = Number(v);
+        if (Number.isFinite(n)) row[id] = n;
       }
     }
 

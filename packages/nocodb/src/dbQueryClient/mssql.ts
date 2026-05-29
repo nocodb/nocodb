@@ -65,10 +65,17 @@ export class MssqlDBQueryClient
   ): Knex.Raw {
     const knex = baseModel.dbDriver;
     // T-SQL has no JSON_OBJECT. Select each aggregate as a named column and
-    // append `FOR JSON PATH, WITHOUT_ARRAY_WRAPPER` to the tQb SELECT — as a
-    // scalar subquery the result is a single `{...}` string (NOT chunked
-    // across rows, which is the top-level FOR JSON behaviour). The caller's
+    // wrap with `FOR JSON PATH, WITHOUT_ARRAY_WRAPPER` — as a scalar subquery
+    // the result is a single `{...}` string. The caller's
     // `execAndParse({ bulkAggregate: true })` parses it automatically.
+    //
+    // TOP 1 + derived-table wrap is required because the inner expressions
+    // may be non-aggregating (median uses a scalar subquery, attachment_size
+    // uses CROSS APPLY) — when no real SQL aggregate appears in the outer
+    // SELECT, MSSQL evaluates the projection per FROM-row, returning N
+    // identical rows. FOR JSON would then concatenate N objects into a
+    // malformed `{...}{...}{...}` string instead of a single `{...}`. All
+    // rows carry the same scalar values, so picking one with TOP 1 is safe.
     tQb.select(
       knex.raw(
         Object.keys(expressions)
@@ -76,9 +83,9 @@ export class MssqlDBQueryClient
           .join(', '),
       ),
     );
-    return knex.raw('(?? FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as ??', [
-      tQb,
-      alias,
-    ]);
+    return knex.raw(
+      '(SELECT TOP 1 * FROM (??) AS __nc_agg_src FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as ??',
+      [tQb, alias],
+    );
   }
 }

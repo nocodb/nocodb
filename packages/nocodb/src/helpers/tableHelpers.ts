@@ -211,11 +211,14 @@ export async function hasTableVisibilityAccess(
 }
 
 /**
- * Check if user has access to a view based on VIEW_VISIBILITY permission.
- * Base owners always have access.
- * Personal-view owners always have access to their own view, regardless of any
- * configured restriction — they can never lock themselves out.
- * If no VIEW_VISIBILITY permission exists, defaults to Viewers & up (all base members).
+ * Check if user has access to a view based on VIEW_VISIBILITY permission AND
+ * the view's parent section's VIEW_SECTION_VISIBILITY permission (cascade S2).
+ *
+ * - Base owners always have access.
+ * - Personal-view owners always have access to their own view AND its parent
+ *   section, regardless of either restriction — they can never lock themselves
+ *   out (D8 + S3).
+ * - If no permission rows exist at either level, defaults to all base members.
  */
 export async function hasViewVisibilityAccess(
   context: NcContext,
@@ -229,18 +232,35 @@ export async function hasViewVisibilityAccess(
     permissions = context.permissions;
   }
 
+  const viewPermission = permissions.find(
+    (p) =>
+      p.entity === PermissionEntity.VIEW &&
+      p.entity_id === viewId &&
+      p.permission === PermissionKey.VIEW_VISIBILITY,
+  );
+
+  // Fast path: are there any section permissions in this base at all?
+  // If not, skip the section lookup (and the view fetch it requires).
+  const hasAnySectionPermission = permissions.some(
+    (p) => p.entity === PermissionEntity.VIEW_SECTION,
+  );
+
+  // Anonymous request — only the existence of a restricting row matters.
   if (!user) {
-    // No user — check if view has default visibility (no permission record = Everyone)
-    const visibilityPermission = permissions.find(
+    if (viewPermission) return false;
+    if (!hasAnySectionPermission) return true;
+    const view = await View.get(context, viewId);
+    if (!view?.fk_view_section_id) return true;
+    const sectionPermission = permissions.find(
       (p) =>
-        p.entity === PermissionEntity.VIEW &&
-        p.entity_id === viewId &&
-        p.permission === PermissionKey.VIEW_VISIBILITY,
+        p.entity === PermissionEntity.VIEW_SECTION &&
+        p.entity_id === view.fk_view_section_id &&
+        p.permission === PermissionKey.VIEW_SECTION_VISIBILITY,
     );
-    return !visibilityPermission;
+    return !sectionPermission;
   }
 
-  // Base owners always have access
+  // Base owners always have access.
   const baseRoles = extractRolesObj((user as any)?.base_roles);
   if (baseRoles?.[ProjectRoles.OWNER]) {
     return true;
@@ -251,28 +271,102 @@ export async function hasViewVisibilityAccess(
     return true;
   }
 
-  // Find VIEW_VISIBILITY permission for this view
-  const visibilityPermission = permissions.find(
-    (p) =>
-      p.entity === PermissionEntity.VIEW &&
-      p.entity_id === viewId &&
-      p.permission === PermissionKey.VIEW_VISIBILITY,
-  );
-
-  // No permission exists — default to Viewers & up (all base members have access)
-  if (!visibilityPermission) {
+  // No restricting row at either level — default access.
+  if (!viewPermission && !hasAnySectionPermission) {
     return true;
   }
 
-  // Personal-view owner exemption: a user can never be locked out of their
-  // own personal view by a VIEW_VISIBILITY rule. Resolve the view lazily so
-  // the typical (non-personal) hot path skips the extra fetch.
+  // Fetch the view once for personal-view-owner check + section lookup.
   const view = await View.get(context, viewId);
+
+  // Personal-view owner exemption (D8 + S3): owner is exempt from both
+  // view-level AND section-level restrictions on their own view.
   if (
     view?.lock_type === ViewLockType.Personal &&
     view.owned_by &&
     view.owned_by === user.id
   ) {
+    return true;
+  }
+
+  const userRole = getProjectRole(user) as ProjectRoles;
+
+  if (!userRole) {
+    return false;
+  }
+
+  if (viewPermission) {
+    const allowed = await Permission.isAllowed(context, viewPermission, {
+      id: user.id,
+      role: userRole,
+    });
+    if (!allowed) return false;
+  }
+
+  if (view?.fk_view_section_id) {
+    const sectionPermission = permissions.find(
+      (p) =>
+        p.entity === PermissionEntity.VIEW_SECTION &&
+        p.entity_id === view.fk_view_section_id &&
+        p.permission === PermissionKey.VIEW_SECTION_VISIBILITY,
+    );
+    if (sectionPermission) {
+      const allowed = await Permission.isAllowed(context, sectionPermission, {
+        id: user.id,
+        role: userRole,
+      });
+      if (!allowed) return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Check if user has access to a view section based on VIEW_SECTION_VISIBILITY.
+ *
+ * Sections have no per-section owner concept (unlike personal views), so the
+ * only "free pass" is base ownership. The personal-view-owner exemption (S3)
+ * does NOT apply here — it's resolved when listing views: if an owner has at
+ * least one accessible view inside the section, the section is rendered for
+ * them via the "section has any accessible view" gate in the sections list
+ * (S5), independently of this function.
+ */
+export async function hasViewSectionAccess(
+  context: NcContext,
+  sectionId: string,
+  user: User | UserType,
+  permissions?: Permission[],
+): Promise<boolean> {
+  if (!permissions) {
+    if (!context.permissions)
+      context.permissions = await Permission.list(context, context.base_id);
+    permissions = context.permissions;
+  }
+
+  const visibilityPermission = permissions.find(
+    (p) =>
+      p.entity === PermissionEntity.VIEW_SECTION &&
+      p.entity_id === sectionId &&
+      p.permission === PermissionKey.VIEW_SECTION_VISIBILITY,
+  );
+
+  // No permission row exists — default access.
+  if (!visibilityPermission) {
+    return true;
+  }
+
+  if (!user) {
+    return false;
+  }
+
+  const baseRoles = extractRolesObj((user as any)?.base_roles);
+  if (baseRoles?.[ProjectRoles.OWNER]) {
+    return true;
+  }
+
+  const roles = extractRolesObj((user as any)?.roles);
+  if (roles?.[ProjectRoles.OWNER]) {
     return true;
   }
 

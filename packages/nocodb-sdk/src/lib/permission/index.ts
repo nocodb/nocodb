@@ -8,6 +8,7 @@ export enum PermissionKey {
   TABLE_RECORD_DELETE = 'TABLE_RECORD_DELETE',
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
   VIEW_VISIBILITY = 'VIEW_VISIBILITY',
+  VIEW_SECTION_VISIBILITY = 'VIEW_SECTION_VISIBILITY',
   DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
 }
@@ -22,6 +23,7 @@ export enum PermissionEntity {
   TABLE = 'table',
   FIELD = 'field',
   VIEW = 'view',
+  VIEW_SECTION = 'view_section',
   DOCUMENT = 'document',
 }
 
@@ -150,6 +152,13 @@ export const PermissionMeta = {
     description: 'can access this view',
     userSelectorDescription:
       'Only members selected here will be able to view and access this view.',
+  },
+  [PermissionKey.VIEW_SECTION_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can access this section',
+    description: 'can access this section',
+    userSelectorDescription:
+      'Only members selected here will be able to see this section and the views inside it.',
   },
   [PermissionKey.DOCUMENT_VISIBILITY]: {
     minimumRole: PermissionRole.VIEWER,

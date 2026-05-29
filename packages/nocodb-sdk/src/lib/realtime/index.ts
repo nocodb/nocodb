@@ -91,6 +91,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'table_update'
     | 'table_permission_update'
     | 'view_permission_update'
+    | 'view_section_permission_update'
     | 'table_delete'
     | 'column_add'
     | 'column_update'

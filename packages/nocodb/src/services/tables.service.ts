@@ -35,6 +35,7 @@ import { MetaDiffsService } from '~/services/meta-diffs.service';
 import {
   hasDefaultTableVisibility,
   hasTableVisibilityAccess,
+  hasViewVisibilityAccess,
   hasViewersAndUpTableVisibility,
   repopulateCreateTableSystemColumns,
 } from '~/helpers/tableHelpers';
@@ -780,6 +781,40 @@ export class TablesService {
       }
 
       tableList = tableList.filter((t) => accessibleTableIds.has(t.id));
+
+      // D9: hide tables whose every view is restricted from this user via
+      // VIEW_VISIBILITY. The legacy role-disabled filter above (line ~720)
+      // only handles the old per-role visibility meta; it does not consult
+      // nc_permissions rows. Without this pass, a base member with no view
+      // access still sees a "ghost" table in the sidebar that bounces them
+      // to a "View Not Found" empty state.
+      if (!param.isPublicBase && param.user) {
+        const userForViewCheck = param.user ?? ({
+          base_roles: param.roles,
+        } as unknown as UserType);
+
+        const tablesWithAccessibleViews = new Set<string>();
+        for (const table of tableList) {
+          const tableViews = (viewList as any[]).filter(
+            (v) => v.fk_model_id === table.id,
+          );
+          for (const view of tableViews) {
+            const hasAccess = await hasViewVisibilityAccess(
+              context,
+              view.id,
+              userForViewCheck,
+              permissions,
+            );
+            if (hasAccess) {
+              tablesWithAccessibleViews.add(table.id);
+              break;
+            }
+          }
+        }
+        tableList = tableList.filter((t) =>
+          tablesWithAccessibleViews.has(t.id),
+        );
+      }
     }
 
     return param.includeM2M

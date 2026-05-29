@@ -20,8 +20,6 @@ const { isRtl } = useRtl()
 
 const { getMeta, getMetaByKey } = useMetas()
 
-const { ncNavigateTo } = useGlobal()
-
 const { t } = useI18n()
 
 const route = useRoute()
@@ -327,19 +325,15 @@ const checkIfViewExists = async () => {
     !views?.length ||
     !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
   ) {
-    // Views exist but the requested one is not accessible — show error page
-    if (views?.length) {
-      isViewNotAccessible.value = true
-      return
-    }
-
-    ncNavigateTo({
-      workspaceId: activeWorkspaceId.value,
-      baseId: activeProjectId.value,
-    })
-  } else {
-    isViewNotAccessible.value = false
+    // No accessible views in this table — or the requested one is restricted.
+    // Show the not-accessible empty state. Do NOT navigate to the base root:
+    // the base index page auto-reopens the first active table, which would
+    // bounce the user straight back here and loop indefinitely.
+    isViewNotAccessible.value = true
+    return
   }
+
+  isViewNotAccessible.value = false
 }
 
 onMounted(async () => {

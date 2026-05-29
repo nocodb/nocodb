@@ -105,7 +105,9 @@ const calendarData = computed(() => {
 
   if (isMultiWeekRange.value) {
     // 2-week / 6-week grids anchor to the Monday of the selected week and
-    // always render a fixed number of full weeks.
+    // always render a fixed number of full weeks. The 6-week range maxes the
+    // backend's 42-day calendar fetch window exactly — don't extend further
+    // without also raising the limit in calendar-datas.service.ts.
     firstDayToDisplay = timezoneDayjs.timezonize(selectedDateRange.value.start.startOf('week')).add(firstDayOffset, 'day')
     weeksNeeded = weeksInRange.value
   } else {

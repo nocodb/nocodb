@@ -186,13 +186,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // show/hide side menu in calendar
     const showSideMenu = ref(!isMobileMode.value)
 
-    // reactive ref for the selected date range - used in week view
+    // reactive ref for the selected date range - used in week / 2week / 6week views.
+    //
+    // `start` is always the Monday of the active week. `end` is only meaningful
+    // for the 1-week layout (Sunday after `start`) and is intentionally NOT
+    // resized when 2week/6week is active — the WeekView renderer relies on the
+    // `start + 6 days` semantics, and the multi-week consumers derive their
+    // true end as `start + weeksInRange*7 - 1` on demand.
+    //
+    // `startOf('week')` returns Monday because `dayjs.updateLocale('en', {
+    // weekStart: 1 })` is set globally in plugins/a.dayjs.ts.
     const selectedDateRange = ref<{
       start: dayjs.Dayjs
       end: dayjs.Dayjs
     }>({
-      start: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week'), // This will be the previous Monday
-      end: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week').add(6, 'day'), // This will be the following Sunday
+      start: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week'),
+      end: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week').add(6, 'day'),
     })
 
     const defaultPageSize = 25
@@ -246,13 +255,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     // On a cold page load `viewMeta.value` (and therefore its `id`) is often
     // undefined when the ref above is initialised, so the localStorage lookup
-    // is skipped. Restore once the view id becomes available — but only the
-    // first time, so we don't clobber user selections made afterwards.
-    let calendarModeRestored = !!viewMeta.value?.id && readStoredCalendarMode() !== null
+    // is skipped. Restore once the view id becomes available.
+    //
+    // Keyed by id (not a boolean) so that if the same store instance is reused
+    // across view switches (eg. <keep-alive>, route param change), the new
+    // view's stored mode is re-applied instead of leaking the previous view's.
+    let restoredForCalendarId: string | null = viewMeta.value?.id ?? null
+    if (restoredForCalendarId && readStoredCalendarMode() === null) {
+      // viewMeta was ready at construction but storage was empty — nothing to
+      // restore, mark as handled so the immediate watcher doesn't re-do it.
+    } else {
+      restoredForCalendarId = null
+    }
     watch(
       () => viewMeta.value?.id,
       (id) => {
-        if (!id || calendarModeRestored) return
+        if (!id || id === restoredForCalendarId) return
         const stored = readStoredCalendarMode()
         if (stored) {
           activeCalendarView.value = stored
@@ -262,7 +280,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             activeCalendarView.value = fromMeta
           }
         }
-        calendarModeRestored = true
+        restoredForCalendarId = id
       },
       { immediate: true },
     )
@@ -837,6 +855,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           }
           return
         }
+        if (activeCalendarView.value === '2week' || activeCalendarView.value === '6week') {
+          // Shift the multi-week window by exactly 1 week instead of the
+          // natural 2/6-week step — useful when nudging a 6-week planning grid.
+          selectedDateRange.value = {
+            start: selectedDateRange.value.start.add(dayShift, 'day'),
+            end: selectedDateRange.value.end.add(dayShift, 'day'),
+          }
+          return
+        }
       }
 
       switch (activeCalendarView.value) {
@@ -869,9 +896,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           const dayShift = (action === 'next' ? 1 : -1) * weeksInRange.value * 7
           selectedDateRange.value = {
             start: selectedDateRange.value.start.add(dayShift, 'day'),
+            // .end is kept as start + 6 days for back-compat with the WeekView
+            // renderer; multi-week ranges derive their real end from
+            // `start + weeksInRange*7 - 1` (see visibleRangeEnd below).
             end: selectedDateRange.value.end.add(dayShift, 'day'),
           }
-          if (pageDate.value.month() !== selectedDateRange.value.end.month()) {
+          // Re-sync pageDate against the LAST visible day of the new window — not
+          // selectedDateRange.end, which only covers the first week for 2/6-week
+          // modes and would let pageDate drift up to 5 weeks behind the grid.
+          const visibleRangeEnd = selectedDateRange.value.start.add(weeksInRange.value * 7 - 1, 'day')
+          if (pageDate.value.month() !== visibleRangeEnd.month()) {
             pageDate.value = selectedDateRange.value.start
           }
           break

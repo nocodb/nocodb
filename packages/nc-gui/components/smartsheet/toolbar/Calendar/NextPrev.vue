@@ -1,9 +1,17 @@
 <script setup lang="ts">
 const { activeCalendarView, paginateCalendarView } = useCalendarViewStoreOrThrow()
 
-// In Month view, holding Shift while clicking prev/next steps by 1 week instead
-// of 1 month — useful for planning workflows that span month boundaries.
-const supportsWeekStep = computed(() => activeCalendarView.value === 'month' || activeCalendarView.value === 'day')
+// Holding Shift while clicking prev/next nudges by exactly 1 week instead of
+// the natural per-mode step (1 month for Month, 1 day for Day, 2/6 weeks for
+// the multi-week modes). Hidden in Week/Year — the natural step already is
+// "one week" / "one year" so a Shift override would have no distinct meaning.
+const supportsWeekStep = computed(
+  () =>
+    activeCalendarView.value === 'month' ||
+    activeCalendarView.value === 'day' ||
+    activeCalendarView.value === '2week' ||
+    activeCalendarView.value === '6week',
+)
 
 const onNavigate = (action: 'next' | 'prev', event: MouseEvent) => {
   paginateCalendarView(action, event.shiftKey && supportsWeekStep.value ? 'week' : undefined)

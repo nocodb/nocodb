@@ -156,7 +156,10 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       next_date = next_date.match(regex)?.[0] || next_date;
       // Date-only columns lose the time portion when stripped, so `>= prev_date`
       // would include the entire day BEFORE the visible range. Use from_date
-      // (first day of the range) as the inclusive lower bound instead.
+      // (first day of the range) as the inclusive lower bound instead. This
+      // applies to every branch below that uses prev_date — single-column
+      // (line ~270), dual-column spanning (line ~180), and the two
+      // partial-date groups (lines ~218, ~242).
       prev_date = from_date;
     }
 

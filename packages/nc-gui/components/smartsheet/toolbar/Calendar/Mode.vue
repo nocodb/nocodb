@@ -75,6 +75,14 @@ watch(activeCalendarView, () => {
     </div>
   </div>
 
+  <!--
+    `option-label-prop="label"` makes the SELECTED chip render just the plain
+    `label` string (not a clone of the full option template). Without it antd
+    duplicates the `justify-between` + check-icon row into the chip, leaving
+    the label visually off-centre and the wrong size.
+    `:value` + `@change` (not `v-model`) routes selection through
+    `changeCalendarView` so the view-meta default also gets persisted.
+  -->
   <a-select
     v-else
     :value="activeCalendarView"

@@ -191,6 +191,12 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
   vModel.value.colOptions.options = options.value
     .filter((op) => op.status !== 'remove')
     .sort((a, b) => {
+      // On submit (e.g. saving a kanban stack) respect the Alphabetize toggle so the
+      // persisted option order is alphabetical rather than the current rendered order.
+      if (submit && isAlphabetized.value) {
+        return (a.title ?? '').localeCompare(b.title ?? '')
+      }
+
       const renderA = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === a.index)
       const renderB = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === b.index)
       if (renderA === -1 || renderB === -1) return 0
@@ -621,11 +627,6 @@ defineExpose({
               data-testid="nc-kanban-stack-title-input"
               :disabled="isLoadingPredictOptions || isSyncedField"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
-              @blur="
-                () => {
-                  if (isAlphabetized) sortOptionsInPlace()
-                }
-              "
               @change="() => {
                   kanbanStackOption!.status = undefined
                   optionChanged(kanbanStackOption!)

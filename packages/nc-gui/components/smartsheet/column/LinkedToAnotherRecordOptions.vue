@@ -181,6 +181,29 @@ const isLinkedViewPrivate = computed(() => {
   return !!(tableMeta && (tableMeta as any).is_private)
 })
 
+// View-level restriction: the table itself is accessible to the current user,
+// but the specific view configured as the LTAR target is restricted via
+// VIEW_VISIBILITY. Without this, the picker would show a stuck/blank state
+// because the configured childViewId isn't in the filtered viewList.
+const isLinkedViewRestricted = computed(() => {
+  if (!vModel.value.childViewId) return false
+  if (isLinkedViewPrivate.value) return false // table-level case already handled
+
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return false
+
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
+  if (!relatedBaseId) return false
+
+  const views = viewsByTable.value.get(`${relatedBaseId}:${childId}`)
+  // Cache not yet populated — assume accessible to avoid false positives during load.
+  if (!views) return false
+
+  return !views.some((v) => v.id === vModel.value.childViewId)
+})
+
 // Fields eligible for custom display value — same filter as useLTARStore's `fields`
 const eligibleDisplayFields = computed(() => {
   const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
@@ -286,7 +309,24 @@ const refViews = computed(() => {
   }
 
   // Backend already filters views based on table visibility, so return all views (excluding forms)
-  return (views || []).filter((v) => v.type !== ViewTypes.FORM)
+  const accessibleViews = (views || []).filter((v) => v.type !== ViewTypes.FORM)
+
+  // VIEW-level restriction: the table is accessible but the configured target
+  // view is hidden by VIEW_VISIBILITY. Append a "Private view" placeholder so
+  // the select has something to display for the current value — without this
+  // the picker shows a stuck/blank state.
+  if (isEdit.value && isLinkedViewRestricted.value) {
+    return [
+      ...accessibleViews,
+      {
+        id: vModel.value.childViewId,
+        title: t('labels.privateView'),
+        is_private: true,
+      },
+    ]
+  }
+
+  return accessibleViews
 })
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
@@ -914,12 +954,12 @@ const handleScrollIntoView = () => {
         </template>
       </NcTooltip>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
-        <NcTooltip :disabled="!isLinkedViewPrivate" placement="right">
+        <NcTooltip :disabled="!isLinkedViewPrivate && !isLinkedViewRestricted" placement="right">
           <NcSelect
             v-model:value="vModel.childViewId"
             :placeholder="$t('labels.selectView')"
             show-search
-            :disabled="isLinkedViewPrivate"
+            :disabled="isLinkedViewPrivate || isLinkedViewRestricted"
             :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             dropdown-class-name="nc-dropdown-ltar-child-view"
           >

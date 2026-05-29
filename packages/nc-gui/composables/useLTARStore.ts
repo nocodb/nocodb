@@ -208,10 +208,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         // Pass relatedBaseId as first parameter for proper cross-base support
         targetViewColumns.value = (await getViewColumns(relatedBaseId, viewId)) ?? []
-      } catch (e) {
-        console.error('Failed to load related table view columns:', e)
+      } catch (e: any) {
+        // VIEW_VISIBILITY may restrict the configured target view from this user.
+        // Backend still applies the view's row filter server-side, so the picker
+        // remains correctly scoped — only the column hide/show/order UX degrades
+        // to the related table's natural columns. Suppress the toast so users
+        // aren't told the link picker failed when it didn't.
+        const status = e?.response?.status
+        const isAccessRestricted = status === 403 || status === 404
         targetViewColumns.value = []
-        message.error('Failed to load related table view columns')
+        if (!isAccessRestricted) {
+          console.error('Failed to load related table view columns:', e)
+          message.error('Failed to load related table view columns')
+        }
       }
     }
 

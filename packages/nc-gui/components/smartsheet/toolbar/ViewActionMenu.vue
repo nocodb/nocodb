@@ -922,6 +922,7 @@ defineOptions({
     v-model:visible="isViewPermissionsVisible"
     :view-id="view.id"
     :view-title="view.title"
+    :table-id="table.id"
     :is-personal-view="view.lock_type === LockType.Personal"
   />
 </template>

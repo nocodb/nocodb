@@ -411,6 +411,10 @@ watch(isDropdownOpen, async () => {
             {{ vModel.alias || vModel.title }}
           </div>
         </NcTooltip>
+        <DashboardTreeViewViewsPermissionIndicator
+          v-if="!isEditing && isEeUI"
+          :view-id="vModel.id"
+        />
         <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex mx-0.5">
           <div
             v-if="vModel.lock_type === ViewLockType.Personal && vModel.owned_by && idUserMap[vModel.owned_by]"

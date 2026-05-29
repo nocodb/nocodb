@@ -7,6 +7,7 @@ export enum PermissionKey {
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
   TABLE_RECORD_DELETE = 'TABLE_RECORD_DELETE',
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
+  VIEW_VISIBILITY = 'VIEW_VISIBILITY',
   DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
 }
@@ -20,6 +21,7 @@ export enum PermissionGrantedType {
 export enum PermissionEntity {
   TABLE = 'table',
   FIELD = 'field',
+  VIEW = 'view',
   DOCUMENT = 'document',
 }
 
@@ -141,6 +143,13 @@ export const PermissionMeta = {
     description: 'can edit records',
     userSelectorDescription:
       'Only members selected here will be able to edit values in the {{field}} field.',
+  },
+  [PermissionKey.VIEW_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view this view',
+    description: 'can view this view',
+    userSelectorDescription:
+      'Only members selected here will be able to view and access this view.',
   },
   [PermissionKey.DOCUMENT_VISIBILITY]: {
     minimumRole: PermissionRole.VIEWER,

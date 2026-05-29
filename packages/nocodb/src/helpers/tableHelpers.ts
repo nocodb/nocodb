@@ -208,3 +208,67 @@ export async function hasTableVisibilityAccess(
     role: userRole,
   });
 }
+
+/**
+ * Check if user has access to a view based on VIEW_VISIBILITY permission
+ * Base owners always have access.
+ * If no VIEW_VISIBILITY permission exists, defaults to everyone (accessible).
+ */
+export async function hasViewVisibilityAccess(
+  context: NcContext,
+  viewId: string,
+  user: User | UserType,
+  permissions?: Permission[],
+): Promise<boolean> {
+  if (!permissions) {
+    if (!context.permissions)
+      context.permissions = await Permission.list(context, context.base_id);
+    permissions = context.permissions;
+  }
+
+  if (!user) {
+    // No user — check if view has default visibility (no permission record = Everyone)
+    const visibilityPermission = permissions.find(
+      (p) =>
+        p.entity === PermissionEntity.VIEW &&
+        p.entity_id === viewId &&
+        p.permission === PermissionKey.VIEW_VISIBILITY,
+    );
+    return !visibilityPermission;
+  }
+
+  // Base owners always have access
+  const baseRoles = extractRolesObj((user as any)?.base_roles);
+  if (baseRoles?.[ProjectRoles.OWNER]) {
+    return true;
+  }
+
+  const roles = extractRolesObj((user as any)?.roles);
+  if (roles?.[ProjectRoles.OWNER]) {
+    return true;
+  }
+
+  // Find VIEW_VISIBILITY permission for this view
+  const visibilityPermission = permissions.find(
+    (p) =>
+      p.entity === PermissionEntity.VIEW &&
+      p.entity_id === viewId &&
+      p.permission === PermissionKey.VIEW_VISIBILITY,
+  );
+
+  // No permission exists — default to everyone (accessible)
+  if (!visibilityPermission) {
+    return true;
+  }
+
+  const userRole = getProjectRole(user) as ProjectRoles;
+
+  if (!userRole) {
+    return false;
+  }
+
+  return await Permission.isAllowed(context, visibilityPermission, {
+    id: user.id,
+    role: userRole,
+  });
+}

@@ -839,7 +839,18 @@ defineOptions({
       <!-- View Permissions -->
       <template v-if="isEeUI && showEEFeatures && isUIAllowed('viewCreateOrEdit')">
         <NcDivider />
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_VIEW_PERMISSIONS">
+        <NcTooltip v-if="isPersonalView" placement="right">
+          <template #title>
+            {{ $t('msg.info.viewPermissionsNotAvailableForPersonalViews') }}
+          </template>
+          <NcMenuItem disabled data-testid="nc-view-permissions-btn">
+            <div class="w-full flex flex-row items-center gap-x-2">
+              <GeneralIcon icon="ncLock" class="opacity-80" />
+              <div>{{ $t('title.viewPermissions') }}</div>
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+        <PaymentUpgradeBadgeProvider v-else :feature="PlanFeatureTypes.FEATURE_VIEW_PERMISSIONS">
           <template #default="{ click }">
             <NcMenuItem
               inner-class="w-full"

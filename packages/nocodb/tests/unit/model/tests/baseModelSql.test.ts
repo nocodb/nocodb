@@ -1,11 +1,11 @@
 import 'mocha';
 import { expect } from 'chai';
-import init from '../../init';
-import { createProject } from '../../factory/base';
-import { createTable } from '../../factory/table';
-import { createRow, generateDefaultRowAttributes } from '../../factory/row';
-import { createLtarColumn } from '../../factory/column';
-import { isPg, isSqlite } from '../../init/db';
+import init from '~test/init';
+import { createProject } from '~test/factory/base';
+import { createTable } from '~test/factory/table';
+import { createRow, generateDefaultRowAttributes } from '~test/factory/row';
+import { createLtarColumn } from '~test/factory/column';
+import { isPgData, isSqliteData } from '~test/init/db';
 import type View from '~/models/View';
 import type Base from '~/models/Base';
 import type Model from '~/models/Model';
@@ -105,7 +105,7 @@ function baseModelSqlTests() {
 
     const insertedRows = await baseModelSql.list();
 
-    if (isPg(context)) {
+    if (isPgData(context)) {
       insertedRows.forEach((row) => {
         row.CreatedAt = new Date(row.CreatedAt).toISOString();
         row.UpdatedAt = new Date(row.UpdatedAt).toISOString();
@@ -113,7 +113,7 @@ function baseModelSqlTests() {
     }
 
     bulkData.forEach((inputData: any, index) => {
-      if (isPg(context)) {
+      if (isPgData(context)) {
         inputData.CreatedAt = insertedRows[index].CreatedAt;
         inputData.UpdatedAt = insertedRows[index].UpdatedAt;
       }
@@ -178,7 +178,7 @@ function baseModelSqlTests() {
 
   it('Bulk update record', async () => {
     // Since sqlite doesn't support multiple sql connections, we can't test bulk update in sqlite
-    if (isSqlite(context)) return;
+    if (isSqliteData(context)) return;
 
     const columns = await table.getColumns(ctx);
     const request = {
@@ -404,7 +404,7 @@ function baseModelSqlTests() {
 
   it('Bulk upsert - insert only (no PKs)', async () => {
     // Since sqlite doesn't support multiple sql connections, skip
-    if (isSqlite(context)) return;
+    if (isSqliteData(context)) return;
 
     const columns = await table.getColumns(ctx);
     const request = {
@@ -433,7 +433,7 @@ function baseModelSqlTests() {
 
   it('Bulk upsert - update only (all PKs exist)', async () => {
     // Since sqlite doesn't support multiple sql connections, skip
-    if (isSqlite(context)) return;
+    if (isSqliteData(context)) return;
 
     const columns = await table.getColumns(ctx);
     const request = {
@@ -474,7 +474,7 @@ function baseModelSqlTests() {
 
   it('Bulk upsert - mixed insert and update', async () => {
     // Since sqlite doesn't support multiple sql connections, skip
-    if (isSqlite(context)) return;
+    if (isSqliteData(context)) return;
 
     const columns = await table.getColumns(ctx);
     const request = {

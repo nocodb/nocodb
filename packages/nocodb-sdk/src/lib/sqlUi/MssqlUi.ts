@@ -89,7 +89,7 @@ export class MssqlUi implements SqlUi {
         title: 'Title',
         dt: 'nvarchar',
         dtx: 'specificType',
-        ct: 'nvarchar(255)',
+        ct: 'nvarchar(MAX)',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -97,10 +97,10 @@ export class MssqlUi implements SqlUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 255,
+        clen: -1,
         np: null,
         ns: null,
-        dtxp: '255',
+        dtxp: 'MAX',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -255,7 +255,7 @@ export class MssqlUi implements SqlUi {
       column_name: 'title' + suffix,
       dt: 'nvarchar',
       dtx: 'specificType',
-      ct: 'nvarchar(255)',
+      ct: 'nvarchar(MAX)',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -263,10 +263,10 @@ export class MssqlUi implements SqlUi {
       un: false,
       ai: false,
       cdf: null,
-      clen: 255,
+      clen: -1,
       np: null,
       ns: null,
-      dtxp: '255',
+      dtxp: 'MAX',
       dtxs: '',
       altered: 1,
       uidt: 'SingleLineText',
@@ -528,6 +528,7 @@ export class MssqlUi implements SqlUi {
         break;
       case 'SingleLineText':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'LongText':
         colProp.dt = 'nvarchar';
@@ -555,6 +556,7 @@ export class MssqlUi implements SqlUi {
         break;
       case 'Collaborator':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Date':
         colProp.dt = 'date';
@@ -567,6 +569,7 @@ export class MssqlUi implements SqlUi {
         break;
       case 'PhoneNumber':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
@@ -575,6 +578,7 @@ export class MssqlUi implements SqlUi {
         break;
       case 'Email':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
@@ -625,15 +629,18 @@ export class MssqlUi implements SqlUi {
         break;
       case 'Formula':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Rollup':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Count':
         colProp.dt = 'bigint';
         break;
       case 'Lookup':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'DateTime':
         colProp.dt = 'datetime2';
@@ -650,9 +657,11 @@ export class MssqlUi implements SqlUi {
         break;
       case 'Barcode':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'Button':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 'MAX';
         break;
       case 'JSON':
         // SQL Server has no scalar JSON type before 2025 — store as
@@ -897,6 +906,21 @@ export class MssqlUi implements SqlUi {
   }
   getUnsupportedFnList(): string[] {
     return MssqlUi.getUnsupportedFnList();
+  }
+  // SQL Server unique support is per-type: the `nvarchar(MAX)`-backed text
+  // types (SingleLineText/Email/PhoneNumber/URL) can't be a UNIQUE/index key,
+  // but the fixed-size numeric/date/uuid types can. Return false only for the
+  // MAX-backed text types; everything else is uniquely-indexable.
+  static isUniqueSupportedField(uidt: UITypes): boolean {
+    return ![
+      UITypes.SingleLineText,
+      UITypes.Email,
+      UITypes.PhoneNumber,
+      UITypes.URL,
+    ].includes(uidt);
+  }
+  isUniqueSupportedField(uidt: UITypes): boolean {
+    return MssqlUi.isUniqueSupportedField(uidt);
   }
   getCurrentDateDefault(_col: Partial<ColumnType>) {
     return MssqlUi.getCurrentDateDefault(_col);

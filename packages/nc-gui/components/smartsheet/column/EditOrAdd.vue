@@ -61,6 +61,7 @@ const {
   isAiMode,
   isSyncedField,
   defaultFormState,
+  sqlUi,
 } = useColumnCreateStoreOrThrow()
 
 // Patch colOptions into formState during setup so the child SelectOptions
@@ -1470,6 +1471,7 @@ const unique = computed({
                 isXcdbBase(meta?.source_id) &&
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
+                sqlUi?.isUniqueSupportedField?.(formState.uidt) !== false &&
                 !isUUID(formState) &&
                 !isAutoNumber(formState) &&
                 isEeUI &&

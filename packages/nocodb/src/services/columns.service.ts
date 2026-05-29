@@ -1102,10 +1102,18 @@ export class ColumnsService implements IColumnsService {
       // if uidt is invalid, do not try to set default dt
       Object.values(UITypes).includes(param.column.uidt as UITypes)
     ) {
-      (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+      const colProp = sqlUi.getDataTypeForUiType(
         { uidt: param.column.uidt as UITypes },
         column?.['meta']?.['ag'] ? 'AG' : 'AI',
-      )?.dt;
+      );
+      (param.column as Column).dt = colProp?.dt;
+      // Carry the explicit length/scale the SqlUi set (e.g. MSSQL maps
+      // Attachment/LongText to `nvarchar` MAX) — dropping it would default
+      // `nvarchar` to 255 and truncate large payloads on MSSQL.
+      if (colProp?.dtxp !== undefined)
+        (param.column as Column).dtxp = colProp.dtxp;
+      if (colProp?.dtxs !== undefined)
+        (param.column as Column).dtxs = colProp.dtxs;
     }
     // for API call, if dt is supplied, try to check if it's valid, otherwise set default
     else if (
@@ -1117,10 +1125,15 @@ export class ColumnsService implements IColumnsService {
     ) {
       const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);
       if (!dtList.includes((param.column as Column).dt)) {
-        (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+        const colProp = sqlUi.getDataTypeForUiType(
           { uidt: param.column.uidt as UITypes },
           column?.['meta']?.['ag'] ? 'AG' : 'AI',
-        )?.dt;
+        );
+        (param.column as Column).dt = colProp?.dt;
+        if (colProp?.dtxp !== undefined)
+          (param.column as Column).dtxp = colProp.dtxp;
+        if (colProp?.dtxs !== undefined)
+          (param.column as Column).dtxs = colProp.dtxs;
       }
     }
     // extract missing required props from column to avoid broken column
@@ -3509,6 +3522,7 @@ export class ColumnsService implements IColumnsService {
         {
           is_meta: !!source.is_meta,
           is_local: !!source.is_local,
+          type: source.type,
         },
         originalCdf,
       );

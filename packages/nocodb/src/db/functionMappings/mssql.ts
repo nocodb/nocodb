@@ -118,6 +118,15 @@ const mssql = {
       ),
     };
   },
+  ROUND: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const precision = pt?.arguments[1]
+      ? (await fn(pt.arguments[1])).builder
+      : 0;
+    return {
+      builder: knex.raw(`ROUND((?), ?)`, [source, precision]),
+    };
+  },
   ROUNDUP: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     let precisionBuilder = knex.raw('0');
@@ -311,6 +320,13 @@ const mssql = {
       pathArg?.type === JSEPNode.LITERAL &&
       typeof pathArg.value === 'string'
     ) {
+      // T-SQL JSON paths don't support negative array indices (`[-1]`) —
+      // `JSON_VALUE` rejects them with "JSON path is not properly formatted".
+      // Negative indices aren't standard JSON-path anyway, so resolve to NULL
+      // (matches the formula's documented behavior on the other dialects).
+      if (/\[-\d+\]/.test(pathArg.value)) {
+        return { builder: knex.raw('NULL') };
+      }
       return {
         builder: knex.raw(
           `CASE WHEN ISJSON(?) = 1 THEN JSON_VALUE(?, ?) ELSE NULL END`,

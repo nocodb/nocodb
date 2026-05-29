@@ -2,12 +2,12 @@ import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
 import { UITypes } from 'nocodb-sdk';
-import init from '../../init';
-import { isPg } from '../../init/db';
-import { createProject } from '../../factory/base';
-import { createTable } from '../../factory/table';
-import { createColumn, updateColumn } from '../../factory/column';
-import { listRow } from '../../factory/row';
+import init from '~test/init';
+import { isPgData } from '~test/init/db';
+import { createProject } from '~test/factory/base';
+import { createTable } from '~test/factory/table';
+import { createColumn, updateColumn } from '~test/factory/column';
+import { listRow } from '~test/factory/row';
 import Column from '~/models/Column';
 import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -179,7 +179,7 @@ function pgEnumTests() {
   // Sole-owner: type referenced by exactly one column.
   describe('Sole-owner enum', () => {
     it('Add option uses ALTER TYPE ADD VALUE (no rebuild)', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName();
       const table = await createTable(context, base, {
@@ -220,7 +220,7 @@ function pgEnumTests() {
     });
 
     it('Rename option uses ALTER TYPE RENAME VALUE (rows reflect new label)', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName();
       const table = await createTable(context, base, {
@@ -281,7 +281,7 @@ function pgEnumTests() {
     });
 
     it('Remove option triggers rebuild and NULLs removed-value rows', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName();
       const table = await createTable(context, base, {
@@ -339,7 +339,7 @@ function pgEnumTests() {
     });
 
     it('Removing the option used as default clears the default', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName();
       const table = await createTable(context, base, {
@@ -424,7 +424,7 @@ function pgEnumTests() {
     });
 
     it('Default value survives a rebuild (kept option)', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName();
       const table = await createTable(context, base, {
@@ -512,7 +512,7 @@ function pgEnumTests() {
   // fork into a new type for the touched column without affecting siblings.
   describe('Shared enum (fork)', () => {
     it('Rename forks: A gets new type, B is untouched', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName('shared_rename');
       const tableA = await createTable(context, base, {
@@ -641,7 +641,7 @@ function pgEnumTests() {
     });
 
     it('Remove forks: A loses option (rows NULL), B keeps option and rows', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName('shared_remove');
       const tableA = await createTable(context, base, {
@@ -763,7 +763,7 @@ function pgEnumTests() {
 
   describe('Conversion away from native enum', () => {
     it('SingleSelect (native enum) → SingleLineText preserves cell values', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const enumName = uniqueEnumName('conv_text');
       const table = await createTable(context, base, {
@@ -818,7 +818,7 @@ function pgEnumTests() {
 
   describe('Driver scoping', () => {
     it('Cross-schema: enum in non-public schema is bound and updatable', async () => {
-      if (!isPg(context)) return;
+      if (!isPgData(context)) return;
 
       const otherSchema = `nc_test_es_${enumCounter++}`;
       const enumName = uniqueEnumName('cross_schema');

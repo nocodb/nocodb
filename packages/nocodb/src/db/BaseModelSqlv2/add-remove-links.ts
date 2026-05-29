@@ -491,9 +491,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                       .dbDriver(parentTn)
                       .select(1)
                       .where(
-                      parentSoftDeleteCol.column_name,
-                      deletedColValue(baseModel, true),
-                    )
+                        parentSoftDeleteCol.column_name,
+                        deletedColValue(baseModel, true),
+                      )
                       .whereRaw('?? = ??', [
                         parentTable.primaryKey.column_name,
                         `${vTn}.${vParentCol.column_name}`,

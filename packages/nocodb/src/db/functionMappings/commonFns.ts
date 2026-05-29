@@ -66,6 +66,25 @@ async function treatArgAsConditionalExp(
       condStr = `(:condArg) IS NOT NULL`;
       bindings = { condArg };
       break;
+    case FormulaDataTypes.COND_EXP: {
+      // A comparison expression (`x > 0`, `a = b`, …). On MSSQL the binary
+      // builder materializes a top-level comparison into a `1/0` int (T-SQL
+      // has no boolean type), so it can't be used bare as a `CASE WHEN <int>`
+      // predicate — "An expression of non-boolean type ... near 'THEN'".
+      // Coerce it back to a boolean predicate with `<> 0`. Logical combos
+      // (AND/OR) stay native boolean predicates and pg/sqlite keep the bare
+      // comparison, both already valid in a CASE WHEN — so leave those as-is.
+      const isComparison =
+        argument?.type === 'BinaryExpression' &&
+        ['==', '=', '<', '>', '<=', '>=', '!='].includes(
+          (argument as { operator?: string }).operator,
+        );
+      if (args.knex.clientType() === 'mssql' && isComparison) {
+        condStr = `(:condArg) <> 0`;
+        bindings = { condArg };
+      }
+      break;
+    }
   }
 
   if (condStr) {

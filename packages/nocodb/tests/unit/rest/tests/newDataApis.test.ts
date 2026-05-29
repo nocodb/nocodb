@@ -92,20 +92,19 @@ import {
 } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
-import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/base';
-import { createTable, getTable } from '../../factory/table';
-import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
+import init from '~test/init';
+import { createProject, createSakilaProject } from '~test/factory/base';
+import { createTable, getTable } from '~test/factory/table';
+import { createBulkRows, listRow, rowMixedValue } from '~test/factory/row';
 import {
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
   customColumns,
-} from '../../factory/column';
-import { createView, updateView } from '../../factory/view';
+} from '~test/factory/column';
+import { createView, updateView } from '~test/factory/view';
 
-import { isPg } from '../../init/db';
-import { defaultUserArgs } from '../../factory/user';
+import { defaultUserArgs } from '~test/factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
 import type Model from '~/models/Model';

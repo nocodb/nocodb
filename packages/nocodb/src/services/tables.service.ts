@@ -1115,6 +1115,7 @@ export class TablesService {
           {
             is_meta: !!source.is_meta,
             is_local: !!source.is_local,
+            type: source.type,
           },
           cdfValue as unknown as string,
         );

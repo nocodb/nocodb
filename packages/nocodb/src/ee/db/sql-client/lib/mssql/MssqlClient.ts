@@ -1,6 +1,7 @@
 import knex from 'knex';
 import { find } from 'lodash';
 import { nanoid } from 'nanoid';
+import { UITypes } from 'nocodb-sdk';
 import mssqlQueries from './mssql.queries';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
@@ -543,17 +544,22 @@ class MssqlClient extends KnexClient {
       const schema = this._schema(args);
       const tnArg = `${schema}.${args.tn}`;
       const wasUnique = !args.non_unique_original;
-      // Resolve the actual name from sys.* — covers indexes created by
-      // any prior code path (knex's default convention or the schema-
-      // scoped name introduced above).
+      // Resolve the actual name + kind from sys.* — unique enforcer may be a
+      // UQ-type key constraint OR a standalone unique INDEX (soft-delete
+      // tables); non-unique is always an index.
       let indexName: string | null = args.indexName || null;
+      let uniqueKind: 'constraint' | 'index' = 'constraint';
       if (!indexName) {
         if (wasUnique) {
-          indexName = await this._findUniqueConstraintName(
+          const info = await this._findUniqueOnColumn(
             schema,
             args.tn,
             args.columns?.[0],
           );
+          if (info) {
+            indexName = info.name;
+            uniqueKind = info.kind;
+          }
         } else {
           const found = await this._findIndexesOnColumn(
             schema,
@@ -570,18 +576,32 @@ class MssqlClient extends KnexClient {
       }
 
       const dropSql = wasUnique
-        ? this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [tnArg, indexName])
+        ? uniqueKind === 'constraint'
+          ? this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [
+              tnArg,
+              indexName,
+            ])
+          : this.genQuery(`DROP INDEX ?? ON ??`, [indexName, tnArg])
         : this.genQuery(`DROP INDEX ?? ON ??`, [indexName, tnArg]);
 
       await this.sqlClient.raw(dropSql);
 
       const upStatement = this.querySeparator() + dropSql;
       const downSql = wasUnique
-        ? this.genQuery(`ALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??)`, [
-            tnArg,
-            indexName,
-            args.columns,
-          ])
+        ? uniqueKind === 'constraint'
+          ? this.genQuery(`ALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??)`, [
+              tnArg,
+              indexName,
+              args.columns,
+            ])
+          : // Can't faithfully restore a filtered partial index without the
+            // filter expression; emit an unconditional unique index as the
+            // closest reversible form. Down statements are best-effort.
+            this.genQuery(`CREATE UNIQUE INDEX ?? ON ?? (??)`, [
+              indexName,
+              tnArg,
+              args.columns,
+            ])
         : this.genQuery(`CREATE INDEX ?? ON ?? (??)`, [
             indexName,
             tnArg,
@@ -1680,7 +1700,11 @@ class MssqlClient extends KnexClient {
 
   // Inline column definition for CREATE TABLE / ADD COLUMN:
   //   [cn] <type>[ IDENTITY(1,1)] NULL|NOT NULL[ DEFAULT v][ UNIQUE]
-  private _columnDefinition(col: any): string {
+  //
+  // When `softDeleteColumnName` is supplied the inline UNIQUE is suppressed —
+  // the caller emits a soft-delete-filtered unique INDEX separately so trash
+  // rows don't block the constraint. Mirrors pg's partial-unique behavior.
+  private _columnDefinition(col: any, softDeleteColumnName?: string): string {
     let def = this.genQuery('??', [col.cn]);
 
     def += ` ${this._genColumnType(col)}`;
@@ -1698,7 +1722,8 @@ class MssqlClient extends KnexClient {
 
     // Inline UNIQUE creates an auto-named constraint; the drop paths resolve the
     // actual name from sys.* so the generated name need not be predictable.
-    if (col.unique && !col.pk) def += ' UNIQUE';
+    // Skipped when soft-delete is present — caller emits a filtered index.
+    if (col.unique && !col.pk && !softDeleteColumnName) def += ' UNIQUE';
 
     return def;
   }
@@ -1867,6 +1892,16 @@ class MssqlClient extends KnexClient {
       const upStatements: string[] = [];
       const downStatements: string[] = [];
 
+      // Soft-delete-aware unique enforcement: when the table carries a
+      // `__nc_deleted` column, single-column UNIQUE is enforced via a
+      // filtered partial index so trash rows holding the value don't block
+      // the constraint. Mirrors pg's tableUpdate softDeleteColumnName branch.
+      const deletedCol = (args.columns || []).find(
+        (c: any) => c.uidt === UITypes.Deleted,
+      );
+      const softDeleteColumnName: string | undefined =
+        deletedCol?.cn || deletedCol?.column_name || undefined;
+
       for (const column of args.columns || []) {
         const oldColumn = find(originalColumns, { cn: column.cno });
 
@@ -1929,18 +1964,16 @@ class MssqlClient extends KnexClient {
               ]),
             );
           }
-          const uqName = await this._findUniqueConstraintName(
+          // Unique enforcer may be a UQ-type key constraint OR a filtered
+          // unique INDEX (soft-delete tables). Resolve both and emit the
+          // matching DROP so T-SQL doesn't refuse DROP COLUMN.
+          const uqInfo = await this._findUniqueOnColumn(
             schema,
             tn,
             column.cn,
           );
-          if (uqName) {
-            upStatements.push(
-              this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [
-                tnArg,
-                uqName,
-              ]),
-            );
+          if (uqInfo) {
+            upStatements.push(this._dropUniqueStmt(tnArg, uqInfo));
           }
           const nonKeyIndexes = await this._findIndexesOnColumn(
             schema,
@@ -1958,7 +1991,22 @@ class MssqlClient extends KnexClient {
           downStatements.push(this._addColumnStatement(tnArg, column));
         } else if (column.altered & 1) {
           // ---- ADD COLUMN ----
-          upStatements.push(this._addColumnStatement(tnArg, column));
+          // `_addColumnStatement` honors softDeleteColumnName — inline UNIQUE
+          // is suppressed when present; emit the filtered unique INDEX as a
+          // follow-up statement so trash rows don't block the constraint.
+          upStatements.push(
+            this._addColumnStatement(tnArg, column, softDeleteColumnName),
+          );
+          if (column.unique && !column.pk && softDeleteColumnName) {
+            upStatements.push(
+              this._createFilteredUniqueIndexStmt(
+                tnArg,
+                tn,
+                column.cn,
+                softDeleteColumnName,
+              ),
+            );
+          }
           downStatements.push(
             this.genQuery(`ALTER TABLE ?? DROP COLUMN ??`, [tnArg, column.cn]),
           );
@@ -1991,6 +2039,7 @@ class MssqlClient extends KnexClient {
             tn,
             column,
             oldColumn,
+            softDeleteColumnName,
           );
           upStatements.push(...up);
           downStatements.push(...down);
@@ -2031,9 +2080,15 @@ class MssqlClient extends KnexClient {
     return result;
   }
 
-  private _addColumnStatement(tnArg: string, column: any): string {
+  private _addColumnStatement(
+    tnArg: string,
+    column: any,
+    softDeleteColumnName?: string,
+  ): string {
     return this.genQuery(
-      `ALTER TABLE ?? ADD ${this.sanitize(this._columnDefinition(column))}`,
+      `ALTER TABLE ?? ADD ${this.sanitize(
+        this._columnDefinition(column, softDeleteColumnName),
+      )}`,
       [tnArg],
     );
   }
@@ -2066,12 +2121,18 @@ class MssqlClient extends KnexClient {
   //
   // The down-statements undo each step in the symmetric order so a rollback
   // restores the original schema + constraints exactly.
+  //
+  // `softDeleteColumnName` (when supplied) routes single-column UNIQUE through
+  // a soft-delete-filtered partial index instead of an unconditional UQ
+  // constraint, mirroring pg's pattern. Composite UQs aren't filtered (matches
+  // pg) — they're handled by the heavyAlter drop+re-add path.
   private async _changeColumnStatements(
     schema: string,
     tnArg: string,
     tn: string,
     n: any,
     o: any,
+    softDeleteColumnName?: string,
   ): Promise<{ up: string[]; down: string[] }> {
     const up: string[] = [];
     const down: string[] = [];
@@ -2269,16 +2330,12 @@ class MssqlClient extends KnexClient {
       }
       droppedExistingUq = true;
     } else if (uniqueChanged && !nUnique && oUnique) {
-      // Pure transition off unique — find the single-col UQ that backed it.
-      const uqName = await this._findUniqueConstraintName(
-        schema,
-        tn,
-        lookupName,
-      );
-      if (uqName) {
-        up.push(
-          this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [tnArg, uqName]),
-        );
+      // Pure transition off unique — resolve either a UQ-type constraint
+      // (legacy / non-soft-delete tables) or a standalone unique INDEX
+      // (filtered partial UQ on soft-delete tables) and emit the right DROP.
+      const existing = await this._findUniqueOnColumn(schema, tn, lookupName);
+      if (existing) {
+        up.push(this._dropUniqueStmt(tnArg, existing));
         droppedExistingUq = true;
       }
     }
@@ -2398,18 +2455,32 @@ class MssqlClient extends KnexClient {
 
     // Single-col UNIQUE transition (was-not-unique → now-unique). Doesn't
     // re-cover the heavyAlter composite case (already handled above).
+    // On soft-delete-aware tables emit a filtered unique INDEX (so trash rows
+    // don't block the constraint); elsewhere use an unconditional UQ
+    // constraint as before.
     if (
       uniqueChanged &&
       nUnique &&
       !(heavyAlter && uniqueConstraints.length > 0)
     ) {
-      up.push(
-        this.genQuery(`ALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??)`, [
-          tnArg,
-          this._safeName('UQ', tn, newName),
-          newName,
-        ]),
-      );
+      if (softDeleteColumnName) {
+        up.push(
+          this._createFilteredUniqueIndexStmt(
+            tnArg,
+            tn,
+            newName,
+            softDeleteColumnName,
+          ),
+        );
+      } else {
+        up.push(
+          this.genQuery(`ALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??)`, [
+            tnArg,
+            this._safeName('UQ', tn, newName),
+            newName,
+          ]),
+        );
+      }
     }
 
     if (heavyAlter) {
@@ -2616,6 +2687,97 @@ class MssqlClient extends KnexClient {
       log.api('Error finding unique constraint name:', e);
       return null;
     }
+  }
+
+  // Resolve a unique enforcer on a column — either a `UQ`-type key constraint
+  // (unconditional UNIQUE) OR a standalone unique INDEX (which is how we
+  // emit the soft-delete-aware partial unique; sys.key_constraints doesn't
+  // know about filtered indexes). Returned `kind` tells the caller which
+  // DROP statement to emit.
+  private async _findUniqueOnColumn(
+    schema: string,
+    tn: string,
+    cn: string,
+  ): Promise<{ name: string; kind: 'constraint' | 'index' } | null> {
+    const constraintName = await this._findUniqueConstraintName(schema, tn, cn);
+    if (constraintName) return { name: constraintName, kind: 'constraint' };
+    try {
+      // Standalone unique indexes (filtered or not) live in sys.indexes but
+      // are NOT backed by a UQ-type key constraint. Restrict to single-
+      // column indexes to mirror the constraint side (composite UQs are
+      // handled separately via _findUniqueConstraintsWithCols).
+      const resp = await this.sqlClient.raw(
+        `SELECT i.name AS name
+           FROM sys.indexes i
+           JOIN sys.index_columns ic
+             ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+           JOIN sys.columns c
+             ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+           JOIN sys.tables t ON t.object_id = i.object_id
+           JOIN sys.schemas s ON s.schema_id = t.schema_id
+          WHERE i.is_unique = 1
+            AND i.is_primary_key = 0
+            AND i.is_unique_constraint = 0
+            AND s.name = ? AND t.name = ? AND c.name = ?
+            AND (SELECT COUNT(*) FROM sys.index_columns ic2
+                  WHERE ic2.object_id = i.object_id
+                    AND ic2.index_id = i.index_id) = 1`,
+        [schema, tn, cn],
+      );
+      const indexName = this._rows(resp)[0]?.name ?? null;
+      return indexName ? { name: indexName, kind: 'index' } : null;
+    } catch (e) {
+      log.api('Error finding unique index name:', e);
+      return null;
+    }
+  }
+
+  // Emit the right DROP for a unique enforcer resolved by _findUniqueOnColumn.
+  private _dropUniqueStmt(
+    tnArg: string,
+    info: { name: string; kind: 'constraint' | 'index' },
+  ): string {
+    return info.kind === 'constraint'
+      ? this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [tnArg, info.name])
+      : this.genQuery(`DROP INDEX ?? ON ??`, [info.name, tnArg]);
+  }
+
+  // Soft-delete-aware unique enforcement: a filtered unique index that
+  // excludes trash rows so a soft-deleted row holding the value doesn't
+  // block restoring or inserting an active row with the same value.
+  // Mirrors PG's `addUniqueConstraintToQuery` filtered-partial-index branch.
+  private _createFilteredUniqueIndexStmt(
+    tnArg: string,
+    tn: string,
+    cn: string,
+    softDeleteColumnName: string,
+  ): string {
+    // T-SQL filtered-index predicates can't use `OR` (error 156), so the
+    // pg-style `(?? IS NULL OR ?? = 0)` isn't valid here. The soft-delete
+    // column is a `bit DEFAULT 0`, so every active row is `0` (1 = trashed) —
+    // `WHERE ?? = 0` matches exactly the active rows and is a legal filtered
+    // predicate. (NULL would only occur if a row were inserted with an
+    // explicit NULL, which the default prevents.)
+    return this.genQuery(
+      `CREATE UNIQUE INDEX ?? ON ?? (??) WHERE (?? = 0)`,
+      [
+        this._safeName('UQ', tn, cn),
+        tnArg,
+        cn,
+        softDeleteColumnName,
+      ],
+    );
+  }
+
+  private _dropFilteredUniqueIndexStmt(
+    tnArg: string,
+    tn: string,
+    cn: string,
+  ): string {
+    return this.genQuery(`DROP INDEX ?? ON ??`, [
+      this._safeName('UQ', tn, cn),
+      tnArg,
+    ]);
   }
 
   // Resolve all UNIQUE constraints that include the given column, returning

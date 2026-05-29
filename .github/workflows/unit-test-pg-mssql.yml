@@ -112,6 +112,22 @@ jobs:
         run: |
           pnpm run dev &
       - name: run unit tests (pg meta + mssql data)
+        id: tests
         working-directory: ./packages/nocodb
+        # tee the spec output to a file so the upload-artifact step below
+        # can ship it as a build artifact on failure — clicking through
+        # ~thousands of GHA log lines to find the first MSSQL error is
+        # painful, especially while the dialect is still WIP and the
+        # failures are expected to surface real bugs.
         run: |
-          pnpm run test:unit:pg:ee:mssql --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}
+          set -o pipefail
+          pnpm run test:unit:pg:ee:mssql --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }} \
+            2>&1 | tee mocha-output-mssql-set-${{ inputs.test_set || 'all' }}.log
+      - name: Upload mocha output (on failure)
+        if: failure() && steps.tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mocha-output-mssql-set-${{ inputs.test_set || 'all' }}
+          path: ./packages/nocodb/mocha-output-mssql-set-${{ inputs.test_set || 'all' }}.log
+          if-no-files-found: ignore
+          retention-days: 14

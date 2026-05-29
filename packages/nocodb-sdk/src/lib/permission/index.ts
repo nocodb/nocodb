@@ -146,8 +146,8 @@ export const PermissionMeta = {
   },
   [PermissionKey.VIEW_VISIBILITY]: {
     minimumRole: PermissionRole.VIEWER,
-    label: 'Who can view this view',
-    description: 'can view this view',
+    label: 'Who can access this view',
+    description: 'can access this view',
     userSelectorDescription:
       'Only members selected here will be able to view and access this view.',
   },

@@ -43,6 +43,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-sqlite-2:
     needs: pre-build-for-ci
@@ -51,6 +52,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-sqlite-3:
     needs: pre-build-for-ci
@@ -59,6 +61,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg:
     needs: pre-build-for-ci
@@ -67,6 +70,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-2:
     needs: pre-build-for-ci
@@ -75,6 +79,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-3:
     needs: pre-build-for-ci
@@ -83,6 +88,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection:
     needs: pre-build-for-ci
@@ -92,6 +98,7 @@ jobs:
     with:
       reflection: true
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection-2:
     needs: pre-build-for-ci
@@ -101,6 +108,7 @@ jobs:
     with:
       reflection: true
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection-3:
     needs: pre-build-for-ci
@@ -110,6 +118,7 @@ jobs:
     with:
       reflection: true
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   # PG meta + MSSQL data DB. Always runs on push-to-develop so post-merge
   # regressions are caught immediately; opt-in on PRs via the `mssql` label
@@ -122,6 +131,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-mssql-2:
     needs: pre-build-for-ci
@@ -130,6 +140,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-mssql-3:
     needs: pre-build-for-ci
@@ -138,6 +149,7 @@ jobs:
     secrets: inherit
     with:
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   # ── Pre-build UI (single job builds EE always, CE on develop push) ──
 

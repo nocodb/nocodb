@@ -15,6 +15,10 @@ on:
         description: 'Test set number'
         required: false
         type: string
+      mem_log:
+        description: 'Print per-suite heap/rss after cleanupMeta (for OOM/leak investigation)'
+        required: false
+        type: boolean
   # Triggered manually
   workflow_dispatch:
     inputs:
@@ -22,6 +26,10 @@ on:
         description: 'Test set number'
         required: false
         type: string
+      mem_log:
+        description: 'Print per-suite heap/rss after cleanupMeta (for OOM/leak investigation)'
+        required: false
+        type: boolean
 
 jobs:
   unit-tests-pg-mssql:
@@ -114,6 +122,8 @@ jobs:
       - name: run unit tests (pg meta + mssql data)
         id: tests
         working-directory: ./packages/nocodb
+        env:
+          NC_TEST_MEM_LOG: ${{ inputs.mem_log && '1' || '' }}
         # tee the spec output to a file so the upload-artifact step below
         # can ship it as a build artifact on failure — clicking through
         # ~thousands of GHA log lines to find the first MSSQL error is

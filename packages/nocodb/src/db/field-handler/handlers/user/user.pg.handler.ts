@@ -28,6 +28,8 @@ export class UserPgHandler extends GenericPgFieldHandler {
   override filter = this.userHandler.filter;
   override filterLike = this.userHandler.filterLikeNlike;
   override filterNlike = this.userHandler.filterLikeNlike;
+  override applySort = (...args: Parameters<UserGeneralHandler['applySort']>) =>
+    this.userHandler.applySort(...args);
   override parseUserInput = this.userHandler.parseUserInput;
   singleLineTextHandler = this.userHandler.singleLineTextHandler;
   replaceDelimitedWithKeyValue = this.userHandler.replaceDelimitedWithKeyValue;

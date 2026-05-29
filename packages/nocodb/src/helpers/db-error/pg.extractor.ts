@@ -350,16 +350,24 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 503;
         break;
 
-      case 'XX000': // internal_error — generic; surface server message
+      case 'XX000': // internal_error — leave unhandled on purpose.
         // PG raises this for assertion failures or driver-level wrap of
         // an otherwise-uncategorised internal exception. The bare code
-        // doesn't tell us anything actionable; pass the server's own
-        // message through so the user/operator can triage.
-        message =
-          error.message ||
-          'The database raised an internal error.';
-        httpStatus = 500;
-        break;
+        // doesn't tell us anything actionable, and `error.message` often
+        // contains backend internals (SQL fragments, OIDs, stack
+        // fragments) we don't want surfacing on end-user toasts (see
+        // the `describeRowError` "does not leak raw text when the code
+        // is unknown" contract).
+        //
+        // Callers that want the raw text for operator triage
+        // (formulaQueryBuilderv2, the global exception filter) already
+        // fall back to `e.message` when `extractDbError` returns
+        // undefined — no behavioural regression for them, just the
+        // user-facing leak gone.
+        this.option.dbErrorLogger.error(
+          `XX000 internal_error from pg: ${error.message}`,
+        );
+        return;
       default:
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database pg`,

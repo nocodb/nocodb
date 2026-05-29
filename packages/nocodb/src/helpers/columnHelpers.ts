@@ -833,6 +833,12 @@ export const deleteColumnSystemPropsFromRequest = (
       }
       break;
     }
+    case OperationSource.SYNC: {
+      // table-sync flags its Remote*/Sync* metadata columns as system so they
+      // hide behind the "Show system fields" toggle. Honor the caller's
+      // `system` flag here instead of stripping it.
+      break;
+    }
     default: {
       delete col.system;
     }

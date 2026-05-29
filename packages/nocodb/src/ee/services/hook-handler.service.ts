@@ -1,19 +1,35 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
 import {
+  AppEvents,
   type HookType,
+  ncIsObject,
+  NOCO_SERVICE_USERS,
   PlanLimitTypes,
+  ServiceUserType,
+  TableSyncStatus,
+  TableSyncTrigger,
   ViewTypes,
   WebhookEvents,
 } from 'nocodb-sdk';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
-import { NcContext } from '~/interface/config';
+import { NcContext, NcRequest } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 // @ts-ignore importing directly will cause circular dependency error
 import { type WorkflowExecutionService } from '~/services/workflow-execution.service';
-import { JobTypes } from '~/interface/Jobs';
-import { Filter, Hook, Model, Source, View } from '~/models';
-import Workflow from '~/ee/models/Workflow';
+import { JobTypes, type TableSyncJobData } from '~/interface/Jobs';
+import {
+  Base,
+  Filter,
+  Hook,
+  Model,
+  Source,
+  TableSync,
+  TableSyncMapping,
+  View,
+  Workflow,
+} from '~/models';
+import { dataWrapper } from '~/helpers/dbHelpers';
 import {
   getAffectedColumns,
   validateCondition,
@@ -22,13 +38,29 @@ import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import {
+  bufferPendingIncrementalIds,
+  scheduleIncrementalRun,
+} from '~/modules/table-sync/table-sync.helpers';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
+
+const TABLE_SYNC_HOOKS_OF_INTEREST = new Set([
+  'after.insert',
+  'after.bulkInsert',
+  'after.update',
+  'after.bulkUpdate',
+  'after.delete',
+  'after.bulkDelete',
+]);
 
 @Injectable()
 export class HookHandlerService extends HookHandlerServiceCE {
   protected logger = new Logger(HookHandlerService.name);
+
+  private lmtUnsubscribe?: () => void;
 
   constructor(
     @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
@@ -37,8 +69,37 @@ export class HookHandlerService extends HookHandlerServiceCE {
     private readonly datasV3Service: DataV3Service,
     @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
+    private readonly nocoJobsService: NocoJobsService,
   ) {
     super(eventEmitter, jobsService, mailService);
+  }
+
+  onModuleInit(): any {
+    super.onModuleInit();
+    this.lmtUnsubscribe = this.eventEmitter.on(
+      AppEvents.ROW_LMT_TOUCHED,
+      async (arg: {
+        context: NcContext;
+        modelId: string;
+        rowIds: string[];
+        user: any;
+      }) => {
+        try {
+          await this.scheduleTableSyncsFromLmtTouch(arg);
+        } catch (e) {
+          this.logger.error({
+            error: e,
+            details: 'Error handling ROW_LMT_TOUCHED in HookHandlerService',
+            modelId: arg?.modelId,
+          });
+        }
+      },
+    );
+  }
+
+  onModuleDestroy() {
+    super.onModuleDestroy();
+    this.lmtUnsubscribe?.();
   }
 
   @EEOnly()
@@ -92,6 +153,15 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
     // Call parent to handle webhooks
     await super.handleHooks(context, param);
+
+    this.scheduleTableSyncs(context, param).catch((e: Error) => {
+      this.logger.error({
+        error: e,
+        details: 'Error while scheduling table-sync',
+        hookName: param.hookName,
+        modelId: param.modelId,
+      });
+    });
 
     await checkLimit({
       workspaceId: context.workspace_id,
@@ -786,6 +856,222 @@ export class HookHandlerService extends HookHandlerServiceCE {
         hookName,
         modelId,
       });
+    }
+  }
+
+  private async scheduleTableSyncs(
+    context: NcContext,
+    param: { hookName; prevData; newData; user; viewId; modelId },
+  ): Promise<void> {
+    if (!param.hookName || !TABLE_SYNC_HOOKS_OF_INTEREST.has(param.hookName)) {
+      return;
+    }
+
+    if (!param.modelId || !context?.workspace_id || !context?.base_id) return;
+
+    const mappings = await TableSyncMapping.listBySourceTable(
+      context.workspace_id,
+      context.base_id,
+      param.modelId,
+    );
+
+    if (!mappings.length) return;
+
+    const model = await Model.get(context, param.modelId);
+
+    if (!model) return;
+
+    await model.getColumns(context);
+
+    const eventRows = param.newData ?? param.prevData;
+
+    const idsFromEvent: string[] = [];
+
+    if (eventRows != null) {
+      for (const row of Array.isArray(eventRows) ? eventRows : [eventRows]) {
+        if (!ncIsObject(row)) continue;
+        const pk = dataWrapper(row).extractPksValue(model, true);
+        if (pk != null && pk !== '') idsFromEvent.push(String(pk));
+      }
+    }
+
+    const seenSyncIds = new Set<string>();
+
+    for (const mapping of mappings) {
+      if (seenSyncIds.has(mapping.fk_table_sync_id)) continue;
+
+      seenSyncIds.add(mapping.fk_table_sync_id);
+
+      if (
+        mapping.source_workspace_id !== context.workspace_id ||
+        mapping.source_base_id !== context.base_id
+      ) {
+        this.logger.warn({
+          message: 'Skipping cross-scope table-sync mapping',
+          mappingId: mapping.id,
+        });
+        continue;
+      }
+
+      await this.scheduleIncrementalTableSync(
+        mapping,
+        context,
+        param,
+        idsFromEvent,
+      );
+    }
+  }
+
+  private async scheduleTableSyncsFromLmtTouch(arg: {
+    context: NcContext;
+    modelId: string;
+    rowIds: string[];
+    user: any;
+  }): Promise<void> {
+    const { context, modelId, rowIds, user } = arg;
+
+    if (!modelId || !context?.workspace_id || !context?.base_id) return;
+    if (!rowIds?.length) return;
+
+    const mappings = await TableSyncMapping.listBySourceTable(
+      context.workspace_id,
+      context.base_id,
+      modelId,
+    );
+    if (!mappings.length) return;
+
+    const idsFromEvent = rowIds
+      .filter((id) => id != null && id !== '')
+      .map((id) => String(id));
+    if (!idsFromEvent.length) return;
+
+    const seenSyncIds = new Set<string>();
+    for (const mapping of mappings) {
+      if (seenSyncIds.has(mapping.fk_table_sync_id)) continue;
+      seenSyncIds.add(mapping.fk_table_sync_id);
+
+      if (
+        mapping.source_workspace_id !== context.workspace_id ||
+        mapping.source_base_id !== context.base_id
+      ) {
+        this.logger.warn({
+          message: 'Skipping cross-scope table-sync mapping on LMT touch',
+          mappingId: mapping.id,
+        });
+        continue;
+      }
+
+      await this.scheduleIncrementalTableSync(
+        mapping,
+        context,
+        {
+          hookName: 'lmt.touch',
+          prevData: null,
+          newData: null,
+          user,
+          modelId,
+        },
+        idsFromEvent,
+      );
+    }
+  }
+
+  /**
+   * Realtime incremental debounce (window: `TABLE_SYNC_INCREMENTAL_DEBOUNCE_MS`).
+   * Two fixed slots per sync (`…:incremental` + `…:incremental:overflow`); see
+   * `scheduleIncrementalRun`:
+   *  - First write: schedule a slot (delayed one window).
+   *  - Write while a slot's job is still delayed: remove + re-add it with merged
+   *    `affectedIdsBySource`, so it fires one window after the LAST write.
+   *  - Write while a slot is processing: it's skipped (we never re-add a running
+   *    job's id — its completion would clobber the re-add). If a free slot
+   *    exists the write lands there; if both slots are processing we buffer the
+   *    ids in a cache hash keyed by sync. The running job drains that buffer on
+   *    completion and re-runs into the other slot
+   *    (`drainAndRequeueIncremental`). The per-sync lock guarantees only one
+   *    slot executes at a time, so ids are never lost or double-applied.
+   * `affectedIdsBySource[modelId]` is what lets the processor detect deletes /
+   * view-exits: any id present here but not returned by the source view query
+   * has disappeared and needs tombstoning — critical for DELETE, which leaves
+   * no LMT trail.
+   */
+  private async scheduleIncrementalTableSync(
+    mapping: TableSyncMapping,
+    context: NcContext,
+    param: { hookName; prevData; newData; user; modelId },
+    idsFromEvent: string[],
+  ): Promise<void> {
+    const syncId = mapping.fk_table_sync_id;
+    const sourceTableId = param.modelId;
+
+    const destContext: NcContext = {
+      workspace_id: mapping.fk_workspace_id,
+      base_id: mapping.dest_base_id,
+    };
+
+    const [destBase, sourceBase] = await Promise.all([
+      Base.get(
+        {
+          workspace_id: mapping.fk_workspace_id,
+          base_id: mapping.dest_base_id,
+        } as NcContext,
+        mapping.dest_base_id,
+      ),
+      Base.get(
+        {
+          workspace_id: mapping.source_workspace_id,
+          base_id: mapping.source_base_id,
+        } as NcContext,
+        mapping.source_base_id,
+      ),
+    ]);
+    if (!destBase || !sourceBase) {
+      return;
+    }
+
+    const sync = await TableSync.get(destContext, syncId);
+    if (!sync || sync.status !== TableSyncStatus.Active) {
+      return;
+    }
+    if (sync.sync_trigger === TableSyncTrigger.Manual) {
+      return;
+    }
+
+    const baseJobData: Omit<
+      TableSyncJobData,
+      'affectedIdsBySource' | 'jobName' | 'user'
+    > = {
+      context: destContext,
+      syncId,
+      mode: 'incremental',
+      req: {
+        context,
+        user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+        ncWorkspaceId: context?.workspace_id,
+        ncBaseId: context?.base_id,
+        ncSiteUrl: '',
+        dashboardUrl: '',
+        headers: {},
+        query: {},
+        body: {},
+        params: {},
+      } as NcRequest,
+    };
+    const newIdsBySource = { [sourceTableId]: idsFromEvent };
+
+    const scheduled = await scheduleIncrementalRun(this.nocoJobsService, {
+      syncId,
+      baseJobData,
+      newIdsBySource,
+    });
+
+    // The job is already processing — park the ids in the buffer. The running
+    // job drains them on completion and re-runs itself once.
+    if (!scheduled) {
+      await bufferPendingIncrementalIds(destContext, syncId, newIdsBySource);
+      this.logger.warn(
+        `Incremental tableSync:${syncId}: run in progress — buffered ${idsFromEvent.length} ids`,
+      );
     }
   }
 }

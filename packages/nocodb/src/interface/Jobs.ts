@@ -58,6 +58,7 @@ export enum JobTypes {
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
   SyncModuleRefreshData = 'sync-module-refresh-data',
   SyncModuleSchedule = 'sync-module-schedule',
+  TableSyncRun = 'table-sync-run',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
@@ -111,6 +112,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.MailDispatch,
   JobTypes.MailOutboxRecovery,
   JobTypes.MailScanner,
+  JobTypes.TableSyncRun,
 ];
 
 export enum JobStatus {
@@ -329,6 +331,15 @@ export interface SyncDataSyncModuleJobData extends JobData {
   targetTables?: string[];
   trigger: SyncTrigger;
   bulk?: boolean;
+  req: NcRequest;
+}
+
+export type TableSyncJobMode = 'full-create' | 'full-resync' | 'incremental';
+
+export interface TableSyncJobData extends JobData {
+  syncId: string;
+  mode?: TableSyncJobMode;
+  affectedIdsBySource?: Record<string, string[]>;
   req: NcRequest;
 }
 

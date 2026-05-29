@@ -109,7 +109,8 @@ const countPrimaryKeys = (): number => {
   return currentTable.systemFields.primaryKey.length
 }
 
-const getAllowedUITypes = (abstractType: string) => {
+const getAllowedUITypes = (abstractType?: string | null) => {
+  if (!abstractType) return [UITypes.SingleLineText, UITypes.LongText]
   const typeKey = Object.keys(abstractTypeToUITypes).find((key) => abstractType.includes(key)) as AbstractTypeKey | undefined
   if (typeKey && abstractTypeToUITypes[typeKey]) {
     return abstractTypeToUITypes[typeKey]
@@ -117,7 +118,7 @@ const getAllowedUITypes = (abstractType: string) => {
   return [UITypes.SingleLineText, UITypes.LongText]
 }
 
-const getUITypeOptions = (column: { abstractType: string }) => {
+const getUITypeOptions = (column: { abstractType?: string | null }) => {
   const allowedTypes = getAllowedUITypes(column.abstractType)
   return allowedTypes.map((type) => ({
     label: type,

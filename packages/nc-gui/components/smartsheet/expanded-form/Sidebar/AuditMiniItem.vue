@@ -2,6 +2,7 @@
 import {
   type AttachmentType,
   type AuditType,
+  type TableType,
   checkboxIconListMap,
   isAIPromptCol,
   parseHelper,
@@ -11,6 +12,10 @@ import {
 const props = defineProps<{
   audit: AuditType
 }>()
+
+const tableMeta = inject(MetaInj, ref())
+
+const isSyncedTable = computed(() => !!(tableMeta.value as TableType | undefined)?.synced)
 
 const details = computed(() => {
   try {
@@ -33,7 +38,11 @@ const meta = computed(() => {
 })
 
 const columnKeys = computed(() => {
-  return Object.keys(newData.value)
+  const keys = Object.keys(newData.value)
+  // On synced tables, sync bookkeeping fields (RemoteSyncedAt, SyncRunId, …)
+  // change on every sync and drown out the real edit — hide their rows.
+  if (!isSyncedTable.value) return keys
+  return keys.filter((key) => !isSyncSystemColumnTitle(key))
 })
 
 /* provides */

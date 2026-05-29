@@ -13,6 +13,7 @@ import type {
   PlanFeatureTypes,
   PlanLimitTypes,
   ScriptType,
+  TableSyncType,
   UserType,
   ViewSectionType,
   WidgetType,
@@ -250,6 +251,20 @@ export interface PermissionUpdateEvent extends NcBaseEvent {
   permission: Permission;
   oldPermission: Permission;
   user: UserType;
+}
+
+export interface TableSyncEvent extends NcBaseEvent {
+  sync: TableSyncType;
+}
+
+export interface TableSyncUpdateEvent extends NcBaseEvent {
+  sync: TableSyncType;
+  oldSync: TableSyncType;
+}
+
+export interface TableSyncDeleteEvent extends NcBaseEvent {
+  sync: TableSyncType;
+  droppedTables: boolean;
 }
 
 export interface PermissionDeleteEvent extends NcBaseEvent {

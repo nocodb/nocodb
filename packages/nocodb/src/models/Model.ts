@@ -1334,6 +1334,25 @@ export default class Model implements TableType {
     );
   }
 
+  static async updateSynced(
+    context: NcContext,
+    modelId: string,
+    synced: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { synced },
+      modelId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
+      synced,
+    });
+  }
+
   static async updateTrashSettings(
     context: NcContext,
     modelId: string,

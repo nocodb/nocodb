@@ -48,10 +48,8 @@ import {
 } from '~/utils/api-v3-data-transformation.builder';
 import { ViewsService } from '~/services/views.service';
 import { NcError } from '~/helpers/catchError';
-import {
-  addDummyRootAndNest,
-  FiltersV3Service,
-} from '~/services/v3/filters-v3.service';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';

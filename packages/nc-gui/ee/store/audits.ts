@@ -268,7 +268,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
   const getUserName = (userEmail?: string) => {
     if (!userEmail) return ''
 
-    const userInfo = collaboratorsMap.value.get(userEmail)
+    const userInfo = collaboratorsMap.value.get(userEmail) ?? findServiceUser(userEmail)
 
     if (!userInfo) return ''
 

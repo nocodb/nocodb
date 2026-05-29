@@ -110,6 +110,7 @@ export default class View implements ViewType {
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
   row_coloring_mode?: ROW_COLORING_MODE;
+  allow_sync?: boolean;
   created_by?: string;
   owned_by?: string;
 
@@ -1920,6 +1921,7 @@ export default class View implements ViewType {
       fk_custom_url_id?: string;
       fk_view_section_id?: string | null;
       row_coloring_mode?: ROW_COLORING_MODE;
+      allow_sync?: BoolType;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1934,6 +1936,7 @@ export default class View implements ViewType {
       'meta',
       'uuid',
       'row_coloring_mode',
+      'allow_sync',
       ...(isEE ? ['fk_custom_url_id'] : []),
       ...(isEE ? ['fk_view_section_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),

@@ -55,6 +55,9 @@ export const useRealtime = createSharedComposable(() => {
   const viewSectionsStore = useViewSectionsStore()
   const { applySectionCreated, applySectionUpdated, applySectionDeleted } = viewSectionsStore
 
+  const tableSyncStore = useTableSyncStore()
+  const { baseSyncs: tableSyncs } = storeToRefs(tableSyncStore)
+
   const { templates: recordTemplates } = useRecordTemplate()
 
   const documentStore = useDocumentsStore()
@@ -558,6 +561,33 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
       }
+    } else if (event.action === 'table_sync_create') {
+      const { payload } = event
+      if (!payload?.id || !payload?.base_id) return
+      if (payload.base_id !== activeBaseId.value) return
+      const list = tableSyncs.value.get(payload.base_id) ?? []
+      if (!list.some((s) => s.id === payload.id)) {
+        tableSyncs.value.set(payload.base_id, [...list, payload])
+      }
+    } else if (event.action === 'table_sync_update') {
+      const { payload } = event
+      if (!payload?.id || !payload?.base_id) return
+      if (payload.base_id !== activeBaseId.value) return
+      const list = tableSyncs.value.get(payload.base_id) ?? []
+      const idx = list.findIndex((s) => s.id === payload.id)
+      const next = [...list]
+      if (idx === -1) next.push(payload)
+      else next[idx] = { ...next[idx], ...payload }
+      tableSyncs.value.set(payload.base_id, next)
+    } else if (event.action === 'table_sync_delete') {
+      const { payload } = event
+      if (!payload?.id || !payload?.base_id) return
+      if (payload.base_id !== activeBaseId.value) return
+      const list = tableSyncs.value.get(payload.base_id) ?? []
+      tableSyncs.value.set(
+        payload.base_id,
+        list.filter((s) => s.id !== payload.id),
+      )
     } else if (event.action === 'record_template_create') {
       const { payload } = event
       if (!payload?.id) return

@@ -73,3 +73,8 @@ export { default as BookmarkGroup } from './BookmarkGroup';
 
 // Undo/redo
 export { default as OperationLog } from './OperationLog';
+
+// Table Sync
+export { default as TableSync } from './TableSync';
+export { default as TableSyncMapping } from './TableSyncMapping';
+export { default as TableSyncColumnMapping } from './TableSyncColumnMapping';

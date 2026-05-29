@@ -30,10 +30,12 @@ export const useBase = defineStore('baseStore', () => {
   const scriptStore = useScriptStore()
   const dashboardStore = useDashboardStore()
   const workflowStore = useWorkflowStore()
+  const tableSyncStore = useTableSyncStore()
 
   const { loadScripts } = scriptStore
   const { loadDashboards } = dashboardStore
   const { loadWorkflows } = workflowStore
+  const { loadSyncs: loadTableSyncs } = tableSyncStore
 
   const { isEEFeatureBlocked, blockPrivateBases } = useEeConfig()
 
@@ -197,7 +199,11 @@ export const useBase = defineStore('baseStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (base.value.id) {
-      const promises: Promise<any>[] = [tablesStore.loadProjectTables(base.value.id, true)]
+      const promises: Promise<any>[] = [
+        tablesStore.loadProjectTables(base.value.id, true),
+        // Powers the sidebar SyncedIcon tooltip (paused / errored / last_synced_at).
+        loadTableSyncs(base.value.id),
+      ]
 
       // Only load EE features (scripts, dashboards, workflows) when licensed
       if (!isEEFeatureBlocked.value) {

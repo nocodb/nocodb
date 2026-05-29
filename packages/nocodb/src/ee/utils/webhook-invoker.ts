@@ -6,7 +6,7 @@ import type { HookLogType, NcContext, TableType, ViewType } from 'nocodb-sdk';
 import type { Filter } from '~/models';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/ncError';
-import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import {
   BaseVariable,

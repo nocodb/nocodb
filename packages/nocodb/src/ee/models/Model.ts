@@ -8,6 +8,7 @@ import { resolveTrashRetentionDays } from '~/ee/helpers/trashHelpers';
 
 export default class Model extends ModelCE implements TableType {
   get isTrashEnabled(): boolean {
+    if (this.synced || this.mm) return false;
     return !this.trash_disabled;
   }
 

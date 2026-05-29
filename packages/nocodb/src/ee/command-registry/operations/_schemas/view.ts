@@ -354,6 +354,7 @@ const viewUpdateBodySchema = z
     fk_view_section_id: z.string().nullable().optional(),
     /** ROW_COLORING_MODE enum value. Service handles `null` for cleared mode. */
     row_coloring_mode: z.string().nullable().optional(),
+    allow_sync: boolType.optional(),
   })
   .strict();
 

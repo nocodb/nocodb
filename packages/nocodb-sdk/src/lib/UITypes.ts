@@ -8,6 +8,7 @@ import {
 import { FormulaDataTypes } from './formula/enums';
 import { LinksVersion, LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
+import { SYNC_SYSTEM_COLUMN_TITLES } from './sync';
 
 enum UITypes {
   ID = 'ID',
@@ -146,7 +147,7 @@ export const UITypesSearchTerms = {
     'formatted text',
     'styled text',
     'html text',
-    'Smart text'
+    'Smart text',
   ],
   [UITypes.Attachment]: ['Attachment', 'file', 'document', 'image', 'upload'],
   [UITypes.Checkbox]: ['Checkbox', 'yes/no', 'true/false', 'completed', 'done'],
@@ -469,10 +470,19 @@ export function isHiddenCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;
     system?: number | boolean;
+    title?: string;
   },
   tableMeta: Partial<TableType>
 ) {
   if (!col.system) return false;
+
+  if (
+    tableMeta?.synced &&
+    col.title &&
+    SYNC_SYSTEM_COLUMN_TITLES.includes(col.title)
+  ) {
+    return true;
+  }
 
   // hide belongs to column in mm tables only
   if (col.uidt === UITypes.LinkToAnotherRecord) {
@@ -506,6 +516,15 @@ export function isLinksOrLTAR(
 
 // Alias for isLinksOrLTAR
 export const isLTARType = isLinksOrLTAR;
+
+/**
+ * True when the column is a custom-built link (created via `is_custom_link`
+ * on column creation — the framework persists this as `meta.custom = true`).
+ * Currently emitted by the sync framework when wiring synced-table relations.
+ */
+export function isCustomLink(col: ColumnType | { meta?: any }): boolean {
+  return parseProp((col as { meta?: any })?.meta)?.custom === true;
+}
 
 export function isLinkV2(
   col:

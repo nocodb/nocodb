@@ -157,6 +157,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `RLS Policy '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_TABLE_SYNC_NOT_FOUND]: {
+    message: (id: string) => `Table sync '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_REQUIRED_FIELD_MISSING]: {
     message: (field: string) => `Field '${field}' is required`,
     code: 422,

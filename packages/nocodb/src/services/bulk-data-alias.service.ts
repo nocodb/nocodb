@@ -118,6 +118,7 @@ export class BulkDataAliasService {
       query: any;
       internalFlags?: {
         skipHooks?: boolean;
+        allowSystemColumn?: boolean;
       };
     },
   ) {
@@ -127,7 +128,11 @@ export class BulkDataAliasService {
       options: [
         param.query,
         param.body,
-        { cookie: param.cookie, skip_hooks: param.internalFlags?.skipHooks },
+        {
+          cookie: param.cookie,
+          skip_hooks: param.internalFlags?.skipHooks,
+          allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        },
       ],
     });
   }
@@ -138,6 +143,9 @@ export class BulkDataAliasService {
     param: PathParams & {
       body: any;
       cookie: NcRequest;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+      };
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -145,7 +153,13 @@ export class BulkDataAliasService {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDelete',
-      options: [param.body, { cookie: param.cookie }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        },
+      ],
     });
   }
 

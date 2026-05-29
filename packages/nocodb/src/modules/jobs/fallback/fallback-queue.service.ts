@@ -13,6 +13,10 @@ export interface Job {
   data: any;
   repeat?: { cron: string };
   delay?: number;
+  remove?: () => Promise<void>;
+  getState?: () => Promise<string>;
+  moveToCompleted?: (returnValue?: string, ignoreLock?: boolean) => void;
+  moveToFailed?: (error?: Error, ignoreLock?: boolean) => void;
 }
 
 @Injectable()
@@ -136,6 +140,12 @@ export class QueueService {
             clearTimeout(timeoutRef);
           }
           this.emitter.emit(JobStatus.FAILED, { job, error, skipEvent: true });
+        },
+        remove: async () => {
+          if (timeoutRef) {
+            clearTimeout(timeoutRef);
+          }
+          this.removeJob(job);
         },
       };
     };

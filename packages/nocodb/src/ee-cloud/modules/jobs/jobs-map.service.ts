@@ -21,6 +21,7 @@ import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.pr
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
+import { TableSyncProcessor } from '~/modules/table-sync/table-sync.processor';
 import { SyncModuleSyncScheduleProcessor } from '~/integrations/sync/module/services/sync-schedule.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
@@ -65,6 +66,7 @@ export class JobsMap extends JobsMapEE {
     protected readonly noOpJob: NoOpMigration,
     protected readonly syncModuleSyncDataProcessor: SyncModuleSyncDataProcessor,
     protected readonly syncModuleSyncScheduleProcessor: SyncModuleSyncScheduleProcessor,
+    protected readonly tableSyncProcessor: TableSyncProcessor,
     protected readonly updateUsageStatsProcessor: UpdateUsageStatsProcessor,
     protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
@@ -109,6 +111,7 @@ export class JobsMap extends JobsMapEE {
       noOpJob,
       syncModuleSyncDataProcessor,
       syncModuleSyncScheduleProcessor,
+      tableSyncProcessor,
       updateUsageStatsProcessor,
       cloudDbMigrateProcessor,
       attachmentUrlUploadProcessor,

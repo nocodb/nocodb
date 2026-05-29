@@ -9,6 +9,7 @@ import {
   isOrderCol,
   isServiceUser,
   isVirtualCol,
+  MetaEventType,
   ModelTypes,
   NcBaseError,
   ProjectRoles,
@@ -48,6 +49,7 @@ import {
   View,
 } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
@@ -72,6 +74,7 @@ export class TablesService {
     protected readonly appHooksService: AppHooksService,
     protected readonly columnsService: ColumnsService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
 
   async tableUpdate(
@@ -348,7 +351,7 @@ export class TablesService {
 
       await table.getColumns(context, ncMeta, undefined, true, true);
 
-      if (table.mm) {
+      if (table.mm && !param.forceDeleteSyncs) {
         const columns = await table.getColumns(
           context,
           ncMeta,
@@ -552,6 +555,15 @@ export class TablesService {
         context,
       });
 
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.TABLE_DELETED,
+          oldEntity: table,
+        },
+        ncMeta,
+      );
+
       NocoSocket.broadcastEvent(
         context,
         {
@@ -624,7 +636,12 @@ export class TablesService {
       }
     }
 
-    if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+    if (
+      isServiceUser(param.user, [
+        ServiceUserType.WORKFLOW_USER,
+        ServiceUserType.SYNC_USER,
+      ])
+    ) {
       await table.getViews(context);
       // Mask the bcrypt password hash before returning to the caller.
       if (table.views?.length) {
@@ -800,6 +817,7 @@ export class TablesService {
       user: User | UserType;
       req: NcRequest;
       synced?: boolean;
+      mm?: boolean;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
       operationSource?: OperationSource;
@@ -830,6 +848,7 @@ export class TablesService {
     } = {
       ...param.table,
       ...(param.synced ? { synced: true } : {}),
+      ...(param.mm ? { mm: true } : {}),
     };
 
     if (context.schema_locked) {

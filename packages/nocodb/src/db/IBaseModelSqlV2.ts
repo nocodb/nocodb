@@ -65,6 +65,7 @@ export interface IBaseModelSqlV2 {
       ncOrder?: BigNumber;
       before?: string;
       undo?: boolean;
+      allowSystemColumn?: boolean;
     },
   ): Promise<void>;
 

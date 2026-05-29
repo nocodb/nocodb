@@ -128,6 +128,15 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     // Soft-delete the table
     await Model.softDelete(ctx, table.id, true, ncMeta);
 
+    await this.metaDependencyEventHandler.handleEvent(
+      ctx,
+      {
+        eventType: MetaEventType.TABLE_DELETED,
+        oldEntity: table,
+      },
+      ncMeta,
+    );
+
     // Cascade: soft-delete all reverse LTAR columns in OTHER tables + create placeholders
     const cascadedColumns = await this.cascadeLinksOnTrash(
       ctx,

@@ -405,6 +405,17 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       columnWebhookManager.emit();
     }
 
+    if (restoredCol) {
+      await this.metaDependencyEventHandler.handleEvent(
+        ctx,
+        {
+          eventType: MetaEventType.COLUMN_ADDED,
+          newEntity: restoredCol,
+        },
+        ncMeta,
+      );
+    }
+
     if (relatedItems?.columns?.length) {
       for (const item of relatedItems.columns) {
         const relatedModel = await Model.getWithInfo(
@@ -421,6 +432,16 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
               payload: { table: relatedModel, column: relatedCol },
             } as Record<string, unknown>,
           } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
+          if (relatedCol) {
+            await this.metaDependencyEventHandler.handleEvent(
+              ctx,
+              {
+                eventType: MetaEventType.COLUMN_ADDED,
+                newEntity: relatedCol,
+              },
+              ncMeta,
+            );
+          }
         }
       }
     }

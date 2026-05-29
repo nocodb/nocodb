@@ -3,6 +3,7 @@ import {
   IntegrationsType,
   OnDeleteAction,
   OnDeleteActionMeta,
+  SYNC_SYSTEM_COLUMN_TITLES,
   SyncCategory,
   SyncTrigger,
   SyncTriggerMeta,
@@ -10,6 +11,18 @@ import {
   SyncTypeMeta,
   generateUniqueCopyName,
 } from 'nocodb-sdk'
+
+/**
+ * Titles of the system columns that table-sync (and legacy SaaS/Airtable sync)
+ * adds to every synced destination table — they hold sync bookkeeping (remote
+ * id, remote timestamps, run/config ids, raw payload). They're noise in a
+ * record's revision history, so the audit sidebar hides their changes on
+ * synced tables.
+ */
+const syncSystemColumnTitles = new Set<string>(SYNC_SYSTEM_COLUMN_TITLES)
+
+const isSyncSystemColumnTitle = (title?: string | null): boolean =>
+  !!title && syncSystemColumnTitles.has(title)
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
@@ -112,6 +125,7 @@ export {
   defaultIntegrationConfig,
   syncEntityToReadableMap,
   getDefaultSyncConfig,
+  isSyncSystemColumnTitle,
 }
 
 export type { IntegrationConfig, CustomSyncSchema }

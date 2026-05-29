@@ -38,6 +38,7 @@ import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.s
 import { SandboxMergeProcessor } from '~/modules/jobs/jobs/sandbox-merge.processor';
 import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.service';
 import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
+import { TableSyncProcessor } from '~/modules/table-sync/table-sync.processor';
 import { CACHE_PREFIX } from '~/utils/globals';
 
 // Extract the BullModule.registerQueue dynamic module so it can be both
@@ -111,6 +112,7 @@ export const jobsModuleEeMetadata = {
     SandboxMergeProcessor,
     SandboxCommandReplayService,
     ManagedAppUpdateProcessor,
+    TableSyncProcessor,
   ],
   exports: [
     ...JobsModuleMetadata.exports,

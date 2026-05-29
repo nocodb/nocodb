@@ -529,7 +529,7 @@ watch(
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
-              <div>Syncs</div>
+              <div>{{ $t('labels.manageSyncs') }}</div>
               <LazyPaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_SYNC"
                 :feature-enabled-callback="() => !isEEFeatureBlocked"

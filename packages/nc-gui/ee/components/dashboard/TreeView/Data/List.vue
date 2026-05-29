@@ -22,6 +22,8 @@ const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 const documentsStore = useDocumentsStore()
 const { activeDocuments, expandedDocIds } = storeToRefs(documentsStore)
 
+const tableSyncStore = useTableSyncStore()
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const { includeM2M } = useGlobal()
@@ -30,12 +32,13 @@ const base = inject(ProjectInj)!
 
 const tables = computed(() => (baseTables.value.get(base.value.id!) ?? []).filter((t) => includeM2M.value || !t.mm))
 
-// Load root documents when baseId changes or on mount
+// Load root documents + table-sync metadata when baseId changes or on mount.
 watch(
   baseId,
   (id) => {
     if (id) {
       documentsStore.loadDocuments({ baseId: id })
+      tableSyncStore.loadSyncs(id)
     }
   },
   { immediate: true },

@@ -1255,7 +1255,11 @@ export default class Column<T = any> implements ColumnType {
 
     // Simple update path: only title/description — persist and clear cache
     if (param.isSimpleUpdate) {
-      const updateObj = extractProps(column, ['title', 'description']);
+      const updateObj = extractProps(column, [
+        'title',
+        'description',
+        'readonly',
+      ]);
 
       await ncMeta.metaUpdate(
         context.workspace_id,

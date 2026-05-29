@@ -4,6 +4,7 @@ import {
   EventType,
   extractRolesObj,
   getFirstNonPersonalView,
+  MetaEventType,
   ProjectRoles,
   ViewLockType,
   ViewTypes,
@@ -31,6 +32,7 @@ import {
 import DateDependency from '~/models/DateDependency';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   type ViewWebhookManager,
@@ -99,7 +101,10 @@ async function xcVisibilityMetaGet(
 
 @Injectable()
 export class ViewsService {
-  constructor(protected appHooksService: AppHooksService) {}
+  constructor(
+    protected appHooksService: AppHooksService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
 
   async viewList(
     context: NcContext,
@@ -283,6 +288,42 @@ export class ViewsService {
       }
     }
 
+    let autoShareView = false;
+
+    if (param.view.allow_sync !== undefined) {
+      if (oldView.type !== ViewTypes.GRID) {
+        NcError.get(context).badRequest(
+          'Allow sync can only be enabled on grid views',
+        );
+      }
+      if (
+        oldView.lock_type === ViewLockType.Personal &&
+        oldView.owned_by &&
+        oldView.owned_by !== user?.id
+      ) {
+        NcError.get(context).forbidden(
+          'Only the view owner can change allow sync on a personal view',
+        );
+      }
+
+      if (param.view.allow_sync) {
+        const model = await Model.get(
+          context,
+          oldView.fk_model_id,
+          false,
+          ncMeta,
+        );
+        if (model?.synced) {
+          NcError.get(context).badRequest(
+            'Allow sync cannot be enabled on a synced table',
+          );
+        }
+        if (!oldView.uuid) {
+          autoShareView = true;
+        }
+      }
+    }
+
     let ownedBy = oldView.owned_by;
     let createdBy = oldView.created_by;
     let includeCreatedByAndUpdateBy = false;
@@ -392,6 +433,17 @@ export class ViewsService {
       ncMeta,
     );
 
+    if (autoShareView) {
+      await View.share(context, param.viewId, ncMeta);
+      const sharedView = await View.get(context, param.viewId, false, ncMeta);
+      this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
+        user: param.req.user,
+        view: (sharedView ?? { ...oldView, allow_sync: true }) as ViewType,
+        req: param.req,
+        context,
+      });
+    }
+
     let owner = param.req.user;
 
     if (ownedBy && ownedBy !== param.req.user?.id) {
@@ -420,6 +472,16 @@ export class ViewsService {
       context,
       owner,
     });
+
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.VIEW_UPDATED,
+        oldEntity: oldViewForEvent,
+        newEntity: viewForEvent,
+      },
+      ncMeta,
+    );
 
     await result.getView(context, ncMeta);
 
@@ -601,6 +663,15 @@ export class ViewsService {
       });
     }
 
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.VIEW_DELETED,
+        oldEntity: view,
+      },
+      ncMeta,
+    );
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -696,6 +767,12 @@ export class ViewsService {
       context,
     });
 
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.VIEW_UPDATED,
+      oldEntity: View.maskPasswordForResponse(view),
+      newEntity: View.maskPasswordForResponse(result),
+    });
+
     return View.maskPasswordForResponse(result);
   }
 
@@ -715,11 +792,25 @@ export class ViewsService {
 
     await View.sharedViewDelete(context, param.viewId);
 
+    if (view.allow_sync) {
+      await View.update(context, param.viewId, { allow_sync: false }, false);
+    }
+
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
       user: param.user,
       view,
       req: param.req,
       context,
+    });
+
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.VIEW_UPDATED,
+      oldEntity: View.maskPasswordForResponse(view),
+      newEntity: View.maskPasswordForResponse({
+        ...view,
+        uuid: null,
+        allow_sync: false,
+      }),
     });
 
     return true;

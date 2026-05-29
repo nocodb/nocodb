@@ -237,6 +237,7 @@ export enum AppEvents {
   INTEGRATION_UPDATE = 'integration.update',
 
   ROW_USER_MENTION = 'row.user.mention',
+  ROW_LMT_TOUCHED = 'row.lmt.touched',
   CALENDAR_CREATE = 'calendar.create',
   TIMELINE_CREATE = 'timeline.create',
   FORM_DUPLICATE = 'form.duplicate',
@@ -307,6 +308,13 @@ export enum AppEvents {
   DASHBOARD_DUPLICATE_START = 'dashboard.duplicate.start',
   DASHBOARD_DUPLICATE_COMPLETE = 'dashboard.duplicate.complete',
   DASHBOARD_DUPLICATE_FAIL = 'dashboard.duplicate.fail',
+
+  TABLE_SYNC_CREATE = 'tableSync.create',
+  TABLE_SYNC_UPDATE = 'tableSync.update',
+  TABLE_SYNC_DELETE = 'tableSync.delete',
+  TABLE_SYNC_FREEZE = 'tableSync.freeze',
+  TABLE_SYNC_RESUME = 'tableSync.resume',
+  TABLE_SYNC_RESYNC = 'tableSync.resync',
 
   WIDGET_CREATE = 'widget.create',
   WIDGET_UPDATE = 'widget.update',
@@ -728,6 +736,12 @@ export enum MetaEventType {
   COLUMN_UPDATED = 'COLUMN_UPDATED',
   COLUMN_DELETED = 'COLUMN_DELETED',
   HOOK_DELETED = 'HOOK_DELETED',
+  FILTER_CREATED = 'FILTER_CREATED',
+  FILTER_UPDATED = 'FILTER_UPDATED',
+  FILTER_DELETED = 'FILTER_DELETED',
+  VIEW_UPDATED = 'VIEW_UPDATED',
+  VIEW_DELETED = 'VIEW_DELETED',
+  TABLE_DELETED = 'TABLE_DELETED',
 }
 
 export enum MetaEntityType {
@@ -758,4 +772,5 @@ export enum OperationSource {
   MIGRATION = 'migration',
   WORKFLOW = 'workflow',
   PLUGINS = 'plugins',
+  SYNC = 'sync',
 }

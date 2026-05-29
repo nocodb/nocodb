@@ -241,6 +241,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           await baseModel.prepareNocoData(insertObj, true, cookie, null, {
             ncOrder: order?.plus(index),
             undo,
+            allowSystemColumn,
           });
 
           // prepare nested link data for insert only if it is single record insertion
@@ -293,6 +294,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 raw,
                 undo: undo,
                 ncOrder: order?.plus(i),
+                allowSystemColumn,
               }),
           ),
         );

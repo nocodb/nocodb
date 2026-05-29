@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type SourceType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { type BaseType, PlanFeatureTypes, type SourceType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -10,6 +10,7 @@ const props = withDefaults(
     submenuClass?: string
     showLabel?: boolean
     showNocoDbImport?: boolean
+    showTableSync?: boolean
     popupOffset?: [number, number]
     showSourceSelector?: boolean
   }>(),
@@ -19,6 +20,7 @@ const props = withDefaults(
     submenuClass: '',
     showLabel: false,
     showNocoDbImport: false,
+    showTableSync: false,
     showSourceSelector: true,
   },
 )
@@ -37,7 +39,7 @@ const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
-const { showRecordPlanLimitExceededModal, isEEFeatureBlocked } = useEeConfig()
+const { showRecordPlanLimitExceededModal, isEEFeatureBlocked, blockTableSync, showUpgradeToUseTableSync } = useEeConfig()
 
 const TODOMagic = ref(false)
 
@@ -158,6 +160,19 @@ const isNocoDbImportAllowed = computed(() => {
     !isMobileMode.value
   )
 })
+
+const isTableSyncAllowed = computed(() => {
+  return props.showTableSync && !isMobileMode.value
+})
+
+function handleCreateTableSync() {
+  if (blockTableSync.value) {
+    showUpgradeToUseTableSync()
+    return
+  }
+  if (!base.value?.id) return
+  useTableSyncStore().openTableSyncCreateModal({ baseId: base.value.id })
+}
 </script>
 
 <template>
@@ -195,7 +210,9 @@ const isNocoDbImportAllowed = computed(() => {
     v-if="
       ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
         isUIAllowed(permission, { roles: baseRole, source }),
-      ) || isNocoDbImportAllowed
+      ) ||
+      isNocoDbImportAllowed ||
+      isTableSyncAllowed
     "
     class="py-0"
     :class="submenuClass"
@@ -262,6 +279,23 @@ const isNocoDbImportAllowed = computed(() => {
     <NcMenuItem v-if="isNocoDbImportAllowed" key="quick-import-nocodb" @click="openNocoDbImportDialog(base.id)">
       <GeneralIcon icon="nocodb1" class="w-4 h-4" />
       {{ $t('objects.syncData.nocodb') }}
+    </NcMenuItem>
+
+    <NcMenuItem
+      v-if="isTableSyncAllowed"
+      key="create-new-sync-table"
+      v-e="['c:table-sync:create']"
+      data-testid="create-new-sync-table"
+      @click="handleCreateTableSync"
+    >
+      <GeneralIcon icon="ncZap" class="w-4 h-4" />
+      {{ $t('labels.tableSync') }}
+      <LazyPaymentUpgradeBadge
+        :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC"
+        :feature-enabled-callback="() => !isEEFeatureBlocked && !blockTableSync"
+        show-as-lock
+        remove-click
+      />
     </NcMenuItem>
   </NcSubMenu>
 </template>

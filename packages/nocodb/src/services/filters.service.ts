@@ -1,6 +1,11 @@
 import RowColorCondition from 'src/models/RowColorCondition';
-import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  AppEvents,
+  comparisonOpList,
+  EventType,
+  MetaEventType,
+} from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
@@ -8,6 +13,7 @@ import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
@@ -20,7 +26,11 @@ import { OperationName } from '~/command-registry/op-names';
 @Injectable()
 export class FiltersService {
   protected readonly logger = new Logger(FiltersService.name);
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    @Inject(forwardRef(() => MetaDependencyEventHandler))
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
 
   async hookFilterCreate(
     context: NcContext,
@@ -137,6 +147,13 @@ export class FiltersService {
       ...parentData,
     });
 
+    if (filter.fk_view_id) {
+      await this.metaDependencyEventHandler.handleEvent(context, {
+        eventType: MetaEventType.FILTER_DELETED,
+        oldEntity: filter,
+      });
+    }
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -199,6 +216,11 @@ export class FiltersService {
       view,
       req: param.req,
       context,
+    });
+
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.FILTER_CREATED,
+      newEntity: filter,
     });
 
     NocoSocket.broadcastEvent(
@@ -300,6 +322,18 @@ export class FiltersService {
       context,
     });
 
+    if (filter.fk_view_id) {
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.FILTER_UPDATED,
+          oldEntity: filter,
+          newEntity: { ...filter, ...param.filter },
+        },
+        ncMeta,
+      );
+    }
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -399,6 +433,16 @@ export class FiltersService {
         ...parentData,
         context,
       });
+
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.FILTER_UPDATED,
+          oldEntity: before,
+          newEntity: { ...before, logical_op },
+        },
+        ncMeta,
+      );
 
       NocoSocket.broadcastEvent(
         context,

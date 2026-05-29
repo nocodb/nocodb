@@ -423,6 +423,7 @@ export const nocoModuleMetadata = {
 
     /* Datas */
     DatasService,
+    PublicDatasService,
     BulkDataAliasService,
     DataTableService,
     DataV3Service,

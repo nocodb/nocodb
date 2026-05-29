@@ -806,38 +806,40 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         );
 
         if (this.isMssql) {
-          // MSSQL: route through the OUTPUT-INTO-table-variable pattern in
-          // `mssql-insert-sql.ts` when triggers (T-SQL error 334 on bare
-          // OUTPUT INSERTED) or explicit IDENTITY values (error 544) are
-          // present. Standard `.returning()` path stays for the fast case
-          // (no triggers, no explicit identity) so we don't pay the
-          // DECLARE @table + SELECT round-trip overhead unnecessarily.
+          // MSSQL: ALWAYS route through `mssqlBuildBulkInsertWithCapture`.
           //
-          // Both paths execute through `execAndParse`, which routes via
-          // `runExternal` for external sources and `dbDriver.raw` for
-          // internal — so a single SQL batch (the SET ON/OFF + INSERT
-          // OUTPUT INTO + SELECT) runs on one connection regardless of
-          // source type.
+          // The OUTPUT-INTO-table-variable shape is required by triggers
+          // (T-SQL error 334 on bare OUTPUT INSERTED) and by explicit
+          // IDENTITY values (error 544). We used to keep a "fast" branch
+          // for the no-triggers, no-explicit-identity case that called
+          // `execAndParse(query, ...)` on the knex QueryBuilder directly,
+          // but execAndParse renders that QB via `qb.toQuery()` and ships
+          // the resulting string to `runExternal` (sql-executor). knex's
+          // mssql `.toQuery()` inlines string bindings as bare varchar
+          // literals (`'…'`) — those get implicit-converted to nvarchar
+          // through the connection collation (default
+          // SQL_Latin1_General_CP1_CI_AS = CP-1252) on the way to the
+          // nvarchar(MAX) column, stripping anything outside Latin-1
+          // (emoji, supplementary CJK, …) to `?`. `mssqlBuildBulkInsertWithCapture`
+          // emits `CAST(N'…' AS NVARCHAR(MAX))` literals via
+          // `tsqlNVarcharLiteral` (see mssql-insert-sql.ts) which
+          // round-trip Unicode losslessly, so unifying the branches is
+          // also the correctness fix.
           const aiColName =
             this.model.columns?.find((c) => c.ai)?.column_name ?? null;
           const explicitIdentity = mssqlNeedsIdentityInsert(
             [insertObj],
             aiColName,
           );
-          const hasTriggers = await mssqlTableHasTriggers(this);
-          if (hasTriggers || explicitIdentity) {
-            const sql = mssqlBuildBulkInsertWithCapture({
-              knex: this.dbDriver,
-              tnPath: this.tnPath,
-              rows: [insertObj],
-              pkCols: this.model.primaryKeys ?? [],
-              explicitIdentity,
-              aliasField: 'id',
-            });
-            response = await this.execAndParse(sql, null, { raw: true });
-          } else {
-            response = await this.execAndParse(query, null, { raw: true });
-          }
+          const sql = mssqlBuildBulkInsertWithCapture({
+            knex: this.dbDriver,
+            tnPath: this.tnPath,
+            rows: [insertObj],
+            pkCols: this.model.primaryKeys ?? [],
+            explicitIdentity,
+            aliasField: 'id',
+          });
+          response = await this.execAndParse(sql, null, { raw: true });
         } else {
           response = await this.execAndParse(query, null, { raw: true });
         }
@@ -3266,28 +3268,30 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         for (const batch of batches) {
           if (this.isMssql) {
-            if (mssqlHasTriggers || mssqlExplicitIdentity) {
-              // OUTPUT-INTO pattern — survives triggers and wraps with
-              // SET IDENTITY_INSERT when needed.
-              queries.push(
-                mssqlBuildBulkInsertWithCapture({
-                  knex: this.dbDriver,
-                  tnPath: this.tnPath,
-                  rows: batch,
-                  pkCols: this.model.primaryKeys ?? [],
-                  explicitIdentity: mssqlExplicitIdentity,
-                }),
-              );
-            } else {
-              // Fast path — knex's standard OUTPUT INSERTED.* works when
-              // no triggers and no explicit identity.
-              queries.push(
-                this.dbDriver(this.tnPath)
-                  .insert(batch)
-                  .returning(returningSpec.length ? returningSpec : '*')
-                  .toQuery(),
-              );
-            }
+            // ALWAYS go through `mssqlBuildBulkInsertWithCapture`. The
+            // "fast" `.toQuery()` path inlines string values as bare
+            // varchar literals (`'…'`); shipped to the SQL-executor as a
+            // string and re-parsed by MSSQL, those literals get implicit-
+            // converted to nvarchar through the connection's collation
+            // (default SQL_Latin1_General_CP1_CI_AS = CP-1252) BEFORE
+            // hitting the `nvarchar(MAX)` column, stripping anything
+            // outside Latin-1 (emoji, supplementary CJK, …) to `?`. The
+            // capture path emits `CAST(N'…' AS NVARCHAR(MAX))` literals
+            // (see `tsqlNVarcharLiteral` in mssql-insert-sql.ts) which
+            // round-trip Unicode losslessly. The trigger-/IDENTITY-aware
+            // SQL shape is also a superset of the fast path, so collapsing
+            // both branches changes correctness for everyone and gives up
+            // a negligible amount of plan-cache reuse (each bulk INSERT
+            // chunk has unique row tuples either way).
+            queries.push(
+              mssqlBuildBulkInsertWithCapture({
+                knex: this.dbDriver,
+                tnPath: this.tnPath,
+                rows: batch,
+                pkCols: this.model.primaryKeys ?? [],
+                explicitIdentity: mssqlExplicitIdentity,
+              }),
+            );
           } else if (this.isPg) {
             queries.push(
               this.dbDriver(this.tnPath)
@@ -3949,24 +3953,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           for (const batch of batches) {
             if (this.isMssql) {
-              if (mssqlHasTriggers || mssqlExplicitIdentity) {
-                insertQueries.push(
-                  mssqlBuildBulkInsertWithCapture({
-                    knex: this.dbDriver,
-                    tnPath: this.tnPath,
-                    rows: batch,
-                    pkCols: this.model.primaryKeys ?? [],
-                    explicitIdentity: mssqlExplicitIdentity,
-                  }),
-                );
-              } else {
-                insertQueries.push(
-                  this.dbDriver(this.tnPath)
-                    .insert(batch)
-                    .returning(returningSpec.length ? returningSpec : '*')
-                    .toQuery(),
-                );
-              }
+              // Always go through `mssqlBuildBulkInsertWithCapture` — see
+              // the matching comment in the bulkInsert path above. The
+              // .toQuery() fast path inlines string values as bare varchar
+              // literals which lose non-Latin1 chars (emoji, supplementary
+              // CJK) via the connection's CP-1252 collation on the way to
+              // the nvarchar(MAX) column.
+              insertQueries.push(
+                mssqlBuildBulkInsertWithCapture({
+                  knex: this.dbDriver,
+                  tnPath: this.tnPath,
+                  rows: batch,
+                  pkCols: this.model.primaryKeys ?? [],
+                  explicitIdentity: mssqlExplicitIdentity,
+                }),
+              );
             } else if (this.isPg) {
               insertQueries.push(
                 this.dbDriver(this.tnPath)

@@ -111,6 +111,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
           knex.raw(cachedQuery, normalizedIdValues).toQuery(),
           null,
           {
+            apiVersion: context.api_version,
             skipSubstitutingColumnIds:
               context.api_version === NcApiVersion.V3 &&
               ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
@@ -286,6 +287,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       debugSingleQueryRead(queryToExec);
       res = await baseModel.execAndParse(queryToExec, null, {
         first: true,
+        apiVersion: context.api_version,
         skipSubstitutingColumnIds:
           context.api_version === NcApiVersion.V3 &&
           ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',

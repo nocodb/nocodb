@@ -62,6 +62,10 @@ export const callExpressionBuilder = async ({
           {
             type: JSEPNode.BINARY_EXP,
             operator: '+',
+            // Preserve the numeric dataType from the original ADD/SUM call so
+            // the MSSQL FLOAT-cast (see binaryExpressionBuilder) still fires —
+            // otherwise `ADD({Num}, 10)` surfaces as the string '10' on mssql.
+            dataType: pt.dataType,
             left: {
               type: JSEPNode.CALL_EXP,
               callee: { type: 'Identifier', name: 'COALESCE' },
@@ -79,6 +83,7 @@ export const callExpressionBuilder = async ({
           {
             type: JSEPNode.CALL_EXP,
             callee: { type: 'Identifier', name: 'COALESCE' },
+            dataType: pt.dataType,
             arguments: [
               pt.arguments[0],
               { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,

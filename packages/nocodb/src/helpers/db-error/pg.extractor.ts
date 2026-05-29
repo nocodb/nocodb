@@ -335,6 +335,11 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           }
         }
         break;
+      case '22012': // division_by_zero
+        message = 'Cannot divide by zero.';
+        httpStatus = 422;
+        break;
+
       case '40001': // serialization_failure
         message = 'Transaction serialization failure. Please retry.';
         httpStatus = 409;
@@ -343,6 +348,17 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       case '53300': // too_many_connections
         message = 'Too many database connections.';
         httpStatus = 503;
+        break;
+
+      case 'XX000': // internal_error — generic; surface server message
+        // PG raises this for assertion failures or driver-level wrap of
+        // an otherwise-uncategorised internal exception. The bare code
+        // doesn't tell us anything actionable; pass the server's own
+        // message through so the user/operator can triage.
+        message =
+          error.message ||
+          'The database raised an internal error.';
+        httpStatus = 500;
         break;
       default:
         this.option.dbErrorLogger.error(

@@ -372,6 +372,29 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 500;
         break;
 
+      case 1919: // Column '...' is of a type that is invalid for use as a key column in an index.
+        // T-SQL caps index keys at 900 bytes; nvarchar(MAX)/varchar(MAX)/
+        // text/ntext columns can't be indexed. Surface the column name when
+        // present so the user knows which field to shrink or skip.
+        {
+          const m = errorMessage.match(/Column '([^']+)'/i);
+          if (m?.[1]) {
+            message = `Column '${m[1]}' is too wide to be used as an index key. Reduce its size or skip the index.`;
+            _extra = { column: m[1] };
+          } else {
+            message =
+              'A column type is invalid for use as an index key. Reduce the column size or skip the index.';
+          }
+          httpStatus = 422;
+        }
+        break;
+
+      case 8134: // Divide by zero error encountered.
+        message = 'Cannot divide by zero.';
+        _type = DBError.DATA_TYPE_MISMATCH;
+        httpStatus = 422;
+        break;
+
       case 8623: // The query processor ran out of internal resources / memory.
         message = 'The query is too complex. Please simplify it and try again.';
         httpStatus = 500;

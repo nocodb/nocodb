@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { PlanFeatureTypes, PlanTitles, TableSyncTrigger } from 'nocodb-sdk';
 import request from 'supertest';
 import init from '~test/init';
+import { isPgData } from '~test/init/db';
 import { isEE } from '~test/utils/helpers';
 import { overridePlan } from '~test/utils/plan.utils';
 import { Base } from '~/models';
@@ -34,8 +35,13 @@ export function tableSyncGatingTests() {
     let workspaceId: string;
     let base: any;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       context = await init();
+      // Table sync depends on custom links, which aren't supported on
+      // MSSQL — skip the gating suite when the data DB isn't PG.
+      if (!isPgData(context)) {
+        this.skip();
+      }
       workspaceId = context.fk_workspace_id!;
 
       const baseResult = await request(context.app)

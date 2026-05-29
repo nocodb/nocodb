@@ -248,6 +248,7 @@ export class ColumnsService extends ColumnsServiceCE {
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
       forceUpdateSystem?: boolean;
+      bypassSyncedFieldGuard?: boolean;
       columnWebhookManager?: ColumnWebhookManager;
     },
     ncMeta = Noco.ncMeta,

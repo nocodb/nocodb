@@ -10,6 +10,7 @@ import { mailAuditTests } from './mailAudit.test';
 import { jobsProcessorTest } from './jobsProcessor.test';
 import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
 import { describeRowErrorTests } from './dataImportProcessor.test';
+import { isTokenExpiredTest } from './isTokenExpired.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -40,6 +41,7 @@ if (process.env.EE === 'true') {
 
 function _helperTests() {
   stringHelperTest();
+  isTokenExpiredTest();
   NcConcurrentTest();
   attachmentHelpersTest();
   emailUtilsTest();

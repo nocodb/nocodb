@@ -701,6 +701,7 @@
     "days": "Days",
     "week": "Week",
     "twoWeek": "2 Weeks",
+    "sixWeek": "6 Weeks",
     "month": "Month",
     "quarter": "Quarter",
     "sixMonth": "6 Months",
@@ -3062,6 +3063,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "shiftClickWeekStep": "Hold Shift to step by 1 week",
     "milestone": "Milestone",
     "showExtensions": "Show extensions",
     "hideExtensions": "Hide extensions",

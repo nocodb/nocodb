@@ -46,7 +46,7 @@ const isRowInCurrentDateRange = (
     id: string
     is_readonly: boolean
   }>,
-  activeCalendarView: 'month' | 'year' | 'day' | 'week',
+  activeCalendarView: 'month' | 'year' | 'day' | 'week' | '2week' | '6week',
   selectedDate: dayjs.Dayjs,
   selectedDateRange: { start: dayjs.Dayjs; end: dayjs.Dayjs },
   selectedMonth: dayjs.Dayjs,
@@ -81,6 +81,16 @@ const isRowInCurrentDateRange = (
         viewStartDate = selectedDateRange.start.startOf('week')
         viewEndDate = selectedDateRange.end.endOf('week')
         break
+      case '2week':
+      case '6week': {
+        const weeks = activeCalendarView === '2week' ? 2 : 6
+        viewStartDate = selectedDateRange.start.startOf('week')
+        viewEndDate = viewStartDate
+          .clone()
+          .add(weeks * 7 - 1, 'day')
+          .endOf('day')
+        break
+      }
       case 'month': {
         const startOfMonth = timezoneDayjs.timezonize(selectedMonth.startOf('month'))
         viewStartDate = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
@@ -161,6 +171,17 @@ const isRowMatchingSidebarFilter = (
         calendarRange,
         timezoneDayjs,
       )
+
+    case '2week':
+    case '6week': {
+      const weeks = sideBarFilterOption === '2week' ? 2 : 6
+      const start = selectedDateRange.start.startOf('week')
+      const end = start
+        .clone()
+        .add(weeks * 7 - 1, 'day')
+        .endOf('day')
+      return isRowInDateRange(rowData, start, end, calendarRange, timezoneDayjs)
+    }
 
     case 'month': {
       const startOfMonth = timezoneDayjs.timezonize(selectedMonth.startOf('month'))

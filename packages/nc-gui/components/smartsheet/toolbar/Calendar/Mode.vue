@@ -9,12 +9,20 @@ const isTab = computed(() => props.tab)
 
 const highlightStyle = ref({ left: '0px' })
 
-const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: MouseEvent) => {
+const setActiveCalendarMode = (mode: 'day' | 'week' | '2week' | 'month' | '6week' | 'year', event: MouseEvent) => {
   changeCalendarView(mode)
   const tabElement = event.target as HTMLElement
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
   highlightStyle.value.width = `${tabElement.offsetWidth}px`
 }
+
+const modeI18nKey = (mode: string) => {
+  if (mode === '2week') return 'objects.twoWeek'
+  if (mode === '6week') return 'objects.sixWeek'
+  return `objects.${mode}`
+}
+
+const modes: Array<'day' | 'week' | '2week' | 'month' | '6week' | 'year'> = ['day', 'week', '2week', 'month', '6week', 'year']
 
 const updateHighlightPosition = () => {
   nextTick(() => {
@@ -49,7 +57,7 @@ watch(activeCalendarView, () => {
         ></div>
 
         <div
-          v-for="mode in ['day', 'week', 'month', 'year']"
+          v-for="mode in modes"
           :key="mode"
           :data-testid="`nc-calendar-view-mode-${mode}`"
           class="cursor-pointer tab transition-all px-1 duration-300 flex items-center h-10 z-10 justify-center"
@@ -59,8 +67,8 @@ watch(activeCalendarView, () => {
           }"
           @click="setActiveCalendarMode(mode, $event)"
         >
-          <div class="min-w-0 pointer-events-none px-2 leading-[18px] text-[13px] transition-all duration-300">
-            {{ $t(`objects.${mode}`) }}
+          <div class="min-w-0 pointer-events-none px-2 leading-[18px] text-[13px] transition-all duration-300 whitespace-nowrap">
+            {{ $t(modeI18nKey(mode)) }}
           </div>
         </div>
       </div>
@@ -69,23 +77,24 @@ watch(activeCalendarView, () => {
 
   <a-select
     v-else
-    v-model:value="activeCalendarView"
-    class="nc-select-shadow !w-21 !rounded-lg"
-    dropdown-class-name="!rounded-lg !min-w-25"
+    :value="activeCalendarView"
+    class="nc-select-shadow !w-24 !rounded-lg"
+    dropdown-class-name="!rounded-lg !min-w-28"
     size="small"
     data-testid="nc-calendar-view-mode"
+    @change="(value) => changeCalendarView(value as typeof modes[number])"
     @click.stop
   >
     <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
-    <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option">
-      <div class="w-full flex gap-2 items-center justify-between" :title="option">
+    <a-select-option v-for="option in modes" :key="option" :value="option">
+      <div class="w-full flex gap-2 items-center justify-between" :title="$t(modeI18nKey(option))">
         <div class="flex items-center gap-1">
-          <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
+          <NcTooltip class="flex-1 mt-0.5 truncate" show-on-truncate-only>
             <template #title>
-              {{ option }}
+              {{ $t(modeI18nKey(option)) }}
             </template>
-            <template #default>{{ option }}</template>
+            <template #default>{{ $t(modeI18nKey(option)) }}</template>
           </NcTooltip>
         </div>
         <GeneralIcon

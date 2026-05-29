@@ -44,11 +44,6 @@ const disableToolbar = computed(
     isForm.value,
 )
 
-const isTab = computed(() => {
-  if (!isCalendar.value) return false
-  return width.value > 1200
-})
-
 /** EE only: Check if any filters are pinned to the toolbar.
  *  Hidden for restricted editors in collaborative/locked views — they cannot modify filters.
  *  Visible for personal view owners — they have full control over view config. */
@@ -144,7 +139,6 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         </template>
       </div>
 
-      <SmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
@@ -176,7 +170,7 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
-      <SmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+      <SmartsheetToolbarCalendarMode v-if="isCalendar" :tab="false" />
 
       <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
 

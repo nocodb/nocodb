@@ -130,6 +130,13 @@ const calendarData = computed(() => {
       const ogStartDate = startDate.clone()
       const endDate = fk_to_col && record.row[fk_to_col.title!] ? dayjs(record.row[fk_to_col.title!]) : startDate
 
+      // Single-date records with no end column cannot span; if the date sits outside
+      // the visible week (e.g. backend over-fetched a boundary day), skip rather
+      // than clamping it onto Monday with a cutoff indicator.
+      if (!fk_to_col && !isInRange(ogStartDate)) {
+        return
+      }
+
       if (startDate.isBefore(selectedDateRange.value.start)) {
         startDate = dayjs(selectedDateRange.value.start)
       }

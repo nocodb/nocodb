@@ -1,10 +1,30 @@
 <script lang="ts" setup>
+import type dayjs from 'dayjs'
 import { computed } from '#imports'
 
-const { selectedDate, selectedMonth, selectedDateRange, activeCalendarView, activeDates, timezone, pageDate, timezoneDayjs } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDate,
+  selectedMonth,
+  selectedDateRange,
+  activeCalendarView,
+  activeDates,
+  timezone,
+  pageDate,
+  timezoneDayjs,
+  weeksInRange,
+} = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
+
+const formatWeekRange = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
+  if (startDate.isSame(endDate, 'month')) {
+    return `${startDate.format('D')} - ${endDate.format('D MMM YY')}`
+  } else if (startDate.isSame(endDate, 'year')) {
+    return `${startDate.format('D MMM')} - ${endDate.format('D MMM YY')}`
+  } else {
+    return `${startDate.format('D MMM YY')} - ${endDate.format('D MMM YY')}`
+  }
+}
 
 const headerText = computed(() => {
   switch (activeCalendarView.value) {
@@ -13,13 +33,13 @@ const headerText = computed(() => {
     case 'week': {
       const startDate = timezoneDayjs.timezonize(selectedDateRange.value.start)
       const endDate = timezoneDayjs.timezonize(selectedDateRange.value.end)
-      if (startDate.isSame(endDate, 'month')) {
-        return `${startDate.format('D')} - ${endDate.format('D MMM YY')}`
-      } else if (startDate.isSame(endDate, 'year')) {
-        return `${startDate.format('D MMM')} - ${endDate.format('D MMM YY')}`
-      } else {
-        return `${startDate.format('D MMM YY')} - ${endDate.format('D MMM YY')}`
-      }
+      return formatWeekRange(startDate, endDate)
+    }
+    case '2week':
+    case '6week': {
+      const startDate = timezoneDayjs.timezonize(selectedDateRange.value.start)
+      const endDate = startDate.add(weeksInRange.value * 7 - 1, 'day')
+      return formatWeekRange(startDate, endDate)
     }
     case 'month':
       return timezoneDayjs.timezonize(selectedMonth.value).format('MMM YYYY')
@@ -39,7 +59,7 @@ const headerText = computed(() => {
           'w-20': activeCalendarView === 'year',
           'w-26.5': activeCalendarView === 'month',
           'w-29': activeCalendarView === 'day',
-          'w-38': activeCalendarView === 'week',
+          'w-38': activeCalendarView === 'week' || activeCalendarView === '2week' || activeCalendarView === '6week',
         }"
         class="prev-next-btn !h-7"
         full-width
@@ -49,7 +69,8 @@ const headerText = computed(() => {
         <div class="flex w-full px-1 items-center justify-between">
           <span
             :class="{
-              'max-w-38 truncate': activeCalendarView === 'week',
+              'max-w-38 truncate':
+                activeCalendarView === 'week' || activeCalendarView === '2week' || activeCalendarView === '6week',
             }"
             class="font-bold text-[13px] text-center text-nc-content-gray"
             data-testid="nc-calendar-active-date"
@@ -72,7 +93,11 @@ const headerText = computed(() => {
             size="medium"
           />
           <NcDateWeekSelector
-            v-else-if="activeCalendarView === ('week' as const)"
+            v-else-if="
+              activeCalendarView === ('week' as const) ||
+              activeCalendarView === ('2week' as const) ||
+              activeCalendarView === ('6week' as const)
+            "
             v-model:active-dates="activeDates"
             v-model:page-date="pageDate"
             v-model:selected-week="selectedDateRange"

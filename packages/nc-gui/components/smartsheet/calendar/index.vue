@@ -161,7 +161,7 @@ watch(
           <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
           <template v-if="!isCalendarDataLoading">
             <LazySmartsheetCalendarMonthView
-              v-if="activeCalendarView === 'month'"
+              v-if="activeCalendarView === 'month' || activeCalendarView === '2week' || activeCalendarView === '6week'"
               @expand-record="expandRecord"
               @new-record="newRecord"
             />

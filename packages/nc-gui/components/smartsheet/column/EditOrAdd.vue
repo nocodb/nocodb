@@ -63,6 +63,14 @@ const {
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
+// Patch colOptions into formState during setup so the child SelectOptions
+// (whose onMounted runs before this parent's onMounted) initializes its
+// local options from preload's pending edits rather than the stale column data.
+// Full preload merge (others + meta) still happens in onMounted below.
+if (props.preload?.colOptions) {
+  formState.value.colOptions = { ...props.preload.colOptions }
+}
+
 const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const {

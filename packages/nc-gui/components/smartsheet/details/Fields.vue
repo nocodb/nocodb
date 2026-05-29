@@ -933,6 +933,27 @@ watch(
   { immediate: true },
 )
 
+// When the Alphabetize toggle is enabled, select option order is committed only at
+// submit time (mirrors EditOrAdd.onSubmit → SelectOptions.flushSort used by the single
+// column modal). The multi-field editor saves via ops instead of that submit path, so
+// sort here. Backend assigns option order by array index (Column.ts), so reordering the
+// array is sufficient.
+const sortAlphabetizedSelectOptions = () => {
+  for (const op of ops.value) {
+    if (op.op !== 'add' && op.op !== 'update') continue
+
+    const col = op.column
+    if (![UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) continue
+
+    if (parseProp(col.meta).isAlphabetized !== true) continue
+
+    const colOptions = col.colOptions as SelectOptionsType | undefined
+    if (!colOptions?.options?.length) continue
+
+    colOptions.options = [...colOptions.options].sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+  }
+}
+
 const saveChanges = async () => {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
@@ -940,6 +961,8 @@ const saveChanges = async () => {
   } else if (!loading.value && !hasUnsavedChanges.value) {
     return
   }
+
+  sortAlphabetizedSelectOptions()
   try {
     if (!meta.value?.id) return
 

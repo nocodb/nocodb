@@ -420,7 +420,11 @@ const sortOptionsInPlace = () => {
   syncOptions()
 }
 
-onMounted(() => {
+// Seed the local `options` list from the bound model. Runs on mount and again whenever
+// the underlying field changes while this component stays mounted (AI auto-suggest field
+// switch, where `colOptions` is swapped under us). Without re-seeding, the previously
+// selected field's options would stay on screen even though every other prop updated.
+function seedOptionsFromModel() {
   if (!vModel.value.colOptions?.options) {
     vModel.value.colOptions = {
       options: [],
@@ -455,9 +459,26 @@ onMounted(() => {
   }
 
   const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
-  if (fndDefaultOption.length) {
-    defaultOption.value = vModel.value.uidt === UITypes.SingleSelect ? [fndDefaultOption[0]] : fndDefaultOption
-  }
+  defaultOption.value = fndDefaultOption.length
+    ? vModel.value.uidt === UITypes.SingleSelect
+      ? [fndDefaultOption[0]]
+      : fndDefaultOption
+    : []
+}
+
+// Re-seed when the bound field switches in place (identity changes), e.g. toggling
+// between AI auto-suggested select fields. Local edits never change the identity key,
+// so this never fires mid-edit.
+watch(
+  () => vModel.value.ai_temp_id ?? vModel.value.id ?? vModel.value.temp_id,
+  () => {
+    seedOptionsFromModel()
+  },
+)
+
+onMounted(() => {
+  seedOptionsFromModel()
+
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
   } else if (isKanbanStack.value) {

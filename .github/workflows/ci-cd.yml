@@ -28,81 +28,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Detect dependency / integration changes (gates warm-integrations) ──
-
-  detect-changes:
-    runs-on: ubicloud-standard-2
-    outputs:
-      integrations: ${{ steps.filter.outputs.integrations }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-      - name: Filter changed paths
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            integrations:
-              - 'pnpm-lock.yaml'
-              - 'packages/noco-integrations/**'
-
-  # ── Warm the integrations cache ONCE, only when the lockfile or
-  #    noco-integrations sources changed. Unit tests gate on this job; when it
-  #    is skipped (no relevant changes) they start immediately and each restores
-  #    the existing integrations cache instead of cold-building in parallel. ──
-
-  warm-integrations:
-    needs: detect-changes
-    if: ${{ !cancelled() && !failure() && (needs.detect-changes.outputs.integrations == 'true' || github.event_name == 'workflow_dispatch' || inputs.force == true) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || inputs.force == true || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || contains(github.event.pull_request.labels.*.name, 'backend') || contains(github.event.pull_request.labels.*.name, 'mssql')) }}
-    runs-on: ubicloud-standard-2
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v5
-        with:
-          version: 10
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24.14.0
-          cache: 'pnpm'
-      - name: Ensure pnpm store dir exists
-        run: mkdir -p "$(pnpm store path)"
-      - name: Set CI env
-        run: export CI=true
-      - name: Set NC Edition
-        run: export EE=true
-      - name: Cache integrations (node_modules + dists)
-        uses: actions/cache@v5
-        with:
-          path: |
-            packages/noco-integrations/node_modules
-            packages/noco-integrations/packages/*/node_modules
-            packages/noco-integrations/packages/*/dist
-            packages/noco-integrations/core/dist
-            packages/noco-integrations/.build-checksums.json
-          key: integrations-${{ hashFiles('packages/noco-integrations/pnpm-lock.yaml', 'packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
-          restore-keys: |
-            integrations-
-      - name: install dependencies (warms pnpm store + integrations cache)
-        run: pnpm bootstrap
-
-  # ── Unit Tests (gate on warm-integrations; independent of UI pre-build) ──
+  # ── Unit Tests (backend-only; run independently of the UI pre-build) ──
 
   jest-unit-test:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/jest-unit-test.yml
     secrets: inherit
 
   unit-tests-sqlite:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-sqlite.yml
     secrets: inherit
@@ -111,7 +44,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-sqlite-2:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-sqlite.yml
     secrets: inherit
@@ -120,7 +52,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-sqlite-3:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci')))) }}
     uses: ./.github/workflows/unit-test-sqlite.yml
     secrets: inherit
@@ -129,7 +60,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
@@ -138,7 +68,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-2:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
@@ -147,7 +76,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-3:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci')))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
@@ -156,7 +84,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
@@ -166,7 +93,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection-2:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
@@ -176,7 +102,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection-3:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
@@ -190,7 +115,6 @@ jobs:
   # (or `trigger-ci` / force) to keep the MSSQL container cost off PRs that
   # don't touch the dialect.
   unit-tests-pg-mssql:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg-mssql.yml
     secrets: inherit
@@ -199,7 +123,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-mssql-2:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg-mssql.yml
     secrets: inherit
@@ -208,7 +131,6 @@ jobs:
       mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-mssql-3:
-    needs: warm-integrations
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg-mssql.yml
     secrets: inherit

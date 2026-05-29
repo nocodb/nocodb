@@ -2755,16 +2755,23 @@ class MssqlClient extends KnexClient {
     // T-SQL filtered-index predicates can't use `OR` (error 156), so the
     // pg-style `(?? IS NULL OR ?? = 0)` isn't valid here. The soft-delete
     // column is a `bit DEFAULT 0`, so every active row is `0` (1 = trashed) —
-    // `WHERE ?? = 0` matches exactly the active rows and is a legal filtered
-    // predicate. (NULL would only occur if a row were inserted with an
-    // explicit NULL, which the default prevents.)
+    // `?? = 0` matches exactly the active rows and is a legal filtered
+    // predicate.
+    //
+    // `AND ?? IS NOT NULL` is required for pg/sqlite parity: a standard MSSQL
+    // unique index treats NULLs as equal (only ONE NULL permitted), whereas
+    // pg/sqlite allow any number of NULLs. Excluding NULLs from the index
+    // restores that behaviour — multiple active NULLs are allowed, non-NULL
+    // values are still enforced unique. (Without this, force-restoring two
+    // trash rows that both null the unique column would collide on `<NULL>`.)
     return this.genQuery(
-      `CREATE UNIQUE INDEX ?? ON ?? (??) WHERE (?? = 0)`,
+      `CREATE UNIQUE INDEX ?? ON ?? (??) WHERE (?? = 0 AND ?? IS NOT NULL)`,
       [
         this._safeName('UQ', tn, cn),
         tnArg,
         cn,
         softDeleteColumnName,
+        cn,
       ],
     );
   }

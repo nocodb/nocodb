@@ -342,6 +342,26 @@ export default function recordTrashTests() {
       })) as Column;
     }
 
+    /**
+     * Add a Number column to `table`. Used by the unique-conflict tests:
+     * unique is supported for Number on every dialect (including MSSQL, where
+     * text types map to nvarchar(MAX) and can't be a unique index key), so the
+     * conflict logic can be exercised cross-dialect. Note MSSQL Number maps to
+     * BIGINT and tedious returns it as a string — assertions coerce via Number().
+     */
+    async function addNumberColumn(
+      table: Model,
+      title: string,
+      extra: Record<string, any> = {},
+    ): Promise<Column> {
+      return (await createColumn(context, table, {
+        title,
+        column_name: title,
+        uidt: UITypes.Number,
+        ...extra,
+      })) as Column;
+    }
+
     /** Add a SingleSelect column with the given option titles. */
     async function addSingleSelectColumn(
       table: Model,
@@ -1465,12 +1485,14 @@ export default function recordTrashTests() {
 
     describe('J. Unique conflicts', () => {
       it('59. Unique-active: trash row collides with an active row → 409', async function () {
-        const handleCol = await addTextColumn(tblB, 'Handle', { unique: true });
+        const handleCol = await addNumberColumn(tblB, 'Handle', {
+          unique: true,
+        });
 
         // Active row holds the value first
         const active = await insertRowWithFields(tblB, {
           Title: 'B1',
-          Handle: 'foo',
+          Handle: 100,
         });
         // Trash row re-uses the value while the active row is alive:
         // soft-delete active first so the partial unique index permits it,
@@ -1478,7 +1500,7 @@ export default function recordTrashTests() {
         // conflict with it on restore.
         const trash = await insertRowWithFields(tblB, {
           Title: 'B2',
-          Handle: 'temp',
+          Handle: 999,
         });
         await softDelete(tblB, trash.id);
         // Now set the trash row's handle directly via columnUpdate is not
@@ -1492,7 +1514,7 @@ export default function recordTrashTests() {
         // fresh insert + soft-delete:
         const trashDup = await insertRowWithFields(tblB, {
           Title: 'B3',
-          Handle: 'foo',
+          Handle: 100,
         });
         await softDelete(tblB, trashDup.id);
         await setUnique(handleCol, true);
@@ -1508,21 +1530,23 @@ export default function recordTrashTests() {
           (c: any) => c.kind === 'unique-active',
         );
         expect(conflict).to.exist;
-        expect(conflict.value).to.equal('foo');
+        // MSSQL Number maps to BIGINT → tedious returns the value as a string;
+        // coerce so the assertion holds across dialects.
+        expect(Number(conflict.value)).to.equal(100);
         expect(String(conflict.conflictingRowId)).to.equal(String(active.id));
         // Cleanup not needed — `trash` + `active` remain in DB but only `active` is visible
         void trash;
       });
 
       it('60. Unique-active + force → value nulled, row restored', async function () {
-        const handleCol = await addTextColumn(tblB, 'Handle');
+        const handleCol = await addNumberColumn(tblB, 'Handle');
         const active = await insertRowWithFields(tblB, {
           Title: 'B1',
-          Handle: 'foo',
+          Handle: 100,
         });
         const trashDup = await insertRowWithFields(tblB, {
           Title: 'B2',
-          Handle: 'foo',
+          Handle: 100,
         });
         await softDelete(tblB, trashDup.id);
         await setUnique(handleCol, true);
@@ -1537,22 +1561,22 @@ export default function recordTrashTests() {
         const afterVal = await readField(tblB, trashDup.id, 'Handle');
         expect(afterVal == null || afterVal === '').to.equal(true);
         // Active row still owns 'foo'
-        expect(await readField(tblB, active.id, 'Handle')).to.equal('foo');
+        expect(Number(await readField(tblB, active.id, 'Handle'))).to.equal(100);
       });
 
       it('61. Unique-intra: 3 trash rows share "bar", no active claimant → 2 conflicts (winner keeps)', async function () {
-        const handleCol = await addTextColumn(tblB, 'Handle');
+        const handleCol = await addNumberColumn(tblB, 'Handle');
         const r1 = await insertRowWithFields(tblB, {
           Title: 'B1',
-          Handle: 'bar',
+          Handle: 200,
         });
         const r2 = await insertRowWithFields(tblB, {
           Title: 'B2',
-          Handle: 'bar',
+          Handle: 200,
         });
         const r3 = await insertRowWithFields(tblB, {
           Title: 'B3',
-          Handle: 'bar',
+          Handle: 200,
         });
         await softDelete(tblB, r1.id);
         await softDelete(tblB, r2.id);
@@ -1578,18 +1602,18 @@ export default function recordTrashTests() {
       });
 
       it('62. Unique-intra + force → winner keeps value, losers cleared', async function () {
-        const handleCol = await addTextColumn(tblB, 'Handle');
+        const handleCol = await addNumberColumn(tblB, 'Handle');
         const r1 = await insertRowWithFields(tblB, {
           Title: 'B1',
-          Handle: 'bar',
+          Handle: 200,
         });
         const r2 = await insertRowWithFields(tblB, {
           Title: 'B2',
-          Handle: 'bar',
+          Handle: 200,
         });
         const r3 = await insertRowWithFields(tblB, {
           Title: 'B3',
-          Handle: 'bar',
+          Handle: 200,
         });
         await softDelete(tblB, r1.id);
         await softDelete(tblB, r2.id);
@@ -1608,20 +1632,20 @@ export default function recordTrashTests() {
           [r1.id, r2.id, r3.id].map((id) => readField(tblB, id, 'Handle')),
         );
         // Exactly one of the three keeps 'bar'
-        const kept = handles.filter((h) => h === 'bar');
+        const kept = handles.filter((h) => Number(h) === 200);
         expect(kept.length).to.equal(1);
       });
 
       it('63. Active claimant present → every trash row with same value is unique-active (not intra)', async function () {
-        const handleCol = await addTextColumn(tblB, 'Handle');
-        await insertRowWithFields(tblB, { Title: 'B0', Handle: 'foo' });
+        const handleCol = await addNumberColumn(tblB, 'Handle');
+        await insertRowWithFields(tblB, { Title: 'B0', Handle: 100 });
         const r1 = await insertRowWithFields(tblB, {
           Title: 'B1',
-          Handle: 'foo',
+          Handle: 100,
         });
         const r2 = await insertRowWithFields(tblB, {
           Title: 'B2',
-          Handle: 'foo',
+          Handle: 100,
         });
         await softDelete(tblB, r1.id);
         await softDelete(tblB, r2.id);

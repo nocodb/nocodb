@@ -7449,10 +7449,6 @@ export class ColumnsService implements IColumnsService {
         hmColOptions.type === RelationTypes.MANY_TO_MANY;
       const isLinksColumn = hmColumn.uidt === UITypes.Links && isHmOrMm;
 
-      Logger.log(
-        `[convertLinkToV2] hmColumn.id=${hmColumn.id}, hmColumn.uidt=${hmColumn.uidt}, isLinksColumn=${isLinksColumn}`,
-      );
-
       // ── Phase B: Meta transaction ──
       // Only pure meta operations (metaDelete/metaInsert2/metaUpdate)
       // that accept ncMeta go here — no data-DB or indirect meta queries.
@@ -7531,9 +7527,6 @@ export class ColumnsService implements IColumnsService {
 
         if (isLinksColumn) {
           // Links column → convert to Rollup in-place (preserves filters/sorts/group-by)
-          Logger.log(
-            `[convertLinkToV2] Converting hmColumn ${hmColumn.id} (${hmColumn.uidt}) to Rollup`,
-          );
           await ncMeta.metaUpdate(
             context.workspace_id,
             context.base_id,
@@ -7708,15 +7701,6 @@ export class ColumnsService implements IColumnsService {
             );
             dependentRollupColIds = dependentRollupRows.map(
               (r: any) => r.fk_column_id,
-            );
-          }
-
-          Logger.log(
-            `[convertLinkToV2] newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}. Original ${hmColumn.id} is now Rollup.`,
-          );
-          if (dependentLookupColIds.length || dependentRollupColIds.length) {
-            Logger.log(
-              `[convertLinkToV2] Retargeted ${dependentLookupColIds.length} Lookup and ${dependentRollupColIds.length} Rollup columns from ${hmColumn.id} → ${newLtarCol.id}.`,
             );
           }
         }
@@ -8123,11 +8107,6 @@ export class ColumnsService implements IColumnsService {
           );
         }
 
-        if (dependentLookupRows.length || dependentRollupRows.length) {
-          Logger.log(
-            `[convertMMToV2] Retargeted ${dependentLookupRows.length} Lookup and ${dependentRollupRows.length} Rollup columns from ${column.id} → ${mmNewLtarCol.id}.`,
-          );
-        }
       }
 
       await ncMeta.commit();

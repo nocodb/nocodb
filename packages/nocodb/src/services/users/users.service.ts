@@ -32,6 +32,7 @@ import Noco from '~/Noco';
 import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
+import { isTokenExpired } from '~/helpers/isTokenExpired';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
@@ -337,7 +338,7 @@ export class UsersService {
     if (!user || !user.email) {
       NcError.badRequest('Invalid reset url');
     }
-    if (new Date(user.reset_password_expires) < new Date()) {
+    if (isTokenExpired(user.reset_password_expires)) {
       NcError.badRequest('Password reset url expired');
     }
 
@@ -368,7 +369,7 @@ export class UsersService {
     if (!user) {
       NcError.badRequest('Invalid reset url');
     }
-    if (user.reset_password_expires < new Date()) {
+    if (isTokenExpired(user.reset_password_expires)) {
       NcError.badRequest('Password reset url expired');
     }
     if (user.provider && user.provider !== 'local') {
@@ -537,7 +538,7 @@ export class UsersService {
       if (token) {
         if (token !== user.invite_token) {
           NcError.badRequest(`Invalid invite url`);
-        } else if (user.invite_token_expires < new Date()) {
+        } else if (isTokenExpired(user.invite_token_expires)) {
           NcError.badRequest(
             'Expired invite url, Please contact super admin to get a new invite url',
           );

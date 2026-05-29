@@ -794,10 +794,6 @@ export class MssqlUi implements SqlUi {
       'REGEX_MATCH',
       'REGEX_EXTRACT',
       'REGEX_REPLACE',
-      // VALUE parses a number out of an arbitrary string, which the other
-      // dialects do with regex cleanup — not feasible on SQL Server <2025
-      // without a CLR/UDF, so it's unsupported for now.
-      'VALUE',
     ];
   }
 

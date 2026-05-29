@@ -619,6 +619,21 @@ export const binaryExpressionBuilder = async ({
       sql = `${sql} `;
     }
   }
+
+  // MSSQL: arithmetic over BIGINT/DECIMAL/NUMERIC preserves the input type,
+  // and tedious returns those as JS strings (precision preservation). NocoDB
+  // Number maps to BIGINT, so `{Number} + 10` would surface as `'10'`. Cast
+  // the result to FLOAT so the formula matches pg/mysql/sqlite, which return
+  // these as JS numbers. Only applies to numeric +/-/* — comparisons already
+  // materialize to CASE 1/0 above, and `/` double-casts its operands to FLOAT.
+  if (
+    knex.clientType() === 'mssql' &&
+    ['+', '-', '*'].includes(pt.operator) &&
+    pt.dataType === FormulaDataTypes.NUMERIC
+  ) {
+    sql = `CAST(${sql} AS FLOAT)`;
+  }
+
   const query = knex.raw(sql.replace(/\?/g, '\\?'));
   if (prevBinaryOp && pt.operator !== prevBinaryOp) {
     query.wrap('(', ')');

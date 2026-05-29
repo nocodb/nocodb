@@ -8,10 +8,11 @@ import {
   PermissionKey,
   PermissionRole,
   ProjectRoles,
+  ViewLockType,
 } from 'nocodb-sdk';
 import type { UITypes, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import { Permission } from '~/models';
+import { Permission, View } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   type OperationSource,
@@ -210,8 +211,10 @@ export async function hasTableVisibilityAccess(
 }
 
 /**
- * Check if user has access to a view based on VIEW_VISIBILITY permission
+ * Check if user has access to a view based on VIEW_VISIBILITY permission.
  * Base owners always have access.
+ * Personal-view owners always have access to their own view, regardless of any
+ * configured restriction — they can never lock themselves out.
  * If no VIEW_VISIBILITY permission exists, defaults to Viewers & up (all base members).
  */
 export async function hasViewVisibilityAccess(
@@ -258,6 +261,18 @@ export async function hasViewVisibilityAccess(
 
   // No permission exists — default to Viewers & up (all base members have access)
   if (!visibilityPermission) {
+    return true;
+  }
+
+  // Personal-view owner exemption: a user can never be locked out of their
+  // own personal view by a VIEW_VISIBILITY rule. Resolve the view lazily so
+  // the typical (non-personal) hot path skips the extra fetch.
+  const view = await View.get(context, viewId);
+  if (
+    view?.lock_type === ViewLockType.Personal &&
+    view.owned_by &&
+    view.owned_by === user.id
+  ) {
     return true;
   }
 

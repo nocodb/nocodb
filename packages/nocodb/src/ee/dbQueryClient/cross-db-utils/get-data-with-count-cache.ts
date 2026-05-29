@@ -52,6 +52,7 @@ export const getDataWithCountCache = async (
       const startTime = process.hrtime();
       const result = await params.baseModel.execAndParse(params.query, null, {
         skipSubstitutingColumnIds: params.skipSubstitutingColumnIds,
+        apiVersion: params.apiVersion,
       });
       params?.recordQueryTime?.(
         parseHrtimeToMilliSeconds(process.hrtime(startTime)),

@@ -79,7 +79,11 @@ export class LinkPlaceholderService {
     typeProps.dtxs = sqlUi.getDefaultScaleForDatatype(typeProps.dt);
 
     try {
-      const sqlMgr = ProjectMgrv2.getSqlMgr(ctx, { id: source.base_id });
+      const sqlMgr = ProjectMgrv2.getSqlMgr(
+        ctx,
+        { id: source.base_id },
+        ncMeta,
+      );
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
         ...table,
@@ -214,7 +218,11 @@ export class LinkPlaceholderService {
           CacheDelDirection.CHILD_TO_PARENT,
         );
 
-        const sqlMgr = ProjectMgrv2.getSqlMgr(ctx, { id: source.base_id });
+        const sqlMgr = ProjectMgrv2.getSqlMgr(
+          ctx,
+          { id: source.base_id },
+          ncMeta,
+        );
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
           ...table,
           tn: table.table_name,

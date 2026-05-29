@@ -315,19 +315,28 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
 
     if (subGroupColumnName) {
-      const subGroupQuery = await processColumn(subGroupColumnName, true);
+      // Sanitize at the leaf so the inner `.toSQL()` chain doesn't trip
+      // on literal `?` characters from formula string literals.
+      const subGroupQuery = baseModel.sanitizeQuery(
+        await processColumn(subGroupColumnName, true),
+      );
+      // The template literal below coerces the wrapped Raw via `.toString()`
+      // → `.toQuery()`, whose `formatQuery` step unescapes `\?` back to `?`.
+      // We must re-sanitize the composed string before feeding it to the
+      // outer `raw(...)` — otherwise those bare `?` chars get counted as
+      // placeholders and Knex throws "Expected 1 bindings, saw N".
+      const innerExpr = baseModel.sanitizeQuery(
+        `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
+          columnName: baseModel.dbDriver.raw(
+            baseModel.isPg ? '(??)::text' : '??',
+            [baseModel.dbDriver.raw(subGroupQuery)],
+          ),
+          baseModel,
+          isStringType: true,
+        })}, '__null__'))`,
+      );
       qb.select(
-        baseModel.dbDriver.raw(
-          `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
-            columnName: baseModel.dbDriver.raw(
-              baseModel.isPg ? '(??)::text' : '??',
-              [baseModel.dbDriver.raw(subGroupQuery)],
-            ),
-            baseModel,
-            isStringType: true,
-          })}, '__null__')) as ??`,
-          ['__sub_group_count__'],
-        ),
+        baseModel.dbDriver.raw(`${innerExpr} as ??`, ['__sub_group_count__']),
       );
     }
 

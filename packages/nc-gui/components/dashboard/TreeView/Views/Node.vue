@@ -1,5 +1,14 @@
 <script lang="ts" setup>
-import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionGrantedType,
+  PermissionKey,
+  PermissionRole,
+  type TableType,
+  ViewLockType,
+  type ViewType,
+  type ViewTypes,
+} from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { LockType, isDefaultBase } from '#imports'
 
@@ -88,6 +97,28 @@ const showViewNodeTooltip = ref(true)
 
 const isViewOwner = computed(() => {
   return vModel.value?.owned_by === user.value?.id
+})
+
+const { permissionsByEntity } = usePermissions()
+
+// Mirrors PermissionIndicator's render condition — used to position the
+// indicator inline next to the view title, alongside other secondary
+// affordances (lock icon, personal-owner avatar). Falls through to false
+// in CE because permissionsByEntity is empty there.
+const hasViewPermissionRestriction = computed(() => {
+  const permissions = permissionsByEntity.value[`${PermissionEntity.VIEW}_${vModel.value?.id}`] || []
+  return permissions.some((p: any) => {
+    if (p.permission !== PermissionKey.VIEW_VISIBILITY) return false
+    if (p.granted_type === PermissionGrantedType.ROLE && p.granted_role === PermissionRole.VIEWER) return false
+    return true
+  })
+})
+
+const hasSecondaryIndicator = computed(() => {
+  return (
+    [LockType.Locked, ViewLockType.Personal].includes(vModel.value?.lock_type as LockType) ||
+    hasViewPermissionRestriction.value
+  )
 })
 
 const { canModifyView } = usePersonalViewPermissions(vModel)
@@ -394,7 +425,7 @@ watch(isDropdownOpen, async () => {
           v-else
           class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
           :class="{
-            'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!)
+            'w-full': !hasSecondaryIndicator
           }"
           show-on-truncate-only
           disabled
@@ -411,13 +442,7 @@ watch(isDropdownOpen, async () => {
             {{ vModel.alias || vModel.title }}
           </div>
         </NcTooltip>
-        <DashboardTreeViewViewsPermissionIndicator
-          v-if="!isEditing && isEeUI"
-          :view-id="vModel.id"
-          @mouseenter="showViewNodeTooltip = false"
-          @mouseleave="showViewNodeTooltip = true"
-        />
-        <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex mx-0.5">
+        <div v-if="!isEditing && hasSecondaryIndicator" class="flex-1 flex items-center gap-1 mx-0.5">
           <div
             v-if="vModel.lock_type === ViewLockType.Personal && vModel.owned_by && idUserMap[vModel.owned_by]"
             class="flex items-center justify-center"
@@ -436,12 +461,19 @@ watch(isDropdownOpen, async () => {
 
           <component
             :is="viewLockIcons[vModel.lock_type].icon"
-            v-else
-            class="ml-1 flex-none w-3.5 h-3.5"
+            v-else-if="[LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)"
+            class="flex-none w-3.5 h-3.5"
             :class="{
               'text-nc-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
               'text-nc-content-gray-disabled': !(vModel?.lock_type === ViewLockType.Personal && isViewOwner),
             }"
+          />
+
+          <DashboardTreeViewViewsPermissionIndicator
+            v-if="isEeUI"
+            :view-id="vModel.id"
+            @mouseenter="showViewNodeTooltip = false"
+            @mouseleave="showViewNodeTooltip = true"
           />
         </div>
 

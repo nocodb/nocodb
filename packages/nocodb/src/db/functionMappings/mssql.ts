@@ -169,6 +169,20 @@ const mssql = {
       builder: args.knex.raw(`CAST(? AS FLOAT)`, [source]).wrap('(', ')'),
     };
   },
+  VALUE: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE
+  WHEN ? IS NULL THEN NULL
+  WHEN CHARINDEX('%', CAST(? AS NVARCHAR(4000))) > 0
+    THEN TRY_CAST(REPLACE(REPLACE(REPLACE(CAST(? AS NVARCHAR(4000)), '%', ''), ',', ''), '$', '') AS FLOAT) / 100.0
+  ELSE TRY_CAST(REPLACE(REPLACE(CAST(? AS NVARCHAR(4000)), ',', ''), '$', '') AS FLOAT)
+END`,
+        [value, value, value, value],
+      ),
+    };
+  },
   MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const dividend = (await fn(pt.arguments[0])).builder;
     const divisor = (await fn(pt.arguments[1])).builder;

@@ -357,12 +357,9 @@ export function genMssqlAggregateQuery({
         aggregationSql = knex.raw(`CAST(SUM((??)) AS FLOAT)`, [cq]);
         break;
       case NumericalAggregations.StandardDeviation:
-        // STDEVP = population standard deviation (matches pg stddev_pop / mysql STDDEV).
-        // MSSQL STDEVP always returns FLOAT (per docs), so even when the input is
-        // NUMERIC the result carries IEEE-754 noise — e.g. 0.211 → 0.2109999999999948
-        // — diverging from pg, which preserves NUMERIC throughout and returns 0.211
-        // exact. Cast to DECIMAL(15, 10) to round the FP noise into a fixed-precision
-        // value tedious returns as a JS number matching pg/mysql.
+        // STDEVP always returns FLOAT in T-SQL — carries IEEE-754 noise even
+        // for NUMERIC inputs (0.211 → 0.2109999999999948). Cast to DECIMAL
+        // to round to a fixed precision matching pg's NUMERIC result.
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
             `CAST(STDEVP(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS DECIMAL(15, 10))`,
@@ -424,12 +421,23 @@ export function genMssqlAggregateQuery({
         break;
     }
   } else if (aggType === 'date') {
+    // Tedious returns date/datetime as JS Date → ISO-Z string. Other dialects
+    // emit `'YYYY-MM-DD'` (Date) or `'YYYY-MM-DD HH:MM:SS+00:00'` (DateTime),
+    // so format on the SQL side to match. NocoDB stores DateTime as UTC on
+    // MSSQL (see DateTimeMssqlHandler), so the `+00:00` suffix is fixed.
+    const isPlainDate = column.uidt === UITypes.Date;
+    const minExpr = isPlainDate
+      ? `CONVERT(VARCHAR(10), MIN((??)), 23)`
+      : `CONVERT(VARCHAR(19), MIN((??)), 120) + '+00:00'`;
+    const maxExpr = isPlainDate
+      ? `CONVERT(VARCHAR(10), MAX((??)), 23)`
+      : `CONVERT(VARCHAR(19), MAX((??)), 120) + '+00:00'`;
     switch (aggregation) {
       case DateAggregations.EarliestDate:
-        aggregationSql = knex.raw(`MIN((??))`, [cq]);
+        aggregationSql = knex.raw(minExpr, [cq]);
         break;
       case DateAggregations.LatestDate:
-        aggregationSql = knex.raw(`MAX((??))`, [cq]);
+        aggregationSql = knex.raw(maxExpr, [cq]);
         break;
       case DateAggregations.DateRange:
         aggregationSql = knex.raw(`DATEDIFF(DAY, MIN((??)), MAX((??)))`, [

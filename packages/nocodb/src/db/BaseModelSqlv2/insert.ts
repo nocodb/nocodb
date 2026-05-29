@@ -455,6 +455,32 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               responses.push(...rows);
             }
           }
+        } else if (
+          raw &&
+          baseModel.isMssql &&
+          insertDatas.length &&
+          mssqlNeedsIdentityInsert(insertDatas, aiPkCol)
+        ) {
+          // Raw + MSSQL + explicit identity values (import / duplicate flow
+          // with PKs preserved). The standard `batchInsert` below would hit
+          // T-SQL error 544 — `Cannot insert explicit value for identity
+          // column…` — because the table has an IDENTITY column and we're
+          // supplying values for it. Wrap each chunk in
+          // `SET IDENTITY_INSERT ON/OFF`, but skip the trigger check and
+          // `.returning()` plumbing — raw callers discard the response.
+          const chunk = mssqlChunkSize(insertDatas, chunkSize);
+          responses = [];
+          for (let i = 0; i < insertDatas.length; i += chunk) {
+            const slice = insertDatas.slice(i, i + chunk);
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: baseModel.dbDriver,
+              tnPath: baseModel.tnPath,
+              rows: slice,
+              pkCols: baseModel.model.primaryKeys ?? [],
+              explicitIdentity: true,
+            });
+            await trx.raw(sql);
+          }
         } else {
           responses =
             !raw && baseModel.isPg

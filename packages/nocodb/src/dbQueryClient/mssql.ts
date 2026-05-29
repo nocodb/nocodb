@@ -64,18 +64,11 @@ export class MssqlDBQueryClient
     alias: string,
   ): Knex.Raw {
     const knex = baseModel.dbDriver;
-    // T-SQL has no JSON_OBJECT. Select each aggregate as a named column and
-    // wrap with `FOR JSON PATH, WITHOUT_ARRAY_WRAPPER` — as a scalar subquery
-    // the result is a single `{...}` string. The caller's
-    // `execAndParse({ bulkAggregate: true })` parses it automatically.
-    //
-    // TOP 1 + derived-table wrap is required because the inner expressions
-    // may be non-aggregating (median uses a scalar subquery, attachment_size
-    // uses CROSS APPLY) — when no real SQL aggregate appears in the outer
-    // SELECT, MSSQL evaluates the projection per FROM-row, returning N
-    // identical rows. FOR JSON would then concatenate N objects into a
-    // malformed `{...}{...}{...}` string instead of a single `{...}`. All
-    // rows carry the same scalar values, so picking one with TOP 1 is safe.
+    // T-SQL has no JSON_OBJECT — select each aggregate as a named column and
+    // wrap with `FOR JSON PATH, WITHOUT_ARRAY_WRAPPER` to produce a single
+    // `{...}` string. TOP 1 collapses non-aggregating projections (median,
+    // attachment_size) that would otherwise yield N rows and concatenated
+    // garbage JSON.
     tQb.select(
       knex.raw(
         Object.keys(expressions)

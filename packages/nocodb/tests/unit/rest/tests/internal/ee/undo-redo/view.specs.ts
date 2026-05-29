@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import type { Context, RoundTripSpec, TestEnv } from './harness';
+import { isPgData } from '~test/init/db';
 import { createGridView, internalPost, readViews } from '~test/factory/internal';
 import {
   CalendarView,
@@ -360,6 +361,8 @@ async function setupListView(
 
 export const listViewUpdateSpec: RoundTripSpec<ListViewFx> = {
   forward_op: 'listViewUpdate',
+  // List view is pg-only — listViewCreate returns 400 on mssql/mysql/sqlite.
+  skipIf: (ctx) => !isPgData(ctx),
   setup: setupListView,
   forward: (ctx, env, fx) =>
     internalPost(
@@ -412,6 +415,8 @@ export const listViewLevelsRestoreSpec: RoundTripSpec<ListLevelsFx> = {
   forward_op: 'listViewUpdate',
   // Distinct from `listViewUpdateSpec` — disambiguates in mocha output.
   label: 'listViewLevelsRestore (via listViewUpdate{levels})',
+  // List view is pg-only — listViewCreate returns 400 on mssql/mysql/sqlite.
+  skipIf: (ctx) => !isPgData(ctx),
   setup: setupListViewWithLevel,
   // Match the existing level by `fk_model_id` and flip wrap_headers.
   // `bulkInsertOrUpdate` matches by model id, so this updates in place

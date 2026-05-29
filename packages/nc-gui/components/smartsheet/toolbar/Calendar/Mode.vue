@@ -81,16 +81,17 @@ watch(activeCalendarView, () => {
     class="nc-select-shadow !w-24 !rounded-lg"
     dropdown-class-name="!rounded-lg !min-w-28"
     size="small"
+    option-label-prop="label"
     data-testid="nc-calendar-view-mode"
     @change="(value) => changeCalendarView(value as typeof modes[number])"
     @click.stop
   >
     <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
-    <a-select-option v-for="option in modes" :key="option" :value="option">
-      <div class="w-full flex gap-2 items-center justify-between" :title="$t(modeI18nKey(option))">
+    <a-select-option v-for="option in modes" :key="option" :value="option" :label="$t(modeI18nKey(option))">
+      <div class="w-full flex gap-2 items-center justify-between text-[13px]" :title="$t(modeI18nKey(option))">
         <div class="flex items-center gap-1">
-          <NcTooltip class="flex-1 mt-0.5 truncate" show-on-truncate-only>
+          <NcTooltip class="flex-1 mt-0.5 truncate text-[13px]" show-on-truncate-only>
             <template #title>
               {{ $t(modeI18nKey(option)) }}
             </template>
@@ -122,5 +123,13 @@ watch(activeCalendarView, () => {
 
 :deep(.ant-select-selector) {
   @apply !h-7;
+
+  // With option-label-prop="label" the chip renders just the plain label.
+  // antd's default line-height is shorter than our 28px chip, so the text
+  // hugs the top — match the line-height to the chip height to centre it.
+  .ant-select-selection-item {
+    @apply !text-[13px] !text-center !font-medium;
+    line-height: 28px !important;
+  }
 }
 </style>

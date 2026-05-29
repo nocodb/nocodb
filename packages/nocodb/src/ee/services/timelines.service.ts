@@ -211,7 +211,11 @@ export class TimelinesService {
       owner,
     });
 
-    await view.getView(context);
+    // Pass ncMeta so this read respects an in-progress trx. Without it, the
+    // mid-trx refresh hits the default connection, sees pre-commit DB state,
+    // and poisons the TimelineRange list cache with stale rows — which then
+    // serves the post-commit response.
+    await view.getView(context, ncMeta);
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);

@@ -19,6 +19,7 @@ export default class TimelineRange extends TimelineRangeCE {
     const ranges: {
       fk_from_column_id?: string;
       fk_to_column_id?: string;
+      label?: string;
       fk_view_id?: string;
     }[] = [];
 
@@ -26,6 +27,7 @@ export default class TimelineRange extends TimelineRangeCE {
       const tempObj = extractProps(d, [
         'fk_from_column_id',
         'fk_to_column_id',
+        'label',
         'fk_view_id',
       ]);
       ranges.push(tempObj);

@@ -8,7 +8,6 @@ import {
   PermissionKey,
   PermissionRole,
   ProjectRoles,
-  ViewLockType,
 } from 'nocodb-sdk';
 import type { UITypes, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
@@ -215,9 +214,9 @@ export async function hasTableVisibilityAccess(
  * the view's parent section's VIEW_SECTION_VISIBILITY permission (cascade S2).
  *
  * - Base owners always have access.
- * - Personal-view owners always have access to their own view AND its parent
- *   section, regardless of either restriction — they can never lock themselves
- *   out (D8 + S3).
+ * - No personal-view-owner exemption: the audience picker is authoritative.
+ *   A base owner who restricts a personal view's audience can lock the
+ *   owner out — by design. Personal status governs edit rights, not read.
  * - If no permission rows exist at either level, defaults to all base members.
  */
 export async function hasViewVisibilityAccess(
@@ -276,19 +275,6 @@ export async function hasViewVisibilityAccess(
     return true;
   }
 
-  // Fetch the view once for personal-view-owner check + section lookup.
-  const view = await View.get(context, viewId);
-
-  // Personal-view owner exemption (D8 + S3): owner is exempt from both
-  // view-level AND section-level restrictions on their own view.
-  if (
-    view?.lock_type === ViewLockType.Personal &&
-    view.owned_by &&
-    view.owned_by === user.id
-  ) {
-    return true;
-  }
-
   const userRole = getProjectRole(user) as ProjectRoles;
 
   if (!userRole) {
@@ -303,19 +289,24 @@ export async function hasViewVisibilityAccess(
     if (!allowed) return false;
   }
 
-  if (view?.fk_view_section_id) {
-    const sectionPermission = permissions.find(
-      (p) =>
-        p.entity === PermissionEntity.VIEW_SECTION &&
-        p.entity_id === view.fk_view_section_id &&
-        p.permission === PermissionKey.VIEW_SECTION_VISIBILITY,
-    );
-    if (sectionPermission) {
-      const allowed = await Permission.isAllowed(context, sectionPermission, {
-        id: user.id,
-        role: userRole,
-      });
-      if (!allowed) return false;
+  // Section consultation only when section permissions exist in the base —
+  // skip the view fetch otherwise.
+  if (hasAnySectionPermission) {
+    const view = await View.get(context, viewId);
+    if (view?.fk_view_section_id) {
+      const sectionPermission = permissions.find(
+        (p) =>
+          p.entity === PermissionEntity.VIEW_SECTION &&
+          p.entity_id === view.fk_view_section_id &&
+          p.permission === PermissionKey.VIEW_SECTION_VISIBILITY,
+      );
+      if (sectionPermission) {
+        const allowed = await Permission.isAllowed(context, sectionPermission, {
+          id: user.id,
+          role: userRole,
+        });
+        if (!allowed) return false;
+      }
     }
   }
 

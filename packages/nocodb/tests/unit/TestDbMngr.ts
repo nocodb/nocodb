@@ -389,9 +389,11 @@ export default class TestDbMngr {
         return knexClient.raw(`SET session_replication_role = 'replica'`);
       case 'mssql':
         // T-SQL has no session-level FK toggle; `sp_msforeachtable`
-        // iterates every user table in the current DB.
+        // iterates every user table in the current DB. The `?` inside the
+        // command is sp_msforeachtable's own table-name placeholder — escape
+        // it so knex passes it through literally instead of binding it.
         return knexClient.raw(
-          `EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'`,
+          `EXEC sp_msforeachtable 'ALTER TABLE \\? NOCHECK CONSTRAINT ALL'`,
         );
       case 'mysql':
         return knexClient.raw(`SET FOREIGN_KEY_CHECKS = 0`);
@@ -407,9 +409,10 @@ export default class TestDbMngr {
       case 'mssql':
         // `WITH CHECK CHECK CONSTRAINT ALL` re-enables AND re-validates the
         // FK against existing rows — `CHECK CONSTRAINT ALL` (no `WITH
-        // CHECK`) would re-enable without validating.
+        // CHECK`) would re-enable without validating. Escape sp_msforeachtable's
+        // `?` placeholder (see disableForeignKeyChecks).
         return knexClient.raw(
-          `EXEC sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'`,
+          `EXEC sp_msforeachtable 'ALTER TABLE \\? WITH CHECK CHECK CONSTRAINT ALL'`,
         );
       case 'mysql':
         return knexClient.raw(`SET FOREIGN_KEY_CHECKS = 1`);

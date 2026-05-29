@@ -95,8 +95,8 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
-    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], customerColumns)) {
+      console.log('response.body.list[0]', response.body.list[0]);
       throw new Error('Wrong columns');
     }
   });
@@ -117,8 +117,8 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
-    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
+      console.log('response.body.list[0]', response.body.list[0]);
       throw new Error('Wrong columns');
     }
   });
@@ -1919,7 +1919,6 @@ function tableTest() {
       .expect(200);
 
     const rows = await listRow({ base, table });
-    console.log(rows.length);
     // Mysql will not return the batched inserted rows
     if (!isMysqlData(context)) {
       if (

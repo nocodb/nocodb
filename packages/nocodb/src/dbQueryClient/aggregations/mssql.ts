@@ -333,58 +333,62 @@ export function genMssqlAggregateQuery({
       case NumericalAggregations.Avg:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `CAST(AVG(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS FLOAT)`,
+            `AVG(CASE WHEN (??) != ${condnValue} THEN 1.0 * (??) ELSE NULL END)`,
             [cq, cq],
           );
           break;
         }
-        aggregationSql = knex.raw(`CAST(AVG((??)) AS FLOAT)`, [cq]);
+        aggregationSql = knex.raw(`AVG(1.0 * (??))`, [cq]);
         break;
       case NumericalAggregations.Max:
-        aggregationSql = knex.raw(`CAST(MAX((??)) AS FLOAT)`, [cq]);
+        aggregationSql = knex.raw(`MAX((??))`, [cq]);
         break;
       case NumericalAggregations.Min:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `CAST(MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS FLOAT)`,
+            `MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)`,
             [cq, cq],
           );
           break;
         }
-        aggregationSql = knex.raw(`CAST(MIN((??)) AS FLOAT)`, [cq]);
+        aggregationSql = knex.raw(`MIN((??))`, [cq]);
         break;
       case NumericalAggregations.Sum:
         aggregationSql = knex.raw(`CAST(SUM((??)) AS FLOAT)`, [cq]);
         break;
       case NumericalAggregations.StandardDeviation:
         // STDEVP = population standard deviation (matches pg stddev_pop / mysql STDDEV).
+        // MSSQL STDEVP always returns FLOAT (per docs), so even when the input is
+        // NUMERIC the result carries IEEE-754 noise — e.g. 0.211 → 0.2109999999999948
+        // — diverging from pg, which preserves NUMERIC throughout and returns 0.211
+        // exact. Cast to DECIMAL(15, 10) to round the FP noise into a fixed-precision
+        // value tedious returns as a JS number matching pg/mysql.
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `CAST(STDEVP(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS FLOAT)`,
+            `CAST(STDEVP(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END) AS DECIMAL(15, 10))`,
             [cq, cq],
           );
           break;
         }
-        aggregationSql = knex.raw(`CAST(STDEVP((??)) AS FLOAT)`, [cq]);
+        aggregationSql = knex.raw(`CAST(STDEVP((??)) AS DECIMAL(15, 10))`, [
+          cq,
+        ]);
         break;
       case NumericalAggregations.Range:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
-            `CAST((MAX((??)) - MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)) AS FLOAT)`,
+            `(MAX((??)) - MIN(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END))`,
             [cq, cq, cq],
           );
           break;
         }
-        aggregationSql = knex.raw(`CAST((MAX((??)) - MIN((??))) AS FLOAT)`, [
-          cq,
-          cq,
-        ]);
+        aggregationSql = knex.raw(`(MAX((??)) - MIN((??)))`, [cq, cq]);
         break;
       case NumericalAggregations.Median:
         // PERCENTILE_CONT is window-only in T-SQL (same value on every row), so
         // pull a single value via TOP 1 over the (materialized, filtered) source.
         aggregationSql = knex.raw(
-          `CAST((SELECT TOP 1 PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (??)) OVER () FROM ??) AS FLOAT)`,
+          `(SELECT TOP 1 PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (??)) OVER () FROM ??)`,
           [subAggCol, subAggFrom],
         );
         break;

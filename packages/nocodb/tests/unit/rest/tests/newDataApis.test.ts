@@ -2977,11 +2977,10 @@ function userFieldBased() {
 
     // invite users to workspace
     if (process.env.EE === 'true') {
-      const rsp = await request(context.app)
+      await request(context.app)
         .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
         .set('xc-auth', context.token)
         .send({ email, roles: WorkspaceUserRoles.VIEWER });
-      console.log(rsp);
     }
   }
 

@@ -25,6 +25,7 @@ import { internalPost } from '~test/factory/internal';
 import View from '~/models/View';
 import Model from '~/models/Model';
 import TableSync from '~/models/TableSync';
+import TableSyncColumnMapping from '~/models/TableSyncColumnMapping';
 import { TableSyncService } from '~/modules/table-sync/table-sync.service';
 
 /**
@@ -749,6 +750,302 @@ function tableSyncHandlerTests() {
         } finally {
           reconcileSpy.restore();
         }
+      });
+    });
+
+    // ──────────────────────────────────────────────────────────────────
+    // COLUMN-COLLISION RENAME — `reconcileFields` / `addSyncedField`
+    // ──────────────────────────────────────────────────────────────────
+    // When a source field would land on a dest title slot that's already
+    // taken (user-created col OR stale synced col from a prior source
+    // rename), the sync renames the new col to `${title} N` instead of
+    // throwing. The source ↔ dest pairing is preserved via a direct
+    // `TableSyncColumnMapping.insert`, so subsequent source-side changes
+    // still find the renamed dest col.
+    describe('column-collision rename', () => {
+      /**
+       * Pre-existing user col on the dest occupies the source title slot.
+       * Before the rename branch, `reconcileFields` threw
+       * `invalidRequestBody` and the user had to drop their col by hand.
+       * Now both cols coexist — the user col is preserved, the new synced
+       * col lands as "Note 2", and the column-mapping row points at the
+       * renamed dest col so future source-side renames/deletes flow through.
+       */
+      it('renames new synced col to "X 2" when a user-created dest col already occupies the title', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+
+        // Sync only Title — source "Note" stays out of the dest initially.
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'UserColCollisionRename',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+          selected_fields: ['Title'],
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        expect(await getDestCol(destTableId, 'Note')).to.not.exist;
+
+        // User adds their own "Note" col to the synced dest table —
+        // the columnAdd path doesn't block user cols on synced tables.
+        const destModel = await loadDestModel(destTableId);
+        const userCol = await createColumn(context, destModel, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+        expect(userCol, 'user col should exist on dest').to.exist;
+        expect((userCol as any).readonly).to.not.eq(true);
+
+        // Now widen selected_fields to include source "Note". The handler
+        // reconciles → collision with the user col → rename to "Note 2".
+        await tableSyncUpdate(context, destEnv, created.body.id, {
+          selected_fields: ['Title', 'Note'],
+        }).expect(200);
+
+        const renamedDestCol = await waitFor(
+          'synced "Note 2" to appear on dest',
+          async () => (await getDestCol(destTableId, 'Note 2')) ?? null,
+        );
+
+        // User col untouched.
+        const stillUserCol = await getDestCol(destTableId, 'Note');
+        expect(stillUserCol, 'user "Note" must still exist').to.exist;
+        expect((stillUserCol as any).readonly).to.not.eq(true);
+
+        // Renamed col is marked as a synced col.
+        expect((renamedDestCol as any).readonly).to.eq(true);
+
+        // Column mapping must point at the renamed dest col, not the
+        // user col — otherwise source-side changes would silently target
+        // the user's column instead.
+        const refreshedSource = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const sourceNoteCol = refreshedSource!.columns!.find(
+          (c) => c.title === 'Note',
+        );
+        expect(sourceNoteCol?.id, 'source Note col id').to.be.a('string');
+
+        const mappings = await TableSyncColumnMapping.listBySourceColumn(
+          workspaceId,
+          sourceBase.id,
+          sourceNoteCol!.id!,
+        );
+        expect(mappings, 'one mapping per renamed source col').to.have.lengthOf(
+          1,
+        );
+        expect(
+          mappings[0].dest_column_id,
+          'mapping points at renamed dest col',
+        ).to.eq(renamedDestCol.id);
+      });
+
+      /**
+       * Stale synced col case: a source col gets renamed, but the dest
+       * keeps its original title (id-based matching means renames are
+       * no-ops on dest). If a brand-new source col is then added under the
+       * original title, the dest slot is still occupied — the new synced
+       * col must land as "X 2", with its own id-based mapping to the new
+       * source col id.
+       */
+      it('renames new synced col to "X 2" when a stale synced col still occupies the title after source rename', async () => {
+        // Sync-all mode so source col adds auto-mirror without an explicit
+        // selected_fields update.
+        await createColumn(context, sourceTable, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'StaleSyncedColCollisionRename',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        const originalDestNote = await getDestCol(destTableId, 'Note');
+        expect(originalDestNote, 'dest "Note" exists initially').to.exist;
+
+        // Rename source "Note" → "Memo". Dest stays titled "Note"
+        // (rename is a no-op on dest by design).
+        const refreshedSource1 = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const oldNoteCol = refreshedSource1!.columns!.find(
+          (c) => c.title === 'Note',
+        );
+        await updateColumn(context, {
+          table: sourceTable,
+          column: oldNoteCol as any,
+          attr: { title: 'Memo' },
+        });
+        await new Promise((r) => setTimeout(r, 400));
+        expect(
+          await getDestCol(destTableId, 'Note'),
+          'dest title unchanged on source rename',
+        ).to.exist;
+
+        // Add a fresh source col called "Note". In sync-all mode the
+        // column-add handler picks this up and asks for a new synced col
+        // titled "Note" — but the slot is taken by the stale dest col.
+        await createColumn(context, sourceTable, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const renamedDestCol = await waitFor(
+          'new synced "Note 2" appears on dest',
+          async () => (await getDestCol(destTableId, 'Note 2')) ?? null,
+        );
+
+        // Stale "Note" still maps to the renamed source col.
+        const refreshedSource2 = await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        );
+        const memoCol = refreshedSource2!.columns!.find(
+          (c) => c.title === 'Memo',
+        );
+        const newNoteCol = refreshedSource2!.columns!.find(
+          (c) => c.title === 'Note',
+        );
+        expect(memoCol?.id, 'renamed source col id (Memo)').to.be.a('string');
+        expect(newNoteCol?.id, 'new source col id (Note)').to.be.a('string');
+        expect(newNoteCol!.id).to.not.eq(memoCol!.id);
+
+        // Mapping for the renamed source col points at the original dest
+        // col (still titled "Note") — the rename was invisible to it.
+        const memoMappings = await TableSyncColumnMapping.listBySourceColumn(
+          workspaceId,
+          sourceBase.id,
+          memoCol!.id!,
+        );
+        expect(memoMappings).to.have.lengthOf(1);
+        expect(memoMappings[0].dest_column_id).to.eq(originalDestNote!.id);
+
+        // Mapping for the new source col → renamed "Note 2". The direct
+        // mapping insert in `reconcileFields` races with the dest col
+        // becoming visible, so poll briefly.
+        const noteMappings = await waitFor(
+          'mapping row for new source col to be inserted',
+          async () => {
+            const rows = await TableSyncColumnMapping.listBySourceColumn(
+              workspaceId,
+              sourceBase.id,
+              newNoteCol!.id!,
+            );
+            return rows.length ? rows : null;
+          },
+        );
+        expect(noteMappings).to.have.lengthOf(1);
+        expect(noteMappings[0].dest_column_id).to.eq(renamedDestCol.id);
+      });
+
+      /**
+       * User-facing `columnUpdate` against a synced dest col must reject
+       * any attempt to change schema-owning props (title, uidt, colOptions,
+       * pv, etc.). Without this guard, a 200 with silently-dropped keys
+       * was extremely hard to debug from the FE side. The handler-internal
+       * sync path passes `bypassSyncedFieldGuard: true` and is unaffected.
+       */
+      it('columnUpdate on a synced dest field rejects non-meta props with 400', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'SyncedColRejectGuard',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        const destSyncedCol = await getDestCol(destTableId, 'Note');
+        expect(destSyncedCol, 'synced dest col exists').to.exist;
+        expect((destSyncedCol as any).readonly).to.eq(true);
+
+        // Title change — must 400.
+        const titleRes = await request(context.app)
+          .patch(`/api/v2/meta/columns/${destSyncedCol!.id}`)
+          .set('xc-auth', context.token)
+          .send({ title: 'Renamed' })
+          .expect(400);
+        expect(titleRes.body.msg ?? titleRes.body.message).to.match(
+          /synced fields cannot be modified/i,
+        );
+
+        // Type change — must 400.
+        await request(context.app)
+          .patch(`/api/v2/meta/columns/${destSyncedCol!.id}`)
+          .set('xc-auth', context.token)
+          .send({ uidt: UITypes.Number })
+          .expect(400);
+
+        // Sanity: dest col is unchanged after both rejected calls.
+        const stillThere = await getDestCol(destTableId, 'Note');
+        expect(stillThere?.id).to.eq(destSyncedCol!.id);
+        expect((stillThere as any).uidt).to.eq(UITypes.SingleLineText);
+      });
+
+      /**
+       * Meta-only updates (description / column.meta) on synced cols must
+       * still work — they don't touch the schema the source owns. Covers
+       * the `Column.updateMeta` switch in the meta-only branch of
+       * `_runColumnUpdate`.
+       */
+      it('columnUpdate on a synced dest field with meta-only payload succeeds', async () => {
+        await createColumn(context, sourceTable, {
+          title: 'Note',
+          uidt: UITypes.SingleLineText,
+        });
+
+        const created = await tableSyncCreate(context, destEnv, {
+          title: 'SyncedColMetaUpdate',
+          source_workspace_id: workspaceId,
+          source_base_id: sourceBase.id,
+          source_table_id: sourceTable.id,
+          source_view_id: sourceView.id,
+        }).expect(200);
+        const settled = await waitForSyncSettled(destEnv, created.body.id);
+        const destTableId = mainDestTableId(settled);
+        const destSyncedCol = await getDestCol(destTableId, 'Note');
+        expect(destSyncedCol, 'synced dest col exists').to.exist;
+
+        // Description update — meta-only, must succeed.
+        await request(context.app)
+          .patch(`/api/v2/meta/columns/${destSyncedCol!.id}`)
+          .set('xc-auth', context.token)
+          .send({ description: 'User-set note for this synced col' })
+          .expect(200);
+
+        // column.meta update — also meta-only, must succeed.
+        await request(context.app)
+          .patch(`/api/v2/meta/columns/${destSyncedCol!.id}`)
+          .set('xc-auth', context.token)
+          .send({ meta: { ui: { hint: 'custom-hint' } } })
+          .expect(200);
+
+        // Re-fetch — both writes should have stuck.
+        const updated = await getDestCol(destTableId, 'Note');
+        expect(updated?.description).to.eq(
+          'User-set note for this synced col',
+        );
+        const meta =
+          typeof updated?.meta === 'string'
+            ? JSON.parse(updated!.meta)
+            : (updated?.meta as any);
+        expect(meta?.ui?.hint).to.eq('custom-hint');
       });
     });
 

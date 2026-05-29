@@ -7,6 +7,7 @@ const emit = defineEmits(['newRecord', 'expandRecord'])
 const {
   selectedDate,
   selectedMonth,
+  selectedDateRange,
   formattedData,
   formattedSideBarData,
   calDataType,
@@ -19,6 +20,8 @@ const {
   updateFormat,
   timezoneDayjs,
   isSyncedFromColumn,
+  weeksInRange,
+  isMultiWeekRange,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -32,7 +35,9 @@ const { isUIAllowed } = useRoles()
 const meta = inject(MetaInj, ref())
 
 const maxVisibleDays = computed(() => {
-  return viewMetaProperties.value?.hide_weekend ? 5 : 7
+  // Weekend-hiding is only honoured for the calendar month layout — multi-week
+  // ranges always render the full 7-day grid so weeks line up with the anchor.
+  return viewMetaProperties.value?.hide_weekend && !isMultiWeekRange.value ? 5 : 7
 })
 
 const days = computed(() => {
@@ -92,17 +97,27 @@ const fieldStyles = computed(() => {
 
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
-  const startOfMonth = timezoneDayjs.timezonize(selectedMonth.value.startOf('month'))
   const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = timezoneDayjs.timezonize(startOfMonth.startOf('week')).add(firstDayOffset, 'day')
   const today = timezoneDayjs.timezonize()
 
-  const daysInMonth = startOfMonth.daysInMonth()
-  const firstDayOfMonth = startOfMonth.day()
+  let firstDayToDisplay: dayjs.Dayjs
+  let weeksNeeded: number
 
-  const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
-
-  const weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)
+  if (isMultiWeekRange.value) {
+    // 2-week / 6-week grids anchor to the Monday of the selected week and
+    // always render a fixed number of full weeks. The 6-week range maxes the
+    // backend's 42-day calendar fetch window exactly — don't extend further
+    // without also raising the limit in calendar-datas.service.ts.
+    firstDayToDisplay = timezoneDayjs.timezonize(selectedDateRange.value.start.startOf('week')).add(firstDayOffset, 'day')
+    weeksNeeded = weeksInRange.value
+  } else {
+    const startOfMonth = timezoneDayjs.timezonize(selectedMonth.value.startOf('month'))
+    firstDayToDisplay = timezoneDayjs.timezonize(startOfMonth.startOf('week')).add(firstDayOffset, 'day')
+    const daysInMonth = startOfMonth.daysInMonth()
+    const firstDayOfMonth = startOfMonth.day()
+    const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
+    weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)
+  }
 
   return {
     weeks: Array.from({ length: weeksNeeded }, (_, weekIndex) => ({
@@ -115,7 +130,9 @@ const calendarData = computed(() => {
           key: `${weekIndex}-${dayIndex}`,
           isWeekend: day.get('day') === 0 || day.get('day') === 6,
           isToday: day.isSame(today, 'date'),
-          isInPagedMonth: day.isSame(selectedMonth.value, 'month'),
+          // For multi-week grids every cell is "in range" — the layout itself
+          // is bounded to the visible window, so we don't fade non-month days.
+          isInPagedMonth: isMultiWeekRange.value ? true : day.isSame(selectedMonth.value, 'month'),
           isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
           dayNumber: day.format('DD'),
         }
@@ -799,6 +816,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
     <div
       ref="calendarGridContainer"
       :class="{
+        'grid-rows-2': calendarData.weeks.length === 2,
         'grid-rows-5': calendarData.weeks.length === 5,
         'grid-rows-6': calendarData.weeks.length === 6,
         'grid-rows-7': calendarData.weeks.length === 7,

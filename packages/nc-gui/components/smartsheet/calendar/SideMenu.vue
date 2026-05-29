@@ -109,6 +109,8 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === 'selectedDate' ||
           sideBarFilterOption.value === 'selectedHours' ||
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '2week' ||
+          sideBarFilterOption.value === '6week' ||
           sideBarFilterOption.value === 'day'
         ) {
           let fromDate: dayjs.Dayjs | null = null
@@ -128,9 +130,16 @@ const renderData = computed<Array<Row>>(() => {
               toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
               break
             case 'week':
+            case '2week':
+            case '6week': {
+              const weeks = sideBarFilterOption.value === '2week' ? 2 : sideBarFilterOption.value === '6week' ? 6 : 1
               fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
-              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
+              toDate = fromDate
+                .clone()
+                .add(weeks * 7 - 1, 'day')
+                .endOf('day')
               break
+            }
             case 'day':
               fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
               toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
@@ -170,6 +179,8 @@ const renderData = computed<Array<Row>>(() => {
           }
         } else if (
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '2week' ||
+          sideBarFilterOption.value === '6week' ||
           sideBarFilterOption.value === 'month' ||
           sideBarFilterOption.value === 'year'
         ) {
@@ -178,9 +189,16 @@ const renderData = computed<Array<Row>>(() => {
 
           switch (sideBarFilterOption.value) {
             case 'week':
+            case '2week':
+            case '6week': {
+              const weeks = sideBarFilterOption.value === '2week' ? 2 : sideBarFilterOption.value === '6week' ? 6 : 1
               fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
-              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
+              toDate = fromDate
+                .clone()
+                .add(weeks * 7 - 1, 'day')
+                .endOf('day')
               break
+            }
             case 'month':
               fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
               toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
@@ -236,6 +254,20 @@ const options = computed(() => {
           { label: 'Without dates', value: 'withoutDates' },
         ]
       }
+    case '2week' as const:
+      return [
+        { label: 'All records', value: 'allRecords' },
+        { label: 'In selected range', value: '2week' },
+        { label: 'In selected date', value: 'selectedDate' },
+        { label: 'Without dates', value: 'withoutDates' },
+      ]
+    case '6week' as const:
+      return [
+        { label: 'All records', value: 'allRecords' },
+        { label: 'In selected range', value: '6week' },
+        { label: 'In selected date', value: 'selectedDate' },
+        { label: 'Without dates', value: 'withoutDates' },
+      ]
     case 'month' as const:
       return [
         { label: 'All records', value: 'allRecords' },
@@ -273,7 +305,11 @@ const newRecord = () => {
   let fromDate
   if (activeCalendarView.value === 'day') {
     fromDate = selectedDate.value
-  } else if (activeCalendarView.value === 'week') {
+  } else if (
+    activeCalendarView.value === 'week' ||
+    activeCalendarView.value === '2week' ||
+    activeCalendarView.value === '6week'
+  ) {
     fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
     fromDate = selectedDate.value ?? selectedMonth.value

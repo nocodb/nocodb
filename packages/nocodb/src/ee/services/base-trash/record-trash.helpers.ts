@@ -47,6 +47,18 @@ export function parseRecordResourceId(
 export const TRASH_BATCH_SIZE = 100;
 
 /**
+ * Format the trash event's `deletedAt` for a WHERE comparison against the
+ * row's `LastModifiedTime` column. `this.now()` stamps soft-deletes as
+ * offset-less wall-clock on MySQL/MSSQL (`'YYYY-MM-DD HH:mm:ss'`) and with a
+ * `+00:00` offset on PG/SQLite — `toISOString()` produces `'…T…Z'`, which
+ * matches none of them. Strip `T` and `Z` so the value matches what the
+ * iterator, enrich query, and empties-count query all need to see.
+ */
+export function trashLmtValue(deletedAt: Date): string {
+  return deletedAt.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
  * Per-row conflict discovered by the restore pre-flight. The `kind`
  * discriminator carries both what to show the user and what the apply
  * step has to do to resolve it when force/partial is used.
@@ -157,9 +169,7 @@ export function makeTrashBatchIterator(
   const primaryKeys = model.primaryKeys;
   const pkColNames = primaryKeys.map((pk) => pk.column_name);
   const pkOrderCol = primaryKeys[0].column_name;
-  const lmtValue = decoded
-    ? decoded.deletedAt.toISOString().replace('T', ' ').replace('Z', '')
-    : null;
+  const lmtValue = decoded ? trashLmtValue(decoded.deletedAt) : null;
 
   return async () => {
     if (!decoded) {

@@ -4,8 +4,8 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
 import type { Filter, Model, View } from '~/models';
+import type { Source } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
-import { Source } from '~/models';
 
 export async function singleQueryRead(
   context: NcContext,

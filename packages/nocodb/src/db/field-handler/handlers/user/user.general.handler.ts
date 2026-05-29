@@ -5,9 +5,10 @@ import type { Knex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
 import type { Filter } from '~/models';
-import type { FilterOptions } from '../../field-handler.interface';
+import type { FilterOptions, SortOptions } from '../../field-handler.interface';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 import { getColumnName } from '~/helpers/dbHelpers';
+import { sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
@@ -26,6 +27,64 @@ export class UserGeneralHandler extends GenericFieldHandler {
     this.filterLikeNlike(...args);
   override filterNlike = (...args: Parameters<typeof this.filterLikeNlike>) =>
     this.filterLikeNlike(...args);
+
+  /**
+   * Shared SQL expression that maps the stored user-ID column to its
+   * display-name representation via nested REPLACE() chained over a given
+   * user list. Used by `filterLikeNlike` (with a pre-filtered user list)
+   * and `applySort` (with all base users) — both need the column to read
+   * as display-text, not as a raw user-id.
+   *
+   * The dialect-specific User handlers (`UserPgHandler`, `UserSqliteHandler`)
+   * override `replaceDelimitedWithKeyValue` to use their own
+   * `replace_delimited_with_keyvalue` SQL function for efficiency. The
+   * MySQL/MSSQL default uses native nested REPLACE().
+   */
+  protected async buildDisplayNameExpression(
+    knex: CustomKnex,
+    needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder,
+    users: Awaited<ReturnType<typeof BaseUser.getUsersList>>,
+  ): Promise<string> {
+    return this.replaceDelimitedWithKeyValue({
+      knex,
+      needleColumn,
+      stack: users.map((user) => ({
+        key: user.id,
+        value: user.display_name || user.email,
+      })),
+    });
+  }
+
+  /**
+   * Sort User/CreatedBy/LastModifiedBy by display name. Stored values are
+   * comma-delimited user-ids; nested REPLACE() (or the PG/SQLite
+   * `replace_delimited_with_keyvalue` function in dialect overrides) maps
+   * each id to its display-name before the ORDER BY.
+   */
+  override async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    const { nulls, context } = options;
+    const knex = options.knex as CustomKnex;
+
+    // For CreatedBy / LastModifiedBy the persisted column name may differ
+    // from `column.column_name` (auto-magic columns). Resolve it.
+    column.column_name = await getColumnName(context, column);
+
+    const baseUsers = await BaseUser.getUsersList(context, {
+      base_id: column.base_id,
+      include_internal_user: true,
+    });
+    const expr = await this.buildDisplayNameExpression(
+      knex,
+      column.column_name,
+      baseUsers,
+    );
+    qb.orderBy(sanitize(knex.raw(expr)), direction, nulls);
+  }
 
   override async filter(
     knex: CustomKnex,
@@ -257,14 +316,11 @@ export class UserGeneralHandler extends GenericFieldHandler {
         .includes(filterVal.toLowerCase());
     });
 
-    const finalStatement = this.replaceDelimitedWithKeyValue({
+    const finalStatement = await this.buildDisplayNameExpression(
       knex,
-      needleColumn: sourceField,
-      stack: users.map((user) => ({
-        key: user.id,
-        value: user.display_name || user.email,
-      })),
-    });
+      sourceField,
+      users,
+    );
 
     if (filter.comparison_op === 'like') {
       return this.singleLineTextHandler.filterLike(

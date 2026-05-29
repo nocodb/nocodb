@@ -214,9 +214,7 @@ export class CircularChartMssqlHandler extends CircularChartCommonHandler {
     // Per-category aggregation. GROUP BY references MAT_CATEGORY, a real
     // column of the derived FROM — accepted by T-SQL for any column class.
     const subQuery = baseModel.dbDriver
-      .select(
-        baseModel.dbDriver.raw('?? as ??', [MAT_CATEGORY, categoryAlias]),
-      )
+      .select(baseModel.dbDriver.raw('?? as ??', [MAT_CATEGORY, categoryAlias]))
       .count(`* as record_count`)
       .from(baseModel.dbDriver.raw('(??) as nc_data', aggregationSource))
       .groupBy(MAT_CATEGORY);
@@ -355,7 +353,9 @@ export class CircularChartMssqlHandler extends CircularChartCommonHandler {
     // and is recomputed via a follow-up query below.
     const finalQuery = baseModel.dbDriver
       .select({
-        category: baseModel.dbDriver.raw('CAST(final_category AS NVARCHAR(MAX))'),
+        category: baseModel.dbDriver.raw(
+          'CAST(final_category AS NVARCHAR(MAX))',
+        ),
       })
       .select(baseModel.dbDriver.raw(`${maxExpression} as original_category`))
       .select(

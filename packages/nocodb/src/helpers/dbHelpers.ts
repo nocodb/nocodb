@@ -573,9 +573,11 @@ export async function getAliasedSoftDeleteFilter(
   if (!source.isMeta()) return null;
 
   const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
-  const notDeletedValue = deletedColValue(baseModel, false);
+  const notDeletedSql = boolSqlLiteral(baseModel, false);
   return function () {
-    this.whereNull(qualifiedName).orWhere(qualifiedName, notDeletedValue);
+    this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
+      qualifiedName,
+    ]);
   };
 }
 
@@ -926,6 +928,38 @@ export function deletedColValue(
       : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
         'mssql';
   return isMssql ? (isDeleted ? 1 : 0) : isDeleted;
+}
+
+/**
+ * Dialect-aware SQL literal text for a boolean. Use this when the value must
+ * be inlined into a `whereRaw` / `orWhereRaw` / `raw` string (i.e. it MUST
+ * NOT become a `?` binding placeholder, otherwise it collides with other
+ * `?` placeholders in the same fragment — see the comment on
+ * `getAliasedSoftDeleteFilter` for the rollup/formula failure mode).
+ *
+ *  - MSSQL: `bit` has no boolean literal — use `0` / `1`.
+ *  - PG / MySQL / SQLite: `false` / `true` works.
+ *
+ * Primary user is the soft-delete (`__nc_deleted`) family of queries, but
+ * any code path inlining a bool into a `raw` template can use this — e.g.
+ * `COALESCE(??, ${boolSqlLiteral(baseModel, false)})` on Checkbox.
+ */
+export function boolSqlLiteral(
+  knexOrModel: DialectAware,
+  value: boolean,
+): string {
+  const m = knexOrModel as Partial<{
+    isMssql: boolean;
+    dbDriver: { client: { config: { client: string } } };
+    client: { config: { client: string } };
+  }>;
+  const isMssql =
+    typeof m.isMssql === 'boolean'
+      ? m.isMssql
+      : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
+        'mssql';
+  if (isMssql) return value ? '1' : '0';
+  return value ? 'true' : 'false';
 }
 
 export const dataWrapper = (data: any) => {

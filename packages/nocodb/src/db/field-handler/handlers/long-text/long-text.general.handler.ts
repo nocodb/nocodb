@@ -6,18 +6,59 @@ import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import type { Column, Filter } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
-import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
+import type { Knex } from '~/db/CustomKnex';
+import type {
+  FilterOptions,
+  SortOptions,
+} from '~/db/field-handler/field-handler.interface';
+import { sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class LongTextGeneralHandler extends GenericFieldHandler {
   /**
-   * AI Prompt columns store an `{ value, prompt, ... }` object as JSON text.
-   * Filter operators target the inner `.value` string — rewrite the source
-   * field expression to dialect-specific JSON extraction before delegating
-   * to the standard handleFilter pipeline. Non-AI-prompt LongText columns
-   * use the generic text behavior unchanged.
+   * Build the SQL expression that represents a LongText column's effective
+   * value. For AI Prompt columns the stored `{ value, prompt, ... }` JSON
+   * is extracted via the dialect's JSON function; plain LongText returns
+   * the raw column reference. Shared by `filter()` and `applySort()`.
+   */
+  protected getFieldExpression(
+    knex: CustomKnex,
+    column: Column,
+    alias?: string,
+  ): string | Knex.Raw {
+    const baseField = alias
+      ? `${alias}.${column.column_name}`
+      : column.column_name;
+
+    if (!isAIPromptCol(column)) return baseField;
+
+    const client = knex.clientType();
+    if (client === 'pg') {
+      return knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
+        column.column_name,
+      ]);
+    }
+    if (client.startsWith('mysql')) {
+      return knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
+        column.column_name,
+      ]);
+    }
+    if (client === 'sqlite3') {
+      return knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
+    }
+    if (client === 'mssql') {
+      // T-SQL: JSON_VALUE returns scalar text from a path; matches the
+      // unquoted, untyped extraction the other dialects produce.
+      return knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
+    }
+    return baseField;
+  }
+
+  /**
+   * AI Prompt LongText routes filtering through the JSON-extract field
+   * expression; plain LongText uses the generic text behavior unchanged.
    *
-   * MySQL preserves case-sensitive comparison via LongTextMysqlHandler's
+   * MySQL preserves case-sensitive `eq` / `neq` via LongTextMysqlHandler's
    * `filterEq` / `filterNeq` overrides (`BINARY ?? = ?`).
    */
   override async filter(
@@ -30,33 +71,36 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
       return super.filter(knex, filter, column, options);
     }
 
-    const { alias } = options;
-    const baseField =
+    const aiField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw =
       options.customWhereClause ??
-      (alias ? `${alias}.${column.column_name}` : column.column_name);
-
-    const client = knex.clientType();
-    let aiField: any = baseField;
-    if (client === 'pg') {
-      aiField = knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
-        column.column_name,
-      ]);
-    } else if (client.startsWith('mysql')) {
-      aiField = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
-        column.column_name,
-      ]);
-    } else if (client === 'sqlite3') {
-      aiField = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
-    } else if (client === 'mssql') {
-      // T-SQL: JSON_VALUE returns scalar text from a path; matches the
-      // unquoted, untyped extraction the other dialects produce.
-      aiField = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
-    }
+      this.getFieldExpression(knex, column, options.alias);
 
     return this.handleFilter(
       { val: filter.value, sourceField: aiField },
       { knex, filter, column },
       options,
+    );
+  }
+
+  /**
+   * Sort AI Prompt LongText by the extracted `.value` text. Plain LongText
+   * falls through to GenericFieldHandler's default (plain column orderBy).
+   */
+  override async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    if (!isAIPromptCol(column)) {
+      return super.applySort(qb, column, direction, options);
+    }
+    const knex = options.knex as CustomKnex;
+    const field = this.getFieldExpression(knex, column, options.alias);
+    qb.orderBy(
+      typeof field === 'string' ? sanitize(field) : field,
+      direction,
+      options.nulls,
     );
   }
 

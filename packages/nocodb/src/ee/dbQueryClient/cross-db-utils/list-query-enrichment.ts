@@ -266,15 +266,26 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
 
     const orderColumn = columns.find((c) => isOrderCol(c));
 
-    // apply sort on baseQb (innerQb when provided) so formula-based
-    // sorts reference the original table name which is in scope
-    if (sorts?.length) await sortV2(baseModel, sorts, baseQb);
+    // The inner sort only matters when pagination is applied — it determines
+    // which rows fall inside the limit/offset window. When pagination is
+    // ignored (e.g. calendar / date-range views fetch the whole filtered set)
+    // the inner ORDER BY is redundant: the outer query below re-applies the
+    // identical sort over the wrapped result. Emitting it anyway breaks MSSQL,
+    // which rejects `ORDER BY` in a derived table that has no TOP/OFFSET/FOR
+    // XML (error 1033) — and `rootQb` only gets its OFFSET/FETCH when
+    // `!ignorePagination` (see the pagination block below). So gate the inner
+    // sort on the same condition. (When paginating, the limit→OFFSET/FETCH
+    // makes the ORDER BY valid on MSSQL.)
+    if (!ctx.ignorePagination) {
+      // apply sort on baseQb (innerQb when provided) so formula-based
+      // sorts reference the original table name which is in scope
+      if (sorts?.length) await sortV2(baseModel, sorts, baseQb);
 
-    if (!skipSortBasedOnOrderCol) {
-      if (orderColumn) {
-        baseQb.orderBy(orderColumn.column_name);
+      if (!skipSortBasedOnOrderCol) {
+        if (orderColumn) {
+          baseQb.orderBy(orderColumn.column_name);
+        }
       }
-    }
 
     // ignore stable sorting / sort by created time when shuffle
     if (!+listArgs?.shuffle) {

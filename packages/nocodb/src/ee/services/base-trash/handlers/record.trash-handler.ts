@@ -25,6 +25,7 @@ import conditionV2 from '~/db/conditionV2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   _wherePk,
+  boolSqlLiteral,
   deletedColValue,
   getCompositePkValue,
   validateFuncOnColumn,
@@ -41,8 +42,10 @@ import {
   parseRecordResourceId,
   type RestoreConflict,
   type RowResolution,
+  trashLmtValue,
   whereInPks,
 } from '~/services/base-trash/record-trash.helpers';
+import { toIsoString } from '~/ee/helpers/trashHelpers';
 
 @Injectable()
 export class RecordTrashHandler extends BaseTrashHandler<{
@@ -97,7 +100,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     const qb = baseModel
       .dbDriver(baseModel.tnPath)
       .where(deletedColumn.column_name, deletedColValue(baseModel, true))
-      .where(lmtCol.column_name, parsed.deletedAt.toISOString())
+      .where(lmtCol.column_name, trashLmtValue(parsed.deletedAt))
       .select(pkColNames.map((c) => baseModel.dbDriver.ref(c)))
       .orderBy(primaryKeys[0].column_name, 'asc')
       .limit(INLINE_CAP + 1);
@@ -448,20 +451,16 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       const tupleQb = baseModel
         .dbDriver(baseModel.tnPath)
         .where(deletedColumn.column_name, deletedColValue(baseModel, true))
-        .distinct(lmtCol.column_name)
-        .select(lmtCol.column_name);
+        .distinct(lmtCol.column_name);
       if (lmbCol) {
-        tupleQb.distinct(lmbCol.column_name).select(lmbCol.column_name);
+        tupleQb.distinct(lmbCol.column_name);
       }
       whereInPks(tupleQb, primaryKeys, rowIdsPath);
       const tuples = await tupleQb;
       for (const t of tuples) {
         const lmtVal = t[lmtCol.column_name];
-        if (lmtVal == null) continue;
-        const deletedAt =
-          lmtVal instanceof Date
-            ? lmtVal.toISOString()
-            : new Date(lmtVal).toISOString();
+        const deletedAt = toIsoString(lmtVal);
+        if (deletedAt == null) continue;
         const fkUserId = lmbCol ? t[lmbCol.column_name] ?? null : null;
         entryTuples.push({ fkUserId, deletedAt });
       }
@@ -606,11 +605,8 @@ export class RecordTrashHandler extends BaseTrashHandler<{
           `${lmt}|${lmb ?? ''}`;
         const remaining = new Map<string, number>();
         for (const r of groupRows) {
-          const lmtVal = r[lmtCol.column_name];
-          const lmt =
-            lmtVal instanceof Date
-              ? lmtVal.toISOString()
-              : new Date(lmtVal).toISOString();
+          const lmt = toIsoString(r[lmtCol.column_name]);
+          if (lmt == null) continue;
           const lmb = lmbCol ? r[lmbCol.column_name] ?? null : null;
           remaining.set(tupleKey(lmt, lmb), Number(r.count));
         }
@@ -759,7 +755,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     const qb = baseModel
       .dbDriver(baseModel.tnPath)
       .where(deletedColumn.column_name, deletedColValue(baseModel, true))
-      .where(lmtCol.column_name, parsed.deletedAt.toISOString())
+      .where(lmtCol.column_name, trashLmtValue(parsed.deletedAt))
       .count('* as count');
 
     if (lmbCol) {
@@ -851,14 +847,23 @@ export class RecordTrashHandler extends BaseTrashHandler<{
         ]),
       );
 
+      const notDeletedLit = boolSqlLiteral(baseModel, false);
+      const topClause = baseModel.isMssql ? 'TOP 1 ' : '';
+      const limitClause = baseModel.isMssql ? '' : ' LIMIT 1';
+
       const selectItems: any[] = rawCols.map((c) =>
         baseModel.dbDriver.raw('??.??', ['t1', c]),
       );
 
       for (const { col, fkColumnName } of v1OoChildCols) {
         selectItems.push(
+          // `CASE WHEN EXISTS(...) THEN 1 ELSE 0 END` rather than a bare
+          // `EXISTS(...)` in the SELECT list — T-SQL only allows EXISTS as a
+          // WHERE/HAVING predicate, not as a projected column. The CASE form
+          // is portable across pg/mysql/sqlite/mssql and the consumer below
+          // only checks truthiness of the value.
           baseModel.dbDriver.raw(
-            'EXISTS (SELECT 1 FROM ?? AS t2 WHERE t2.?? = t1.?? AND t2.?? != t1.?? AND (t2.?? IS NULL OR t2.?? = false)) AS ??',
+            `CASE WHEN EXISTS (SELECT 1 FROM ?? AS t2 WHERE t2.?? = t1.?? AND t2.?? != t1.?? AND (t2.?? IS NULL OR t2.?? = ${notDeletedLit})) THEN 1 ELSE 0 END AS ??`,
             [
               tnPath,
               fkColumnName,
@@ -876,7 +881,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       for (const col of uniqueCols) {
         selectItems.push(
           baseModel.dbDriver.raw(
-            '(SELECT t2.?? FROM ?? AS t2 WHERE t2.?? = t1.?? AND t2.?? != t1.?? AND (t2.?? IS NULL OR t2.?? = false) LIMIT 1) AS ??',
+            `(SELECT ${topClause}t2.?? FROM ?? AS t2 WHERE t2.?? = t1.?? AND t2.?? != t1.?? AND (t2.?? IS NULL OR t2.?? = ${notDeletedLit})${limitClause}) AS ??`,
             [
               pkColName,
               tnPath,
@@ -894,7 +899,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
 
       const qb = baseModel.dbDriver
         .from(baseModel.dbDriver.raw('?? AS t1', [tnPath]))
-        .where(`t1.${delCol}`, true)
+        .where(`t1.${delCol}`, deletedColValue(baseModel, true))
         .whereIn(`t1.${pkColName}`, batchIds)
         .select(selectItems);
 

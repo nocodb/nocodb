@@ -360,8 +360,18 @@ export function genSqlite3AggregateQuery({
         break;
       case NumericalAggregations.Median:
         aggregationSql = knex.raw(
-          `(SELECT AVG((??)) FROM (SELECT (??) FROM ?? ORDER BY (??) LIMIT 2 - (SELECT COUNT(*) FROM ??) % 2 OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??)))`,
-          [subAggCol, subAggCol, subAggFrom, subAggCol, subAggFrom, subAggFrom],
+          `(SELECT AVG((??)) FROM (SELECT (??) FROM ?? WHERE (??) IS NOT NULL ORDER BY (??) LIMIT 2 - (SELECT COUNT((??)) FROM ??) % 2 OFFSET (SELECT (COUNT((??)) - 1) / 2 FROM ??)))`,
+          [
+            subAggCol,
+            subAggCol,
+            subAggFrom,
+            subAggCol,
+            subAggCol,
+            subAggCol,
+            subAggFrom,
+            subAggCol,
+            subAggFrom,
+          ],
         );
         break;
       default:

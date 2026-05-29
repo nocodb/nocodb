@@ -71,9 +71,7 @@ export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
           'metric.column_id',
           `Column has an error: ${column.colOptions.error}`,
         );
-      } else if (
-        !validateAggregationColType(column, metric.aggregation)
-      ) {
+      } else if (!validateAggregationColType(column, metric.aggregation)) {
         addError(
           'metric.aggregation',
           'Aggregation is not valid for this column',

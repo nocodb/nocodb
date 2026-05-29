@@ -7,7 +7,7 @@ import { SqliteDBQueryClient } from '~/dbQueryClient/sqlite';
 import { MssqlDBQueryClient } from '~/dbQueryClient/mssql';
 
 export class DBQueryClient {
- static get(clientType: ClientType, dbVersion?: string): DBQueryClientType {
+  static get(clientType: ClientType, dbVersion?: string): DBQueryClientType {
     let client: DBQueryClientType;
     switch (clientType) {
       case ClientType.PG: {

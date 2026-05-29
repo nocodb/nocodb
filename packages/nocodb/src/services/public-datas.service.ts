@@ -1,17 +1,16 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
-  ClientType,
   extractFilterFromXwhere,
   NcBaseError,
   ncIsArray,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import { DBQueryClient } from '~/dbQueryClient';
-import type { NcRequest } from 'nocodb-sdk';
+import type { ClientType, NcRequest } from 'nocodb-sdk';
 import type { GridViewColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
+import { DBQueryClient } from '~/dbQueryClient';
 import { nocoExecute } from '~/utils';
 import {
   Base,
@@ -650,10 +649,9 @@ export class PublicDatasService {
       );
     }
 
-    return await DBQueryClient.get(source.type as unknown as ClientType).aggregate(
-      context,
-      { model, view, source, args: listArgs },
-    );
+    return await DBQueryClient.get(
+      source.type as unknown as ClientType,
+    ).aggregate(context, { model, view, source, args: listArgs });
   }
 
   // todo: Handle the error case where view doesnt belong to model
@@ -1695,9 +1693,14 @@ export class PublicDatasService {
 
     const source = await Source.get(context, model.source_id);
 
-    return await DBQueryClient.get(source.type as unknown as ClientType).bulkAggregate(
-      context,
-      { model, view, source, args: listArgs, bulkFilterList },
-    );
+    return await DBQueryClient.get(
+      source.type as unknown as ClientType,
+    ).bulkAggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+      bulkFilterList,
+    });
   }
 }

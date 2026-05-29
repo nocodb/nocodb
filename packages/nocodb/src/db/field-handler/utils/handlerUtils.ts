@@ -350,7 +350,7 @@ export async function nestedConditionJoin({
 
 export const unsupportedFilter = async (
   _args: {
-    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
     val: any;
   },
   rootArgs: {

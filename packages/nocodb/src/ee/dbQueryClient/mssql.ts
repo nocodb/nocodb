@@ -404,7 +404,9 @@ export class MssqlDBQueryClient
             // itself nested) inlines the JSON instead of escaping it as a
             // string. Transparent no-op when this is the top-level qb.
             qb.select(
-              knex.raw(`JSON_QUERY((${innerSql} ${tail})) AS ??`, [getAs(column)]),
+              knex.raw(`JSON_QUERY((${innerSql} ${tail})) AS ??`, [
+                getAs(column),
+              ]),
             );
             break;
           }

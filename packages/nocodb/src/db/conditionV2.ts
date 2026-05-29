@@ -384,7 +384,6 @@ const parseConditionV2 = async (
           // todo: refactor this to use a better approach to make it more readable and clean
           let genVal = customWhereClause ? field : val;
 
-
           if (
             isNumericCol(column.uidt) &&
             typeof genVal === 'string' &&
@@ -507,12 +506,74 @@ const parseConditionV2 = async (
                 });
               }
               break;
-            // allof/anyof/nallof/nanyof route to FieldHandler via
-            // MultiSelect/SingleSelect handlers — see early-route above.
-            // DateTime/Date/CreatedTime/LastModifiedTime route through
-            // FieldHandler and Rating is handled there too — what's left
-            // here is straight Currency/Duration/Time/Year/etc. numeric or
-            // string ordering. No type-specific casting needed.
+            // MultiSelect/SingleSelect handlers consume allof/anyof/nallof/
+            // nanyof via FieldHandler (early-route above). Plain string columns
+            // — SingleLineText/Email/URL/PhoneNumber/etc. — and other types
+            // that are NOT in the early-route list still need the comma-CSV
+            // membership check here, otherwise the filter falls through to
+            // the end of the switch with no condition and silently returns
+            // every row (or zero, depending on logical_op). RLS uses `anyof`
+            // on a SingleLineText OwnedBy column with a CSV of allowed user
+            // ids, so dropping these cases caused RLS to deny everything.
+            case 'allof':
+            case 'anyof':
+            case 'nallof':
+            case 'nanyof': {
+              const condition = (builder: Knex.QueryBuilder) => {
+                let items = val?.split(',') ?? [];
+                if (
+                  ['mysql2', 'mysql'].includes(knex.clientType()) &&
+                  ['enum', 'set'].includes(column.dt?.toLowerCase())
+                ) {
+                  items = items.map((item) => item.trimEnd());
+                }
+                for (let i = 0; i < items?.length; i++) {
+                  let sql: string;
+                  const bindings = [
+                    field,
+                    `%,${items[i]},%`,
+                    field,
+                    `%, ${items[i]},%`,
+                  ];
+                  if (knex.clientType() === 'pg') {
+                    sql =
+                      "((',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?)";
+                  } else if (knex.clientType() === 'sqlite3') {
+                    sql =
+                      "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)";
+                  } else if (knex.clientType() === 'mssql') {
+                    // T-SQL: `+` is the string concat operator; CONCAT() also
+                    // works but `+` keeps the cast contract identical to pg.
+                    sql =
+                      "((',' + CAST(?? AS NVARCHAR(MAX)) + ',') like ? OR (',' + CAST(?? AS NVARCHAR(MAX)) + ',') like ?)";
+                  } else {
+                    sql =
+                      "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
+                  }
+                  if (i === 0) {
+                    builder = builder.where(knex.raw(sql, bindings));
+                  } else {
+                    if (
+                      filter.comparison_op === 'allof' ||
+                      filter.comparison_op === 'nallof'
+                    ) {
+                      builder = builder.andWhere(knex.raw(sql, bindings));
+                    } else {
+                      builder = builder.orWhere(knex.raw(sql, bindings));
+                    }
+                  }
+                }
+              };
+              if (
+                filter.comparison_op === 'allof' ||
+                filter.comparison_op === 'anyof'
+              ) {
+                qb = qb.where(condition);
+              } else {
+                qb = qb.whereNot(condition).orWhereNull(field);
+              }
+              break;
+            }
             case 'gt':
               qb = qb.where(field, customWhereClause ? '<' : '>', val);
               break;

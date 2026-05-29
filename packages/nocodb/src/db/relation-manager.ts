@@ -8,12 +8,12 @@ import {
   RelationTypes,
 } from 'nocodb-sdk';
 import { extractCorrespondingLinkColumn } from './BaseModelSqlv2/add-remove-links';
-import { displayValueMapKey } from '~/helpers/dbHelpers';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type { Column } from '~/models';
+import { deletedColValue, displayValueMapKey } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
@@ -271,13 +271,14 @@ export class RelationManager {
       ),
     });
 
-    // Exclude soft-deleted rows — they should not block new OO links
+    // Exclude soft-deleted rows — they should not block new OO links.
     const softDeleteCol = childTable.columns?.find((c) => isDeletedCol(c));
     if (softDeleteCol) {
+      const notDeletedValue = deletedColValue(baseModel, false);
       qb.where(function () {
         this.whereNull(softDeleteCol.column_name).orWhere(
           softDeleteCol.column_name,
-          false,
+          notDeletedValue,
         );
       });
     }
@@ -364,7 +365,7 @@ export class RelationManager {
       deleteQb.whereNotExists(
         trx(otherSideTn)
           .select(1)
-          .where(softDeleteCol.column_name, true)
+          .where(softDeleteCol.column_name, deletedColValue(trx, true))
           .whereRaw('?? = ??', [
             otherSideTable.primaryKey.column_name,
             `${vTn}.${otherSideColName}`,
@@ -1178,10 +1179,11 @@ export class RelationManager {
               isDeletedCol(c),
             );
             if (softDeleteCol) {
+              const notDeletedValue = deletedColValue(baseModel, false);
               unlinkQb.where(function () {
                 this.whereNull(softDeleteCol.column_name).orWhere(
                   softDeleteCol.column_name,
-                  false,
+                  notDeletedValue,
                 );
               });
             }

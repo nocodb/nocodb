@@ -72,8 +72,12 @@ export class GenericPgFieldHandler
 
           qb.whereNot(knex.raw(`??::text ilike ?`, [sourceField, val]));
           if (val !== '%%') {
-            // if value is not empty, empty or null should be included
-            qb.orWhere(knex.raw(`??::text != ''`, [sourceField]));
+            // if value is not empty, empty or null should be included.
+            // The legacy conditionV2 path emitted `orWhere(field, '')` here —
+            // restore that. The previous `??::text != ''` had the comparison
+            // operator flipped, matching nearly every row and breaking
+            // Filter `nlike` parity on PG for SingleSelect/MultiSelect.
+            qb.orWhere(knex.raw(`??::text = ''`, [sourceField]));
             qb.orWhereNull(sourceField as any);
           } else {
             // if value is empty, then only null is included

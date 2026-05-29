@@ -147,7 +147,18 @@ export default async function genRollupSelectv2(param: {
         baseUsers: undefined,
         parentColumns,
       });
-      selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+      // `formulaQb.builder` already escapes its `?` literals (`\\?`) so knex
+      // doesn't bind them. But `knex.raw(rawObj)` resolves the inner Raw via
+      // `toQuery()` first, which STRIPS the `\\` and re-exposes a bare `?` —
+      // that `?` then collides with downstream WHERE bindings (e.g. the
+      // soft-delete `__nc_deleted = false`), swapping arguments and leaving
+      // an unbound `?` that PG rejects as a syntax error. Materialize the
+      // SQL and re-escape `?` so the outer builder treats it as literal.
+      // See: parsed-tree-builder.ts:307 (where the original `\\?` escape
+      // is applied to formula output).
+      selectColumnName = knex.raw(
+        `(${formulaQb.builder.toQuery().replaceAll('?', '\\?')})`,
+      );
     } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
       const knex = refBaseModel.dbDriver;
 
@@ -204,7 +215,12 @@ export default async function genRollupSelectv2(param: {
         },
       });
 
-      selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+      // Same `\\?` re-escape as the Formula branch above — Created/Modified
+      // metadata columns lower into a formula builder too, so they share the
+      // same `?`-binding hazard when wrapped via `knex.raw(rawObj)`.
+      selectColumnName = knex.raw(
+        `(${formulaQb.builder.toQuery().replaceAll('?', '\\?')})`,
+      );
     }
 
     // if postgres and rollup function is sum/sumDistinct/avgDistinct/avg, then cast the column to integer when type is boolean

@@ -131,12 +131,12 @@ export class BaseModelDelete {
         this.baseModel.context,
       ));
 
-    // Exclude already soft-deleted records from the delete query
     if (isSoftDelete) {
+      const notDeletedValue = deletedColValue(this.baseModel, false);
       qb.where(function () {
         this.whereNull(deletedColumn.column_name).orWhere(
           deletedColumn.column_name,
-          false,
+          notDeletedValue,
         );
       });
     }

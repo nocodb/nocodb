@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  ClientType,
   isBtLikeV2Junction,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -8,11 +7,11 @@ import {
   RelationTypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import { DBQueryClient } from '~/dbQueryClient';
 import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
-import type { NcRequest } from 'nocodb-sdk';
+import type { ClientType, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 import { Column, Filter, Model, Source, View } from '~/models';
@@ -128,10 +127,9 @@ export class DataTableService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    return await DBQueryClient.get(source.type as unknown as ClientType).aggregate(
-      context,
-      { model, view, source, args: listArgs },
-    );
+    return await DBQueryClient.get(
+      source.type as unknown as ClientType,
+    ).aggregate(context, { model, view, source, args: listArgs });
   }
 
   @TraceCommand((_ctx, p) =>
@@ -1729,10 +1727,15 @@ export class DataTableService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    return await DBQueryClient.get(source.type as unknown as ClientType).bulkAggregate(
-      context,
-      { model, view, source, args: listArgs, bulkFilterList },
-    );
+    return await DBQueryClient.get(
+      source.type as unknown as ClientType,
+    ).bulkAggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+      bulkFilterList,
+    });
   }
 
   async getLinkedDataList(

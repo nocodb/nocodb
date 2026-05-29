@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ClientType, PlanFeatureTypes } from 'nocodb-sdk';
-import type { BaseReqType } from 'nocodb-sdk';
 import { SourcesService as SourcesServiceCE } from 'src/services/sources.service';
+import type { BaseReqType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';

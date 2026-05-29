@@ -5,6 +5,7 @@ import {
   ncIsNumber,
   UITypes,
 } from 'nocodb-sdk';
+import { validateAggregationColType } from 'nocodb-sdk';
 import type {
   BarChartConfig,
   ChartWidgetType,
@@ -20,7 +21,6 @@ import {
   BaseWidgetHandler,
   type WidgetDependencies,
 } from '~/db/widgets/base-widget.handler';
-import { validateAggregationColType } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

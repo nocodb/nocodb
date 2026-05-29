@@ -5,6 +5,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { XKnex } from '~/db/CustomKnex';
 import View from '~/models/View';
 import FormViewColumn from '~/models/FormViewColumn';
+import { deletedColValue } from '~/helpers/dbHelpers';
 
 /**
  * Extracts column name from database error message
@@ -125,8 +126,12 @@ async function findDuplicateColumnByQuery(
 
       // Exclude soft-deleted records
       if (deletedColumnName) {
+        const notDeletedValue = deletedColValue(dbDriver, false);
         query.where(function () {
-          this.whereNull(deletedColumnName).orWhere(deletedColumnName, false);
+          this.whereNull(deletedColumnName).orWhere(
+            deletedColumnName,
+            notDeletedValue,
+          );
         });
       }
 
@@ -440,9 +445,7 @@ export async function handleUniqueConstraintError({
   // Both are emitted on `code === 'EREQUEST'` with `number` set to the
   // corresponding numeric value.
   const mssqlErrorNumber =
-    error?.number ??
-    error?.original?.number ??
-    error?.nativeError?.number;
+    error?.number ?? error?.original?.number ?? error?.nativeError?.number;
   const isMssqlUniqueViolation =
     (clientType === 'mssql' || clientType === 'mssql2') &&
     (mssqlErrorNumber === 2601 || mssqlErrorNumber === 2627);

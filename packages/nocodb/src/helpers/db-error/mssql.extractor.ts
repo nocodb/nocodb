@@ -170,9 +170,7 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
         // when IDENTITY_INSERT is set to OFF.
         message =
           'Cannot insert an explicit value for an identity column. Identity columns are auto-generated.';
-        const m = errorMessage.match(
-          /identity column in table '([^']+)'/i,
-        );
+        const m = errorMessage.match(/identity column in table '([^']+)'/i);
         if (m?.[1]) {
           _extra = { table: m[1] };
         }
@@ -185,9 +183,7 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
         // is inserting into a NOT FOR REPLICATION identity column.
         message =
           'An explicit value is required for the identity column on this table.';
-        const m = errorMessage.match(
-          /identity column in table '([^']+)'/i,
-        );
+        const m = errorMessage.match(/identity column in table '([^']+)'/i);
         if (m?.[1]) {
           _extra = { table: m[1] };
         }
@@ -229,7 +225,8 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
         break;
       }
 
-      case 911: { // Database '...' does not exist. Make sure that the name is entered correctly.
+      case 911: {
+        // Database '...' does not exist. Make sure that the name is entered correctly.
         message = 'The database does not exist.';
         const m = errorMessage.match(/Database '([^']+)' does not exist/i);
         if (m?.[1]) {
@@ -334,7 +331,8 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'The object does not exist.';
         break;
 
-      case 3726: { // Could not drop object '...' because it is referenced by a FOREIGN KEY constraint.
+      case 3726: {
+        // Could not drop object '...' because it is referenced by a FOREIGN KEY constraint.
         message =
           'Cannot drop this object because it is referenced by a foreign key.';
         const m = errorMessage.match(
@@ -352,7 +350,8 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
           'Could not drop the constraint. It may be referenced by other constraints.';
         break;
 
-      case 3728: { // '...' is not a constraint.
+      case 3728: {
+        // '...' is not a constraint.
         message = 'The specified constraint does not exist.';
         const m = errorMessage.match(/'([^']+)' is not a constraint/i);
         if (m?.[1]) {
@@ -374,8 +373,7 @@ export class MssqlDBErrorExtractor implements IClientDbErrorExtractor {
         break;
 
       case 8623: // The query processor ran out of internal resources / memory.
-        message =
-          'The query is too complex. Please simplify it and try again.';
+        message = 'The query is too complex. Please simplify it and try again.';
         httpStatus = 500;
         break;
 

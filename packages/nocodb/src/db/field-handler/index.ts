@@ -20,6 +20,7 @@ import type {
   FilterOptions,
   FilterVerificationResult,
   IFieldHandler,
+  SortOptions,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
 import type { Filter } from '~/models';
@@ -72,6 +73,7 @@ import { UserSqliteHandler } from '~/db/field-handler/handlers/user/user.sqlite.
 import { GenericPgFieldHandler } from '~/db/field-handler/handlers/generic.pg';
 import { GenericMysqlFieldHandler } from '~/db/field-handler/handlers/generic.mysql';
 import { GenericSqliteFieldHandler } from '~/db/field-handler/handlers/generic.sqlite';
+import { MultiSelectMysqlHandler } from '~/db/field-handler/handlers/multi-select/multi-select.mysql.handler';
 import {
   CreatedByGeneralHandler,
   CreatedByPgHandler,
@@ -134,13 +136,13 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
     [ClientType.PG]: GenericPgFieldHandler,
-    [ClientType.MYSQL]: GenericMysqlFieldHandler,
+    [ClientType.MYSQL]: MultiSelectMysqlHandler,
     [ClientType.SQLITE]: GenericSqliteFieldHandler,
   },
   [UITypes.SingleSelect]: {
     [CLIENT_DEFAULT]: SingleSelectGeneralHandler,
     [ClientType.PG]: GenericPgFieldHandler,
-    [ClientType.MYSQL]: GenericMysqlFieldHandler,
+    [ClientType.MYSQL]: MultiSelectMysqlHandler,
     [ClientType.SQLITE]: GenericSqliteFieldHandler,
   },
   [UITypes.Date]: {
@@ -248,7 +250,7 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: ComputedFieldHandler,
   },
   [UITypes.Button]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: FormulaGeneralHandler,
   },
   [UITypes.Links]: {
     [CLIENT_DEFAULT]: LinksGeneralHandler,
@@ -424,6 +426,32 @@ export class FieldHandler implements IFieldHandler {
       knex,
       fieldHandler: this,
       ...this.info,
+      ...options,
+    });
+  }
+
+  /**
+   * Dispatch ORDER BY for a column through the type's handler. Each handler
+   * decides how its column should be sorted (User by display name, Formula
+   * by compiled SQL, etc.). Falls back to GenericFieldHandler.applySort
+   * (plain `qb.orderBy(column_name)`) when no type-specific handler is
+   * registered.
+   */
+  async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions = {},
+  ): Promise<void> {
+    const knex = options.knex ?? this.info.knex;
+    const dbClient = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
+    const handler =
+      this.getHandler(column.uidt, dbClient) ?? new GenericFieldHandler();
+    return handler.applySort(qb, column, direction, {
+      knex,
+      context: this.info.context,
+      baseModel: this.info.baseModel,
       ...options,
     });
   }

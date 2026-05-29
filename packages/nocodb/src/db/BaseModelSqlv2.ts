@@ -107,6 +107,7 @@ import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
   _wherePk,
   applyPaginate,
+  boolSqlLiteral,
   dataWrapper,
   deletedColValue,
   displayValueMapKey,
@@ -6968,7 +6969,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await this.execAndGetRows(query);
     } catch (e) {
       if (this.isMssql) {
-        // eslint-disable-next-line no-console
         console.error(
           '[MSSQL-EXEC-DEBUG] FAILED query:\n',
           query,
@@ -9833,9 +9833,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const source = await this.getSource();
       if (!source.isMeta() || !this.model.isTrashEnabled) return null;
       const columnName = deletedColumn.column_name;
-      const notDeletedValue = deletedColValue(this, false);
+      const notDeletedSql = boolSqlLiteral(this, false);
       return function () {
-        this.whereNull(columnName).orWhere(columnName, notDeletedValue);
+        this.whereNull(columnName).orWhereRaw(`?? = ${notDeletedSql}`, [
+          columnName,
+        ]);
       };
     })();
 

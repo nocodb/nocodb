@@ -110,9 +110,9 @@ import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import {
   _wherePk,
   dataWrapper,
+  deletedColValue,
   extractSortsObject,
   formatDataForAudit,
-  deletedColValue,
   getAs,
   getColumnName,
   getCompositePkValue,
@@ -4314,7 +4314,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (
         this.model.primaryKeys.length === 1 &&
-        (this.isPg || this.isMySQL || this.isSqlite || this.isMssql)
+        (this.isPg || this.isMySQL || this.isSqlite)
       ) {
         const batchQb = batchUpdate(
           this.dbDriver,

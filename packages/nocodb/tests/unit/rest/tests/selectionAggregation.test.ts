@@ -152,16 +152,16 @@ const AGG_CASES: AggCase[] = [
   {
     field: 'Number',
     uidt: UITypes.Number,
-    // median + std_dev are excluded from broad parity — see "Known SQL
-    // divergences" describe at the end of the file. SQLite median has an
-    // ORDER BY/OFFSET formula whose result depends on NULL sort position,
-    // and SQLite std_dev's inner subqueries reference the full table path,
-    // so a row-level WHERE filter doesn't reach the AVG/COUNT inputs.
+    // std_dev is excluded from broad parity because its floating-point
+    // result varies across backends slightly; the dedicated tests at the
+    // bottom of the file pin its parity with the JS reducer on SQLite,
+    // where the implementation is custom.
     aggregations: [
       'sum',
       'min',
       'max',
       'avg',
+      'median',
       'range',
       'count_filled',
       'count_empty',
@@ -437,15 +437,13 @@ function selectionAggregationTests() {
     }
   });
 
-  // The divergences pinned below are SQLite-specific:
-  //  - median uses an ORDER BY/OFFSET formula whose result depends on NULL
-  //    sort position, so it shifts by one when nulls are present.
-  //  - std_dev's avg/squared-error subqueries reference the full table path,
-  //    so a row-level WHERE filter doesn't reach the AVG inputs. The divisor
-  //    itself is now non-null count (matches PG `stddev_pop` / MySQL
-  //    `STDDEV` / SDK reducer); only the row-level filter doesn't propagate.
-  // PG (`percentile_cont` / `stddev_pop`) and MySQL (`STDDEV`) don't have
-  // these quirks, so the assertions below would fail on those backends.
+  // std_dev parity is pinned only on SQLite. The SQLite expression is a
+  // hand-rolled SQRT(SUM((x-avg)^2)/N) over a derived table, whereas PG/MSSQL
+  // use native population-stddev functions (`stddev_pop` / `STDEVP`) and
+  // MySQL uses `STDDEV`. The math agrees in principle, but cross-backend
+  // float ordering produces small differences that the 1e-6 epsilon used in
+  // broad parity is too tight to absorb — so std_dev stays out of the broad
+  // sweep and is pinned here for SQLite specifically.
   const sqliteOnlyDescribe =
     !process.env.DB_CLIENT ||
     process.env.DB_CLIENT === 'sqlite' ||
@@ -453,43 +451,8 @@ function selectionAggregationTests() {
       ? describe
       : describe.skip;
 
-  sqliteOnlyDescribe('known SQL divergences (documented, not bugs in JS)', () => {
-    // These are points where SQL aggregation produces values that differ from
-    // mathematically-correct results computed by the JS reducer. They are
-    // intentional — the JS reducer prefers correctness over SQL-bug parity.
-    // The tests below pin down the divergence so it's visible and stable.
-
-    it('median: SQL counts NULLs in position calculation (off-by-one when nulls present)', async function () {
-      this.timeout(30_000);
-      const numberCol = columns.find((c) => c.title === 'Number')!;
-      const sqlMedian = await fetchSqlAggregation(numberCol.id, 'median', '');
-      const jsMedian = computeAggregation({
-        aggregation: 'median',
-        values: allRecords.map((r) => r.Number),
-        column: numberCol as any,
-      });
-      // Fixture Number: [10, null, 20, 30, 0, 50]
-      // JS (proper, non-null only): sorted [0,10,20,30,50] → median = 20
-      // SQL (SQLite ORDER BY puts NULL first, then position-based pick):
-      //   sorted [null,0,10,20,30,50], offset=2 limit=2 → avg(10,20) = 15
-      expect(Number(sqlMedian)).to.equal(15);
-      expect(jsMedian).to.equal(20);
-    });
-
-    it('median: agrees with JS when there are no nulls in the column', async function () {
-      this.timeout(30_000);
-      // Subset rows 1, 3, 4, 5, 6 — drops row 2 (null Number)
-      const numberCol = columns.find((c) => c.title === 'Number')!;
-      const where = '(Id,neq,2)';
-      const sqlMedian = await fetchSqlAggregation(numberCol.id, 'median', where);
-      // SQL ignores selection filter for the inner ORDER BY subquery, but with
-      // a subset that still contains the null row, the divergence persists.
-      // We compare numerically for sanity — exact value depends on whether
-      // SQL's inner subqueries got filtered.
-      expect(typeof Number(sqlMedian)).to.equal('number');
-    });
-
-    it('std_dev: SQL inner subqueries ignore selection filter (returns full-table value)', async function () {
+  sqliteOnlyDescribe('std_dev: SQLite-specific parity coverage', () => {
+    it('std_dev: SQL honors selection filter (parity with JS subset)', async function () {
       this.timeout(30_000);
       const numberCol = columns.find((c) => c.title === 'Number')!;
       const sqlFull = Number(
@@ -498,22 +461,17 @@ function selectionAggregationTests() {
       const sqlSubset = Number(
         await fetchSqlAggregation(numberCol.id, 'std_dev', '(Id,lte,3)')
       );
-      // The SQL std_dev subquery references the full table path, so the
-      // selection filter doesn't reach the inner AVG/COUNT computations.
-      // Result: subset filter has no effect on SQL std_dev.
-      expect(sqlSubset).to.be.closeTo(
-        sqlFull,
-        1e-6,
-        'SQL std_dev should be unchanged by selection filter (documented bug)'
-      );
+      // The selection filter reaches the inner aggregate — a 3-row subset
+      // computes a different stddev than the full 6-row table.
+      expect(sqlSubset).to.not.be.closeTo(sqlFull, 1);
 
-      // JS std_dev for a subset gives the correct subset value.
+      // SQL subset agrees with JS-computed subset.
       const jsSubset = computeAggregation({
         aggregation: 'std_dev',
         values: allRecords.slice(0, 3).map((r) => r.Number),
         column: numberCol as any,
       }) as number;
-      expect(jsSubset).to.not.be.closeTo(sqlSubset, 1);
+      expect(sqlSubset).to.be.closeTo(jsSubset, 1e-6);
     });
 
     it('std_dev: agrees with JS at the full-table footer (no selection)', async function () {

@@ -331,7 +331,6 @@ export function genMysql2AggregatedQuery({
         ]);
         break;
       case NumericalAggregations.Median:
-        // This is the sqlite3 port median query. Need to use native mysql median query
         aggregationSql = knex.raw(
           `
   (
@@ -339,12 +338,23 @@ export function genMysql2AggregatedQuery({
     FROM (
       SELECT ??
       FROM ??
+      WHERE (??) IS NOT NULL
       ORDER BY ??
-      LIMIT 2 - (SELECT COUNT(*) FROM ??) % 2    -- Handle even/odd number of rows
-      OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??) -- Calculate the median offset
+      LIMIT 2 - (SELECT COUNT(??) FROM ??) % 2    -- Handle even/odd row count
+      OFFSET (SELECT (COUNT(??) - 1) / 2 FROM ??) -- Median offset over non-nulls
     ) AS median_subquery
   )`,
-          [subAggCol, subAggCol, subAggFrom, subAggCol, subAggFrom, subAggFrom],
+          [
+            subAggCol,
+            subAggCol,
+            subAggFrom,
+            subAggCol,
+            subAggCol,
+            subAggCol,
+            subAggFrom,
+            subAggCol,
+            subAggFrom,
+          ],
         );
         break;
       default:

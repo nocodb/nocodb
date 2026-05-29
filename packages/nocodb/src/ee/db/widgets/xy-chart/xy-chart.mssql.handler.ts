@@ -1,17 +1,14 @@
 import {
-  ChartTypes,
   formatAggregation,
   NumericalAggregations,
   UITypes,
   validateAggregationColType,
 } from 'nocodb-sdk';
 import type {
-  BarChartConfig,
+  ChartTypes,
   ChartWidgetType,
-  LineChartConfig,
   NcContext,
   NcRequest,
-  ScatterPlotConfig,
   Widget,
 } from 'nocodb-sdk';
 import type { Knex } from '~/db/CustomKnex';

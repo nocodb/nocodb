@@ -1,4 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
+import { isClient } from '@vueuse/core'
 import { EventType, FormulaDataTypes, UITypes, ViewTypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
 import type {
   Api,
@@ -204,9 +205,71 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDates = ref<dayjs.Dayjs[]>([])
 
-    const activeCalendarView = ref<'month' | 'year' | 'day' | 'week' | '2week' | '6week'>(
-      (viewMetaProperties.value?.active_view as any) ?? 'month',
+    // Per-view, per-user override for the active mode — kept in localStorage so a
+    // reload or new tab restores the user's last choice without overwriting the
+    // view creator's default (`viewMetaProperties.active_view`).
+    const CALENDAR_MODE_STORAGE_PREFIX = 'nc-calendar-mode:'
+    const validCalendarModes = ['day', 'week', '2week', 'month', '6week', 'year'] as const
+    type CalendarMode = (typeof validCalendarModes)[number]
+
+    const calendarModeStorageKey = () => (viewMeta.value?.id ? `${CALENDAR_MODE_STORAGE_PREFIX}${viewMeta.value.id}` : null)
+
+    const readStoredCalendarMode = (): CalendarMode | null => {
+      if (!isClient) return null
+      const key = calendarModeStorageKey()
+      if (!key) return null
+      try {
+        const stored = localStorage.getItem(key)
+        if (stored && (validCalendarModes as readonly string[]).includes(stored)) {
+          return stored as CalendarMode
+        }
+      } catch {
+        // localStorage can throw in private mode / when quota exceeded — silent fallback.
+      }
+      return null
+    }
+
+    const writeStoredCalendarMode = (mode: CalendarMode) => {
+      if (!isClient) return
+      const key = calendarModeStorageKey()
+      if (!key) return
+      try {
+        localStorage.setItem(key, mode)
+      } catch {
+        // ignore
+      }
+    }
+
+    const activeCalendarView = ref<CalendarMode>(
+      readStoredCalendarMode() ?? (viewMetaProperties.value?.active_view as CalendarMode | undefined) ?? 'month',
     )
+
+    // On a cold page load `viewMeta.value` (and therefore its `id`) is often
+    // undefined when the ref above is initialised, so the localStorage lookup
+    // is skipped. Restore once the view id becomes available — but only the
+    // first time, so we don't clobber user selections made afterwards.
+    let calendarModeRestored = !!viewMeta.value?.id && readStoredCalendarMode() !== null
+    watch(
+      () => viewMeta.value?.id,
+      (id) => {
+        if (!id || calendarModeRestored) return
+        const stored = readStoredCalendarMode()
+        if (stored) {
+          activeCalendarView.value = stored
+        } else {
+          const fromMeta = viewMetaProperties.value?.active_view as CalendarMode | undefined
+          if (fromMeta && fromMeta !== activeCalendarView.value) {
+            activeCalendarView.value = fromMeta
+          }
+        }
+        calendarModeRestored = true
+      },
+      { immediate: true },
+    )
+
+    watch(activeCalendarView, (value) => {
+      writeStoredCalendarMode(value)
+    })
 
     // Number of consecutive weeks rendered by the multi-week grid (week / 2week / 6week).
     const weeksInRange = computed(() => {

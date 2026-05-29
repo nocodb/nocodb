@@ -1,4 +1,4 @@
-import { type NcContext } from 'nocodb-sdk';
+import { type NcContext, isNumericCol, UITypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -20,6 +20,21 @@ import {
 } from '~/db/field-handler/utils/handlerUtils';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
+
+// Empty-string comparisons (`= ''` / `!= ''`) only make sense for text-like
+// columns. Numeric / date / time columns can't be compared to '' — PG raises a
+// cast error — so `blank`/`notblank` reduce to IS NULL / IS NOT NULL for them.
+// Mirrors the type gate the legacy conditionV2 switch used.
+const isEmptyStringIncompatible = (uidt: UITypes): boolean =>
+  isNumericCol(uidt) ||
+  [
+    UITypes.Date,
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+    UITypes.Time,
+    UITypes.Checkbox,
+  ].includes(uidt);
 
 export class GenericFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
@@ -167,6 +182,13 @@ export class GenericFieldHandler
       case 'le':
       case 'lte':
         filterOperation = this.filterLte;
+        break;
+
+      case 'btw':
+        filterOperation = this.filterBtw;
+        break;
+      case 'nbtw':
+        filterOperation = this.filterNbtw;
         break;
 
       case 'in':
@@ -387,13 +409,17 @@ export class GenericFieldHandler
     const { sourceField } = args;
     const { knex, column } = rootArgs;
     const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
+    // Legacy conditionV2 only added the `= ''` check for text-like columns.
+    // Numeric / date / time columns can't be compared to '' (PG raises a cast
+    // error), so for them `blank` is `IS NULL` only.
+    const skipEmptyStringCompare = isEmptyStringIncompatible(column.uidt);
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           nestedQb.whereNull(sourceField as any);
-          if (!isNativePgEnum) {
+          if (!isNativePgEnum && !skipEmptyStringCompare) {
             nestedQb.orWhere(knex.raw("?? = ''", [sourceField]));
           }
         });
@@ -525,14 +551,19 @@ export class GenericFieldHandler
     const { sourceField } = args;
     const { knex, column } = rootArgs;
     const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
+    // Legacy conditionV2 used `whereNotNull().whereNot(field, '')` — an AND, and
+    // the `!= ''` was only added for text-like columns. The migration changed it
+    // to `orWhere` (which wrongly includes empty strings, since '' IS NOT NULL)
+    // and dropped the type gate (so numeric/date/time hit a '' cast error).
+    const skipEmptyStringCompare = isEmptyStringIncompatible(column.uidt);
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           nestedQb.whereNotNull(sourceField as any);
-          if (!isNativePgEnum) {
-            nestedQb.orWhere(knex.raw("?? != ''", [sourceField]));
+          if (!isNativePgEnum && !skipEmptyStringCompare) {
+            nestedQb.andWhere(knex.raw("?? != ''", [sourceField]));
           }
         });
       },
@@ -680,6 +711,46 @@ export class GenericFieldHandler
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where(sourceField as any, '<=', val);
+      },
+    };
+  }
+
+  // `btw` / `nbtw` — value is "lower,upper". Mirrors the legacy conditionV2
+  // `whereBetween` / `whereNotBetween` (both exclude NULL rows, matching SQL
+  // BETWEEN semantics). The generic switch previously had no case for these,
+  // so they fell through to unsupportedFilter after the migration.
+  async filterBtw(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
+    const [lower, upper] = String(val ?? '').split(',');
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereBetween(sourceField as any, [lower, upper]);
+      },
+    };
+  }
+
+  async filterNbtw(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
+    const [lower, upper] = String(val ?? '').split(',');
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNotBetween(sourceField as any, [lower, upper]);
       },
     };
   }

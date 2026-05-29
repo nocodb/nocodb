@@ -212,7 +212,7 @@ export async function hasTableVisibilityAccess(
 /**
  * Check if user has access to a view based on VIEW_VISIBILITY permission
  * Base owners always have access.
- * If no VIEW_VISIBILITY permission exists, defaults to everyone (accessible).
+ * If no VIEW_VISIBILITY permission exists, defaults to Viewers & up (all base members).
  */
 export async function hasViewVisibilityAccess(
   context: NcContext,
@@ -256,7 +256,7 @@ export async function hasViewVisibilityAccess(
       p.permission === PermissionKey.VIEW_VISIBILITY,
   );
 
-  // No permission exists — default to everyone (accessible)
+  // No permission exists — default to Viewers & up (all base members have access)
   if (!visibilityPermission) {
     return true;
   }

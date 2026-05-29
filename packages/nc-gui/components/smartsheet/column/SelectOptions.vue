@@ -69,6 +69,17 @@ const isColorCodeEnabled = computed({
   },
 })
 
+const isAlphabetized = computed({
+  get: () => {
+    const metaObj = parseProp(vModel.value.meta)
+    return metaObj.isAlphabetized === true
+  },
+  set: (val: boolean) => {
+    const metaObj = parseProp(vModel.value.meta)
+    vModel.value.meta = { ...metaObj, isAlphabetized: val }
+  },
+})
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const { t } = useI18n()
@@ -180,6 +191,12 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
   vModel.value.colOptions.options = options.value
     .filter((op) => op.status !== 'remove')
     .sort((a, b) => {
+      // On submit (e.g. saving a kanban stack) respect the Alphabetize toggle so the
+      // persisted option order is alphabetical rather than the current rendered order.
+      if (submit && isAlphabetized.value) {
+        return (a.title ?? '').localeCompare(b.title ?? '')
+      }
+
       const renderA = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === a.index)
       const renderB = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === b.index)
       if (renderA === -1 || renderB === -1) return 0
@@ -383,7 +400,7 @@ const predictOptions = async () => {
   }
 }
 
-const alphabetizeOptions = () => {
+const sortOptionsInPlace = () => {
   const activeOptions = options.value.filter((op) => op.status !== 'remove')
 
   const alreadySorted = activeOptions.every(
@@ -409,7 +426,11 @@ const alphabetizeOptions = () => {
   syncOptions()
 }
 
-onMounted(() => {
+// Seed the local `options` list from the bound model. Runs on mount and again whenever
+// the underlying field changes while this component stays mounted (AI auto-suggest field
+// switch, where `colOptions` is swapped under us). Without re-seeding, the previously
+// selected field's options would stay on screen even though every other prop updated.
+function seedOptionsFromModel() {
   if (!vModel.value.colOptions?.options) {
     vModel.value.colOptions = {
       options: [],
@@ -444,9 +465,26 @@ onMounted(() => {
   }
 
   const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
-  if (fndDefaultOption.length) {
-    defaultOption.value = vModel.value.uidt === UITypes.SingleSelect ? [fndDefaultOption[0]] : fndDefaultOption
-  }
+  defaultOption.value = fndDefaultOption.length
+    ? vModel.value.uidt === UITypes.SingleSelect
+      ? [fndDefaultOption[0]]
+      : fndDefaultOption
+    : []
+}
+
+// Re-seed when the bound field switches in place (identity changes), e.g. toggling
+// between AI auto-suggested select fields. Local edits never change the identity key,
+// so this never fires mid-edit.
+watch(
+  () => vModel.value.ai_temp_id ?? vModel.value.id ?? vModel.value.temp_id,
+  () => {
+    seedOptionsFromModel()
+  },
+)
+
+onMounted(() => {
+  seedOptionsFromModel()
+
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
   } else if (isKanbanStack.value) {
@@ -498,6 +536,12 @@ if (!isKanbanStack.value) {
     })
   })
 }
+
+defineExpose({
+  flushSort: () => {
+    if (isAlphabetized.value) sortOptionsInPlace()
+  },
+})
 </script>
 
 <template>
@@ -509,18 +553,16 @@ if (!isKanbanStack.value) {
         </NcSwitch>
       </div>
 
-      <NcButton
-        v-e="['c:field:select:alphabetize']"
-        type="text"
-        size="small"
-        :disabled="isSyncedField"
-        @click.stop="alphabetizeOptions"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
-        </template>
-        {{ $t('labels.alphabetize') }}
-      </NcButton>
+      <div class="flex items-center">
+        <NcSwitch
+          v-model:checked="isAlphabetized"
+          size="xsmall"
+          :disabled="isSyncedField"
+          @change="(v) => $e('c:field:select:alphabetize:toggle', { enabled: v })"
+        >
+          {{ $t('labels.alphabetize') }}
+        </NcSwitch>
+      </div>
     </div>
 
     <div
@@ -607,7 +649,7 @@ if (!isKanbanStack.value) {
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
-          :disabled="isSyncedField"
+          :disabled="isAlphabetized || isSyncedField"
           @change="onDragReorder"
         >
           <template #item="{ element, index }">
@@ -619,7 +661,8 @@ if (!isKanbanStack.value) {
               >
                 <div
                   v-if="!isKanban"
-                  class="nc-child-draggable-icon p-2 flex cursor-pointer text-nc-content-gray-subtle"
+                  class="nc-child-draggable-icon p-2 flex text-nc-content-gray-subtle"
+                  :class="isAlphabetized ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                   :data-testid="`select-option-column-handle-icon-${element.title}`"
                 >
                   <component :is="iconMap.dragVertical" small class="handle" />

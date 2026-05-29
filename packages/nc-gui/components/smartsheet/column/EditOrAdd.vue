@@ -63,6 +63,14 @@ const {
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
+// Patch colOptions into formState during setup so the child SelectOptions
+// (whose onMounted runs before this parent's onMounted) initializes its
+// local options from preload's pending edits rather than the stale column data.
+// Full preload merge (others + meta) still happens in onMounted below.
+if (props.preload?.colOptions) {
+  formState.value.colOptions = { ...props.preload.colOptions }
+}
+
 const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const {
@@ -405,6 +413,8 @@ const saving = ref(false)
 
 const warningVisible = ref(false)
 
+const selectOptionsRef = ref<{ flushSort: () => void } | null>(null)
+
 const saveSubmitted = async () => {
   if (readOnly.value) return
   let saved, savedColumn
@@ -447,6 +457,9 @@ const saveSubmitted = async () => {
 async function onSubmit() {
   if (readOnly.value) return
 
+  selectOptionsRef.value?.flushSort()
+  await nextTick()
+
   // Show warning message if user tries to change type of column
   if (isEdit.value && formState.value.uidt !== column.value?.uidt) {
     warningVisible.value = true
@@ -465,6 +478,7 @@ async function onSubmit() {
 
 // focus and select the column name field
 const antInput = ref()
+
 watchEffect(() => {
   if (antInput.value && formState.value && !readOnly.value) {
     // todo: replace setTimeout
@@ -1411,6 +1425,7 @@ const unique = computed({
         <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          ref="selectOptionsRef"
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
         />

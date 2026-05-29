@@ -21,8 +21,7 @@ import {
  */
 const syncSystemColumnTitles = new Set<string>(SYNC_SYSTEM_COLUMN_TITLES)
 
-const isSyncSystemColumnTitle = (title?: string | null): boolean =>
-  !!title && syncSystemColumnTitles.has(title)
+const isSyncSystemColumnTitle = (title?: string | null): boolean => !!title && syncSystemColumnTitles.has(title)
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'

@@ -22,6 +22,8 @@ const { getMeta, getMetaByKey } = useMetas()
 
 const { ncNavigateTo } = useGlobal()
 
+const { t } = useI18n()
+
 const route = useRoute()
 
 const { activeProjectId } = storeToRefs(useBases())
@@ -296,6 +298,8 @@ const onReady = () => {
   }
 }
 
+const isViewNotAccessible = ref(false)
+
 const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
   const views = await viewStore.loadViews({
@@ -303,15 +307,22 @@ const checkIfViewExists = async () => {
     ignoreLoading: true,
   })
 
-  // If no views exist or the current view is not found, navigate to workspace/base
   if (
     !views?.length ||
     !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
   ) {
+    // Views exist but the requested one is not accessible — show error page
+    if (views?.length) {
+      isViewNotAccessible.value = true
+      return
+    }
+
     ncNavigateTo({
       workspaceId: activeWorkspaceId.value,
       baseId: activeProjectId.value,
     })
+  } else {
+    isViewNotAccessible.value = false
   }
 }
 
@@ -340,8 +351,23 @@ watch(isViewsLoading, async () => {
     @drop="onDrop"
     @dragover.prevent
   >
-    <SmartsheetTopbar v-if="!isFullScreen" />
-    <div style="height: calc(100% - var(--topbar-height))">
+    <SmartsheetTopbar v-if="!isFullScreen && !isViewNotAccessible" />
+
+    <!-- View not accessible error page -->
+    <div v-if="isViewNotAccessible" class="flex flex-col items-center justify-center h-full gap-4 text-nc-content-gray-subtle">
+      <GeneralIcon icon="ncGrid" class="w-16 h-16 text-nc-content-gray-muted" />
+      <div class="text-lg font-semibold text-nc-content-gray-emphasis">
+        {{ t('msg.info.viewNotFound') }}
+      </div>
+      <div class="text-sm">
+        {{ t('msg.info.viewNotFoundDescription') }}
+      </div>
+      <div class="text-sm text-nc-content-gray-muted">
+        {{ t('msg.info.viewNotFoundHint') }}
+      </div>
+    </div>
+
+    <div v-else style="height: calc(100% - var(--topbar-height))">
       <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
         <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
         <Splitpanes

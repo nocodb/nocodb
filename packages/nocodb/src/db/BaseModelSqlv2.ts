@@ -3030,10 +3030,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // bare OUTPUT INSERTED.* form knex emits — route through the
           // OUTPUT-INTO-table-variable pattern.
           const aiCol = this.model.columns.find((c) => c.ai);
-          const explicitIdentity = mssqlNeedsIdentityInsert(
-            [insertObj],
-            aiCol,
-          );
+          const explicitIdentity = mssqlNeedsIdentityInsert([insertObj], aiCol);
           const hasTriggers = await mssqlTableHasTriggers(this);
           if (hasTriggers || explicitIdentity) {
             const sql = mssqlBuildBulkInsertWithCapture({
@@ -3722,7 +3719,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const result: any = await trx.raw(sql);
                 const rows: any[] = Array.isArray(result)
                   ? result
-                  : (result?.rows ?? result?.recordset ?? []);
+                  : result?.rows ?? result?.recordset ?? [];
                 responses.push(...rows);
               }
             }
@@ -6966,12 +6963,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    // TEMP MSSQL debug: log every query + surface the exact one that throws.
-    if (this.isMssql) {
-      // eslint-disable-next-line no-console
-      console.log('[MSSQL-EXEC-DEBUG] query:', query);
-    }
-
     let data;
     try {
       data = await this.execAndGetRows(query);
@@ -8646,7 +8637,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.Email,
             UITypes.JSON,
             UITypes.Currency,
-            UITypes.Checkbox
+            UITypes.Checkbox,
           ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (

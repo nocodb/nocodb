@@ -91,6 +91,7 @@ import { TimeGeneralHandler } from '~/db/field-handler/handlers/time/time.genera
 import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.handler';
 import { TimeMssqlHandler } from '~/db/field-handler/handlers/time/time.mssql.handler';
 import { UuidPgHandler } from '~/db/field-handler/handlers/uuid/uuid.pg.handler';
+import { UuidMssqlHandler } from '~/db/field-handler/handlers/uuid/uuid.mssql.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -166,6 +167,7 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.UUID]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
     [ClientType.PG]: UuidPgHandler,
+    [ClientType.MSSQL]: UuidMssqlHandler,
   },
   [UITypes.Number]: {
     [CLIENT_DEFAULT]: NumberGeneralHandler,

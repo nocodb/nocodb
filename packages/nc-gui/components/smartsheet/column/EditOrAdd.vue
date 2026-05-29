@@ -148,7 +148,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isPg, isDatabricks, isXcdbBase } = useBase()
+const { isMysql, isPg, isMssql, isDatabricks, isXcdbBase } = useBase()
 
 const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
 
@@ -256,15 +256,17 @@ const uiFilters = (t: UiTypesType) => {
     formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
   }
 
-  // UUID is only supported for PostgreSQL databases, and cannot be converted
-  // to from other types (values are DB-generated + unique — converting existing
-  // data would break both invariants; backend blocks this in columns.service.ts).
-  // When editing an existing UUID column, line 228 above already preserves the
-  // current type in the dropdown.
-  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value && !isEdit.value)
+  // UUID is supported on PostgreSQL (`uuid` + `gen_random_uuid()`) and SQL
+  // Server (`uniqueidentifier` + `NEWID()`). Cannot be CONVERTED to from
+  // other types because values are DB-generated + unique — converting
+  // existing data would break both invariants; the backend (and the
+  // dropdown line 228 above for edit mode) enforces that.
+  const isUuidCompatibleSource = isPg(meta.value?.source_id) || isMssql(meta.value?.source_id)
+  const showUUID = t.name !== UITypes.UUID || (isUuidCompatibleSource && isEeUI && showEEFeatures.value && !isEdit.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+  const showAutoNumber =
+    t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&

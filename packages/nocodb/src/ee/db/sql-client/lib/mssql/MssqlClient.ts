@@ -2670,10 +2670,7 @@ class MssqlClient extends KnexClient {
   // composite-PK shape when altering one of the PK columns — re-adding
   // PRIMARY KEY (col) instead of PRIMARY KEY (a, b) would silently
   // change the constraint.
-  private async _findPkColumns(
-    schema: string,
-    tn: string,
-  ): Promise<string[]> {
+  private async _findPkColumns(schema: string, tn: string): Promise<string[]> {
     try {
       const resp = await this.sqlClient.raw(
         `SELECT col.name AS cn

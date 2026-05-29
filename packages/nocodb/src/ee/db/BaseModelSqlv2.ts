@@ -112,6 +112,7 @@ import {
   dataWrapper,
   extractSortsObject,
   formatDataForAudit,
+  deletedColValue,
   getAs,
   getColumnName,
   getCompositePkValue,
@@ -329,12 +330,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    // TEMP MSSQL debug: log every query + surface the exact one that throws.
-    if (this.isMssql) {
-      // eslint-disable-next-line no-console
-      console.log('[MSSQL-EXEC-DEBUG] query:', query);
-    }
-
     let data;
     try {
       if (this.dbDriver.isExternal) {
@@ -347,7 +342,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
     } catch (e) {
       if (this.isMssql) {
-        // eslint-disable-next-line no-console
         console.error(
           '[MSSQL-EXEC-DEBUG] FAILED query:\n',
           query,
@@ -1735,11 +1729,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
       bufferDays: rule.dependency_buffer_days ?? 0,
       seedIds,
-      dialect: (this.isPg
-        ? 'pg'
-        : this.isMssql
-        ? 'mssql'
-        : 'mysql') as 'pg' | 'mysql' | 'mssql',
+      dialect: (this.isPg ? 'pg' : this.isMssql ? 'mssql' : 'mysql') as
+        | 'pg'
+        | 'mysql'
+        | 'mssql',
       includeWeekends: rule.include_weekends ?? true,
       junction: junctionInfo,
     };
@@ -3834,7 +3827,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           // via mssqlChunkSize.
           const bulkUpsertAiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
           const mssqlExplicitIdentity =
-            this.isMssql && mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiPkCol);
+            this.isMssql &&
+            mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiPkCol);
           const mssqlHasTriggers = this.isMssql
             ? await mssqlTableHasTriggers(this)
             : false;

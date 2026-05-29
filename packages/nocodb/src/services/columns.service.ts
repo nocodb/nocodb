@@ -3607,10 +3607,9 @@ export class ColumnsService implements IColumnsService {
         break;
       case UITypes.UUID:
         {
-          // UUID is only supported for PostgreSQL databases
-          if (source.type !== 'pg') {
+          if (source.type !== 'pg' && source.type !== 'mssql') {
             NcError.get(context).badRequest(
-              'UUID field type is supported only for PostgreSQL databases',
+              'UUID field type is supported only for PostgreSQL and SQL Server databases',
             );
           }
 

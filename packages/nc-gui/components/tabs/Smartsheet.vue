@@ -32,6 +32,9 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const viewStore = useViewsStore()
 
+const tablesStore = useTablesStore()
+const { baseTables, activeTableId } = storeToRefs(tablesStore)
+
 const webhooksStore = useWebhooksStore()
 
 const { pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
@@ -299,8 +302,21 @@ const onReady = () => {
 }
 
 const isViewNotAccessible = ref(false)
+const isTableNotAccessible = ref(false)
+
+const checkIfTableExists = () => {
+  const tables = baseTables.value.get(activeProjectId.value!)
+  if (tables && activeTableId.value && !tables.find((t) => t.id === activeTableId.value)) {
+    isTableNotAccessible.value = true
+    return true
+  }
+  isTableNotAccessible.value = false
+  return false
+}
 
 const checkIfViewExists = async () => {
+  if (checkIfTableExists()) return
+
   await until(() => isViewsLoading.value).toBe(false)
   const views = await viewStore.loadViews({
     baseId: activeProjectId.value,
@@ -342,6 +358,14 @@ onMounted(async () => {
 watch(isViewsLoading, async () => {
   await checkIfViewExists()
 })
+
+// Re-check table accessibility when tables are reloaded (e.g. after table_permission_update)
+watch(
+  () => baseTables.value.get(activeProjectId.value!),
+  () => {
+    checkIfTableExists()
+  },
+)
 </script>
 
 <template>
@@ -351,10 +375,30 @@ watch(isViewsLoading, async () => {
     @drop="onDrop"
     @dragover.prevent
   >
-    <SmartsheetTopbar v-if="!isFullScreen && !isViewNotAccessible" />
+    <SmartsheetTopbar v-if="!isFullScreen && !isTableNotAccessible && !isViewNotAccessible" />
+
+    <!-- Table not accessible error page -->
+    <div
+      v-if="isTableNotAccessible"
+      class="flex flex-col items-center justify-center h-full gap-4 text-nc-content-gray-subtle"
+    >
+      <GeneralIcon icon="ncTable" class="w-16 h-16 text-nc-content-gray-muted" />
+      <div class="text-lg font-semibold text-nc-content-gray-emphasis">
+        {{ t('msg.info.tableNotFound') }}
+      </div>
+      <div class="text-sm">
+        {{ t('msg.info.tableNotFoundDescription') }}
+      </div>
+      <div class="text-sm text-nc-content-gray-muted">
+        {{ t('msg.info.tableNotFoundHint') }}
+      </div>
+    </div>
 
     <!-- View not accessible error page -->
-    <div v-if="isViewNotAccessible" class="flex flex-col items-center justify-center h-full gap-4 text-nc-content-gray-subtle">
+    <div
+      v-else-if="isViewNotAccessible"
+      class="flex flex-col items-center justify-center h-full gap-4 text-nc-content-gray-subtle"
+    >
       <GeneralIcon icon="ncGrid" class="w-16 h-16 text-nc-content-gray-muted" />
       <div class="text-lg font-semibold text-nc-content-gray-emphasis">
         {{ t('msg.info.viewNotFound') }}

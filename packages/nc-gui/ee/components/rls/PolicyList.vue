@@ -17,8 +17,10 @@ const tableId = computed(() => props.tableId)
 const { showUpgradeToUseRls } = useEeConfig()
 
 const rlsStore = useRlsStore()
-const { activePolicies: policies, isLoading } = storeToRefs(rlsStore)
+const { policies: allPolicies, isLoading } = storeToRefs(rlsStore)
 const { loadPolicies, createPolicy, deletePolicy, togglePolicy } = rlsStore
+
+const policies = computed(() => allPolicies.value.get(props.tableId) ?? [])
 
 const basesStore = useBases()
 const { basesUser, basesTeams } = storeToRefs(basesStore)
@@ -114,7 +116,7 @@ const handleEditPolicy = (policy: RlsPolicyType) => {
 const handleEditorClose = () => {
   editingPolicyId.value = null
   showEditor.value = false
-  loadPolicies()
+  loadPolicies(props.tableId)
 }
 
 const editingPolicy = computed(() =>

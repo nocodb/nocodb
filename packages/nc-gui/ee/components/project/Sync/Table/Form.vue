@@ -2,6 +2,8 @@
 import type { ColumnType, TableSyncType, TableType, ViewType } from 'nocodb-sdk'
 import {
   NcErrorType,
+  PlanFeatureTypes,
+  PlanTitles,
   TableSyncMappingRole,
   TableSyncOnDeleteAction,
   TableSyncTrigger,
@@ -33,6 +35,8 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { dashboardUrl } = useDashboard()
 
+const { blockTableSyncAuto, getPlanTitle } = useEeConfig()
+
 const tableSyncStore = useTableSyncStore()
 
 const { createSync, updateSync, loadSyncs, resolveLink, activeBaseSyncs: activeBaseSyncsFn } = tableSyncStore
@@ -51,7 +55,8 @@ const form = reactive({
   sourceBaseId: '',
   sourceTableId: '',
   sourceViewId: '',
-  syncTrigger: TableSyncTrigger.Realtime as TableSyncTrigger,
+  // Default to automatic unless the plan gates it — then fall back to manual.
+  syncTrigger: (blockTableSyncAuto.value ? TableSyncTrigger.Manual : TableSyncTrigger.Realtime) as TableSyncTrigger,
   // Default to MarkDeleted (Airtable parity) — avoids data loss when source filters change.
   onDeleteAction: TableSyncOnDeleteAction.MarkDeleted as TableSyncOnDeleteAction,
 })
@@ -1144,51 +1149,61 @@ onMounted(async () => {
 
             <div class="flex flex-col gap-2">
               <label class="text-bodyDefaultSm text-nc-content-gray-subtle">{{ $t('labels.syncMethod') }}</label>
-              <div class="grid grid-cols-2 gap-3">
-                <div
-                  v-e="['c:table-sync:trigger', { trigger: TableSyncTrigger.Realtime }]"
-                  class="flex flex-col p-3 border-1 rounded-lg gap-2 cursor-pointer"
-                  :class="
-                    form.syncTrigger === TableSyncTrigger.Realtime
-                      ? 'border-nc-border-brand !shadow-selected'
-                      : 'border-nc-border-gray-medium hover:shadow-hover'
-                  "
-                  data-testid="nc-table-sync-method-auto"
-                  @click="form.syncTrigger = TableSyncTrigger.Realtime"
-                >
-                  <div class="flex items-center justify-between">
-                    <div class="text-nc-content-gray font-weight-600 text-caption">{{ $t('labels.automatically') }}</div>
-                    <GeneralIcon
-                      v-if="form.syncTrigger === TableSyncTrigger.Realtime"
-                      icon="ncCheckCircle"
-                      class="text-nc-content-brand h-4 w-4"
-                    />
-                  </div>
-                  <div class="text-nc-content-gray-muted text-bodySm">{{ $t('labels.automaticallyDesc') }}</div>
-                </div>
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO">
+                <template #default="{ click }">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div
+                      v-e="['c:table-sync:trigger', { trigger: TableSyncTrigger.Realtime }]"
+                      class="flex flex-col p-3 border-1 rounded-lg gap-2 cursor-pointer"
+                      :class="
+                        form.syncTrigger === TableSyncTrigger.Realtime
+                          ? 'border-nc-border-brand !shadow-selected'
+                          : 'border-nc-border-gray-medium hover:shadow-hover'
+                      "
+                      data-testid="nc-table-sync-method-auto"
+                      @click="click(PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO, () => (form.syncTrigger = TableSyncTrigger.Realtime))"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <div class="text-nc-content-gray font-weight-600 text-caption">{{ $t('labels.automatically') }}</div>
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO"
+                            :content="$t('upgrade.upgradeToUseAutomaticSyncSubtitle', { plan: getPlanTitle(PlanTitles.BUSINESS) })"
+                          />
+                        </div>
+                        <GeneralIcon
+                          v-if="form.syncTrigger === TableSyncTrigger.Realtime"
+                          icon="ncCheckCircle"
+                          class="text-nc-content-brand h-4 w-4"
+                        />
+                      </div>
+                      <div class="text-nc-content-gray-muted text-bodySm">{{ $t('labels.automaticallyDesc') }}</div>
+                    </div>
 
-                <div
-                  v-e="['c:table-sync:trigger', { trigger: TableSyncTrigger.Manual }]"
-                  class="flex flex-col p-3 border-1 rounded-lg gap-2 cursor-pointer"
-                  :class="
-                    form.syncTrigger === TableSyncTrigger.Manual
-                      ? 'border-nc-border-brand !shadow-selected'
-                      : 'border-nc-border-gray-medium hover:shadow-hover'
-                  "
-                  data-testid="nc-table-sync-method-manual"
-                  @click="form.syncTrigger = TableSyncTrigger.Manual"
-                >
-                  <div class="flex items-center justify-between">
-                    <div class="text-nc-content-gray font-weight-600 text-caption">{{ $t('labels.manually') }}</div>
-                    <GeneralIcon
-                      v-if="form.syncTrigger === TableSyncTrigger.Manual"
-                      icon="ncCheckCircle"
-                      class="text-nc-content-brand h-4 w-4"
-                    />
+                    <div
+                      v-e="['c:table-sync:trigger', { trigger: TableSyncTrigger.Manual }]"
+                      class="flex flex-col p-3 border-1 rounded-lg gap-2 cursor-pointer"
+                      :class="
+                        form.syncTrigger === TableSyncTrigger.Manual
+                          ? 'border-nc-border-brand !shadow-selected'
+                          : 'border-nc-border-gray-medium hover:shadow-hover'
+                      "
+                      data-testid="nc-table-sync-method-manual"
+                      @click="form.syncTrigger = TableSyncTrigger.Manual"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div class="text-nc-content-gray font-weight-600 text-caption">{{ $t('labels.manually') }}</div>
+                        <GeneralIcon
+                          v-if="form.syncTrigger === TableSyncTrigger.Manual"
+                          icon="ncCheckCircle"
+                          class="text-nc-content-brand h-4 w-4"
+                        />
+                      </div>
+                      <div class="text-nc-content-gray-muted text-bodySm">{{ $t('labels.manuallyDesc') }}</div>
+                    </div>
                   </div>
-                  <div class="text-nc-content-gray-muted text-bodySm">{{ $t('labels.manuallyDesc') }}</div>
-                </div>
-              </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
             </div>
 
             <div class="flex flex-col gap-2">

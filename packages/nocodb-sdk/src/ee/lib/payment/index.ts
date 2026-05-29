@@ -124,6 +124,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_SSO]: false,
       [PlanFeatureTypes.FEATURE_SYNC]: false,
       [PlanFeatureTypes.FEATURE_TABLE_SYNC]: false,
+      [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
       [PlanFeatureTypes.FEATURE_LIST_VIEW]: false,
@@ -201,7 +202,9 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_SSO]: false,
       [PlanFeatureTypes.FEATURE_SYNC]: false,
-      [PlanFeatureTypes.FEATURE_TABLE_SYNC]: false,
+      // Table sync (manual) is available from the first paid plan; only the
+      // automatic/real-time trigger is gated to Business+.
+      [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
       [PlanFeatureTypes.FEATURE_LIST_VIEW]: false,
@@ -516,6 +519,9 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]: false,
       [PlanFeatureTypes.FEATURE_FIELD_VISIBILITY]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      // Table sync (manual) is available on the first paid plan; automatic
+      // real-time sync is gated to Scale+.
+      [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,

@@ -109,6 +109,11 @@ export class TableSyncService {
 
     if (!oldSync) NcError.get(context).tableSyncNotFound(id);
 
+    // Switching to real-time (automatic) sync requires the higher-tier feature.
+    if (patch.sync_trigger === TableSyncTrigger.Realtime) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO);
+    }
+
     if (patch.title !== undefined && patch.title !== oldSync.title) {
       await this.assertUniqueTitle(context, patch.title, id);
     }
@@ -1350,6 +1355,11 @@ export class TableSyncService {
       source_input_mode = TableSyncInputMode.Browse,
       password: sourcePassword,
     } = payload;
+
+    // Real-time (automatic) sync is a higher-tier feature than manual sync.
+    if (sync_trigger === TableSyncTrigger.Realtime) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO);
+    }
 
     const sourceWorkspaceId = source_workspace_id ?? context.workspace_id;
 

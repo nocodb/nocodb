@@ -122,6 +122,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTableSync = computed(() => true)
 
+  const blockTableSyncAuto = computed(() => true)
+
   const blockUnique = computed(() => true)
 
   // UUID field is EE-only — always blocked in CE
@@ -484,6 +486,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockCardFieldHeaderVisibility,
     blockSync,
     blockTableSync,
+    blockTableSyncAuto,
     blockRls,
     blockUnique,
     blockUuidField,

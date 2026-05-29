@@ -7,7 +7,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { showUpgradeToUseSync } = useEeConfig()
+  const { showUpgradeToUseTableSync } = useEeConfig()
 
   const baseSyncs = ref<Map<string, TableSyncType[]>>(new Map())
 
@@ -156,7 +156,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
   }
 
   async function openTableSyncCreateModal({ baseId }: { baseId?: string }) {
-    if (!baseId || showUpgradeToUseSync()) return
+    if (!baseId || showUpgradeToUseTableSync()) return
 
     $e('c:sync:open-internal-create-modal')
 

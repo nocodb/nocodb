@@ -573,8 +573,9 @@ export async function getAliasedSoftDeleteFilter(
   if (!source.isMeta()) return null;
 
   const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
+  const notDeletedValue = deletedColValue(baseModel, false);
   return function () {
-    this.whereNull(qualifiedName).orWhereRaw(`?? = false`, [qualifiedName]);
+    this.whereNull(qualifiedName).orWhere(qualifiedName, notDeletedValue);
   };
 }
 

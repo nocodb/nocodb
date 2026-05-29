@@ -543,16 +543,23 @@ export class ColumnsService implements IColumnsService {
       column.cdf = nonTokenValues.length ? nonTokenValues.join(',') : null;
     }
 
+    const unfilteredColumns = await table.getColumns(
+      context,
+      Noco.ncMeta,
+      undefined,
+      false,
+    );
+
     const tableUpdateBody = {
       ...table,
       tn: table.table_name,
-      originalColumns: table.columns.map((c) => ({
+      originalColumns: unfilteredColumns.map((c) => ({
         ...c,
         cn: c.column_name,
         cno: c.column_name,
       })),
       columns: await Promise.all(
-        table.columns.map(async (c) => {
+        unfilteredColumns.map(async (c) => {
           if (c.id === column.id) {
             // Determine unique value: use column.unique if provided, otherwise preserve existing value
             const uniqueValue =

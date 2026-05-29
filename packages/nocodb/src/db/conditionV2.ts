@@ -709,7 +709,16 @@ const parseConditionV2 = async (
                 }
               }
               break;
-            // checked / notchecked route to FieldHandler via CheckboxHandler.
+            case 'checked':
+              qb = qb.where(customWhereClause || field, true);
+              break;
+            case 'notchecked':
+              qb = qb.where((grpdQb) => {
+                grpdQb
+                  .whereNull(customWhereClause || field)
+                  .orWhere(customWhereClause || field, false);
+              });
+              break;
             case 'btw':
               qb = qb.whereBetween(field, val.split(','));
               break;

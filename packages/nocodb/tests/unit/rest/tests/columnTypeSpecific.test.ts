@@ -16,6 +16,7 @@ import {
 import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import { META_COL_NAME } from '~/constants';
+import { isPgData } from '~test/init/db';
 import type Model from '~/models/Model';
 import type Base from '~/models/Base';
 import type Column from '~/models/Column';
@@ -38,57 +39,13 @@ function columnTypeSpecificTests() {
   const qrValueReferenceColumnTitle = 'Qr Value Column';
   const qrCodeReferenceColumnTitle = 'Qr Code Column';
 
-  const defaultTableColumns = [
-    {
-      title: 'Id',
-      uidt: UITypes.ID,
-      system: false,
-    },
-    {
-      title: 'CreatedAt',
-      uidt: UITypes.CreatedTime,
-      system: true,
-    },
-    {
-      title: 'UpdatedAt',
-      uidt: UITypes.LastModifiedTime,
-      system: true,
-    },
-    {
-      title: 'nc_created_by',
-      uidt: UITypes.CreatedBy,
-      system: true,
-    },
-    {
-      title: 'nc_updated_by',
-      uidt: UITypes.LastModifiedBy,
-      system: true,
-    },
-    {
-      title: 'nc_order',
-      uidt: UITypes.Order,
-      system: true,
-    },
-    {
-      title: '__nc_deleted',
-      uidt: UITypes.Deleted,
-      system: true,
-    },
-    ...(isEE
-      ? [
-          {
-            title: META_COL_NAME,
-            uidt: UITypes.Meta,
-            system: true,
-          },
-        ]
-      : []),
-    {
-      title: 'DateField',
-      uidt: UITypes.Date,
-      system: false,
-    },
-  ];
+  // The default-system-columns shape varies by data-DB dialect: the EE META
+  // column is PG-only
+  let defaultTableColumns: Array<{
+    title: string;
+    uidt: UITypes;
+    system: boolean;
+  }>;
 
   describe('Qr Code Column', () => {
     beforeEach(async function () {
@@ -177,6 +134,27 @@ function columnTypeSpecificTests() {
     beforeEach(async function () {
       context = await init();
       base = await createProject(context);
+
+      // Build the per-dialect expected default-columns shape. The META
+      // system column is PG-only (gate at `helpers/tableHelpers.ts:42` is
+      // `isEE && clientType === DriverClient.PG`) — so the entry is added
+      // when the DATA DB is PG, regardless of meta DB. Mirroring that gate
+      // here keeps the test correct across pg / mssql / sqlite / mysql
+      // data-DB configurations.
+      defaultTableColumns = [
+        { title: 'Id', uidt: UITypes.ID, system: false },
+        { title: 'CreatedAt', uidt: UITypes.CreatedTime, system: true },
+        { title: 'UpdatedAt', uidt: UITypes.LastModifiedTime, system: true },
+        { title: 'nc_created_by', uidt: UITypes.CreatedBy, system: true },
+        { title: 'nc_updated_by', uidt: UITypes.LastModifiedBy, system: true },
+        { title: 'nc_order', uidt: UITypes.Order, system: true },
+        { title: '__nc_deleted', uidt: UITypes.Deleted, system: true },
+        ...(isPgData(context)
+          ? [{ title: META_COL_NAME, uidt: UITypes.Meta, system: true }]
+          : []),
+        { title: 'DateField', uidt: UITypes.Date, system: false },
+      ];
+
       table = await createTable(context, base, {
         table_name: 'dateBased',
         title: 'dateBased',

@@ -185,6 +185,13 @@ export class GenericFieldHandler
         filterOperation = this.filterNanyof;
         break;
 
+      case 'checked':
+        filterOperation = this.filterChecked;
+        break;
+      case 'notchecked':
+        filterOperation = this.filterNotchecked;
+        break;
+
       default:
         filterOperation = unsupportedFilter;
     }

@@ -594,6 +594,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // Array-shaped LTAR — parse, then normalize null → [].
       for (let i = 0; i < ltarArrayList.length; i++) {
         const id = ltarArrayList[i];
+        if (!(id in row)) continue;
         const v = row[id];
         if (v == null) row[id] = [];
         else row[id] = tryParse(v);
@@ -601,16 +602,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // Object-shaped LTAR — parse, leave null as null (matches pg).
       for (let i = 0; i < ltarObjectList.length; i++) {
         const id = ltarObjectList[i];
+        if (!(id in row)) continue;
         if (row[id] != null) row[id] = tryParse(row[id]);
       }
       // Scalar Lookup — parse + unwrap `_lkv`.
       for (let i = 0; i < lookupScalarList.length; i++) {
         const id = lookupScalarList[i];
+        if (!(id in row)) continue;
         if (row[id] != null) row[id] = flattenLookupScalar(tryParse(row[id]));
       }
       // Array Lookup — parse + unwrap `_lkv` items + normalize null → [].
       for (let i = 0; i < lookupArrayList.length; i++) {
         const id = lookupArrayList[i];
+        if (!(id in row)) continue;
         const v = row[id];
         if (v == null) row[id] = [];
         else row[id] = flattenLookupArray(tryParse(v));
@@ -619,6 +623,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // that look like JSON; leave numeric counts and null alone.
       for (let i = 0; i < linksMaybeLtarList.length; i++) {
         const id = linksMaybeLtarList[i];
+        if (!(id in row)) continue;
         const v = row[id];
         if (typeof v === 'string') {
           const t = v.trimStart();

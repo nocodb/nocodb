@@ -414,6 +414,8 @@ watch(isDropdownOpen, async () => {
         <DashboardTreeViewViewsPermissionIndicator
           v-if="!isEditing && isEeUI"
           :view-id="vModel.id"
+          @mouseenter="showViewNodeTooltip = false"
+          @mouseleave="showViewNodeTooltip = true"
         />
         <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex mx-0.5">
           <div

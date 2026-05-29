@@ -376,16 +376,18 @@ function mfaTests() {
       // verify's token would carry the now-old version and fail validation
       // immediately — so the second token working is the proof.
       //
-      // /auth/user/me falls back to a guest user on JWT failure (returns 200
-      // with roles.guest: true), so we assert via response body rather than
-      // status code.
+      // GlobalGuard falls back to a guest user on JWT failure, but
+      // /auth/user/me explicitly surfaces 401 in that case when an xc-auth
+      // header was supplied, so we treat 401 as "JWT rejected" and check
+      // the body for the expected email on success.
       const setupData = await enable2FA();
 
       const isJwtValid = async (token: string) => {
         const res = await request(context.app)
           .get('/api/v1/auth/user/me')
-          .set('xc-auth', token)
-          .expect(200);
+          .set('xc-auth', token);
+        if (res.status === 401) return false;
+        expect(res.status).to.equal(200);
         return (
           res.body?.email === defaultUserArgs.email && !res.body?.roles?.guest
         );

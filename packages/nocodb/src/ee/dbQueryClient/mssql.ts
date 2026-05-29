@@ -1237,39 +1237,13 @@ export class MssqlDBQueryClient
       }
 
       default: {
-        if (
-          column.uidt === UITypes.MultiSelect &&
-          apiVersion === NcApiVersion.V3
-        ) {
-          // Emit comma-split as a JSON string array. STRING_SPLIT preserves
-          // empty entries when needed; here we drop empties to match pg/mysql.
-          // JSON_QUERY: lets a parent FOR JSON inline the array when this
-          // MultiSelect column appears nested in an LTAR's children.
-          //
-          // T-SQL `STRING_SPLIT` rejects text/ntext arguments — pre-fix
-          // MssqlUi created MultiSelect as ntext, and imported externals
-          // may surface either. CAST to NVARCHAR(MAX) when needed.
-          const columnName = await getColumnName(context, column, columns);
-          const dt = (column.dt ?? '').toLowerCase();
-          const sourceExpr =
-            dt === 'text' || dt === 'ntext'
-              ? `CAST(??.?? AS NVARCHAR(MAX))`
-              : `??.??`;
-          qb.select(
-            knex.raw(
-              `JSON_QUERY(( SELECT [value] FROM STRING_SPLIT(${sourceExpr}, ',') WHERE LTRIM(RTRIM([value])) <> '' FOR JSON PATH )) AS ??`,
-              [rootAlias, sanitize(columnName), getAs(column)],
-            ),
-          );
-        } else {
-          qb.select(
-            knex.raw(`??.?? AS ??`, [
-              rootAlias,
-              sanitize(column.column_name),
-              getAs(column),
-            ]),
-          );
-        }
+        qb.select(
+          knex.raw(`??.?? AS ??`, [
+            rootAlias,
+            sanitize(column.column_name),
+            getAs(column),
+          ]),
+        );
         break;
       }
     }

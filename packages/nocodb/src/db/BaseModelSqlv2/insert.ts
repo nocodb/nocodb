@@ -84,8 +84,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           // IDENTITY_INSERT only matters when caller explicitly bypasses
           // that strip (rare; left here defensively). Triggers always
           // require the OUTPUT-INTO pattern.
-          const aiCol = baseModel.model.columns.find((c) => c.ai);
-          const explicitIdentity = mssqlNeedsIdentityInsert([insertObj], aiCol);
+          const aiColName =
+            baseModel.model.columns?.find((c) => c.ai)?.column_name ??
+            null;
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiColName,
+          );
           const hasTriggers = await mssqlTableHasTriggers(baseModel);
           if (hasTriggers || explicitIdentity) {
             const sql = mssqlBuildBulkInsertWithCapture({
@@ -417,21 +422,27 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           returningObj[col.title] = col.column_name;
         }
 
+        const mssqlAiColName =
+          baseModel.isMssql && insertDatas.length
+            ? baseModel.model.columns?.find((c) => c.ai)?.column_name ??
+              null
+            : null;
+        const mssqlExplicitIdentity = mssqlNeedsIdentityInsert(
+          insertDatas,
+          mssqlAiColName,
+        );
+
         if (!raw && baseModel.isMssql && insertDatas.length) {
           // MSSQL bulk path — uses the OUTPUT-INTO-table-variable pattern
           // that's safe across all three quirks (triggers, IDENTITY_INSERT,
           // 2100-param cap). See `mssql-insert-sql.ts` for the SQL shape.
           const chunk = mssqlChunkSize(insertDatas, chunkSize);
-          const explicitIdentity = mssqlNeedsIdentityInsert(
-            insertDatas,
-            aiPkCol,
-          );
           const hasTriggers = await mssqlTableHasTriggers(baseModel);
 
           // Standard path still uses knex's .returning() when neither
           // triggers nor explicit identity is in play — faster and exercises
           // the well-trodden code path.
-          if (!hasTriggers && !explicitIdentity) {
+          if (!hasTriggers && !mssqlExplicitIdentity) {
             responses = await trx
               .batchInsert(baseModel.tnPath, insertDatas, chunk)
               .returning(
@@ -446,7 +457,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 tnPath: baseModel.tnPath,
                 rows: slice,
                 pkCols: baseModel.model.primaryKeys ?? [],
-                explicitIdentity,
+                explicitIdentity: mssqlExplicitIdentity,
               });
               const result: any = await trx.raw(sql);
               const rows: any[] = Array.isArray(result)
@@ -459,7 +470,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           raw &&
           baseModel.isMssql &&
           insertDatas.length &&
-          mssqlNeedsIdentityInsert(insertDatas, aiPkCol)
+          mssqlExplicitIdentity
         ) {
           // Raw + MSSQL + explicit identity values (import / duplicate flow
           // with PKs preserved). The standard `batchInsert` below would hit

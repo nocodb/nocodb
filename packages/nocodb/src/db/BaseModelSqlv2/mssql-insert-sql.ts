@@ -39,14 +39,25 @@ export function mssqlChunkSize(
   );
 }
 
+
+/**
+ * Decide whether `SET IDENTITY_INSERT [tn] ON` needs to wrap the INSERT:
+ * true iff any incoming row supplies a non-null value for the identity
+ * column. Pass the column *name* — callers resolve it from the model
+ * (`model.columns.find(c => c.ai)?.column_name`). `columns` not
+ * `primaryKeys`: MSSQL allows an IDENTITY column that isn't part of the
+ * PK (e.g. tables with a composite natural key plus a surrogate IDENTITY
+ * surrogate). If the physical schema drifts from the model, that's a
+ * meta-sync problem, not an insert-time problem.
+ */
 export function mssqlNeedsIdentityInsert(
   rows: Record<string, any>[],
-  aiPkCol?: Column,
+  identityColumnName: string | null | undefined,
 ): boolean {
-  if (!aiPkCol) return false;
+  if (!identityColumnName) return false;
   return rows.some(
     (r) =>
-      r[aiPkCol.column_name] !== undefined && r[aiPkCol.column_name] !== null,
+      r[identityColumnName] !== undefined && r[identityColumnName] !== null,
   );
 }
 
@@ -88,6 +99,51 @@ export async function mssqlTableHasTriggers(
 }
 
 /**
+ * Render a JS string as a T-SQL literal that round-trips arbitrary
+ * Unicode safely.
+ *
+ * Why each layer:
+ *
+ *   1. `N'…'` prefix — without it, a `'…'` literal enters as `varchar`
+ *      under the connection collation. The default
+ *      SQL_Latin1_General_CP1_CI_AS is CP-1252, so anything outside
+ *      Latin-1 (emoji, supplementary CJK, etc.) is lost on the
+ *      implicit varchar→nvarchar conversion *before* the destination
+ *      `nvarchar(max)` column ever sees it.
+ *
+ *   2. `CAST(… AS NVARCHAR(MAX))` — an `N'…'` literal is implicitly
+ *      typed `nvarchar(L)` with L capped at 4000. Strings longer than
+ *      4000 chars silently truncate. We CAST unconditionally so length
+ *      is not a hidden cliff — cheaper than branching on length and
+ *      avoids surprises when a string grows past 4000 between dev and
+ *      prod.
+ *
+ *   3. Drop NUL bytes (`\x00`) — tedious treats embedded NULs in the
+ *      SQL stream as token boundaries on some packet sizes, which
+ *      either truncates the string or rejects the batch. JS strings
+ *      can legally hold `\x00` (e.g. imported binary blobs typed as
+ *      text); silently dropping is safer than aborting mid-batch.
+ *
+ *   4. Replace lone surrogates (`\uD800-\uDBFF` / `\uDC00-\uDFFF` not
+ *      part of a valid pair) with U+FFFD — keeps the resulting UTF-16
+ *      well-formed; tedious's connection-level encoding might
+ *      otherwise reject the entire batch.
+ *
+ *   5. Double single quotes — the *only* escape T-SQL string literals
+ *      need. Backslashes, CR, LF, etc. are all literal in T-SQL.
+ */
+function tsqlNVarcharLiteral(v: string): string {
+  const safe = v
+    .replace(/\x00/g, '')
+    .replace(
+      /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,
+      '\uFFFD',
+    )
+    .replace(/'/g, "''");
+  return `CAST(N'${safe}' AS NVARCHAR(MAX))`;
+}
+
+/**
  * Bulk INSERT batch that captures PKs via `OUTPUT … INTO @table` and
  * `SELECT`s them at the end. The one pattern safe for all MSSQL
  * constraints simultaneously: trigger tables, `IDENTITY_INSERT`, and
@@ -121,8 +177,16 @@ export function mssqlBuildBulkInsertWithCapture(args: {
     aliasField = 'title',
   } = args;
   const tnSql = knex.raw('??', [tnPath]).toQuery();
+  const escapeRow = (row: Record<string, any>) => {
+    const out: Record<string, any> = {};
+    for (const k of Object.keys(row)) {
+      const v = row[k];
+      out[k] = typeof v === 'string' ? knex.raw(tsqlNVarcharLiteral(v)) : v;
+    }
+    return out;
+  };
   const insertSql = knex(tnPath as any)
-    .insert(rows)
+    .insert(rows.map(escapeRow))
     .toQuery();
 
   const outputCols = pkCols

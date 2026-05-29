@@ -43,6 +43,27 @@ export default class TestDbMngr {
 
   public static dbConfig: DbConfig;
 
+  // Build a printable summary that hides the password but shows everything
+  // else — both the meta-DB config and (in mssql split-data mode) the data-DB
+  // config. Logging the password verbatim was a footgun, so we redact it.
+  private static printableConfig() {
+    const redact = (cfg: Record<string, any>) => ({
+      ...cfg,
+      password: cfg.password ? '***' : cfg.password,
+    });
+    const summary: Record<string, any> = {
+      meta: redact(TestDbMngr.connection),
+    };
+    if (TestDbMngr.isMssqlDataDb()) {
+      const data = TestDbMngr.getMssqlDataDbConfig();
+      summary.data = {
+        client: data.client,
+        ...redact(data.connection),
+      };
+    }
+    return summary;
+  }
+
   static populateConnectionConfig() {
     const { user, password, host, port, client } = TestDbMngr.defaultConnection;
     TestDbMngr.connection = {
@@ -53,12 +74,12 @@ export default class TestDbMngr {
       client: process.env['DB_CLIENT'] || client,
     };
 
-    console.log(TestDbMngr.connection);
+    console.log('TestDbMngr config:', TestDbMngr.printableConfig());
   }
 
   static async testConnection(config: DbConfig) {
     try {
-      console.log('Testing connection', TestDbMngr.connection);
+      console.log('Testing connection:', TestDbMngr.printableConfig());
       return await SqlMgrv2.testConnection(config);
     } catch (e) {
       console.log(e);

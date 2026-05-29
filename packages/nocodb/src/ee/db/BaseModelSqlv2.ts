@@ -5,6 +5,7 @@ import {
   CURRENT_USER_TOKEN,
   enumColors,
   isAIPromptCol,
+  isArrayShapeLtar,
   isAttachment,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -488,117 +489,111 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (!Array.isArray(data) || !data.length) return data;
 
     const cols = (this.model?.columns ?? []).concat(dependencyColumns ?? []);
-    // Per-call classification (cheap — sets of column ids).
-    const ltarArrayIds = new Set<string>(); // HM / MM / MMlike — parse + null→[]
-    const ltarObjectIds = new Set<string>(); // BT / OO — parse, leave null as null
-    const lookupArrayIds = new Set<string>(); // HM / MM Lookup — parse + `_lkv` unwrap + null→[]
-    const lookupScalarIds = new Set<string>(); // BT / OO Lookup — parse + `_lkv` unwrap
-    const linksMaybeLtarIds = new Set<string>(); // Links — heuristic parse only
-    // Numeric coercion — tedious returns MSSQL `bigint` / `decimal` / `numeric`
-    // as JS strings (to preserve precision beyond 2^53). NocoDB's API contract
-    // on pg/mysql/sqlite is to return these as JS numbers; without coercion
-    // here a Duration like `10` comes back as `'10'` and downstream assertions
-    // / clients break. Number → bigint, Decimal / Currency / Duration → decimal.
-    const numericIds = new Set<string>();
-
     const shapeCache =
       this._mssqlLookupShape ?? (this._mssqlLookupShape = new Map());
 
+    // ── Per-call classification ────────────────────────────────────────
+    // Build a single `actions` array — `id -> kind` — so the per-row loop is
+    // ONE iteration with a switch, instead of six independent loops. Each
+    // entry stores the row key (col.id, since EE mssql extract aliases by
+    // `getAs(column) = column.asId || column.id`) and the action to take.
+    type Kind = 'ltarArr' | 'ltarObj' | 'lkpArr' | 'lkpScalar' | 'linksMaybe' | 'numeric';
+    const actions: Array<{ id: string; kind: Kind }> = [];
+    let hasLookup = false;
+
     for (const col of cols) {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
-        // LTAR shape comes from colOptions.type — cheap, no IO needed.
-        const relType = (col.colOptions as LinkToAnotherRecordColumn)?.type;
-        const isMMLike = isMMOrMMLike(col);
-        const isArrayShape =
-          isMMLike ||
-          relType === RelationTypes.HAS_MANY ||
-          relType === RelationTypes.MANY_TO_MANY ||
-          (relType === RelationTypes.ONE_TO_ONE && !col.meta?.bt);
-        (isArrayShape ? ltarArrayIds : ltarObjectIds).add(col.id);
-      } else if (col.uidt === UITypes.Links) {
-        linksMaybeLtarIds.add(col.id);
-      } else if (
-        col.uidt === UITypes.Number ||
-        col.uidt === UITypes.Decimal ||
-        col.uidt === UITypes.Currency ||
-        col.uidt === UITypes.Duration
-      ) {
-        // Skip when the underlying SQL type is one tedious already returns
-        // as a JS number (int family, float, money). Only `bigint`,
-        // `decimal`, and `numeric` need coercion. dt is unset for nullable
-        // formula-derived columns — fall back to coercion in that case.
-        const dt = (col.dt ?? '').toLowerCase();
-        const tediousReturnsNumber =
-          dt === 'int' ||
-          dt === 'smallint' ||
-          dt === 'tinyint' ||
-          dt === 'float' ||
-          dt === 'real' ||
-          dt === 'money' ||
-          dt === 'smallmoney';
-        if (!tediousReturnsNumber) numericIds.add(col.id);
-      } else if (col.uidt === UITypes.Lookup) {
-        // Cache the expensive walk-through-to-relation per column id.
-        let shape = shapeCache.get(col.id);
-        if (!shape) {
-          try {
-            const rel = await (
-              col.colOptions as LookupColumn
-            )?.getRelationColumn?.(this.context);
-            const relOpts = rel
-              ? await rel.getColOptions<LinkToAnotherRecordColumn>(this.context)
-              : null;
-            const isMMLike = rel ? isMMOrMMLike(rel) : false;
-            const isArray =
-              isMMLike ||
-              relOpts?.type === RelationTypes.HAS_MANY ||
-              (relOpts?.type === RelationTypes.ONE_TO_ONE && !rel?.meta?.bt);
-            shape = isArray ? 'array' : 'scalar';
-          } catch {
-            // On lookup-resolution failure, treat as scalar. If the value is
-            // actually an array string, the JSON.parse + Array.isArray branch
-            // below still produces something rather than crashing.
-            shape = 'scalar';
-          }
-          shapeCache.set(col.id, shape);
+      const id = col.asId || col.id;
+      switch (col.uidt) {
+        case UITypes.LinkToAnotherRecord: {
+          actions.push({
+            id,
+            kind: isArrayShapeLtar(col) ? 'ltarArr' : 'ltarObj',
+          });
+          break;
         }
-        (shape === 'array' ? lookupArrayIds : lookupScalarIds).add(col.id);
+        case UITypes.Links: {
+          actions.push({ id, kind: 'linksMaybe' });
+          break;
+        }
+        case UITypes.Number:
+        case UITypes.Decimal:
+        case UITypes.Currency:
+        case UITypes.Duration: {
+          // Skip when the underlying SQL type is one tedious already returns
+          // as a JS number (int family, float, money). Only `bigint`,
+          // `decimal`, `numeric` need coercion. Unset dt (e.g. for nullable
+          // formula-derived columns) falls back to coercion.
+          const dt = (col.dt ?? '').toLowerCase();
+          if (
+            dt !== 'int' &&
+            dt !== 'smallint' &&
+            dt !== 'tinyint' &&
+            dt !== 'float' &&
+            dt !== 'real' &&
+            dt !== 'money' &&
+            dt !== 'smallmoney'
+          ) {
+            actions.push({ id, kind: 'numeric' });
+          }
+          break;
+        }
+        case UITypes.Lookup: {
+          // Walk-through-to-relation is expensive; cache per column id.
+          let shape = shapeCache.get(col.id);
+          if (!shape) {
+            try {
+              const rel = await (
+                col.colOptions as LookupColumn
+              )?.getRelationColumn?.(this.context);
+              const relOpts = rel
+                ? await rel.getColOptions<LinkToAnotherRecordColumn>(
+                    this.context,
+                  )
+                : null;
+              const isMMLike = rel ? isMMOrMMLike(rel) : false;
+              const isArray =
+                isMMLike ||
+                relOpts?.type === RelationTypes.HAS_MANY ||
+                (relOpts?.type === RelationTypes.ONE_TO_ONE &&
+                  !rel?.meta?.bt);
+              shape = isArray ? 'array' : 'scalar';
+            } catch {
+              // Lookup resolution can fail on cross-base; treat as scalar so
+              // the `_lkv` unwrap still runs.
+              shape = 'scalar';
+            }
+            shapeCache.set(col.id, shape);
+          }
+          actions.push({
+            id,
+            kind: shape === 'array' ? 'lkpArr' : 'lkpScalar',
+          });
+          hasLookup = true;
+          break;
+        }
       }
     }
 
-    if (
-      !ltarArrayIds.size &&
-      !ltarObjectIds.size &&
-      !lookupScalarIds.size &&
-      !lookupArrayIds.size &&
-      !linksMaybeLtarIds.size &&
-      !numericIds.size
-    ) {
-      return data;
-    }
-
-    const flattenLookupArray = (parsed: any) => {
-      if (!Array.isArray(parsed)) return parsed;
-      return parsed.map((o) =>
-        o && typeof o === 'object' && '_lkv' in o ? o._lkv : o,
-      );
-    };
-    const flattenLookupScalar = (parsed: any) => {
-      if (
-        parsed &&
-        typeof parsed === 'object' &&
-        !Array.isArray(parsed) &&
-        '_lkv' in parsed
-      ) {
-        return parsed._lkv;
-      }
-      return parsed;
-    };
+    if (!actions.length) return data;
 
     const tryParse = (v: any) => {
+      // Inline-fast: avoid trimStart when first char already matches; only
+      // trim+retest on whitespace-leading payloads.
       if (typeof v !== 'string') return v;
-      const t = v.trimStart();
-      if (t.startsWith('[') || t.startsWith('{')) {
+      let c = v.charCodeAt(0);
+      if (c === 0x20 || c === 0x09 || c === 0x0a || c === 0x0d) {
+        const t = v.trimStart();
+        c = t.charCodeAt(0);
+        if (c === 0x5b /* [ */ || c === 0x7b /* { */) {
+          try {
+            return JSON.parse(v);
+          } catch {
+            return v;
+          }
+        }
+        return v;
+      }
+      if (c === 0x5b /* [ */ || c === 0x7b /* { */) {
         try {
           return JSON.parse(v);
         } catch {
@@ -608,68 +603,118 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       return v;
     };
 
-    // Materialize the classification Sets into arrays once — iterating
-    // string[] avoids any down-leveling issues with Set iteration in the
-    // webpack/ts-loader path.
-    const ltarArrayList = Array.from(ltarArrayIds);
-    const ltarObjectList = Array.from(ltarObjectIds);
-    const lookupScalarList = Array.from(lookupScalarIds);
-    const lookupArrayList = Array.from(lookupArrayIds);
-    const linksMaybeLtarList = Array.from(linksMaybeLtarIds);
-    const numericList = Array.from(numericIds);
-
-    for (const row of data) {
-      // Array-shaped LTAR — parse, then normalize null → [].
-      for (let i = 0; i < ltarArrayList.length; i++) {
-        const id = ltarArrayList[i];
+    // ── Per-row pass ──────────────────────────────────────────────────
+    // Single tight loop, hoisted action list, hoisted length. The defensive
+    // `_lkv` sweep is gated on `hasLookup` so the common case (no Lookup
+    // columns) pays NO extra per-row cost beyond the action loop itself.
+    const n = actions.length;
+    for (let r = 0; r < data.length; r++) {
+      const row = data[r];
+      for (let i = 0; i < n; i++) {
+        const a = actions[i];
+        const id = a.id;
         if (!(id in row)) continue;
         const v = row[id];
-        if (v == null) row[id] = [];
-        else row[id] = tryParse(v);
-      }
-      // Object-shaped LTAR — parse, leave null as null (matches pg).
-      for (let i = 0; i < ltarObjectList.length; i++) {
-        const id = ltarObjectList[i];
-        if (!(id in row)) continue;
-        if (row[id] != null) row[id] = tryParse(row[id]);
-      }
-      // Scalar Lookup — parse + unwrap `_lkv`.
-      for (let i = 0; i < lookupScalarList.length; i++) {
-        const id = lookupScalarList[i];
-        if (!(id in row)) continue;
-        if (row[id] != null) row[id] = flattenLookupScalar(tryParse(row[id]));
-      }
-      // Array Lookup — parse + unwrap `_lkv` items + normalize null → [].
-      for (let i = 0; i < lookupArrayList.length; i++) {
-        const id = lookupArrayList[i];
-        if (!(id in row)) continue;
-        const v = row[id];
-        if (v == null) row[id] = [];
-        else row[id] = flattenLookupArray(tryParse(v));
-      }
-      // Links — count (number) OR linksAsLtar JSON payload. Only parse strings
-      // that look like JSON; leave numeric counts and null alone.
-      for (let i = 0; i < linksMaybeLtarList.length; i++) {
-        const id = linksMaybeLtarList[i];
-        if (!(id in row)) continue;
-        const v = row[id];
-        if (typeof v === 'string') {
-          const t = v.trimStart();
-          if (t.startsWith('[') || t.startsWith('{')) row[id] = tryParse(v);
+        switch (a.kind) {
+          case 'ltarArr':
+            if (v == null) row[id] = [];
+            else row[id] = tryParse(v);
+            break;
+          case 'ltarObj':
+            if (v != null) row[id] = tryParse(v);
+            break;
+          case 'lkpScalar': {
+            if (v == null) break;
+            const parsed = tryParse(v);
+            if (
+              parsed &&
+              typeof parsed === 'object' &&
+              !Array.isArray(parsed) &&
+              '_lkv' in parsed
+            ) {
+              row[id] = (parsed as { _lkv: unknown })._lkv;
+            } else {
+              row[id] = parsed;
+            }
+            break;
+          }
+          case 'lkpArr': {
+            if (v == null) {
+              row[id] = [];
+              break;
+            }
+            const parsed = tryParse(v);
+            if (Array.isArray(parsed)) {
+              // Single pass: detect-and-map only if first element looks like
+              // the `{_lkv:…}` sentinel; EE mssql extract emits a consistent
+              // shape, so the first item is representative.
+              const first = parsed[0];
+              if (
+                first &&
+                typeof first === 'object' &&
+                '_lkv' in (first as object)
+              ) {
+                for (let k = 0; k < parsed.length; k++) {
+                  const item = parsed[k];
+                  if (item && typeof item === 'object' && '_lkv' in item) {
+                    parsed[k] = (item as { _lkv: unknown })._lkv;
+                  }
+                }
+              }
+              row[id] = parsed;
+            } else {
+              row[id] = parsed;
+            }
+            break;
+          }
+          case 'linksMaybe': {
+            // Links column: count number, null, or JSON payload string.
+            // `tryParse` already short-circuits on non-JSON-shaped strings —
+            // call it directly without re-running the shape sniff here.
+            if (typeof v === 'string') row[id] = tryParse(v);
+            break;
+          }
+          case 'numeric': {
+            if (typeof v !== 'string' || v === '') break;
+            const num = Number(v);
+            if (Number.isFinite(num)) row[id] = num;
+            break;
+          }
         }
       }
-      // Numeric coercion — bigint / decimal / numeric come back from tedious
-      // as strings. Coerce to JS number so the response shape matches pg /
-      // mysql / sqlite. Non-finite results (e.g. '1.7976931348623157e+308'
-      // overflowing, or non-numeric strings) are left as-is — better to
-      // surface the original string than silently emit `Infinity` / `NaN`.
-      for (let i = 0; i < numericList.length; i++) {
-        const id = numericList[i];
-        if (!(id in row)) continue;
-        const v = row[id];
-        if (typeof v !== 'string') continue;
-        const n = Number(v);
-        if (Number.isFinite(n)) row[id] = n;
+
+      // Defensive `_lkv` sweep — covers stragglers (cross-base lookups where
+      // the column metadata didn't resolve into `cols`, asId/title-aliased
+      // rows, etc.). Skipped entirely when no Lookup columns are present —
+      // the dominant case for most tables — so unrelated workloads pay zero
+      // cost here. `for…in` instead of `Object.keys` avoids an array
+      // allocation per row. The array branch short-circuits on the first
+      // element since the extract emits a uniform `[{_lkv:…},…]` shape.
+      if (!hasLookup) continue;
+      for (const key in row) {
+        const v = row[key];
+        if (v == null || typeof v !== 'object') continue;
+        if (!Array.isArray(v)) {
+          if ('_lkv' in v) {
+            row[key] = (v as { _lkv: unknown })._lkv;
+          }
+          continue;
+        }
+        if (v.length === 0) continue;
+        const first = v[0];
+        if (
+          !first ||
+          typeof first !== 'object' ||
+          !('_lkv' in (first as object))
+        ) {
+          continue;
+        }
+        for (let i = 0; i < v.length; i++) {
+          const item = v[i];
+          if (item && typeof item === 'object' && '_lkv' in item) {
+            v[i] = (item as { _lkv: unknown })._lkv;
+          }
+        }
       }
     }
 
@@ -773,10 +818,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           // internal — so a single SQL batch (the SET ON/OFF + INSERT
           // OUTPUT INTO + SELECT) runs on one connection regardless of
           // source type.
-          const aiColForInsert = this.model.columns.find((c) => c.ai);
+          const aiColName =
+            this.model.columns?.find((c) => c.ai)?.column_name ?? null;
           const explicitIdentity = mssqlNeedsIdentityInsert(
             [insertObj],
-            aiColForInsert,
+            aiColName,
           );
           const hasTriggers = await mssqlTableHasTriggers(this);
           if (hasTriggers || explicitIdentity) {
@@ -3188,8 +3234,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // mssql-insert-sql.ts when triggers or explicit IDENTITY values are
         // present (or pre-emptively, for chunk-cap safety). Standard
         // .returning() path stays for non-mssql.
+        //
+        const mssqlAiColName = this.isMssql
+          ? this.model.columns?.find((c) => c.ai)?.column_name ?? null
+          : null;
         const mssqlExplicitIdentity =
-          this.isMssql && mssqlNeedsIdentityInsert(insertDatas, aiPkCol);
+          this.isMssql &&
+          mssqlNeedsIdentityInsert(insertDatas, mssqlAiColName);
         const mssqlHasTriggers = this.isMssql
           ? await mssqlTableHasTriggers(this)
           : false;
@@ -3871,10 +3922,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           // OUTPUT-INTO-table-variable when triggers / explicit identity,
           // standard knex .returning() otherwise. 2100-param cap enforced
           // via mssqlChunkSize.
-          const bulkUpsertAiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+          const bulkUpsertAiColName = this.isMssql
+            ? this.model.columns?.find((c) => c.ai)?.column_name ?? null
+            : null;
           const mssqlExplicitIdentity =
             this.isMssql &&
-            mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiPkCol);
+            mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiColName);
           const mssqlHasTriggers = this.isMssql
             ? await mssqlTableHasTriggers(this)
             : false;

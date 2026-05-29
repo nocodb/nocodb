@@ -3030,8 +3030,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // Trigger tables and explicit-IDENTITY inserts can't use the
           // bare OUTPUT INSERTED.* form knex emits — route through the
           // OUTPUT-INTO-table-variable pattern.
-          const aiCol = this.model.columns.find((c) => c.ai);
-          const explicitIdentity = mssqlNeedsIdentityInsert([insertObj], aiCol);
+          const aiColName =
+            this.model.columns?.find((c) => c.ai)?.column_name ?? null;
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiColName,
+          );
           const hasTriggers = await mssqlTableHasTriggers(this);
           if (hasTriggers || explicitIdentity) {
             const sql = mssqlBuildBulkInsertWithCapture({
@@ -3696,9 +3700,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // that's safe across all three quirks (triggers, IDENTITY_INSERT,
             // 2100-param cap). See `mssql-insert-sql.ts` for the SQL shape.
             const chunk = mssqlChunkSize(toInsert, chunkSize);
+            const aiColName =
+              this.model.columns?.find((c) => c.ai)?.column_name ?? null;
             const explicitIdentity = mssqlNeedsIdentityInsert(
               toInsert,
-              aiPkCol,
+              aiColName,
             );
             const hasTriggers = await mssqlTableHasTriggers(this);
 

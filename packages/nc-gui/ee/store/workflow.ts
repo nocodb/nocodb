@@ -90,6 +90,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // Actions
   const loadWorkflows = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
     if (!activeWorkspaceId.value || isSharedBase.value) return []
+    // Listing workflows is creator+ on the backend; skip for editors and below
+    // so the base auto-load doesn't fire a forbidden `workflowList`.
+    if (!isUIAllowed('workflowList')) return []
 
     if (workflows.value.has(baseId) && !force) {
       return workflows.value.get(baseId) || []

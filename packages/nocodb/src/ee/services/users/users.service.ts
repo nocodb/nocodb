@@ -53,6 +53,7 @@ import {
 } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
+import { isTokenExpired } from '~/helpers/isTokenExpired';
 import { WorkspacesService } from '~/services/workspaces.service';
 import Noco from '~/Noco';
 import { CacheGetType, MetaTable, RootScopes } from '~/utils/globals';
@@ -318,7 +319,7 @@ export class UsersService extends UsersServiceCE {
       if (token) {
         if (token !== user.invite_token) {
           NcError.badRequest(`Invalid invite url`);
-        } else if (user.invite_token_expires < new Date()) {
+        } else if (isTokenExpired(user.invite_token_expires)) {
           NcError.badRequest(
             'Expired invite url, Please contact super admin to get a new invite url',
           );

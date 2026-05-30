@@ -384,8 +384,9 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
     mappings: {
       is12hrFormat: '12hr_format',
       separator: 'separator',
-      // legacy boolean alias — surface it as snake_case `locale_string` in V3
-      // responses for backward-compat with old clients (deprecated in swagger).
+      // legacy V2 boolean — mapped into `options.locale_string` so the read
+      // path below can fold it into the canonical `separator`. It is then
+      // dropped, so V3 responses never expose `locale_string`.
       isLocaleString: 'locale_string',
       richMode: 'rich_text',
       [LongTextAiMetaProp]: 'generate_text_using_ai',
@@ -521,24 +522,19 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       options = { ...rest, relation_type: type };
     }
 
-    // Number/Decimal/Rollup: surface the canonical `separator` enum and a
-    // derived `locale_string` boolean alias for backward compat with old
-    // clients. `resolveColumnSeparator` already considers both `separator`
-    // (new) and `isLocaleString` (legacy) when the column was last written
-    // through the V2 path.
+    // Number/Decimal/Rollup: fold the legacy `isLocaleString` boolean (mapped
+    // above into `options.locale_string`) into the canonical `separator` enum,
+    // then drop it so V3 responses only expose `separator`.
     if (
       data.type === UITypes.Number ||
       data.type === UITypes.Decimal ||
       data.type === UITypes.Rollup
     ) {
-      const resolvedSeparator = resolveColumnSeparator({
+      options.separator = resolveColumnSeparator({
         separator: options.separator,
         isLocaleString: options.locale_string,
       });
-      options.separator = resolvedSeparator;
-      options.locale_string =
-        resolvedSeparator !== SeparatorType.NonePeriod &&
-        resolvedSeparator !== SeparatorType.NoneComma;
+      delete options.locale_string;
     }
 
     // exclude rollup function if Links

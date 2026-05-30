@@ -81,10 +81,10 @@ export default function () {
         );
 
         expect(numberField.default_value).to.eq('34');
-        // legacy locale_string: true is folded into the canonical separator
-        // enum and echoed back as both fields for backward compat
+        // legacy `locale_string: true` is folded into the canonical
+        // `separator` enum; the response only exposes `separator`.
         expect(numberField.options.separator).to.eq('comma_period');
-        expect(numberField.options.locale_string).to.eq(true);
+        expect(numberField.options.locale_string).to.be.undefined;
       });
 
       it(`will create number column with separator enum`, async () => {
@@ -114,8 +114,8 @@ export default function () {
         );
 
         expect(numberField.options.separator).to.eq('period_comma');
-        // derived backward-compat alias — period_comma still implies thousands
-        expect(numberField.options.locale_string).to.eq(true);
+        // `locale_string` is never emitted on V3 responses.
+        expect(numberField.options.locale_string).to.be.undefined;
       });
 
       it(`will create decimal column with separator + precision`, async () => {
@@ -146,8 +146,8 @@ export default function () {
 
         expect(decimalField.options.precision).to.eq(2);
         expect(decimalField.options.separator).to.eq('none_period');
-        // none_period = no thousand grouping → locale_string alias is false
-        expect(decimalField.options.locale_string).to.eq(false);
+        // `locale_string` is never emitted on V3 responses.
+        expect(decimalField.options.locale_string).to.be.undefined;
       });
 
       it(`will create checkbox column with default value`, async () => {

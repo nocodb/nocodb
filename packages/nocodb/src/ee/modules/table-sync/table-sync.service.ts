@@ -1337,6 +1337,16 @@ export class TableSyncService {
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_SYNC);
 
+    // Real-time (automatic) sync is a higher-tier feature than manual sync.
+    // Gate before payload validation so the plan check is deterministic
+    // regardless of the rest of the payload.
+    if (
+      (payload.sync_trigger ?? TableSyncTrigger.Realtime) ===
+      TableSyncTrigger.Realtime
+    ) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO);
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/TableSyncCreateReq',
       payload,
@@ -1355,11 +1365,6 @@ export class TableSyncService {
       source_input_mode = TableSyncInputMode.Browse,
       password: sourcePassword,
     } = payload;
-
-    // Real-time (automatic) sync is a higher-tier feature than manual sync.
-    if (sync_trigger === TableSyncTrigger.Realtime) {
-      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO);
-    }
 
     const sourceWorkspaceId = source_workspace_id ?? context.workspace_id;
 

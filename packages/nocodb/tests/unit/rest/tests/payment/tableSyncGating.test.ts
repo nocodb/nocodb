@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
+import { PlanFeatureTypes, PlanTitles, TableSyncTrigger } from 'nocodb-sdk';
 import request from 'supertest';
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk';
 import init from '~test/init';
 import { isEE } from '~test/utils/helpers';
 import { overridePlan } from '~test/utils/plan.utils';
@@ -9,17 +9,20 @@ import { Base } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
 /**
- * Table Sync (FEATURE_TABLE_SYNC) gating tests
+ * Table Sync gating tests
  *
- * Table sync is gated at the Business tier on cloud — Free and Plus block
- * it, Business and Enterprise allow it. This file exercises the
- * `tableSyncCreate` internal operation against
- * `checkForFeature(FEATURE_TABLE_SYNC)` at the top of the service.
+ * Two layered feature gates protect `tableSyncCreate`:
+ *   - FEATURE_TABLE_SYNC      — base (manual) table sync. Available from the
+ *     first paid plan (Plus+ on cloud). Free blocks it.
+ *   - FEATURE_TABLE_SYNC_AUTO — automatic / real-time sync. Business+ on
+ *     cloud. Plus blocks it (manual sync still works there).
  *
- * Each "allow" assertion only checks that the FEATURE_TABLE_SYNC gate did
- * NOT fire — the call is expected to fail downstream (no real source view
- * is provisioned) but that failure must not be ERR_FEATURE_NOT_SUPPORTED
- * from the table-sync feature gate.
+ * Both gates run *before* payload validation, so we can assert them with a
+ * payload that references a non-existent source:
+ *   - Gated:   responds with ERR_FEATURE_NOT_SUPPORTED (403)
+ *   - Allowed: responds with some other error (404 viewNotFound,
+ *              400 invalidRequestBody, etc.) but never
+ *              ERR_FEATURE_NOT_SUPPORTED
  */
 export function tableSyncGatingTests() {
   if (!isEE()) {
@@ -56,24 +59,29 @@ export function tableSyncGatingTests() {
 
     /**
      * Sends a tableSyncCreate request with a syntactically valid payload that
-     * references a non-existent source. The feature-gate check runs *before*
-     * the source-resolution code, so:
-     *   - Gated:   responds with ERR_FEATURE_NOT_SUPPORTED (403)
-     *   - Allowed: responds with some other error (404 viewNotFound,
-     *              400 invalidRequestBody, etc.) but never
-     *              ERR_FEATURE_NOT_SUPPORTED
+     * references a non-existent source. The feature gates run before source
+     * resolution and payload validation, so a gated plan responds with
+     * ERR_FEATURE_NOT_SUPPORTED (403) while an allowed plan fails downstream
+     * with some other error.
+     *
+     * `syncTrigger` defaults to undefined — the service then defaults to
+     * Realtime (automatic), exercising the FEATURE_TABLE_SYNC_AUTO gate.
      */
-    function attemptTableSyncCreate() {
+    function attemptTableSyncCreate(syncTrigger?: TableSyncTrigger) {
+      const payload: Record<string, any> = {
+        title: `Sync-${Date.now()}`,
+        source_workspace_id: workspaceId,
+        source_base_id: base.id,
+        source_table_id: 'mxxx_nonexistent_table',
+        source_view_id: 'vwxx_nonexistent_view',
+      };
+
+      if (syncTrigger) payload.sync_trigger = syncTrigger;
+
       return request(context.app)
         .post(tableSyncCreateUrl())
         .set('xc-auth', context.token)
-        .send({
-          title: `Sync-${Date.now()}`,
-          source_workspace_id: workspaceId,
-          source_base_id: base.id,
-          source_table_id: 'mxxx_nonexistent_table',
-          source_view_id: 'vwxx_nonexistent_view',
-        });
+        .send(payload);
     }
 
     describe('Free plan', () => {
@@ -90,8 +98,10 @@ export function tableSyncGatingTests() {
         await planMock?.restore();
       });
 
-      it('should block tableSyncCreate with ERR_FEATURE_NOT_SUPPORTED', async () => {
-        const res = await attemptTableSyncCreate().expect(403);
+      it('should block manual tableSyncCreate with ERR_FEATURE_NOT_SUPPORTED', async () => {
+        const res = await attemptTableSyncCreate(TableSyncTrigger.Manual).expect(
+          403,
+        );
         expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
     });
@@ -110,8 +120,15 @@ export function tableSyncGatingTests() {
         await planMock?.restore();
       });
 
-      it('should block tableSyncCreate with ERR_FEATURE_NOT_SUPPORTED', async () => {
-        const res = await attemptTableSyncCreate().expect(403);
+      it('should allow manual tableSyncCreate through the feature gate', async () => {
+        const res = await attemptTableSyncCreate(TableSyncTrigger.Manual);
+        expect(res.body.error).to.not.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+
+      it('should block automatic tableSyncCreate with ERR_FEATURE_NOT_SUPPORTED', async () => {
+        const res = await attemptTableSyncCreate(
+          TableSyncTrigger.Realtime,
+        ).expect(403);
         expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
     });
@@ -130,8 +147,8 @@ export function tableSyncGatingTests() {
         await planMock?.restore();
       });
 
-      it('should allow tableSyncCreate through the feature gate', async () => {
-        const res = await attemptTableSyncCreate();
+      it('should allow automatic tableSyncCreate through the feature gate', async () => {
+        const res = await attemptTableSyncCreate(TableSyncTrigger.Realtime);
         expect(res.body.error).to.not.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
     });
@@ -150,33 +167,35 @@ export function tableSyncGatingTests() {
         await planMock?.restore();
       });
 
-      it('should allow tableSyncCreate through the feature gate', async () => {
-        const res = await attemptTableSyncCreate();
+      it('should allow automatic tableSyncCreate through the feature gate', async () => {
+        const res = await attemptTableSyncCreate(TableSyncTrigger.Realtime);
         expect(res.body.error).to.not.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
     });
 
     describe('Subscription-level overrides', () => {
-      it('should allow tableSyncCreate on Plus when FEATURE_TABLE_SYNC is force-enabled', async () => {
-        // Plus blocks by default — verify a subscription override can unblock.
+      it('should allow automatic tableSyncCreate on Plus when FEATURE_TABLE_SYNC_AUTO is force-enabled', async () => {
+        // Plus blocks automatic sync by default — verify a subscription
+        // override can unblock it.
         const planMock = await overridePlan({
           workspace_id: workspaceId,
           planTitle: PlanTitles.PLUS,
           features: {
-            [PlanFeatureTypes.FEATURE_TABLE_SYNC]: true,
+            [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: true,
           },
         });
 
         try {
-          const res = await attemptTableSyncCreate();
+          const res = await attemptTableSyncCreate(TableSyncTrigger.Realtime);
           expect(res.body.error).to.not.eq('ERR_FEATURE_NOT_SUPPORTED');
         } finally {
           await planMock.restore();
         }
       });
 
-      it('should block tableSyncCreate on Business when FEATURE_TABLE_SYNC is force-disabled', async () => {
-        // Business allows by default — verify a subscription override can block.
+      it('should block manual tableSyncCreate on Business when FEATURE_TABLE_SYNC is force-disabled', async () => {
+        // Business allows by default — verify a subscription override can block
+        // even manual sync via the base feature gate.
         const planMock = await overridePlan({
           workspace_id: workspaceId,
           planTitle: PlanTitles.BUSINESS,
@@ -186,8 +205,34 @@ export function tableSyncGatingTests() {
         });
 
         try {
-          const res = await attemptTableSyncCreate().expect(403);
+          const res = await attemptTableSyncCreate(
+            TableSyncTrigger.Manual,
+          ).expect(403);
           expect(res.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+        } finally {
+          await planMock.restore();
+        }
+      });
+
+      it('should block automatic tableSyncCreate on Business when FEATURE_TABLE_SYNC_AUTO is force-disabled', async () => {
+        // Business allows automatic by default — verify a subscription override
+        // can block just the automatic tier while manual still works.
+        const planMock = await overridePlan({
+          workspace_id: workspaceId,
+          planTitle: PlanTitles.BUSINESS,
+          features: {
+            [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
+          },
+        });
+
+        try {
+          const blocked = await attemptTableSyncCreate(
+            TableSyncTrigger.Realtime,
+          ).expect(403);
+          expect(blocked.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+
+          const allowed = await attemptTableSyncCreate(TableSyncTrigger.Manual);
+          expect(allowed.body.error).to.not.eq('ERR_FEATURE_NOT_SUPPORTED');
         } finally {
           await planMock.restore();
         }

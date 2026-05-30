@@ -45,10 +45,24 @@ const artifactColumnSchema = z.discriminatedUnion('type', [
     type: z.literal('Number'),
     options: z
       .object({
+        separator: z
+          .enum([
+            'locale',
+            'none_period',
+            'none_comma',
+            'comma_period',
+            'period_comma',
+            'space_period',
+            'space_comma',
+          ])
+          .optional()
+          .describe(
+            'Thousand/decimal separator style. `comma_period` = 1,000.00.',
+          ),
         locale_string: z
           .boolean()
           .optional()
-          .describe('Show thousand separator.'),
+          .describe('Deprecated — use `separator` instead.'),
       })
       .optional(),
   }),
@@ -64,6 +78,24 @@ const artifactColumnSchema = z.discriminatedUnion('type', [
           .max(5)
           .optional()
           .describe('Decimal places (0–5).'),
+        separator: z
+          .enum([
+            'locale',
+            'none_period',
+            'none_comma',
+            'comma_period',
+            'period_comma',
+            'space_period',
+            'space_comma',
+          ])
+          .optional()
+          .describe(
+            'Thousand/decimal separator style. `comma_period` = 1,000.00.',
+          ),
+        locale_string: z
+          .boolean()
+          .optional()
+          .describe('Deprecated — use `separator` instead.'),
       })
       .optional(),
   }),

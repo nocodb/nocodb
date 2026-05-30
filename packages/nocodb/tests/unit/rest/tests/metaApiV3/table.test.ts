@@ -54,9 +54,9 @@ export default function () {
         expect(emailField.default_value).to.eq('user@nocodb.com');
       });
 
-      it(`will create number column with default value`, async () => {
+      it(`will create number column with legacy locale_string boolean (backward compat)`, async () => {
         const table = {
-          title: 'Table Number',
+          title: 'Table Number Legacy',
           description: 'Description',
           fields: [
             {
@@ -81,6 +81,73 @@ export default function () {
         );
 
         expect(numberField.default_value).to.eq('34');
+        // legacy locale_string: true is folded into the canonical separator
+        // enum and echoed back as both fields for backward compat
+        expect(numberField.options.separator).to.eq('comma_period');
+        expect(numberField.options.locale_string).to.eq(true);
+      });
+
+      it(`will create number column with separator enum`, async () => {
+        const table = {
+          title: 'Table Number Separator',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Number',
+              type: 'Number',
+              default_value: 34,
+              options: {
+                separator: 'period_comma',
+              },
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(200);
+
+        const numberField = response.body.fields.find(
+          (f) => f.title === 'Number',
+        );
+
+        expect(numberField.options.separator).to.eq('period_comma');
+        // derived backward-compat alias — period_comma still implies thousands
+        expect(numberField.options.locale_string).to.eq(true);
+      });
+
+      it(`will create decimal column with separator + precision`, async () => {
+        const table = {
+          title: 'Table Decimal Separator',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Amount',
+              type: 'Decimal',
+              options: {
+                precision: 2,
+                separator: 'none_period',
+              },
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(200);
+
+        const decimalField = response.body.fields.find(
+          (f) => f.title === 'Amount',
+        );
+
+        expect(decimalField.options.precision).to.eq(2);
+        expect(decimalField.options.separator).to.eq('none_period');
+        // none_period = no thousand grouping → locale_string alias is false
+        expect(decimalField.options.locale_string).to.eq(false);
       });
 
       it(`will create checkbox column with default value`, async () => {

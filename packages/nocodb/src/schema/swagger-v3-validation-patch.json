@@ -184,6 +184,115 @@
           }
         ]
       },
+      "FieldOptions_Number": {
+        "type": "object",
+        "title": "Number",
+        "properties": {
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
+          },
+          "locale_string": {
+            "type": "boolean",
+            "description": "Deprecated — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; `separator` wins when both are present."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_Decimal": {
+        "type": "object",
+        "title": "Decimal",
+        "properties": {
+          "precision": {
+            "type": "number",
+            "description": "Decimal field precision. Defaults to 0",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
+          },
+          "locale_string": {
+            "type": "boolean",
+            "description": "Deprecated — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; `separator` wins when both are present."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_Rollup": {
+        "type": "object",
+        "title": "Rollup",
+        "properties": {
+          "related_field_id": {
+            "type": "string",
+            "description": "Linked field ID."
+          },
+          "related_table_rollup_field_id": {
+            "type": "string",
+            "description": "Rollup field ID in the linked table."
+          },
+          "rollup_function": {
+            "type": "string",
+            "description": "Rollup function.",
+            "enum": [
+              "count",
+              "min",
+              "max",
+              "avg",
+              "sum",
+              "countDistinct",
+              "sumDistinct",
+              "avgDistinct"
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when dependent field is deleted"
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
+          },
+          "locale_string": {
+            "type": "boolean",
+            "description": "Deprecated — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; `separator` wins when both are present."
+          }
+        },
+        "required": [
+          "related_field_id",
+          "related_table_rollup_field_id",
+          "rollup_function"
+        ],
+        "additionalProperties": false
+      },
       "WidgetUpdateReq": {
         "description": "Widget update request body",
         "type": "object",

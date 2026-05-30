@@ -1070,7 +1070,7 @@
                         "type": "Number",
                         "default_value": "34",
                         "options": {
-                          "locale_string": true
+                          "separator": "comma_period"
                         }
                       },
                       {
@@ -1282,7 +1282,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "separator": "comma_period"
                           }
                         },
                         {
@@ -1572,7 +1572,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "separator": "comma_period"
                           }
                         },
                         {
@@ -11415,11 +11415,6 @@
               "space_period",
               "space_comma"
             ]
-          },
-          "locale_string": {
-            "type": "boolean",
-            "deprecated": true,
-            "description": "**Deprecated** — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; emitted on read as a derived alias. When both are present on write, `separator` wins."
           }
         },
         "additionalProperties": false
@@ -11446,11 +11441,6 @@
               "space_period",
               "space_comma"
             ]
-          },
-          "locale_string": {
-            "type": "boolean",
-            "deprecated": true,
-            "description": "**Deprecated** — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; emitted on read as a derived alias. When both are present on write, `separator` wins."
           }
         },
         "additionalProperties": false
@@ -11926,11 +11916,6 @@
               "space_period",
               "space_comma"
             ]
-          },
-          "locale_string": {
-            "type": "boolean",
-            "deprecated": true,
-            "description": "**Deprecated** — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; emitted on read as a derived alias. When both are present on write, `separator` wins."
           }
         },
         "required": [

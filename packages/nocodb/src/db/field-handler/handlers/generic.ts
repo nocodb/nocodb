@@ -724,11 +724,11 @@ export class GenericFieldHandler
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
-    const { val, sourceField } = args;
-    const [lower, upper] = String(val ?? '').split(',');
+    const { sourceField } = args;
+    const [lower, upper] = String(rootArgs.filter.value ?? '').split(',');
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
@@ -742,11 +742,11 @@ export class GenericFieldHandler
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
-    const { val, sourceField } = args;
-    const [lower, upper] = String(val ?? '').split(',');
+    const { sourceField } = args;
+    const [lower, upper] = String(rootArgs.filter.value ?? '').split(',');
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {

@@ -239,3 +239,34 @@ jobs:
       db: mysql
       shard: 3
       ee: false
+
+  # ── Playwright E2E: PG meta + MSSQL data, EE (3 shards) ───────────
+  # Always on push-to-develop; opt-in on PRs via the `mssql` label (or
+  # `trigger-ci` / force). Mirrors the unit-tests-pg-mssql gating so the
+  # MSSQL container cost stays off PRs that don't touch the dialect.
+  playwright-mssql-1:
+    needs: pre-build-for-ci
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mssql
+      shard: 1
+
+  playwright-mssql-2:
+    needs: pre-build-for-ci
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mssql
+      shard: 2
+
+  playwright-mssql-3:
+    needs: pre-build-for-ci
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mssql
+      shard: 3

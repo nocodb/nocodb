@@ -10,11 +10,16 @@ const isSqlite = (context: NcContext) => context.dbType === 'sqlite';
 
 const isPg = (context: NcContext) => context.dbType === 'pg';
 
+const isMssql = (context: NcContext) => context.dbType === 'mssql';
+
 const isEE = () => process.env.EE === 'true';
 
-// run all the tests for PG; disable some tests for mysql, sqlite to reduce CI time
+const FULL_RUN_DIALECTS = ['pg', 'mssql'];
+
+// disable some heavy tests for mysql/sqlite to reduce CI time
 //
-const enableQuickRun = () => (process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE) !== 'pg';
+const enableQuickRun = () =>
+  !FULL_RUN_DIALECTS.includes(process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE);
 
 const pg_credentials = (context: NcContext) => ({
   user: 'postgres',
@@ -69,4 +74,4 @@ async function sqliteExec(query) {
   }
 }
 
-export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isEE, enableQuickRun };
+export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, isMssql, pgExec, isEE, enableQuickRun };

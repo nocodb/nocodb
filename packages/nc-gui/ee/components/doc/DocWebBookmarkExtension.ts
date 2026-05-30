@@ -11,12 +11,16 @@
  * - `title`:       page title from <title> / og:title
  * - `description`: short description from og:description / meta description
  * - `faviconUrl`:  resolved favicon URL (rendered directly)
- * - `imageUrl`:    signed URL of the cached og:image
- * - `imagePath`:   storage-relative path to the cached og:image (used to re-sign
- *                  and as the FileReference lookup key in reconcileFileReferences)
+ * - `imagePath`:   storage-relative path to the cached og:image; the FileReference
+ *                  lookup key in reconcileFileReferences (persisted)
+ * - `fileSize`:    byte size of the cached image, recorded on the FileReference
+ *                  for workspace storage accounting (persisted)
  * - `id`:          FileReference id — populated by reconcileFileReferences on
- *                  the next doc save (mirrors image / fileAttachment lifecycle)
+ *                  the next doc save (mirrors image / fileAttachment lifecycle).
+ *                  Durable image serving uses this via the cookie-authed proxy.
  * - `siteName`:    publisher / site name (e.g. "GitHub")
+ * - `imageUrl`:    source og:image URL — preview only, shown before the doc is
+ *                  saved (no `id` yet). NOT a signed URL; ignored once `id` exists
  * - `isLoading`:   transient flag while metadata is being fetched
  */
 import { Node, mergeAttributes } from '@tiptap/core'
@@ -30,6 +34,7 @@ export interface WebBookmarkMetadata {
   faviconUrl: string | null
   imageUrl: string | null
   imagePath: string | null
+  fileSize: number | null
   siteName: string | null
   status: 'fetched' | 'fetch_failed'
 }
@@ -87,13 +92,14 @@ export const DocWebBookmarkExtension = Node.create({
           return { 'data-favicon-url': attrs.faviconUrl }
         },
       },
+      // Source og:image URL — preview only, shown before the FileReference id
+      // exists. Not emitted as an HTML attr; it can still appear in the saved
+      // PM-JSON content, which is harmless (unsigned public URL, ignored once
+      // `id` drives the proxy). Durable serving is the proxy keyed by `id`.
       imageUrl: {
         default: null,
-        parseHTML: (el: HTMLElement) => el.getAttribute('data-image-url'),
-        renderHTML: (attrs: Record<string, any>) => {
-          if (!attrs.imageUrl) return {}
-          return { 'data-image-url': attrs.imageUrl }
-        },
+        parseHTML: () => null,
+        renderHTML: () => ({}),
       },
       imagePath: {
         default: null,
@@ -101,6 +107,17 @@ export const DocWebBookmarkExtension = Node.create({
         renderHTML: (attrs: Record<string, any>) => {
           if (!attrs.imagePath) return {}
           return { 'data-image-path': attrs.imagePath }
+        },
+      },
+      fileSize: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const v = el.getAttribute('data-file-size')
+          return v ? Number(v) : null
+        },
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.fileSize) return {}
+          return { 'data-file-size': String(attrs.fileSize) }
         },
       },
       siteName: {

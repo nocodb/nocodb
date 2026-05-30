@@ -156,7 +156,6 @@ export class UiPostOperations
     'dataImportPreview' as const,
     'dataImportFile' as const,
     'webBookmarkFetch' as const,
-    'webBookmarkResignImage' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -767,10 +766,6 @@ export class UiPostOperations
         return await this.webBookmarkService.fetchMetadata(context, {
           url: payload?.url,
           req,
-        });
-      case 'webBookmarkResignImage':
-        return await this.webBookmarkService.resignImage(context, {
-          imagePath: payload?.imagePath,
         });
       default:
         // Some op names are registered in CE's `operations` (so their type is

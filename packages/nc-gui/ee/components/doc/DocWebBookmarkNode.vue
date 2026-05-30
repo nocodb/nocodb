@@ -16,18 +16,14 @@ import { NodeViewWrapper } from '@tiptap/vue-3'
 
 const props = defineProps<NodeViewProps>()
 
-const { $api } = useNuxtApp()
-
 const { appInfo } = useGlobal()
 
-const basesStore = useBases()
-const { activeProjectId } = storeToRefs(useBases())
+const { buildProxyUrl } = useDocumentImageUpload()
 
 /**
- * Backend may return either a fully-qualified URL (S3/GCS storage) or a path
- * relative to nc/uploads/ (local storage, served by /dltemp). Relative paths
- * must be joined with the backend ncSiteUrl so the browser hits the API
- * origin instead of the frontend origin.
+ * Normalise an image src for the <img>. Both the proxy URL and the source
+ * og:image URL are already absolute; this only handles the defensive case of a
+ * relative path by joining it against the backend ncSiteUrl.
  */
 const resolveSrc = (raw: string | null): string | null => {
   if (!raw) return null
@@ -50,7 +46,7 @@ const faviconUrl = computed<string | null>(() => props.node.attrs.faviconUrl)
 
 const imageUrl = computed<string | null>(() => props.node.attrs.imageUrl)
 
-const imagePath = computed<string | null>(() => props.node.attrs.imagePath)
+const nodeId = computed<string | null>(() => props.node.attrs.id)
 
 const siteName = computed<string | null>(() => props.node.attrs.siteName)
 
@@ -70,83 +66,24 @@ const faviconError = ref(false)
 
 const imageError = ref(false)
 
-const refreshedImageUrl = ref<string | null>(null)
-
-const isRefreshingImage = ref(false)
-
-// Re-entry guard for the resign-on-error flow. Set before issuing a
-// webBookmarkResignImage call; cleared by <img @load> when the resulting
-// URL actually renders. If the refreshed URL fails to load (auth flap,
-// deleted storage object, CDN error), @error fires again and this flag
-// short-circuits to the no-image fallback instead of looping forever.
-// A later expiry — after the refreshed URL has rendered successfully —
-// passes this gate and gets its own resign attempt.
-const refreshAttempted = ref(false)
-
 const safeFavicon = computed(() => {
   if (faviconError.value || !faviconUrl.value) return null
   if (!/^https?:\/\//i.test(faviconUrl.value)) return null
   return faviconUrl.value
 })
 
-const effectiveImageUrl = computed(() => refreshedImageUrl.value || imageUrl.value)
-
-const safeImage = computed(() => {
-  if (imageError.value || !effectiveImageUrl.value) return null
-  return resolveSrc(effectiveImageUrl.value)
+// Durable serving: the cookie-authed doc attachment proxy, keyed by the
+// FileReference id stamped on doc save (present after a reload). Once an id
+// exists we always use the proxy (matching DocImageNode) — never falling back
+// to the source URL, so a stale/dead source can't latch `imageError` and hide a
+// good proxied image. Pre-save (no id yet) shows the transient source og:image
+// URL for an immediate preview. No backend-signed URLs.
+const displayImageSrc = computed(() => {
+  if (nodeId.value) return buildProxyUrl(nodeId.value)
+  return resolveSrc(imageUrl.value)
 })
 
-/**
- * The stored signed URL has a short TTL. When the <img> errors out, ask the
- * backend to re-sign the stable imagePath so the preview survives indefinitely.
- *
- * Re-entry is gated by `refreshAttempted`: set when a resign is issued,
- * cleared by `onImageLoad` once the resulting URL actually renders. If the
- * refreshed URL fails to load too, the flag stays set and we fall through
- * to the no-image fallback — no infinite resign loop on broken storage.
- * Later expiries (after a successful render) pass the gate freshly.
- */
-const onImageError = async () => {
-  if (refreshAttempted.value || isRefreshingImage.value) {
-    imageError.value = true
-    return
-  }
-  if (!imagePath.value) {
-    imageError.value = true
-    return
-  }
-  const base = basesStore.bases.get(activeProjectId.value!)
-  if (!base?.fk_workspace_id || !base?.id) {
-    imageError.value = true
-    return
-  }
-
-  refreshAttempted.value = true
-  isRefreshingImage.value = true
-  try {
-    const res = (await $api.internal.postOperation(
-      base.fk_workspace_id,
-      base.id,
-      { operation: 'webBookmarkResignImage' },
-      { imagePath: imagePath.value },
-    )) as { imageUrl: string | null }
-    if (res?.imageUrl) {
-      refreshedImageUrl.value = res.imageUrl
-    } else {
-      imageError.value = true
-    }
-  } catch {
-    imageError.value = true
-  } finally {
-    isRefreshingImage.value = false
-  }
-}
-
-const onImageLoad = () => {
-  // The currently-shown URL actually rendered — clear the one-shot guard so
-  // a future expiry (much later in the doc's life) can resign again.
-  refreshAttempted.value = false
-}
+const safeImage = computed(() => (imageError.value ? null : displayImageSrc.value))
 
 const openUrl = () => {
   if (!url.value) return
@@ -210,14 +147,7 @@ const onCardClick = (e: MouseEvent) => {
 
       <!-- Image block (only when image present + loaded successfully) -->
       <div v-if="safeImage" class="nc-web-bookmark-image-wrapper">
-        <img
-          class="nc-web-bookmark-image"
-          :src="safeImage"
-          alt=""
-          referrerpolicy="no-referrer"
-          @load="onImageLoad"
-          @error="onImageError"
-        />
+        <img class="nc-web-bookmark-image" :src="safeImage" alt="" referrerpolicy="no-referrer" @error="imageError = true" />
       </div>
 
       <!-- Delete button — hover/selected only -->

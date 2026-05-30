@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   isCreatedOrLastModifiedByCol,
+  isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
   NcBaseError,
@@ -928,6 +929,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       ncMeta,
     );
 
+    if (viewTypeCode === ViewTypes.GANTT) {
+      this.validateGanttFieldTypes(context, body, modelColumns);
+    } else if (viewTypeCode === ViewTypes.TIMELINE) {
+      this.validateTimelineFieldTypes(context, body, modelColumns);
+    }
+
     let requestBody = withoutId(this.v3Tov2ViewBuilders.view().build(body));
     requestBody.type = viewTypeCode;
     requestBody.options = requestBody.options ?? {};
@@ -1324,6 +1331,99 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     return { modelColumns: columns };
   }
 
+  // Gantt's start/end date fields, duration field, and dependency linkrow
+  // field have strict UIType requirements that DateDependency.insert (called
+  // via View.insertMetaOnly from the gantt create path) does NOT enforce —
+  // only the standalone date-dependency service does. Validate here so v3
+  // create/update reject mismatched types up front (e.g. DateTime is NOT a
+  // valid gantt date field — only UITypes.Date is).
+  validateGanttFieldTypes(
+    context: NcContext,
+    body: { options?: { date_dependency?: any } },
+    modelColumns?: Column[],
+  ) {
+    const dd = body.options?.date_dependency;
+    if (!dd) return;
+
+    const colById = new Map((modelColumns ?? []).map((c) => [c.id, c]));
+
+    const checkType = (
+      fieldId: string | null | undefined,
+      label: string,
+      predicate: (col: Column) => boolean,
+      expected: string,
+    ) => {
+      if (!fieldId) return;
+      const col = colById.get(fieldId);
+      if (!col || !predicate(col)) {
+        NcError.get(context).invalidRequestBody(
+          `${label} must be a ${expected} type field`,
+        );
+      }
+    };
+
+    checkType(
+      dd.dates?.start_field_id,
+      'Start date field',
+      (c) => c.uidt === UITypes.Date,
+      'Date',
+    );
+    checkType(
+      dd.dates?.end_field_id,
+      'End date field',
+      (c) => c.uidt === UITypes.Date,
+      'Date',
+    );
+    checkType(
+      dd.duration_field_id,
+      'Duration field',
+      (c) => [UITypes.Duration, UITypes.Number].includes(c.uidt as UITypes),
+      'Duration or Number',
+    );
+    checkType(
+      dd.dependency?.linkrow_field_id,
+      'Dependency linkrow field',
+      (c) => isLinksOrLTAR(c),
+      'Links or LinkToAnotherRecord',
+    );
+  }
+
+  // Timeline range fields accept any date-shaped column: Date, DateTime,
+  // CreatedTime, LastModifiedTime. Mirrors the frontend filter in
+  // ee/components/smartsheet/toolbar/Timeline/Range.vue. The underlying
+  // TimelineView.insert does not type-check field IDs, so we enforce here.
+  validateTimelineFieldTypes(
+    context: NcContext,
+    body: { options?: { date_ranges?: Array<any> } },
+    modelColumns?: Column[],
+  ) {
+    const ranges = body.options?.date_ranges;
+    if (!ranges?.length) return;
+
+    const colById = new Map((modelColumns ?? []).map((c) => [c.id, c]));
+    const ALLOWED = [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ];
+
+    const checkType = (fieldId: string | null | undefined, label: string) => {
+      if (!fieldId) return;
+      const col = colById.get(fieldId);
+      if (!col || !ALLOWED.includes(col.uidt as UITypes)) {
+        NcError.get(context).invalidRequestBody(
+          `${label} must be a Date, DateTime, CreatedTime, or LastModifiedTime type field`,
+        );
+      }
+    };
+
+    for (const range of ranges) {
+      checkType(range?.start_date_field_id, 'Start date field');
+      checkType(range?.end_date_field_id, 'End date field');
+    }
+  }
+
   async getUpdateViewColumn(
     context: NcContext,
     param: {
@@ -1496,6 +1596,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       },
       ncMeta,
     );
+
+    if (viewTypeCode === ViewTypes.GANTT) {
+      this.validateGanttFieldTypes(context, body, modelColumns);
+    } else if (viewTypeCode === ViewTypes.TIMELINE) {
+      this.validateTimelineFieldTypes(context, body, modelColumns);
+    }
 
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 

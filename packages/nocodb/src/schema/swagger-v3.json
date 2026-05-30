@@ -10213,6 +10213,7 @@
       "ViewOptionsTimeline": {
         "type": "object",
         "description": "Timeline view configuration. A timeline may have multiple date ranges (e.g. \"planned\" vs \"actual\"); each range has a required start field and an optional end field.",
+        "additionalProperties": false,
         "properties": {
           "date_ranges": {
             "type": "array",
@@ -10253,6 +10254,7 @@
       "ViewOptionsGantt": {
         "type": "object",
         "description": "Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON.",
+        "additionalProperties": false,
         "properties": {
           "date_dependency": {
             "oneOf": [

@@ -1984,11 +1984,11 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseSync'),
       content: t('upgrade.upgradeToUseSyncSubtitle', {
-        plan: PlanTitles.BUSINESS,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_SYNC,
-      requiredPlan: PlanTitles.BUSINESS,
+      requiredPlan: PlanTitles.PLUS,
     })
 
     return true

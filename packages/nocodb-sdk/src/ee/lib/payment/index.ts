@@ -201,9 +201,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_SSO]: false,
-      [PlanFeatureTypes.FEATURE_SYNC]: false,
-      // Table sync (manual) is available from the first paid plan; only the
-      // automatic/real-time trigger is gated to Business+.
+      // Sync (app sync + manual table sync) is available from the first paid
+      // plan; only the automatic/real-time table-sync trigger is Business+.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,

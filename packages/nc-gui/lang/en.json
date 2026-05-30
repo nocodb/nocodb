@@ -1385,9 +1385,9 @@
   "labels": {
     "syncing": "Syncing",
     "paused": "Paused",
-    "tableSync": "Table sync",
+    "tableSync": "NocoDB Sync",
     "tableSyncDesc": "Mirror a shared view from another NocoDB base",
-    "integrationSync": "Integration sync",
+    "integrationSync": "App Sync",
     "integrationSyncDesc": "Pull data from an external service into this base",
     "createSyncTable": "Create sync",
     "syncedTable": "Synced table",

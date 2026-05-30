@@ -492,7 +492,7 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   USER_BASE = 'userBase',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
-  SINGLE_QUERY = 'singleQuery',
+  SINGLE_QUERY = 'singleQuery2',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',

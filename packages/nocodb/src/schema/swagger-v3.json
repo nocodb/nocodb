@@ -10229,22 +10229,12 @@
                   "type": "string",
                   "nullable": true,
                   "description": "Field ID of the end date column. Null means the range is a single point in time."
-                },
-                "label": {
-                  "type": "string",
-                  "description": "Optional human-readable label shown in the legend."
                 }
               },
               "required": [
                 "start_date_field_id"
               ]
             }
-          },
-          "zoom_level": {
-            "type": "string",
-            "enum": ["day", "week", "month", "quarter", "year"],
-            "default": "week",
-            "description": "Default zoom level used when the view first loads."
           }
         }
       },
@@ -10266,21 +10256,6 @@
               { "type": "null" }
             ],
             "description": "The view-owned date dependency rule. When null, the gantt falls back to the table-level default rule (if any). PATCH replaces the entire object — no partial updates."
-          },
-          "zoom_level": {
-            "type": "string",
-            "enum": ["day", "week", "month", "quarter", "year"],
-            "default": "week"
-          },
-          "show_milestones": {
-            "type": "boolean",
-            "default": false,
-            "description": "When true, single-point records (no end_date) are rendered as milestones."
-          },
-          "highlight_critical_path": {
-            "type": "boolean",
-            "default": false,
-            "description": "When true and date_dependency is configured, the critical path is highlighted."
           }
         }
       },

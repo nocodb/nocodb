@@ -355,7 +355,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             (range: any) => ({
               start_date_field_id: range.fk_from_column_id ?? undefined,
               end_date_field_id: range.fk_to_column_id ?? undefined,
-              label: range.label ?? undefined,
             }),
           );
           formattedData.timeline_range = undefined;
@@ -390,27 +389,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           };
         }
 
-        // Gantt presentation flags live on GanttView.meta JSON. Extract them
-        // into the V3 options surface using spec names (show_milestones)
-        // rather than the internal storage names (use_milestones).
-        const viewMeta = parseProp(formattedData.meta ?? {});
-        if (
-          viewMeta &&
-          (viewMeta.zoom_level !== undefined ||
-            viewMeta.use_milestones !== undefined ||
-            viewMeta.highlight_critical_path !== undefined)
-        ) {
-          if (viewMeta.zoom_level !== undefined) {
-            formattedData.zoom_level = viewMeta.zoom_level;
-          }
-          if (viewMeta.use_milestones !== undefined) {
-            formattedData.show_milestones = viewMeta.use_milestones;
-          }
-          if (viewMeta.highlight_critical_path !== undefined) {
-            formattedData.highlight_critical_path =
-              viewMeta.highlight_critical_path;
-          }
-        }
         if (formattedData.kanban_stack_by_field_id) {
           formattedData.stack_by = {
             field_id: formattedData.kanban_stack_by_field_id,
@@ -486,9 +464,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
         // gantt
         'date_dependency',
-        'zoom_level',
-        'show_milestones',
-        'highlight_critical_path',
 
         // form specific for now
         'fields_by_id',
@@ -541,18 +516,14 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             : {}),
         };
 
-        // timeline — same `date_ranges` v3 key, but routes to timeline_range
-        // (carries an optional label and may be empty). Service routing on
-        // ViewTypes.TIMELINE picks this up; the calendar branch above only
-        // fires for calendar views since the service consults the actual
-        // view type, not the property name. We keep both around since
-        // timeline_range is also set explicitly here so downstream Timeline
-        // create/update can find it.
+        // timeline — same `date_ranges` v3 key, but routes to timeline_range.
+        // Service routing on ViewTypes.TIMELINE picks this up; the calendar
+        // branch above only fires for calendar views since the service
+        // consults the actual view type, not the property name.
         if (options.date_ranges?.length) {
           result.timeline_range = options.date_ranges.map((range: any) => ({
             fk_from_column_id: range.start_date_field_id,
             fk_to_column_id: range.end_date_field_id ?? null,
-            label: range.label,
           }));
         }
 
@@ -577,31 +548,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           // The gantt service reads `dependency`; the bare `date_dependency`
           // node is for the v3 transformer round-trip only.
           result.date_dependency = undefined;
-        }
-
-        // gantt meta-stored options — fold into `meta` JSON the way
-        // GanttMetaType is shaped (use_milestones, highlight_critical_path,
-        // zoom_level). The wire uses show_milestones to match the spec's
-        // atomic-block style; map it to use_milestones.
-        if (
-          options.zoom_level !== undefined ||
-          options.show_milestones !== undefined ||
-          options.highlight_critical_path !== undefined
-        ) {
-          result.meta = result.meta ?? {};
-          if (options.zoom_level !== undefined) {
-            result.meta.zoom_level = options.zoom_level;
-          }
-          if (options.show_milestones !== undefined) {
-            result.meta.use_milestones = options.show_milestones;
-          }
-          if (options.highlight_critical_path !== undefined) {
-            result.meta.highlight_critical_path =
-              options.highlight_critical_path;
-          }
-          result.zoom_level = undefined;
-          result.show_milestones = undefined;
-          result.highlight_critical_path = undefined;
         }
 
         // convert redirect_after_secs from integer to string (V2 expects StringOrNull)
@@ -1768,7 +1714,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         case ViewTypes.TIMELINE: {
           // Same re-derivation as in create: the options builder's generic
           // calendar_range mapping consumes date_ranges; rebuild
-          // timeline_range from the original body so labels survive.
+          // timeline_range from the original body for the timeline service.
           // TimelineView.update reads view.timeline_range and replaces the
           // range rows wholesale (delete + bulkInsert).
           if (body.options?.date_ranges?.length) {
@@ -1776,7 +1722,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               (r: any) => ({
                 fk_from_column_id: r.start_date_field_id,
                 fk_to_column_id: r.end_date_field_id ?? null,
-                label: r.label,
               }),
             );
           }

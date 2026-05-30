@@ -1036,7 +1036,7 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
   await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
 }
 
-async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
+async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite: Record<string, any> = {}) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   if (removeInlineAddRecord.value && !before && !row && !skipUpdate) {
@@ -1048,7 +1048,7 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
     applySorting?.(rowSortRequiredRows.value)
   }
 
-  const rowObj = callAddEmptyRow?.(row)
+  const rowObj = callAddEmptyRow?.(row, undefined, overwrite)
 
   if (!skipUpdate && rowObj) {
     saveEmptyRow(rowObj, before)
@@ -2052,16 +2052,9 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
   }
 }
 
-const duplicateRow = (context: { row: number; col: number }) => {
-  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
-
+const duplicateRow = async (context: { row: number; col: number }) => {
   const sourceRow = cachedRows.value.get(context.row)
   if (!sourceRow) return
-
-  clearInvalidRows?.()
-  if (rowSortRequiredRows.value.length) {
-    applySorting?.(rowSortRequiredRows.value)
-  }
 
   // Clone the record's values (identity markers + system columns stripped, link
   // values kept) so the insert creates a brand-new record (see getDuplicateRowData).
@@ -2069,14 +2062,13 @@ const duplicateRow = (context: { row: number; col: number }) => {
 
   // Insert immediately below the source row. `before` is the pk of the row
   // currently one position down, so the copy lands right after the original
-  // (same mechanism as the Insert below action).
+  // (same mechanism as the Insert below action). `addEmptyRow` handles the
+  // plan-limit check, invalid-row clearing and sorting.
   const rowBelow = cachedRows.value.get(context.row + 1)
   const beforeRowId = rowBelow ? extractPkFromRow(rowBelow.row, meta.value?.columns as ColumnType[]) : undefined
 
-  const rowObj = callAddEmptyRow?.(context.row + 1, undefined, clonedRow)
+  const rowObj = await addEmptyRow(context.row + 1, false, beforeRowId ?? undefined, clonedRow)
   if (!rowObj) return
-
-  saveEmptyRow(rowObj, beforeRowId ?? undefined)
 
   message.toast(t('msg.success.rowDuplicated'))
 }

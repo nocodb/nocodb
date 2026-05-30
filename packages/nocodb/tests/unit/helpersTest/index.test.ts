@@ -1,6 +1,7 @@
 import { runOnSet } from '../utils/runOnSet';
 import { NcConcurrentTest } from './NcConcurrent.test';
 import { publicDatasSanitizeTest } from './publicDatasSanitize.test';
+import { publicDataExportSanitizeTest } from './publicDataExportSanitize.test';
 import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
@@ -62,6 +63,7 @@ function _helperTests() {
     'PublicDatasService - shared view column sanitization',
     publicDatasSanitizeTest,
   );
+  publicDataExportSanitizeTest();
   apiTokenPermissionTest();
   patResourceFilterTest();
   verifyDefaultOrgTests();

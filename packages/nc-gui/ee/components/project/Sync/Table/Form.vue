@@ -35,6 +35,8 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { dashboardUrl } = useDashboard()
 
+const route = useRoute()
+
 const { blockTableSyncAuto, getPlanTitle } = useEeConfig()
 
 const tableSyncStore = useTableSyncStore()
@@ -443,6 +445,15 @@ watch(
     pasteForm.error = ''
     pasteForm.passwordRequired = false
     pasteForm.password = ''
+  },
+)
+
+// Close the form on navigation (e.g. the upgrade flow redirects to /pricing) —
+// NcModal doesn't dismiss on route change, so it would otherwise linger.
+watch(
+  () => route.fullPath,
+  () => {
+    if (vOpen.value) vOpen.value = false
   },
 )
 

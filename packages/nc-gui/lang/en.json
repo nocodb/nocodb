@@ -1386,7 +1386,7 @@
     "syncing": "Syncing",
     "paused": "Paused",
     "tableSync": "Table sync",
-    "tableSyncDesc": "Mirror a shared view from another NocoDB base into this one",
+    "tableSyncDesc": "Mirror a shared view from another NocoDB base",
     "integrationSync": "Integration sync",
     "integrationSyncDesc": "Pull data from an external service into this base",
     "createSyncTable": "Create sync",

@@ -181,6 +181,27 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     }
   }
 
+  function openTableSyncEditModal({ baseId, sync }: { baseId?: string; sync?: TableSyncType }) {
+    if (!baseId || !sync) return
+
+    $e('c:table-sync:edit:open')
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(ProjectSyncTableForm, {
+      'value': isDlgOpen,
+      'baseId': baseId,
+      'sync': sync,
+      'onUpdate:value': () => closeDialog(),
+      'onSaved': () => closeDialog(),
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   return {
     baseSyncs,
     isLoading,
@@ -194,6 +215,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     resumeSync,
     resolveLink,
     openTableSyncCreateModal,
+    openTableSyncEditModal,
   }
 })
 

@@ -759,6 +759,13 @@ const isMmTable = computed(() => !!table.value?.mm)
                     :meta="{ workspace_id: table.fk_workspace_id, base_id: table.base_id }"
                     @close="isOptionsOpen = false"
                   />
+
+                  <DashboardTreeViewTableSyncMenuOptions
+                    v-if="isEeUI && table.synced"
+                    :base-id="table.base_id!"
+                    :table="table"
+                    @close="isOptionsOpen = false"
+                  />
                   <template v-if="enabledOptions.tableDelete">
                     <NcDivider />
                     <NcTooltip :disabled="!isMmTable" :title="$t('tooltip.deleteNotSupportedOnJunctionTable')" placement="right">

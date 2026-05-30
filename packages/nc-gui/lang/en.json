@@ -1416,6 +1416,7 @@
     "general": "General",
     "noSyncsYet": "No syncs yet",
     "syncNow": "Sync now",
+    "updateSyncConfiguration": "Update sync configuration",
     "freezeSync": "Pause sync",
     "resumeSync": "Resume sync",
     "retrySync": "Retry sync",

@@ -463,26 +463,41 @@ export class TableSyncService {
           destOverride,
         );
 
-        // When the dest col was renamed, the title-matching backfill in
-        // `writeColumnMappingsForTableMapping` can't pair source ↔ dest;
-        // insert the mapping row directly so the id link is preserved.
-        if (destOverride && col.id) {
+        // Pair source → dest in nc_table_sync_column_mappings inline, before
+        // returning control. Without this, the post-loop
+        // `writeColumnMappingsForTableMapping` is the only writer for the
+        // mapping row — leaving a window between `addSyncedField` (dest col
+        // becomes visible in metadata) and the post-loop helper (mapping row
+        // written). An observer racing into that window — e.g. an explicit
+        // `tableSyncResync` fired right after a detached column-change
+        // handler reaches the new col — sees the dest col but no mapping,
+        // skips backfilling its values, and leaves the dest col empty until
+        // the next resync. Idempotent vs. the post-loop helper (each
+        // dest-col mapping is uniqueness-checked there too).
+        if (col.id) {
           await mainDest.getColumns(context);
+          const destTitle = destOverride?.title ?? col.title;
           const newDestCol = (mainDest.columns ?? []).find(
-            (c) => c.title === destOverride.title,
+            (c) => c.title === destTitle,
           );
           if (newDestCol?.id) {
-            await TableSyncColumnMapping.insert(context, {
-              fk_table_sync_id: oldSync.id,
-              fk_table_sync_mapping_id: mainMapping.id,
-              source_workspace_id: mainMapping.source_workspace_id,
-              source_base_id: mainMapping.source_base_id,
-              source_table_id: mainMapping.source_table_id,
-              source_column_id: col.id,
-              dest_base_id: mainMapping.dest_base_id,
-              dest_table_id: mainMapping.dest_table_id,
-              dest_column_id: newDestCol.id,
-            });
+            const existing = await TableSyncColumnMapping.getByDestColumn(
+              context,
+              newDestCol.id,
+            );
+            if (!existing) {
+              await TableSyncColumnMapping.insert(context, {
+                fk_table_sync_id: oldSync.id,
+                fk_table_sync_mapping_id: mainMapping.id,
+                source_workspace_id: mainMapping.source_workspace_id,
+                source_base_id: mainMapping.source_base_id,
+                source_table_id: mainMapping.source_table_id,
+                source_column_id: col.id,
+                dest_base_id: mainMapping.dest_base_id,
+                dest_table_id: mainMapping.dest_table_id,
+                dest_column_id: newDestCol.id,
+              });
+            }
           }
         }
 

@@ -2024,11 +2024,24 @@ function tableSyncHandlerTests() {
           return col ?? null;
         });
 
-        // The detached handler should re-derive the field as a dest SLT col.
-        await waitFor('dest field re-derived as SingleLineText', async () => {
-          const col = await getDestCol(mainDest, LTAR_TITLE);
-          return col?.uidt === UITypes.SingleLineText ? col : null;
-        });
+        // The detached handler should re-derive the field as a dest SLT col
+        // AND wire up its column-mapping row. Waiting for both is essential —
+        // the dest col lands in nc_columns a beat before the mapping row in
+        // nc_table_sync_column_mappings, and a resync racing into that gap
+        // sees the col but no mapping, skipping the value backfill and
+        // leaving the dest col empty.
+        await waitFor(
+          'dest field re-derived as SingleLineText with mapping',
+          async () => {
+            const col = await getDestCol(mainDest, LTAR_TITLE);
+            if (col?.uidt !== UITypes.SingleLineText || !col.id) return null;
+            const cm = await TableSyncColumnMapping.getByDestColumn(
+              { workspace_id: workspaceId, base_id: destBase.id },
+              col.id,
+            );
+            return cm ? col : null;
+          },
+        );
 
         // Force a deterministic resync to fill the values, then assert parity.
         await internalPost(context, destEnv, {

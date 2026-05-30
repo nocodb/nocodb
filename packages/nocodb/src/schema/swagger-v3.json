@@ -10244,11 +10244,6 @@
             "enum": ["day", "week", "month", "quarter", "year"],
             "default": "week",
             "description": "Default zoom level used when the view first loads."
-          },
-          "color_field_id": {
-            "type": "string",
-            "nullable": true,
-            "description": "Optional field whose value drives bar colour."
           }
         },
         "required": [
@@ -10270,11 +10265,6 @@
             "type": "string",
             "enum": ["day", "week", "month", "quarter", "year"],
             "default": "week"
-          },
-          "color_field_id": {
-            "type": "string",
-            "nullable": true,
-            "description": "Optional field whose value drives bar colour."
           },
           "show_milestones": {
             "type": "boolean",

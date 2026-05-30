@@ -391,16 +391,14 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         }
 
         // Gantt presentation flags live on GanttView.meta JSON. Extract them
-        // into the V3 options surface using spec names (show_milestones,
-        // color_field_id) rather than the internal storage names
-        // (use_milestones, fk_color_col_id).
+        // into the V3 options surface using spec names (show_milestones)
+        // rather than the internal storage names (use_milestones).
         const viewMeta = parseProp(formattedData.meta ?? {});
         if (
           viewMeta &&
           (viewMeta.zoom_level !== undefined ||
             viewMeta.use_milestones !== undefined ||
-            viewMeta.highlight_critical_path !== undefined ||
-            viewMeta.fk_color_col_id !== undefined)
+            viewMeta.highlight_critical_path !== undefined)
         ) {
           if (viewMeta.zoom_level !== undefined) {
             formattedData.zoom_level = viewMeta.zoom_level;
@@ -411,9 +409,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           if (viewMeta.highlight_critical_path !== undefined) {
             formattedData.highlight_critical_path =
               viewMeta.highlight_critical_path;
-          }
-          if (viewMeta.fk_color_col_id !== undefined) {
-            formattedData.color_field_id = viewMeta.fk_color_col_id;
           }
         }
         if (formattedData.kanban_stack_by_field_id) {
@@ -494,7 +489,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'zoom_level',
         'show_milestones',
         'highlight_critical_path',
-        'color_field_id',
 
         // form specific for now
         'fields_by_id',
@@ -587,13 +581,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
         // gantt meta-stored options — fold into `meta` JSON the way
         // GanttMetaType is shaped (use_milestones, highlight_critical_path,
-        // zoom_level, fk_color_col_id). The wire uses show_milestones to
-        // match the spec's atomic-block style; map it to use_milestones.
+        // zoom_level). The wire uses show_milestones to match the spec's
+        // atomic-block style; map it to use_milestones.
         if (
           options.zoom_level !== undefined ||
           options.show_milestones !== undefined ||
-          options.highlight_critical_path !== undefined ||
-          options.color_field_id !== undefined
+          options.highlight_critical_path !== undefined
         ) {
           result.meta = result.meta ?? {};
           if (options.zoom_level !== undefined) {
@@ -606,13 +599,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             result.meta.highlight_critical_path =
               options.highlight_critical_path;
           }
-          if (options.color_field_id !== undefined) {
-            result.meta.fk_color_col_id = options.color_field_id;
-          }
           result.zoom_level = undefined;
           result.show_milestones = undefined;
           result.highlight_critical_path = undefined;
-          result.color_field_id = undefined;
         }
 
         // convert redirect_after_secs from integer to string (V2 expects StringOrNull)
@@ -1285,13 +1274,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         dd.dependency?.linkrow_field_id,
       );
     }
-    if (
-      [ViewTypes.GANTT].includes(viewTypeCode) &&
-      body.options?.color_field_id
-    ) {
-      fieldIdToVerify.push(body.options.color_field_id);
-    }
-
     if (body.options?.cover_field_id) {
       fieldIdToVerify.push(body.options?.cover_field_id);
     }

@@ -870,14 +870,22 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       true,
       context,
     );
-    if (body.options) {
+    // Validate per-view-type options. For gantt/timeline the create-time
+    // variant requires date_dependency / date_ranges respectively, so we run
+    // validation even when `body.options` is omitted entirely — AJV then
+    // surfaces a clear "must have required property" error instead of letting
+    // the request slip through and fail deeper in the pipeline.
+    const typeLower = body.type?.toLowerCase?.();
+    const requiresOptionsOnCreate = ['gantt', 'timeline'].includes(typeLower);
+    if (body.options || requiresOptionsOnCreate) {
       const optionsSchemaName =
         'ViewOptions' +
         body.type[0].toUpperCase() +
-        body.type.substring(1).toLowerCase();
+        body.type.substring(1).toLowerCase() +
+        (requiresOptionsOnCreate ? 'Create' : '');
       validatePayload(
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
-        body.options,
+        body.options ?? {},
         true,
         context,
       );

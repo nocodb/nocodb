@@ -10246,9 +10246,13 @@
             "default": "week",
             "description": "Default zoom level used when the view first loads."
           }
-        },
-        "required": [
-          "date_ranges"
+        }
+      },
+      "ViewOptionsTimelineCreate": {
+        "description": "Timeline view configuration on create — same shape as ViewOptionsTimeline but requires date_ranges. Update (PATCH) uses the base schema so partial updates are allowed.",
+        "allOf": [
+          { "$ref": "#/components/schemas/ViewOptionsTimeline" },
+          { "required": ["date_ranges"] }
         ]
       },
       "ViewOptionsGantt": {
@@ -10279,6 +10283,13 @@
             "description": "When true and date_dependency is configured, the critical path is highlighted."
           }
         }
+      },
+      "ViewOptionsGanttCreate": {
+        "description": "Gantt view configuration on create — same shape as ViewOptionsGantt but requires date_dependency. Update (PATCH) uses the base schema so partial updates are allowed.",
+        "allOf": [
+          { "$ref": "#/components/schemas/ViewOptionsGantt" },
+          { "required": ["date_dependency"] }
+        ]
       },
       "DateDependency": {
         "type": "object",
@@ -10595,7 +10606,7 @@
                       ]
                     },
                     "options": {
-                      "$ref": "#/components/schemas/ViewOptionsTimeline"
+                      "$ref": "#/components/schemas/ViewOptionsTimelineCreate"
                     },
                     "sorts": {
                       "type": "array",
@@ -10630,7 +10641,7 @@
                       ]
                     },
                     "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGantt"
+                      "$ref": "#/components/schemas/ViewOptionsGanttCreate"
                     },
                     "sorts": {
                       "type": "array",
@@ -10649,7 +10660,10 @@
                       "$ref": "#/components/schemas/ViewRowColour",
                       "description": "Row colour configuration for the the view."
                     }
-                  }
+                  },
+                  "required": [
+                    "options"
+                  ]
                 },
                 {
                   "type": "object",

@@ -446,7 +446,9 @@
   "orgUser": {
     "a:org-user:invite": "Invite org user",
     "a:org-user:resend-invite": "Resend org user invite",
-    "a:org-user:user-deleted": "Delete org user"
+    "a:org-user:user-deleted": "Delete org user",
+    "a:org-user:role-update": "Update org user role",
+    "a:org-user:promote-admin": "Promote org user to admin"
   },
   "payment": {
     "c:payment:banner": "Click payment banner",

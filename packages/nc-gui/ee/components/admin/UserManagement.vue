@@ -3,7 +3,7 @@ import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { showInfoModal, showWarningModal } = useNcConfirmModal()
 
@@ -77,6 +77,10 @@ const updateOrgRole = async (member: any, newRole: string) => {
 
   try {
     await $api.instance.patch(`/api/v2/orgs/${org.value?.id}/user/${member.id}`, { org_role: newRole })
+    $e('a:org-user:role-update', { role: newRole })
+    if (newRole === EnterpriseOrgUserRoles.ADMIN) {
+      $e('a:org-user:promote-admin')
+    }
     message.success(t('msg.success.roleUpdated'))
   } catch (e: any) {
     // Revert on error

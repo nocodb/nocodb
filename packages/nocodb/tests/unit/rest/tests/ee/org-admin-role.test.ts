@@ -272,6 +272,22 @@ export default function () {
         expect(row?.roles).to.equal(EnterpriseOrgUserRoles.ADMIN);
       });
 
+      it('a req-less caller cannot promote to ADMIN (matches cloud)', async () => {
+        // The admin-only guard must fire regardless of whether req is present;
+        // a future internal/SCIM caller without req should not silently bypass.
+        await seedOrgUser(targetUserId, EnterpriseOrgUserRoles.CREATOR);
+
+        await expectForbidden(
+          onPremService.updateOrgRole({
+            userId: targetUserId,
+            orgRole: EnterpriseOrgUserRoles.ADMIN,
+          }),
+        );
+
+        const row = await fetchOrgUser(targetUserId);
+        expect(row?.roles).to.equal(EnterpriseOrgUserRoles.CREATOR);
+      });
+
       it('super-admin bypasses the admin-only check even without an org row', async () => {
         await seedOrgUser(targetUserId, EnterpriseOrgUserRoles.CREATOR);
 

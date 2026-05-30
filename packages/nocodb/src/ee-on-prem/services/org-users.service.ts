@@ -240,7 +240,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
    */
   protected async assertRequesterIsOrgAdmin(
     orgId: string,
-    req: NcRequest,
+    req?: NcRequest,
   ): Promise<void> {
     if (req?.user?.roles?.includes?.('super')) return;
 
@@ -381,8 +381,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
 
     if (
       param.orgRole === EnterpriseOrgUserRoles.ADMIN &&
-      currentRole?.roles !== EnterpriseOrgUserRoles.ADMIN &&
-      param.req
+      currentRole?.roles !== EnterpriseOrgUserRoles.ADMIN
     ) {
       await this.assertRequesterIsOrgAdmin(orgId, param.req);
     }

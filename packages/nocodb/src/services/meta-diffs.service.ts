@@ -25,6 +25,10 @@ import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
 import { normalizeDr } from '~/helpers/dbHelpers';
+import {
+  detectColumnSchemaPropsChanged,
+  resolvePkAfterSync,
+} from '~/services/meta-diffs/pk-preservation';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -292,13 +296,9 @@ export class MetaDiffsService {
             column: oldCol,
           });
         }
-        if (
-          !!oldCol.pk !== !!column.pk ||
-          !!oldCol.rqd !== !!column.rqd ||
-          !!oldCol.un !== !!column.un ||
-          !!oldCol.ai !== !!column.ai ||
-          !!oldCol.unique !== !!column.unique
-        ) {
+        // Asymmetric on `pk` — preserve a user-set NocoDB PK across syncs.
+        // See `~/services/meta-diffs/pk-preservation`.
+        if (detectColumnSchemaPropsChanged(oldCol, column)) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED,
             msg: `Column properties changed (${column.cn})`,
@@ -411,6 +411,51 @@ export class MetaDiffsService {
               msg: `Relation removed (${
                 !parentModel ? 'parent' : 'child'
               } table missing)`,
+              colId: relationCol.id,
+              column: relationCol,
+            });
+          }
+        }
+        continue;
+      }
+
+      // If either side of the relation no longer has a primary key, the
+      // LTAR is unusable — every read path that builds nested record JSON
+      // dereferences `relatedModel.primaryKey.column_name` and crashes.
+      // Mark it for removal so meta-sync naturally cleans up legacy bad
+      // state (LTARs created before the prevention guard in
+      // TABLE_RELATION_ADD shipped). The matching TABLE_RELATION_ADD path
+      // skips creation while PKs are still missing, so this won't oscillate
+      // — once the user re-flags `pk` (or the source schema gains a PK),
+      // the next sync recreates the LTAR.
+      //
+      // Predict the post-sync pk state instead of reading only the stale
+      // NocoDB metadata. A column-prop-changed apply earlier in this same
+      // sync may set `pk:true` from what the sqlClient reports — without
+      // this prediction, the LTAR-removal flag would be raised in the same
+      // pass that's about to restore the pk, and the removal would still
+      // apply later, undoing the recovery.
+      await parentModel.getColumns(context);
+      await childModel.getColumns(context);
+      const hasPostSyncPk = (model: Model): boolean => {
+        if (model.primaryKey) return true;
+        const dbCols = colListRef[model.table_name];
+        return !!(dbCols && dbCols.find((c: any) => c.pk));
+      };
+      const parentHasPk = hasPostSyncPk(parentModel);
+      const childHasPk = hasPostSyncPk(childModel);
+      if (!parentHasPk || !childHasPk) {
+        const ownerModel = await relationCol.getModel(context);
+        if (ownerModel) {
+          const ownerTable = changes.find(
+            (t) => t.table_name === ownerModel.table_name,
+          );
+          if (ownerTable) {
+            ownerTable.detectedChanges.push({
+              type: MetaDiffType.TABLE_RELATION_REMOVE,
+              msg: `Relation removed (${
+                !parentHasPk ? 'parent' : 'child'
+              } table has no primary key)`,
               colId: relationCol.id,
               column: relationCol,
             });
@@ -1001,7 +1046,9 @@ export class MetaDiffsService {
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const colMeta = columns.find((c) => c.cn === change.cn);
               if (!colMeta) break;
-              const { pk, ai, rqd, un, unique } = colMeta;
+              const { ai, rqd, un, unique } = colMeta;
+              // pk asymmetry — see `~/services/meta-diffs/pk-preservation`.
+              const pk = resolvePkAfterSync(change.column.pk, colMeta.pk);
               await Column.update(context, change.column.id, {
                 pk,
                 ai,
@@ -1085,16 +1132,29 @@ export class MetaDiffsService {
                   return;
                 }
 
-                const parentCol = await parentModel
-                  .getColumns(context)
-                  .then((cols) =>
-                    cols.find((c) => c.column_name === change.rcn),
+                const parentCols = await parentModel.getColumns(context);
+                const childCols = await childModel.getColumns(context);
+
+                // Skip relation creation if either side has no primary key.
+                // PK-less tables (e.g. PG junction tables without a PK
+                // constraint) can't be addressed by row id, so cascading
+                // deletes, link broadcasts, and undo all break downstream
+                // (see delByPk, updateLinkedRecordsOnDelete). Leave them as
+                // plain tables so the FK column is still imported, just
+                // without the LTAR virtual column.
+                if (!parentModel.primaryKey || !childModel.primaryKey) {
+                  logger?.(
+                    `Skipping relation creation between ${change.tn} and ${change.rtn} because one of the tables has no primary key.`,
                   );
-                const childCol = await childModel
-                  .getColumns(context)
-                  .then((cols) =>
-                    cols.find((c) => c.column_name === change.cn),
-                  );
+                  return;
+                }
+
+                const parentCol = parentCols.find(
+                  (c) => c.column_name === change.rcn,
+                );
+                const childCol = childCols.find(
+                  (c) => c.column_name === change.cn,
+                );
 
                 await Column.update(context, childCol.id, {
                   ...childCol,

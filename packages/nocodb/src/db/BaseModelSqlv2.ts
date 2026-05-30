@@ -2727,33 +2727,40 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_child_column_id,
               });
 
-              // Collect linked child IDs BEFORE FK nulling
               await relatedTable.getColumns(refContext);
-              const inverseLinkCol = await extractCorrespondingLinkColumn(
-                this.context,
-                {
-                  ltarColumn: column,
-                  referencedTable: relatedTable,
-                  referencedTableColumns: relatedTable.columns,
-                },
-              );
-              const hmLinkedRows = await this.execAndParse(
-                this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
-                  .select(relatedTable.primaryKey.column_name)
-                  .where(childColumn.column_name, id),
-                null,
-                { raw: true },
-              );
-              const hmLinkedIds = hmLinkedRows.map(
-                (r) => r[relatedTable.primaryKey.column_name],
-              );
-              if (hmLinkedIds.length) {
-                linkedRecordNotifications.push({
-                  baseModel: refBaseModel,
-                  model: relatedTable,
-                  ids: hmLinkedIds,
-                  colId: inverseLinkCol?.id,
-                });
+
+              // Collect linked child IDs BEFORE FK nulling so we can broadcast
+              // LMT updates to them later. PG-imported junction tables (and any
+              // other PK-less tables) can't be addressed by row id, so we skip
+              // the broadcast collection but still queue the FK-nulling exec
+              // query below — the delete itself must stay correct.
+              if (relatedTable.primaryKey) {
+                const inverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: relatedTable,
+                    referencedTableColumns: relatedTable.columns,
+                  },
+                );
+                const hmLinkedRows = await this.execAndParse(
+                  this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                    .select(relatedTable.primaryKey.column_name)
+                    .where(childColumn.column_name, id),
+                  null,
+                  { raw: true },
+                );
+                const hmLinkedIds = hmLinkedRows.map(
+                  (r) => r[relatedTable.primaryKey.column_name],
+                );
+                if (hmLinkedIds.length) {
+                  linkedRecordNotifications.push({
+                    baseModel: refBaseModel,
+                    model: relatedTable,
+                    ids: hmLinkedIds,
+                    colId: inverseLinkCol?.id,
+                  });
+                }
               }
 
               execQueries.push((trx) =>
@@ -2830,35 +2837,41 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_child_column_id,
               });
 
-              // Collect linked child ID BEFORE FK nulling
               await ooRelatedTable.getColumns(refContext);
-              const ooInverseLinkCol = await extractCorrespondingLinkColumn(
-                this.context,
-                {
-                  ltarColumn: column,
-                  referencedTable: ooRelatedTable,
-                  referencedTableColumns: ooRelatedTable.columns,
-                },
-              );
-              const ooLinkedRows = await this.execAndParse(
-                this.dbDriver(
-                  ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
-                )
-                  .select(ooRelatedTable.primaryKey.column_name)
-                  .where(ooChildColumn.column_name, id),
-                null,
-                { raw: true },
-              );
-              const ooLinkedIds = ooLinkedRows.map(
-                (r) => r[ooRelatedTable.primaryKey.column_name],
-              );
-              if (ooLinkedIds.length) {
-                linkedRecordNotifications.push({
-                  baseModel: ooRefBaseModel,
-                  model: ooRelatedTable,
-                  ids: ooLinkedIds,
-                  colId: ooInverseLinkCol?.id,
-                });
+
+              // Collect linked child ID BEFORE FK nulling. Skip the broadcast
+              // collection when the related table has no PK (PG-imported
+              // junction tables, etc.); the FK-nulling exec query below still
+              // runs so the delete remains correct.
+              if (ooRelatedTable.primaryKey) {
+                const ooInverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: ooRelatedTable,
+                    referencedTableColumns: ooRelatedTable.columns,
+                  },
+                );
+                const ooLinkedRows = await this.execAndParse(
+                  this.dbDriver(
+                    ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                  )
+                    .select(ooRelatedTable.primaryKey.column_name)
+                    .where(ooChildColumn.column_name, id),
+                  null,
+                  { raw: true },
+                );
+                const ooLinkedIds = ooLinkedRows.map(
+                  (r) => r[ooRelatedTable.primaryKey.column_name],
+                );
+                if (ooLinkedIds.length) {
+                  linkedRecordNotifications.push({
+                    baseModel: ooRefBaseModel,
+                    model: ooRelatedTable,
+                    ids: ooLinkedIds,
+                    colId: ooInverseLinkCol?.id,
+                  });
+                }
               }
 
               execQueries.push((trx) =>
@@ -4971,38 +4984,43 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   model: relatedTable,
                   dbDriver: this.dbDriver,
                 });
-                const inverseLinkCol = await extractCorrespondingLinkColumn(
-                  this.context,
-                  {
-                    ltarColumn: column,
-                    referencedTable: relatedTable,
-                    referencedTableColumns: relatedTable.columns,
-                  },
-                );
+                // Skip the broadcast-id collector when the related table has
+                // no PK (PG-imported junction tables, etc.); the FK-nulling
+                // exec query below still runs so the delete remains correct.
+                if (relatedTable.primaryKey) {
+                  const inverseLinkCol = await extractCorrespondingLinkColumn(
+                    this.context,
+                    {
+                      ltarColumn: column,
+                      referencedTable: relatedTable,
+                      referencedTableColumns: relatedTable.columns,
+                    },
+                  );
 
-                // Collect child IDs before FK nulling
-                bulkLinkedCollectors.push(async (ids) => {
-                  const rows = await this.execAndParse(
-                    this.dbDriver(
-                      refBaseModel.getTnPath(relatedTable.table_name),
-                    )
-                      .select(relatedTable.primaryKey.column_name)
-                      .whereIn(childColumn.column_name, ids),
-                    null,
-                    { raw: true },
-                  );
-                  const linkedIds = rows.map(
-                    (r) => r[relatedTable.primaryKey.column_name],
-                  );
-                  return linkedIds.length
-                    ? {
-                        baseModel: refBaseModel,
-                        model: relatedTable,
-                        ids: linkedIds,
-                        colId: inverseLinkCol?.id,
-                      }
-                    : null;
-                });
+                  // Collect child IDs before FK nulling
+                  bulkLinkedCollectors.push(async (ids) => {
+                    const rows = await this.execAndParse(
+                      this.dbDriver(
+                        refBaseModel.getTnPath(relatedTable.table_name),
+                      )
+                        .select(relatedTable.primaryKey.column_name)
+                        .whereIn(childColumn.column_name, ids),
+                      null,
+                      { raw: true },
+                    );
+                    const linkedIds = rows.map(
+                      (r) => r[relatedTable.primaryKey.column_name],
+                    );
+                    return linkedIds.length
+                      ? {
+                          baseModel: refBaseModel,
+                          model: relatedTable,
+                          ids: linkedIds,
+                          colId: inverseLinkCol?.id,
+                        }
+                      : null;
+                  });
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(refBaseModel.getTnPath(relatedTable.table_name))
@@ -5076,37 +5094,43 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   model: ooRelatedTable,
                   dbDriver: this.dbDriver,
                 });
-                const ooInverseLinkCol = await extractCorrespondingLinkColumn(
-                  this.context,
-                  {
-                    ltarColumn: column,
-                    referencedTable: ooRelatedTable,
-                    referencedTableColumns: ooRelatedTable.columns,
-                  },
-                );
 
-                bulkLinkedCollectors.push(async (ids) => {
-                  const rows = await this.execAndParse(
-                    this.dbDriver(
-                      ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
-                    )
-                      .select(ooRelatedTable.primaryKey.column_name)
-                      .whereIn(ooChildColumn.column_name, ids),
-                    null,
-                    { raw: true },
+                // Skip the broadcast-id collector when the related table has
+                // no PK (PG-imported junction tables, etc.); the FK-nulling
+                // exec query below still runs so the delete remains correct.
+                if (ooRelatedTable.primaryKey) {
+                  const ooInverseLinkCol = await extractCorrespondingLinkColumn(
+                    this.context,
+                    {
+                      ltarColumn: column,
+                      referencedTable: ooRelatedTable,
+                      referencedTableColumns: ooRelatedTable.columns,
+                    },
                   );
-                  const linkedIds = rows.map(
-                    (r) => r[ooRelatedTable.primaryKey.column_name],
-                  );
-                  return linkedIds.length
-                    ? {
-                        baseModel: ooRefBaseModel,
-                        model: ooRelatedTable,
-                        ids: linkedIds,
-                        colId: ooInverseLinkCol?.id,
-                      }
-                    : null;
-                });
+
+                  bulkLinkedCollectors.push(async (ids) => {
+                    const rows = await this.execAndParse(
+                      this.dbDriver(
+                        ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                      )
+                        .select(ooRelatedTable.primaryKey.column_name)
+                        .whereIn(ooChildColumn.column_name, ids),
+                      null,
+                      { raw: true },
+                    );
+                    const linkedIds = rows.map(
+                      (r) => r[ooRelatedTable.primaryKey.column_name],
+                    );
+                    return linkedIds.length
+                      ? {
+                          baseModel: ooRefBaseModel,
+                          model: ooRelatedTable,
+                          ids: linkedIds,
+                          colId: ooInverseLinkCol?.id,
+                        }
+                      : null;
+                  });
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
@@ -9511,6 +9535,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (childTable.mm) continue;
 
           await childTable.getColumns(childContext);
+
+          // PK-less child tables (PG-imported junctions, etc.) can't be
+          // addressed by row id; skip rather than throwing into the catch.
+          if (!childTable.primaryKey) continue;
+
           const childBaseModel = await Model.getBaseModelSQL(childContext, {
             model: childTable,
             dbDriver: this.dbDriver,
@@ -9685,6 +9714,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (childTable.mm) continue;
 
           await childTable.getColumns(childContext);
+
+          // PK-less child tables (PG-imported junctions, etc.) can't be
+          // addressed by row id; skip the LMT broadcast rather than failing.
+          if (!childTable.primaryKey) continue;
 
           const childBaseModel = await Model.getBaseModelSQL(childContext, {
             model: childTable,

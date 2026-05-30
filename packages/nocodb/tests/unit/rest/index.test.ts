@@ -22,6 +22,7 @@ import bulkV1Test from './tests/bulk-v1.test';
 import metaTestV3 from './tests/metaApiV3/index.test';
 import { internalTests } from './tests/internal/index.test';
 import tableTests from './tests/meta-apis/table.test';
+import missingPrimaryKeyTests from './tests/meta-apis/missingPrimaryKey.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
 import { tableSyncGatingTests } from './tests/payment/tableSyncGating.test';
@@ -122,6 +123,7 @@ function restTests() {
     viewRowTests();
   }
   if (testVersion.includes('v1')) tableTests('v1');
+  missingPrimaryKeyTests();
   if (testVersion.includes('v2')) dataAPIsV3Test('v2');
 
   // v3 API tests

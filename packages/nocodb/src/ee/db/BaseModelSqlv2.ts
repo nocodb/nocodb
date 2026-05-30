@@ -2190,45 +2190,52 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 colId: colOptions.fk_child_column_id,
               });
 
-              // Collect linked child IDs BEFORE FK nulling
               await relatedTable.getColumns(refContext);
-              const inverseLinkCol = await extractCorrespondingLinkColumn(
-                this.context,
-                {
-                  ltarColumn: column,
-                  referencedTable: relatedTable,
-                  referencedTableColumns: relatedTable.columns,
-                },
-              );
-              const hmLinkedRows = await this.execAndParse(
-                this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
-                  .select(relatedTable.primaryKey.column_name)
-                  .where(childColumn.column_name, id),
-                null,
-                { raw: true },
-              );
-              const hmLinkedIds = hmLinkedRows.map(
-                (r) => r[relatedTable.primaryKey.column_name],
-              );
-              if (hmLinkedIds.length) {
-                linkedRecordNotifications.push({
-                  baseModel: refBaseModel,
-                  model: relatedTable,
-                  ids: hmLinkedIds,
-                  colId: inverseLinkCol?.id,
-                });
-              }
 
-              for (const childPk of hmLinkedIds) {
-                displacedLinks.push({
-                  kind: 'column',
-                  modelId: relatedTable.id,
-                  baseId: relatedTable.base_id,
-                  pk: String(childPk),
-                  column: childColumn.column_name,
-                  prev: id,
-                  forward: 'null',
-                });
+              // Collect linked child IDs BEFORE FK nulling so we can broadcast
+              // LMT updates and record displacement for undo. PG-imported
+              // junction tables (and any other PK-less tables) can't be
+              // addressed by row id, so we skip the broadcast/displacement
+              // collection but still queue the FK-nulling exec query below.
+              if (relatedTable.primaryKey) {
+                const inverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: relatedTable,
+                    referencedTableColumns: relatedTable.columns,
+                  },
+                );
+                const hmLinkedRows = await this.execAndParse(
+                  this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                    .select(relatedTable.primaryKey.column_name)
+                    .where(childColumn.column_name, id),
+                  null,
+                  { raw: true },
+                );
+                const hmLinkedIds = hmLinkedRows.map(
+                  (r) => r[relatedTable.primaryKey.column_name],
+                );
+                if (hmLinkedIds.length) {
+                  linkedRecordNotifications.push({
+                    baseModel: refBaseModel,
+                    model: relatedTable,
+                    ids: hmLinkedIds,
+                    colId: inverseLinkCol?.id,
+                  });
+                }
+
+                for (const childPk of hmLinkedIds) {
+                  displacedLinks.push({
+                    kind: 'column',
+                    modelId: relatedTable.id,
+                    baseId: relatedTable.base_id,
+                    pk: String(childPk),
+                    column: childColumn.column_name,
+                    prev: id,
+                    forward: 'null',
+                  });
+                }
               }
 
               execQueries.push((trx) =>
@@ -2301,45 +2308,52 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               });
 
               await ooRelatedTable.getColumns(refContext);
-              const ooInverseLinkCol = await extractCorrespondingLinkColumn(
-                this.context,
-                {
-                  ltarColumn: column,
-                  referencedTable: ooRelatedTable,
-                  referencedTableColumns: ooRelatedTable.columns,
-                },
-              );
-              const ooLinkedRows = await this.execAndParse(
-                this.dbDriver(
-                  ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
-                )
-                  .select(ooRelatedTable.primaryKey.column_name)
-                  .where(ooChildColumn.column_name, id),
-                null,
-                { raw: true },
-              );
-              const ooLinkedIds = ooLinkedRows.map(
-                (r) => r[ooRelatedTable.primaryKey.column_name],
-              );
-              if (ooLinkedIds.length) {
-                linkedRecordNotifications.push({
-                  baseModel: ooRefBaseModel,
-                  model: ooRelatedTable,
-                  ids: ooLinkedIds,
-                  colId: ooInverseLinkCol?.id,
-                });
-              }
 
-              for (const childPk of ooLinkedIds) {
-                displacedLinks.push({
-                  kind: 'column',
-                  modelId: ooRelatedTable.id,
-                  baseId: ooRelatedTable.base_id,
-                  pk: String(childPk),
-                  column: ooChildColumn.column_name,
-                  prev: id,
-                  forward: 'null',
-                });
+              // Skip the broadcast / displacement collection when the related
+              // table has no PK (PG-imported junction tables, etc.); the
+              // FK-nulling exec query below still runs so the delete remains
+              // correct.
+              if (ooRelatedTable.primaryKey) {
+                const ooInverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: ooRelatedTable,
+                    referencedTableColumns: ooRelatedTable.columns,
+                  },
+                );
+                const ooLinkedRows = await this.execAndParse(
+                  this.dbDriver(
+                    ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                  )
+                    .select(ooRelatedTable.primaryKey.column_name)
+                    .where(ooChildColumn.column_name, id),
+                  null,
+                  { raw: true },
+                );
+                const ooLinkedIds = ooLinkedRows.map(
+                  (r) => r[ooRelatedTable.primaryKey.column_name],
+                );
+                if (ooLinkedIds.length) {
+                  linkedRecordNotifications.push({
+                    baseModel: ooRefBaseModel,
+                    model: ooRelatedTable,
+                    ids: ooLinkedIds,
+                    colId: ooInverseLinkCol?.id,
+                  });
+                }
+
+                for (const childPk of ooLinkedIds) {
+                  displacedLinks.push({
+                    kind: 'column',
+                    modelId: ooRelatedTable.id,
+                    baseId: ooRelatedTable.base_id,
+                    pk: String(childPk),
+                    column: ooChildColumn.column_name,
+                    prev: id,
+                    forward: 'null',
+                  });
+                }
               }
 
               execQueries.push((trx) =>
@@ -4479,7 +4493,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   dbDriver: this.dbDriver,
                 });
 
-                if (captureDisplacement) {
+                // Skip displacement capture when the related table has no PK
+                // (PG-imported junction tables, etc.); the FK-nulling exec
+                // query below still runs so the delete remains correct.
+                if (captureDisplacement && relatedTable.primaryKey) {
                   const hmRows = await this.execAndParse(
                     this.dbDriver(
                       refBaseModel.getTnPath(relatedTable.table_name),
@@ -4535,7 +4552,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   dbDriver: this.dbDriver,
                 });
 
-                if (captureDisplacement) {
+                // Skip displacement capture when the related table has no PK
+                // (PG-imported junction tables, etc.); the FK-nulling exec
+                // query below still runs so the delete remains correct.
+                if (captureDisplacement && ooRelatedTable.primaryKey) {
                   const ooRows = await this.execAndParse(
                     this.dbDriver(
                       ooRefBaseModel.getTnPath(ooRelatedTable.table_name),

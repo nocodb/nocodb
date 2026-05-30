@@ -5908,8 +5908,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // immediately after this emit. In public-viewer context that means the
     // listener would otherwise read already-redacted (blank) emails. Snapshot
     // the payload here so the webhook keeps the full, unredacted values.
-    const snapshot = (d: typeof prevData) =>
-      this.context?.is_public && d ? structuredClone(d) : d;
+    //
+    // Only `after.*` events carry the read-back row that gets redacted later;
+    // `before.*` events carry the raw write payload (which may hold
+    // non-cloneable values like knex builders), so they are never cloned. The
+    // try/catch is a final guard: a non-cloneable payload must never crash the
+    // write — worst case the webhook gets the live object (a public email may
+    // show a blank user), which is strictly better than failing the insert.
+    const snapshot = (d: typeof prevData) => {
+      if (!this.context?.is_public || !d || !hookName?.startsWith('after')) {
+        return d;
+      }
+      try {
+        return structuredClone(d);
+      } catch (e) {
+        logger.warn(
+          `handleHooks: could not snapshot ${hookName} payload: ${e?.message}`,
+        );
+        return d;
+      }
+    };
 
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       context: { ...this.context, cache: false, cacheMap: undefined },

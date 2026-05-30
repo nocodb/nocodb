@@ -32,6 +32,9 @@ export default class ApiToken implements ApiTokenType {
     Object.assign(this, audit);
   }
 
+  // Legacy token path: persists the token as-issued (plaintext) and is kept for
+  // backward-compatible lookup of pre-existing tokens. Newer tokens are no
+  // longer stored in plaintext, so this is intentional — not an oversight.
   public static async insert(
     apiToken: Partial<ApiToken>,
     ncMeta = Noco.ncMeta,

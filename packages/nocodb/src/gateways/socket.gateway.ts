@@ -48,6 +48,12 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   async onModuleInit() {
+    // This socket exposes only telemetry beacons (`page`, `event`) — no data
+    // subscriptions, rooms, or privileged operations are registered below, so an
+    // unauthenticated connection cannot reach any sensitive surface. The JWT step
+    // is best-effort attribution only: on success the client's `user` is attached
+    // to the handshake, and on failure the connection is still accepted so
+    // anonymous telemetry pings work. This is intentional, not an auth bypass.
     this.server
       .use(async (socket, next) => {
         try {

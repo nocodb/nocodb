@@ -234,6 +234,41 @@ export class OrgUsersService extends OrgUsersServiceCE {
   }
 
   /**
+   * Defense-in-depth: ACL gates these endpoints to SUPER_ADMIN / ADMIN, but
+   * assigning the ADMIN role is a privilege escalation so re-confirm the
+   * requester is an org admin (or super admin) at the service layer.
+   */
+  protected async assertRequesterIsOrgAdmin(
+    orgId: string,
+    req?: NcRequest,
+  ): Promise<void> {
+    if (req?.user?.roles?.includes?.('super')) return;
+
+    const requesterId = req?.user?.id;
+    if (!requesterId) {
+      NcError.forbidden('Only org admins can assign the admin role');
+    }
+
+    const ncMeta = Noco.ncMeta;
+    const requester = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('fk_user_id', requesterId)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .first();
+
+    if (
+      !requester ||
+      (requester.roles !== EnterpriseOrgUserRoles.ADMIN &&
+        requester.roles !== EnterpriseOrgUserRoles.OWNER)
+    ) {
+      NcError.forbidden('Only org admins can assign the admin role');
+    }
+  }
+
+  /**
    * Add an existing user to the org. User must already exist in nc_users.
    */
   async addToOrg(param: {
@@ -267,6 +302,10 @@ export class OrgUsersService extends OrgUsersServiceCE {
       if (!allowedRoles.includes(param.orgRole)) {
         NcError.badRequest(`Invalid org role: ${param.orgRole}`);
       }
+    }
+
+    if (param.orgRole === EnterpriseOrgUserRoles.ADMIN) {
+      await this.assertRequesterIsOrgAdmin(orgId, param.req);
     }
 
     // Single query to find any existing row (active or soft-deleted)
@@ -339,6 +378,13 @@ export class OrgUsersService extends OrgUsersServiceCE {
       .where('fk_org_id', orgId)
       .where('fk_user_id', param.userId)
       .first();
+
+    if (
+      param.orgRole === EnterpriseOrgUserRoles.ADMIN &&
+      currentRole?.roles !== EnterpriseOrgUserRoles.ADMIN
+    ) {
+      await this.assertRequesterIsOrgAdmin(orgId, param.req);
+    }
 
     if (
       currentRole?.roles === EnterpriseOrgUserRoles.ADMIN &&

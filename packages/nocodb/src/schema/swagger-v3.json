@@ -10220,6 +10220,7 @@
             "minItems": 1,
             "items": {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "start_date_field_id": {
                   "type": "string",
@@ -10269,10 +10270,12 @@
       "DateDependency": {
         "type": "object",
         "description": "Date dependency rule for a gantt view. Top-level properties are all optional; supplying a child object (`dates`, `dependency`) commits to providing every property inside it.",
+        "additionalProperties": false,
         "properties": {
           "dates": {
             "type": "object",
             "description": "Date column pair. Atomic — supply both or omit the block entirely.",
+            "additionalProperties": false,
             "properties": {
               "start_field_id": {
                 "type": "string",
@@ -10296,6 +10299,7 @@
           "dependency": {
             "type": "object",
             "description": "Predecessor/successor link configuration. Atomic — supply all five properties or omit the block entirely.",
+            "additionalProperties": false,
             "properties": {
               "linkrow_field_id": {
                 "type": "string",

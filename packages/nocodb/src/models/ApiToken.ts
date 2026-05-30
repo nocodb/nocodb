@@ -32,11 +32,9 @@ export default class ApiToken implements ApiTokenType {
     Object.assign(this, audit);
   }
 
-  // CE stores the legacy plaintext token. EE overrides this method
-  // (`src/ee/models/ApiToken.ts`) — new tokens get an `nc_pat_` prefix,
-  // are SHA-256 hashed before persistence, and the plaintext is returned
-  // only once at creation. This CE path remains for backward-compatible
-  // lookup of pre-existing legacy tokens.
+  // Legacy token path: persists the token as-issued (plaintext) and is kept for
+  // backward-compatible lookup of pre-existing tokens. Newer tokens are no
+  // longer stored in plaintext, so this is intentional — not an oversight.
   public static async insert(
     apiToken: Partial<ApiToken>,
     ncMeta = Noco.ncMeta,

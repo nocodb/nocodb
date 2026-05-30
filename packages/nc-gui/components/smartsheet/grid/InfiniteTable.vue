@@ -3,6 +3,8 @@ import {
   type ButtonType,
   type ColumnReqType,
   type ColumnType,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   PlanTitles,
   type TableType,
@@ -2970,17 +2972,45 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   {{ $t('general.insertBelow') }}
                 </div>
               </NcMenuItem>
-              <NcMenuItem
-                v-if="contextMenuTarget"
-                class="nc-base-menu-item"
-                data-testid="context-menu-item-duplicate-row"
-                @click="duplicateRow(contextMenuTarget)"
+              <PermissionsTooltip
+                v-if="contextMenuTarget && !isInsertBelowDisabled"
+                :entity="PermissionEntity.TABLE"
+                :entity-id="meta?.id"
+                :permission="PermissionKey.TABLE_RECORD_ADD"
+                placement="right"
               >
-                <div v-e="['a:row:duplicate']" class="flex gap-2 items-center">
-                  <GeneralIcon icon="duplicate" />
-                  {{ $t('labels.duplicateRecord') }}
-                </div>
-              </NcMenuItem>
+                <template #default="{ isAllowed }">
+                  <NcTooltip v-if="meta?.synced" placement="left">
+                    <template #title>
+                      {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
+                    </template>
+                    <NcMenuItem
+                      key="duplicate-row"
+                      class="nc-base-menu-item"
+                      disabled
+                      data-testid="context-menu-item-duplicate-row"
+                    >
+                      <div class="flex gap-2 items-center">
+                        <GeneralIcon icon="duplicate" />
+                        {{ $t('labels.duplicateRecord') }}
+                      </div>
+                    </NcMenuItem>
+                  </NcTooltip>
+                  <NcMenuItem
+                    v-else
+                    key="duplicate-row"
+                    class="nc-base-menu-item"
+                    data-testid="context-menu-item-duplicate-row"
+                    :disabled="!isAllowed"
+                    @click="duplicateRow(contextMenuTarget)"
+                  >
+                    <div v-e="['a:row:duplicate']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="duplicate" />
+                      {{ $t('labels.duplicateRecord') }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </PermissionsTooltip>
               <NcDivider v-if="contextMenuTarget" />
             </template>
 

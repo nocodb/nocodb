@@ -485,6 +485,7 @@
     "a:row:delete": "Delete row",
     "a:row:delete-all": "Delete all rows",
     "a:row:delete-bulk": "Bulk delete rows",
+    "a:row:duplicate": "Duplicate record from grid row context menu",
     "a:row:expand-record": "Expand record",
     "a:row:insert": "Insert new row",
     "a:row:insert:above": "Insert row above",

@@ -371,9 +371,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
     'to hide field headers in Gallery and Kanban views.',
   [PlanFeatureTypes.FEATURE_SCIM]: 'to enable SCIM provisioning.',
-  [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
-  [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use table sync.',
-  [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic table sync.',
+  [PlanFeatureTypes.FEATURE_SYNC]: 'to use App Sync.',
+  [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use NocoDB Sync.',
+  [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',

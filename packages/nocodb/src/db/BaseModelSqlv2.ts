@@ -5902,11 +5902,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // methods, after this hook fires), not in the data layer, so write paths
     // that opt in via `skipPublicRedaction` on their read deliver full emails
     // to webhooks while the API response remains redacted.
+    //
+    // The webhook listener runs asynchronously (it yields on its first await),
+    // but `redactPublicForResponse` mutates the SAME data object in place
+    // immediately after this emit. In public-viewer context that means the
+    // listener would otherwise read already-redacted (blank) emails. Snapshot
+    // the payload here so the webhook keeps the full, unredacted values.
+    const snapshot = (d: typeof prevData) =>
+      this.context?.is_public && d ? structuredClone(d) : d;
+
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       context: { ...this.context, cache: false, cacheMap: undefined },
       hookName,
-      prevData,
-      newData,
+      prevData: snapshot(prevData),
+      newData: snapshot(newData),
       user: req?.user,
       viewId: this.viewId,
       modelId: this.model.id,

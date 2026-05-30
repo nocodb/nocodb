@@ -492,7 +492,10 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   USER_BASE = 'userBase',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
-  SINGLE_QUERY = 'singleQuery2',
+  // Suffixed with _v2 to invalidate all previously cached single-query entries
+  // when the cache shape changes — bumping the suffix forces a fresh cache key
+  // namespace so stale entries from older deployments are ignored automatically.
+  SINGLE_QUERY = 'singleQuery_v2',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',

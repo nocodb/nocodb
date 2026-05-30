@@ -459,7 +459,10 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspaceUser',
-  SINGLE_QUERY = 'singleQuery2',
+  // Suffixed with _v2 to invalidate all previously cached single-query entries
+  // when the cache shape changes — bumping the suffix forces a fresh cache key
+  // namespace so stale entries from older deployments are ignored automatically.
+  SINGLE_QUERY = 'singleQuery_v2',
   PRESIGNED_URL = 'presignedUrl',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',

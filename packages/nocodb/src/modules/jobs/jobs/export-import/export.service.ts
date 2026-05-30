@@ -1749,6 +1749,7 @@ export class ExportService {
                     false,
                     delimiter,
                     dataExportMode,
+                    param,
                   )
                     .then(resolve)
                     .catch(reject);
@@ -1773,6 +1774,7 @@ export class ExportService {
                   false,
                   delimiter,
                   dataExportMode,
+                  param,
                 )
                   .then(resolve)
                   .catch(reject);

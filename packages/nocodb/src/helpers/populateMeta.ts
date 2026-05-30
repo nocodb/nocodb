@@ -170,10 +170,10 @@ export async function extractAndGenerateManyToManyRelations(
       }
       if (!isRelationAvailInB) {
         const fkChildColB = assocModel.columns.find(
-          (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+          (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
         );
         const fkParentColB = assocModel.columns.find(
-          (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+          (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
         );
 
         await Column.insert<LinkToAnotherRecordColumn>(context, {

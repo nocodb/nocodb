@@ -193,14 +193,17 @@ export class WebBookmarkService {
     // Try both quote styles and attribute orders. Capture the opening quote
     // (group 1) and backreference it, so a value containing the *other* quote
     // char (e.g. content="Bob's blog") isn't truncated. Content is group 2.
+    // The value class excludes `<`/`>` so the match can't spill across the
+    // tag's closing `>` into a neighbouring <meta> (raw `<`/`>` aren't valid
+    // inside an attribute value — they'd be entity-encoded).
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const patterns = [
       new RegExp(
-        `<meta[^>]+${attr}=["']${escapedKey}["'][^>]*content=(["'])([\\s\\S]*?)\\1`,
+        `<meta[^>]+${attr}=["']${escapedKey}["'][^>]*content=(["'])([^<>]*?)\\1`,
         'i',
       ),
       new RegExp(
-        `<meta[^>]+content=(["'])([\\s\\S]*?)\\1[^>]*${attr}=["']${escapedKey}["']`,
+        `<meta[^>]+content=(["'])([^<>]*?)\\1[^>]*${attr}=["']${escapedKey}["']`,
         'i',
       ),
     ];

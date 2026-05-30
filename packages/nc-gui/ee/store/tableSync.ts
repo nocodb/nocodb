@@ -9,6 +9,8 @@ export const useTableSyncStore = defineStore('tableSync', () => {
 
   const { showUpgradeToUseSync } = useEeConfig()
 
+  const { isUIAllowed } = useRoles()
+
   const baseSyncs = ref<Map<string, TableSyncType[]>>(new Map())
 
   const isLoading = ref(false)
@@ -37,6 +39,9 @@ export const useTableSyncStore = defineStore('tableSync', () => {
 
   const loadSyncs = async (baseId: string): Promise<TableSyncType[]> => {
     if (!activeWorkspaceId.value || !baseId) return []
+    // Listing syncs is creator+ on the backend; skip for editors and below
+    // so the sidebar/tree auto-loads don't fire a forbidden `tableSyncList`.
+    if (!isUIAllowed('tableSyncList')) return []
     isLoading.value = true
     try {
       const res = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {

@@ -201,6 +201,10 @@ const rolePermissions = {
       workflowExecutionList: true,
       workflowList: true,
 
+      // Table Sync — listing/managing syncs is creator+; editors can only
+      // trigger an existing sync (backend `tableSyncList` is creator+).
+      tableSyncList: true,
+
       // Documents — creators can create and delete documents
       documentCreate: true,
       documentDelete: true,

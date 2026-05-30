@@ -62,8 +62,10 @@ export class WebBookmarkService {
     if (typeof param.url !== 'string') {
       ncError.badRequest('Invalid URL — must be a string');
     }
-    // `badRequest` returns `never`, so `param.url` is narrowed to `string` here.
-    const url = param.url.trim();
+    // `badRequest` throws, so this is only reached for a string. Coerce
+    // explicitly because the bundler's checker doesn't narrow `unknown`
+    // through the cross-package `NcError.get()` union method call.
+    const url = String(param.url).trim();
     if (url.length > MAX_URL_LENGTH) {
       ncError.badRequest(`URL exceeds maximum length of ${MAX_URL_LENGTH}`);
     }

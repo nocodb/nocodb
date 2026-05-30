@@ -3,7 +3,10 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from '~/interface/config';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
-import NocoCache from '~/cache/NocoCache';
+import {
+  setSingleQueryCache,
+  SINGLE_QUERY_DEFAULT_VIEW,
+} from '~/dbQueryClient/cross-db-utils/single-query-cache';
 
 export const getDataWithCountCache = async (
   context: NcContext,
@@ -19,6 +22,8 @@ export const getDataWithCountCache = async (
     excludeCount?: boolean;
     skipCache?: boolean;
     countCacheKey?: string;
+    modelId?: string;
+    viewIdOrDefault?: string;
     skipSubstitutingColumnIds?: boolean;
   },
 ): Promise<[count: number | undefined, data: any[]]> => {
@@ -27,8 +32,13 @@ export const getDataWithCountCache = async (
       return undefined;
     }
 
-    if (!params.skipCache) {
-      await NocoCache.set(context, params.countCacheKey, params.countQuery);
+    if (!params.skipCache && params.countCacheKey && params.modelId) {
+      await setSingleQueryCache(context, {
+        modelId: params.modelId,
+        viewIdOrDefault: params.viewIdOrDefault ?? SINGLE_QUERY_DEFAULT_VIEW,
+        cacheKey: params.countCacheKey,
+        query: params.countQuery,
+      });
     }
 
     const r = await params.baseModel.execAndParse(params.countQuery, null, {

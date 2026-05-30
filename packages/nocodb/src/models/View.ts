@@ -78,6 +78,7 @@ import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import NocoSocket from '~/socket/NocoSocket';
+import { SINGLE_QUERY_DEFAULT_VIEW } from '~/dbQueryClient/cross-db-utils/single-query-cache';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -2621,49 +2622,23 @@ export default class View implements ViewType {
       );
     }
 
-    const deleteKeys = [];
-
+    // Every singleQuery write registers its cacheKey under
+    // `singleQuery:{modelId}:{viewIdOrDefault}:list`, so a single deepDel
+    // wipes every entry for the view regardless of suffix (`:queries`,
+    // `:count`, `:read:N`, `:ltar`, `:deleted`, `:primaries`, `:rls:*`,
+    // `:dvc:*`, and any combination).
     for (const view of viewsList) {
-      deleteKeys.push(
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries:ltar`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
-      );
-      // Add all 16 combinations of bitwise flags (0-15)
-      for (let flags = 0; flags < 16; flags++) {
-        deleteKeys.push(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:${flags}`,
-        );
-      }
-    }
-
-    deleteKeys.push(
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries:ltar`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
-    );
-    // Add all 16 combinations of bitwise flags (0-15)
-    for (let flags = 0; flags < 16; flags++) {
-      deleteKeys.push(
-        `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:${flags}`,
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
       );
     }
-
-    // Delete tracked RLS-specific cache keys (stored as Redis SET)
-    const rlsTrackingKey = `${CacheScope.SINGLE_QUERY}:${modelId}:rls_keys`;
-    const rlsKeys = await NocoCache.get(
+    await NocoCache.deepDel(
       context,
-      rlsTrackingKey,
-      CacheGetType.TYPE_ARRAY,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:${SINGLE_QUERY_DEFAULT_VIEW}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
-    if (rlsKeys?.length) {
-      deleteKeys.push(
-        ...rlsKeys.filter((k) => k && k !== 'NONE'),
-        rlsTrackingKey,
-      );
-    }
-
-    await NocoCache.del(context, deleteKeys);
   }
 
   static async bulkColumnInsertToViews(

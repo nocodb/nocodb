@@ -14,16 +14,20 @@ import {
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from '~/services/data-opt/common-helpers';
-import NocoCache from '~/cache/NocoCache';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import { getListArgs } from '~/db/BaseModelSqlv2';
 import conditionV2 from '~/db/conditionV2';
+import {
+  getSingleQueryCache,
+  setSingleQueryCache,
+  SINGLE_QUERY_DEFAULT_VIEW,
+} from '~/dbQueryClient/cross-db-utils/single-query-cache';
 import { haveFormulaColumn } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
 import { RlsSubscriptionRegistry } from '~/socket/RlsSubscriptionRegistry';
 
@@ -98,15 +102,10 @@ export const singleQueryRead = (client: DBQueryClient) => {
     const displayColSegment = ctx.fk_display_value_column_id
       ? `:dvc:${ctx.fk_display_value_column_id}`
       : '';
-    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
-      ctx.view?.id ?? 'default'
-    }:read:${flags}${rlsCacheSegment}${displayColSegment}`;
+    const viewIdOrDefault = ctx.view?.id ?? SINGLE_QUERY_DEFAULT_VIEW;
+    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${viewIdOrDefault}:read:${flags}${rlsCacheSegment}${displayColSegment}`;
     if (!skipCache) {
-      const cachedQuery = await NocoCache.get(
-        context,
-        cacheKey,
-        CacheGetType.TYPE_STRING,
-      );
+      const cachedQuery = await getSingleQueryCache(context, cacheKey);
       if (cachedQuery) {
         const res = await baseModel.execAndParse(
           knex.raw(cachedQuery, normalizedIdValues).toQuery(),
@@ -305,18 +304,16 @@ export const singleQueryRead = (client: DBQueryClient) => {
     }
 
     if (!skipCache) {
-      // cache query for later use after successful execution
-      await NocoCache.set(context, cacheKey, query);
-
-      // Track RLS-specific keys so clearSingleQueryCache can delete them
-      // Uses Redis SET (sadd) — appends without duplicates
-      if (rlsCacheSegment) {
-        await NocoCache.set(
-          context,
-          `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:rls_keys`,
-          [cacheKey],
-        );
-      }
+      // cache query for later use after successful execution.
+      // Registers under the per-view parent SET so
+      // `clearSingleQueryCache` -> `deepDel(listKey, PARENT_TO_CHILD)`
+      // wipes every entry for the view regardless of suffix.
+      await setSingleQueryCache(context, {
+        modelId: ctx.model.id,
+        viewIdOrDefault,
+        cacheKey,
+        query,
+      });
     }
 
     return res;

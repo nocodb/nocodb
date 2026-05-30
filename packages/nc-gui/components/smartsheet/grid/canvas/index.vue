@@ -2549,6 +2549,29 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
   }
 }
 
+const duplicateRow = async (context: { row: number; col: number; path: Array<number> }) => {
+  const dataCache = getDataCache(context?.path)
+
+  const { cachedRows } = dataCache
+
+  const sourceRow = cachedRows.value.get(context.row)
+  if (!sourceRow) return
+
+  // Clone the record's values (identity markers + system columns stripped, link
+  // values kept) so the insert creates a brand-new record (see getDuplicateRowData).
+  const clonedRow = getDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+
+  // Insert immediately below the source row. `before` is the pk of the row
+  // currently one position down, so the copy lands right after the original
+  // (same mechanism as the Insert below action).
+  const rowBelow = cachedRows.value.get(context.row + 1)
+  const beforeRowId = rowBelow ? extractPkFromRow(rowBelow.row, meta.value?.columns as ColumnType[]) : undefined
+
+  const rowObj = await addEmptyRow(context.row + 1, false, beforeRowId ?? undefined, clonedRow, context?.path)
+
+  if (rowObj) message.toast(t('msg.success.rowDuplicated'))
+}
+
 const onNavigate = async (dir: NavigateDir) => {
   if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
 
@@ -3175,6 +3198,7 @@ watch(
               :delete-selected-rows="deleteSelectedRows"
               :bulk-delete-all="bulkDeleteAll"
               :call-add-new-row="callAddNewRow"
+              :duplicate-row="duplicateRow"
               :copy-value="copyValue"
               :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"

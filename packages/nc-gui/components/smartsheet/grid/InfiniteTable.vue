@@ -3,6 +3,8 @@ import {
   type ButtonType,
   type ColumnReqType,
   type ColumnType,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   PlanTitles,
   type TableType,
@@ -28,7 +30,7 @@ const props = defineProps<{
   data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
-  callAddEmptyRow?: (addAfter?: number) => Row | undefined
+  callAddEmptyRow?: (addAfter?: number, metaValue?: TableType, rowOverwrite?: Record<string, any>) => Row | undefined
   deleteRow?: (rowIndex: number) => Promise<void>
   updateOrSaveRow?: (
     row: Row,
@@ -1036,7 +1038,7 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
   await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
 }
 
-async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
+async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite: Record<string, any> = {}) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   if (removeInlineAddRecord.value && !before && !row && !skipUpdate) {
@@ -1048,7 +1050,7 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
     applySorting?.(rowSortRequiredRows.value)
   }
 
-  const rowObj = callAddEmptyRow?.(row)
+  const rowObj = callAddEmptyRow?.(row, undefined, overwrite)
 
   if (!skipUpdate && rowObj) {
     saveEmptyRow(rowObj, before)
@@ -2052,6 +2054,27 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
   }
 }
 
+const duplicateRow = async (context: { row: number; col: number }) => {
+  const sourceRow = cachedRows.value.get(context.row)
+  if (!sourceRow) return
+
+  // Clone the record's values (identity markers + system columns stripped, link
+  // values kept) so the insert creates a brand-new record (see getDuplicateRowData).
+  const clonedRow = getDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+
+  // Insert immediately below the source row. `before` is the pk of the row
+  // currently one position down, so the copy lands right after the original
+  // (same mechanism as the Insert below action). `addEmptyRow` handles the
+  // plan-limit check, invalid-row clearing and sorting.
+  const rowBelow = cachedRows.value.get(context.row + 1)
+  const beforeRowId = rowBelow ? extractPkFromRow(rowBelow.row, meta.value?.columns as ColumnType[]) : undefined
+
+  const rowObj = await addEmptyRow(context.row + 1, false, beforeRowId ?? undefined, clonedRow)
+  if (!rowObj) return
+
+  message.toast(t('msg.success.rowDuplicated'))
+}
+
 const onRecordDragStart = (row: Row) => {
   activeCell.row = null
   activeCell.col = null
@@ -2949,6 +2972,45 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   {{ $t('general.insertBelow') }}
                 </div>
               </NcMenuItem>
+              <PermissionsTooltip
+                v-if="contextMenuTarget && !isInsertBelowDisabled"
+                :entity="PermissionEntity.TABLE"
+                :entity-id="meta?.id"
+                :permission="PermissionKey.TABLE_RECORD_ADD"
+                placement="right"
+              >
+                <template #default="{ isAllowed }">
+                  <NcTooltip v-if="meta?.synced" placement="left">
+                    <template #title>
+                      {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
+                    </template>
+                    <NcMenuItem
+                      key="duplicate-row"
+                      class="nc-base-menu-item"
+                      disabled
+                      data-testid="context-menu-item-duplicate-row"
+                    >
+                      <div class="flex gap-2 items-center">
+                        <GeneralIcon icon="duplicate" />
+                        {{ $t('labels.duplicateRecord') }}
+                      </div>
+                    </NcMenuItem>
+                  </NcTooltip>
+                  <NcMenuItem
+                    v-else
+                    key="duplicate-row"
+                    class="nc-base-menu-item"
+                    data-testid="context-menu-item-duplicate-row"
+                    :disabled="!isAllowed"
+                    @click="duplicateRow(contextMenuTarget)"
+                  >
+                    <div v-e="['a:row:duplicate']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="duplicate" />
+                      {{ $t('labels.duplicateRecord') }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </PermissionsTooltip>
               <NcDivider v-if="contextMenuTarget" />
             </template>
 

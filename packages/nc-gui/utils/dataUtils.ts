@@ -146,6 +146,31 @@ export async function populateInsertObject({
   return { missingRequiredColumns, insertObj }
 }
 
+// Build the row payload for duplicating an existing record. Clones the source
+// values but drops:
+//  - the client-side identity markers (`ncRecordId`/`ncRecordHash`)
+//  - system columns (auto pk, raw foreign keys, created/updated by/at, order)
+//
+// System columns are auto-managed and must never be carried into the insert. In
+// particular a self-referencing LTAR keeps a raw FK column (e.g. `Sheet11_id`)
+// in the cached row after an in-place link edit; re-inserting it verbatim trips
+// a unique-constraint violation (a freshly fetched row doesn't carry it). The
+// LTAR/link cell values themselves are kept so relationships are duplicated.
+export const getDuplicateRowData = (row: Record<string, any> = {}, columns: ColumnType[] = []) => {
+  const clonedRow = { ...row }
+
+  delete clonedRow.ncRecordId
+  delete clonedRow.ncRecordHash
+
+  for (const col of columns) {
+    if (col.title && isSystemColumn(col)) {
+      delete clonedRow[col.title]
+    }
+  }
+
+  return clonedRow
+}
+
 // a function to get default values of row
 export const rowDefaultData = (columns: ColumnType[] = [], currentUser?: { id?: string; email?: string }) => {
   const defaultData: Record<string, string> = columns.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {

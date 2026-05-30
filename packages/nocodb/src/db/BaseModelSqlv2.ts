@@ -951,7 +951,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const createdCol = this.model.columns.find(
         (c) => c.uidt === UITypes.CreatedTime && c.system,
       );
-      if (createdCol) qb.orderBy(createdCol.column_name);
+      if (createdCol) {
+        qb.orderBy(createdCol.column_name);
+      } else if (this.isMssql) {
+        if (this.model.primaryKeys?.length) {
+          for (const pk of this.model.primaryKeys) {
+            qb.orderBy(pk.column_name);
+          }
+        } else {
+          qb.orderByRaw('(SELECT NULL)');
+        }
+      }
     }
 
     if (rest.pks) {

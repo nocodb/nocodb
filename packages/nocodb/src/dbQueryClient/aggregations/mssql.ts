@@ -128,6 +128,8 @@ export function genMssqlAggregateQuery({
       UITypes.Rollup,
       UITypes.Links,
       UITypes.ID,
+      UITypes.AutoNumber,
+      UITypes.UUID,
     ].includes(column.uidt) ||
     [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
       parsedFormulaType,
@@ -174,6 +176,8 @@ export function genMssqlAggregateQuery({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
+            UITypes.AutoNumber,
+            UITypes.UUID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
           ].includes(column.uidt) ||
@@ -216,6 +220,8 @@ export function genMssqlAggregateQuery({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
+            UITypes.AutoNumber,
+            UITypes.UUID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
           ].includes(column.uidt) ||
@@ -265,6 +271,8 @@ export function genMssqlAggregateQuery({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
+            UITypes.AutoNumber,
+            UITypes.UUID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
           ].includes(column.uidt) ||
@@ -307,6 +315,8 @@ export function genMssqlAggregateQuery({
             UITypes.Rollup,
             UITypes.Links,
             UITypes.ID,
+            UITypes.AutoNumber,
+            UITypes.UUID,
             UITypes.LinkToAnotherRecord,
             UITypes.Lookup,
           ].includes(column.uidt) ||

@@ -147,32 +147,6 @@ const extSQLiteProjectCE = (title: string, workerId: string) => ({
   external: true,
 });
 
-const extMssqlProject = (workspaceId: string, title: string, parallelId: string, baseType: ProjectTypes) => ({
-  fk_workspace_id: workspaceId,
-  title,
-  type: baseType,
-  sources: [
-    {
-      type: 'mssql',
-      config: {
-        client: 'mssql',
-        connection: {
-          host: 'localhost',
-          port: '1433',
-          user: 'sa',
-          password: 'Password123!',
-          database: `pw_ext_mssql_${parallelId}`,
-          options: { encrypt: false, trustServerCertificate: true },
-        },
-        searchPath: ['dbo'],
-      },
-      inflection_column: 'camelize',
-      inflection_table: 'camelize',
-    },
-  ],
-  external: true,
-});
-
 const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 
 export interface NcContext {
@@ -315,13 +289,11 @@ async function localInit({
         } finally {
           await nc_knex.destroy();
         }
-      } else if (dbType === 'mssql') {
-        // The per-worker external MSSQL DBs (pw_ext_mssql_<parallelId>) are
-        // pre-created (empty) by the CI workflow; the internal data DB is set
-        // via NC_DATA_DB_JSON_FILE. No external sakila reset is needed here —
-        // leftover tables are dropped when the previous run's base is deleted
-        // in the cleanup pass below. (Loading sql-server-sakila is a follow-up.)
       }
+      // mssql: nothing to reset. Every base on this lane uses the internal
+      // data DB (pw_ncdb_data, via NC_DATA_DB_JSON_FILE); its tables are
+      // NocoDB-owned (is_meta) and self-clean on base delete. External MSSQL
+      // sources (which would need a real reset) are a follow-up.
     };
 
     await dbResetFn();
@@ -387,7 +359,11 @@ async function localInit({
     // Create base (depends on both DB reset and workspace)
     let base;
     if (isEE()) {
-      if (isEmptyProject) {
+      // mssql lane has no external sakila DB yet, so route every base to the
+      // internal MSSQL data DB (NC_DATA_DB_JSON_FILE). Its tables are
+      // NocoDB-owned (is_meta) and self-clean on base delete — no external
+      // reset needed. External MSSQL sources (+ sakila) are a follow-up.
+      if (isEmptyProject || dbType === 'mssql') {
         base = await api.base.create({
           title: baseTitle,
           fk_workspace_id: workspace.id,
@@ -396,11 +372,7 @@ async function localInit({
       } else {
         if (workspace && 'id' in workspace) {
           // @ts-ignore
-          base = await api.base.create(
-            dbType === 'mssql'
-              ? extMssqlProject(workspace.id, baseTitle, workerId, baseType)
-              : extPgProject(workspace.id, baseTitle, workerId, baseType)
-          );
+          base = await api.base.create(extPgProject(workspace.id, baseTitle, workerId, baseType));
         }
       }
     } else {

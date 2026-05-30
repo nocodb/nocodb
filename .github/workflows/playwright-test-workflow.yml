@@ -104,10 +104,10 @@ jobs:
         run: pnpm bootstrap
 
       # Wait for MSSQL (no sqlcmd in the image — poll via tedious), then create
-      # the internal data DB (pw_ncdb_data) + per-worker external DBs
-      # (pw_ext_mssql_<idx>, empty) and write the NC_DATA_DB_JSON_FILE the
-      # pg:ee:mssql backend reads. Mirrors TestDbMngr's mssql data config.
-      - name: Wait for MSSQL and provision DBs
+      # the internal data DB (pw_ncdb_data) and write the NC_DATA_DB_JSON_FILE
+      # the pg:ee:mssql backend reads. Every base on this lane uses this
+      # internal data DB; external MSSQL sources are a follow-up.
+      - name: Wait for MSSQL and provision data DB
         if: ${{ inputs.db == 'mssql' }}
         working-directory: ./packages/nocodb
         run: |
@@ -130,10 +130,7 @@ jobs:
                 await new Promise((r) => setTimeout(r, 5000));
               }
             }
-            const dbs = ['pw_ncdb_data', 'pw_ext_mssql_0', 'pw_ext_mssql_1', 'pw_ext_mssql_2', 'pw_ext_mssql_3'];
-            for (const db of dbs) {
-              await knex.raw("IF DB_ID('" + db + "') IS NULL CREATE DATABASE [" + db + "]");
-            }
+            await knex.raw("IF DB_ID('pw_ncdb_data') IS NULL CREATE DATABASE [pw_ncdb_data]");
             await knex.destroy();
             const cfg = {
               client: 'mssql',
@@ -144,7 +141,7 @@ jobs:
               searchPath: ['dbo'],
             };
             fs.writeFileSync('./mssql-data-db.json', JSON.stringify(cfg));
-            console.log('MSSQL ready; DBs created; data DB config written');
+            console.log('MSSQL ready; data DB created; config written');
             process.exit(0);
           })();
           EOF

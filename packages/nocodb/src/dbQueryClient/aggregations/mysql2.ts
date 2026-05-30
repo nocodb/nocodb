@@ -266,13 +266,13 @@ export function genMysql2AggregatedQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0))`,
+            `(COUNT(DISTINCT CASE WHEN (??) IS NOT NULL THEN (??) END) * 100.0 / NULLIF(COUNT(*), 0))`,
             [column_query, column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${condnValue} THEN ?? END) * 100.0 / NULLIF(COUNT(*), 0))`,
+          `(COUNT(DISTINCT CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN (??) END) * 100.0 / NULLIF(COUNT(*), 0))`,
           [column_query, column_query, column_query],
         );
         break;
@@ -331,30 +331,25 @@ export function genMysql2AggregatedQuery({
         ]);
         break;
       case NumericalAggregations.Median:
+        // Window-function median (MySQL 8.0+).
         aggregationSql = knex.raw(
           `
   (
-    SELECT AVG(??)
+    SELECT AVG(nc_med_val)
     FROM (
-      SELECT ??
+      SELECT
+        (??) AS nc_med_val,
+        ROW_NUMBER() OVER (ORDER BY (??)) AS nc_med_rn,
+        COUNT(*) OVER () AS nc_med_cnt
       FROM ??
       WHERE (??) IS NOT NULL
-      ORDER BY ??
-      LIMIT 2 - (SELECT COUNT(??) FROM ??) % 2    -- Handle even/odd row count
-      OFFSET (SELECT (COUNT(??) - 1) / 2 FROM ??) -- Median offset over non-nulls
-    ) AS median_subquery
+    ) AS nc_med_q
+    WHERE nc_med_rn IN (
+      FLOOR((nc_med_cnt + 1) / 2),
+      FLOOR((nc_med_cnt + 2) / 2)
+    )
   )`,
-          [
-            subAggCol,
-            subAggCol,
-            subAggFrom,
-            subAggCol,
-            subAggCol,
-            subAggCol,
-            subAggFrom,
-            subAggCol,
-            subAggFrom,
-          ],
+          [subAggCol, subAggCol, subAggFrom, subAggCol],
         );
         break;
       default:

@@ -26,6 +26,13 @@ export class CheckboxMssqlHandler extends CheckboxGeneralHandler {
   // (e.g. `set [Done] = true`), which SQL Server rejects with "Invalid column
   // name 'true'". Checkbox columns are `bit` — emit 1/0 instead so knex
   // inlines them as valid integer literals.
+  protected override get checkedDbValue(): any {
+    return 1;
+  }
+
+  protected override get notcheckedDbValue(): any {
+    return 0;
+  }
   override async parseUserInput(params: {
     value: any;
     row: any;

@@ -12,6 +12,14 @@ import type { MetaService } from 'src/meta/meta.service';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class CheckboxGeneralHandler extends GenericFieldHandler {
+  protected get checkedDbValue(): any {
+    return true;
+  }
+
+  protected get notcheckedDbValue(): any {
+    return false;
+  }
+
   override async filterChecked(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
@@ -23,7 +31,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
-        qb.where(args.sourceField as any, true);
+        qb.where(args.sourceField as any, this.checkedDbValue);
       },
     };
   }
@@ -44,7 +52,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
         qb.where((grpdQb) => {
           grpdQb
             .whereNull(args.sourceField as any)
-            .orWhere(args.sourceField as any, false);
+            .orWhere(args.sourceField as any, this.notcheckedDbValue);
         });
       },
     };

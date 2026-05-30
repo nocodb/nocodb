@@ -65,7 +65,6 @@ import {
   mssqlBuildBulkInsertWithCapture,
   mssqlChunkSize,
   mssqlNeedsIdentityInsert,
-  mssqlTableHasTriggers,
 } from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import {
   batchUpdate,
@@ -497,7 +496,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // ONE iteration with a switch, instead of six independent loops. Each
     // entry stores the row key (col.id, since EE mssql extract aliases by
     // `getAs(column) = column.asId || column.id`) and the action to take.
-    type Kind = 'ltarArr' | 'ltarObj' | 'lkpArr' | 'lkpScalar' | 'linksMaybe' | 'numeric';
+    type Kind =
+      | 'ltarArr'
+      | 'ltarObj'
+      | 'lkpArr'
+      | 'lkpScalar'
+      | 'linksMaybe'
+      | 'numeric'
+      | 'time';
     const actions: Array<{ id: string; kind: Kind }> = [];
     let hasLookup = false;
 
@@ -537,6 +543,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
           break;
         }
+        case UITypes.Time: {
+          // tedious returns the T-SQL `time` type as a JS Date anchored at
+          // 1970-01-01. convertDateFormat (CE) skips UITypes.Time entirely, so
+          // without this the API leaks a Date/ISO value for mssql while every
+          // other dialect emits `YYYY-MM-DD HH:mm:ssZ`. Normalize here.
+          actions.push({ id, kind: 'time' });
+          break;
+        }
         case UITypes.Lookup: {
           // Walk-through-to-relation is expensive; cache per column id.
           let shape = shapeCache.get(col.id);
@@ -554,8 +568,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               const isArray =
                 isMMLike ||
                 relOpts?.type === RelationTypes.HAS_MANY ||
-                (relOpts?.type === RelationTypes.ONE_TO_ONE &&
-                  !rel?.meta?.bt);
+                (relOpts?.type === RelationTypes.ONE_TO_ONE && !rel?.meta?.bt);
               shape = isArray ? 'array' : 'scalar';
             } catch {
               // Lookup resolution can fail on cross-base; treat as scalar so
@@ -678,6 +691,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             if (typeof v !== 'string' || v === '') break;
             const num = Number(v);
             if (Number.isFinite(num)) row[id] = num;
+            break;
+          }
+          case 'time': {
+            // Date (tedious) or ISO string -> `YYYY-MM-DD HH:mm:ssZ`, matching
+            // the shape pg/sqlite/mysql return so the API, frontend Time cell
+            // and filter-value normalization stay dialect-consistent.
+            if (v == null) break;
+            const t = dayjs(v).utc();
+            if (t.isValid()) row[id] = t.format('YYYY-MM-DD HH:mm:ssZ');
             break;
           }
         }
@@ -3241,11 +3263,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           ? this.model.columns?.find((c) => c.ai)?.column_name ?? null
           : null;
         const mssqlExplicitIdentity =
-          this.isMssql &&
-          mssqlNeedsIdentityInsert(insertDatas, mssqlAiColName);
-        const mssqlHasTriggers = this.isMssql
-          ? await mssqlTableHasTriggers(this)
-          : false;
+          this.isMssql && mssqlNeedsIdentityInsert(insertDatas, mssqlAiColName);
         // Per-dialect effective chunk size — mssql also enforces the
         // 2100-param cap.
         const effectiveChunkSize = this.isMssql
@@ -3932,9 +3950,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const mssqlExplicitIdentity =
             this.isMssql &&
             mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiColName);
-          const mssqlHasTriggers = this.isMssql
-            ? await mssqlTableHasTriggers(this)
-            : false;
           const effectiveChunkSize = this.isMssql
             ? mssqlChunkSize(toInsert, chunkSize)
             : chunkSize;

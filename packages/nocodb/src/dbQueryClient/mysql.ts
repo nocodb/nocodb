@@ -40,14 +40,18 @@ export class MySqlDBQueryClient
     alias: string,
   ): Knex.Raw {
     const knex = baseModel.dbDriver;
-    const jsonBuildObject = knex.raw(`JSON_OBJECT(
+    const jsonBuildObject = knex.raw(`JSON_UNQUOTE(JSON_OBJECT(
       ${Object.keys(expressions)
         .map((k) => `'${k}', ${expressions[k]}`)
-        .join(', ')})`);
-    tQb.select(jsonBuildObject);
-    // MySQL: the JSON_OBJECT raw is used directly with JSON_UNQUOTE — the
-    // jsonBuildObject embedding (rather than wrapping tQb) matches the
-    // legacy bulkAggregate path exactly.
-    return knex.raw('JSON_UNQUOTE(??) as ??', [jsonBuildObject, alias]);
+        .join(', ')}))`);
+    // Run the aggregates over the FILTERED `tQb` as a scalar subquery so the
+    // per-bucket / selection `where` (carried on tQb) is honored — mirrors the
+    // pg path. The previous form embedded the bare JSON_OBJECT over the outer
+    // (unfiltered) query, so per-bucket filters were silently ignored on MySQL.
+    // `limit(1)`: median/attachment-size are non-aggregate scalar subqueries
+    // (unlike pg's aggregate percentile_cont), so without it the wrapped SELECT
+    // returns one row per filtered row → "subquery returns more than 1 row".
+    tQb.select(jsonBuildObject).limit(1);
+    return knex.raw('(??) as ??', [tQb, alias]);
   }
 }

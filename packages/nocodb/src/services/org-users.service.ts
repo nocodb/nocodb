@@ -252,10 +252,10 @@ export class OrgUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const invite_token = uuidv4();
     const error = [];
 
     for (const email of emails) {
+      const invite_token = uuidv4();
       // add user to base if user already exist
       let user = await User.getByCanonicalEmail(email);
 
@@ -334,7 +334,7 @@ export class OrgUsersService {
         msg: 'success',
       };
     } else {
-      return { invite_token, emails, error };
+      return { msg: 'success', emails, error };
     }
   }
 

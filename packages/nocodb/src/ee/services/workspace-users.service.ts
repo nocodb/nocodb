@@ -851,12 +851,14 @@ export class WorkspaceUsersService {
       ncMeta,
     );
 
-    const invite_token = uuidv4();
     const error = [];
     const emailUserMap = new Map<string, User>();
     const registeredEmails = [];
+    const inviteTokens = new Map<string, string>();
+    for (const email of emails) inviteTokens.set(email, uuidv4());
 
     for (const email of emails) {
+      const invite_token = inviteTokens.get(email)!;
       // register user if not exists (canonical lookup handles alias variants)
       let user = await User.getByCanonicalEmail(email, ncMeta);
       if (!user) {
@@ -888,6 +890,7 @@ export class WorkspaceUsersService {
     try {
       // invite users
       for (const email of emails) {
+        const invite_token = inviteTokens.get(email)!;
         const { postOperations: eachPostOperations } =
           (await this.unhandledUserInviteByEmail(
             {
@@ -937,7 +940,15 @@ export class WorkspaceUsersService {
       await postOperation();
     }
 
-    return { invite_token, emails, error, registeredEmails };
+    if (emails.length === 1) {
+      return {
+        invite_token: inviteTokens.get(emails[0]),
+        emails,
+        error,
+        registeredEmails,
+      };
+    }
+    return { msg: 'success', emails, error, registeredEmails };
   }
 
   async prepareUserInviteByEmail(

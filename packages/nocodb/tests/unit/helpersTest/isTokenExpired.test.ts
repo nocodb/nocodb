@@ -46,5 +46,20 @@ export function isTokenExpiredTest() {
     it('treats an unparseable date string as expired', () => {
       expect(isTokenExpired('not-a-date')).to.equal(true);
     });
+
+    it('treats a future SQLite unix-ms numeric string as not expired (regression: varchar Date binding)', () => {
+      // Knex binds JS Date to a SQLite varchar column as `"<unix-ms>.0"` —
+      // `new Date(numericString)` would return Invalid Date, so the helper
+      // has to coerce digits-only strings to a number before constructing
+      // the Date. Without that coercion freshly-issued invite tokens read
+      // back from SQLite are misclassified as expired.
+      expect(isTokenExpired(`${future.getTime()}.0`)).to.equal(false);
+      expect(isTokenExpired(`${future.getTime()}`)).to.equal(false);
+    });
+
+    it('treats a past SQLite unix-ms numeric string as expired', () => {
+      expect(isTokenExpired(`${past.getTime()}.0`)).to.equal(true);
+      expect(isTokenExpired(`${past.getTime()}`)).to.equal(true);
+    });
   });
 }

@@ -700,6 +700,43 @@ export class DataTableService {
     return true;
   }
 
+  async nestedReorderLinks(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      refRowIds: string[] | number[] | Record<string, any>[];
+      rowId: string;
+      user?: any;
+    },
+  ) {
+    this.validateIds(context, param.refRowIds);
+
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.getColumn(context, param);
+
+    await baseModel.reorderLinks({
+      colId: column.id,
+      childIds: param.refRowIds,
+      rowId: param.rowId,
+      cookie: param.cookie,
+    });
+
+    return true;
+  }
+
   // todo: naming & optimizing
   async nestedListCopyPasteOrDeleteAll(
     context: NcContext,

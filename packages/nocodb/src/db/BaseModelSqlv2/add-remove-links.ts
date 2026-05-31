@@ -22,6 +22,232 @@ import {
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 
+export const LINK_ORDER_COLUMN = 'nc_order';
+
+const isMissingColumnError = (error: any) =>
+  ['no such column', 'does not exist', 'unknown column'].some((msg) =>
+    error?.message?.toLowerCase?.().includes(msg),
+  );
+
+const isDuplicateColumnError = (error: any) =>
+  ['duplicate column', 'already exists', 'duplicate column name'].some((msg) =>
+    error?.message?.toLowerCase?.().includes(msg),
+  );
+
+export const ensureLinkOrderColumn = async (
+  baseModel: IBaseModelSqlV2,
+  tableName: string,
+) => {
+  try {
+    await baseModel.dbDriver(tableName).select(LINK_ORDER_COLUMN).limit(1);
+    return;
+  } catch (e) {
+    if (!isMissingColumnError(e)) throw e;
+  }
+
+  try {
+    await baseModel.dbDriver.schema.alterTable(tableName, (table) => {
+      table.decimal(LINK_ORDER_COLUMN, 40, 20);
+    });
+  } catch (e) {
+    if (!isDuplicateColumnError(e)) throw e;
+  }
+};
+
+export const hasLinkOrderColumn = async (
+  baseModel: IBaseModelSqlV2,
+  tableName: string,
+) => {
+  try {
+    await baseModel.dbDriver(tableName).select(LINK_ORDER_COLUMN).limit(1);
+    return true;
+  } catch (e) {
+    if (isMissingColumnError(e)) return false;
+    throw e;
+  }
+};
+
+const ensureLinkOrderColumnForQuery = async (
+  baseModel: IBaseModelSqlV2,
+  tableName: string,
+) => {
+  await ensureLinkOrderColumn(baseModel, tableName);
+};
+
+const getNextLinkOrder = async (
+  baseModel: IBaseModelSqlV2,
+  tableName: string,
+  groupColumn: string,
+  groupValue: unknown,
+  amount: number,
+) => {
+  await ensureLinkOrderColumnForQuery(baseModel, tableName);
+
+  const result = await baseModel
+    .dbDriver(tableName)
+    .where(groupColumn, groupValue)
+    .max(`${LINK_ORDER_COLUMN} as maxOrder`)
+    .first();
+  const maxOrder = Number(result?.maxOrder ?? 0);
+
+  return Array.from({ length: amount }).map((_, i) => maxOrder + i + 1);
+};
+
+const validateLinkRefIds = (
+  context: NcContext,
+  refIds: (string | number | Record<string, any>)[],
+  refModel: Model,
+) => {
+  for (const refId of Array.isArray(refIds) ? refIds : [refIds]) {
+    if (typeof refId === 'object') {
+      for (const primaryKey of refModel.primaryKeys) {
+        if (
+          ncIsNullOrUndefined(
+            dataWrapper(refId).getByColumnNameTitleOrId(primaryKey),
+          )
+        ) {
+          NcError.get(context).unprocessableEntity(
+            `Validation failed: Missing primary key column "${
+              primaryKey.title
+            }" in request for model "${
+              refModel.title
+            }". RefId: ${JSON.stringify(refId)}`,
+          );
+        }
+      }
+    } else if (ncIsNullOrUndefined(refId)) {
+      NcError.get(context).unprocessableEntity(
+        'Validation failed: RefId is null or undefined',
+      );
+    }
+  }
+};
+
+export const reorderLinks = (baseModel: IBaseModelSqlV2) => {
+  return async ({
+    colId,
+    rowId,
+    childIds,
+  }: {
+    colId: string;
+    rowId: string;
+    childIds: (string | number | Record<string, any>)[];
+  }) => {
+    const column = (await baseModel.model.getColumns(baseModel.context)).find(
+      (c) => c.id === colId,
+    );
+
+    if (!column || !isMMOrMMLike(column)) {
+      NcError.get(baseModel.context).badRequest(
+        'Ordering linked records is only supported for junction-table relations',
+      );
+    }
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      baseModel.context,
+    );
+    const { childContext, parentContext, mmContext } =
+      await colOptions.getParentChildContext(baseModel.context);
+
+    const childColumn = await colOptions.getChildColumn(childContext);
+    const parentColumn = await colOptions.getParentColumn(parentContext);
+    const childTable = await childColumn.getModel(childContext);
+    const parentTable = await parentColumn.getModel(parentContext);
+    const assocTable = await colOptions.getMMModel(mmContext);
+    const vChildCol = await colOptions.getMMChildColumn(mmContext);
+    const vParentCol = await colOptions.getMMParentColumn(mmContext);
+
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
+      model: childTable,
+      dbDriver: baseModel.dbDriver,
+    });
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+      model: parentTable,
+      dbDriver: baseModel.dbDriver,
+    });
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: assocTable,
+      dbDriver: baseModel.dbDriver,
+    });
+
+    const assocTn = assocBaseModel.getTnPath(assocTable);
+
+    const row = await childBaseModel.readByPk(
+      rowId,
+      false,
+      {},
+      {
+        ignoreView: true,
+        getHiddenColumn: true,
+      },
+    );
+    if (!row) NcError.get(baseModel.context).recordNotFound(rowId);
+
+    const normalizedChildIds = childIds.map((id) =>
+      id !== null && typeof id === 'object'
+        ? parentBaseModel.extractPksValues(id, true)
+        : id,
+    );
+    validateLinkRefIds(baseModel.context, normalizedChildIds, parentTable);
+
+    const childFkValue = dataWrapper(row).getByColumnNameTitleOrId(childColumn);
+
+    await ensureLinkOrderColumnForQuery(baseModel, assocTn as string);
+
+    const existingRowsQb = baseModel
+      .dbDriver(assocTn)
+      .select(vChildCol.column_name, vParentCol.column_name)
+      .where(vChildCol.column_name, childFkValue);
+
+    const existingRows = await assocBaseModel.execAndParse(
+      existingRowsQb,
+      null,
+      { raw: true },
+    );
+    const linkedIds = new Set(
+      existingRows.map((r) => String(r[vParentCol.column_name])),
+    );
+
+    for (const id of normalizedChildIds) {
+      if (!linkedIds.has(String(id))) {
+        NcError.get(baseModel.context).recordNotFound(String(id));
+      }
+    }
+
+    const orderedIds = normalizedChildIds.map((id) => String(id));
+    const remainingIds = existingRows
+      .map((r) => String(r[vParentCol.column_name]))
+      .filter((id) => !orderedIds.includes(id));
+    const allIds = [...orderedIds, ...remainingIds];
+
+    for (const [index, id] of allIds.entries()) {
+      await assocBaseModel.execAndParse(
+        baseModel
+          .dbDriver(assocTn)
+          .where(vChildCol.column_name, childFkValue)
+          .where(vParentCol.column_name, id)
+          .update({ [LINK_ORDER_COLUMN]: index + 1 }),
+        null,
+        { raw: true },
+      );
+    }
+
+    await childBaseModel.updateLastModified({
+      model: childTable,
+      updatedColIds: [column.id],
+      rowIds: [rowId],
+    });
+
+    baseModel.dbDriver.attachToTransaction(async () => {
+      await childBaseModel
+        .getNonTransactionalClone()
+        .broadcastLinkUpdates([rowId]);
+    });
+
+    return true;
+  };
+};
+
 /**
  * Extract the corresponding link column in the referencing table using a given LTAR column and the referenced table
  * @param context - The NcContext
@@ -429,6 +655,18 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
             // if no new links, return true
             if (!insertData.length) return true;
+
+            const linkOrders = await getNextLinkOrder(
+              baseModel,
+              vTn as string,
+              vChildCol.column_name,
+              dataWrapper(row).getByColumnNameTitleOrId(childColumn),
+              insertData.length,
+            );
+            insertData = insertData.map((data, index) => ({
+              ...data,
+              [LINK_ORDER_COLUMN]: linkOrders[index],
+            }));
           }
 
           // V2 cardinality enforcement: remove conflicting junction rows before insert

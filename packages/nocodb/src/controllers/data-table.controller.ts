@@ -292,6 +292,30 @@ export class DataTableController {
     });
   }
 
+  @Patch(['/api/v2/tables/:modelId/links/:columnId/records/:rowId/order'])
+  @Acl('nestedDataLink')
+  async nestedReorderLinks(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body()
+    refRowIds: string[] | number[] | Record<string, any>[],
+  ) {
+    return await this.dataTableService.nestedReorderLinks(context, {
+      modelId,
+      rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      refRowIds,
+      cookie: req,
+      user: req.user,
+    });
+  }
+
   // todo: naming
   @Post(['/api/v2/tables/:modelId/links/:columnId/records'])
   @Acl('nestedDataListCopyPasteOrDeleteAll')

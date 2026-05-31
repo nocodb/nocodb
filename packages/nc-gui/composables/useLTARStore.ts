@@ -1,5 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
+  ContentType,
   RelationTypes,
   UITypes,
   dateFormats,
@@ -123,6 +124,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { t } = useI18n()
 
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
+    const readOnly = inject(ReadonlyInj, ref(false))
 
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
@@ -1165,6 +1167,32 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenCachedTotalRows.value = 0
     }
 
+    const reorderLinkedRecords = async (rows: Record<string, any>[]) => {
+      if (isNewRow?.value || !rowId.value || isPublic.value || readOnly.value) return
+
+      const refRowIds = rows.map((row) => getRelatedTableRowId(row)).filter((id) => id != null)
+      if (!refRowIds.length) return
+
+      try {
+        await $api.request({
+          path: `/api/v2/tables/${meta.value.id}/links/${column?.value?.id}/records/${encodeURIComponent(rowId.value)}/order`,
+          method: 'PATCH',
+          body: refRowIds,
+          type: ContentType.Json,
+          format: 'json',
+        })
+
+        resetChildrenCache()
+        await loadChildrenList(true)
+        _reloadData?.({ shouldShowLoading: false, path: path.value })
+        $e('a:links:reorder')
+      } catch (e: any) {
+        message.error(`Reordering linked records failed: ${await extractSdkResponseErrorMsg(e)}`)
+        resetChildrenCache()
+        await loadChildrenList(true)
+      }
+    }
+
     const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
 
     const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
@@ -1211,6 +1239,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     return {
       relatedTableMeta,
       isLinkedTableAccessible,
+      isSingleTargetRelation,
       loadRelatedTableMeta,
       targetViewColumns,
       targetViewColumnsById,
@@ -1228,6 +1257,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       meta,
       unlink,
       link,
+      reorderLinkedRecords,
       loadChildrenExcludedList,
       loadChildrenList,
       isChildrenExcludedListLinked,

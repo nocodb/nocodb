@@ -6168,6 +6168,23 @@ export class ColumnsService implements IColumnsService {
           altered: 1,
           uidt: UITypes.ForeignKey,
         },
+        {
+          cn: 'nc_order',
+          column_name: 'nc_order',
+          title: 'nc_order',
+          rqd: false,
+          pk: false,
+          ai: false,
+          cdf: null,
+          dt: 'decimal',
+          np: 40,
+          ns: 20,
+          dtxp: '40,20',
+          dtxs: '',
+          altered: 1,
+          uidt: UITypes.Order,
+          system: true,
+        },
       );
 
       await sqlMgr.sqlOpPlus(param.source, 'tableCreate', {
@@ -7182,6 +7199,23 @@ export class ColumnsService implements IColumnsService {
         un: parentPK.un,
         altered: 1,
         uidt: UITypes.ForeignKey,
+      },
+      {
+        cn: 'nc_order',
+        column_name: 'nc_order',
+        title: 'nc_order',
+        rqd: false,
+        pk: false,
+        ai: false,
+        cdf: null,
+        dt: 'decimal',
+        np: 40,
+        ns: 20,
+        dtxp: '40,20',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
+        system: true,
       },
     ];
 

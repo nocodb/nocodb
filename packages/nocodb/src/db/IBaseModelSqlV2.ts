@@ -410,6 +410,12 @@ export interface IBaseModelSqlV2 {
   >;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
+  reorderLinks(params: {
+    cookie: any;
+    childIds: (string | number | Record<string, any>)[];
+    colId: string;
+    rowId: string;
+  }): Promise<boolean>;
   getSource(): Promise<Source>;
   /**
    * Creates a non-transactional clone of this instance for operations

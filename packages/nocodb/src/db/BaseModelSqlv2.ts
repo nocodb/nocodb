@@ -90,6 +90,7 @@ import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
 import {
   addOrRemoveLinks,
   extractCorrespondingLinkColumn,
+  reorderLinks,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
@@ -8331,6 +8332,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     return addOrRemoveLinks(this).removeLinks(params);
+  }
+
+  async reorderLinks(params: {
+    cookie: any;
+    childIds: (string | number | Record<string, any>)[];
+    colId: string;
+    rowId: string;
+  }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
+    return reorderLinks(this)(params);
   }
 
   async ooRead(

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Draggable from 'vuedraggable'
 import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
@@ -89,6 +90,7 @@ const {
   fetchChildrenChunk,
   clearChildrenCache,
   resetChildrenCache,
+  reorderLinkedRecords,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
@@ -420,6 +422,39 @@ const visibleRows = computed(() => {
   })
 })
 
+const isDraggingLinkedRows = ref(false)
+
+const draggableRows = ref<Record<string, any>[]>([])
+
+const canReorderLinkedRows = computed(() => {
+  return (
+    !isPublic.value &&
+    !readOnly.value &&
+    !isForm.value &&
+    !isNew.value &&
+    !childrenListPagination.query &&
+    !isSingleTargetRelation.value
+  )
+})
+
+const showDraggableLinkedRows = computed(
+  () => canReorderLinkedRows.value && draggableRows.value.length === visibleRows.value.length,
+)
+
+watch(
+  visibleRows,
+  (rows) => {
+    if (isDraggingLinkedRows.value || !canReorderLinkedRows.value) return
+    draggableRows.value = rows.filter((row) => !row._placeholder)
+  },
+  { immediate: true },
+)
+
+const onLinkedRowsDragChange = async (event: { moved?: unknown }) => {
+  if (!event?.moved) return
+  await reorderLinkedRecords(draggableRows.value)
+}
+
 onUnmounted(() => {
   resetChildrenListOffsetCount()
   resetChildrenCache()
@@ -526,38 +561,80 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
             <!-- Top spacer for virtual scroll -->
             <div :style="{ height: `${rowSlice.start * ROW_HEIGHT}px` }" />
 
-            <template v-for="item in visibleRows" :key="item._index">
-              <!-- Skeleton placeholder for unloaded rows -->
-              <div
-                v-if="item._placeholder"
-                :style="{ height: `${ROW_HEIGHT}px` }"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium"
-              >
-                <div class="flex items-center">
-                  <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
+            <Draggable
+              v-if="showDraggableLinkedRows"
+              v-model="draggableRows"
+              item-key="_index"
+              handle=".nc-linked-row-drag-handle"
+              ghost-class="nc-linked-row-ghost"
+              @change="onLinkedRowsDragChange"
+              @start="isDraggingLinkedRows = true"
+              @end="isDraggingLinkedRows = false"
+            >
+              <template #item="{ element: item }">
+                <div class="flex items-stretch border-b-1 border-nc-border-gray-medium">
+                  <button
+                    class="nc-linked-row-drag-handle flex w-7 flex-none cursor-grab items-center justify-center text-nc-content-gray-muted hover:text-nc-content-gray-subtle"
+                    type="button"
+                    @click.stop
+                  >
+                    <GeneralIcon icon="dragVertical" class="h-4 w-4" />
+                  </button>
+                  <LazyVirtualCellComponentsListItem
+                    :attachment="attachmentCol"
+                    :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+                    :fields="fields"
+                    :display-value-column="relatedTableDisplayValueColumn"
+                    :is-linked="item._isLinked"
+                    :is-loading="item._isLoading"
+                    :is-selected="false"
+                    :related-table-display-value-prop="relatedTableDisplayValueProp"
+                    :row="item"
+                    class="flex-1"
+                    data-testid="nc-child-list-item"
+                    @link-or-unlink="linkOrUnLink(item, String(item._index))"
+                    @expand="onClick(item)"
+                    @keydown.space.prevent.stop="() => linkOrUnLink(item, String(item._index))"
+                    @keydown.enter.prevent.stop="() => linkOrUnLink(item, String(item._index))"
+                  />
                 </div>
-                <div class="flex flex-col gap-2 flex-grow justify-center">
-                  <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
+              </template>
+            </Draggable>
+
+            <template v-else>
+              <template v-for="item in visibleRows" :key="item._index">
+                <!-- Skeleton placeholder for unloaded rows -->
+                <div
+                  v-if="item._placeholder"
+                  :style="{ height: `${ROW_HEIGHT}px` }"
+                  class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium"
+                >
+                  <div class="flex items-center">
+                    <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
+                  </div>
+                  <div class="flex flex-col gap-2 flex-grow justify-center">
+                    <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
+                  </div>
                 </div>
-              </div>
-              <!-- Actual ListItem for loaded rows -->
-              <LazyVirtualCellComponentsListItem
-                v-else
-                :attachment="attachmentCol"
-                :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
-                :fields="fields"
-                :display-value-column="relatedTableDisplayValueColumn"
-                :is-linked="item._isLinked"
-                :is-loading="item._isLoading"
-                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && item._index === 0)"
-                :related-table-display-value-prop="relatedTableDisplayValueProp"
-                :row="item"
-                data-testid="nc-child-list-item"
-                @link-or-unlink="linkOrUnLink(item, String(item._index))"
-                @expand="onClick(item)"
-                @keydown.space.prevent.stop="() => linkOrUnLink(item, String(item._index))"
-                @keydown.enter.prevent.stop="() => linkOrUnLink(item, String(item._index))"
-              />
+                <!-- Actual ListItem for loaded rows -->
+                <LazyVirtualCellComponentsListItem
+                  v-else
+                  :attachment="attachmentCol"
+                  :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+                  :fields="fields"
+                  :display-value-column="relatedTableDisplayValueColumn"
+                  :is-linked="item._isLinked"
+                  :is-loading="item._isLoading"
+                  :is-selected="!!(isSearchInputFocused && childrenListPagination.query && item._index === 0)"
+                  :related-table-display-value-prop="relatedTableDisplayValueProp"
+                  :row="item"
+                  data-testid="nc-child-list-item"
+                  @link-or-unlink="linkOrUnLink(item, String(item._index))"
+                  @expand="onClick(item)"
+                  @keydown.space.prevent.stop="() => linkOrUnLink(item, String(item._index))"
+                  @keydown.enter.prevent.stop="() => linkOrUnLink(item, String(item._index))"
+                />
+              </template>
             </template>
 
             <!-- Bottom spacer for virtual scroll -->
@@ -694,6 +771,10 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
 
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
+}
+
+:deep(.nc-linked-row-ghost) {
+  @apply bg-nc-bg-gray-extralight opacity-70;
 }
 
 :deep(.nc-filter-input-wrapper) {

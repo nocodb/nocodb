@@ -12,6 +12,10 @@ import { Filter, Model, View } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
+import {
+  hasLinkOrderColumn,
+  LINK_ORDER_COLUMN,
+} from '~/db/BaseModelSqlv2/add-remove-links';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -20,6 +24,15 @@ export const relationDataFetcher = (param: {
   logger: Logger;
 }) => {
   const { baseModel } = param;
+
+  const applyLinkOrder = async (qb: any, mmTableName: string) => {
+    try {
+      if (!(await hasLinkOrderColumn(baseModel, mmTableName))) return;
+      qb.orderBy(`${mmTableName}.${LINK_ORDER_COLUMN}`, 'asc');
+    } catch (e) {
+      param.logger.warn(`Failed to apply linked record order: ${e.message}`);
+    }
+  };
 
   async function postProcessData(
     context: NcContext,
@@ -304,6 +317,8 @@ export const relationDataFetcher = (param: {
       });
 
       if (!sort || sort === '') {
+        await applyLinkOrder(qb, vtn as string);
+
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
           : await View.getFirstCollaborativeView(refContext, refTable.id);
@@ -823,6 +838,9 @@ export const relationDataFetcher = (param: {
         skipViewFilter: true,
         prioritizePvSort: true,
       });
+      if (!sort || sort === '') {
+        await applyLinkOrder(qb, vtn as string);
+      }
 
       const mmListSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
 

@@ -17,11 +17,15 @@ const source = computed(() => {
   return base.value.sources?.[0]
 })
 
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useScriptStore())
 
 const { isMobileMode } = useGlobal()
+
+const { openTableSyncCreateModal } = useTableSyncStore()
 
 const { isEEFeatureBlocked, blockDocs, blockScripts, blockSync, showEEFeatures, showUpgradeToUseScripts, showUpgradeToUseSync } =
   useEeConfig()
@@ -56,6 +60,17 @@ const handleCreateSync = (createSyncClick: () => void) => {
   createSyncClick()
 }
 
+function handleCreateTableSync() {
+  $e('c:sync:create:table')
+  // Gating (blockTableSync / upgrade modal) is handled inside the store action.
+  openTableSyncCreateModal({ baseId: base.value?.id })
+}
+
+function handleCreateIntegrationSync(createSyncClick: () => void) {
+  $e('c:sync:create:integration')
+  handleCreateSync(createSyncClick)
+}
+
 const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
 
 const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OPENAI]
@@ -83,7 +98,6 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
               submenu-class="nc-sub-menu-item-icon-only"
               title-class="!p-0 hover:bg-nc-bg-brand dark:hover:bg-nc-bg-gray-medium group"
               show-noco-db-import
-              show-table-sync
               :popup-offset="[8, -2]"
             >
               <template #title>
@@ -121,23 +135,50 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 
       <ProjectSyncCreateProvider v-if="!isMobileMode && showEEFeatures">
         <template #default="{ createSyncClick }">
-          <NcMenuItem
+          <NcSubMenu
             class="nc-menu-item-integration"
-            inner-class="w-full"
             data-testid="create-new-sync"
-            @click="handleCreateSync(createSyncClick)"
+            popup-class-name="nc-create-new-sync-submenu"
+            @click.stop
           >
-            <GeneralIcon icon="ncZap" />
-            {{ $t('labels.sync') }}
-            <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-            <div class="flex-1 w-full" />
-            <div class="flex items-center">
-              <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
-                <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+            <template #title>
+              <GeneralIcon icon="ncZap" />
+              <span>{{ $t('labels.sync') }}</span>
+              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+            </template>
+
+            <NcMenuItem data-testid="create-new-sync-table" @click="handleCreateTableSync">
+              <div class="flex items-start gap-2 w-full py-1 min-w-[280px]">
+                <GeneralIcon icon="nocodb1" class="!w-5 !h-5 flex-none mt-0.5" />
+                <div class="flex flex-col gap-1 flex-1 min-w-0">
+                  <span class="text-bodyDefaultSmBold text-nc-content-gray">{{ $t('labels.tableSync') }}</span>
+                  <span class="text-bodyDefaultSm text-nc-content-gray-subtle2 whitespace-normal break-words">
+                    {{ $t('labels.tableSyncDesc') }}
+                  </span>
+                </div>
               </div>
-              <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
-            </div>
-          </NcMenuItem>
+            </NcMenuItem>
+
+            <NcMenuItem data-testid="create-new-sync-integration" @click="handleCreateIntegrationSync(createSyncClick)">
+              <div class="flex items-start gap-2 w-full py-1 min-w-[280px]">
+                <GeneralIcon icon="integration" class="!w-5 !h-5 flex-none mt-0.5 text-nc-content-gray-emphasis" />
+                <div class="flex flex-col gap-1 flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-bodyDefaultSmBold text-nc-content-gray">{{ $t('labels.integrationSync') }}</span>
+                    <div class="flex items-center flex-none">
+                      <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
+                        <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+                      </div>
+                      <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
+                    </div>
+                  </div>
+                  <span class="text-bodyDefaultSm text-nc-content-gray-subtle2 whitespace-normal break-words">
+                    {{ $t('labels.integrationSyncDesc') }}
+                  </span>
+                </div>
+              </div>
+            </NcMenuItem>
+          </NcSubMenu>
         </template>
       </ProjectSyncCreateProvider>
     </template>
@@ -237,6 +278,14 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 </style>
 
 <style lang="scss">
+// Submenu popup is teleported out of the scoped subtree, so space the
+// integration icons here in a global rule scoped to the popup class.
+.nc-create-new-sync-submenu {
+  .nc-integration-icon-wrapper {
+    @apply flex items-center justify-center children:flex-none w-6;
+  }
+}
+
 .nc-menu-item-combo {
   @apply !pr-1;
 }

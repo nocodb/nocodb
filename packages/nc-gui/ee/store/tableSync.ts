@@ -7,7 +7,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { showUpgradeToUseSync } = useEeConfig()
+  const { showUpgradeToUseTableSync } = useEeConfig()
 
   const { isUIAllowed } = useRoles()
 
@@ -161,7 +161,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
   }
 
   async function openTableSyncCreateModal({ baseId }: { baseId?: string }) {
-    if (!baseId || showUpgradeToUseSync()) return
+    if (!baseId || showUpgradeToUseTableSync()) return
 
     $e('c:sync:open-internal-create-modal')
 
@@ -186,6 +186,27 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     }
   }
 
+  function openTableSyncEditModal({ baseId, sync }: { baseId?: string; sync?: TableSyncType }) {
+    if (!baseId || !sync) return
+
+    $e('c:table-sync:edit:open')
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(ProjectSyncTableForm, {
+      'value': isDlgOpen,
+      'baseId': baseId,
+      'sync': sync,
+      'onUpdate:value': () => closeDialog(),
+      'onSaved': () => closeDialog(),
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   return {
     baseSyncs,
     isLoading,
@@ -199,6 +220,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     resumeSync,
     resolveLink,
     openTableSyncCreateModal,
+    openTableSyncEditModal,
   }
 })
 

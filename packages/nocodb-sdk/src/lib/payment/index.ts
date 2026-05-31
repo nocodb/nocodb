@@ -86,6 +86,7 @@ export enum PlanFeatureTypes {
   FEATURE_SCIM = 'feature_scim',
   FEATURE_SYNC = 'feature_sync',
   FEATURE_TABLE_SYNC = 'feature_table_sync',
+  FEATURE_TABLE_SYNC_AUTO = 'feature_table_sync_auto',
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
   FEATURE_TOGGLE_GROUPBY = 'feature_toggle_groupby',
@@ -370,8 +371,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
     'to hide field headers in Gallery and Kanban views.',
   [PlanFeatureTypes.FEATURE_SCIM]: 'to enable SCIM provisioning.',
-  [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
-  [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use table sync.',
+  [PlanFeatureTypes.FEATURE_SYNC]: 'to use App Sync.',
+  [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use NocoDB Sync.',
+  [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',

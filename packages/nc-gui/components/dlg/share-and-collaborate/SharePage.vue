@@ -716,7 +716,7 @@ const copyCustomUrl = async (custUrl = '') => {
                     :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC"
                     :content="
                       $t('upgrade.upgradeToUseTableSyncSubtitle', {
-                        plan: getPlanTitle(PlanTitles.BUSINESS),
+                        plan: getPlanTitle(PlanTitles.PLUS),
                       })
                     "
                   />

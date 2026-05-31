@@ -357,6 +357,10 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TABLE_SYNC)
   })
 
+  const blockTableSyncAuto = computed(() => {
+    return !getFeature(PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO)
+  })
+
   const blockRls = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_RLS)
   })
@@ -1980,11 +1984,11 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseSync'),
       content: t('upgrade.upgradeToUseSyncSubtitle', {
-        plan: PlanTitles.BUSINESS,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_SYNC,
-      requiredPlan: PlanTitles.BUSINESS,
+      requiredPlan: PlanTitles.PLUS,
     })
 
     return true
@@ -2003,11 +2007,11 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTableSync'),
       content: t('upgrade.upgradeToUseTableSyncSubtitle', {
-        plan: PlanTitles.BUSINESS,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_SYNC,
-      requiredPlan: PlanTitles.BUSINESS,
+      requiredPlan: PlanTitles.PLUS,
     })
 
     return true
@@ -2498,6 +2502,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockCardFieldHeaderVisibility,
     blockSync,
     blockTableSync,
+    blockTableSyncAuto,
     blockRls,
     blockUnique,
     blockUuidField,

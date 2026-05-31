@@ -56,6 +56,31 @@ import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
 import { getQueriedColumns } from '~/helpers/dbHelpers';
 
+function withPkTieBreaker(
+  model: Model,
+  sortArr: Array<{ fk_column_id: string; direction: string }>,
+): Array<{ fk_column_id: string; direction: string }> {
+  // Locate the primary-key column.
+  const pkCol = model.columns?.find((c) => c.pk === true);
+
+  if (!pkCol) {
+    // No declared PK column found (e.g. external view without a declared PK).
+    // Cannot inject a tie-breaker — return unchanged to preserve existing behaviour.
+    return sortArr;
+  }
+
+  // If the final sort entry is already the PK (any direction), the ORDER BY
+  // is already total — every row has a unique position — so no change needed.
+  const last = sortArr[sortArr.length - 1];
+  if (last?.fk_column_id === pkCol.id) {
+    return sortArr;
+  }
+
+  // Return a NEW array with the PK appended ascending.
+  // A shallow spread is safe because sort-entry objects are plain POJOs.
+  return [...sortArr, { fk_column_id: pkCol.id, direction: 'asc' }];
+}
+
 @Injectable()
 export class ExportService {
   protected readonly debugLog = debug('nc:jobs:import');
@@ -830,6 +855,15 @@ export class ExportService {
 
     await model.getColumns(context);
 
+    const userSortArr: Array<{ fk_column_id: string; direction: string }> =
+      Array.isArray(param.sortArrJson)
+        ? param.sortArrJson
+        : param.sortArrJson
+        ? JSON.parse(param.sortArrJson)
+        : [];
+
+    const stableSortJson = JSON.stringify(withPkTieBreaker(model, userSortArr));
+
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
     } else {
@@ -1080,7 +1114,7 @@ export class ExportService {
         dataExportMode,
         {
           filterArrJson: param.filterArrJson,
-          sortArrJson: param.sortArrJson,
+          sortArrJson: stableSortJson,
         },
       );
     } catch (e) {
@@ -1202,6 +1236,15 @@ export class ExportService {
 
     await model.getColumns(context);
 
+    const userSortArr: Array<{ fk_column_id: string; direction: string }> =
+      Array.isArray(param.sortArrJson)
+        ? param.sortArrJson
+        : param.sortArrJson
+        ? JSON.parse(param.sortArrJson)
+        : [];
+
+    const stableSortJson = JSON.stringify(withPkTieBreaker(model, userSortArr));
+
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
     } else {
@@ -1301,7 +1344,7 @@ export class ExportService {
         true,
         {
           filterArrJson: param.filterArrJson,
-          sortArrJson: param.sortArrJson,
+          sortArrJson: stableSortJson,
         },
       );
     } catch (e) {
@@ -1336,6 +1379,15 @@ export class ExportService {
     const source = await Source.get(context, model.source_id);
 
     await model.getColumns(context);
+
+    const userSortArr: Array<{ fk_column_id: string; direction: string }> =
+      Array.isArray(param.sortArrJson)
+        ? param.sortArrJson
+        : param.sortArrJson
+        ? JSON.parse(param.sortArrJson)
+        : [];
+
+    const stableSortJson = JSON.stringify(withPkTieBreaker(model, userSortArr));
 
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
@@ -1423,7 +1475,7 @@ export class ExportService {
         fields,
         {
           filterArrJson: param.filterArrJson,
-          sortArrJson: param.sortArrJson,
+          sortArrJson: stableSortJson,
         },
       );
     } catch (e) {

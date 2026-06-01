@@ -220,15 +220,6 @@ watch(config, syncFromConfig)
               </div>
               <NcSwitch v-model:checked="form.enabled" size="default" />
             </div>
-
-            <!-- Inactive notice — config below is editable but not applied while off -->
-            <div
-              v-if="!form.enabled"
-              class="flex items-center gap-2 pt-4 border-t border-nc-border-gray-medium text-nc-content-yellow-dark font-medium"
-            >
-              <GeneralIcon icon="ncAlertTriangle" class="flex-none h-4 w-4" />
-              <span class="truncate"> Saved settings won't apply until white-labeling is enabled. </span>
-            </div>
           </div>
 
           <!-- Branding fields -->
@@ -391,10 +382,15 @@ watch(config, syncFromConfig)
 
     <!-- Sticky action footer — always visible, sits below the scroll area -->
     <div v-if="!isLoading" class="shrink-0 border-t border-nc-border-gray-medium bg-nc-bg-default flex justify-center px-6 py-3">
-      <div class="w-150 flex flex-row justify-end gap-4">
+      <div class="w-150 flex flex-row items-center gap-4">
+        <div v-if="!form.enabled" class="flex items-center gap-2 min-w-0 text-nc-content-yellow-dark font-medium">
+          <GeneralIcon icon="ncAlertTriangle" class="flex-none h-4 w-4" />
+          <span class="truncate">Saved settings won't apply until white-labeling is enabled.</span>
+        </div>
         <NcButton
           type="secondary"
           size="small"
+          class="ml-auto"
           :disabled="!hasChanges || isSaving"
           data-testid="nc-white-label-reset"
           @click="onReset"

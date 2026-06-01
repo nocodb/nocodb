@@ -1,11 +1,4 @@
 import type { BoolType, MetaType, TimelineType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import { extractProps } from '~/helpers/extractProps';
-import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import NocoCache from '~/cache/NocoCache';
-import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import TimelineRange from '~/models/TimelineRange';
 
 export default class TimelineView implements TimelineType {
   fk_view_id: string;
@@ -14,8 +7,7 @@ export default class TimelineView implements TimelineType {
   base_id?: string;
   source_id?: string;
   meta?: MetaType;
-  timeline_range?: Array<Partial<TimelineRange>>;
-  // legacy/unused — kept for type compatibility
+  timeline_range?: any[];
   show?: BoolType;
   public?: BoolType;
   password?: string;
@@ -25,109 +17,15 @@ export default class TimelineView implements TimelineType {
     Object.assign(this, data);
   }
 
-  public static async get(
-    context: NcContext,
-    viewId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    let view =
-      viewId &&
-      (await NocoCache.get(
-        context,
-        `${CacheScope.TIMELINE_VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT,
-      ));
-
-    if (view) {
-      const timelineRange = await TimelineRange.read(context, viewId, ncMeta);
-      view.timeline_range = timelineRange?.ranges ?? [];
-    } else {
-      view = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.TIMELINE_VIEW,
-        { fk_view_id: viewId },
-      );
-      if (view) {
-        const timelineRange = await TimelineRange.read(context, viewId, ncMeta);
-        if (timelineRange) {
-          view.timeline_range = timelineRange.ranges;
-        }
-        await NocoCache.set(
-          context,
-          `${CacheScope.TIMELINE_VIEW}:${viewId}`,
-          view,
-        );
-      }
-    }
-
-    return view && new TimelineView(view);
+  public static async get(..._args) {
+    return null;
   }
 
-  static async insert(
-    context: NcContext,
-    view: Partial<TimelineView>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const insertObj = {
-      base_id: view.base_id,
-      source_id: view.source_id,
-      fk_view_id: view.fk_view_id,
-      meta: view.meta,
-    };
-
-    await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TIMELINE_VIEW,
-      insertObj,
-      true,
-    );
-
-    return this.get(context, view.fk_view_id, ncMeta);
+  static async insert(..._args) {
+    return null;
   }
 
-  static async update(
-    context: NcContext,
-    timelineId: string,
-    body: Partial<TimelineView>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const updateObj = extractProps(body, ['meta']);
-
-    if (body.timeline_range) {
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.TIMELINE_VIEW_RANGE,
-        { fk_view_id: timelineId },
-      );
-      // range was replaced — drop the cached view so the next get rehydrates
-      await NocoCache.del(context, `${CacheScope.TIMELINE_VIEW}:${timelineId}`);
-      await TimelineRange.bulkInsert(
-        context,
-        body.timeline_range.map((range) => ({
-          fk_view_id: timelineId,
-          ...range,
-        })),
-        ncMeta,
-      );
-    }
-
-    const res = await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TIMELINE_VIEW,
-      prepareForDb(updateObj),
-      { fk_view_id: timelineId },
-    );
-
-    await NocoCache.update(
-      context,
-      `${CacheScope.TIMELINE_VIEW}:${timelineId}`,
-      prepareForResponse(updateObj),
-    );
-
-    return res;
+  static async update(..._args) {
+    return null;
   }
 }

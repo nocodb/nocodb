@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  AppEvents,
   NC_STORE_KEY_WHITE_LABEL,
   type WhiteLabelConfig,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import Store from '~/models/Store';
+import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
-import type { NcRequest } from '~/interface/config';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const MAX_PRODUCT_NAME_LEN = 60;
@@ -18,8 +21,7 @@ const MAX_FOOTER_TEXT_LEN = 240;
 //   - canonical attachment path "download/<scope>/..." produced by the uploader
 //     (re-signed at read time in `getPublicConfig`)
 // Anything else is rejected to block javascript:, data: URIs, etc.
-const URL_RE =
-  /^(https?:\/\/[^\s]+|\/[^\s]*|download\/[^\s]+)$/;
+const URL_RE = /^(https?:\/\/[^\s]+|\/[^\s]*|download\/[^\s]+)$/;
 // Email footer URL must be absolute http(s) — these links are resolved from
 // inboxes, not the app, so same-origin paths don't apply.
 const ABSOLUTE_URL_RE = /^https?:\/\/[^\s]+$/;
@@ -43,6 +45,8 @@ export class WhiteLabelService {
   protected logger = new Logger(WhiteLabelService.name);
 
   private cache: WhiteLabelConfig | null = null;
+
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   /** Canonical form, untouched URLs — for internal use only. */
   private async getRawConfig(): Promise<WhiteLabelConfig> {
@@ -131,13 +135,14 @@ export class WhiteLabelService {
       return value;
     }
 
-    const attachment: { path: string; mimetype: string; signedPath?: string } = {
-      path: canonical,
-      // Mimetype here is only used by `isPreviewAllowed` to decide if the
-      // signed URL renders inline vs forces download. We always want inline
-      // for branding assets, so pass a permissive image mimetype.
-      mimetype: 'image/png',
-    };
+    const attachment: { path: string; mimetype: string; signedPath?: string } =
+      {
+        path: canonical,
+        // Mimetype here is only used by `isPreviewAllowed` to decide if the
+        // signed URL renders inline vs forces download. We always want inline
+        // for branding assets, so pass a permissive image mimetype.
+        mimetype: 'image/png',
+      };
     try {
       await PresignedUrl.signAttachment({
         attachment,
@@ -145,7 +150,9 @@ export class WhiteLabelService {
       });
     } catch (e) {
       this.logger.error(
-        `Failed to sign white-label asset ${canonical}: ${(e as Error).message}`,
+        `Failed to sign white-label asset ${canonical}: ${
+          (e as Error).message
+        }`,
         (e as Error).stack,
       );
       return null;
@@ -161,7 +168,7 @@ export class WhiteLabelService {
 
   async updateConfig(
     body: Partial<WhiteLabelConfig>,
-    _req: NcRequest,
+    req: NcRequest,
   ): Promise<WhiteLabelConfig> {
     const next: WhiteLabelConfig = {
       ...(await this.getRawConfig()),
@@ -185,6 +192,14 @@ export class WhiteLabelService {
     });
 
     this.cache = next;
+
+    // Audit this instance-wide, super-admin-only change.
+    this.appHooksService.emit(AppEvents.WHITE_LABEL_UPDATE, {
+      orgId: Noco.ncDefaultOrgId,
+      enabled: next.enabled,
+      req,
+    });
+
     // Return the admin-facing form so the UI can keep rendering previews
     // (canonical paths get re-signed here too).
     return this.getConfig();
@@ -251,7 +266,10 @@ export class WhiteLabelService {
     }
 
     if (cfg.brandColor != null) {
-      if (typeof cfg.brandColor !== 'string' || !HEX_COLOR_RE.test(cfg.brandColor)) {
+      if (
+        typeof cfg.brandColor !== 'string' ||
+        !HEX_COLOR_RE.test(cfg.brandColor)
+      ) {
         NcError.badRequest('`brandColor` must be a hex color like #0D5A5A');
       }
     }

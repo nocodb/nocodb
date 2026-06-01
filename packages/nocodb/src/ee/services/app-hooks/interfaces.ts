@@ -551,6 +551,13 @@ export interface OrgDomainEvent {
   req?: any;
 }
 
+// Instance-wide white-label config change (super-admin)
+export interface WhiteLabelUpdateEvent {
+  orgId: string;
+  enabled: boolean;
+  req?: any;
+}
+
 // SSO Client Events
 export interface SsoClientEvent {
   orgId: string;

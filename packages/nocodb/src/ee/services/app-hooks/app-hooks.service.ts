@@ -79,6 +79,7 @@ import type {
   ViewSectionDeleteEvent,
   ViewSectionUpdateEvent,
   WelcomeEvent,
+  WhiteLabelUpdateEvent,
   WorkflowCreateEvent,
   WorkflowDeleteEvent,
   WorkflowDuplicateEvent,
@@ -622,6 +623,12 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.ORG_DOMAIN_DELETE
       | AppEvents.ORG_DOMAIN_VERIFY,
     listener: (data: OrgDomainEvent) => void,
+  ): () => void;
+
+  // White Label Event
+  on(
+    event: AppEvents.WHITE_LABEL_UPDATE,
+    listener: (data: WhiteLabelUpdateEvent) => void,
   ): () => void;
 
   // SSO Client Events
@@ -1206,6 +1213,9 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.ORG_DOMAIN_VERIFY,
     data: OrgDomainEvent,
   ): void;
+
+  // White Label Event
+  emit(event: AppEvents.WHITE_LABEL_UPDATE, data: WhiteLabelUpdateEvent): void;
 
   // SSO Client Events
   emit(

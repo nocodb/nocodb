@@ -2676,7 +2676,7 @@ declare interface View {
   /**
    * The type of the view, such as Grid, Calendar, or Kanban.
    */
-  readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban'
+  readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban' | 'map' | 'timeline' | 'gantt' | 'list'
 
   /**
    * Select records from the view. This action is asynchronous.
@@ -5126,7 +5126,7 @@ declare interface View {
   /**
    * The type of the view, such as Grid, Calendar, or Kanban.
    */
-  readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban'
+  readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban' | 'map' | 'timeline' | 'gantt' | 'list'
 
   /**
    * Select records from the view. This action is asynchronous.
@@ -6220,7 +6220,7 @@ declare interface ConfigItem {
     this.write(`readonly description: ${view.description ? `'${view.description}'` : 'null'}`)
 
     this.formatJSDoc(['The type of the view, such as Grid, Calendar, or Kanban.'])
-    this.write(`readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban' | 'map' | 'timeline' | 'list'`)
+    this.write(`readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban' | 'map' | 'timeline' | 'gantt' | 'list'`)
 
     // selectRecordsAsync
     this.formatJSDoc([

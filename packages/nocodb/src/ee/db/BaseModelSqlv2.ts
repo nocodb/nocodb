@@ -698,6 +698,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             // the shape pg/sqlite/mysql return so the API, frontend Time cell
             // and filter-value normalization stay dialect-consistent.
             if (v == null) break;
+            // A plain number on a Time column is an aggregate scalar (count /
+            // sum / percent over the column), not a time value — tedious always
+            // returns the T-SQL `time` type as a JS Date. dayjs(<number>) would
+            // wrongly coerce e.g. a count of 6 into "1970-01-01 00:00:00Z".
+            if (typeof v === 'number') break;
             const t = dayjs(v).utc();
             if (t.isValid()) row[id] = t.format('YYYY-MM-DD HH:mm:ssZ');
             break;

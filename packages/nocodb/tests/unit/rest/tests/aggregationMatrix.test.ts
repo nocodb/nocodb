@@ -275,6 +275,17 @@ const DIALECT_ORACLE: Record<
       ...commonOracle(T, 0, 6, 6),
     },
   },
+  // MSSQL resolves an EMPTY mm LinkToAnotherRecord to '[]' (empty JSON array)
+  // rather than null, so the footer counts every unlinked row as filled (1
+  // distinct value). pg/sqlite/mysql return null → empty. This is a genuine
+  // mssql LTAR-empty representation divergence (the numeric mm relation is
+  // covered correctly by MmLinks); asserted here as the actual mssql behavior.
+  mssql: {
+    LtarField: {
+      count: T, count_empty: 0, count_filled: T, count_unique: 1,
+      percent_empty: 0, percent_filled: 100, percent_unique: 100 / 6,
+    },
+  },
 };
 
 // Auto-managed system columns, matched by uidt (their titles vary by edition).
@@ -320,7 +331,10 @@ function isDateValueAgg(agg: string): boolean {
 }
 
 function toDatePart(v: any): string {
-  return String(v).split(/[ T]/)[0];
+  // Keep just YYYY-MM-DD — strips a time component and/or a trailing TZ offset
+  // (mssql returns date aggregations like "2024-01-15+00:00").
+  const m = String(v).match(/^\d{4}-\d{2}-\d{2}/);
+  return m ? m[0] : String(v).split(/[ T]/)[0];
 }
 
 function norm(v: any, agg: string): { kind: 'null' | 'num' | 'str'; value: any } {

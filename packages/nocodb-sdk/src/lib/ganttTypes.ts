@@ -6,6 +6,27 @@ import type {
   StringOrNullType,
 } from './Api';
 
+export enum GanttZoomLevel {
+  DAY = 'day',
+  WEEK = 'week',
+  MONTH = 'month',
+  QUARTER = 'quarter',
+  YEAR = 'year',
+}
+
+/**
+ * Extensible config stored in GanttType.meta JSON.
+ * The start/end/predecessor field mapping and scheduling semantics live on
+ * a per-Gantt-view DateDependency rule (or fall back to the table-level
+ * default rule when not configured).
+ */
+export interface GanttMetaType {
+  use_milestones?: boolean;
+  highlight_critical_path?: boolean;
+  zoom_level?: GanttZoomLevel;
+  fk_color_col_id?: IdType | null;
+}
+
 /**
  * Model for Gantt
  */

@@ -582,7 +582,7 @@ export class GenericFieldHandler
     },
     options: FilterOptions,
   ) {
-    const { val } = args;
+    const { val, sourceField } = args;
 
     // Legacy conditionV2 differentiated `is/empty` (= '' only) from
     // `is/blank` (= '' OR IS NULL). Route to the corresponding handler so
@@ -596,6 +596,22 @@ export class GenericFieldHandler
         return this.filterNotblank(args, rootArgs, options);
       case 'notempty':
         return this.filterNotempty(args, rootArgs, options);
+      // `null`/`notnull` are strict SQL NULL checks — unlike `blank`/`empty`
+      // they do not also match the empty string.
+      case 'null':
+        return {
+          rootApply: undefined,
+          clause: (qb: Knex.QueryBuilder) => {
+            qb.whereNull(sourceField as any);
+          },
+        };
+      case 'notnull':
+        return {
+          rootApply: undefined,
+          clause: (qb: Knex.QueryBuilder) => {
+            qb.whereNotNull(sourceField as any);
+          },
+        };
     }
   }
 
@@ -612,7 +628,7 @@ export class GenericFieldHandler
     },
     options: FilterOptions,
   ) {
-    const { val } = args;
+    const { val, sourceField } = args;
 
     // Each `isnot/X` is the complement of `is/X` (see filterIs above).
     switch (val) {
@@ -624,6 +640,22 @@ export class GenericFieldHandler
         return this.filterBlank(args, rootArgs, options);
       case 'notempty':
         return this.filterEmpty(args, rootArgs, options);
+      // `null`/`notnull` are strict SQL NULL checks — unlike `blank`/`empty`
+      // they do not also match the empty string.
+      case 'null':
+        return {
+          rootApply: undefined,
+          clause: (qb: Knex.QueryBuilder) => {
+            qb.whereNotNull(sourceField as any);
+          },
+        };
+      case 'notnull':
+        return {
+          rootApply: undefined,
+          clause: (qb: Knex.QueryBuilder) => {
+            qb.whereNull(sourceField as any);
+          },
+        };
     }
   }
 

@@ -183,5 +183,101 @@ describe('dataApiV3', () => {
       expect(filterResponse.body.records.length).to.eq(2);
       expect(filterResponse.body.records[0].fields.Date).to.eq('2026-01-15');
     });
+
+    // Regression for #12704 — `is null` / `isnot null` must work for field
+    // types routed through the FieldHandler architecture (Number, DateTime),
+    // not just the legacy types (text).
+    const buildNullableTable = async () => {
+      const table = await createTable(testContext.context, testContext.base, {
+        table_name: 'nullableFilterTest',
+        title: 'NullableFilterTest',
+        columns: [
+          { column_name: 'id', title: 'Id', uidt: UITypes.ID },
+          { column_name: 'Number', title: 'Number', uidt: UITypes.Number },
+          { column_name: 'DateTime', title: 'DateTime', uidt: UITypes.DateTime },
+        ],
+      });
+
+      await ncAxiosPost({
+        url: `${urlPrefix}/${table.id}/records`,
+        body: [
+          { fields: { Number: 100, DateTime: '2026-01-15 10:00:00' } },
+          { fields: { Number: 200, DateTime: '2026-01-16 10:00:00' } },
+          { fields: { Number: null, DateTime: null } },
+        ],
+      });
+
+      return table;
+    };
+
+    const listWithFilter = async (
+      table: Awaited<ReturnType<typeof buildNullableTable>>,
+      filter: Record<string, any>,
+    ) => {
+      const gridView = await createView(testContext.context, {
+        title: `NullableFilterView_${filter.comparison_op}_${filter.value}`,
+        table,
+        type: ViewTypes.GRID,
+      });
+
+      await updateView(testContext.context, {
+        table,
+        view: gridView,
+        filter: [{ logical_op: 'and', ...filter }],
+      });
+
+      const res = await ncAxiosGet({
+        url: `${urlPrefix}/${table.id}/records`,
+        query: { viewId: gridView.id },
+      });
+
+      return res.body.records as Array<{ fields: Record<string, any> }>;
+    };
+
+    it('should filter Number field by `is null` / `isnot null`', async function () {
+      const table = await buildNullableTable();
+      const columns = await table.getColumns(testContext.ctx);
+      const numberColumn = columns.find((c) => c.title === 'Number');
+
+      const isNull = await listWithFilter(table, {
+        comparison_op: 'is',
+        value: 'null',
+        fk_column_id: numberColumn.id,
+      });
+      expect(isNull.length).to.eq(1);
+      expect(isNull[0].fields.Number).to.eq(null);
+
+      const isNotNull = await listWithFilter(table, {
+        comparison_op: 'isnot',
+        value: 'null',
+        fk_column_id: numberColumn.id,
+      });
+      expect(isNotNull.length).to.eq(2);
+      expect(isNotNull.every((r) => r.fields.Number !== null)).to.eq(true);
+    });
+
+    it('should filter DateTime field by `is null` / `isnot null`', async function () {
+      const table = await buildNullableTable();
+      const columns = await table.getColumns(testContext.ctx);
+      const dateTimeColumn = columns.find((c) => c.title === 'DateTime');
+
+      const isNull = await listWithFilter(table, {
+        comparison_op: 'is',
+        value: 'null',
+        fk_column_id: dateTimeColumn.id,
+      });
+      expect(isNull.length).to.eq(1);
+      expect(isNull[0].fields.DateTime).to.eq(null);
+
+      // Guards the silent-all-rows regression: `isnot null` must not return
+      // every row by dropping the clause.
+      const isNotNull = await listWithFilter(table, {
+        comparison_op: 'isnot',
+        value: 'null',
+        fk_column_id: dateTimeColumn.id,
+      });
+      expect(isNotNull.length).to.eq(2);
+      expect(isNotNull.every((r) => r.fields.DateTime !== null)).to.eq(true);
+    });
   });
 });

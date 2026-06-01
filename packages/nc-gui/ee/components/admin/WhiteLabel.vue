@@ -51,6 +51,16 @@ const isOnPrem = computed(() => !!appInfo.value?.isOnPrem)
 // null when no/invalid colour → no indicator; true/false → good/low contrast.
 const brandContrastOk = computed(() => isBrandColorReadable(form.value.brandColor ?? ''))
 
+const isColorPickerOpen = ref(false)
+
+// Curated seed presets that generate coherent ramps and read well with white
+// button text. The free hex input remains for exact brand matching.
+const brandPresetColors = ['#3366FF', '#1F3D99', '#0D5A5A', '#0FA14E', '#C86827', '#D50000', '#B33771', '#7D26CD']
+
+function onPickBrandColor(color: string | null) {
+  form.value.brandColor = color ? color.toUpperCase() : null
+}
+
 function syncFromConfig() {
   if (!config.value) return
   const c = config.value
@@ -282,11 +292,23 @@ watch(config, syncFromConfig)
                 <div class="text-nc-content-gray mb-2">Brand color</div>
                 <div class="flex items-center gap-3">
                   <a-input v-model:value="form.brandColor" class="!rounded-lg !px-4 h-10 w-60" placeholder="#0D5A5A" />
-                  <div
-                    class="w-10 h-10 rounded-lg border-1 border-nc-border-gray-medium flex-none"
-                    :style="{ backgroundColor: form.brandColor || 'transparent' }"
-                    aria-hidden="true"
-                  />
+                  <a-dropdown v-model:visible="isColorPickerOpen" :trigger="['click']" overlay-class-name="nc-wl-color-picker">
+                    <NcTooltip title="Pick a color">
+                      <div
+                        class="w-10 h-10 rounded-lg border-1 border-nc-border-gray-medium flex-none cursor-pointer transition-shadow hover:shadow-sm"
+                        :class="{ 'ring-2 ring-nc-border-brand': isColorPickerOpen }"
+                        :style="{ backgroundColor: form.brandColor || 'transparent' }"
+                      />
+                    </NcTooltip>
+                    <template #overlay>
+                      <GeneralColorPicker
+                        :model-value="form.brandColor || undefined"
+                        :colors="brandPresetColors"
+                        is-new-design
+                        @input="onPickBrandColor"
+                      />
+                    </template>
+                  </a-dropdown>
                 </div>
 
                 <div
@@ -390,5 +412,14 @@ code {
   :deep(textarea.ant-input) {
     @apply !rounded-lg !px-4 !py-2;
   }
+}
+</style>
+
+<style lang="scss">
+// The color-picker dropdown is teleported to <body>, so it needs a non-scoped
+// rule. The picker root (.color-picker) already has a background + padding but
+// no border/radius/shadow, so it blends into the page — add the card chrome.
+.nc-wl-color-picker .color-picker {
+  @apply border-1 border-nc-border-gray-medium rounded-xl shadow-lg;
 }
 </style>

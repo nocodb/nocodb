@@ -1128,6 +1128,7 @@ export function useCopyPaste({
       clipboardItemConfig,
     } = serializeRange(rows, cols, {
       meta: meta.value,
+      metas: metas.value,
       isPg,
       isMysql,
     })

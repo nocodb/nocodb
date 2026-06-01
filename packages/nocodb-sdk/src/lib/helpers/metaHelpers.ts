@@ -10,10 +10,11 @@ import type { TableType } from '~/lib/Api';
  * @returns Table metadata or undefined
  */
 export function getMetaWithCompositeKey(
-  metas: Record<string, TableType>,
+  metas: Record<string, TableType> | undefined,
   baseId: string | undefined,
   tableId: string
 ): TableType | undefined {
+  if (!metas) return undefined;
   if (baseId) {
     return metas[`${baseId}:${tableId}`] || metas[tableId];
   }

@@ -150,6 +150,7 @@ import {
   isTraceActive,
 } from '~/decorators/trace-command.decorator';
 import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
+import { flattenNestedLookup } from '~/db/mssql-lookup-flatten';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -479,7 +480,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   // Per-instance cache of the expensive Lookup-shape determination
   // (`array` vs `scalar`). Keyed by column id; values survive for the
   // lifetime of the BaseModel instance (typically one per request).
-  private _mssqlLookupShape?: Map<string, 'array' | 'scalar'>;
+  private _mssqlLookupShape?: Map<string, 'array' | 'scalar' | 'nested'>;
 
   protected async preProcessMssqlRows(
     data: Record<string, any>[],
@@ -500,6 +501,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       | 'ltarArr'
       | 'ltarObj'
       | 'lkpArr'
+      | 'lkpNested'
       | 'lkpScalar'
       | 'linksMaybe'
       | 'numeric'
@@ -556,9 +558,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           let shape = shapeCache.get(col.id);
           if (!shape) {
             try {
-              const rel = await (
-                col.colOptions as LookupColumn
-              )?.getRelationColumn?.(this.context);
+              const lkOpt = col.colOptions as LookupColumn;
+              const rel = await lkOpt?.getRelationColumn?.(this.context);
               const relOpts = rel
                 ? await rel.getColOptions<LinkToAnotherRecordColumn>(
                     this.context,
@@ -569,7 +570,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 isMMLike ||
                 relOpts?.type === RelationTypes.HAS_MANY ||
                 (relOpts?.type === RelationTypes.ONE_TO_ONE && !rel?.meta?.bt);
-              shape = isArray ? 'array' : 'scalar';
+              if (!isArray) {
+                shape = 'scalar';
+              } else {
+                // When the looked-up column is itself array-shaped, the FOR
+                // JSON extract produces an array-of-arrays. pg flattens this
+                // (json_array_elements) iff BOTH the lookup AND its target are
+                // array-shaped — mirror that decision so the post-parse shape
+                // matches. A scalar/object/attachment target stays as-is.
+                shape = (await this.isArrayShapedLookupTarget(lkOpt))
+                  ? 'nested'
+                  : 'array';
+              }
             } catch {
               // Lookup resolution can fail on cross-base; treat as scalar so
               // the `_lkv` unwrap still runs.
@@ -579,7 +591,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
           actions.push({
             id,
-            kind: shape === 'array' ? 'lkpArr' : 'lkpScalar',
+            kind:
+              shape === 'nested'
+                ? 'lkpNested'
+                : shape === 'array'
+                ? 'lkpArr'
+                : 'lkpScalar',
           });
           hasLookup = true;
           break;
@@ -680,6 +697,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
             break;
           }
+          case 'lkpNested': {
+            // Lookup whose target column is array-shaped: the extract nests an
+            // array per multi-hop. Flatten to the single-level array pg emits.
+            if (v == null) {
+              row[id] = [];
+              break;
+            }
+            const parsed = tryParse(v);
+            row[id] = Array.isArray(parsed)
+              ? flattenNestedLookup(parsed)
+              : parsed;
+            break;
+          }
           case 'linksMaybe': {
             // Links column: count number, null, or JSON payload string.
             // `tryParse` already short-circuits on non-JSON-shaped strings —
@@ -746,6 +776,37 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     return data;
+  }
+
+  /**
+   * Whether a lookup's looked-up column is array-shaped — i.e. its `extractColumn`
+   * would set `result.isArray`. Mirrors pg's flatten gate (pg.ts Lookup case):
+   *   • LTAR / Links    → array iff isArrayShapeLtar (HM / MM / OO-forward)
+   *   • nested Lookup   → array iff its own relation is array-shaped
+   *   • anything else   → false (scalar, attachment, json, formula, rollup…)
+   * Resolution is best-effort on cross-base; failures fall back to `false`
+   * (no flatten — safe, preserves the pre-fix shape).
+   */
+  protected async isArrayShapedLookupTarget(
+    lkOpt: LookupColumn,
+  ): Promise<boolean> {
+    try {
+      const target = await lkOpt?.getLookupColumn?.(this.context);
+      if (!target) return false;
+      if (!target.colOptions) {
+        await target.getColOptions(this.context).catch(() => undefined);
+      }
+      if (isLinksOrLTAR(target)) return isArrayShapeLtar(target);
+      if (target.uidt === UITypes.Lookup) {
+        const innerRel = await (
+          target.colOptions as LookupColumn
+        )?.getRelationColumn?.(this.context);
+        return innerRel ? isArrayShapeLtar(innerRel) : false;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   public async handleRichTextMentions(

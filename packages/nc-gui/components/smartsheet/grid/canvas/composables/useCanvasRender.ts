@@ -80,6 +80,7 @@ export function useCanvasRender({
   isAddingEmptyRowPermitted,
   selectedRows,
   selectedHeaderColumnIds,
+  resizeMarker,
   isDragging,
   draggedRowIndex,
   targetRowIndex,
@@ -151,6 +152,7 @@ export function useCanvasRender({
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
   selectedHeaderColumnIds: Ref<Set<string>>
+  resizeMarker: Ref<{ x: number; columnIds: Set<string> } | null>
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
@@ -2270,6 +2272,23 @@ export function useCanvasRender({
     ctx.stroke()
   }
 
+  // Vertical guideline shown during a multi-field resize. Widths aren't changed
+  // until mouseup, so this marker is the only feedback that tracks the pointer.
+  const renderColumnResizeMarker = (ctx: CanvasRenderingContext2D) => {
+    if (!resizeMarker.value) return
+
+    const x = resizeMarker.value.x
+
+    ctx.save()
+    ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, height.value)
+    ctx.stroke()
+    ctx.restore()
+  }
+
   function renderAggregations(ctx: CanvasRenderingContext2D) {
     // Snapshot reactive values once at the top of the pass so every offset within
     // this footer pass is computed against the same values — guards against any
@@ -3922,6 +3941,7 @@ export function useCanvasRender({
       renderHeader(ctx, activeState)
 
       renderColumnDragIndicator(ctx)
+      renderColumnResizeMarker(ctx)
       renderRowDragPreview(ctx, draggedRowGroupPath.value)
 
       renderAggregations(ctx)

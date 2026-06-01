@@ -347,6 +347,13 @@ export function useCanvasTable({
   // holds every selected column so they all preview the same width.
   const resizeWidthOverride = ref<{ columnIds: Set<string>; width: string } | null>(null)
 
+  // Multi-field resize guideline: instead of live-resizing every selected column
+  // while dragging (which shifts the dragged edge away from the pointer), we draw
+  // a single vertical marker at `x` and defer the width change to mouseup.
+  // `columnIds` snapshots the co-resize set so it survives the selection being
+  // cleared by the canvas-level mouseup that fires alongside the resize mouseup.
+  const resizeMarker = ref<{ x: number; columnIds: Set<string> } | null>(null)
+
   const _columnsBase = computed<CanvasGridColumn[]>(() => {
     // Early return if meta is not available yet
     if (!meta.value?.base_id) {
@@ -1183,6 +1190,7 @@ export function useCanvasTable({
     isRowDraggingEnabled,
     selectedRows,
     selectedHeaderColumnIds,
+    resizeMarker,
     isDragging,
     draggedRowIndex,
     targetRowIndex,
@@ -1357,28 +1365,39 @@ export function useCanvasTable({
     scrollLeft,
     isViewOperationsAllowed,
     // onResize (per-frame): set lightweight override instead of mutating gridViewCols,
-    // which would trigger the heavy _columnsBase recomputation. When the user is
-    // resizing a column that's part of a multi-field header selection, the
-    // override fans out so every selected header previews the same width.
-    (columnId, width) => {
+    // which would trigger the heavy _columnsBase recomputation.
+    //
+    // Single-column resize previews the new width live. A multi-field resize
+    // (the dragged column is part of a header selection) instead shows only a
+    // vertical guideline marker and defers the width change to mouseup — live
+    // fan-out shifts the columns left of the pointer, dragging the resized edge
+    // away from the cursor (Excel / Google Sheets behaviour).
+    (columnId, width, leftX) => {
       const metaCol = metaColumnById.value[columnId]
       if (!metaCol) return
 
       const normalizedWidth = normalizeWidth(metaCol, width)
       const coResizeIds = getCoResizeColumnIds(columnId)
-      resizeWidthOverride.value = { columnIds: coResizeIds, width: `${normalizedWidth}px` }
+
+      if (coResizeIds.size > 1) {
+        resizeMarker.value = { x: leftX + normalizedWidth, columnIds: coResizeIds }
+      } else {
+        resizeWidthOverride.value = { columnIds: coResizeIds, width: `${normalizedWidth}px` }
+      }
       reloadVisibleDataHook?.trigger()
     },
-    // onResizeEnd (mouseup): clear override, flush final width to gridViewCols +
-    // persist. For a multi-field resize, apply the same width to every selected
-    // column. Each column is normalized against its own type (Attachment has a
-    // larger minWidth, etc.) before persisting. We read the co-resize set from
-    // the live override (snapshot at drag time) rather than re-reading
-    // `selectedHeaderColumnIds` — the canvas-level mouseup that bubbles
-    // alongside the resize mouseup clears the selection before we get here.
+    // onResizeEnd (mouseup): clear override/marker, flush final width to
+    // gridViewCols + persist. For a multi-field resize, apply the same width to
+    // every selected column. Each column is normalized against its own type
+    // (Attachment has a larger minWidth, etc.) before persisting. We read the
+    // co-resize set from the marker / live override (snapshot at drag time)
+    // rather than re-reading `selectedHeaderColumnIds` — the canvas-level mouseup
+    // that bubbles alongside the resize mouseup clears the selection before we
+    // get here.
     (columnId, width) => {
-      const coResizeIds = resizeWidthOverride.value?.columnIds ?? getCoResizeColumnIds(columnId)
+      const coResizeIds = resizeMarker.value?.columnIds ?? resizeWidthOverride.value?.columnIds ?? getCoResizeColumnIds(columnId)
       resizeWidthOverride.value = null
+      resizeMarker.value = null
       for (const id of coResizeIds) {
         handleColumnWidth(id, width, (normalizedWidth) => {
           if (!gridViewCols.value[id]) return

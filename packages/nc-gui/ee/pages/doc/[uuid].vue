@@ -25,7 +25,19 @@ const route = useRoute()
 const router = useRouter()
 
 const { isDark } = useTheme()
-const { appInfo } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
+
+// On mobile the sidebar starts collapsed; on desktop it starts open.
+const sharedSidebarOpen = ref(!isMobileMode.value)
+
+// Tighter indent on mobile so deep nesting doesn't truncate to "U"
+const indentStep = computed(() => (isMobileMode.value ? 8 : 12))
+
+// When the viewport switches between mobile and desktop (e.g. orientation
+// change or resize), reset to the natural default for the new mode.
+watch(isMobileMode, (mobile) => {
+  sharedSidebarOpen.value = !mobile
+})
 
 const uuid = computed(() => route.params.uuid as string)
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -148,6 +160,7 @@ const navigateToDoc = (docId: string) => {
   router.replace({
     query: { ...route.query, p: docId === meta.value?.root?.id ? undefined : docId },
   })
+  if (isMobileMode.value) sharedSidebarOpen.value = false
 }
 
 // Direct children of the currently-displayed doc — drives the Notion-style
@@ -307,7 +320,18 @@ watch(
            single character (see /doc/<uuid> demo with "Something" →
            "S"). Mirrors how the in-app .nc-doc-page-menu-left uses
            `absolute left-3 right: 120px` to claim a definite width. -->
-      <div class="flex items-center gap-6 h-7 flex-1 min-w-0">
+      <div class="flex items-center gap-2 h-7 flex-1 min-w-0">
+        <!-- Sidebar toggle — mobile only, shown when tree has multiple docs -->
+        <NcButton
+          v-if="isMobileMode && sidebarVisible"
+          size="small"
+          type="text"
+          class="flex-none !text-nc-content-gray-subtle2 hover:!text-nc-content-gray"
+          @click="sharedSidebarOpen = !sharedSidebarOpen"
+        >
+          <GeneralIcon icon="menu" class="!w-4.5 !h-4.5" />
+        </NcButton>
+
         <a
           class="transition-all duration-200 cursor-pointer transform hover:scale-105"
           href="https://github.com/nocodb/nocodb"
@@ -357,91 +381,136 @@ watch(
         >
           <div class="flex items-center gap-1">
             <GeneralIcon icon="download" class="!w-3.5 !h-3.5" />
-            {{ $t('general.download') }}
+            <template v-if="!isMobileMode">
+              {{ $t('general.download') }}
+            </template>
           </div>
         </NcButton>
       </div>
     </div>
 
     <!-- Main split: sidebar + content -->
-    <div class="flex-1 flex min-h-0">
-      <aside
-        v-if="sidebarVisible"
-        class="nc-shared-doc-sidebar shrink-0 w-64 border-r-1 border-nc-border-gray-light overflow-y-auto p-2"
-      >
-        <!-- Mirror the in-app sidebar row (Dashboard/TreeView/Documents/Node.vue):
-             same 28px row (min/max-h-7 + py-0.5), 13px/500 type ramp,
-             24px icon wrapper with a hover-only chevron overlay, indent ramp of
-             8 + min(depth, 8)*8 px, and active state in brand-tinted text +
-             bg-primary-selected. The chevron-on-hover hit-target toggles
-             expansion; everywhere else on the row navigates. -->
+    <div class="flex-1 flex min-h-0 relative">
+      <!-- Mobile backdrop — tap to close the sidebar overlay -->
+      <Transition name="nc-shared-doc-backdrop">
         <div
-          v-for="row in sidebarRows"
-          :key="row.node.id"
-          class="nc-shared-doc-tree-row group !rounded-md !py-0.5 !min-h-7 !max-h-7 !my-0.5 select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium flex items-center gap-1 cursor-pointer hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) transition-all ease-in duration-100"
-          :class="{ active: row.node.id === activeDocId }"
-          :style="{
-            // Mirrors the in-app drag-drop indent unit (List.vue INDENT_PX = 24)
-            // so a depth-1 row sits ~24px deeper than its parent, matching what
-            // the in-app sidebar shows on the screen.
-            paddingInlineStart: `${8 + Math.min(row.depth, 8) * 24}px`,
-            paddingInlineEnd: '3px',
-          }"
-          :data-testid="`nc-shared-doc-tree-${row.node.id}`"
-          @click="navigateToDoc(row.node.id)"
+          v-if="isMobileMode && sidebarVisible && sharedSidebarOpen"
+          class="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px]"
+          @click="sharedSidebarOpen = false"
+        />
+      </Transition>
+
+      <Transition :name="isMobileMode ? 'nc-shared-doc-sidebar-slide' : ''">
+        <aside
+          v-if="sidebarVisible && sharedSidebarOpen"
+          class="nc-shared-doc-sidebar shrink-0 w-56 border-r-1 border-nc-border-gray-light overflow-y-auto"
+          :class="{ 'nc-shared-doc-sidebar-overlay': isMobileMode }"
         >
-          <!-- Icon + chevron overlay. The chevron sits on top of the doc icon and fades in
-               on row hover; when there are no children it stays muted and non-interactive,
-               so the row still looks consistent at every depth. -->
-          <div class="flex items-center min-w-6 h-6 flex-none relative">
-            <button
-              type="button"
-              class="nc-shared-doc-tree-expand absolute inset-0 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10"
-              :class="
-                row.node.has_children
-                  ? 'text-nc-content-gray-subtle2 hover:text-nc-content-gray cursor-pointer'
-                  : '!text-nc-content-gray-muted cursor-not-allowed'
-              "
-              :disabled="!row.node.has_children"
-              :data-testid="`nc-shared-doc-tree-expand-${row.node.id}`"
-              :aria-expanded="expandedDocIds.has(row.node.id)"
-              @click.stop="row.node.has_children && toggleExpand(row.node.id)"
+          <!-- Mobile header: root doc title + close button -->
+          <div
+            v-if="isMobileMode"
+            class="nc-shared-doc-sidebar-header flex items-center justify-between px-3 py-2.5 border-b-1 border-nc-border-gray-light sticky top-0 bg-nc-bg-default z-10"
+          >
+            <span class="text-sm font-semibold text-nc-content-gray truncate leading-tight">
+              {{ meta?.root?.title || $t('labels.documents') }}
+            </span>
+            <NcButton
+              size="small"
+              type="text"
+              class="flex-none !text-nc-content-gray-subtle2 -mr-1"
+              @click="sharedSidebarOpen = false"
             >
-              <GeneralLoader v-if="isLoadingChildren(row.node.id)" class="!w-3.5 !h-3.5" />
-              <GeneralIcon
-                v-else
-                icon="ncChevronRight"
-                class="!w-3.5 !h-3.5 transform transition-transform duration-200 text-current"
-                :class="{ '!rotate-90': expandedDocIds.has(row.node.id) }"
-              />
-            </button>
-            <div class="flex items-center group-hover:opacity-0 transition-opacity duration-150 pointer-events-none">
-              <LazyGeneralEmojiPicker
-                :key="row.node.icon ?? ''"
-                :emoji="row.node.icon ?? undefined"
-                :readonly="true"
-                size="small"
-                class="!text-[16px]"
+              <GeneralIcon icon="close" class="!w-4 !h-4" />
+            </NcButton>
+          </div>
+
+          <div class="p-2">
+            <!-- Mirror the in-app sidebar row (Dashboard/TreeView/Documents/Node.vue) -->
+            <div
+              v-for="row in sidebarRows"
+              :key="row.node.id"
+              class="nc-shared-doc-tree-row group !rounded-md !py-0.5 !min-h-7 !max-h-7 !my-0.5 select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium flex items-center gap-1 cursor-pointer hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) transition-all ease-in duration-100"
+              :class="{ active: row.node.id === activeDocId }"
+              :style="{
+                paddingInlineStart: `${8 + Math.min(row.depth, 8) * indentStep}px`,
+                paddingInlineEnd: '3px',
+              }"
+              :data-testid="`nc-shared-doc-tree-${row.node.id}`"
+              @click="navigateToDoc(row.node.id)"
+            >
+              <!-- Mobile: plain chevron always visible (xs and below) -->
+              <div
+                class="hidden !xs:(flex items-center justify-center) w-5 h-5 flex-none"
+                :class="row.node.has_children ? 'cursor-pointer' : 'cursor-default'"
+                @click.stop="row.node.has_children && toggleExpand(row.node.id)"
               >
-                <template #default>
+                <GeneralLoader v-if="isLoadingChildren(row.node.id)" class="!w-3.5 !h-3.5" />
+                <GeneralIcon
+                  v-else
+                  icon="chevronRight"
+                  class="transform transition-transform duration-200"
+                  :class="[
+                    row.node.has_children ? 'text-nc-content-gray-subtle2' : 'text-nc-content-gray-muted',
+                    { '!rotate-90': expandedDocIds.has(row.node.id) && row.node.has_children },
+                  ]"
+                />
+              </div>
+
+              <!-- Icon wrapper — always visible. Desktop chevron overlays it on hover; mobile chevron is separate. -->
+              <div class="flex items-center min-w-6 h-6 flex-none relative">
+                <!-- Desktop-only hover chevron (hidden on xs — mobile uses the plain chevron above) -->
+                <button
+                  type="button"
+                  class="nc-shared-doc-tree-expand absolute inset-0 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 !xs:hidden"
+                  :class="
+                    row.node.has_children
+                      ? 'text-nc-content-gray-subtle2 hover:text-nc-content-gray cursor-pointer'
+                      : '!text-nc-content-gray-muted cursor-not-allowed'
+                  "
+                  :disabled="!row.node.has_children"
+                  :data-testid="`nc-shared-doc-tree-expand-${row.node.id}`"
+                  :aria-expanded="expandedDocIds.has(row.node.id)"
+                  @click.stop="row.node.has_children && toggleExpand(row.node.id)"
+                >
+                  <GeneralLoader v-if="isLoadingChildren(row.node.id)" class="!w-3.5 !h-3.5" />
                   <GeneralIcon
-                    icon="ncFileText"
-                    class="!w-4 !text-[16px]"
-                    :class="row.node.id === activeDocId ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                    v-else
+                    icon="ncChevronRight"
+                    class="!w-3.5 !h-3.5 transform transition-transform duration-200 text-current"
+                    :class="{ '!rotate-90': expandedDocIds.has(row.node.id) }"
                   />
-                </template>
-              </LazyGeneralEmojiPicker>
+                </button>
+                <div
+                  class="flex items-center group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+                >
+                  <LazyGeneralEmojiPicker
+                    :key="row.node.icon ?? ''"
+                    :emoji="row.node.icon ?? undefined"
+                    :readonly="true"
+                    size="small"
+                    class="!text-[16px]"
+                  >
+                    <template #default>
+                      <GeneralIcon
+                        icon="ncFileText"
+                        class="!w-4 !text-[16px]"
+                        :class="row.node.id === activeDocId ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                      />
+                    </template>
+                  </LazyGeneralEmojiPicker>
+                </div>
+              </div>
+              <span
+                class="truncate"
+                :class="{ 'font-medium text-nc-content-brand-disabled': row.node.id === activeDocId }"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+              >
+                {{ row.node.title }}
+              </span>
             </div>
           </div>
-          <span
-            class="truncate"
-            :class="{ 'font-medium text-nc-content-brand-disabled': row.node.id === activeDocId }"
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-          >
-            {{ row.node.title }}
-          </span>
-        </div>
-      </aside>
+        </aside>
+      </Transition>
 
       <main class="flex-1 min-w-0 overflow-y-auto">
         <div v-if="isLoading && !activeContent" class="max-w-[900px] mx-auto px-10 pt-12 text-center text-nc-content-gray-subtle">
@@ -552,12 +621,41 @@ watch(
   background: var(--nc-bg-default);
 }
 
+// On mobile the sidebar floats as an overlay rather than pushing the content
+.nc-shared-doc-sidebar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 30;
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.1);
+}
+
+// Slide-in / slide-out for the mobile overlay sidebar
+.nc-shared-doc-sidebar-slide-enter-active,
+.nc-shared-doc-sidebar-slide-leave-active {
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nc-shared-doc-sidebar-slide-enter-from,
+.nc-shared-doc-sidebar-slide-leave-to {
+  transform: translateX(-100%);
+}
+
+// Backdrop fade
+.nc-shared-doc-backdrop-enter-active,
+.nc-shared-doc-backdrop-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.nc-shared-doc-backdrop-enter-from,
+.nc-shared-doc-backdrop-leave-to {
+  opacity: 0;
+}
+
 .nc-shared-doc-tree-row {
   user-select: none;
 
-  // Match the in-app active row (ee/components/dashboard/TreeView/Documents/List.vue
-  // .nc-documents-menu .active): primary-selected tint in light mode,
-  // gray-medium in dark, with a slightly heavier font weight.
   &.active {
     @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
   }

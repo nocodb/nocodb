@@ -19,7 +19,7 @@ const refreshSidebar = ref(false)
 
 const { productName, logoUrl, isWhiteLabelled } = useBranding()
 
-useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : productName.value)
+useTitle(computed(() => (route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : productName.value)))
 
 const isPublic = computed(() => route.meta?.public)
 
@@ -52,12 +52,7 @@ export default {
       <div class="flex w-full h-full items-center nc-header-content">
         <div class="flex-1 min-w-0 w-50">
           <nuxt-link :to="isPublic ? '' : '/'">
-            <img
-              v-if="isWhiteLabelled && logoUrl"
-              :src="logoUrl"
-              :alt="productName"
-              class="h-11 max-w-[180px] object-contain"
-            />
+            <img v-if="isWhiteLabelled && logoUrl" :src="logoUrl" :alt="productName" class="h-11 max-w-[180px] object-contain" />
             <img v-else src="~/assets/img/brand/nocodb-full.png" class="h-11" />
           </nuxt-link>
         </div>

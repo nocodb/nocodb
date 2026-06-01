@@ -9,6 +9,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, allowCSVDownload } = useSharedView()
 
+const { productName } = useBranding()
+
 const { isFullScreen } = storeToRefs(useSidebarStore())
 
 const { activePlanTitle } = useEeConfig()
@@ -55,7 +57,7 @@ onMounted(() => {
   if (sharedView.value?.title) {
     document.title = `${sharedView.value.title}`
   } else {
-    document.title = 'NocoDB'
+    document.title = productName.value
   }
 })
 </script>

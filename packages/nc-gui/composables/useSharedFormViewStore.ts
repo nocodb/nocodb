@@ -106,6 +106,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { t } = useI18n()
 
+  const { productName } = useBranding()
+
   const route = useRoute()
 
   const formState = ref<Record<string, any>>({})
@@ -909,7 +911,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   watch(
     () => sharedFormView.value?.heading,
     () => {
-      useTitle(`${sharedFormView.value?.heading ?? 'NocoDB'}`)
+      useTitle(`${sharedFormView.value?.heading ?? productName.value}`)
     },
     {
       flush: 'post',

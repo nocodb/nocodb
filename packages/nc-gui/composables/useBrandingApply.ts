@@ -20,6 +20,8 @@ export const useBrandingApply = createSharedComposable(() => {
   const FAVICON_ID = 'nc-favicon'
   const STYLE_ID = 'nc-brand-color-override'
 
+  const DEFAULT_FAVICON = '/favicon.ico'
+
   function ensureFaviconLink(): HTMLLinkElement {
     let el = document.getElementById(FAVICON_ID) as HTMLLinkElement | null
     if (!el) {
@@ -32,16 +34,18 @@ export const useBrandingApply = createSharedComposable(() => {
   }
 
   function applyFavicon(url: string | null) {
-    if (!url) {
-      const el = document.getElementById(FAVICON_ID)
-      if (el) el.remove()
-      // Remove non-managed favicons so the custom one doesn't fight defaults.
-      // We only touch <link rel="icon"> not pointing at our managed id; the
-      // built-in favicons stay registered, just hidden under the override.
-      return
-    }
+    // Framework-injected favicons (nuxt.config `app.head.link`) compete with our
+    // managed one — browsers may keep showing the original. Remove every
+    // non-managed icon link so ours is the only one the browser can pick.
+    document
+      .querySelectorAll(`link[rel~='icon']:not(#${FAVICON_ID}), link[rel='shortcut icon']:not(#${FAVICON_ID})`)
+      .forEach((el) => el.remove())
+
+    // Point the single managed link at the custom favicon, or back at the
+    // built-in default when white-labelling is off / no favicon is set.
     const el = ensureFaviconLink()
-    if (el.href !== url) el.href = url
+    const next = url || DEFAULT_FAVICON
+    if (el.getAttribute('href') !== next) el.setAttribute('href', next)
   }
 
   function applyBrandColor(hex: string | null) {

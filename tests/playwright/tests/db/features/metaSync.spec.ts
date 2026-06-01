@@ -241,7 +241,7 @@ test.describe('Meta sync', () => {
         state: 'No change identified',
       });
     }
-    if (isPg(context)) {
+    if (isPg(context) || isMssql(context)) {
       await metaData.verifyRow({
         index: 21,
         model: 'ActorInfo',

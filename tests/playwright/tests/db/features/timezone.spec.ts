@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, PaginatedType, ProjectListType, UITypes } from 'nocodb-sdk';
-import { enableQuickRun, isEE, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isEE, isMssql, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -100,6 +100,15 @@ async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
           useNullAsDefault: true,
         },
       },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    });
+  } else if (isMssql(context)) {
+    await api.source.create(context.base.id, {
+      alias: dbName,
+      type: 'mssql',
+      // searchPath defaults to the `dbo` schema for SQL Server sources.
+      config: { ...getKnexConfig({ dbName, dbType: 'mssql' }), searchPath: ['dbo'] },
       inflection_column: 'camelize',
       inflection_table: 'camelize',
     });
@@ -514,6 +523,18 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       DatetimeWithoutTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
+      ],
+      DatetimeWithTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
+      ],
+    },
+    // MSSQL: datetime2 drops the offset (≈ PG timestamp-without-tz) and
+    // datetimeoffset preserves it (≈ PG timestamptz) → same as PG. Verify in CI.
+    mssql: {
+      DatetimeWithoutTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
       ],
       DatetimeWithTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
@@ -964,6 +985,13 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
           'formula-2': sqliteDateHKTString,
         },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
+        { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
+      ],
+      // MSSQL: datetime2 ≈ PG timestamp-without-tz, datetimeoffset ≈ PG
+      // timestamptz → same display semantics as PG. Verify against the CI run.
+      mssql: [
+        { 'formula-1': '2023-04-28 18:00', 'formula-2': '2023-04-28 18:00' },
+        { 'formula-1': '2023-04-28 18:00', 'formula-2': '2023-04-28 12:30' },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
       ],
     };

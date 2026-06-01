@@ -271,6 +271,40 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
     }
 
     await sqliteknex.destroy();
+  } else if (database === 'mssql') {
+    {
+      const mssqlknex = knex(getKnexConfig({ dbName: 'master', dbType: 'mssql' }));
+      await dropAndCreateDb(mssqlknex, dbName, 'mssql');
+      await mssqlknex.destroy();
+    }
+
+    {
+      const mssqlknex = knex(getKnexConfig({ dbName, dbType: 'mssql' }));
+      try {
+        // datetime2 has no offset (≈ pg `timestamp without time zone`);
+        // datetimeoffset carries the offset (≈ pg `timestamptz`).
+        await mssqlknex.raw(`
+          CREATE TABLE my_table (
+            title INT IDENTITY(1,1) PRIMARY KEY,
+            datetime_without_tz datetime2,
+            datetime_with_tz datetimeoffset
+          )`);
+        const datetimeData = [
+          ['2023-04-27 10:00:00', '2023-04-27 10:00:00'],
+          ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
+        ];
+        for (const [datetime_without_tz, datetime_with_tz] of datetimeData) {
+          await mssqlknex.raw(`INSERT INTO my_table (datetime_without_tz, datetime_with_tz) VALUES (?, ?)`, [
+            datetime_without_tz,
+            datetime_with_tz,
+          ]);
+        }
+      } catch (e) {
+        console.error(`Error resetting mssql sakila db: Worker ${dbName}`);
+      }
+
+      await mssqlknex.destroy();
+    }
   }
 }
 

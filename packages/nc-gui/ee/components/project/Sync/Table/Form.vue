@@ -1172,14 +1172,18 @@ onMounted(async () => {
                           : 'border-nc-border-gray-medium hover:shadow-hover'
                       "
                       data-testid="nc-table-sync-method-auto"
-                      @click="click(PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO, () => (form.syncTrigger = TableSyncTrigger.Realtime))"
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO, () => (form.syncTrigger = TableSyncTrigger.Realtime))
+                      "
                     >
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                           <div class="text-nc-content-gray font-weight-600 text-caption">{{ $t('labels.automatically') }}</div>
                           <LazyPaymentUpgradeBadge
                             :feature="PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO"
-                            :content="$t('upgrade.upgradeToUseAutomaticSyncSubtitle', { plan: getPlanTitle(PlanTitles.BUSINESS) })"
+                            :content="
+                              $t('upgrade.upgradeToUseAutomaticSyncSubtitle', { plan: getPlanTitle(PlanTitles.BUSINESS) })
+                            "
                           />
                         </div>
                         <GeneralIcon

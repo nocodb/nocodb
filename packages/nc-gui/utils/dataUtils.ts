@@ -135,10 +135,7 @@ export function computeLtarNewRowState(
       )
     }
 
-    return (
-      colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id &&
-      colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-    )
+    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
   })
 
   if (!colInRelatedTable) return {}
@@ -146,8 +143,7 @@ export function computeLtarNewRowState(
   if (!relatedTableColOpt) return {}
 
   // V1 BT and V2 single-record junction relations (MO, OO) hold one record.
-  const isSingleRecord =
-    relatedTableColOpt.type === RelationTypes.BELONGS_TO || isBtLikeV2Junction(colInRelatedTable)
+  const isSingleRecord = relatedTableColOpt.type === RelationTypes.BELONGS_TO || isBtLikeV2Junction(colInRelatedTable)
 
   return {
     [colInRelatedTable.title as string]: isSingleRecord ? rowData : rowData && [rowData],

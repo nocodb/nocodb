@@ -139,7 +139,6 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         </template>
       </div>
 
-
       <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
       <template v-if="!isCalendar">

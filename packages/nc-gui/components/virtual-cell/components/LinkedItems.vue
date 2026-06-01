@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { computeLtarNewRowState } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -133,42 +134,15 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref({})
 
-/** populate initial state for a new row which is parent/child of current record */
-const newRowState = computed(() => {
-  if (isNew.value) return {}
-  const colOpt = (injectedColumn?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
-  const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
-    // Links as for the case of 'mm' we need the 'Links' column
-    if (!isLinksOrLTAR(col)) return false
-    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
-    if (colOpt1?.fk_related_model_id !== meta.value.id) return false
-
-    if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
-        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
-        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
-      )
-    } else {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-      )
-    }
-  })
-  if (!colInRelatedTable) return {}
-  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
-  if (!relatedTableColOpt) return {}
-
-  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO) {
-    return {
-      [colInRelatedTable.title as string]: row?.value?.row,
-    }
-  } else {
-    return {
-      [colInRelatedTable.title as string]: row?.value && [row.value.row],
-    }
-  }
-})
+const newRowState = computed(() =>
+  computeLtarNewRowState(
+    injectedColumn?.value as ColumnType,
+    relatedTableMeta?.value,
+    meta.value?.id,
+    row?.value?.row,
+    isNew.value,
+  ),
+)
 
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
@@ -611,6 +585,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 size="small"
                 class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                 type="secondary"
+                data-testid="nc-child-list-button-new-record"
                 :disabled="!isAllowed"
                 @click="addNewRecord"
               >

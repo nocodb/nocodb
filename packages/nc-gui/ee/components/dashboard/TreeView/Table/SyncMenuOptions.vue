@@ -64,10 +64,7 @@ onMounted(() => {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem
-      :data-testid="`sidebar-table-sync-update-config-${table.title}`"
-      @click="handleUpdateSyncConfiguration"
-    >
+    <NcMenuItem :data-testid="`sidebar-table-sync-update-config-${table.title}`" @click="handleUpdateSyncConfiguration">
       <div v-e="['c:table-sync:edit:open']" class="flex gap-2 items-center">
         <GeneralIcon icon="ncSettings" />
         {{ $t('labels.updateSyncConfiguration') }}

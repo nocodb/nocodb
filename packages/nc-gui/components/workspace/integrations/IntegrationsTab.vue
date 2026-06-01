@@ -136,14 +136,21 @@ const isDataReflectionEnabled = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    const isOssOnly = isEeUI ? !i?.isOssOnly : true
+    // OSS-only integrations (e.g. SQLite) are available only on free, self-hosted deployments
+    // (CE + unlicensed On-Prem) — hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is
+    // true exactly for that free non-cloud case. Gate on it — NOT isEeUI — since the self-hosted
+    // one-docker image is an EE build (isEeUI === true) regardless of license.
+    const isOssOnlyAllowed = isEEFeatureBlocked.value || !i?.isOssOnly
 
     if (!isDataReflectionEnabled.value && i.sub_type === SyncDataType.NOCODB) return false
 
     if (i.hidden) return false
 
     return (
-      isOssOnly && filterIntegration(i) && i.type === category && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnlyAllowed &&
+      filterIntegration(i) &&
+      i.type === category &&
+      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }

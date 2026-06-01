@@ -69,7 +69,9 @@ const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (ty
   if (i.hidden) return false
   if (!i.isAvailable) return false
   if (i.sub_type === SyncDataType.NOCODB) return false
-  if (isEeUI && i.isOssOnly) return false
+  // OSS-only integrations (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem);
+  // hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is true exactly for that case.
+  if (!isEEFeatureBlocked.value && i.isOssOnly) return false
 
   // Auth category: always filter by available sync auth subtypes
   if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {

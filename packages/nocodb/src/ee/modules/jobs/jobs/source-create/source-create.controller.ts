@@ -16,6 +16,7 @@ import {
   OperationSource,
 } from 'nocodb-sdk';
 import { getFilteredAgents } from '~/utils/ssrf';
+import Noco from '~/Noco';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
@@ -103,8 +104,18 @@ export class SourceCreateController {
       deepMerge(config, body.config);
     }
 
+    // SQLite as an external data source is only offered on the free self-hosted
+    // edition (CE + unlicensed On-Prem). Block it on licensed On-Prem and Cloud,
+    // where Noco.isEE() is true — mirrors the frontend isEEFeatureBlocked gating.
+    if (config?.client?.includes('sqlite') && Noco.isEE()) {
+      NcError.badRequest(
+        'SQLite data sources are only available on the free self-hosted edition',
+      );
+    }
+
     if (
       config.client !== 'snowflake' &&
+      !config?.client?.includes('sqlite') &&
       (!config?.connection || !config?.connection.host)
     ) {
       NcError.badRequest('Connection missing host name or IP address');

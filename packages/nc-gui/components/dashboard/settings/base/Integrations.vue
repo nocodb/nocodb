@@ -105,7 +105,8 @@ const integrationsMap = computed(() => {
         (i) =>
           i.type === cat.value &&
           i.isAvailable &&
-          (isEeUI ? !i.isOssOnly : true) &&
+          // OSS-only (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem)
+          (isEEFeatureBlocked.value || !i.isOssOnly) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||

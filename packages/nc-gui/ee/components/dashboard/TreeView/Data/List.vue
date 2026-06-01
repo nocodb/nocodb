@@ -58,7 +58,7 @@ let draggedDocId: string | null = null
 let draggedSubtreeIds: Set<string> | null = null
 
 // Matches DocumentsNode's indent-step and BASE padding below.
-const INDENT_PX = 22
+const indentPx = computed(() => (isMobileMode.value ? 12 : 22))
 const BASE_INDENT_PX = 8
 
 // Notion-style drop indicator shown only during doc drags.
@@ -150,7 +150,7 @@ const allEntities = computed<
   }
 
   // Add root-level documents
-  if (!isSharedBase.value && !isMobileMode.value) {
+  if (!isSharedBase.value) {
     for (const doc of rootDocuments.value) {
       entities.push({ ...doc, type: 'document' as const })
     }
@@ -317,7 +317,7 @@ function onDragOver(e: DragEvent) {
   const { slotIndex, indicatorY } = findSlot(entries, e.clientY, listRect.top)
 
   const relativeX = e.clientX - listRect.left
-  const cursorDepth = Math.max(0, Math.round((relativeX - BASE_INDENT_PX) / INDENT_PX))
+  const cursorDepth = Math.max(0, Math.round((relativeX - BASE_INDENT_PX) / indentPx.value))
 
   const { targetDepth, targetParentId, order } = calculateDocDropTarget(entries, slotIndex, cursorDepth)
 
@@ -544,7 +544,7 @@ onBeforeUnmount(() => {
         class="nc-doc-drop-indicator absolute pointer-events-none z-10"
         :style="{
           top: `${dropIndicator.top}px`,
-          left: `${BASE_INDENT_PX + dropIndicator.depth * INDENT_PX}px`,
+          left: `${BASE_INDENT_PX + dropIndicator.depth * indentPx}px`,
           right: '8px',
         }"
       />
@@ -586,7 +586,7 @@ onBeforeUnmount(() => {
             data-type="document"
             :doc="child.doc"
             :depth="child.depth"
-            :indent-step="INDENT_PX"
+            :indent-step="indentPx"
             :has-children="child.hasChildren"
             class="nc-document-item nc-tree-item text-sm"
             :class="{

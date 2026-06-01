@@ -1,7 +1,17 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { enableQuickRun, isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
+import {
+  enableQuickRun,
+  isMssql,
+  isMysql,
+  isPg,
+  isSqlite,
+  mssqlExec,
+  mysqlExec,
+  pgExec,
+  sqliteExec,
+} from '../../../setup/db';
 import { MetaDataPage } from '../../../pages/Dashboard/ProjectView/Metadata';
 
 test.describe('Meta sync', () => {
@@ -25,6 +35,9 @@ test.describe('Meta sync', () => {
         break;
       case 'pg':
         dbExec = query => pgExec(query, context);
+        break;
+      case 'mssql':
+        dbExec = query => mssqlExec(query, context);
         break;
     }
 
@@ -55,31 +68,31 @@ test.describe('Meta sync', () => {
     await dashboard.rootPage.waitForTimeout(5000);
 
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: `table1`,
       state: 'New table',
     });
     await metaData.verifyRow({
-      index: isPg(context) ? 22 : 17,
+      index: isPg(context) || isMssql(context) ? 22 : 17,
       model: `table2`,
       state: 'New table',
     });
 
     await metaData.sync();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
     await metaData.verifyRow({
-      index: isPg(context) ? 22 : 17,
+      index: isPg(context) || isMssql(context) ? 22 : 17,
       model: 'Table2',
       state: 'No change identified',
     });
 
     if (!isSqlite(context)) {
       // Add relation
-      if (isPg(context)) {
+      if (isPg(context) || isMssql(context)) {
         await dbExec(`ALTER TABLE table1 ADD CONSTRAINT fk_idx FOREIGN KEY (id) REFERENCES table2 (id);`);
       } else {
         await dbExec(`ALTER TABLE table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`);
@@ -89,7 +102,7 @@ test.describe('Meta sync', () => {
       }
       await metaData.clickReload();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPg(context) || isMssql(context) ? 21 : 16,
         model: 'Table1',
         state: 'New relation added',
       });
@@ -97,13 +110,13 @@ test.describe('Meta sync', () => {
       //verify after sync
       await metaData.sync();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPg(context) || isMssql(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
 
       // Remove relation
-      if (isPg(context)) {
+      if (isPg(context) || isMssql(context)) {
         await dbExec(`ALTER TABLE table1 DROP CONSTRAINT fk_idx`);
       } else {
         await dbExec(`ALTER TABLE table1 DROP FOREIGN KEY fk1`);
@@ -111,7 +124,7 @@ test.describe('Meta sync', () => {
       }
       await metaData.clickReload();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPg(context) || isMssql(context) ? 21 : 16,
         model: 'Table1',
         state: 'Relation removed',
       });
@@ -119,7 +132,7 @@ test.describe('Meta sync', () => {
       //verify after sync
       await metaData.sync();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPg(context) || isMssql(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
@@ -132,11 +145,14 @@ test.describe('Meta sync', () => {
       await dbExec(`ALTER TABLE table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`);
     } else if (isPg(context)) {
       await dbExec(`ALTER TABLE table1 ADD COLUMN newCol INT`);
+    } else if (isMssql(context)) {
+      // T-SQL has no ADD COLUMN — just ADD <col> <type>.
+      await dbExec(`ALTER TABLE table1 ADD newCol INT`);
     }
 
     await metaData.clickReload();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newCol)',
     });
@@ -144,7 +160,7 @@ test.describe('Meta sync', () => {
     //verify after sync
     await metaData.sync();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
@@ -156,11 +172,13 @@ test.describe('Meta sync', () => {
       await dbExec(`ALTER TABLE table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`);
     } else if (isPg(context)) {
       await dbExec(`ALTER TABLE table1 RENAME COLUMN newCol TO newColName`);
+    } else if (isMssql(context)) {
+      await dbExec(`EXEC sp_rename 'table1.newCol', 'newColName', 'COLUMN'`);
     }
 
     await metaData.clickReload();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newColName), Column removed(newCol)',
     });
@@ -168,7 +186,7 @@ test.describe('Meta sync', () => {
     //verify after sync
     await metaData.sync();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
@@ -179,7 +197,7 @@ test.describe('Meta sync', () => {
       await dbExec(`ALTER TABLE table1 DROP COLUMN newColName`);
       await metaData.clickReload();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPg(context) || isMssql(context) ? 21 : 16,
         model: `Table1`,
         state: 'Column removed(newColName)',
       });
@@ -187,7 +205,7 @@ test.describe('Meta sync', () => {
       //verify after sync
       await metaData.sync();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPg(context) || isMssql(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
@@ -198,12 +216,12 @@ test.describe('Meta sync', () => {
     await dbExec(`DROP TABLE table2`);
     await metaData.clickReload();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPg(context) || isMssql(context) ? 21 : 16,
       model: `table1`,
       state: 'Table removed',
     });
     await metaData.verifyRow({
-      index: isPg(context) ? 22 : 17,
+      index: isPg(context) || isMssql(context) ? 22 : 17,
       model: `table2`,
       state: 'Table removed',
     });

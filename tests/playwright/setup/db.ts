@@ -3,6 +3,8 @@ const mysql = require('mysql2');
 const { Client } = require('pg');
 
 import { AsyncDatabase } from 'promised-sqlite3';
+import { knex } from 'knex';
+import { getKnexConfig } from '../tests/utils/config';
 
 const isMysql = (context: NcContext) => context.dbType === 'mysql';
 
@@ -37,6 +39,17 @@ const pgExec = async (query: string, context: NcContext) => {
 
   await client.query(query);
   await client.end();
+};
+
+// Runs raw T-SQL against the per-worker MSSQL data DB (sakila{workerId}) — the
+// same DB the base's source points at, so meta-sync detects these changes.
+const mssqlExec = async (query: string, context: NcContext) => {
+  const kn = knex(getKnexConfig({ dbName: `sakila${context.workerId}`, dbType: 'mssql' }));
+  try {
+    await kn.raw(query);
+  } finally {
+    await kn.destroy();
+  }
 };
 
 const mysqlExec = async query => {
@@ -74,4 +87,4 @@ async function sqliteExec(query) {
   }
 }
 
-export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, isMssql, pgExec, isEE, enableQuickRun };
+export { sqliteExec, mysqlExec, mssqlExec, isMysql, isSqlite, isPg, isMssql, pgExec, isEE, enableQuickRun };

@@ -196,8 +196,12 @@ function staticBrandOverrides(light: Record<number, BrandStop>): string {
   }
 
   // Primary button (Button.vue: `bg-brand-500 md:(hover:bg-brand-600)`).
-  lines.push(`.nc-button.ant-btn-primary.theme-default { background-color: ${light[500].hex} !important; }`)
-  lines.push(`.nc-button.ant-btn-primary.theme-default:hover { background-color: ${light[600].hex} !important; }`)
+  // Scope to the enabled state so the `!important` doesn't bleed the brand
+  // colour onto the disabled / show-as-disabled grey (those keep ant-btn-primary
+  // but should stay neutral grey).
+  const enabled = '.nc-button.ant-btn-primary.theme-default:not([disabled]):not(.nc-show-as-disabled)'
+  lines.push(`${enabled} { background-color: ${light[500].hex} !important; }`)
+  lines.push(`${enabled}:hover { background-color: ${light[600].hex} !important; }`)
 
   return lines.join('\n')
 }

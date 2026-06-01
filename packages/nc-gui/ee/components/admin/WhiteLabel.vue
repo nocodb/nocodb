@@ -287,19 +287,26 @@ watch(config, syncFromConfig)
                     :style="{ backgroundColor: form.brandColor || 'transparent' }"
                     aria-hidden="true"
                   />
-                  <div v-if="brandContrastOk === true" class="flex items-center gap-1 text-nc-content-green-dark text-bodySm">
-                    <GeneralIcon icon="ncCheck" class="h-4 w-4" />
-                    Good contrast
-                  </div>
-                  <div
-                    v-else-if="brandContrastOk === false"
-                    class="flex items-center gap-1 text-nc-content-yellow-dark text-bodySm"
-                  >
-                    <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4" />
-                    White button text may be hard to read
-                  </div>
                 </div>
-                <span class="text-nc-content-gray-muted text-bodySm"> Recolours buttons, links, and accents across the UI. </span>
+
+                <div
+                  v-if="brandContrastOk === true"
+                  class="flex items-center gap-1.5 mt-2 text-nc-content-green-dark text-bodySm"
+                >
+                  <GeneralIcon icon="ncCheck" class="flex-none h-4 w-4" />
+                  Good contrast
+                </div>
+                <div
+                  v-else-if="brandContrastOk === false"
+                  class="flex items-center gap-1.5 mt-2 text-nc-content-yellow-dark text-bodySm"
+                >
+                  <GeneralIcon icon="ncAlertTriangle" class="flex-none h-4 w-4" />
+                  This color may make button text hard to read
+                </div>
+
+                <span class="text-nc-content-gray-muted text-bodySm mt-1 block">
+                  Recolours buttons, links, and accents across the UI.
+                </span>
               </div>
             </div>
           </div>

@@ -6914,20 +6914,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const query = typeof qb === 'string' ? qb : qb.toQuery();
 
-    let data;
-    try {
-      data = await this.execAndGetRows(query);
-    } catch (e) {
-      if (this.isMssql) {
-        console.error(
-          '[MSSQL-EXEC-DEBUG] FAILED query:\n',
-          query,
-          '\n  error:',
-          e?.message,
-        );
-      }
-      throw e;
-    }
+    let data = await this.execAndGetRows(query);
 
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);

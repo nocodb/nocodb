@@ -45,39 +45,37 @@ export class DBErrorExtractor {
   });
 
   private detectClientType(error: any): ClientType | null {
-    // MSSQL — tedious sets `error.number` (numeric SQL Server error number)
-    // on every server-side error. This is unique to MSSQL among the
-    // dialects we support, so it's the strongest signal.
-    if (typeof error?.number === 'number') return ClientType.MSSQL;
+    if (error?.code) {
+      const code = String(error.code);
 
-    if (!error?.code) return null;
+      // MySQL: errors start with ER_
+      if (code.startsWith('ER_')) return ClientType.MYSQL;
 
-    const code = String(error.code);
+      // PostgreSQL: 5-character SQLSTATE codes
+      if (/^[0-9A-Z]{5}$/.test(code)) return ClientType.PG;
 
-    // MySQL: errors start with ER_
-    if (code.startsWith('ER_')) return ClientType.MYSQL;
+      // SQLite: errors start with SQLITE_
+      if (code.startsWith('SQLITE_')) return ClientType.SQLITE;
 
-    // PostgreSQL: 5-character SQLSTATE codes
-    if (/^[0-9A-Z]{5}$/.test(code)) return ClientType.PG;
-
-    // SQLite: errors start with SQLITE_
-    if (code.startsWith('SQLITE_')) return ClientType.SQLITE;
-
-    // MSSQL: tedious driver-level codes (when there's no `error.number`,
-    // i.e. transport-layer errors like login / timeout / socket).
-    if (
-      [
-        'ELOGIN',
-        'ETIMEOUT',
-        'ESOCKET',
-        'EREQUEST',
-        'EABORT',
-        'ECANCEL',
-        'EINVALIDSTATE',
-      ].includes(code)
-    ) {
-      return ClientType.MSSQL;
+      // MSSQL: tedious driver-level codes. tedious sets one of these on EVERY
+      // error — including the wrapper around a server-side error — so this
+      // also catches MSSQL server errors (which additionally carry `number`).
+      if (
+        [
+          'ELOGIN',
+          'ETIMEOUT',
+          'ESOCKET',
+          'EREQUEST',
+          'EABORT',
+          'ECANCEL',
+          'EINVALIDSTATE',
+        ].includes(code)
+      ) {
+        return ClientType.MSSQL;
+      }
     }
+
+    if (typeof error?.number === 'number') return ClientType.MSSQL;
 
     return null;
   }

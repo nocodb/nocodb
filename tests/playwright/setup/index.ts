@@ -11,6 +11,10 @@ import path from 'path';
 // License reset only needs to happen once per worker
 let licenseResetDone = false;
 
+// Flip to true to print per-test setup timing (`Setup: X.Xs`). Off in CI to keep
+// the log quiet; failure/retry summaries below are always logged regardless.
+const debugLog = false;
+
 // MySQL Configuration
 const mysqlConfig = {
   client: 'mysql2',
@@ -424,8 +428,10 @@ async function localInit({
     // get current user information
     const user = await api.auth.me();
     return { data: { base, user, workspace, token, api, apiToken }, status: 200 };
-  } catch (e) {
-    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+  } catch {
+    // Swallow the verbose driver error here — for MSSQL it can be the entire
+    // reset SQL script. setup() reports each failed attempt + the final failure
+    // concisely, which is enough to diagnose without flooding the log.
     return { data: {}, status: 500 };
   }
 }
@@ -447,7 +453,7 @@ const setup = async ({
   resetSsoClients?: boolean;
   resetPlugins?: boolean;
 }): Promise<NcContext> => {
-  console.time('Setup');
+  if (debugLog) console.time('Setup');
 
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || (isEE() ? 'pg' : 'sqlite');
@@ -474,8 +480,9 @@ const setup = async ({
         resetSsoClients,
         resetPlugins,
       });
-    } catch (e) {
-      console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    } catch {
+      // localInit threw; the attempt summary below reports the failure without
+      // dumping the verbose driver error (which can be the entire reset SQL).
     }
 
     if (response?.status === 200 && response.data?.token && response.data?.base) {
@@ -586,7 +593,7 @@ const setup = async ({
   // Wait for the sidebar to render before handing off to the test
   await page.locator('.nc-sidebar').waitFor({ state: 'visible', timeout: 10000 });
 
-  console.timeEnd('Setup');
+  if (debugLog) console.timeEnd('Setup');
 
   return {
     base,

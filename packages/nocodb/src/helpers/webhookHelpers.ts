@@ -547,6 +547,20 @@ export function transformDataForMailRendering(
       serializedValue = data[col.title]?.toString() || '';
     }
 
+    // Guarantee a string reaches the email template — a non-string value here
+    // (e.g. an object that slipped through a parser) would throw
+    // "Objects are not valid as a React child" and fail the whole email.
+    if (
+      serializedValue !== null &&
+      serializedValue !== undefined &&
+      typeof serializedValue !== 'string'
+    ) {
+      serializedValue =
+        typeof serializedValue === 'object'
+          ? JSON.stringify(serializedValue)
+          : String(serializedValue);
+    }
+
     transformedData.push({
       parsedValue: serializedValue,
       uidt: col.uidt,

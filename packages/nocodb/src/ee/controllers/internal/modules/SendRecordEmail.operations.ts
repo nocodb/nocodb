@@ -159,6 +159,26 @@ export class SendRecordEmailOperations
       {},
     );
 
+    // LinkToAnotherRecord columns render the related record's display value —
+    // that needs the related table's columns loaded (getModels returns them
+    // without columns), otherwise the value falls back to "[object Object]".
+    // (Links columns render a count and don't need related columns.)
+    const relatedModelIds = new Set(
+      filteredColumns
+        .filter((c: ColumnType) => c.uidt === UITypes.LinkToAnotherRecord)
+        .map(
+          (c: ColumnType) =>
+            (c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
+        )
+        .filter((id): id is string => !!id),
+    );
+
+    await Promise.all(
+      models
+        .filter((m) => relatedModelIds.has(m.id))
+        .map((m) => m.getColumns(context)),
+    );
+
     const recordData = this.transformDataForEmail(
       row,
       filteredColumns,
@@ -242,6 +262,20 @@ export class SendRecordEmailOperations
         }
       } catch {
         serializedValue = data[col.title]?.toString() || '';
+      }
+
+      // Guarantee a string reaches the email template — a non-string value here
+      // (e.g. an object that slipped through a parser) would throw
+      // "Objects are not valid as a React child" and fail the whole email.
+      if (
+        serializedValue !== null &&
+        serializedValue !== undefined &&
+        typeof serializedValue !== 'string'
+      ) {
+        serializedValue =
+          typeof serializedValue === 'object'
+            ? JSON.stringify(serializedValue)
+            : String(serializedValue);
       }
 
       if (serializedValue !== undefined && serializedValue !== '') {

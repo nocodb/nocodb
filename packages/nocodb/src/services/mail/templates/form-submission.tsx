@@ -123,8 +123,11 @@ const FormSubmission = ({
                     }}
                   >
                     <Column>
-                      <Text className="text-gray-800 !my-0 max-w-xs whitespace-pre-wrap">
-                        {s.parsedValue}
+                      <Text
+                        className="text-gray-800 !my-0 max-w-xs whitespace-pre-wrap"
+                        style={{ minHeight: '20px', lineHeight: '20px' }}
+                      >
+                        {s.parsedValue || ' '}
                       </Text>
                     </Column>
                   </Row>

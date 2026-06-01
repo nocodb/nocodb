@@ -284,7 +284,7 @@ export const parseLinksValue = (
     return `1 ${columnMeta.singular || (t?.('general.link') ?? 'Link')}`;
   } else {
     return `${parsedValue} ${
-      columnMeta.plural || (t('general.links') ?? 'Links')
+      columnMeta.plural || (t?.('general.links') ?? 'Links')
     }`;
   }
 };

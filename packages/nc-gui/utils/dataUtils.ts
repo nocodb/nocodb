@@ -11,6 +11,8 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isIntegerUiType,
+  isLinkV2,
+  isLinksOrLTAR,
   isSystemColumn,
   isValidValue,
   isVirtualCol,
@@ -87,6 +89,69 @@ export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
     }
   }
   return -1
+}
+
+/**
+ * Compute the pre-fill state for a new record opened from a LTAR "New record"
+ * button (LinkedItems or UnLinkedItems panel).
+ *
+ * Finds the back-reference column in the related table and seeds it with the
+ * parent row so the junction row is written on save.
+ *
+ * @param ltarColumn   The LTAR column the panel belongs to (injectedColumn)
+ * @param relatedMeta  Metadata of the related table (relatedTableMeta)
+ * @param currentTableId  ID of the current (parent) table (meta.id)
+ * @param rowData      The raw data object of the current row (row.value.row)
+ * @param isNewRow     Whether the current row itself is a new, unsaved row
+ */
+export function computeLtarNewRowState(
+  ltarColumn: ColumnType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  currentTableId: string | null | undefined,
+  rowData: Record<string, any> | null | undefined,
+  isNewRow: boolean,
+): Record<string, any> {
+  if (isNewRow || !ltarColumn || !relatedMeta?.columns || !currentTableId) return {}
+
+  const colOpt = ltarColumn.colOptions as LinkToAnotherRecordType
+  if (!colOpt) return {}
+
+  const colInRelatedTable = relatedMeta.columns.find((col) => {
+    if (!isLinksOrLTAR(col)) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== currentTableId) return false
+
+    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
+    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
+    const isJunctionShape =
+      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
+      (isLinkV2(ltarColumn) && isLinkV2(col))
+
+    if (isJunctionShape) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
+      )
+    }
+
+    return (
+      colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id &&
+      colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+    )
+  })
+
+  if (!colInRelatedTable) return {}
+  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
+  if (!relatedTableColOpt) return {}
+
+  // V1 BT and V2 single-record junction relations (MO, OO) hold one record.
+  const isSingleRecord =
+    relatedTableColOpt.type === RelationTypes.BELONGS_TO || isBtLikeV2Junction(colInRelatedTable)
+
+  return {
+    [colInRelatedTable.title as string]: isSingleRecord ? rowData : rowData && [rowData],
+  }
 }
 
 // a function to populate insert object and verify if all required fields are present

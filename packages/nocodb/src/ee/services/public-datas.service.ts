@@ -84,7 +84,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     const source = await Source.get(context, model.source_id);
 
-    if (await canUseOptimisedQuery(context, { source })) {
+    if (await canUseOptimisedQuery(context, { source, disableOptimization: false })) {
       const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,

@@ -1,6 +1,6 @@
 import 'mocha';
 import { expect } from 'chai';
-import { flattenNestedLookup } from '~/db/mssql-lookup-flatten';
+import { deepUnwrapLkv, flattenNestedLookup } from '~/db/mssql-lookup-flatten';
 
 // MSSQL's FOR JSON extract wraps each related row's looked-up value in an
 // `{_lkv:…}` sentinel. When the looked-up column is itself array-shaped
@@ -59,6 +59,68 @@ function mssqlLookupFlattenTests() {
         '[{"_lkv":[{"_lkv":[{"_lkv":"a"},{"_lkv":"b"}]},{"_lkv":null}]},{"_lkv":null}]';
 
       expect(flattenNestedLookup(JSON.parse(raw))).to.deep.equal(['a', 'b']);
+    });
+  });
+
+  // Regression for the depth-≥2 `_lkv` leak: a Lookup on a field-expanded linked
+  // record (`nested[Link][fields]=…`) arrives wrapped inside the child record
+  // and the top-level sweep never reaches it. deepUnwrapLkv strips the sentinel
+  // wherever it sits in the nested structure.
+  describe('deepUnwrapLkv — strips _lkv from nested child records', () => {
+    it('child record with a SCALAR lookup field', () => {
+      // C → [A]; A has a scalar Lookup `BLk` → `{_lkv:v}` inside the child.
+      const input = [
+        { Id: 1, ATitle: 'a-1', BLk: { _lkv: 'beta-1' } },
+        { Id: 2, ATitle: 'a-2', BLk: { _lkv: null } },
+      ];
+      expect(deepUnwrapLkv(input)).to.deep.equal([
+        { Id: 1, ATitle: 'a-1', BLk: 'beta-1' },
+        { Id: 2, ATitle: 'a-2', BLk: null },
+      ]);
+    });
+
+    it('child record with an ARRAY (multi) lookup field', () => {
+      const input = [
+        { Id: 1, ATitle: 'a-1', BLk: [{ _lkv: 'beta-1' }, { _lkv: 'beta-2' }] },
+        { Id: 2, ATitle: 'a-2', BLk: [{ _lkv: 'beta-3' }] },
+      ];
+      expect(deepUnwrapLkv(input)).to.deep.equal([
+        { Id: 1, ATitle: 'a-1', BLk: ['beta-1', 'beta-2'] },
+        { Id: 2, ATitle: 'a-2', BLk: ['beta-3'] },
+      ]);
+    });
+
+    it('single (BT/OO) child object, not an array', () => {
+      expect(
+        deepUnwrapLkv({ Id: 1, Title: 'x', Lk: { _lkv: 7 } }),
+      ).to.deep.equal({ Id: 1, Title: 'x', Lk: 7 });
+    });
+
+    it('grandchild lookup (depth 3) is unwrapped too', () => {
+      // C → [A]; A → [B]; B has a scalar lookup `CLk`.
+      const input = [
+        {
+          Id: 1,
+          As: [{ Id: 10, Bs: [{ Id: 100, CLk: { _lkv: 'deep' } }] }],
+        },
+      ];
+      expect(deepUnwrapLkv(input)).to.deep.equal([
+        { Id: 1, As: [{ Id: 10, Bs: [{ Id: 100, CLk: 'deep' }] }] },
+      ]);
+    });
+
+    it('no-op when there is no _lkv (default pk+pv expansion)', () => {
+      const input = [{ Id: 1, ATitle: 'a-1', As: [{ Id: 10, Title: 'x' }] }];
+      expect(deepUnwrapLkv(input)).to.deep.equal([
+        { Id: 1, ATitle: 'a-1', As: [{ Id: 10, Title: 'x' }] },
+      ]);
+    });
+
+    it('passes scalars / null / empty through unchanged', () => {
+      expect(deepUnwrapLkv(null)).to.equal(null);
+      expect(deepUnwrapLkv('plain')).to.equal('plain');
+      expect(deepUnwrapLkv(42)).to.equal(42);
+      expect(deepUnwrapLkv([])).to.deep.equal([]);
     });
   });
 }

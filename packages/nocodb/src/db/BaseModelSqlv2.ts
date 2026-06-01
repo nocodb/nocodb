@@ -136,7 +136,6 @@ import {
   Column,
   FileReference,
   Filter,
-  GridViewColumn,
   Model,
   PresignedUrl,
   Sort,
@@ -1200,71 +1199,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     applyPaginate(qb, rest);
     return await this.execAndParse(qb);
-  }
-
-  async bulkGroupByCount(
-    args: {
-      filterArr?: Filter[];
-    },
-    bulkFilterList: {
-      alias: string;
-      where?: string;
-      sort: string;
-      column_name: string;
-      filterArr?: Filter[];
-    }[],
-    _view: View,
-  ) {
-    // Prepend RLS conditions to filterArr for bulkGroupByCount
-    const rlsConditionsBGBC = await this.getRlsConditions();
-    if (rlsConditionsBGBC.length) {
-      args = {
-        ...args,
-        filterArr: [
-          new Filter({ children: rlsConditionsBGBC, is_group: true }),
-          ...(args.filterArr || []),
-        ],
-      };
-    }
-    return await baseModelGroupBy(this, logger).bulkCount(
-      args,
-      bulkFilterList,
-      _view,
-    );
-  }
-
-  async bulkGroupBy(
-    args: {
-      filterArr?: Filter[];
-    },
-    bulkFilterList: {
-      alias: string;
-      where?: string;
-      column_name: string;
-      limit?;
-      offset?;
-      sort?: string;
-      filterArr?: Filter[];
-      sortArr?: Sort[];
-    }[],
-    _view: View,
-  ) {
-    // Prepend RLS conditions to filterArr for bulkGroupBy
-    const rlsConditionsBGB = await this.getRlsConditions();
-    if (rlsConditionsBGB.length) {
-      args = {
-        ...args,
-        filterArr: [
-          new Filter({ children: rlsConditionsBGB, is_group: true }),
-          ...(args.filterArr || []),
-        ],
-      };
-    }
-    return await baseModelGroupBy(this, logger).bulkList(
-      args,
-      bulkFilterList,
-      _view,
-    );
   }
 
   async groupBy(args: {

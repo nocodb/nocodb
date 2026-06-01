@@ -150,7 +150,7 @@ import {
   isTraceActive,
 } from '~/decorators/trace-command.decorator';
 import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
-import { flattenNestedLookup } from '~/db/mssql-lookup-flatten';
+import { deepUnwrapLkv, flattenNestedLookup } from '~/db/mssql-lookup-flatten';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -462,14 +462,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
    * MSSQL-only: parse FOR JSON nvarchar payloads for relational columns into
    * JS objects/arrays. Mirrors what node-pg's json type does automatically.
    *
-   * Three column shapes the EE mssql client produces and we must recover here:
+   * Column shapes the EE mssql client produces and we recover here:
    *   • LTAR / Links(as-LTAR)   → JSON object (BT/OO) or array of objects (HM/MM)
-   *   • Lookup scalar (BT/OO)   → JSON `{"_lkv": value}` — unwrap to value
-   *   • Lookup scalar (HM/MM)   → JSON `[{"_lkv": v1}, …]`  — unwrap to `[v1, …]`
+   *   • Lookup scalar           → JSON `{"_lkv": value}`     — unwrap to value
+   *   • Lookup array (HM/MM)    → JSON `[{"_lkv": v}, …]`    — unwrap to `[v, …]`
+   *   • Lookup of array-target  → nested `[{"_lkv":[…]}, …]` — flatten to pg's
+   *                               single-level shape (`flattenNestedLookup`)
    *
-   * Lookups whose target is itself an LTAR aren't flattened here — FOR JSON
-   * nests the inner object structure naturally; substituteColumnIdsWithColumnTitles
-   * handles the array-of-objects path.
+   * The `{_lkv:…}` sentinel exists because T-SQL has no `json_agg(value)`. All
+   * unwrapping is centralized in `deepUnwrapLkv` / `flattenNestedLookup`
+   * (mssql-lookup-flatten.ts) rather than re-implemented per case. `deepUnwrapLkv`
+   * additionally strips the sentinel from Lookups nested inside field-expanded
+   * linked records (`nested[Link][fields]=…`), which the top-level passes —
+   * the per-column switch and the defensive sweep below — never reach.
    *
    * Also normalizes `null` → `[]` for known array-shaped relational columns
    * (HM / MM / MM-like LTARs and HM / MM Lookups). MSSQL's FOR JSON subquery
@@ -648,53 +653,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         switch (a.kind) {
           case 'ltarArr':
             if (v == null) row[id] = [];
-            else row[id] = tryParse(v);
+            // deepUnwrapLkv: strip `_lkv` from field-expanded child records.
+            else row[id] = deepUnwrapLkv(tryParse(v));
             break;
           case 'ltarObj':
-            if (v != null) row[id] = tryParse(v);
+            if (v != null) row[id] = deepUnwrapLkv(tryParse(v));
             break;
           case 'lkpScalar': {
+            // scalar lookup `{_lkv:x}` → x (no-op on an already-bare value).
             if (v == null) break;
-            const parsed = tryParse(v);
-            if (
-              parsed &&
-              typeof parsed === 'object' &&
-              !Array.isArray(parsed) &&
-              '_lkv' in parsed
-            ) {
-              row[id] = (parsed as { _lkv: unknown })._lkv;
-            } else {
-              row[id] = parsed;
-            }
+            row[id] = deepUnwrapLkv(tryParse(v));
             break;
           }
           case 'lkpArr': {
+            // array lookup `[{_lkv:v},…]` → `[v,…]`; deepUnwrapLkv unwraps each.
             if (v == null) {
               row[id] = [];
               break;
             }
-            const parsed = tryParse(v);
-            if (Array.isArray(parsed)) {
-              // Single pass: detect-and-map only if first element looks like
-              // the `{_lkv:…}` sentinel; EE mssql extract emits a consistent
-              // shape, so the first item is representative.
-              const first = parsed[0];
-              if (
-                first &&
-                typeof first === 'object' &&
-                '_lkv' in (first as object)
-              ) {
-                for (let k = 0; k < parsed.length; k++) {
-                  const item = parsed[k];
-                  if (item && typeof item === 'object' && '_lkv' in item) {
-                    parsed[k] = (item as { _lkv: unknown })._lkv;
-                  }
-                }
-              }
-              row[id] = parsed;
-            } else {
-              row[id] = parsed;
-            }
+            row[id] = deepUnwrapLkv(tryParse(v));
             break;
           }
           case 'lkpNested': {
@@ -714,7 +691,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             // Links column: count number, null, or JSON payload string.
             // `tryParse` already short-circuits on non-JSON-shaped strings —
             // call it directly without re-running the shape sniff here.
-            if (typeof v === 'string') row[id] = tryParse(v);
+            // deepUnwrapLkv strips `_lkv` from any field-expanded child records.
+            if (typeof v === 'string') row[id] = deepUnwrapLkv(tryParse(v));
             break;
           }
           case 'numeric': {

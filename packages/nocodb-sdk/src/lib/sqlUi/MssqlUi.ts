@@ -794,6 +794,7 @@ export class MssqlUi implements SqlUi {
       'REGEX_MATCH',
       'REGEX_EXTRACT',
       'REGEX_REPLACE',
+      'DATETIME_DIFF',
     ];
   }
 

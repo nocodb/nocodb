@@ -1661,12 +1661,19 @@ class MssqlClient extends KnexClient {
 
     if (lengthTypes.includes(dt)) {
       const raw = `${col.dtxp ?? ''}`.trim().toLowerCase();
+      // nvarchar/nchar cap at 4000 chars, the rest at 8000; anything larger
+      // (e.g. the 2147483647 sentinel an introspected nvarchar(max) carries)
+      // must become `max`. An unknown/empty length on a NocoDB-managed text
+      // column also becomes `max`, never 255
+      const maxLen = dt === 'nvarchar' || dt === 'nchar' ? 4000 : 8000;
+      const n = parseInt(raw, 10);
       let len: string;
-      if (raw === 'max' || raw === '-1') {
+      if (raw === 'max' || raw === '-1' || (Number.isFinite(n) && n > maxLen)) {
         len = 'max';
+      } else if (Number.isFinite(n) && n > 0) {
+        len = String(n);
       } else {
-        const n = parseInt(raw, 10);
-        len = Number.isFinite(n) && n > 0 ? String(n) : '255';
+        len = 'max';
       }
       return `${dt}(${len})`;
     }

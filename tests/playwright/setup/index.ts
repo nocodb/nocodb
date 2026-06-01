@@ -5,7 +5,7 @@ import { getDefaultPwd } from '../tests/utils/general';
 import { Knex, knex } from 'knex';
 import { promises as fs } from 'fs';
 import { isEE } from './db';
-import { resetSakilaPg } from './knexHelper';
+import { resetSakilaMssql, resetSakilaPg } from './knexHelper';
 import path from 'path';
 
 // License reset only needs to happen once per worker
@@ -93,6 +93,32 @@ const extPgProject = (workspaceId, title, parallelId, baseType) => ({
           database: `sakila${parallelId}`,
         },
         searchPath: ['public'],
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
+const extMssqlProject = (workspaceId, title, parallelId, baseType) => ({
+  fk_workspace_id: workspaceId,
+  title,
+  type: baseType,
+  sources: [
+    {
+      type: 'mssql',
+      config: {
+        client: 'mssql',
+        connection: {
+          host: 'localhost',
+          port: '1433',
+          user: 'sa',
+          password: 'Password123!',
+          database: `sakila${parallelId}`,
+          options: { encrypt: false, trustServerCertificate: true },
+        },
+        searchPath: ['dbo'],
       },
       inflection_column: 'camelize',
       inflection_table: 'camelize',
@@ -289,11 +315,11 @@ async function localInit({
         } finally {
           await nc_knex.destroy();
         }
+      } else if (dbType === 'mssql' && !isEmptyProject) {
+        // Restore the per-worker MSSQL Sakila DB from its backup (~0.7s);
+        // first call builds + backs it up (~10s). See resetSakilaMssql.
+        await resetSakilaMssql(`sakila${workerId}`);
       }
-      // mssql: nothing to reset. Every base on this lane uses the internal
-      // data DB (pw_ncdb_data, via NC_DATA_DB_JSON_FILE); its tables are
-      // NocoDB-owned (is_meta) and self-clean on base delete. External MSSQL
-      // sources (which would need a real reset) are a follow-up.
     };
 
     await dbResetFn();
@@ -359,11 +385,7 @@ async function localInit({
     // Create base (depends on both DB reset and workspace)
     let base;
     if (isEE()) {
-      // mssql lane has no external sakila DB yet, so route every base to the
-      // internal MSSQL data DB (NC_DATA_DB_JSON_FILE). Its tables are
-      // NocoDB-owned (is_meta) and self-clean on base delete — no external
-      // reset needed. External MSSQL sources (+ sakila) are a follow-up.
-      if (isEmptyProject || dbType === 'mssql') {
+      if (isEmptyProject) {
         base = await api.base.create({
           title: baseTitle,
           fk_workspace_id: workspace.id,
@@ -372,7 +394,11 @@ async function localInit({
       } else {
         if (workspace && 'id' in workspace) {
           // @ts-ignore
-          base = await api.base.create(extPgProject(workspace.id, baseTitle, workerId, baseType));
+          base = await api.base.create(
+            dbType === 'mssql'
+              ? extMssqlProject(workspace.id, baseTitle, workerId, baseType)
+              : extPgProject(workspace.id, baseTitle, workerId, baseType)
+          );
         }
       }
     } else {

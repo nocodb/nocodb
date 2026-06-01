@@ -32,6 +32,18 @@ const knexConfig = {
     useNullAsDefault: true,
     pool: { min: 0, max: 5 },
   },
+  mssql: {
+    client: 'mssql',
+    connection: {
+      host: 'localhost',
+      port: 1433,
+      user: 'sa',
+      password: 'Password123!',
+      database: 'master',
+      options: { encrypt: false, trustServerCertificate: true },
+    },
+    pool: { min: 0, max: 1 },
+  },
 };
 
 function getKnexConfig({ dbName, dbType }: { dbName: string; dbType: string }) {

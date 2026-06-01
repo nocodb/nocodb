@@ -251,7 +251,7 @@ watch(config, syncFromConfig)
               Leave fields blank to keep the defaults.
             </span>
 
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-6">
               <div>
                 <div class="text-nc-content-gray mb-2">Sender name</div>
                 <a-input v-model:value="form.emailSenderName" class="!rounded-lg !px-4 h-10" placeholder="Acme" :maxlength="60" />
@@ -261,7 +261,7 @@ watch(config, syncFromConfig)
                 <div class="text-nc-content-gray mb-2">Footer text</div>
                 <a-textarea
                   v-model:value="form.emailFooterText"
-                  class="!rounded-lg !px-4 py-2"
+                  class="nc-wl-footer-textarea"
                   :rows="2"
                   :maxlength="240"
                   placeholder="Acme — modern data management for your team."
@@ -314,5 +314,14 @@ watch(config, syncFromConfig)
 <style lang="scss" scoped>
 code {
   @apply bg-nc-bg-gray-light px-1 py-0.5 rounded text-bodySm;
+}
+
+// `show-count` wraps the textarea, so class-based rounding lands on the wrapper
+// rather than the inner textarea that draws the border. Round + pad the inner
+// element so it matches the sibling inputs.
+.nc-wl-footer-textarea {
+  :deep(textarea.ant-input) {
+    @apply !rounded-lg !px-4 !py-2;
+  }
 }
 </style>

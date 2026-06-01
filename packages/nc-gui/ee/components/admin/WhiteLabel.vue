@@ -172,7 +172,7 @@ watch(config, syncFromConfig)
 </script>
 
 <template>
-  <div class="flex flex-col" data-testid="nc-admin-white-label">
+  <div class="flex flex-col h-full" data-testid="nc-admin-white-label">
     <div class="nc-breadcrumb px-2">
       <div class="nc-breadcrumb-item">{{ $t('labels.adminPanel') }}</div>
       <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
@@ -191,9 +191,7 @@ watch(config, syncFromConfig)
       </template>
     </NcPageHeader>
 
-    <div
-      class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
-    >
+    <div class="nc-content-max-w flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6">
       <div class="flex flex-col gap-6 w-150">
         <GeneralLoader v-if="isLoading" size="large" class="mx-auto" />
 
@@ -341,30 +339,33 @@ watch(config, syncFromConfig)
               </div>
             </div>
           </div>
-
-          <div class="flex flex-row w-full justify-end gap-4">
-            <NcButton
-              type="secondary"
-              size="small"
-              :disabled="!hasChanges || isSaving"
-              data-testid="nc-white-label-reset"
-              @click="onReset"
-            >
-              {{ $t('general.reset') }}
-            </NcButton>
-            <NcButton
-              type="primary"
-              size="small"
-              :disabled="!hasChanges || isSaving"
-              :loading="isSaving"
-              data-testid="nc-white-label-save"
-              @click="onSave"
-            >
-              <template #loading>{{ $t('general.saving') }}</template>
-              {{ $t('general.save') }}
-            </NcButton>
-          </div>
         </template>
+      </div>
+    </div>
+
+    <!-- Sticky action footer — always visible, sits below the scroll area -->
+    <div v-if="!isLoading" class="shrink-0 border-t border-nc-border-gray-medium bg-nc-bg-default flex justify-center px-6 py-3">
+      <div class="w-150 flex flex-row justify-end gap-4">
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="!hasChanges || isSaving"
+          data-testid="nc-white-label-reset"
+          @click="onReset"
+        >
+          {{ $t('general.reset') }}
+        </NcButton>
+        <NcButton
+          type="primary"
+          size="small"
+          :disabled="!hasChanges || isSaving"
+          :loading="isSaving"
+          data-testid="nc-white-label-save"
+          @click="onSave"
+        >
+          <template #loading>{{ $t('general.saving') }}</template>
+          {{ $t('general.save') }}
+        </NcButton>
       </div>
     </div>
   </div>

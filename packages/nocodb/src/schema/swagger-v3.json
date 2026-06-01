@@ -1070,7 +1070,7 @@
                         "type": "Number",
                         "default_value": "34",
                         "options": {
-                          "locale_string": true
+                          "separator": "comma_period"
                         }
                       },
                       {
@@ -1282,7 +1282,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "separator": "comma_period"
                           }
                         },
                         {
@@ -1572,7 +1572,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "separator": "comma_period"
                           }
                         },
                         {
@@ -11403,9 +11403,18 @@
         "type": "object",
         "title": "Number",
         "properties": {
-          "locale_string": {
-            "type": "boolean",
-            "description": "Show thousand separator on the UI."
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
           }
         },
         "additionalProperties": false
@@ -11419,6 +11428,19 @@
             "description": "Decimal field precision. Defaults to 0",
             "minimum": 0,
             "maximum": 5
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
           }
         },
         "additionalProperties": false
@@ -11881,6 +11903,19 @@
           "error": {
             "type": "string",
             "description": "Error message when dependent field is deleted"
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
           }
         },
         "required": [

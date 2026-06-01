@@ -161,7 +161,7 @@ Date, DateTime, Year, SingleSelect, MultiSelect, Checkbox, URL, Email, PhoneNumb
 - Tag/category fields (industries, skills) → \`MultiSelect\` with choices + colors
 - Emails → \`Email\`
 - Dates → \`Date\` or \`DateTime\`
-- Counts, quantities → \`Number\` (with \`locale_string: true\` for thousands)
+- Counts, quantities → \`Number\` (with \`separator: "comma_period"\` for thousands)
 - Yes/no flags → \`Checkbox\`
 
 **Options by type:**
@@ -169,7 +169,7 @@ Date, DateTime, Year, SingleSelect, MultiSelect, Checkbox, URL, Email, PhoneNumb
 - SingleSelect / MultiSelect: \`{ "choices": [{ "title": "Active", "color": "#36BFFF" }, { "title": "Inactive", "color": "#CDB0FF" }] }\`
 - Date / DateTime: \`{ "date_format": "YYYY-MM-DD" }\`
 - Percent: \`{ "show_as_progress": true }\`
-- Number / Decimal: \`{ "locale_string": true }\` (thousand separators)
+- Number / Decimal: \`{ "separator": "comma_period" }\` (thousand separators; values: \`locale\`, \`none_period\`, \`none_comma\`, \`comma_period\`, \`period_comma\`, \`space_period\`, \`space_comma\`)
 
 **CRITICAL — SingleSelect / MultiSelect columns:**
 You **MUST** always include \`options.choices\` with colors for every SingleSelect or MultiSelect column. \

@@ -1055,7 +1055,16 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
   : FieldTypeT extends UITypes.Number | UITypes.Decimal
   ? {
       /**
-       * Whether to show thousands separator
+       * Thousand/decimal separator style.
+       * - 'locale': use runtime locale
+       * - 'none_period' / 'none_comma': no thousand grouping
+       * - others: explicit thousand + decimal separators
+       */
+      separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+      /**
+       * @deprecated Use \`separator\` instead.
+       * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+       * \`separator\` wins when both are set.
        */
       locale_string: boolean
     }
@@ -2024,12 +2033,22 @@ declare interface RollupField extends BaseField {
      * Relation field to use
      */
     related_field_id: string
-    
+
     /**
-     * Whether to show thousands separator
+     * Thousand/decimal separator style.
+     * - 'locale': use runtime locale
+     * - 'none_period' / 'none_comma': no thousand grouping
+     * - others: explicit thousand + decimal separators
+     */
+    separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+
+    /**
+     * @deprecated Use \`separator\` instead.
+     * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+     * \`separator\` wins when both are set.
      */
     locale_string: boolean
-    
+
     /**
      * Number of decimal places to display
      * Possible values 0 - 8
@@ -2081,7 +2100,17 @@ declare interface NumberField extends BaseField {
   readonly type: UITypes.Number
   readonly options: {
     /**
-     * Whether to show thousands separator
+     * Thousand/decimal separator style.
+     * - 'locale': use runtime locale
+     * - 'none_period' / 'none_comma': no thousand grouping
+     * - others: explicit thousand + decimal separators
+     */
+    separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+
+    /**
+     * @deprecated Use \`separator\` instead.
+     * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+     * \`separator\` wins when both are set.
      */
     locale_string: boolean
   }
@@ -2093,10 +2122,20 @@ declare interface DecimalField extends BaseField {
   readonly type: UITypes.Decimal
   readonly options: {
     /**
-     * Whether to show thousands separator
+     * Thousand/decimal separator style.
+     * - 'locale': use runtime locale
+     * - 'none_period' / 'none_comma': no thousand grouping
+     * - others: explicit thousand + decimal separators
+     */
+    separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+
+    /**
+     * @deprecated Use \`separator\` instead.
+     * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+     * \`separator\` wins when both are set.
      */
     locale_string: boolean
-    
+
     /**
      * Number of decimal places to display
      * Possible values 0 - 8
@@ -3505,7 +3544,16 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
   : FieldTypeT extends UITypes.Number | UITypes.Decimal
   ? {
       /**
-       * Whether to show thousands separator
+       * Thousand/decimal separator style.
+       * - 'locale': use runtime locale
+       * - 'none_period' / 'none_comma': no thousand grouping
+       * - others: explicit thousand + decimal separators
+       */
+      separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+      /**
+       * @deprecated Use \`separator\` instead.
+       * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+       * \`separator\` wins when both are set.
        */
       locale_string: boolean
     }
@@ -4474,12 +4522,22 @@ declare interface RollupField extends BaseField {
      * Relation field to use
      */
     related_field_id: string
-    
+
     /**
-     * Whether to show thousands separator
+     * Thousand/decimal separator style.
+     * - 'locale': use runtime locale
+     * - 'none_period' / 'none_comma': no thousand grouping
+     * - others: explicit thousand + decimal separators
+     */
+    separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+
+    /**
+     * @deprecated Use \`separator\` instead.
+     * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+     * \`separator\` wins when both are set.
      */
     locale_string: boolean
-    
+
     /**
      * Number of decimal places to display
      * Possible values 0 - 8
@@ -4531,7 +4589,17 @@ declare interface NumberField extends BaseField {
   readonly type: UITypes.Number
   readonly options: {
     /**
-     * Whether to show thousands separator
+     * Thousand/decimal separator style.
+     * - 'locale': use runtime locale
+     * - 'none_period' / 'none_comma': no thousand grouping
+     * - others: explicit thousand + decimal separators
+     */
+    separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+
+    /**
+     * @deprecated Use \`separator\` instead.
+     * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+     * \`separator\` wins when both are set.
      */
     locale_string: boolean
   }
@@ -4543,10 +4611,20 @@ declare interface DecimalField extends BaseField {
   readonly type: UITypes.Decimal
   readonly options: {
     /**
-     * Whether to show thousands separator
+     * Thousand/decimal separator style.
+     * - 'locale': use runtime locale
+     * - 'none_period' / 'none_comma': no thousand grouping
+     * - others: explicit thousand + decimal separators
+     */
+    separator: 'locale' | 'none_period' | 'none_comma' | 'comma_period' | 'period_comma' | 'space_period' | 'space_comma'
+
+    /**
+     * @deprecated Use \`separator\` instead.
+     * \`true\` maps to \`comma_period\`, \`false\` to \`none_period\`.
+     * \`separator\` wins when both are set.
      */
     locale_string: boolean
-    
+
     /**
      * Number of decimal places to display
      * Possible values 0 - 8
@@ -5945,7 +6023,10 @@ declare interface ConfigItem {
         return `{
         related_table_rollup_field_id: '${field.options?.related_table_rollup_field_id || ''}',
         rollup_function: '${field.options?.rollup_function || 'count'}',
-        related_field_id: '${field.options?.related_field_id || ''}'
+        related_field_id: '${field.options?.related_field_id || ''}',
+        separator: '${field.options?.separator || 'none_period'}',
+        locale_string: ${Boolean(field.options?.locale_string)},
+        precision: ${Number(field.options?.precision ?? 1)}
       }`
 
       case UITypes.Links:
@@ -5961,6 +6042,7 @@ declare interface ConfigItem {
       case UITypes.Number:
       case UITypes.Decimal:
         return `{
+        separator: '${field.options?.separator || 'none_period'}',
         locale_string: ${Boolean(field.options?.locale_string)}
       }`
 

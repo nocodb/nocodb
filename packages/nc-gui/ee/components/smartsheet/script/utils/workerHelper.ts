@@ -1365,13 +1365,46 @@ Object.freeze(UITypes);
         case 'Number':
         case 'Rollup':
         case 'Decimal': {
-          if (field?.options?.locale_string) {
-            return Number(roundUpToPrecision(Number(value), field?.options?.precision ?? 1)).toLocaleString(undefined, {
-              minimumFractionDigits: field?.options?.precision ?? 1,
-              maximumFractionDigits: field?.options?.precision ?? 1,
+          const precision = field?.options?.precision ?? 1;
+          const rounded = Number(roundUpToPrecision(Number(value), precision));
+
+          // Resolve separator. Legacy fallback mirrors resolveColumnSeparator:
+          // locale_string=true → comma_period, locale_string=false → none_period.
+          let separator = field?.options?.separator;
+          if (!separator) {
+            separator = field?.options?.locale_string ? 'comma_period' : 'none_period';
+          }
+
+          if (separator === 'locale') {
+            return rounded.toLocaleString(undefined, {
+              minimumFractionDigits: precision,
+              maximumFractionDigits: precision,
             });
           }
-          return roundUpToPrecision(Number(value), field?.options?.precision ?? 1);
+
+          let thousandSep = null;
+          let decimalSep = '.';
+          switch (separator) {
+            case 'none_period': thousandSep = null; decimalSep = '.'; break;
+            case 'none_comma': thousandSep = null; decimalSep = ','; break;
+            case 'comma_period': thousandSep = ','; decimalSep = '.'; break;
+            case 'period_comma': thousandSep = '.'; decimalSep = ','; break;
+            case 'space_period': thousandSep = '\\u00A0'; decimalSep = '.'; break;
+            case 'space_comma': thousandSep = '\\u00A0'; decimalSep = ','; break;
+            default: return rounded;
+          }
+
+          let numStr = rounded.toFixed(precision);
+          const isNegative = numStr.startsWith('-');
+          if (isNegative) numStr = numStr.slice(1);
+          const dotIdx = numStr.indexOf('.');
+          const intPart = dotIdx === -1 ? numStr : numStr.slice(0, dotIdx);
+          const decPart = dotIdx === -1 ? undefined : numStr.slice(dotIdx + 1);
+          const formattedInt = thousandSep
+            ? intPart.replace(/\\B(?=(\\d{3})+(?!\\d))/g, thousandSep)
+            : intPart;
+          const result = decPart !== undefined ? formattedInt + decimalSep + decPart : formattedInt;
+          return isNegative ? '-' + result : result;
         }
         case 'Links': {
           if (['hm', 'mm', 'om'].includes(field?.options?.relation_type)) {

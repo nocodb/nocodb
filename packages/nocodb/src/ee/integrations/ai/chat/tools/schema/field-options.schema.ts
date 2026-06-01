@@ -116,11 +116,29 @@ export const longTextOptionsSchema = z.object({
     .describe('Enable AI text generation.'),
 });
 
+const separatorEnum = z
+  .enum([
+    'locale',
+    'none_period',
+    'none_comma',
+    'comma_period',
+    'period_comma',
+    'space_period',
+    'space_comma',
+  ])
+  .optional()
+  .describe(
+    'Thousand/decimal separator style. `comma_period` = 1,000.00, `period_comma` = 1.000,00, `none_period`/`none_comma` = no thousand grouping, `locale` = runtime locale.',
+  );
+
 export const numberOptionsSchema = z.object({
+  separator: separatorEnum,
   locale_string: z
     .boolean()
     .optional()
-    .describe('Show thousand separator (e.g. 1,000.00).'),
+    .describe(
+      'Deprecated — use `separator` instead. `true` = `comma_period`, `false` = `none_period`.',
+    ),
 });
 
 export const decimalOptionsSchema = z.object({
@@ -131,6 +149,13 @@ export const decimalOptionsSchema = z.object({
     .max(5)
     .optional()
     .describe('Decimal places (0–5).'),
+  separator: separatorEnum,
+  locale_string: z
+    .boolean()
+    .optional()
+    .describe(
+      'Deprecated — use `separator` instead. `true` = `comma_period`, `false` = `none_period`.',
+    ),
 });
 
 export const currencyOptionsSchema = z.object({
@@ -339,6 +364,7 @@ export const fieldOptionsSchema = z
       dateTimeOptionsSchema.shape.use_same_timezone_for_all,
     // Numeric
     precision: decimalOptionsSchema.shape.precision,
+    separator: numberOptionsSchema.shape.separator,
     locale_string: numberOptionsSchema.shape.locale_string,
     code: currencyOptionsSchema.shape.code,
     locale: currencyOptionsSchema.shape.locale,

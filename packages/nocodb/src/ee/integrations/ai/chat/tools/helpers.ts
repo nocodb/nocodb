@@ -366,8 +366,8 @@ const ALLOWED_OPTIONS_BY_TYPE: Partial<Record<UITypes, string[]>> = {
   [UITypes.URL]: ['validation'],
   [UITypes.Email]: ['validation'],
   // Numeric
-  [UITypes.Number]: ['locale_string'],
-  [UITypes.Decimal]: ['precision'],
+  [UITypes.Number]: ['separator', 'locale_string'],
+  [UITypes.Decimal]: ['precision', 'separator', 'locale_string'],
   [UITypes.Currency]: ['locale', 'code'],
   [UITypes.Percent]: ['show_as_progress'],
   [UITypes.Duration]: ['duration_format'],

@@ -105,7 +105,7 @@ async function onSave() {
   }
   await save(payload)
   syncFromConfig()
-  message.success('White-label settings updated')
+  message.toast('White-label settings updated')
 }
 
 function onReset() {

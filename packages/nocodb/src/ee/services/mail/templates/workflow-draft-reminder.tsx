@@ -32,7 +32,7 @@ export const WorkflowDraftReminder = ({
   branding,
 }: WorkflowDraftReminderTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>
         Your automation "{workflowTitle}" has unpublished changes

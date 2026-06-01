@@ -13,6 +13,7 @@ import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
+  resolveProductName,
   RootWrapper,
 } from '~/services/mail/templates/components';
 
@@ -26,11 +27,11 @@ export const Welcome = ({ email, link, branding }: WelcomeTemplateProps) => (
   <Html>
     <RootWrapper branding={branding}>
       <Head />
-      <Preview>Welcome to NocoDB!</Preview>
+      <Preview>Welcome to {resolveProductName(branding)}!</Preview>
       <Body className="bg-white">
         <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            Welcome to NocoDB!
+            Welcome to {resolveProductName(branding)}!
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
             {email}

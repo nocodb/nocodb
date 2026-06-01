@@ -32,7 +32,7 @@ export const MentionRow = ({
   branding,
 }: MentionRowTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>You have been mentioned</Preview>
       <Body className="bg-white">

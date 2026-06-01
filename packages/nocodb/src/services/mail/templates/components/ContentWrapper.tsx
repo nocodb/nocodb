@@ -2,6 +2,7 @@ import { Container, Hr, Img, Section, Text } from '@react-email/components';
 import * as React from 'react';
 import type { WhiteLabelConfig } from 'nocodb-sdk';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
+import { resolveProductName } from '~/services/mail/templates/components/productName';
 
 export interface ContentWrapperProps {
   children: React.ReactNode;
@@ -11,7 +12,9 @@ export interface ContentWrapperProps {
 
 // Same-origin logo paths (e.g. /uploads/...) can't be resolved from an inbox,
 // so we only embed white-label logos that are absolute http(s) URLs.
-function pickEmailLogo(branding: WhiteLabelConfig | null | undefined): string | null {
+function pickEmailLogo(
+  branding: WhiteLabelConfig | null | undefined,
+): string | null {
   if (!branding?.enabled) return null;
   const candidate = branding.logoUrl || branding.logoDarkUrl;
   if (!candidate) return null;
@@ -25,7 +28,7 @@ export const ContentWrapper = ({
 }: ContentWrapperProps) => {
   const customLogo = pickEmailLogo(branding);
   const isBranded = !!branding?.enabled;
-  const productName = (isBranded && branding?.productName) || 'NocoDB';
+  const productName = resolveProductName(branding);
 
   return (
     <Container className="px-3 mt-16 !my-0 max-w-[480px]">

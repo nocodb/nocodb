@@ -38,7 +38,7 @@ export const HookErrorDigest = ({
   branding,
 }: HookErrorDigestTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Something went wrong with a webhook: {hookTitle}</Preview>
       <Body className="bg-white">
@@ -48,12 +48,19 @@ export const HookErrorDigest = ({
           </Heading>
           <Section className="py-4 mx-auto text-center">
             <Text className="text-gray-600 text-sm !mt-0 !mb-4">
-              Your webhook <span className="font-bold text-gray-800">{hookTitle}</span> on
-              table <span className="font-bold text-gray-800">{tableName}</span> has
-              failed <span className="font-bold text-red-600">{failureCount} {failureCount === 1 ? 'time' : 'times'}</span> in{' '}
-              <span className="font-bold text-gray-800">{baseTitle}</span>
+              Your webhook{' '}
+              <span className="font-bold text-gray-800">{hookTitle}</span> on
+              table <span className="font-bold text-gray-800">{tableName}</span>{' '}
+              has failed{' '}
+              <span className="font-bold text-red-600">
+                {failureCount} {failureCount === 1 ? 'time' : 'times'}
+              </span>{' '}
+              in <span className="font-bold text-gray-800">{baseTitle}</span>
               {failureCount > 1 ? (
-                <> between {firstFailureTime} and {lastFailureTime}.</>
+                <>
+                  {' '}
+                  between {firstFailureTime} and {lastFailureTime}.
+                </>
               ) : (
                 <> at {lastFailureTime}.</>
               )}

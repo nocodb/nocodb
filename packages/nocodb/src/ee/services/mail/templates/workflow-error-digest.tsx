@@ -36,9 +36,11 @@ export const WorkflowErrorDigest = ({
   branding,
 }: WorkflowErrorDigestTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
-      <Preview>Something went wrong with an automation: {workflowTitle}</Preview>
+      <Preview>
+        Something went wrong with an automation: {workflowTitle}
+      </Preview>
       <Body className="bg-white">
         <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
@@ -46,11 +48,18 @@ export const WorkflowErrorDigest = ({
           </Heading>
           <Section className="py-4 mx-auto text-center">
             <Text className="text-gray-600 text-sm !mt-0 !mb-4">
-              Your automation <span className="font-bold text-gray-800">{workflowTitle}</span> has
-              failed <span className="font-bold text-red-600">{failureCount} {failureCount === 1 ? 'time' : 'times'}</span> in{' '}
-              <span className="font-bold text-gray-800">{baseTitle}</span>
+              Your automation{' '}
+              <span className="font-bold text-gray-800">{workflowTitle}</span>{' '}
+              has failed{' '}
+              <span className="font-bold text-red-600">
+                {failureCount} {failureCount === 1 ? 'time' : 'times'}
+              </span>{' '}
+              in <span className="font-bold text-gray-800">{baseTitle}</span>
               {failureCount > 1 ? (
-                <> between {firstFailureTime} and {lastFailureTime}.</>
+                <>
+                  {' '}
+                  between {firstFailureTime} and {lastFailureTime}.
+                </>
               ) : (
                 <> at {lastFailureTime}.</>
               )}

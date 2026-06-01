@@ -32,7 +32,7 @@ export const WorkspaceInvite = ({
   branding,
 }: WorkspaceInviteTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>You’ve been invited to a Workspace</Preview>
       <Body className="bg-white">

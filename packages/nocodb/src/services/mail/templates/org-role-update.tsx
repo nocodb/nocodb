@@ -17,6 +17,7 @@ import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 import {
   ContentWrapper,
   Footer,
+  resolveProductName,
   RootWrapper,
 } from '~/services/mail/templates/components';
 
@@ -64,7 +65,7 @@ export const OrganizationRoleUpdate = ({
             </Row>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
-            Your access in NocoDB has been updated to
+            Your access in {resolveProductName(branding)} has been updated to
             <span className="font-bold text-gray-800 capitalize">
               {' '}
               {newRole}{' '}
@@ -75,7 +76,9 @@ export const OrganizationRoleUpdate = ({
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Go to NocoDB</Text>
+            <Text className="!my-[8px]">
+              Go to {resolveProductName(branding)}
+            </Text>
           </Button>
         </ContentWrapper>
         <Footer branding={branding} />

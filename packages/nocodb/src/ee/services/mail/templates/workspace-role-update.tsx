@@ -41,7 +41,7 @@ export const WorkspaceRoleUpdate = ({
   branding,
 }: WorkspaceRoleUpdateTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your Workspace role has been updated</Preview>
       <Body className="bg-white">

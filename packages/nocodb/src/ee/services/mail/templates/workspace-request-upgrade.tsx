@@ -33,7 +33,7 @@ export const WorkspaceRequestUpgrade = ({
   branding,
 }: WorkspaceRequestUpgradeTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>
         {name} Requested To Upgrade '{workspaceTitle}' Workspace

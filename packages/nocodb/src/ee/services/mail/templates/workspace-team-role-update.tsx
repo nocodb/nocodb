@@ -1,5 +1,4 @@
 import * as React from 'react';
-import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   Body,
   Button,
@@ -9,9 +8,11 @@ import {
   Preview,
   Text,
 } from '@react-email/components';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
+  resolveProductName,
   RootWrapper,
 } from '~/services/mail/templates/components';
 
@@ -37,7 +38,7 @@ export const WorkspaceTeamRoleUpdate = ({
   branding,
 }: WorkspaceTeamRoleUpdateTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your team's workspace role has been updated</Preview>
       <Body className="bg-white">
@@ -46,17 +47,21 @@ export const WorkspaceTeamRoleUpdate = ({
             Your team's workspace role has been updated
           </Heading>
           <Text className="text-gray-600 text-center !my-6 text-sm">
-            <span className="font-bold text-gray-800">{updaterName}</span> ({updaterEmail})
-            has updated your team <span className="font-bold text-gray-800">{teamTitle}</span> role in workspace{' '}
-            <span className="font-bold text-gray-800">{workspaceTitle}</span> from{' '}
-            <span className="font-bold text-gray-800">{oldRoleLabel}</span> to{' '}
-            <span className="font-bold text-gray-800">{newRoleLabel}</span>.
+            <span className="font-bold text-gray-800">{updaterName}</span> (
+            {updaterEmail}) has updated your team{' '}
+            <span className="font-bold text-gray-800">{teamTitle}</span> role in
+            workspace{' '}
+            <span className="font-bold text-gray-800">{workspaceTitle}</span>{' '}
+            from <span className="font-bold text-gray-800">{oldRoleLabel}</span>{' '}
+            to <span className="font-bold text-gray-800">{newRoleLabel}</span>.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Open NocoDB</Text>
+            <Text className="!my-[8px]">
+              Open {resolveProductName(branding)}
+            </Text>
           </Button>
         </ContentWrapper>
         <Footer branding={branding} />
@@ -76,4 +81,3 @@ WorkspaceTeamRoleUpdate.PreviewProps = {
 };
 
 export default WorkspaceTeamRoleUpdate;
-

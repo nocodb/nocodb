@@ -2274,36 +2274,38 @@ defineExpose({ editor })
 
       <!-- Page actions — always visible at top-right -->
       <div v-if="!embedded" class="nc-doc-page-menu">
-        <DocPresence />
-        <NcTooltip :title="$t('general.comments')" placement="bottom" class="flex">
-          <NcButton
-            size="small"
-            type="text"
-            :class="{ '!bg-nc-bg-brand-soft': isCommentsPanelOpen }"
-            @click="toggleCommentsPanel()"
-          >
-            <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
-          </NcButton>
-        </NcTooltip>
-        <!-- Share — icon-only mirror of the menu's Share item. Hoisted out
+        <template v-if="!isMobileMode">
+          <DocPresence />
+          <NcTooltip :title="$t('general.comments')" placement="bottom" class="flex">
+            <NcButton
+              size="small"
+              type="text"
+              :class="{ '!bg-nc-bg-brand-soft': isCommentsPanelOpen }"
+              @click="toggleCommentsPanel()"
+            >
+              <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
+            </NcButton>
+          </NcTooltip>
+          <!-- Share — icon-only mirror of the menu's Share item. Hoisted out
              so the action is one click away (and discoverable) instead of
              living behind the 3-dot menu. Same gate + telemetry + handler
              as the menu entry, so the two stay aligned. -->
-        <NcTooltip v-if="isUIAllowed('documentCreate')" :title="$t('activity.share')" placement="bottom" class="flex">
-          <NcButton
-            v-e="['c:doc:share:open']"
-            size="small"
-            type="text"
-            data-testid="nc-doc-page-share-btn"
-            @click="(event) => { openShareModal(); (event.currentTarget as HTMLElement)?.blur() }"
-          >
-            <!-- Blur the button after opening the modal: Ant restores focus
+          <NcTooltip v-if="isUIAllowed('documentCreate')" :title="$t('activity.share')" placement="bottom" class="flex">
+            <NcButton
+              v-e="['c:doc:share:open']"
+              size="small"
+              type="text"
+              data-testid="nc-doc-page-share-btn"
+              @click="(event) => { openShareModal(); (event.currentTarget as HTMLElement)?.blur() }"
+            >
+              <!-- Blur the button after opening the modal: Ant restores focus
                  to the trigger when the modal closes, which leaves a blue
                  focus-visible ring lingering on the icon. Pre-emptively
                  dropping focus means there's nothing to restore to. -->
-            <GeneralIcon icon="ncShare" />
-          </NcButton>
-        </NcTooltip>
+              <GeneralIcon icon="ncShare" />
+            </NcButton>
+          </NcTooltip>
+        </template>
         <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
           <NcButton
             size="small"
@@ -2382,7 +2384,7 @@ defineExpose({ editor })
                 {{ $t('general.comments') }}
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('documentRevisionList')"
+                v-if="isUIAllowed('documentRevisionList') && !isMobileMode"
                 v-e="['c:doc:history:open']"
                 data-testid="nc-doc-page-history"
                 @click="onOpenHistory"
@@ -2390,7 +2392,7 @@ defineExpose({ editor })
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncHistory" />
                 {{ $t('labels.history') }}
               </NcMenuItem>
-              <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
+              <NcMenuItem v-if="!isMobileMode" v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
               </NcMenuItem>
@@ -2502,11 +2504,15 @@ defineExpose({ editor })
 
         <div
           class="nc-doc-editor-inner w-full mx-auto"
-          :class="[isCellMode ? 'px-10' : 'px-6 sm:px-10 lg:px-16', { 'max-w-[900px]': !isFullWidth }]"
+          :class="[isCellMode ? 'px-10' : 'px-4 sm:px-10 lg:px-16', { 'max-w-[900px]': !isFullWidth }]"
           :dir="resolvedDir"
         >
           <!-- Title — hidden in cell mode (the panel header already shows the column name) -->
-          <div v-if="!isCellMode" class="nc-doc-editor-header pb-4" :class="embedded ? 'pt-4' : 'pt-12'">
+          <div
+            v-if="!isCellMode"
+            class="nc-doc-editor-header pb-4"
+            :class="embedded ? 'pt-4' : coverImageSrc ? 'pt-12' : 'pt-16 md:pt-12'"
+          >
             <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
               <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
               <div
@@ -2580,11 +2586,13 @@ defineExpose({ editor })
                 @click="toggleCommentsPanel()"
               >
                 <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
-                <template v-if="commentCount">
-                  {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
-                </template>
-                <template v-else>
-                  {{ $t('general.comment') }}
+                <template v-if="!isMobileMode || !isSaving">
+                  <template v-if="commentCount">
+                    {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
+                  </template>
+                  <template v-else>
+                    {{ $t('general.comment') }}
+                  </template>
                 </template>
               </span>
             </div>

@@ -100,11 +100,11 @@ export class UiPostOperations
       nocoJobsService,
       extensionsService,
       dataImportService,
-      webBookmarkService,
     );
 
     (this.operations as string[]) = [
       ...this.operations,
+      'webBookmarkFetch',
       'updateDateDependency',
       'deleteTableDateDependency',
     ];
@@ -238,6 +238,11 @@ export class UiPostOperations
           ganttViewId: (req.query.fk_gantt_view_id || req.query.ganttViewId) as
             | string
             | undefined,
+          req,
+        });
+      case 'webBookmarkFetch':
+        return await this.webBookmarkService.fetchMetadata(context, {
+          url: payload?.url,
           req,
         });
     }

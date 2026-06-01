@@ -32,7 +32,6 @@ import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DataImportService } from '~/services/data-import.service';
-import { WebBookmarkService } from '~/services/web-bookmark.service';
 
 @Injectable()
 export class UiPostOperations
@@ -62,7 +61,6 @@ export class UiPostOperations
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
     protected dataImportService: DataImportService,
-    protected webBookmarkService: WebBookmarkService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -155,7 +153,6 @@ export class UiPostOperations
     'convertLinkToV2' as const,
     'dataImportPreview' as const,
     'dataImportFile' as const,
-    'webBookmarkFetch' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -760,11 +757,6 @@ export class UiPostOperations
         return await this.dataImportService.importFile(context, {
           baseId: req.query.baseId as string,
           body: payload,
-          req,
-        });
-      case 'webBookmarkFetch':
-        return await this.webBookmarkService.fetchMetadata(context, {
-          url: payload?.url,
           req,
         });
       default:

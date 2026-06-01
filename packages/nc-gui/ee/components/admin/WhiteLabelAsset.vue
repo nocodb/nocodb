@@ -114,32 +114,44 @@ function remove() {
 
 <template>
   <div class="flex flex-col gap-2">
-    <!-- Filled: preview + actions -->
-    <template v-if="modelValue">
+    <!-- Filled: preview with hover/focus action overlay -->
+    <div
+      v-if="modelValue"
+      class="group relative rounded-lg border-1 border-nc-border-gray-medium overflow-hidden flex items-center justify-center"
+      :class="[boxClass, previewBg === 'dark' ? 'bg-gray-800' : 'bg-white']"
+    >
+      <img :src="previewSrc" alt="" class="max-w-full max-h-full object-contain p-2" />
+
+      <!-- Loading overlay -->
+      <div v-if="uploading" class="absolute inset-0 flex items-center justify-center bg-black/20">
+        <GeneralLoader size="large" />
+      </div>
+
+      <!-- Action overlay — revealed on hover / keyboard focus -->
       <div
-        class="relative rounded-lg border-1 border-nc-border-gray-medium overflow-hidden flex items-center justify-center"
-        :class="[boxClass, previewBg === 'dark' ? 'bg-gray-800' : 'bg-white']"
+        v-else
+        class="absolute inset-0 flex items-center justify-center gap-2 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
       >
-        <img :src="previewSrc" alt="" class="max-w-full max-h-full object-contain p-2" />
-        <div v-if="uploading" class="absolute inset-0 flex items-center justify-center bg-black/20">
-          <GeneralLoader size="large" />
-        </div>
+        <NcTooltip title="Replace">
+          <button
+            type="button"
+            class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/90 text-nc-content-gray hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            @click="pickFile"
+          >
+            <GeneralIcon icon="ncEdit" class="h-4 w-4" />
+          </button>
+        </NcTooltip>
+        <NcTooltip :title="$t('general.remove')">
+          <button
+            type="button"
+            class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/90 text-nc-content-red-medium hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            @click="remove"
+          >
+            <GeneralIcon icon="ncDelete" class="h-4 w-4" />
+          </button>
+        </NcTooltip>
       </div>
-      <div class="flex gap-2 items-center">
-        <NcButton size="small" type="secondary" :loading="uploading" @click="pickFile">
-          <div class="flex items-center gap-1.5">
-            <GeneralIcon icon="ncRefreshCw" class="h-3.5 w-3.5" />
-            Replace
-          </div>
-        </NcButton>
-        <NcButton size="small" type="text" @click="remove">
-          <div class="flex items-center gap-1.5 text-nc-content-red-medium">
-            <GeneralIcon icon="ncDelete" class="h-3.5 w-3.5" />
-            {{ $t('general.remove') }}
-          </div>
-        </NcButton>
-      </div>
-    </template>
+    </div>
 
     <!-- Empty: dropzone -->
     <div

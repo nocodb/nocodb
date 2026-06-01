@@ -1,14 +1,10 @@
 <script lang="ts" setup>
 import type { WhiteLabelConfig } from 'nocodb-sdk'
-import { PlanFeatureTypes, PublicAttachmentScope } from 'nocodb-sdk'
+import { PlanFeatureTypes } from 'nocodb-sdk'
 
 const { config, isLoading, isSaving, load, save } = useWhiteLabel()
 
 const { appInfo } = useGlobal()
-
-const { $api } = useNuxtApp()
-
-const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024 // 2 MB
 
 interface FormState {
   enabled: boolean
@@ -49,20 +45,8 @@ const hasChanges = computed(() => {
 
 const isOnPrem = computed(() => !!appInfo.value?.isOnPrem)
 
-// In dev the frontend (:3000) and backend (:8080) are on different origins.
-// A bare `/dltemp/...` URL would be resolved against the frontend origin and
-// 404; explicitly join with `appInfo.ncSiteUrl` to point at the backend.
-function joinSiteUrl(url: string | null): string {
-  if (!url) return ''
-  if (/^https?:\/\//i.test(url)) return url
-  if (typeof window === 'undefined') return url
-  const base = new URL(appInfo.value?.ncSiteUrl || '/', window.location.origin)
-  return new URL(url, base).toString()
-}
-
-const logoPreviewSrc = computed(() => joinSiteUrl(form.value.logoUrl))
-const logoDarkPreviewSrc = computed(() => joinSiteUrl(form.value.logoDarkUrl))
-const faviconPreviewSrc = computed(() => joinSiteUrl(form.value.faviconUrl))
+// null when no/invalid colour → no indicator; true/false → good/low contrast.
+const brandContrastOk = computed(() => isBrandColorReadable(form.value.brandColor ?? ''))
 
 function syncFromConfig() {
   if (!config.value) return
@@ -103,12 +87,7 @@ async function onSave() {
   }
   // Collapse the email object back to null when every field is blank — keeps
   // the persisted JSON tidy.
-  if (
-    payload.email &&
-    !payload.email.senderName &&
-    !payload.email.footerText &&
-    !payload.email.footerUrl
-  ) {
+  if (payload.email && !payload.email.senderName && !payload.email.footerText && !payload.email.footerUrl) {
     payload.email = null
   }
   await save(payload)
@@ -119,80 +98,6 @@ async function onSave() {
 function onReset() {
   if (!initial.value) return
   form.value = { ...initial.value }
-}
-
-const uploading = ref<{ [K in 'logoUrl' | 'logoDarkUrl' | 'faviconUrl']?: boolean }>({})
-
-// Each uploader writes the resulting public URL into one of these form fields.
-async function uploadAsset(
-  file: File,
-  target: 'logoUrl' | 'logoDarkUrl' | 'faviconUrl',
-) {
-  if (file.size > MAX_LOGO_SIZE_BYTES) {
-    message.error('File must be 2 MB or smaller')
-    return
-  }
-
-  uploading.value[target] = true
-  try {
-    const result = await $api.storage.upload(
-      {
-        path: ['noco', 'whiteLabel', target].join('/'),
-        scope: PublicAttachmentScope.WHITELABEL,
-      },
-      { files: [file] as unknown as Blob[] },
-    )
-    const attachment = (result as any[])?.[0]
-    if (!attachment) {
-      message.error('Upload returned no file')
-      return
-    }
-    // Use signedPath for the preview — it's a /dltemp/... URL that resolves
-    // inline in the browser. The backend converts it back to the canonical
-    // `download/whiteLabel/...` path on save (and re-signs on read).
-    const raw = attachment.signedPath ?? attachment.url
-    if (!raw) {
-      message.error('Upload succeeded but no URL was returned')
-      return
-    }
-    // Local storage returns `dltemp/...` without a leading slash, which the
-    // browser would treat as a relative URL (from the current route). Force
-    // it to be an absolute same-origin path.
-    form.value[target] = /^(https?:\/\/|\/)/.test(raw) ? raw : `/${raw}`
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    uploading.value[target] = false
-  }
-}
-
-function onFileSelected(
-  e: Event,
-  target: 'logoUrl' | 'logoDarkUrl' | 'faviconUrl',
-) {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (file) void uploadAsset(file, target)
-  // Reset so re-selecting the same file fires another change event.
-  input.value = ''
-}
-
-function clearField(target: 'logoUrl' | 'logoDarkUrl' | 'faviconUrl') {
-  form.value[target] = null
-}
-
-const fileInputLogo = ref<HTMLInputElement>()
-const fileInputLogoDark = ref<HTMLInputElement>()
-const fileInputFavicon = ref<HTMLInputElement>()
-
-function pickFile(target: 'logoUrl' | 'logoDarkUrl' | 'faviconUrl') {
-  const el =
-    target === 'logoUrl'
-      ? fileInputLogo.value
-      : target === 'logoDarkUrl'
-      ? fileInputLogoDark.value
-      : fileInputFavicon.value
-  el?.click()
 }
 
 onMounted(async () => {
@@ -218,10 +123,7 @@ watch(config, syncFromConfig)
       <template #title>
         <span data-rec="true" class="flex items-center gap-2">
           White Label
-          <PaymentUpgradeBadge
-            v-if="isOnPrem"
-            :feature="PlanFeatureTypes.FEATURE_WHITE_LABEL"
-          />
+          <PaymentUpgradeBadge v-if="isOnPrem" :feature="PlanFeatureTypes.FEATURE_WHITE_LABEL" />
         </span>
       </template>
     </NcPageHeader>
@@ -239,8 +141,8 @@ watch(config, syncFromConfig)
               <div>
                 <div class="font-bold text-base" data-rec="true">Enable white-labeling</div>
                 <span class="text-nc-content-gray-subtle2 mt-1 block">
-                  When enabled, the configured product name, logo, favicon, and brand color
-                  replace the NocoDB defaults across the entire instance.
+                  When enabled, the configured product name, logo, favicon, and brand color replace the NocoDB defaults across the
+                  entire instance.
                 </span>
               </div>
               <NcSwitch v-model:checked="form.enabled" size="default" />
@@ -249,12 +151,15 @@ watch(config, syncFromConfig)
 
           <!-- Branding fields -->
           <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
-            <div class="font-bold text-base" data-rec="true">Branding</div>
+            <div class="font-bold text-base flex items-center gap-2" data-rec="true">
+              <GeneralIcon icon="ncImage" class="h-4 w-4" />
+              Branding
+            </div>
             <span class="text-nc-content-gray-subtle2 mt-1">
-              Upload an image, or paste a hosted URL. Files up to 2 MB; PNG / SVG / ICO recommended.
+              Upload images to replace the default branding. Each slot lists its own format and size.
             </span>
 
-            <div class="flex flex-col gap-5">
+            <div class="flex flex-col gap-6">
               <div>
                 <div class="text-nc-content-gray mb-2">Product name</div>
                 <a-input
@@ -266,188 +171,74 @@ watch(config, syncFromConfig)
                 />
               </div>
 
-              <!-- Logo (light) -->
-              <div>
-                <div class="text-nc-content-gray mb-2">Logo (light mode)</div>
-                <div class="flex items-start gap-3">
-                  <div
-                    class="w-24 h-16 rounded-lg border-1 border-nc-border-gray-medium flex-none flex items-center justify-center bg-white overflow-hidden"
-                  >
-                    <img
-                      v-if="form.logoUrl"
-                      :src="logoPreviewSrc"
-                      alt="Logo preview"
-                      class="max-w-full max-h-full object-contain"
-                    />
-                    <img
-                      v-else
-                      src="~/assets/img/brand/nocodb-full-color.png"
-                      alt="Default NocoDB logo"
-                      class="max-w-full max-h-full object-contain opacity-60"
-                    />
-                  </div>
-                  <div class="flex-1 flex flex-col gap-2">
-                    <div class="flex gap-2 items-center">
-                      <NcButton
-                        size="small"
-                        type="secondary"
-                        :loading="uploading.logoUrl"
-                        @click="pickFile('logoUrl')"
-                      >
-                        {{ form.logoUrl ? 'Replace' : 'Upload' }}
-                      </NcButton>
-                      <input
-                        ref="fileInputLogo"
-                        type="file"
-                        accept="image/*"
-                        class="hidden"
-                        @change="(e) => onFileSelected(e, 'logoUrl')"
-                      />
-                      <NcButton
-                        v-if="form.logoUrl"
-                        size="small"
-                        type="text"
-                        @click="clearField('logoUrl')"
-                      >
-                        {{ $t('general.remove') }}
-                      </NcButton>
-                    </div>
-                    <a-input
-                      v-model:value="form.logoUrl"
-                      class="!rounded-lg !px-4 h-9 !text-bodySm"
-                      placeholder="…or paste a URL"
-                    />
-                  </div>
+              <!-- Logos -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <div class="text-nc-content-gray mb-2">Logo · light mode</div>
+                  <AdminWhiteLabelAsset
+                    v-model="form.logoUrl"
+                    path-key="logoUrl"
+                    accept="image/*"
+                    preview-bg="light"
+                    box-class="h-28 w-full"
+                  />
+                  <div class="text-nc-content-gray-muted text-bodySm mt-2">PNG / SVG · ~240×60 · max 2 MB</div>
                 </div>
-              </div>
-
-              <!-- Logo (dark) -->
-              <div>
-                <div class="text-nc-content-gray mb-2">Logo (dark mode)</div>
-                <div class="flex items-start gap-3">
-                  <div
-                    class="w-24 h-16 rounded-lg border-1 border-nc-border-gray-medium flex-none flex items-center justify-center bg-gray-800 overflow-hidden"
-                  >
-                    <img
-                      v-if="form.logoDarkUrl"
-                      :src="logoDarkPreviewSrc"
-                      alt="Dark logo preview"
-                      class="max-w-full max-h-full object-contain"
-                    />
-                    <img
-                      v-else
-                      src="~/assets/img/brand/full-logo.png"
-                      alt="Default NocoDB dark logo"
-                      class="max-w-full max-h-full object-contain opacity-60"
-                    />
-                  </div>
-                  <div class="flex-1 flex flex-col gap-2">
-                    <div class="flex gap-2 items-center">
-                      <NcButton
-                        size="small"
-                        type="secondary"
-                        :loading="uploading.logoDarkUrl"
-                        @click="pickFile('logoDarkUrl')"
-                      >
-                        {{ form.logoDarkUrl ? 'Replace' : 'Upload' }}
-                      </NcButton>
-                      <input
-                        ref="fileInputLogoDark"
-                        type="file"
-                        accept="image/*"
-                        class="hidden"
-                        @change="(e) => onFileSelected(e, 'logoDarkUrl')"
-                      />
-                      <NcButton
-                        v-if="form.logoDarkUrl"
-                        size="small"
-                        type="text"
-                        @click="clearField('logoDarkUrl')"
-                      >
-                        {{ $t('general.remove') }}
-                      </NcButton>
-                    </div>
-                    <a-input
-                      v-model:value="form.logoDarkUrl"
-                      class="!rounded-lg !px-4 h-9 !text-bodySm"
-                      placeholder="…or paste a URL (falls back to light logo when empty)"
-                    />
-                  </div>
+                <div>
+                  <div class="text-nc-content-gray mb-2">Logo · dark mode</div>
+                  <AdminWhiteLabelAsset
+                    v-model="form.logoDarkUrl"
+                    path-key="logoDarkUrl"
+                    accept="image/*"
+                    preview-bg="dark"
+                    box-class="h-28 w-full"
+                    empty-hint="Falls back to light logo when empty"
+                  />
+                  <div class="text-nc-content-gray-muted text-bodySm mt-2">PNG / SVG · ~240×60 · max 2 MB</div>
                 </div>
               </div>
 
               <!-- Favicon -->
               <div>
                 <div class="text-nc-content-gray mb-2">Favicon</div>
-                <div class="flex items-start gap-3">
-                  <div
-                    class="w-16 h-16 rounded-lg border-1 border-nc-border-gray-medium flex-none flex items-center justify-center bg-white overflow-hidden"
-                  >
-                    <img
-                      v-if="form.faviconUrl"
-                      :src="faviconPreviewSrc"
-                      alt="Favicon preview"
-                      class="max-w-full max-h-full object-contain"
-                    />
-                    <img
-                      v-else
-                      src="/favicon.ico"
-                      alt="Default NocoDB favicon"
-                      class="max-w-full max-h-full object-contain opacity-60"
-                    />
-                  </div>
-                  <div class="flex-1 flex flex-col gap-2">
-                    <div class="flex gap-2 items-center">
-                      <NcButton
-                        size="small"
-                        type="secondary"
-                        :loading="uploading.faviconUrl"
-                        @click="pickFile('faviconUrl')"
-                      >
-                        {{ form.faviconUrl ? 'Replace' : 'Upload' }}
-                      </NcButton>
-                      <input
-                        ref="fileInputFavicon"
-                        type="file"
-                        accept="image/x-icon,image/png,image/svg+xml"
-                        class="hidden"
-                        @change="(e) => onFileSelected(e, 'faviconUrl')"
-                      />
-                      <NcButton
-                        v-if="form.faviconUrl"
-                        size="small"
-                        type="text"
-                        @click="clearField('faviconUrl')"
-                      >
-                        {{ $t('general.remove') }}
-                      </NcButton>
-                    </div>
-                    <a-input
-                      v-model:value="form.faviconUrl"
-                      class="!rounded-lg !px-4 h-9 !text-bodySm"
-                      placeholder="…or paste a URL"
-                    />
+                <div class="flex items-start gap-4">
+                  <AdminWhiteLabelAsset
+                    v-model="form.faviconUrl"
+                    path-key="faviconUrl"
+                    accept="image/x-icon,image/png,image/svg+xml"
+                    box-class="w-20 h-20"
+                    compact
+                  />
+                  <div class="flex flex-col gap-1 pt-1">
+                    <span class="text-nc-content-gray-subtle2">Square icon shown in browser tabs.</span>
+                    <span class="text-nc-content-gray-muted text-bodySm">PNG / ICO · 48×48 · max 2 MB</span>
                   </div>
                 </div>
               </div>
 
+              <!-- Brand color -->
               <div>
-                <div class="text-nc-content-gray mb-2">Brand color (hex)</div>
+                <div class="text-nc-content-gray mb-2">Brand color</div>
                 <div class="flex items-center gap-3">
-                  <a-input
-                    v-model:value="form.brandColor"
-                    class="!rounded-lg !px-4 h-10 flex-1"
-                    placeholder="#0D5A5A"
-                  />
+                  <a-input v-model:value="form.brandColor" class="!rounded-lg !px-4 h-10 w-60" placeholder="#0D5A5A" />
                   <div
                     class="w-10 h-10 rounded-lg border-1 border-nc-border-gray-medium flex-none"
                     :style="{ backgroundColor: form.brandColor || 'transparent' }"
                     aria-hidden="true"
                   />
+                  <div v-if="brandContrastOk === true" class="flex items-center gap-1 text-nc-content-green-dark text-bodySm">
+                    <GeneralIcon icon="ncCheck" class="h-4 w-4" />
+                    Good contrast
+                  </div>
+                  <div
+                    v-else-if="brandContrastOk === false"
+                    class="flex items-center gap-1 text-nc-content-yellow-dark text-bodySm"
+                  >
+                    <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4" />
+                    White button text may be hard to read
+                  </div>
                 </div>
-                <span class="text-nc-content-gray-muted text-bodySm">
-                  Overrides <code>--color-brand-500</code> across the UI.
-                </span>
+                <span class="text-nc-content-gray-muted text-bodySm"> Recolours buttons, links, and accents across the UI. </span>
               </div>
             </div>
           </div>
@@ -456,19 +247,14 @@ watch(config, syncFromConfig)
           <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
             <div class="font-bold text-base" data-rec="true">Email branding</div>
             <span class="text-nc-content-gray-subtle2 mt-1">
-              These values override the default "NocoDB Team" footer in transactional emails
-              (invites, password reset, etc.). Leave fields blank to keep the defaults.
+              These values override the default "NocoDB Team" footer in transactional emails (invites, password reset, etc.).
+              Leave fields blank to keep the defaults.
             </span>
 
             <div class="flex flex-col gap-3">
               <div>
                 <div class="text-nc-content-gray mb-2">Sender name</div>
-                <a-input
-                  v-model:value="form.emailSenderName"
-                  class="!rounded-lg !px-4 h-10"
-                  placeholder="Acme"
-                  :maxlength="60"
-                />
+                <a-input v-model:value="form.emailSenderName" class="!rounded-lg !px-4 h-10" placeholder="Acme" :maxlength="60" />
               </div>
 
               <div>
@@ -485,11 +271,7 @@ watch(config, syncFromConfig)
 
               <div>
                 <div class="text-nc-content-gray mb-2">Footer link URL</div>
-                <a-input
-                  v-model:value="form.emailFooterUrl"
-                  class="!rounded-lg !px-4 h-10"
-                  placeholder="https://acme.com"
-                />
+                <a-input v-model:value="form.emailFooterUrl" class="!rounded-lg !px-4 h-10" placeholder="https://acme.com" />
                 <span class="text-nc-content-gray-muted text-bodySm">
                   Must be an absolute http(s) URL — same-origin paths don't resolve from an inbox.
                 </span>

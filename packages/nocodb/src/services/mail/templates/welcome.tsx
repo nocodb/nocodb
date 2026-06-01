@@ -24,7 +24,7 @@ interface WelcomeTemplateProps {
 
 export const Welcome = ({ email, link, branding }: WelcomeTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Welcome to NocoDB!</Preview>
       <Body className="bg-white">

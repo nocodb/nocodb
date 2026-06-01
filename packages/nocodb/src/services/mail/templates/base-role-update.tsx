@@ -40,7 +40,7 @@ export const BaseRoleUpdate = ({
   branding,
 }: BaseRoleUpdateTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your base role has been updated</Preview>
       <Body className="bg-white">

@@ -24,7 +24,7 @@ interface PasswordResetTemplateProps {
 
 export const PasswordReset = ({ email, link, branding }: PasswordResetTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Password reset requested</Preview>
       <Body className="bg-white">

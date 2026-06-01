@@ -42,7 +42,7 @@ const FormSubmission = ({
   branding,
 }: FormSubmissionTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>You have a new response!</Preview>
       <Body className="bg-white">

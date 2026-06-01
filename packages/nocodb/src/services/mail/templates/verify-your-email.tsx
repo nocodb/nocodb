@@ -28,7 +28,7 @@ export const VerifyYourEmail = ({
   branding,
 }: VerifyYourEmailTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Verify your Email</Preview>
       <Body className="bg-white">

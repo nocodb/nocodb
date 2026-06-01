@@ -38,7 +38,7 @@ export const OrganizationRoleUpdate = ({
   branding,
 }: OrganizationRoleUpdateTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your organization role has been updated</Preview>
       <Body className="bg-white">

@@ -32,7 +32,7 @@ export const BaseInvite = ({
   branding,
 }: BaseInviteTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>You’ve been invited to a Base</Preview>
       <Body className="bg-white">

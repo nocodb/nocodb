@@ -29,7 +29,7 @@ export const OrganizationInvite = ({
   branding,
 }: OrganizationInviteTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>You’ve been invited to NocoDB</Preview>
       <Body className="bg-white">

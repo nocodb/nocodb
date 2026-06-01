@@ -1315,20 +1315,6 @@ export function useCanvasListView({
     },
   )
 
-  // Group/level changes reload via the watcher above, but filter changes only go
-  // through the shared reloadViewDataHook — which the multi-level list canvas does
-  // not pick up reliably. The symptom: adding/editing a filter updates the toolbar
-  // count but the canvas keeps rendering unfiltered rows until another reload (e.g.
-  // adding a level) is triggered. Watch the applied filters (saved + draft) explicitly
-  // and reload, mirroring the levels watcher. Debounced so in-progress edits don't thrash.
-  const reloadOnFilterChange = useDebounceFn(() => {
-    if (isConfigured.value && viewId.value) {
-      resetAndReload()
-    }
-  }, 300)
-
-  watch([() => allFilters.value, () => nestedFilters.value], reloadOnFilterChange, { deep: true })
-
   // ---------------------------------------------------------------------------
   // Realtime data event handling
   // ---------------------------------------------------------------------------

@@ -34,7 +34,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { syncDataUpvotes, updateSyncDataUpvotes, appInfo } = useGlobal()
+const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -45,10 +45,6 @@ const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
-
-// OSS-only integrations (e.g. SQLite) are available on self-hosted (CE + On-Prem) but not on hosted Cloud.
-// Gate on isCloud — NOT isEeUI — since the self-hosted one-docker image is an EE build (isEeUI === true).
-const isCloud = computed(() => !!appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
 const router = useRouter()
 const route = router.currentRoute
@@ -140,7 +136,11 @@ const isDataReflectionEnabled = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    const isOssOnlyAllowed = isCloud.value ? !i?.isOssOnly : true
+    // OSS-only integrations (e.g. SQLite) are available only on free, self-hosted deployments
+    // (CE + unlicensed On-Prem) — hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is
+    // true exactly for that free non-cloud case. Gate on it — NOT isEeUI — since the self-hosted
+    // one-docker image is an EE build (isEeUI === true) regardless of license.
+    const isOssOnlyAllowed = isEEFeatureBlocked.value || !i?.isOssOnly
 
     if (!isDataReflectionEnabled.value && i.sub_type === SyncDataType.NOCODB) return false
 

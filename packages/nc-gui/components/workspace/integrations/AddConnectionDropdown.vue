@@ -20,15 +20,9 @@ const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
 const { isEEFeatureBlocked } = useEeConfig()
 
-const { appInfo } = useGlobal()
-
 const isOpen = ref(false)
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
-
-// OSS-only integrations (e.g. SQLite) are available on self-hosted (CE + On-Prem) but not on hosted Cloud.
-// Gate on isCloud — NOT isEeUI — since the self-hosted one-docker image is an EE build (isEeUI === true).
-const isCloud = computed(() => !!appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
 // Count connections per sub_type
 const connectedCountMap = computed(() => {
@@ -75,7 +69,9 @@ const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (ty
   if (i.hidden) return false
   if (!i.isAvailable) return false
   if (i.sub_type === SyncDataType.NOCODB) return false
-  if (isCloud.value && i.isOssOnly) return false
+  // OSS-only integrations (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem);
+  // hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is true exactly for that case.
+  if (!isEEFeatureBlocked.value && i.isOssOnly) return false
 
   // Auth category: always filter by available sync auth subtypes
   if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {

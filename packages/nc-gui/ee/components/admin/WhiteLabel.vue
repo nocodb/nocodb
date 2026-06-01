@@ -105,7 +105,9 @@ async function onSave() {
   }
   await save(payload)
   syncFromConfig()
-  message.toast('White-label settings updated')
+  message.toast(
+    form.value.enabled ? 'White-label settings updated' : 'Settings saved. White-labeling is off, so they are not applied yet.',
+  )
 }
 
 function onReset() {
@@ -218,10 +220,22 @@ watch(config, syncFromConfig)
               </div>
               <NcSwitch v-model:checked="form.enabled" size="default" />
             </div>
+
+            <!-- Inactive notice — config below is editable but not applied while off -->
+            <div
+              v-if="!form.enabled"
+              class="flex items-center gap-2 pt-4 border-t border-nc-border-gray-medium text-nc-content-yellow-dark font-medium"
+            >
+              <GeneralIcon icon="ncAlertTriangle" class="flex-none h-4 w-4" />
+              <span class="truncate"> Saved settings won't apply until white-labeling is enabled. </span>
+            </div>
           </div>
 
           <!-- Branding fields -->
-          <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
+          <div
+            class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4 transition-opacity"
+            :class="{ 'opacity-60': !form.enabled }"
+          >
             <div class="font-bold text-base flex items-center gap-2" data-rec="true">
               <GeneralIcon icon="ncImage" class="h-4 w-4" />
               Branding
@@ -334,7 +348,10 @@ watch(config, syncFromConfig)
           </div>
 
           <!-- Email branding -->
-          <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
+          <div
+            class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4 transition-opacity"
+            :class="{ 'opacity-60': !form.enabled }"
+          >
             <div class="font-bold text-base" data-rec="true">Email branding</div>
             <span class="text-nc-content-gray-subtle2 mt-1">
               These values override the default "NocoDB Team" footer in transactional emails (invites, password reset, etc.).

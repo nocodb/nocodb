@@ -1,10 +1,13 @@
 <script lang="ts" setup>
+import type { NavigationGuardNext } from 'vue-router'
 import type { WhiteLabelConfig } from 'nocodb-sdk'
 import { PlanFeatureTypes } from 'nocodb-sdk'
 
 const { config, isLoading, isSaving, load, save } = useWhiteLabel()
 
 const { appInfo } = useGlobal()
+
+const { t } = useI18n()
 
 interface FormState {
   enabled: boolean
@@ -99,6 +102,66 @@ function onReset() {
   if (!initial.value) return
   form.value = { ...initial.value }
 }
+
+// Warn before losing edits on browser refresh / tab close.
+function onBeforeUnload(e: BeforeUnloadEvent) {
+  if (!hasChanges.value) return
+  e.preventDefault()
+  // Required for the native prompt to show in some browsers.
+  e.returnValue = ''
+}
+
+useEventListener(typeof window !== 'undefined' ? window : null, 'beforeunload', onBeforeUnload)
+
+// Warn before in-app navigation away from the admin route with unsaved edits.
+function confirmUnsavedChangesBeforeLeaving(next: NavigationGuardNext) {
+  if (!hasChanges.value) {
+    next()
+    return
+  }
+
+  const isOpen = ref(true)
+
+  const okProps = ref({ loading: false })
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': t('msg.info.unsavedChanges'),
+    'content': t('activity.doYouWantToSaveTheChanges'),
+    'okText': t('tooltip.saveChanges'),
+    'cancelText': t('labels.discard'),
+    'okProps': okProps,
+    'showIcon': false,
+    'keyboard': false,
+    'maskClosable': false,
+    'onCancel': () => closeDialog(true), // Discard → leave
+    'onOk': async () => {
+      okProps.value.loading = true
+      let ok = true
+      try {
+        await onSave()
+      } catch {
+        // Save failed — error already surfaced; stay on the page.
+        ok = false
+      }
+      okProps.value.loading = false
+      if (ok) next()
+      else next(false)
+      closeDialog(false)
+    },
+    'onUpdate:visible': closeDialog,
+  })
+
+  function closeDialog(executeNext: boolean = true) {
+    if (executeNext) next()
+    isOpen.value = false
+    close(300)
+  }
+}
+
+onBeforeRouteLeave((_to, _from, next) => {
+  confirmUnsavedChangesBeforeLeaving(next)
+})
 
 onMounted(async () => {
   await load()
@@ -300,10 +363,6 @@ watch(config, syncFromConfig)
               <template #loading>{{ $t('general.saving') }}</template>
               {{ $t('general.save') }}
             </NcButton>
-          </div>
-
-          <div class="text-nc-content-gray-muted text-bodySm">
-            Reload the page after saving to see the changes applied throughout the UI.
           </div>
         </template>
       </div>

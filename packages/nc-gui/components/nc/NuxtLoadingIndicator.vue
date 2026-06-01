@@ -7,6 +7,13 @@ const route = router.currentRoute
 
 const { showOnboardingFlow } = useOnboardingFlow()
 
+const { brandColor } = useBranding()
+
+// NuxtLoadingIndicator reads `color` as a JS prop (a canvas-like fill), so it
+// can't pick up the --nc-brand-accent CSS var — bind the brand seed directly,
+// falling back to the default NocoDB blue when not white-labelled.
+const loaderColor = computed(() => brandColor.value || '#3366FF')
+
 const stopLoadingIndicator = () => {
   forcedNextTick(() => {
     nuxtLoadingIndicatorRef.value?.finish()
@@ -53,5 +60,5 @@ watch(
 
 <template>
   <!-- This uses the built-in NuxtLoadingIndicator with exposed API -->
-  <NuxtLoadingIndicator ref="nuxtLoadingIndicatorRef" color="#3366FF" error-color="#E8463C" />
+  <NuxtLoadingIndicator ref="nuxtLoadingIndicatorRef" :color="loaderColor" error-color="#E8463C" />
 </template>

@@ -1,6 +1,10 @@
 /**
  * Applies white-label side effects to the document on boot and whenever the
- * config changes — favicon swap and --color-brand-500 CSS override.
+ * config changes — favicon swap and the full brand-colour ramp override.
+ *
+ * The admin picks a single seed hex; we derive the entire `--color-brand-*`
+ * ramp (light + inverted dark) plus the Ant Design primary tokens from it
+ * (see utils/brandScale.ts), so every accented surface recolours coherently.
  *
  * Document title is intentionally not handled here — pages already manage
  * their own titles via `useTitle()`; they read the product name from
@@ -10,6 +14,8 @@ export const useBrandingApply = createSharedComposable(() => {
   if (typeof document === 'undefined') return
 
   const { faviconUrl, brandColor } = useBranding()
+
+  const { setTheme } = useAntDvTheme()
 
   const FAVICON_ID = 'nc-favicon'
   const STYLE_ID = 'nc-brand-color-override'
@@ -38,43 +44,31 @@ export const useBrandingApply = createSharedComposable(() => {
     if (el.href !== url) el.href = url
   }
 
-  function hexToRgbTuple(hex: string): string | null {
-    const m = hex.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/)
-    if (!m) return null
-    let h = m[1]
-    if (h.length === 3) h = h.split('').map((c) => c + c).join('')
-    const num = parseInt(h, 16)
-    return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`
-  }
-
   function applyBrandColor(hex: string | null) {
     let style = document.getElementById(STYLE_ID) as HTMLStyleElement | null
-    if (!hex) {
+    const css = hex ? buildBrandStyleCss(hex) : null
+
+    // No colour (or invalid hex) → drop the override and reset Ant Design's
+    // ConfigProvider back to the built-in NocoDB blue.
+    if (!css) {
       style?.remove()
+      setTheme()
       return
     }
-    const rgb = hexToRgbTuple(hex)
-    if (!rgb) return
+
     if (!style) {
       style = document.createElement('style')
       style.id = STYLE_ID
       document.head.appendChild(style)
     }
-    // Override both the hex and rgb-tuple forms so ant-design rgba(...) usages
-    // pick up the new color too.
-    style.textContent =
-      `:root, [theme='dark'] { --color-brand-500: ${hex}; --rgb-color-brand-500: ${rgb}; }`
+    style.textContent = css
+
+    // Keep Ant Design's ConfigProvider token in sync with the injected CSS
+    // vars (some antd components read the JS token at render time).
+    setTheme({ primaryColor: hex! })
   }
 
-  watch(
-    faviconUrl,
-    (v) => applyFavicon(v),
-    { immediate: true },
-  )
+  watch(faviconUrl, (v) => applyFavicon(v), { immediate: true })
 
-  watch(
-    brandColor,
-    (v) => applyBrandColor(v),
-    { immediate: true },
-  )
+  watch(brandColor, (v) => applyBrandColor(v), { immediate: true })
 })

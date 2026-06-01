@@ -113,6 +113,7 @@ export class UtilsController extends UtilsControllerCE {
 
     if (
       config.client !== 'snowflake' &&
+      !config?.client?.includes('sqlite') &&
       (!config?.connection || !config?.connection.host)
     ) {
       NcError.badRequest('Connection missing host name or IP address');

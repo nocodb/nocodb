@@ -301,6 +301,14 @@ export class IntegrationsService {
     }
     param.logger?.('Creating the integration');
     integrationBody.title = integrationBody.title?.trim();
+    // SQLite connections are only offered on the free self-hosted edition
+    // (CE + unlicensed On-Prem). Block on licensed On-Prem and Cloud, where
+    // Noco.isEE() is true — mirrors the frontend isEEFeatureBlocked gating.
+    if (integrationBody.sub_type === 'sqlite3' && Noco.isEE()) {
+      NcError.get(context).badRequest(
+        'SQLite connections are only available on the free self-hosted edition',
+      );
+    }
     validateAndNormalizeSqliteConfig(
       integrationBody.config,
       integrationBody.sub_type,

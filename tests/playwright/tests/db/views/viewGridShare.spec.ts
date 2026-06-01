@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup from '../../../setup';
-import { enableQuickRun, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isMssql, isMysql, isPg, isSqlite } from '../../../setup/db';
 
 test.describe('Shared view', () => {
   let dashboard: DashboardPage;
@@ -192,7 +192,10 @@ test.describe('Shared view', () => {
       await sharedPage.grid.column.verify(column);
     }
 
-    const expectedRecordsByDb = isSqlite(context) || isPg(context) ? sqliteExpectedRecords : expectedRecords;
+    // MSSQL groups with pg/sqlite here: case-insensitive LIKE + the same
+    // digit-string PostalCode desc ordering (MySQL's collation is the outlier).
+    const expectedRecordsByDb =
+      isSqlite(context) || isPg(context) || isMssql(context) ? sqliteExpectedRecords : expectedRecords;
     await new Promise(resolve => setTimeout(resolve, 1000));
     // verify order of records (original sort & filter)
     for (const record of expectedRecordsByDb) {
@@ -200,7 +203,7 @@ test.describe('Shared view', () => {
     }
 
     const expectedVirtualRecordsByDb =
-      isSqlite(context) || isPg(context) ? sqliteExpectedVirtualRecords : expectedVirtualRecords;
+      isSqlite(context) || isPg(context) || isMssql(context) ? sqliteExpectedVirtualRecords : expectedVirtualRecords;
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
@@ -243,7 +246,8 @@ test.describe('Shared view', () => {
       await sharedPage.grid.column.verify(column);
     }
 
-    const expectedRecordsByDb2 = isSqlite(context) || isPg(context) ? sqliteExpectedRecords2 : expectedRecords2;
+    const expectedRecordsByDb2 =
+      isSqlite(context) || isPg(context) || isMssql(context) ? sqliteExpectedRecords2 : expectedRecords2;
     // verify order of records (original sort & filter)
     for (const record of expectedRecordsByDb2) {
       await sharedPage.grid.cell.verify(record);

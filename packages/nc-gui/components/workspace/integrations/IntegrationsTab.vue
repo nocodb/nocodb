@@ -34,7 +34,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
+const { syncDataUpvotes, updateSyncDataUpvotes, appInfo } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -45,6 +45,10 @@ const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
+
+// OSS-only integrations (e.g. SQLite) are available on self-hosted (CE + On-Prem) but not on hosted Cloud.
+// Gate on isCloud — NOT isEeUI — since the self-hosted one-docker image is an EE build (isEeUI === true).
+const isCloud = computed(() => !!appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
 const router = useRouter()
 const route = router.currentRoute
@@ -136,14 +140,17 @@ const isDataReflectionEnabled = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    const isOssOnly = isEeUI ? !i?.isOssOnly : true
+    const isOssOnlyAllowed = isCloud.value ? !i?.isOssOnly : true
 
     if (!isDataReflectionEnabled.value && i.sub_type === SyncDataType.NOCODB) return false
 
     if (i.hidden) return false
 
     return (
-      isOssOnly && filterIntegration(i) && i.type === category && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnlyAllowed &&
+      filterIntegration(i) &&
+      i.type === category &&
+      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }

@@ -15,7 +15,11 @@ const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
-const { user } = useGlobal()
+const { user, appInfo } = useGlobal()
+
+// OSS-only integrations (e.g. SQLite) are available on self-hosted (CE + On-Prem) but not on hosted Cloud.
+// Gate on isCloud — NOT isEeUI — since the self-hosted one-docker image is an EE build (isEeUI === true).
+const isCloud = computed(() => !!appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
 const basesStore = useBases()
 const { basesUser } = storeToRefs(basesStore)
@@ -105,7 +109,7 @@ const integrationsMap = computed(() => {
         (i) =>
           i.type === cat.value &&
           i.isAvailable &&
-          (isEeUI ? !i.isOssOnly : true) &&
+          (isCloud.value ? !i.isOssOnly : true) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||

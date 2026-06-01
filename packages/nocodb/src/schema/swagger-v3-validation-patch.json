@@ -31,7 +31,9 @@
                   "kanban",
                   "calendar",
                   "form",
-                  "map"
+                  "map",
+                  "timeline",
+                  "gantt"
                 ],
                 "description": "Type of the view."
               },

@@ -9826,7 +9826,9 @@
               "kanban",
               "calendar",
               "form",
-              "map"
+              "map",
+              "timeline",
+              "gantt"
             ],
             "description": "Type of the view."
           }
@@ -9896,7 +9898,9 @@
                     "kanban",
                     "calendar",
                     "form",
-                    "map"
+                    "map",
+                    "timeline",
+                    "gantt"
                   ],
                   "description": "Type of the view."
                 },
@@ -9959,7 +9963,9 @@
                 "kanban",
                 "calendar",
                 "map",
-                "form"
+                "form",
+                "timeline",
+                "gantt"
               ],
               "description": "Type of the view."
             },
@@ -10204,6 +10210,138 @@
           "date_ranges"
         ]
       },
+      "ViewOptionsTimeline": {
+        "type": "object",
+        "description": "Timeline view configuration. A timeline may have multiple date ranges (e.g. \"planned\" vs \"actual\"); each range has a required start field and an optional end field.",
+        "additionalProperties": false,
+        "properties": {
+          "date_ranges": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start_date_field_id": {
+                  "type": "string",
+                  "description": "Field ID of the start date column."
+                },
+                "end_date_field_id": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Field ID of the end date column. Null means the range is a single point in time."
+                }
+              },
+              "required": [
+                "start_date_field_id"
+              ]
+            }
+          }
+        }
+      },
+      "ViewOptionsTimelineCreate": {
+        "description": "Timeline view configuration on create — same shape as ViewOptionsTimeline but requires date_ranges. Update (PATCH) uses the base schema so partial updates are allowed.",
+        "allOf": [
+          { "$ref": "#/components/schemas/ViewOptionsTimeline" },
+          { "required": ["date_ranges"] }
+        ]
+      },
+      "ViewOptionsGantt": {
+        "type": "object",
+        "description": "Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON.",
+        "additionalProperties": false,
+        "properties": {
+          "date_dependency": {
+            "oneOf": [
+              { "$ref": "#/components/schemas/DateDependency" },
+              { "type": "null" }
+            ],
+            "description": "The view-owned date dependency rule. When null, the gantt falls back to the table-level default rule (if any). PATCH replaces the entire object — no partial updates."
+          }
+        }
+      },
+      "ViewOptionsGanttCreate": {
+        "description": "Gantt view configuration on create — same shape as ViewOptionsGantt but requires date_dependency. Update (PATCH) uses the base schema so partial updates are allowed.",
+        "allOf": [
+          { "$ref": "#/components/schemas/ViewOptionsGantt" },
+          { "required": ["date_dependency"] }
+        ]
+      },
+      "DateDependency": {
+        "type": "object",
+        "description": "Date dependency rule for a gantt view. Top-level properties are all optional; supplying a child object (`dates`, `dependency`) commits to providing every property inside it.",
+        "additionalProperties": false,
+        "properties": {
+          "dates": {
+            "type": "object",
+            "description": "Date column pair. Atomic — supply both or omit the block entirely.",
+            "additionalProperties": false,
+            "properties": {
+              "start_field_id": {
+                "type": "string",
+                "description": "Field ID of the start date column."
+              },
+              "end_field_id": {
+                "type": "string",
+                "description": "Field ID of the end date column."
+              }
+            },
+            "required": [
+              "start_field_id",
+              "end_field_id"
+            ]
+          },
+          "duration_field_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional standalone duration field; independent of the `dates` block."
+          },
+          "dependency": {
+            "type": "object",
+            "description": "Predecessor/successor link configuration. Atomic — supply all five properties or omit the block entirely.",
+            "additionalProperties": false,
+            "properties": {
+              "linkrow_field_id": {
+                "type": "string",
+                "description": "Link-to-another-record field that connects predecessor/successor records."
+              },
+              "linkrow_role": {
+                "type": "string",
+                "enum": ["predecessors", "successors"]
+              },
+              "connection_type": {
+                "type": "string",
+                "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"]
+              },
+              "buffer_type": {
+                "type": "string",
+                "enum": ["flexible", "fixed", "none"]
+              },
+              "buffer_days": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Buffer in days. Meaningful when `buffer_type` is `fixed`; pass 0 when buffer_type is `flexible` or `none`."
+              }
+            },
+            "required": [
+              "linkrow_field_id",
+              "linkrow_role",
+              "connection_type",
+              "buffer_type",
+              "buffer_days"
+            ]
+          },
+          "include_weekends": {
+            "type": "boolean",
+            "default": true
+          },
+          "is_active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Soft-disable the rule without deleting it."
+          }
+        }
+      },
       "ViewOptionsGallery": {
         "type": "object",
         "properties": {
@@ -10438,6 +10576,76 @@
                 },
                 {
                   "type": "object",
+                  "title": "timeline",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "timeline"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsTimelineCreate"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  },
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "title": "gantt",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "gantt"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGanttCreate"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  },
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
                   "title": "map",
                   "properties": {
                     "type": {
@@ -10591,6 +10799,58 @@
                   "properties": {
                     "options": {
                       "$ref": "#/components/schemas/ViewOptionsCalendar"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "timeline",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsTimeline"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "gantt",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGantt"
                     },
                     "sorts": {
                       "type": "array",
@@ -10840,6 +11100,73 @@
                 "required": [
                   "options"
                 ]
+              },
+              {
+                "type": "object",
+                "title": "timeline",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "timeline"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsTimeline"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+              },
+              {
+                "type": "object",
+                "title": "gantt",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gantt"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGantt"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
               },
               {
                 "type": "object",

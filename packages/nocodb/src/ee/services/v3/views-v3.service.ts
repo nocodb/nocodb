@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   isCreatedOrLastModifiedByCol,
+  isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
   NcBaseError,
@@ -36,11 +37,14 @@ import { CalendarsService } from '~/services/calendars.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { FormsService } from '~/services/forms.service';
+import { TimelinesService } from '~/services/timelines.service';
+import { GanttsService } from '~/services/gantts.service';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import Noco from '~/Noco';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { Model, Sort, View } from '~/models';
+import DateDependency from '~/models/DateDependency';
 import {
   builderGenerator,
   filterBuilder,
@@ -78,6 +82,8 @@ const viewTypeMap = {
   kanban: ViewTypes.KANBAN,
   calendar: ViewTypes.CALENDAR,
   form: ViewTypes.FORM,
+  timeline: ViewTypes.TIMELINE,
+  gantt: ViewTypes.GANTT,
   ...viewTypeAlias,
 };
 
@@ -178,6 +184,8 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     protected formsService: FormsService,
     protected kanbansService: KanbansService,
     protected galleriesService: GalleriesService,
+    protected timelinesService: TimelinesService,
+    protected ganttsService: GanttsService,
   ) {
     super();
     this.builder = builderGenerator({
@@ -299,6 +307,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'fk_grp_col_id',
 
         'calendar_range',
+
+        // timeline
+        'timeline_range',
+
+        // gantt
+        'date_dependency',
       ],
       mappings: {
         heading: 'form_title',
@@ -336,6 +350,45 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           );
           formattedData.calendar_range = undefined;
         }
+        if (formattedData?.timeline_range?.length) {
+          formattedData.date_ranges = formattedData.timeline_range.map(
+            (range: any) => ({
+              start_date_field_id: range.fk_from_column_id ?? undefined,
+              end_date_field_id: range.fk_to_column_id ?? undefined,
+            }),
+          );
+          formattedData.timeline_range = undefined;
+        }
+        if (formattedData?.date_dependency) {
+          const rule = formattedData.date_dependency;
+          // Flatten DB columns into atomic child blocks. A block is emitted
+          // only when at least one of its underlying columns has a value —
+          // an empty block on the wire would be misleading.
+          const dates =
+            rule.fk_start_date_field_id || rule.fk_end_date_field_id
+              ? {
+                  start_field_id: rule.fk_start_date_field_id ?? undefined,
+                  end_field_id: rule.fk_end_date_field_id ?? undefined,
+                }
+              : undefined;
+          const dependency = rule.fk_dependency_linkrow_field_id
+            ? {
+                linkrow_field_id: rule.fk_dependency_linkrow_field_id,
+                linkrow_role: rule.dependency_linkrow_role,
+                connection_type: rule.dependency_connection_type,
+                buffer_type: rule.dependency_buffer_type,
+                buffer_days: rule.dependency_buffer_days ?? 0,
+              }
+            : undefined;
+          formattedData.date_dependency = {
+            dates,
+            duration_field_id: rule.fk_duration_field_id ?? undefined,
+            dependency,
+            include_weekends: rule.include_weekends,
+            is_active: rule.is_active,
+          };
+        }
+
         if (formattedData.kanban_stack_by_field_id) {
           formattedData.stack_by = {
             field_id: formattedData.kanban_stack_by_field_id,
@@ -399,7 +452,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
     this.v3Tov2ViewBuilders.options = builderGenerator<any, any>({
       allowed: [
-        // calendar
+        // calendar / timeline (both use date_ranges on the v3 wire)
         'date_ranges',
         'row_height',
 
@@ -408,6 +461,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
         // gallery
         'cover_field_id',
+
+        // gantt
+        'date_dependency',
 
         // form specific for now
         'fields_by_id',
@@ -459,6 +515,40 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             ? { fk_grp_col_id: options.stack_by.field_id }
             : {}),
         };
+
+        // timeline — same `date_ranges` v3 key, but routes to timeline_range.
+        // Service routing on ViewTypes.TIMELINE picks this up; the calendar
+        // branch above only fires for calendar views since the service
+        // consults the actual view type, not the property name.
+        if (options.date_ranges?.length) {
+          result.timeline_range = options.date_ranges.map((range: any) => ({
+            fk_from_column_id: range.start_date_field_id,
+            fk_to_column_id: range.end_date_field_id ?? null,
+          }));
+        }
+
+        // gantt — flatten the nested API shape (atomic `dates` / `dependency`
+        // child blocks) into the flat DateDependencyReqType the V2 service
+        // expects. Empty/missing child blocks become null FKs.
+        if (options.date_dependency) {
+          const dd = options.date_dependency;
+          result.dependency = {
+            fk_start_date_field_id: dd.dates?.start_field_id ?? null,
+            fk_end_date_field_id: dd.dates?.end_field_id ?? null,
+            fk_duration_field_id: dd.duration_field_id ?? null,
+            fk_dependency_linkrow_field_id:
+              dd.dependency?.linkrow_field_id ?? null,
+            dependency_linkrow_role: dd.dependency?.linkrow_role,
+            dependency_connection_type: dd.dependency?.connection_type,
+            dependency_buffer_type: dd.dependency?.buffer_type,
+            dependency_buffer_days: dd.dependency?.buffer_days ?? 0,
+            include_weekends: dd.include_weekends,
+            is_active: dd.is_active,
+          };
+          // The gantt service reads `dependency`; the bare `date_dependency`
+          // node is for the v3 transformer round-trip only.
+          result.date_dependency = undefined;
+        }
 
         // convert redirect_after_secs from integer to string (V2 expects StringOrNull)
         if (
@@ -726,14 +816,22 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       true,
       context,
     );
-    if (body.options) {
+    // Validate per-view-type options. For gantt/timeline the create-time
+    // variant requires date_dependency / date_ranges respectively, so we run
+    // validation even when `body.options` is omitted entirely — AJV then
+    // surfaces a clear "must have required property" error instead of letting
+    // the request slip through and fail deeper in the pipeline.
+    const typeLower = body.type?.toLowerCase?.();
+    const requiresOptionsOnCreate = ['gantt', 'timeline'].includes(typeLower);
+    if (body.options || requiresOptionsOnCreate) {
       const optionsSchemaName =
         'ViewOptions' +
         body.type[0].toUpperCase() +
-        body.type.substring(1).toLowerCase();
+        body.type.substring(1).toLowerCase() +
+        (requiresOptionsOnCreate ? 'Create' : '');
       validatePayload(
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
-        body.options,
+        body.options ?? {},
         true,
         context,
       );
@@ -773,6 +871,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       },
       ncMeta,
     );
+
+    if (viewTypeCode === ViewTypes.GANTT) {
+      this.validateGanttFieldTypes(context, body, modelColumns);
+    } else if (viewTypeCode === ViewTypes.TIMELINE) {
+      this.validateTimelineFieldTypes(context, body, modelColumns);
+    }
 
     let requestBody = withoutId(this.v3Tov2ViewBuilders.view().build(body));
     requestBody.type = viewTypeCode;
@@ -933,6 +1037,56 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           );
           break;
         }
+        case ViewTypes.TIMELINE: {
+          // The shared options builder renames `date_ranges` → `calendar_range`
+          // for every view type (calendar's mapping is unconditional). For
+          // timeline we re-derive `timeline_range` from the original body so
+          // the `label` is preserved (the calendar_range branch drops it),
+          // then clear the spurious calendar_range. View.insertMetaOnly's
+          // TIMELINE case reads view.timeline_range.
+          if (body.options?.date_ranges?.length) {
+            requestBody.timeline_range = body.options.date_ranges.map(
+              (r: any) => ({
+                fk_from_column_id: r.start_date_field_id,
+                fk_to_column_id: r.end_date_field_id ?? null,
+                label: r.label,
+              }),
+            );
+          }
+          requestBody.calendar_range = undefined;
+
+          insertedV2View = await this.timelinesService.timelineViewCreate(
+            context,
+            {
+              tableId,
+              timeline: requestBody,
+              user: context.user,
+              req,
+              viewWebhookManager,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
+        case ViewTypes.GANTT: {
+          // The gantt service accepts an optional per-view `dependency` rule
+          // — the v3 transformer flattened `options.date_dependency` into
+          // requestBody.dependency above. Omitting it lets the view fall
+          // back to the table-level default rule.
+          insertedV2View = await this.ganttsService.ganttViewCreate(
+            context,
+            {
+              tableId,
+              gantt: requestBody,
+              dependency: requestBody.dependency,
+              user: context.user,
+              req,
+              viewWebhookManager,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
         default: {
           NcError.get(context).invalidRequestBody(
             `Type ${requestBody.type} is not supported`,
@@ -1053,7 +1207,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       fieldIdToVerify.push(body.options?.stack_by?.field_id);
     }
     if (
-      [ViewTypes.CALENDAR].includes(viewTypeCode) &&
+      [ViewTypes.CALENDAR, ViewTypes.TIMELINE].includes(viewTypeCode) &&
       body.options?.date_ranges
     ) {
       fieldIdToVerify.push(
@@ -1062,7 +1216,18 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         }, []) ?? []),
       );
     }
-
+    if (
+      [ViewTypes.GANTT].includes(viewTypeCode) &&
+      body.options?.date_dependency
+    ) {
+      const dd = body.options.date_dependency;
+      fieldIdToVerify.push(
+        dd.dates?.start_field_id,
+        dd.dates?.end_field_id,
+        dd.duration_field_id,
+        dd.dependency?.linkrow_field_id,
+      );
+    }
     if (body.options?.cover_field_id) {
       fieldIdToVerify.push(body.options?.cover_field_id);
     }
@@ -1100,6 +1265,99 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       NcError.get(context).fieldNotFound(invalidField);
     }
     return { modelColumns: columns };
+  }
+
+  // Gantt's start/end date fields, duration field, and dependency linkrow
+  // field have strict UIType requirements that DateDependency.insert (called
+  // via View.insertMetaOnly from the gantt create path) does NOT enforce —
+  // only the standalone date-dependency service does. Validate here so v3
+  // create/update reject mismatched types up front (e.g. DateTime is NOT a
+  // valid gantt date field — only UITypes.Date is).
+  validateGanttFieldTypes(
+    context: NcContext,
+    body: { options?: { date_dependency?: any } },
+    modelColumns?: Column[],
+  ) {
+    const dd = body.options?.date_dependency;
+    if (!dd) return;
+
+    const colById = new Map((modelColumns ?? []).map((c) => [c.id, c]));
+
+    const checkType = (
+      fieldId: string | null | undefined,
+      label: string,
+      predicate: (col: Column) => boolean,
+      expected: string,
+    ) => {
+      if (!fieldId) return;
+      const col = colById.get(fieldId);
+      if (!col || !predicate(col)) {
+        NcError.get(context).invalidRequestBody(
+          `${label} must be a ${expected} type field`,
+        );
+      }
+    };
+
+    checkType(
+      dd.dates?.start_field_id,
+      'Start date field',
+      (c) => c.uidt === UITypes.Date,
+      'Date',
+    );
+    checkType(
+      dd.dates?.end_field_id,
+      'End date field',
+      (c) => c.uidt === UITypes.Date,
+      'Date',
+    );
+    checkType(
+      dd.duration_field_id,
+      'Duration field',
+      (c) => [UITypes.Duration, UITypes.Number].includes(c.uidt as UITypes),
+      'Duration or Number',
+    );
+    checkType(
+      dd.dependency?.linkrow_field_id,
+      'Dependency linkrow field',
+      (c) => isLinksOrLTAR(c),
+      'Links or LinkToAnotherRecord',
+    );
+  }
+
+  // Timeline range fields accept any date-shaped column: Date, DateTime,
+  // CreatedTime, LastModifiedTime. Mirrors the frontend filter in
+  // ee/components/smartsheet/toolbar/Timeline/Range.vue. The underlying
+  // TimelineView.insert does not type-check field IDs, so we enforce here.
+  validateTimelineFieldTypes(
+    context: NcContext,
+    body: { options?: { date_ranges?: Array<any> } },
+    modelColumns?: Column[],
+  ) {
+    const ranges = body.options?.date_ranges;
+    if (!ranges?.length) return;
+
+    const colById = new Map((modelColumns ?? []).map((c) => [c.id, c]));
+    const ALLOWED = [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ];
+
+    const checkType = (fieldId: string | null | undefined, label: string) => {
+      if (!fieldId) return;
+      const col = colById.get(fieldId);
+      if (!col || !ALLOWED.includes(col.uidt as UITypes)) {
+        NcError.get(context).invalidRequestBody(
+          `${label} must be a Date, DateTime, CreatedTime, or LastModifiedTime type field`,
+        );
+      }
+    };
+
+    for (const range of ranges) {
+      checkType(range?.start_date_field_id, 'Start date field');
+      checkType(range?.end_date_field_id, 'End date field');
+    }
   }
 
   async getUpdateViewColumn(
@@ -1275,6 +1533,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       ncMeta,
     );
 
+    if (viewTypeCode === ViewTypes.GANTT) {
+      this.validateGanttFieldTypes(context, body, modelColumns);
+    } else if (viewTypeCode === ViewTypes.TIMELINE) {
+      this.validateTimelineFieldTypes(context, body, modelColumns);
+    }
+
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 
     requestBody.options = requestBody.options ?? {};
@@ -1445,6 +1709,74 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             },
             trxNcMeta,
           );
+          break;
+        }
+        case ViewTypes.TIMELINE: {
+          // Same re-derivation as in create: the options builder's generic
+          // calendar_range mapping consumes date_ranges; rebuild
+          // timeline_range from the original body for the timeline service.
+          // TimelineView.update reads view.timeline_range and replaces the
+          // range rows wholesale (delete + bulkInsert).
+          if (body.options?.date_ranges?.length) {
+            requestBody.timeline_range = body.options.date_ranges.map(
+              (r: any) => ({
+                fk_from_column_id: r.start_date_field_id,
+                fk_to_column_id: r.end_date_field_id ?? null,
+              }),
+            );
+          }
+          requestBody.calendar_range = undefined;
+
+          await this.timelinesService.timelineViewUpdate(
+            context,
+            {
+              timelineViewId: viewId,
+              timeline: requestBody,
+              req,
+              viewWebhookManager,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
+        case ViewTypes.GANTT: {
+          await this.ganttsService.ganttViewUpdate(
+            context,
+            {
+              ganttViewId: viewId,
+              gantt: requestBody,
+              req,
+              viewWebhookManager,
+            },
+            trxNcMeta,
+          );
+          // When `options.date_dependency` is included in the PATCH, replace
+          // the view-owned DateDependency rule wholesale (per the spec —
+          // PATCH is replace-not-merge for this field). Omitting the field
+          // leaves the existing rule untouched; passing it as `null` clears
+          // the view-owned rule.
+          if ('date_dependency' in (req.body?.options ?? {})) {
+            const flat = requestBody.dependency;
+            const existing = await DateDependency.getByGanttViewId(
+              context,
+              viewId,
+              trxNcMeta,
+            );
+            if (existing?.id) {
+              await DateDependency.delete(context, existing.id, trxNcMeta);
+            }
+            if (req.body.options.date_dependency !== null && flat) {
+              await DateDependency.insert(
+                context,
+                {
+                  ...flat,
+                  fk_gantt_view_id: viewId,
+                  fk_model_id: existingView.fk_model_id,
+                },
+                trxNcMeta,
+              );
+            }
+          }
           break;
         }
         default: {

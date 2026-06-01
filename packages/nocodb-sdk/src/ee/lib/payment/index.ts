@@ -146,6 +146,9 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      // Add-on only (MSSQL) — never bundled in any tier; unlocked via the
+      // per-subscription add-on override (subscription.meta.plan_meta).
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
     },
     limits: {
       // Seat limits
@@ -224,6 +227,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      // Add-on only (MSSQL) — never bundled in any tier.
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -259,6 +264,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
+      // Add-on only (MSSQL) — never bundled in any tier.
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -283,7 +290,12 @@ export const CloudPlanDefinitions: Record<
   // ENTERPRISE — no features disabled; all unlimited or set high
   // -------------------------------------------------------------------------
   [PlanTitles.ENTERPRISE]: {
-    features: {},
+    features: {
+      // MSSQL is an add-on on EVERY tier (never bundled, not even Enterprise) —
+      // unlocked only via the per-subscription add-on override
+      // (subscription.meta.plan_meta, set from the Stripe add-on line item).
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
+    },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
@@ -521,6 +533,7 @@ export const OnPremPlanDefinitions: Record<
       // Table sync (manual) is available on the first paid plan; automatic
       // real-time sync is gated to Scale+.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
@@ -540,6 +553,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_SCIM]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 180, // days
@@ -549,6 +563,7 @@ export const OnPremPlanDefinitions: Record<
     features: {
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 365, // days

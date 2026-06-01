@@ -280,8 +280,8 @@ const onForgotPasswordClicked = (): void => {
 <style>
 :root,
 [data-amplify-theme] {
-  --amplify-components-button-focus-border-color: #3366ff;
-  --amplify-components-button-focus-color: #3366ff;
+  --amplify-components-button-focus-border-color: var(--nc-brand-accent);
+  --amplify-components-button-focus-color: var(--nc-brand-accent);
   --amplify-components-tabs-item-hover-color: var(--color-brand-500);
   --amplify-components-tabs-item-active-color: var(--color-brand-500);
   --amplify-components-tabs-item-focus-color: var(--color-brand-500);
@@ -377,11 +377,11 @@ const onForgotPasswordClicked = (): void => {
   --amplify-components-tabs-item-color: var(--nc-content-gray);
   --amplify-components-divider-label-background-color: var(--nc-bg-default);
   --amplify-components-divider-label-color: var(--nc-content-gray-muted);
-  --amplify-components-button-primary-background-color: #3366ff;
+  --amplify-components-button-primary-background-color: var(--nc-brand-accent);
   --amplify-components-button-border-radius: 8px;
   --amplify-components-button-primary-hover-background-color: #2952cc;
-  --amplify-components-button-primary-focus-background-color: #3366ff;
-  --amplify-components-button-primary-active-background-color: #3366ff;
+  --amplify-components-button-primary-focus-background-color: var(--nc-brand-accent);
+  --amplify-components-button-primary-active-background-color: var(--nc-brand-accent);
   --amplify-components-button-link-color: var(--amplify-colors-brand-secondary-80);
   --amplify-components-button-link-hover-color: var(--amplify-colors-brand-secondary-90);
   --amplify-components-button-link-focus-color: var(--amplify-colors-brand-secondary-90);

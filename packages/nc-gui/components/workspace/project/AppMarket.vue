@@ -336,7 +336,7 @@ watch(
 .nc-app-market-icon {
   @apply w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm;
   background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
-  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(var(--nc-brand-accent-rgb), 0.15);
 }
 
 .nc-app-market-filters {
@@ -367,7 +367,7 @@ watch(
 
   &:hover {
     @apply border-nc-border-brand transform translate-x-0.5;
-    box-shadow: 0 4px 12px rgba(51, 102, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(var(--nc-brand-accent-rgb), 0.08);
 
     &::before {
       @apply opacity-100;
@@ -375,7 +375,7 @@ watch(
 
     .nc-app-icon {
       @apply transform scale-105;
-      box-shadow: 0 4px 8px rgba(51, 102, 255, 0.15);
+      box-shadow: 0 4px 8px rgba(var(--nc-brand-accent-rgb), 0.15);
     }
   }
 

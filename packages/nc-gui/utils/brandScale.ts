@@ -203,40 +203,10 @@ function staticBrandOverrides(light: Record<number, BrandStop>): string {
 }
 
 /**
- * Hand-written `#3366ff` literals in the global stylesheets (assets/style.scss,
- * assets/css/theme-overrides.scss) — not Windi utilities and not CSS vars, so
- * neither the var ramp nor the static-utility overrides reach them. We re-emit
- * each rule's selector with the seed colour; appended after the bundled CSS so
- * equal-specificity `!important` rules win the cascade.
- *
- * These literals are mode-independent in the source, so we use the light-ramp
- * seed in both modes (matching their current behaviour). Only the high-traffic
- * global ones are covered — checkbox fill, switch focus ring, text selection.
- * Component-scoped box-shadow literals (webhook, comments, AppMarket) are a
- * low-visibility long tail left on the default tint — see plan.md.
- */
-function globalLiteralOverrides(light: Record<number, BrandStop>): string {
-  const { hex, rgb } = light[500]
-  return [
-    // Checkbox checked fill (style.scss: hardcoded #3366ff !important).
-    `.ant-checkbox-wrapper:not(.theme-ai) .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {`,
-    `  background-color: ${hex} !important; border-color: ${hex} !important;`,
-    `}`,
-    // Switch focus-visible ring (style.scss).
-    `.ant-switch:focus-visible:not(.nc-ai-input), .ant-switch-checked:focus-visible:not(.nc-ai-input) {`,
-    `  box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px ${hex} !important;`,
-    `}`,
-    // Text selection (style.scss #3366ff20 light → rgba .125; theme-overrides #3366ff40 dark → rgba .25).
-    `::selection { background-color: rgba(${rgb}, 0.125); }`,
-    `::-moz-selection { background-color: rgba(${rgb}, 0.125); }`,
-    `[theme='dark'] ::selection { background-color: rgba(${rgb}, 0.25); }`,
-    `[theme='dark'] ::-moz-selection { background-color: rgba(${rgb}, 0.25); }`,
-  ].join('\n')
-}
-
-/**
  * Build the full stylesheet that overrides the brand ramp (light under :root,
- * dark under [theme='dark']), the static `brand-*` utilities, and the Ant
+ * dark under [theme='dark']), the mode-independent --nc-brand-accent (which
+ * backs the hand-written #3366ff literals: checkbox fill, focus rings,
+ * box-shadows, text selection), the static `brand-*` utilities, and the Ant
  * Design primary tokens. Returns null for an invalid seed so callers can fall
  * back to the built-in defaults.
  */
@@ -244,16 +214,20 @@ export function buildBrandStyleCss(seedHex: string): string | null {
   const scale = generateBrandScale(seedHex)
   if (!scale) return null
 
+  const accent = scale.light[500]
+
   return [
     ':root {',
     brandVars(scale.light),
     antVars(scale.light),
+    // Mode-independent (defined only here, mirroring the source literals).
+    `  --nc-brand-accent: ${accent.hex};`,
+    `  --nc-brand-accent-rgb: ${accent.rgb};`,
     '}',
     "[theme='dark'] {",
     brandVars(scale.dark),
     antVars(scale.dark, true),
     '}',
     staticBrandOverrides(scale.light),
-    globalLiteralOverrides(scale.light),
   ].join('\n')
 }

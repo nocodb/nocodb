@@ -876,6 +876,13 @@
 
 :root,
 [theme='dark'] {
+  /* Mode-independent brand accent: backs hand-written #3366ff literals (checkbox
+     fill, focus rings, box-shadows, text selection) that aren't part of the
+     --color-brand-* ramp. Same value in light & dark, mirroring those literals.
+     White-labelling overrides this one var to recolour them all. */
+  --nc-brand-accent: #3366ff;
+  --nc-brand-accent-rgb: 51, 102, 255;
+
   --nc-content-gray-extreme: var(--color-base-black);
   --nc-content-gray-emphasis: var(--color-gray-900);
   --nc-content-gray: var(--color-gray-800);

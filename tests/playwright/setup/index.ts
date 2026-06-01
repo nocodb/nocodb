@@ -338,13 +338,13 @@ async function localInit({
               try {
                 await api.base.delete(base.id);
               } catch (e) {
-                console.log(`Error deleting base: ws delete`, base);
+                console.log(`Error deleting base ${base.id}:`, e instanceof Error ? e.message : e);
               }
             }
 
             await api['workspace'].delete(w.id);
           } catch (e) {
-            console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+            console.log(`Error deleting workspace ${w.id}:`, e instanceof Error ? e.message : e);
           }
         }
       }
@@ -365,7 +365,7 @@ async function localInit({
             try {
               await api.base.delete(p.id);
             } catch (e) {
-              console.log(`Error deleting base: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+              console.log(`Error deleting base ${p.id}:`, e instanceof Error ? e.message : e);
             }
           }
         }

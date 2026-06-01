@@ -195,10 +195,7 @@ export class CellPageObject extends BasePage {
         await this.rootPage.waitForTimeout(1000);
         count++;
         if (count === 5) {
-          console.log('cellText', cellText);
-          console.log('text', text);
-
-          throw new Error(`Cell text "${text}" not found`);
+          throw new Error(`Cell text "${text}" not found. Found: ${JSON.stringify(cellText)}`);
         }
       }
     };

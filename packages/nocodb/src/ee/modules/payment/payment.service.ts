@@ -808,7 +808,7 @@ export class PaymentService {
       period: price.recurring.interval,
       status: stripeSubscription.status,
       trial_end_at: trialEndAt,
-      seat_count: seatCount || 1,
+      seat_count: this.billableSeatCount(plan.title, seatCount),
     };
   }
 
@@ -1535,6 +1535,7 @@ export class PaymentService {
     existingSub: Subscription,
     workspaceOrOrg: NonNullable<Awaited<ReturnType<typeof getWorkspaceOrOrg>>>,
     newSeatCount: number,
+    minSeats = 1,
     _ncMeta = Noco.ncMeta,
   ) {
     // Fetch open and uncollectible invoices for this subscription
@@ -1629,7 +1630,7 @@ export class PaymentService {
         {
           id: stripeSub.items.data[0].id,
           price: existingSub.stripe_price_id,
-          quantity: lastPaidSeatCount,
+          quantity: Math.max(lastPaidSeatCount, minSeats),
         },
       ],
       proration_behavior: 'none',
@@ -1668,6 +1669,12 @@ export class PaymentService {
     });
   }
 
+  // The minimum-seat floor is applied at every Stripe quantity WRITE site
+  // (create/checkout/update/reseat/schedule/invoice-preview), so any
+  // subscription that ever changes seats is corrected to its plan minimum.
+  // DB `seat_count` stays the raw member count; the floor lives only in the
+  // values sent to Stripe. No retroactive backfill is needed — Scale (the only
+  // plan with a >1 minimum) launches fresh and all creation paths already floor.
   async reseatSubscriptionAwaited(
     workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
@@ -1747,6 +1754,7 @@ export class PaymentService {
           existingSub,
           workspaceOrOrg,
           billableSeats,
+          getMinSeats(billingPlan?.title),
           ncMeta,
         );
 
@@ -2057,7 +2065,7 @@ export class PaymentService {
    */
   private billableSeatCount(
     planTitle: PlanTitles | string | undefined,
-    rawSeats: number,
+    rawSeats: number | undefined,
   ): number {
     return Math.max(rawSeats ?? 0, getMinSeats(planTitle));
   }

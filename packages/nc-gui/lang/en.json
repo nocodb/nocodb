@@ -246,7 +246,7 @@
     "upgradeToUseTableSync": "Upgrade to use NocoDB Sync",
     "upgradeToUseTableSyncSubtitle": "Upgrade to the {plan} plan to sync data between tables.",
     "upgradeToUseCustomSync": "Upgrade to use Custom Sync",
-    "upgradeToUseCustomSyncSubtitle": "Upgrade to the {plan} plan to build a custom sync for another service or app.",
+    "upgradeToUseCustomSyncSubtitle": "Upgrade to the {plan} plan to sync data from other data sources.",
     "upgradeToUseAutomaticSync": "Upgrade to use automatic sync",
     "upgradeToUseAutomaticSyncSubtitle": "Upgrade to the {plan} plan to keep mirrored tables in sync automatically in real time.",
     "upgradeToEnableUnique": "Upgrade to enable unique",

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, PaginatedType, ProjectListType, UITypes } from 'nocodb-sdk';
-import { enableQuickRun, isEE, isMssql, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isEE, isMssqlData, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -103,7 +103,7 @@ async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
       inflection_column: 'camelize',
       inflection_table: 'camelize',
     });
-  } else if (isMssql(context)) {
+  } else if (isMssqlData(context)) {
     await api.source.create(context.base.id, {
       alias: dbName,
       type: 'mssql',
@@ -687,6 +687,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       }
     }
 
+    // DATEADD and DATETIME_DIFF are unsupported on MSSQL
+    // (see MssqlUi.getUnsupportedFnList) — skip formula verification there.
+    if (isMssqlData(context)) return;
+
     // verify display value for formula columns (formula-1, formula-2)
     // source data : ['2023-04-27 10:00', '2023-04-27 10:00']
     await verifyFormula({
@@ -906,6 +910,8 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
   //  - verify API response value
   //
   test('Formula, verify display value', async () => {
+    // DATEADD is unsupported on MSSQL (see MssqlUi.getUnsupportedFnList).
+    if (isMssqlData(context)) return;
     await connectToExtDb(context, 'datetimetable02', api);
     await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
@@ -985,13 +991,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
           'formula-2': sqliteDateHKTString,
         },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
-        { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
-      ],
-      // MSSQL: datetime2 ≈ PG timestamp-without-tz, datetimeoffset ≈ PG
-      // timestamptz → same display semantics as PG. Verify against the CI run.
-      mssql: [
-        { 'formula-1': '2023-04-28 18:00', 'formula-2': '2023-04-28 18:00' },
-        { 'formula-1': '2023-04-28 18:00', 'formula-2': '2023-04-28 12:30' },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
       ],
     };

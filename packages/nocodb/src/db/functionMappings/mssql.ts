@@ -1,9 +1,6 @@
 import dayjs from 'dayjs';
 import { JSEPNode } from 'nocodb-sdk';
-import commonFns, {
-  ALLOWED_DATEADD_UNITS,
-  validateDateAddUnit,
-} from './commonFns';
+import commonFns from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
@@ -36,27 +33,26 @@ const substringFn = async ({ fn, knex, pt }: MapFnArgs) => {
 const leastGreatestFn =
   (kind: 'LEAST' | 'GREATEST') =>
   async ({ fn, knex, pt }: MapFnArgs) => {
-    const argBuilders = await Promise.all(
-      pt.arguments.map(async (a) => (await fn(a)).builder),
-    );
+    const argResults = await Promise.all(pt.arguments.map((a) => fn(a)));
+    const argBuilders = argResults.map((r) => r.builder);
+    // Interpolate the arg builders directly rather than passing them as `?`
+    // bindings: the formula composer escapes positional `?` (`\?`) which
+    // mangles placeholder/binding alignment on mssql. Mirrors ROUNDUP / EVEN.
     if (argBuilders.length === 1) {
-      return { builder: knex.raw('?', [argBuilders[0]]) };
+      return { builder: knex.raw(`(${argBuilders[0]})`) };
     }
 
     if (getDbMajor(knex) >= MSSQL_2022) {
-      const placeholders = argBuilders.map(() => '?').join(', ');
+      const args = argBuilders.map((b) => `(${b})`).join(', ');
       return {
-        builder: knex.raw(`${kind}(${placeholders})`, argBuilders),
+        builder: knex.raw(`${kind}(${args})`),
       };
     }
 
-    const rows = argBuilders.map(() => '(?)').join(', ');
+    const rows = argBuilders.map((b) => `(${b})`).join(', ');
     const agg = kind === 'LEAST' ? 'MIN' : 'MAX';
     return {
-      builder: knex.raw(
-        `(SELECT ${agg}(v) FROM (VALUES ${rows}) AS nc_lg(v))`,
-        argBuilders,
-      ),
+      builder: knex.raw(`(SELECT ${agg}(v) FROM (VALUES ${rows}) AS nc_lg(v))`),
     };
   };
 
@@ -132,16 +128,19 @@ const mssql = {
   },
   ROUND: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
+    // T-SQL ROUND requires the length arg; default to 0 when omitted
+    // (NocoDB `ROUND(x)` rounds to integer).
     const precision = pt?.arguments[1]
       ? (await fn(pt.arguments[1])).builder
-      : 0;
+      : knex.raw('0');
     // T-SQL ROUND preserves the input type. NocoDB Number columns map to
     // BIGINT, so `ROUND({Number}, 2)` would return BIGINT → tedious
     // stringifies it. Cast to FLOAT so the result comes back as a JS
     // number, matching pg/mysql/sqlite. NULL propagates through CAST.
-    // Same rationale as the LEN override above.
+    // Same rationale as the LEN override above. Interpolate (not `?`) so the
+    // composer's `\?` escaping can't mangle the bindings — see leastGreatestFn.
     return {
-      builder: knex.raw(`CAST(ROUND((?), ?) AS FLOAT)`, [source, precision]),
+      builder: knex.raw(`CAST(ROUND((${source}), (${precision})) AS FLOAT)`),
     };
   },
   ROUNDUP: async ({ fn, knex, pt }: MapFnArgs) => {
@@ -203,9 +202,11 @@ END`,
   MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const dividend = (await fn(pt.arguments[0])).builder;
     const divisor = (await fn(pt.arguments[1])).builder;
-    // T-SQL has no MOD() function; use the modulo operator.
+    // T-SQL has no MOD() function; use the modulo operator. Interpolate (not
+    // `?`) so the composer's `\?` escaping can't mangle the bindings and ship
+    // column refs off as standalone batches — see leastGreatestFn.
     return {
-      builder: knex.raw(`(? % ?)`, [dividend, divisor]),
+      builder: knex.raw(`((${dividend}) % (${divisor}))`),
     };
   },
 
@@ -219,36 +220,6 @@ END`,
       builder: knex.raw(`DATEPART(HOUR, ?)`, [
         (await fn(pt.arguments[0])).builder,
       ]),
-    };
-  },
-  DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
-    const date = (await fn(pt.arguments[0])).builder;
-    const count = (await fn(pt.arguments[1])).builder;
-
-    // T-SQL: DATEADD(datepart, number, date). The NocoDB unit keywords
-    // (day/week/month/year/hour/minute/second) are valid T-SQL dateparts.
-    if (pt.arguments[2].type === 'Literal') {
-      const unit = validateDateAddUnit(
-        String((await fn(pt.arguments[2])).builder),
-      );
-      return {
-        builder: knex.raw(`DATEADD(${unit}, ?, ?)`, [count, date]),
-      };
-    }
-
-    // Dynamic unit (field reference): the datepart must be a keyword, so branch
-    // per allowed unit. The unit value is only compared via bindings, not
-    // interpolated, to prevent injection.
-    const unitExpr = (await fn(pt.arguments[2])).builder;
-    const units = [...ALLOWED_DATEADD_UNITS];
-    const branches = units
-      .map((u) => `WHEN LOWER(?) = '${u}' THEN DATEADD(${u}, ?, ?)`)
-      .join('\n');
-    return {
-      builder: knex.raw(
-        `CASE ${branches} ELSE NULL END`,
-        units.flatMap(() => [unitExpr, count, date]),
-      ),
     };
   },
   DATETIME_DIFF: async ({ fn, knex, pt }: MapFnArgs) => {

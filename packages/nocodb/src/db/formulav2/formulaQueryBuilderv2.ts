@@ -410,6 +410,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         return { builder: knex.raw(`N'${escapeSingles(v)}'`) };
       }
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'boolean') {
+        return { builder: knex.raw(pt.value ? '1' : '0') };
+      }
       return { builder: knex.raw(`?`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } =

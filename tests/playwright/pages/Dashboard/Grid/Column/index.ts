@@ -529,6 +529,18 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
+  async verifyFormulaUnsupportedAndClose() {
+    await expect(
+      this.get()
+        .getByText(/unavailable for your database/i)
+        .first()
+    ).toBeVisible();
+    await expect(this.get().locator('button:has-text("Save"), button:has-text("Update")').first()).toBeDisabled();
+    await this.get().locator('button:has-text("Cancel")').click();
+    await this.get().waitFor({ state: 'hidden' });
+    await this.rootPage.waitForTimeout(200);
+  }
+
   async verify({ title, isVisible = true, scroll = false }: { title: string; isVisible?: boolean; scroll?: boolean }) {
     if (!isVisible) {
       return await expect(this.getColumnHeader(title)).not.toBeVisible();

@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { enableQuickRun, isPg } from '../../../setup/db';
+import { enableQuickRun, isMssqlData, isPg } from '../../../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -104,7 +104,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'VALUE("12ab-c345")',
         result: ['-12345', '-12345', '-12345', '-12345', '-12345'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'TRUE()',
@@ -207,7 +207,11 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       },
       {
         formula: `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`,
-        result: isPg(context)
+        // Float results differ in the last sig-fig(s) per engine (FLOAT vs
+        // double rounding) — each dialect carries its own expected values.
+        result: isMssqlData(context)
+          ? ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667897', '284.87145481680676']
+          : isPg(context)
           ? ['13.04566088154786', '24.74547123273205', '57.61253379902822', '126.94617671688704', '283.9609869087087']
           : ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
         unSupDbType: ['sqlite3'],
@@ -292,8 +296,7 @@ test.describe('Virtual Columns', () => {
       });
 
       if (formulaData[i].unSupDbType?.includes(dbType)) {
-        // assert for message not supported or greyed out save button.
-        await dashboard.grid.column.checkMessageAndClose({ errorMessage: new RegExp('Function .* is not available') });
+        await dashboard.grid.column.verifyFormulaUnsupportedAndClose();
         continue;
       }
       await dashboard.grid.column.save({ isUpdated: true });

@@ -795,6 +795,15 @@ export class MssqlUi implements SqlUi {
       'REGEX_EXTRACT',
       'REGEX_REPLACE',
       'DATETIME_DIFF',
+      // T-SQL DATEADD(datepart, number, date) requires the unit as a bare
+      // datepart keyword, not a value — NocoDB passes it as a string literal
+      // ("day"), which compiles to N'day' and is not a valid datepart. Blocked
+      // rather than wrong.
+      'DATEADD',
+      // VALUE needs regex-style digit extraction from arbitrary text
+      // (e.g. "12ab-c345" -> -12345); T-SQL has no regex pre-2025, so the
+      // TRY_CAST-based impl can't reproduce it. Blocked rather than wrong.
+      'VALUE',
     ];
   }
 

@@ -31,6 +31,12 @@ export function safeDateAddUnitSQL(knex: Knex, unitBuilder: any): Knex.Raw {
   return knex.raw(`CASE LOWER(?) ${branches} ELSE 'day' END`, [unitBuilder]);
 }
 
+function logicalScalarSql(knex: MapFnArgs['knex'], predicates: string): string {
+  return knex.clientType() === 'mssql'
+    ? `CASE WHEN (${predicates}) THEN 1 ELSE 0 END`
+    : `(${predicates})`;
+}
+
 async function treatArgAsConditionalExp(
   args: MapFnArgs,
   argument = args.pt?.arguments?.[0],
@@ -324,7 +330,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})`,
+        logicalScalarSql(args.knex, predicates),
         parsedArguments.map((k) => k.builder),
       ),
     };
@@ -343,7 +349,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})`,
+        logicalScalarSql(args.knex, predicates),
         parsedArguments.map((k) => k.builder),
       ),
     };

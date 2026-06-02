@@ -27,6 +27,8 @@ const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
 
 const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 
+const isSynced = computed(() => !!table.value?.synced)
+
 const isLoading = ref(false)
 
 const { status, dependency, checkDependency } = useDependencies()
@@ -169,6 +171,7 @@ const onDelete = async () => {
           {{ table.title }}
         </div>
       </div>
+      <NcAlert v-if="isSynced" type="warning" class="mt-4" :message="$t('labels.deleteSyncedTableWarning')" :show-icon="true" />
       <div class="mt-4">
         <NcDependencyList
           :status="status"

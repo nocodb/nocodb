@@ -53,6 +53,11 @@ export interface TableSyncMappingType {
 
   role: TableSyncMappingRole;
 
+  /** Soft-delete flag. Set when the mapping's destination table is sent to
+   *  trash; restoring the table clears it. Soft-deleted mappings are excluded
+   *  from sync dispatch and list responses. */
+  deleted?: boolean;
+
   created_at: string;
   updated_at: string;
 }
@@ -79,6 +84,11 @@ export interface TableSyncType {
   last_synced_at: string | null;
 
   sync_job_id: string | null;
+
+  /** Soft-delete flag. Set when the sync's last live destination table is sent
+   *  to trash; restoring the table clears it. Soft-deleted syncs are hidden
+   *  from Manage Syncs and skipped by the dispatcher. */
+  deleted?: boolean;
 
   created_at: string;
   updated_at: string;

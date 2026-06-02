@@ -12,10 +12,19 @@ export function useDocumentAutoSave({
   editor,
   activeProjectId,
   isEditable,
+  collabActive,
 }: {
   editor: Ref<Editor | undefined>
   activeProjectId: Ref<string | undefined>
   isEditable: Ref<boolean>
+  /**
+   * When true, real-time Yjs collaboration owns the document body — the
+   * backend persists the Y.Doc server-side, so the REST `content` write here
+   * must be skipped (it would be rejected while the doc is live). Title/meta
+   * saves are unaffected. Optional + defaults to inactive so other callers
+   * (cell mode never calls this composable) are unchanged.
+   */
+  collabActive?: Ref<boolean>
 }) {
   const documentsStore = useDocumentsStore()
   const { loadDocument, updateDocument } = documentsStore
@@ -119,18 +128,31 @@ export function useDocumentAutoSave({
     try {
       const content = editor.value.getJSON()
 
-      // Guard: skip saving if editor state is empty AND the title hasn't changed
-      // AND no user edit has occurred. This prevents data loss from transient editor
-      // state corruption (e.g. paste bugs) while still allowing intentional clears
-      // and title-only saves on pages with empty bodies.
-      const nodeCount = content?.content?.length ?? 0
-      const firstType = content?.content?.[0]?.type
-      const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+      // When collab is active, Yjs owns the document body server-side — the REST
+      // path may only carry title/version, never `content` (a content write
+      // would be rejected while the doc is live). So the body-related empty-doc
+      // guard and the `content` payload field are both skipped in that mode.
       const effectiveTitle = title.value || 'Untitled'
       const titleChanged = effectiveTitle !== lastSavedTitle.value
-      if (isEmptyDoc && !titleChanged && !hasUserEdited.value) {
-        isSaving.value = false
-        return
+
+      if (collabActive?.value) {
+        // Title-only save: nothing to persist if the title is unchanged.
+        if (!titleChanged) {
+          isSaving.value = false
+          return
+        }
+      } else {
+        // Guard: skip saving if editor state is empty AND the title hasn't changed
+        // AND no user edit has occurred. This prevents data loss from transient editor
+        // state corruption (e.g. paste bugs) while still allowing intentional clears
+        // and title-only saves on pages with empty bodies.
+        const nodeCount = content?.content?.length ?? 0
+        const firstType = content?.content?.[0]?.type
+        const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+        if (isEmptyDoc && !titleChanged && !hasUserEdited.value) {
+          isSaving.value = false
+          return
+        }
       }
 
       // Capture doc ID before the async call — if the user navigates during
@@ -141,7 +163,7 @@ export function useDocumentAutoSave({
 
       const updated = await updateDocument(activeProjectId.value, savingDocId, {
         title: effectiveTitle,
-        content,
+        ...(collabActive?.value ? {} : { content }),
         version: doc.value.version,
       })
 
@@ -244,14 +266,21 @@ export function useDocumentAutoSave({
       // Discard if navigated away during editor wait
       if (thisLoad !== loadSequence) return
 
-      // Suppress onUpdate → debouncedSave while loading content programmatically
-      isSettingContent.value = true
-      editor.value!.commands.setContent(parsed)
+      // When collab is active the Y.Doc (via the Collaboration extension) is the
+      // single source of truth for the body — pushing `setContent` here would
+      // conflict with / duplicate the CRDT state. The loaded `content` is still
+      // used by Editor.vue's one-time bootstrap to seed legacy docs into the
+      // Y.Doc. Title/meta loading above is unaffected.
+      if (!collabActive?.value) {
+        // Suppress onUpdate → debouncedSave while loading content programmatically
+        isSettingContent.value = true
+        editor.value!.commands.setContent(parsed)
 
-      // Wait a tick for ProseMirror to finish its transaction cycle
-      // before re-enabling user-edit saves
-      await nextTick()
-      isSettingContent.value = false
+        // Wait a tick for ProseMirror to finish its transaction cycle
+        // before re-enabling user-edit saves
+        await nextTick()
+        isSettingContent.value = false
+      }
     }
     isLoaded.value = true
   }
@@ -291,14 +320,23 @@ export function useDocumentAutoSave({
         const docTitle = title.value || 'Untitled'
         const baseId = activeProjectId.value
 
-        // Guard: skip saving empty doc on unmount unless title changed or user edited
-        const nodeCount = content?.content?.length ?? 0
-        const firstType = content?.content?.[0]?.type
-        const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
         const titleChanged = docTitle !== lastSavedTitle.value
-        if (!(isEmptyDoc && !titleChanged && !hasUserEdited.value)) {
-          // Fire-and-forget is acceptable here — content is already captured
-          updateDocument(baseId, docId, { title: docTitle, content, version })
+
+        if (collabActive?.value) {
+          // Collab owns the body server-side — flush a title-only save when the
+          // title changed; never send `content`.
+          if (titleChanged) {
+            updateDocument(baseId, docId, { title: docTitle, version })
+          }
+        } else {
+          // Guard: skip saving empty doc on unmount unless title changed or user edited
+          const nodeCount = content?.content?.length ?? 0
+          const firstType = content?.content?.[0]?.type
+          const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+          if (!(isEmptyDoc && !titleChanged && !hasUserEdited.value)) {
+            // Fire-and-forget is acceptable here — content is already captured
+            updateDocument(baseId, docId, { title: docTitle, content, version })
+          }
         }
       }
     }

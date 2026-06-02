@@ -37,6 +37,8 @@ onBeforeRouteLeave(() => {
 
 <template>
   <div class="flex flex-col h-full w-full" data-testid="docs-opened-page">
-    <LazyDocEditor v-if="docId" :doc-id="docId" />
+    <!-- Key by docId so the editor (and its collaborative Y.Doc session) is
+         recreated per document instead of reused across doc→doc navigation. -->
+    <LazyDocEditor v-if="docId" :key="docId" :doc-id="docId" />
   </div>
 </template>

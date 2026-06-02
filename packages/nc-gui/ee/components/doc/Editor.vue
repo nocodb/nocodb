@@ -6,6 +6,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+import * as Y from 'yjs'
+import { prosemirrorJSONToYDoc } from 'y-prosemirror'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
 import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
@@ -87,6 +91,70 @@ const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 const { showShareModal } = storeToRefs(useShare())
 
 const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermissions } = useEeConfig()
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+// --- Yjs collaborative editing ---
+// Single source of truth for whether real-time collab is active for this editor.
+// OFF for: CE (isEeUI false), cell mode (SmartText / public reader), and any
+// mount where the doc/workspace/base ids aren't resolvable synchronously (the
+// route-derived ids `activeProjectId` / `activeWorkspaceId` are available at
+// setup on the in-app docs page, so collab activates there). When false the
+// editor behaves exactly as before — none of the collab branches below run.
+const collabEnabled =
+  isEeUI && props.mode === 'doc' && !!docId.value && !!activeProjectId.value && !!activeWorkspaceId.value && !!user.value?.id
+
+// Stable per-user cursor color (mirrors usePresence's getConsistentColor — that
+// helper is module-private there, so the algorithm is replicated here to keep
+// cursor colors consistent with the presence avatars).
+const COLLAB_CURSOR_COLORS = [
+  '#6366f1',
+  '#f59e0b',
+  '#10b981',
+  '#ef4444',
+  '#8b5cf6',
+  '#ec4899',
+  '#06b6d4',
+  '#84cc16',
+  '#f97316',
+  '#14b8a6',
+  '#a855f7',
+  '#f43f5e',
+]
+
+function collabColorForUser(userId: string): string {
+  let hash = 0
+  for (let i = 0; i < userId.length; i++) {
+    hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0
+  }
+  return COLLAB_CURSOR_COLORS[Math.abs(hash) % COLLAB_CURSOR_COLORS.length]
+}
+
+const collabUser = collabEnabled
+  ? {
+      id: user.value!.id,
+      name: user.value?.display_name || user.value?.email || 'Anonymous',
+      color: collabColorForUser(user.value!.id),
+    }
+  : null
+
+// Owns the Y.Doc + Awareness lifecycle and the socket sync handshake. Created
+// once at setup (the ids are resolved synchronously above). Teardown is handled
+// by the composable's own onScopeDispose.
+const collab = collabEnabled
+  ? useDocumentCollab({
+      docId: docId.value,
+      workspaceId: activeWorkspaceId.value!,
+      baseId: activeProjectId.value!,
+      user: collabUser!,
+    })
+  : null
+
+const collabSynced = collab?.synced ?? ref(false)
+
+// Track whether we've already seeded a legacy doc's PM JSON into the Y.Doc this
+// session, so the bootstrap watch runs at most once.
+let hasBootstrapped = false
 
 // Page context menu (3-dot) open state
 const isPageMenuOpen = ref(false)
@@ -215,7 +283,7 @@ const {
         activeDocument: ref<any>(null),
       }
     })()
-  : useDocumentAutoSave({ editor, activeProjectId, isEditable })
+  : useDocumentAutoSave({ editor, activeProjectId, isEditable, collabActive: ref(collabEnabled) })
 
 // Unsaved-changes safety net — mirrors the SmartTextPanel/Modal pattern.
 // `flushOnUnmount` already runs on component unmount (covers SPA navigation),
@@ -1160,12 +1228,28 @@ const looksLikeMarkdown = (text: string): boolean => {
 }
 
 const _tiptapEditor = useEditor({
-  editable: isEditable.value,
+  // When collab is active the editor stays non-editable until the Y.Doc has
+  // synced (so the user can't type into an unsynced doc and lose/duplicate
+  // content); editability still ultimately tracks `isEditable` (read-only
+  // viewers join collab to see live edits but can't write).
+  editable: isEditable.value && (!collabEnabled || collabSynced.value),
   extensions: [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
       codeBlock: false, // replaced by DocCodeBlockExtension (lowlight + language selector)
+      // Collaboration brings its own Yjs-backed undo manager — the StarterKit
+      // history plugin must be disabled to avoid conflicting with it.
+      ...(collabEnabled ? { history: false } : {}),
     }),
+    ...(collabEnabled && collab
+      ? [
+          Collaboration.configure({ document: collab.ydoc, field: 'default' }),
+          CollaborationCursor.configure({
+            provider: { awareness: collab.awareness } as any,
+            user: { name: collabUser!.name, color: collabUser!.color },
+          }),
+        ]
+      : []),
     DocCodeBlockExtension,
     Underline,
     DocHighlightExtension,
@@ -1560,7 +1644,10 @@ const _tiptapEditor = useEditor({
       // Cell mode: parent owns persistence; emit JSON on every edit.
       // No debounce here — SmartTextPanel batches via session-end triggers.
       emit('update:content', e.getJSON() as Record<string, any>)
-    } else {
+    } else if (!collabEnabled) {
+      // Collab mode: the server owns body persistence via Yjs, so skip the REST
+      // debounced save. Title saves are persisted separately (onTitleBlur /
+      // debouncedTitleSync).
       debouncedSave()
     }
     countTasks()
@@ -1699,11 +1786,54 @@ watch(editor, (ed) => {
 
 // Keep editor editable state in sync with the user's role.
 // Roles may resolve asynchronously (e.g. after workspace/base data loads).
-watch(isEditable, (val) => {
+// When collab is active, also gate on `collabSynced` so the editor stays
+// read-only until the Y.Doc has converged with the server (prevents typing
+// into an unsynced doc). `collabSynced` is a static `ref(false)` when collab
+// is off, so the expression collapses to plain `isEditable` in that case.
+watch([isEditable, collabSynced], ([val, synced]) => {
   if (editor.value) {
-    editor.value.setEditable(val)
+    editor.value.setEditable(val && (!collabEnabled || synced))
   }
 })
+
+// Bootstrap legacy docs into the CRDT. The first client to open a doc whose
+// server-side Y.Doc is still empty seeds it from the doc's stored PM JSON, so
+// existing (pre-collab) documents migrate into Yjs. After the first persist the
+// server's Yjs state is non-empty, so subsequent clients see content via the
+// sync handshake and skip seeding — `hasBootstrapped` additionally guards
+// against re-seeding within this session. Gated on `isLoaded` too so the stored
+// `content` is available before we decide whether to seed (synced and the doc
+// load resolve independently).
+if (collabEnabled && collab) {
+  watch([collabSynced, isLoaded], ([synced, loaded]) => {
+    if (!synced || !loaded || hasBootstrapped) return
+
+    const fragment = collab.ydoc.getXmlFragment('default')
+    if (fragment.length > 0) {
+      // Server already has content — nothing to migrate.
+      hasBootstrapped = true
+      return
+    }
+
+    const schema = editor.value?.schema
+    const legacyContent = parseDocContent(doc.value?.content)
+    const isEmptyLegacy =
+      !legacyContent?.content?.length ||
+      (legacyContent.content.length === 1 && legacyContent.content[0]?.type === 'paragraph' && !legacyContent.content[0]?.content)
+
+    if (!schema || isEmptyLegacy) {
+      // Nothing meaningful to seed; mark bootstrapped so we don't re-check.
+      hasBootstrapped = true
+      return
+    }
+
+    // Seed via a normal Yjs update (origin is NOT 'remote') so it propagates to
+    // the server and other clients.
+    const seededDoc = prosemirrorJSONToYDoc(schema, legacyContent, 'default')
+    Y.applyUpdate(collab.ydoc, Y.encodeStateAsUpdate(seededDoc))
+    hasBootstrapped = true
+  })
+}
 
 const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 

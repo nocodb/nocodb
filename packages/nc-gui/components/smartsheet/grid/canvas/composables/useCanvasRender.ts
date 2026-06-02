@@ -331,6 +331,21 @@ export function useCanvasRender({
       xOffset += width
     }
 
+    // Fixed columns (pv/Title) need the same full-height tint as non-fixed
+    // columns so the overlay extends below the last row consistently.
+    // renderRows already paints a solid bg for each row cell, so there is no
+    // bleed-through risk. Row-meta columns have no columnObj.id and are skipped.
+    if (fixedCols.value.length) {
+      let fixedXOffset = 0
+      for (const column of fixedCols.value) {
+        const width = parseCellWidth(column.width)
+        if (column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+          ctx.fillRect(fixedXOffset, bodyTop, width, bodyHeight)
+        }
+        fixedXOffset += width
+      }
+    }
+
     ctx.restore()
   }
 

@@ -30,7 +30,7 @@ async function onCreateDocument() {
 </script>
 
 <template>
-  <div v-if="isActionVisible" class="relative">
+  <div v-if="isActionVisible" class="relative flex items-stretch">
     <ProjectActionItem
       class="nc-base-view-all-pages-btn"
       :label="$t('dashboards.create_new_document')"

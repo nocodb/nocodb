@@ -24,7 +24,7 @@ const isActionVisible = computed(() => {
 </script>
 
 <template>
-  <div v-if="isActionVisible" class="relative">
+  <div v-if="isActionVisible" class="relative flex items-stretch">
     <ProjectActionItem
       :label="$t('labels.scriptsByNocoDB')"
       :subtext="$t('msg.subText.scriptsByNocoDB')"

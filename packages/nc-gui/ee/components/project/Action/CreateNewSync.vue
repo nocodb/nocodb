@@ -14,7 +14,7 @@ const { appInfo } = useGlobal()
 <template>
   <ProjectSyncCreateProvider :base-id="baseId">
     <template #default="{ createSyncClick }">
-      <div class="relative">
+      <div class="relative flex items-stretch">
         <ProjectActionItem
           v-e="['c:table:create-sync']"
           data-testid="proj-view-btn__create-sync"

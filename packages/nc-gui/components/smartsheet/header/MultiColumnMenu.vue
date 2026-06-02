@@ -75,37 +75,56 @@ const hideAllSelected = async () => {
       }
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       props.columns.map(async (col) => {
         if (!col.id) return
         const viewCol = gridViewCols.value[col.id] ?? viewColumnList.find((f: any) => f.fk_column_id === col.id)
-        if (!viewCol) return
-        try {
-          await $api.internal.postOperation(
-            meta.value!.fk_workspace_id!,
-            meta.value!.base_id!,
-            {
-              operation: 'viewColumnUpdate',
-              viewId: view.value!.id!,
-              columnId: viewCol.id!,
-            },
-            { show: false },
-          )
-        } finally {
+        if (!viewCol) {
           delete hidingViewColumnsMap.value[col.id]
+          return
         }
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'viewColumnUpdate',
+            viewId: view.value!.id!,
+            columnId: viewCol.id!,
+          },
+          { show: false },
+        )
+        // Only remove from the tracking map on success — failures stay in the
+        // map so the rollback loop below can restore their visibility.
+        delete hidingViewColumnsMap.value[col.id]
       }),
     )
 
-    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger()
-    $e('a:field:hide:multi', { count: columnCount.value })
-  } catch (e: any) {
-    // Roll back the optimistic flip for any column still flagged as hiding.
+    // Roll back optimistic flips for any column whose API call failed.
     for (const col of props.columns) {
       if (!col.id) continue
       if (hidingViewColumnsMap.value[col.id]) {
-        fieldsMap.value[col.id].show = true
+        if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
+        delete hidingViewColumnsMap.value[col.id]
+      }
+    }
+
+    const failedCount = results.filter((r) => r.status === 'rejected').length
+    if (failedCount) {
+      message.error(t('msg.error.columnVisibilityUpdateFailed'))
+    }
+
+    const succeededCount = results.length - failedCount
+    if (succeededCount) {
+      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      reloadDataHook?.trigger()
+      $e('a:field:hide:multi', { count: succeededCount })
+    }
+  } catch (e: any) {
+    // Unexpected error (e.g. viewColumnList fetch failed) — roll back everything.
+    for (const col of props.columns) {
+      if (!col.id) continue
+      if (hidingViewColumnsMap.value[col.id]) {
+        if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
         delete hidingViewColumnsMap.value[col.id]
       }
     }
@@ -251,7 +270,7 @@ const onPermissionsSaved = () => {
       >
         <div class="nc-multi-column-groupby nc-header-menu-item">
           <component :is="iconMap.group" class="opacity-80" />
-          {{ t('activity.groupByNFields', { count: columnCount }) }}
+          {{ t('activity.groupByNFields', { count: groupableColumns.length }) }}
         </div>
       </NcMenuItem>
     </NcTooltip>

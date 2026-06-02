@@ -24,6 +24,8 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/sandbox-id-preservation.test').sandboxIdPreservationTests();
         require('./ee/undo-redo-roundtrip.test').undoRedoRoundtripTests();
         require('./ee/undo-redo/index.test').undoRedoFullCoverageTests();
+        require('./ee/docs-collab-protocol.test').docsCollabProtocolTests();
+        require('./ee/docs-collab-persist.test').docsCollabPersistTests();
       } catch (e) {
         // EE test files not available in CE
       }

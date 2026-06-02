@@ -25,6 +25,3 @@ export function docsCollabPersistTests() {
     });
   });
 }
-
-// Invoke the suite when loaded directly by the mocha CLI
-docsCollabPersistTests();

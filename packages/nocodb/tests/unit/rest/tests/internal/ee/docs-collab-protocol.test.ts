@@ -41,6 +41,3 @@ export function docsCollabProtocolTests() {
     });
   });
 }
-
-// Invoke the suite when loaded directly by the mocha CLI
-docsCollabProtocolTests();

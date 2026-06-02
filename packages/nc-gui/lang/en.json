@@ -3404,6 +3404,8 @@
     "sourceViewNotShared": "Sync is disabled on this view",
     "sourceViewNotSharedDesc": "Enable \"Allow sync\" on the source view to use it as a sync source.",
     "deleteSyncIntro": "Choose what to do with the destination tables for \"{name}\".",
+    "syncTablesMovedToTrash": "Synced tables moved to Trash.",
+    "syncTablesRestored": "Synced tables restored.",
     "workspaceUpgradeInProgress": "Upgrading workspace…",
     "workspaceUpgradeComplete": "Workspace upgraded successfully.",
     "bookmarkAdded": "Bookmark added",

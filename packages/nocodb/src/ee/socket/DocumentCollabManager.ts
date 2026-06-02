@@ -3,6 +3,7 @@ import * as Y from 'yjs';
 import { Awareness } from 'y-protocols/awareness';
 import type { NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
+import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { documentCollabPersist } from '~/commands/documentCollabPersist';
@@ -151,6 +152,7 @@ export class DocumentCollabManager {
     if (s.heartbeatTimer) clearInterval(s.heartbeatTimer);
     s.awareness.destroy();
     s.ydoc.destroy();
+    await DocCollabPubSub.unsubscribe(docId);
     this.sessions.delete(docId);
     try {
       await NocoCache.delHashField(s.context, CacheScope.DOC_LIVE, docId);

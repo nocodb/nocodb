@@ -277,10 +277,11 @@ export class MssqlUi implements SqlUi {
 
   static getDefaultLengthForDatatype(type): any {
     switch (type) {
-      case 'char':
       case 'varchar':
-      case 'nchar':
       case 'nvarchar':
+        return 'MAX';
+      case 'char':
+      case 'nchar':
       case 'binary':
       case 'varbinary':
         return 255;

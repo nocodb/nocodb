@@ -1431,7 +1431,7 @@
     "convertToPlainTables": "Convert to plain tables",
     "convertToPlainTablesDesc": "Keep the synced data but unlock the tables for editing. The sync config is removed.",
     "deleteSyncedTables": "Delete synced tables",
-    "deleteSyncedTablesDesc": "Drop the mirrored tables and remove the sync config.",
+    "deleteSyncedTablesDesc": "Send the mirrored tables to Trash and remove the sync config. You can restore them later.",
     "deleteSyncedTableWarning": "This table is synced. Deleting it removes its sync configuration. You can restore both from Trash.",
     "resolve": "Resolve",
     "resolving": "Resolving",

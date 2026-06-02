@@ -14,6 +14,14 @@ const isPg = (context: NcContext) => context.dbType === 'pg';
 
 const isMssql = (context: NcContext) => context.dbType === 'mssql';
 
+const isMssqlData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'mssql';
+
+const isPglData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'pg';
+
+const isMysqlData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'mysql';
+
+const isSqliteData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'sqlite';
+
 const isEE = () => process.env.EE === 'true';
 
 const FULL_RUN_DIALECTS = ['pg', 'mssql'];
@@ -87,4 +95,19 @@ async function sqliteExec(query) {
   }
 }
 
-export { sqliteExec, mysqlExec, mssqlExec, isMysql, isSqlite, isPg, isMssql, pgExec, isEE, enableQuickRun };
+export {
+  sqliteExec,
+  mysqlExec,
+  mssqlExec,
+  isMysql,
+  isSqlite,
+  isPg,
+  isMssql,
+  isMssqlData,
+  pgExec,
+  isEE,
+  enableQuickRun,
+  isPglData,
+  isMysqlData,
+  isSqliteData,
+};

@@ -1704,7 +1704,7 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
-        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3'];
+        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'mssql'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
         );
@@ -2134,6 +2134,31 @@ export class ColumnsService implements IColumnsService {
                 column_name: column.column_name,
               },
             );
+          } else if (driverType === 'mssql') {
+            // No regex/array funcs — mirror the sqlite path: wrap in commas,
+            // collapse whitespace around the delimiter (', '→',', ' ,'→',',
+            // ',,'→','), then strip the bounding commas. CASE guards an
+            // all-empty value (collapsed result is ',') so SUBSTRING never
+            // gets a negative length.
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = SUBSTRING(
+                REPLACE(REPLACE(REPLACE(',' + :column_name: + ',', ', ', ','), ' ,', ','), ',,', ','),
+                2,
+                CASE
+                  WHEN LEN(REPLACE(REPLACE(REPLACE(',' + :column_name: + ',', ', ', ','), ' ,', ','), ',,', ',')) > 2
+                  THEN LEN(REPLACE(REPLACE(REPLACE(',' + :column_name: + ',', ', ', ','), ' ,', ','), ',,', ',')) - 2
+                  ELSE 0
+                END
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
           }
         }
 
@@ -2207,6 +2232,25 @@ export class ColumnsService implements IColumnsService {
                     column.column_name,
                     column.column_name,
                     option.title,
+                  ],
+                );
+              } else if (driverType === 'mssql') {
+                // No array type — the value is a comma-joined nvarchar. Wrap it
+                // in delimiters, splice the option out, then strip the bounding
+                // commas. The CASE guards the all-removed case (result is ',')
+                // so SUBSTRING never receives a negative length.
+                await sqlClient.raw(
+                  `UPDATE ?? SET ?? = SUBSTRING(REPLACE(',' + ?? + ',', ',' + ? + ',', ','), 2, CASE WHEN LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',')) > 2 THEN LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',')) - 2 ELSE 0 END) WHERE ?? IS NOT NULL`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
                   ],
                 );
               }
@@ -2403,6 +2447,23 @@ export class ColumnsService implements IColumnsService {
                     newOp.title,
                   ],
                 );
+              } else if (driverType === 'mssql') {
+                // Swap the option title inside the comma-joined nvarchar. A
+                // rename never empties the value, so LEN - 2 is always >= 0.
+                await sqlClient.raw(
+                  `UPDATE ?? SET ?? = SUBSTRING(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ','), 2, LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ',')) - 2) WHERE ?? IS NOT NULL`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    column.column_name,
+                  ],
+                );
               }
             }
           }
@@ -2483,6 +2544,21 @@ export class ColumnsService implements IColumnsService {
                   column.column_name,
                   ch.temp_title,
                   newOp.title,
+                ],
+              );
+            } else if (driverType === 'mssql') {
+              await sqlClient.raw(
+                `UPDATE ?? SET ?? = SUBSTRING(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ','), 2, LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ',')) - 2) WHERE ?? IS NOT NULL`,
+                [
+                  baseModel.getTnPath(table.table_name),
+                  column.column_name,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  column.column_name,
                 ],
               );
             }

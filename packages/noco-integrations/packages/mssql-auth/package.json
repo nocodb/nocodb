@@ -1,0 +1,24 @@
+{
+  "name": "@noco-integrations/mssql-auth",
+  "version": "0.1.0",
+  "description": "Microsoft SQL Server Authentication for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "knex": "3.1.0",
+    "tedious": "^18.6.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
+  }
+}

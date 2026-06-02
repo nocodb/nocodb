@@ -8,7 +8,9 @@ import {
   type NcContext,
   type NcRequest,
   parseProp,
+  PlanFeatureTypes,
   RelationTypes,
+  SyncCategory,
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
@@ -18,7 +20,7 @@ import {
   syncSystemFieldsMap,
 } from '@noco-local-integrations/core';
 import type { OnModuleInit } from '@nestjs/common';
-import type { OnDeleteAction, SyncCategory, SyncType } from 'nocodb-sdk';
+import type { OnDeleteAction, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
   CustomSyncSchema,
@@ -45,6 +47,7 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { getMMColumnNames } from '~/helpers/columnHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class SyncModuleService implements OnModuleInit {
@@ -128,6 +131,11 @@ export class SyncModuleService implements OnModuleInit {
 
     if (!title || !sync_type || !sync_trigger || !sync_category) {
       NcError.badRequest('Invalid sync config');
+    }
+
+    // Custom sync is an Enterprise-only feature
+    if (sync_category === SyncCategory.CUSTOM) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_CUSTOM_SYNC);
     }
 
     for (const config of configs) {

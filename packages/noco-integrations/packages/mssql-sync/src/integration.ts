@@ -10,11 +10,11 @@ import type {
   SyncAbstractType,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type { MySQLAuthIntegration } from '@noco-integrations/mysql-auth';
+import type { MssqlAuthIntegration } from '@noco-integrations/mssql-auth';
 
-class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
+class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   public async getDestinationSchema(
-    auth: MySQLAuthIntegration,
+    auth: MssqlAuthIntegration,
   ): Promise<CustomSyncSchema> {
     if (
       this.config.custom_schema &&
@@ -37,12 +37,15 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         abstractType: SyncAbstractType;
       }[] = [];
 
-      // MySQL uses INFORMATION_SCHEMA.COLUMNS
+      // SQL Server uses INFORMATION_SCHEMA.COLUMNS
       const tableSchema = await auth.use(async (knex) => {
-        return knex.select('*').from('information_schema.columns').where({
-          table_name: table,
-          table_schema: this.config.database,
-        });
+        return knex
+          .select('COLUMN_NAME', 'DATA_TYPE')
+          .from('INFORMATION_SCHEMA.COLUMNS')
+          .where({
+            TABLE_NAME: table,
+            TABLE_SCHEMA: this.config.schema,
+          });
       });
 
       for (const column of tableSchema) {
@@ -55,16 +58,20 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         });
       }
 
-      // Get primary keys for MySQL
+      // Get primary keys. SQL Server PK constraint names are arbitrary, so join
+      // KEY_COLUMN_USAGE to TABLE_CONSTRAINTS and filter on CONSTRAINT_TYPE.
       const primaryKeys = await auth.use(async (knex) => {
         return knex
-          .select('COLUMN_NAME')
-          .from('information_schema.key_column_usage')
-          .where({
-            TABLE_NAME: table,
-            TABLE_SCHEMA: this.config.database,
-            CONSTRAINT_NAME: 'PRIMARY',
-          });
+          .select('kcu.COLUMN_NAME as COLUMN_NAME')
+          .from('INFORMATION_SCHEMA.KEY_COLUMN_USAGE as kcu')
+          .join('INFORMATION_SCHEMA.TABLE_CONSTRAINTS as tc', function () {
+            this.on('kcu.CONSTRAINT_NAME', '=', 'tc.CONSTRAINT_NAME')
+              .andOn('kcu.TABLE_NAME', '=', 'tc.TABLE_NAME')
+              .andOn('kcu.TABLE_SCHEMA', '=', 'tc.TABLE_SCHEMA');
+          })
+          .where('tc.CONSTRAINT_TYPE', 'PRIMARY KEY')
+          .andWhere('kcu.TABLE_NAME', table)
+          .andWhere('kcu.TABLE_SCHEMA', this.config.schema);
       });
 
       schema[table] = {
@@ -81,7 +88,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   public async fetchData(
-    auth: MySQLAuthIntegration,
+    auth: MssqlAuthIntegration,
     args: {
       targetTables?: (TARGET_TABLES | string)[];
       targetTableIncrementalValues?: Record<
@@ -98,11 +105,9 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         const schema =
           this.config.custom_schema || (await this.getDestinationSchema(auth));
 
-        // Get tables to sync
         const targetTables = args.targetTables || [];
         const incrementalValues = args.targetTableIncrementalValues || {};
 
-        // Process each table
         for (const tableName of targetTables) {
           const tableSchema = schema[tableName as string];
           if (!tableSchema) {
@@ -110,7 +115,6 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
             continue;
           }
 
-          // Get column information from schema
           const columnNames = tableSchema.columns.map((col) => col.title);
 
           // Pagination settings
@@ -119,11 +123,10 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
           let hasMore = true;
 
           while (hasMore) {
-            // Build query with pagination
             const rows = await auth.use(async (knex) => {
               let query = knex
                 .select(columnNames)
-                .from(`${this.config.database}.${tableName}`)
+                .from(`${this.config.schema}.${tableName}`)
                 .limit(pageSize)
                 .offset(offset);
 
@@ -137,29 +140,21 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
                 query = query.where(incrementalKey, '>', incrementalValue);
               }
 
-              // Add ordering to ensure consistent pagination
+              // SQL Server OFFSET/FETCH requires a deterministic ORDER BY.
               const primaryKeys = tableSchema.systemFields?.primaryKey;
               if (primaryKeys && primaryKeys.length > 0) {
-                // Order by primary key(s) for consistent pagination
                 primaryKeys.forEach((pk) => {
                   query = query.orderBy(pk, 'asc');
                 });
-              } else {
-                // Fallback: order by first column if no primary key
-                if (columnNames.length > 0) {
-                  query = query.orderBy(columnNames[0], 'asc');
-                }
+              } else if (columnNames.length > 0) {
+                query = query.orderBy(columnNames[0], 'asc');
               }
 
-              // Execute query
               return query;
             });
 
-            // Process rows
             for (const row of rows) {
               const recordId = this.generateRecordId(tableName as string, row);
-
-              // Format data according to schema
               const { data, links } = this.formatData(tableName as string, row);
 
               stream.push({
@@ -170,24 +165,22 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
               });
             }
 
-            // Check if we have more data
             hasMore = rows.length === pageSize;
             offset += pageSize;
 
-            // Log progress for large tables
             if (offset % 1000 === 0) {
               this.log(
-                `[MySQL Sync] Processed ${offset} records from table ${tableName}`,
+                `[SQL Server Sync] Processed ${offset} records from table ${tableName}`,
               );
             }
           }
 
           this.log(
-            `[MySQL Sync] Completed syncing table ${tableName}, total records processed: ${offset}`,
+            `[SQL Server Sync] Completed syncing table ${tableName}, total records processed: ${offset}`,
           );
         }
       } catch (error) {
-        console.error('Error fetching data from MySQL:', error);
+        console.error('Error fetching data from SQL Server:', error);
         stream.emit('error', error);
       } finally {
         stream.push(null); // End the stream
@@ -198,7 +191,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   /**
-   * Generate a unique record ID based on primary keys or fallback
+   * Generate a unique record ID based on primary keys.
    */
   private generateRecordId(tableName: string, row: any): string {
     const primaryKeys =
@@ -215,7 +208,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   /**
-   * Format data from MySQL to NocoDB format
+   * Format data from SQL Server to NocoDB format.
    */
   public formatData(
     targetTable: TARGET_TABLES | string,
@@ -224,7 +217,6 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     data: CustomSyncRecord;
     links?: Record<string, string[] | null>;
   } {
-    // Format the record with required SyncRecord fields
     const formattedData: CustomSyncRecord = {
       // Avoid raw data for custom schemas
       RemoteRaw: null,
@@ -232,9 +224,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
     const tableSchema = this.config.custom_schema?.[targetTable];
 
-    // Use schema to determine date fields if available
     if (tableSchema) {
-      // If the table has system fields defined, use them
       const systemFields = tableSchema.systemFields;
       if (systemFields) {
         if (systemFields.createdAt && data[systemFields.createdAt]) {
@@ -245,7 +235,6 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         }
       }
 
-      // map the columns to the SyncRecord fields
       for (const column of tableSchema.columns) {
         if (column.exclude) {
           continue;
@@ -262,12 +251,10 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
   public getIncrementalKey(targetTable: TARGET_TABLES | string): string | null {
     const schema = this.config.custom_schema;
-    // If the schema has a specific incremental key for this table, use it
-    if (schema && schema[targetTable]) {
-      const tableSchema = schema[targetTable];
-      const systemFields = tableSchema.systemFields;
 
-      // If systemFields defines an updatedAt field, use it for incremental sync
+    if (schema && schema[targetTable]) {
+      const systemFields = schema[targetTable].systemFields;
+
       if (systemFields && systemFields.updatedAt) {
         return systemFields.updatedAt;
       }
@@ -276,40 +263,30 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     return null;
   }
 
-  public async fetchOptions(auth: MySQLAuthIntegration, key: string) {
-    if (key === 'databases') {
-      const databases = await auth.use(async (knex) => {
-        return knex
-          .select('SCHEMA_NAME as database_name')
-          .from('information_schema.schemata')
-          .whereNotIn('SCHEMA_NAME', [
-            'information_schema',
-            'performance_schema',
-            'mysql',
-            'sys',
-          ]);
+  public async fetchOptions(auth: MssqlAuthIntegration, key: string) {
+    if (key === 'schemas') {
+      const schemas = await auth.use(async (knex) => {
+        return knex.select('SCHEMA_NAME').from('INFORMATION_SCHEMA.SCHEMATA');
       });
 
-      return databases.map((database: { database_name: string }) => ({
-        label: database.database_name,
-        value: database.database_name,
+      return schemas.map((schema: { SCHEMA_NAME: string }) => ({
+        label: schema.SCHEMA_NAME,
+        value: schema.SCHEMA_NAME,
       }));
     }
 
     if (key === 'tables') {
       const tables = await auth.use(async (knex) => {
         return knex
-          .select('TABLE_NAME as table_name')
-          .from('information_schema.tables')
-          .where({
-            TABLE_SCHEMA: this.config.database,
-            TABLE_TYPE: 'BASE TABLE',
-          });
+          .select('TABLE_NAME')
+          .from('INFORMATION_SCHEMA.TABLES')
+          .where({ TABLE_SCHEMA: this.config.schema })
+          .whereIn('TABLE_TYPE', ['BASE TABLE', 'VIEW']);
       });
 
-      return tables.map((table: { table_name: string }) => ({
-        label: table.table_name,
-        value: table.table_name,
+      return tables.map((table: { TABLE_NAME: string }) => ({
+        label: table.TABLE_NAME,
+        value: table.TABLE_NAME,
       }));
     }
 
@@ -320,45 +297,35 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     uidt: UITypes;
     abstractType: SyncAbstractType;
   } {
-    // `INFORMATION_SCHEMA.COLUMNS.DATA_TYPE` is matched here — it is the
-    // unqualified type (e.g. `int`, `varchar`, `datetime`), the length/precision
-    // lives in `COLUMN_TYPE`.
+    // `INFORMATION_SCHEMA.COLUMNS.DATA_TYPE` is matched here (e.g. `int`,
+    // `nvarchar`, `datetime2`, `bit`).
     const t = (type || '').toLowerCase();
 
     switch (t) {
       case 'tinyint':
       case 'smallint':
-      case 'mediumint':
       case 'int':
-      case 'integer':
       case 'bigint':
-      case 'year':
         return { uidt: UITypes.Number, abstractType: 'number' };
 
       case 'decimal':
       case 'numeric':
-      case 'dec':
-      case 'fixed':
+      case 'money':
+      case 'smallmoney':
       case 'float':
-      case 'double':
       case 'real':
         return { uidt: UITypes.Decimal, abstractType: 'decimal' };
 
-      // MySQL has no real boolean — `BOOL`/`BOOLEAN` are aliases for tinyint(1),
-      // which reports as `tinyint` above. `bit` is the closest true flag type.
       case 'bit':
-      case 'bool':
-      case 'boolean':
         return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
-
-      case 'json':
-        return { uidt: UITypes.JSON, abstractType: 'json' };
 
       case 'date':
         return { uidt: UITypes.Date, abstractType: 'date' };
 
       case 'datetime':
-      case 'timestamp':
+      case 'datetime2':
+      case 'smalldatetime':
+      case 'datetimeoffset':
         return { uidt: UITypes.DateTime, abstractType: 'datetime' };
 
       case 'time':
@@ -366,39 +333,39 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
       case 'char':
       case 'varchar':
-      case 'tinytext':
-      case 'enum':
-      case 'set':
+      case 'nchar':
+      case 'nvarchar':
+      case 'uniqueidentifier':
         return { uidt: UITypes.SingleLineText, abstractType: 'string' };
 
       case 'text':
-      case 'mediumtext':
-      case 'longtext':
+      case 'ntext':
+      case 'xml':
         return { uidt: UITypes.LongText, abstractType: 'string' };
     }
 
     // Fallbacks for length-qualified names.
-    if (t.startsWith('int') || t.includes('int(')) {
+    if (t.includes('int')) {
       return { uidt: UITypes.Number, abstractType: 'number' };
     }
     if (t.includes('char')) {
       return { uidt: UITypes.SingleLineText, abstractType: 'string' };
     }
-    if (t.includes('text')) {
-      return { uidt: UITypes.LongText, abstractType: 'string' };
-    }
     if (
-      t.includes('decimal') ||
       t.includes('numeric') ||
-      t.includes('double') ||
+      t.includes('decimal') ||
+      t.includes('money') ||
       t.includes('float')
     ) {
       return { uidt: UITypes.Decimal, abstractType: 'decimal' };
     }
+    if (t.includes('datetime')) {
+      return { uidt: UITypes.DateTime, abstractType: 'datetime' };
+    }
 
-    // binary, blob, geometry, etc.
+    // binary, varbinary, image, geography, etc.
     return { uidt: UITypes.SingleLineText, abstractType: 'string' };
   }
 }
 
-export default MySQLSyncIntegration;
+export default MssqlSyncIntegration;

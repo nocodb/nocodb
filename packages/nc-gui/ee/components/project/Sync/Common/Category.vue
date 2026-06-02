@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { SyncCategory, SyncCategoryMeta, TARGET_TABLES_META } from 'nocodb-sdk'
+import { PlanFeatureTypes, SyncCategory, SyncCategoryMeta, TARGET_TABLES_META } from 'nocodb-sdk'
 import { useSyncFormOrThrow } from '../useSyncForm'
 
 const categories = Object.values(SyncCategoryMeta)
 
-const { isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
-
 const { syncConfigForm, mode, syncCategoryIntegrationMap, activeBaseSyncs } = useSyncFormOrThrow()
+
+const { blockCustomSync, showUpgradeToUseCustomSync } = useEeConfig()
 
 const syncAllModels = computed(() => !!parseProp(syncConfigForm.value.meta).sync_all_models)
 
@@ -19,6 +19,8 @@ const availableModels = computed(() => {
 })
 
 const isCategoryAlreadyAdded = (category: SyncCategory) => {
+  if (category === SyncCategory.CUSTOM) return false
+
   return activeBaseSyncs.value.some((sync) => sync.sync_category === category)
 }
 
@@ -39,7 +41,9 @@ const selectCategory = (category: (typeof SyncCategoryMeta)[keyof typeof SyncCat
     return
   }
 
-  if (category.beta && !isSyncAdvancedFeaturesEnabled.value) {
+  // Custom sync is an Enterprise-only feature
+  if (category.value === SyncCategory.CUSTOM && blockCustomSync.value) {
+    showUpgradeToUseCustomSync()
     return
   }
 
@@ -106,10 +110,7 @@ onMounted(() => {
             'border-nc-border-gray-extradark !shadow-disabled':
               syncConfigForm.sync_category === category.value && mode === 'edit',
             'hover:shadow-hover cursor-pointer':
-              !category.comingSoon &&
-              (category.beta ? isSyncAdvancedFeaturesEnabled : true) &&
-              mode === 'create' &&
-              !isCategoryAlreadyAdded(category.value),
+              !category.comingSoon && mode === 'create' && !isCategoryAlreadyAdded(category.value),
             'cursor-not-allowed bg-nc-bg-gray-extralight': isCategoryAlreadyAdded(category.value),
           }"
           class="p-3 border-1 flex flex-col gap-2 rounded-lg transition-shadow border-nc-border-gray-medium"
@@ -123,7 +124,7 @@ onMounted(() => {
             }}
           </template>
           <div
-            v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
+            v-if="!category.comingSoon"
             class="max-h-5 h-5 flex items-center gap-1.5"
             @mouseenter.stop="isChildTooltipHovering = true"
             @mouseleave.stop="isChildTooltipHovering = false"
@@ -150,8 +151,15 @@ onMounted(() => {
           </div>
 
           <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />
-          <div class="text-captionBold text-nc-content-gray mt-1">
-            {{ category.label }}
+          <div class="flex items-center gap-2 mt-1">
+            <div class="text-captionBold text-nc-content-gray">
+              {{ category.label }}
+            </div>
+            <LazyPaymentUpgradeBadge
+              v-if="category.value === SyncCategory.CUSTOM"
+              :feature="PlanFeatureTypes.FEATURE_CUSTOM_SYNC"
+              size="xs"
+            />
           </div>
 
           <div>

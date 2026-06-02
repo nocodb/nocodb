@@ -58,7 +58,7 @@ const FEATURES = [
   {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
-    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
+    description: 'Enable sync beta features like multi source sync, etc.',
     enabled: false,
     version: 1,
     isEngineering: true,

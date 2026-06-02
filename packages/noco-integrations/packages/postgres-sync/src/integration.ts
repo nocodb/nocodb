@@ -326,40 +326,71 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     uidt: UITypes;
     abstractType: SyncAbstractType;
   } {
-    if (type) {
-      type = type.toLowerCase();
+    // `pg_type.typname` is matched here (e.g. `int4`, `bool`, `timestamptz`),
+    // not the friendly SQL name — keep the cases in terms of typnames.
+    const t = (type || '').toLowerCase();
 
-      if (type.includes('int')) {
+    switch (t) {
+      case 'int2':
+      case 'int4':
+      case 'int8':
+      case 'smallint':
+      case 'integer':
+      case 'bigint':
+      case 'serial':
+      case 'smallserial':
+      case 'bigserial':
         return { uidt: UITypes.Number, abstractType: 'number' };
-      }
 
-      if (type === 'text') {
-        return { uidt: UITypes.LongText, abstractType: 'string' };
-      }
-
-      if (type === 'boolean') {
-        return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
-      }
-
-      if (type === 'date') {
-        return { uidt: UITypes.Date, abstractType: 'date' };
-      }
-
-      if (type.includes('timestamp')) {
-        return { uidt: UITypes.DateTime, abstractType: 'datetime' };
-      }
-
-      if (
-        type.includes('decimal') ||
-        type.includes('numeric') ||
-        type.includes('real') ||
-        type.includes('double precision') ||
-        type.includes('float')
-      ) {
+      case 'numeric':
+      case 'decimal':
+      case 'float4':
+      case 'float8':
+      case 'real':
+      case 'double precision':
+      case 'money':
         return { uidt: UITypes.Decimal, abstractType: 'decimal' };
-      }
+
+      case 'bool':
+      case 'boolean':
+        return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
+
+      case 'json':
+      case 'jsonb':
+        return { uidt: UITypes.JSON, abstractType: 'json' };
+
+      case 'date':
+        return { uidt: UITypes.Date, abstractType: 'date' };
+
+      case 'timestamp':
+      case 'timestamptz':
+        return { uidt: UITypes.DateTime, abstractType: 'datetime' };
+
+      case 'time':
+      case 'timetz':
+        return { uidt: UITypes.Time, abstractType: 'time' };
+
+      case 'text':
+        return { uidt: UITypes.LongText, abstractType: 'string' };
     }
 
+    // Fallbacks for aliased / length-qualified names some drivers report.
+    if (t.includes('timestamp')) {
+      return { uidt: UITypes.DateTime, abstractType: 'datetime' };
+    }
+    if (t.startsWith('int') || t === 'serial') {
+      return { uidt: UITypes.Number, abstractType: 'number' };
+    }
+    if (
+      t.includes('numeric') ||
+      t.includes('decimal') ||
+      t.includes('double') ||
+      t.includes('float')
+    ) {
+      return { uidt: UITypes.Decimal, abstractType: 'decimal' };
+    }
+
+    // varchar, bpchar, char, name, uuid, bytea, etc.
     return { uidt: UITypes.SingleLineText, abstractType: 'string' };
   }
 }

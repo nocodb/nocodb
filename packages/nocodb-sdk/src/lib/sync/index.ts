@@ -160,7 +160,6 @@ export const SyncCategoryMeta = {
     label: 'Custom',
     description: 'Build a sync for another service or app.',
     icon: 'ncDatabase',
-    beta: true,
   },
 };
 

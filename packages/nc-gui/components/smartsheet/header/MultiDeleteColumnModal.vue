@@ -40,31 +40,34 @@ const skippedCount = computed(() => props.columns.length - deletableColumns.valu
 const onDelete = async () => {
   if (!deletableColumns.value.length) return
 
-  const deletedIds = new Set<string>()
-  const failures: string[] = []
+  // Fetch optimistic-concurrency hash then delete all columns in one call.
+  const columnsHash = (
+    await $api.internal.getOperation(meta!.value!.fk_workspace_id!, meta!.value!.base_id!, {
+      operation: 'columnsHash',
+      tableId: meta!.value!.id!,
+    })
+  ).hash
 
-  for (const col of deletableColumns.value) {
-    try {
-      await $api.internal.postOperation(
-        meta!.value!.fk_workspace_id!,
-        meta!.value!.base_id!,
-        {
-          operation: 'columnDelete',
-          columnId: col.id as string,
-        },
-        {},
-      )
-      deletedIds.add(col.id as string)
-    } catch (e: any) {
-      failures.push(col.title ?? col.id ?? '')
-    }
-  }
+  const result = await $api.internal.postOperation(
+    meta!.value!.fk_workspace_id!,
+    meta!.value!.base_id!,
+    { operation: 'columnsBulk', tableId: meta!.value!.id! },
+    {
+      hash: columnsHash,
+      ops: deletableColumns.value.map((col) => ({ op: 'delete', column: { id: col.id! } })),
+    },
+  ) as { failedOps?: Array<{ column: { id: string }; error: string }> }
+
+  const failedIds = new Set((result?.failedOps ?? []).map((f) => f.column.id))
+  const deletedIds = new Set(
+    deletableColumns.value.map((c) => c.id!).filter((id) => !failedIds.has(id)),
+  )
 
   // Refresh meta once after all deletions.
   await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
   // For any deleted LTAR, refresh the related table meta + tables list if it
-  // owned a junction. Same logic as single-column delete but batched.
+  // owned a junction.
   for (const col of deletableColumns.value) {
     if (!deletedIds.has(col.id as string)) continue
     if (!(isLinksOrLTAR(col) && col?.colOptions)) continue
@@ -87,8 +90,11 @@ const onDelete = async () => {
     $e('a:column:delete:multi', { count: deletedIds.size })
   }
 
-  if (failures.length) {
-    message.error(t('msg.error.someFieldsCouldNotBeDeleted', { fields: failures.join(', ') }))
+  if (failedIds.size) {
+    const failedTitles = deletableColumns.value
+      .filter((c) => failedIds.has(c.id!))
+      .map((c) => c.title ?? c.id ?? '')
+    message.error(t('msg.error.someFieldsCouldNotBeDeleted', { fields: failedTitles.join(', ') }))
   }
 
   visible.value = false

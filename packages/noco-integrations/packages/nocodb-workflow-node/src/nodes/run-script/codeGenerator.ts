@@ -1331,7 +1331,7 @@ Object.freeze(UITypes);
         const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData }, { query: { linksAsLtar: 'true' } });
         return new NocoDBRecord(data?.records?.[0], this).id;
       } catch (e) {
-        throw new Error(\`Failed to create record in table \${this.name}\`)
+        throw new Error(\`Failed to create record in table \${this.name}: \${e.response?.data?.msg || e.message}\`)
       }
     }
 
@@ -1367,7 +1367,7 @@ Object.freeze(UITypes);
         const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs, { query: { linksAsLtar: 'true' } });
         return (response.records || []).map(r => new NocoDBRecord(r, this).id);
       } catch (e) {
-        throw new Error(\`Failed to create records in table \${this.name}\`)
+        throw new Error(\`Failed to create records in table \${this.name}: \${e.response?.data?.msg || e.message}\`)
       }
     }
 
@@ -1385,7 +1385,7 @@ Object.freeze(UITypes);
       try {
         await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID }, { query: { linksAsLtar: 'true' } });
       } catch (e) {
-        throw new Error(\`Failed to update record \${recordId} in table \${this.name}\`)
+        throw new Error(\`Failed to update record \${recordId} in table \${this.name}: \${e.response?.data?.msg || e.message}\`)
       }
     }
 
@@ -1422,7 +1422,7 @@ Object.freeze(UITypes);
       try {
         await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs, { query: { linksAsLtar: 'true' } });
       } catch (e) {
-        throw new Error(\`Failed to update records in table \${this.name}\`)
+        throw new Error(\`Failed to update records in table \${this.name}: \${e.response?.data?.msg || e.message}\`)
       }
     }
     
@@ -1435,7 +1435,7 @@ Object.freeze(UITypes);
         await api.dbDataTableRowDelete(this.base.id, this.id, { id: recordID });
         return true
       } catch (e) {
-        throw new Error(\`Failed to delete record \${recordID} in table \${this.name}\`)
+        throw new Error(\`Failed to delete record \${recordID} in table \${this.name}: \${e.response?.data?.msg || e.message}\`)
       }
     }
     
@@ -1456,7 +1456,7 @@ Object.freeze(UITypes);
         await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
         return true
       } catch (e) {
-        throw new Error(\`Failed to delete records in table \${this.name}\`)
+        throw new Error(\`Failed to delete records in table \${this.name}: \${e.response?.data?.msg || e.message}\`)
       }
     }
 

@@ -127,7 +127,15 @@ export class TunnelClient {
       const url = `${this.localBaseUrl}${req.path}`;
 
       const headers: Record<string, string> = {};
-      const safeHeaders = ['content-type', 'accept', 'content-length'];
+      // NOTE: `content-length` is intentionally NOT forwarded. We re-materialize
+      // the request body from base64 below, so the inbound `content-length` may
+      // not match the re-encoded buffer's byte length. Node's fetch (undici)
+      // honors a forwarded `content-length`, and a mismatch throws
+      // UND_ERR_REQ_CONTENT_LENGTH_MISMATCH (too large) or hangs until timeout
+      // (too small) — both surface as a status-less network error. This is why
+      // SDK writes (POST/PATCH/DELETE with a body) failed while reads (GET, no
+      // body) succeeded. Let undici compute `content-length` from `body`.
+      const safeHeaders = ['content-type', 'accept'];
       for (const key of safeHeaders) {
         if (req.headers[key]) {
           headers[key] = req.headers[key];

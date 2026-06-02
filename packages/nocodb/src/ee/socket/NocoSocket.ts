@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import {
+  DocCollabClientEvents,
   EventType,
   extractRolesObj,
   hasMinimumRoleAccess,
@@ -16,6 +17,10 @@ import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
 import NocoPresence from '~/socket/NocoPresence';
+import * as Y from 'yjs';
+import { DocumentCollabManager } from '~/socket/DocumentCollabManager';
+import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
+import { handleSyncMessage } from '~/socket/documentSyncProtocol';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
@@ -112,6 +117,7 @@ export default class NocoSocket {
           EventType.SCRIPT_EVENT,
           EventType.PRESENCE_EVENT,
           EventType.SMART_TEXT_EVENT,
+          EventType.DOCUMENT_SYNC_EVENT,
         ].includes(eventType as EventType) &&
         userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
       ) {
@@ -154,6 +160,28 @@ export default class NocoSocket {
 
         // Store as the active presence room (base-level — one at a time)
         socket.data.presenceRoom = event;
+      }
+
+      // Collaborative docs: bind this socket to the server-authoritative Y.Doc.
+      if (eventType === EventType.DOCUMENT_SYNC_EVENT && baseId) {
+        const docId = eventHelper[3];
+        if (docId) {
+          const context = { workspace_id: workspaceId, base_id: baseId };
+          const session = await DocumentCollabManager.ensure(context, docId);
+          DocumentCollabManager.addSocket(docId, socket.id);
+          await DocCollabPubSub.ensureSubscribed(docId);
+
+          if (!socket.data.docSessions) socket.data.docSessions = new Map();
+          socket.data.docSessions.set(docId, session);
+          if (!socket.data.docRooms) socket.data.docRooms = new Set();
+          socket.data.docRooms.add(event);
+
+          // Read-only when the user lacks editor access — updates are ignored.
+          if (!hasMinimumRoleAccess(userWithRole, ProjectRoles.EDITOR)) {
+            if (!socket.data.docReadOnly) socket.data.docReadOnly = new Set();
+            socket.data.docReadOnly.add(docId);
+          }
+        }
       }
     } catch (error) {
       this.logger.error(`Error subscribing to event ${event}:`, error);
@@ -589,6 +617,9 @@ export default class NocoSocket {
     // ── Presence ──────────────────────────────────────────────────────────────
     NocoPresence.setupHandlers(socket);
 
+    // ── Collaborative docs ──────────────────────────────────────────────────────
+    this.setupDocCollabHandlers(socket);
+
     // Error handling
     socket.on('error', (error: Error) => {
       this.logger.error(`Socket error from ${socket.id}: ${error}`);
@@ -606,6 +637,13 @@ export default class NocoSocket {
       // condition where socket.rooms is cleared before the disconnect handler fires.
       NocoPresence.handleDisconnect(socket, this.ioServer);
 
+      // Release collaborative-doc sessions held by this socket (final persist
+      // + teardown happens inside DocumentCollabManager.release on last socket).
+      for (const room of socket.data.docRooms ?? []) {
+        const docId = (room as string).split(':')[3];
+        if (docId) void DocumentCollabManager.release(docId, socket.id);
+      }
+
       this.clients.delete(socket.id);
 
       if (reason === 'io server disconnect') {
@@ -615,6 +653,61 @@ export default class NocoSocket {
           'SERVER_DISCONNECT',
         );
       }
+    });
+  }
+
+  /**
+   * Collaborative-docs (Yjs) socket handlers. The socket must have subscribed
+   * to the doc's sync room first (see subscribeEvent → DOCUMENT_SYNC_EVENT),
+   * which populates socket.data.docSessions.
+   */
+  private static setupDocCollabHandlers(socket: NcSocket) {
+    // Yjs sync handshake: client sends SyncStep1, server replies SyncStep2.
+    socket.on(DocCollabClientEvents.SYNC, (msg) => {
+      const session = socket.data.docSessions?.get(msg?.docId);
+      if (!session) return;
+      const reply = handleSyncMessage(
+        session.ydoc,
+        new Uint8Array(msg.frame),
+        socket.id,
+      );
+      if (reply) {
+        socket.emit(msg.room, {
+          kind: 'sync',
+          docId: msg.docId,
+          frame: reply,
+          socketId: socket.id,
+        });
+      }
+    });
+
+    // Live edit: apply to the server Y.Doc, fan out to other clients (cluster-
+    // wide via the redis-adapter, sender excluded) and to peer nodes' Y.Docs
+    // (via PubSubRedis). Ignored when the socket is read-only for this doc.
+    socket.on(DocCollabClientEvents.UPDATE, async (msg) => {
+      const session = socket.data.docSessions?.get(msg?.docId);
+      if (!session || socket.data.docReadOnly?.has(msg.docId)) return;
+      const update = new Uint8Array(msg.update);
+      Y.applyUpdate(session.ydoc, update, socket.id);
+      DocumentCollabManager.markDirty(msg.docId, socket.user?.id);
+      socket.to(msg.room).emit(msg.room, {
+        kind: 'update',
+        docId: msg.docId,
+        update: msg.update,
+        socketId: socket.id,
+      });
+      await DocCollabPubSub.publishUpdate(msg.docId, update);
+    });
+
+    // Presence cursors: relay awareness to other clients (state is client-side).
+    socket.on(DocCollabClientEvents.AWARENESS, (msg) => {
+      if (!socket.data.docSessions?.has(msg?.docId)) return;
+      socket.to(msg.room).emit(msg.room, {
+        kind: 'awareness',
+        docId: msg.docId,
+        update: msg.update,
+        socketId: socket.id,
+      });
     });
   }
 }

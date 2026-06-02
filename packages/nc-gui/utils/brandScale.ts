@@ -20,6 +20,12 @@ const AUTOFILL_SELECTORS = [
   'textarea:-webkit-autofill',
   'textarea:-webkit-autofill:hover',
   'textarea:-webkit-autofill:focus',
+  // ant-design sets `box-shadow: none !important` on the inner input of an
+  // affix wrapper (e.g. password fields) with high specificity, which would
+  // beat the plain selector above — so out-specify it.
+  '.ant-input-affix-wrapper input.ant-input:-webkit-autofill',
+  '.ant-input-affix-wrapper input.ant-input:-webkit-autofill:hover',
+  '.ant-input-affix-wrapper input.ant-input:-webkit-autofill:focus',
 ].join(',\n')
 
 const AUTOFILL_NEUTRALIZE = `${AUTOFILL_SELECTORS} {

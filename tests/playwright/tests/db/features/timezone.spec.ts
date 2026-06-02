@@ -2,7 +2,17 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, PaginatedType, ProjectListType, UITypes } from 'nocodb-sdk';
-import { enableQuickRun, isEE, isMssqlData, isMysql, isPg, isSqlite } from '../../../setup/db';
+import {
+  enableQuickRun,
+  isEE,
+  isMssqlData,
+  isMysql,
+  isMysqlData,
+  isPg,
+  isPgData,
+  isSqlite,
+  isSqliteData,
+} from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -829,7 +839,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     let expectedDateTimeWithoutTz = [];
     let expectedDateTimeWithTz = [];
 
-    if (isSqlite(context)) {
+    if (isSqliteData(context)) {
       expectedDateTimeWithoutTz = [
         getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+05:30'),
@@ -840,7 +850,9 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+05:30'),
         getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
-    } else if (isPg(context)) {
+    } else if (isPgData(context) || isMssqlData(context)) {
+      // MSSQL matches PG: datetime2 stores offset-less (read as UTC) and
+      // datetimeoffset is fetched in UTC, so the API values are identical.
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 10:00:00+00:00',
@@ -851,7 +863,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         '2023-04-27 04:30:00+00:00',
         getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
-    } else if (isMysql(context)) {
+    } else if (isMysqlData(context)) {
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 04:30:00+00:00',

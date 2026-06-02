@@ -108,6 +108,18 @@ export async function resetSakilaMssql(database: string) {
 async function dropAndCreateDb(kn: Knex, dbName: string, dbType: string) {
   if (dbType === 'pg') {
     await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [dbName]);
+  } else if (dbType === 'mssql') {
+    // mssql has no `DROP DATABASE ... WITH FORCE`. A lingering external-source
+    // connection (NocoDB pools them) keeps the DB in use and makes DROP hang.
+    // Force every other session off first, mirroring pg's WITH (FORCE).
+    await kn.raw(
+      `IF DB_ID(?) IS NOT NULL
+       BEGIN
+         ALTER DATABASE ?? SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+         DROP DATABASE ??;
+       END`,
+      [dbName, dbName, dbName]
+    );
   } else {
     await kn.raw(`DROP DATABASE IF EXISTS ??`, [dbName]);
   }

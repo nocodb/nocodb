@@ -1164,13 +1164,18 @@ export class MssqlDBQueryClient
       case UITypes.LastModifiedTime:
       case UITypes.DateTime: {
         const columnName = await getColumnName(context, column, columns);
-        // mssql datetime/datetime2 are stored without TZ. Format to the
-        // offset-less `YYYY-MM-DD HH:mm:ss` shape DateTimeMssqlHandler expects.
-        // `CONVERT(VARCHAR(19), col, 120)` emits exactly that style. When the
-        // column is consumed inside a nested FOR JSON it stays a plain string
-        // (FOR JSON only auto-formats native datetime types).
+        // Fetch datetimes in UTC. `AT TIME ZONE 'UTC'` normalizes the value:
+        //  - datetime2 / datetime carry no offset → treated as already-UTC,
+        //    so this is a no-op (the stored wall-clock is preserved).
+        //  - datetimeoffset carries an offset → converted to UTC, so the read
+        //    returns the true UTC instant (not the local wall-clock that plain
+        //    `CONVERT(.., 120)` would emit, which drops the offset).
+        // We then format to the offset-less `YYYY-MM-DD HH:mm:ss` shape
+        // DateTimeMssqlHandler expects (it treats the string as UTC). Inside a
+        // nested FOR JSON it stays a plain string (FOR JSON only auto-formats
+        // native datetime types).
         qb.select(
-          knex.raw(`CONVERT(VARCHAR(19), ??.??, 120) AS ??`, [
+          knex.raw(`CONVERT(VARCHAR(19), ??.?? AT TIME ZONE 'UTC', 120) AS ??`, [
             sanitize(rootAlias),
             sanitize(columnName),
             getAs(column),

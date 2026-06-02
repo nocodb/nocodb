@@ -323,7 +323,9 @@ export class ListDatasService {
           }
         }
 
-        cteParts.push(`"__nc_l${depth}_ids" AS (${sanitize(levelQb.toQuery())})`);
+        cteParts.push(
+          `"__nc_l${depth}_ids" AS (${sanitize(levelQb.toQuery())})`,
+        );
       }
 
       modelIds.push(model.id);
@@ -761,7 +763,9 @@ export class ListDatasService {
           }
         }
 
-        cteParts.push(`"__nc_l${depth}_ids" AS (${sanitize(levelQb.toQuery())})`);
+        cteParts.push(
+          `"__nc_l${depth}_ids" AS (${sanitize(levelQb.toQuery())})`,
+        );
       }
 
       // --- Build hydration QB for this depth (references "page" CTE) ---

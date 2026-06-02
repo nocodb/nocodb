@@ -13,7 +13,8 @@ import {
   WebhookEvents,
 } from 'nocodb-sdk';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
-import { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 // @ts-ignore importing directly will cause circular dependency error
 import { type WorkflowExecutionService } from '~/services/workflow-execution.service';

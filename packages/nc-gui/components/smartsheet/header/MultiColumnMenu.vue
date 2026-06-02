@@ -288,7 +288,11 @@ const onPermissionsSaved = () => {
     </NcTooltip>
 
     <div class="non-menu-items">
-      <SmartsheetHeaderMultiDeleteColumnModal v-model:visible="showMultiDeleteModal" :columns="nonPvColumns" :on-deleted="onDeleted" />
+      <SmartsheetHeaderMultiDeleteColumnModal
+        v-model:visible="showMultiDeleteModal"
+        :columns="nonPvColumns"
+        :on-deleted="onDeleted"
+      />
       <DlgFieldMultiPermissions
         v-if="isEeUI && meta"
         v-model:visible="showMultiPermissionsModal"

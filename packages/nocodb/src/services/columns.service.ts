@@ -6469,7 +6469,6 @@ export class ColumnsService implements IColumnsService {
         columns: await table.getCachedColumns(context),
       });
 
-
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
       if (param.source.type === 'pg') {
@@ -7118,7 +7117,11 @@ export class ColumnsService implements IColumnsService {
         ? source
         : await Source.get(childRefContext, childTable.source_id);
 
-    if (childSource && childSource.id !== source.id && childSource.is_schema_readonly) {
+    if (
+      childSource &&
+      childSource.id !== source.id &&
+      childSource.is_schema_readonly
+    ) {
       NcError.get(context).sourceMetaReadOnly(childSource.alias);
     }
 

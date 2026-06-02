@@ -48,7 +48,7 @@ const onDelete = async () => {
     })
   ).hash
 
-  const result = await $api.internal.postOperation(
+  const result = (await $api.internal.postOperation(
     meta!.value!.fk_workspace_id!,
     meta!.value!.base_id!,
     { operation: 'columnsBulk', tableId: meta!.value!.id! },
@@ -56,12 +56,10 @@ const onDelete = async () => {
       hash: columnsHash,
       ops: deletableColumns.value.map((col) => ({ op: 'delete', column: { id: col.id! } })),
     },
-  ) as { failedOps?: Array<{ column: { id: string }; error: string }> }
+  )) as { failedOps?: Array<{ column: { id: string }; error: string }> }
 
   const failedIds = new Set((result?.failedOps ?? []).map((f) => f.column.id))
-  const deletedIds = new Set(
-    deletableColumns.value.map((c) => c.id!).filter((id) => !failedIds.has(id)),
-  )
+  const deletedIds = new Set(deletableColumns.value.map((c) => c.id!).filter((id) => !failedIds.has(id)))
 
   // Refresh meta once after all deletions.
   await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
@@ -91,9 +89,7 @@ const onDelete = async () => {
   }
 
   if (failedIds.size) {
-    const failedTitles = deletableColumns.value
-      .filter((c) => failedIds.has(c.id!))
-      .map((c) => c.title ?? c.id ?? '')
+    const failedTitles = deletableColumns.value.filter((c) => failedIds.has(c.id!)).map((c) => c.title ?? c.id ?? '')
     message.error(t('msg.error.someFieldsCouldNotBeDeleted', { fields: failedTitles.join(', ') }))
   }
 

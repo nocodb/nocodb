@@ -94,9 +94,7 @@ export class ViewChangeTableSyncHandler implements MetaEventHandler {
 
       let reason: string | null = null;
       if (isDelete) {
-        reason = `Source view "${
-          view.title || view.id
-        }" was deleted`;
+        reason = `Source view "${view.title || view.id}" was deleted`;
       } else if (liveView) {
         if (!liveView.allow_sync) {
           reason = `Source view "${
@@ -107,8 +105,7 @@ export class ViewChangeTableSyncHandler implements MetaEventHandler {
             liveView.title || liveView.id
           }" is no longer publicly shared`;
         } else if (
-          (liveView.password ?? null) !==
-          (mapping.source_password_hash ?? null)
+          (liveView.password ?? null) !== (mapping.source_password_hash ?? null)
         ) {
           reason = `Source view "${
             liveView.title || liveView.id

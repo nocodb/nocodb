@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
@@ -10,7 +11,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Job } from 'bull';
-import { randomUUID } from 'crypto';
 import type { NcContext } from 'nocodb-sdk';
 import type { TableSyncJobData } from '~/interface/Jobs';
 import type { Column } from '~/models';
@@ -934,9 +934,7 @@ export class TableSyncProcessor {
                         typeof pvVal === 'number' ||
                         typeof pvVal === 'boolean');
                     stubRows.push({
-                      ...(pvTitle && pvIsPrimitive
-                        ? { [pvTitle]: pvVal }
-                        : {}),
+                      ...(pvTitle && pvIsPrimitive ? { [pvTitle]: pvVal } : {}),
                       ...buildSyncSystemFields({
                         sourceId,
                         record: row,

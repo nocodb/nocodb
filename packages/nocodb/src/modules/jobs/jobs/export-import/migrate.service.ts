@@ -62,8 +62,9 @@ export class MigrateService {
       baseId: base.id,
     });
 
-    const exportedDocuments =
-      await this.exportService.serializeDocuments(context);
+    const exportedDocuments = await this.exportService.serializeDocuments(
+      context,
+    );
 
     const exportedDashboards = await this.exportService.serializeDashboards(
       context,

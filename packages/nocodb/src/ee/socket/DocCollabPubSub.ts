@@ -30,11 +30,19 @@ export class DocCollabPubSub {
         }
         const session = DocumentCollabManager.get(docId);
         if (!session) return;
-        Y.applyUpdate(
-          session.ydoc,
-          Buffer.from(message.update, 'base64'),
-          'pubsub',
-        );
+        try {
+          Y.applyUpdate(
+            session.ydoc,
+            Buffer.from(message.update, 'base64'),
+            'pubsub',
+          );
+        } catch (e: any) {
+          this.logger.error(
+            `Peer update apply failed for ${docId}: ${e.message}`,
+            e.stack,
+          );
+          return;
+        }
         // Do NOT re-emit to clients — the socket.io redis-adapter already
         // delivered the client-facing update across nodes.
       },

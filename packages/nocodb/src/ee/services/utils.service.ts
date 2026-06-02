@@ -5,6 +5,7 @@ import { getCircularReplacer, OperationSource } from 'nocodb-sdk';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { getFilteredAgents } from '~/utils/ssrf';
+import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import SSOClient from '~/models/SSOClient';
 import { CacheGetType, CacheScope } from '~/utils/globals';
@@ -183,6 +184,10 @@ export class UtilsService extends UtilsServiceCE {
 
     // Map provider configuration for tile rendering
     result.mapProvider = process.env.NC_MAP_TILE_PROVIDER || 'openstreetmap';
+
+    // Yjs realtime co-editing of docs. Off → the frontend falls back to the
+    // legacy debounced REST save (NC_DOCS_REALTIME=false kill-switch).
+    result.docsRealtimeEnabled = isDocsRealtimeEnabled();
 
     return result;
   }

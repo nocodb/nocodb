@@ -72,27 +72,37 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
 
   let offReconnect: (() => void) | undefined
 
+  let destroyed = false
+
   function onRemoteMessage(msg: any) {
     if (!msg) return
 
-    if (msg.kind === 'sync') {
-      const reply = handleSyncMessage(ydoc, fromBase64(msg.frame), 'remote')
-      if (reply) {
-        $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(reply) })
-      }
-      if (!ownStep1Sent) {
-        // Send our own step1 so the server replies with the content we are missing.
-        ownStep1Sent = true
-        $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(encodeSyncStep1(ydoc)) })
-      } else if (!reply) {
-        // A sync frame that needed no reply, after our step1 → server content applied.
+    // A malformed/incompatible frame (e.g. surrogate-pair edge cases in the Yjs
+    // decoder) can throw mid-apply. Isolate it so one bad frame can't tear down
+    // the editor — the reconnect handshake re-syncs from scratch if we drift.
+    try {
+      if (msg.kind === 'sync') {
+        const reply = handleSyncMessage(ydoc, fromBase64(msg.frame), 'remote')
+        if (reply) {
+          $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(reply) })
+        }
+        if (!ownStep1Sent) {
+          // Send our own step1 so the server replies with the content we are missing.
+          ownStep1Sent = true
+          $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(encodeSyncStep1(ydoc)) })
+        } else if (!reply) {
+          // A sync frame that needed no reply, after our step1 → server content applied.
+          synced.value = true
+        }
+      } else if (msg.kind === 'update') {
+        Y.applyUpdate(ydoc, fromBase64(msg.update), 'remote')
         synced.value = true
+      } else if (msg.kind === 'awareness') {
+        applyAwarenessUpdate(awareness, fromBase64(msg.update), 'remote')
       }
-    } else if (msg.kind === 'update') {
-      Y.applyUpdate(ydoc, fromBase64(msg.update), 'remote')
-      synced.value = true
-    } else if (msg.kind === 'awareness') {
-      applyAwarenessUpdate(awareness, fromBase64(msg.update), 'remote')
+    } catch {
+      // Non-actionable for the user; dropping the frame is safer than crashing
+      // the ProseMirror view. Subsequent updates / reconnect restore currency.
     }
   }
 
@@ -110,6 +120,11 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
   }
 
   function destroy() {
+    // Idempotent: teardown may be invoked from more than one path (component
+    // unmount, onScopeDispose, or an explicit caller). Running it twice would
+    // re-detach already-removed listeners and double-destroy the Y.Doc.
+    if (destroyed) return
+    destroyed = true
     // Announce departure so peers drop our cursor immediately (fires a local
     // awareness 'update' that onLocalAwareness broadcasts before we detach).
     awareness.setLocalState(null)

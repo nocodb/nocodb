@@ -96,13 +96,21 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 // --- Yjs collaborative editing ---
 // Single source of truth for whether real-time collab is active for this editor.
-// OFF for: CE (isEeUI false), cell mode (SmartText / public reader), and any
+// OFF for: CE (isEeUI false), cell mode (SmartText / public reader), the
+// `NC_DOCS_REALTIME=false` kill-switch (appInfo.docsRealtimeEnabled), and any
 // mount where the doc/workspace/base ids aren't resolvable synchronously (the
 // route-derived ids `activeProjectId` / `activeWorkspaceId` are available at
 // setup on the in-app docs page, so collab activates there). When false the
-// editor behaves exactly as before — none of the collab branches below run.
+// editor behaves exactly as before (legacy debounced REST save) — none of the
+// collab branches below run.
 const collabEnabled =
-  isEeUI && props.mode === 'doc' && !!docId.value && !!activeProjectId.value && !!activeWorkspaceId.value && !!user.value?.id
+  isEeUI &&
+  props.mode === 'doc' &&
+  appInfo.value.docsRealtimeEnabled !== false &&
+  !!docId.value &&
+  !!activeProjectId.value &&
+  !!activeWorkspaceId.value &&
+  !!user.value?.id
 
 // Stable per-user cursor color (mirrors usePresence's getConsistentColor — that
 // helper is module-private there, so the algorithm is replicated here to keep
@@ -311,13 +319,26 @@ if (!isCellMode.value) {
 // lives for the lifetime of the singleton composable, so dropping the
 // handle would leak a listener on every doc navigation (Editor.vue
 // remounts via <NuxtPage>).
-const { onRestored } = useDocRevisions()
+const { onRestored, registerCollabRestore } = useDocRevisions()
 const restoredSub = onRestored(({ docId }) => {
   if (docId === doc.value?.id) {
     reloadDocument()
   }
 })
 onBeforeUnmount(() => restoredSub.off())
+
+// In collab mode REST restores are rejected by the live-doc coherence gate, so
+// the revision panel delegates the restore to us: applying the snapshot through
+// the editor lets the Collaboration extension convert it into Yjs ops that
+// propagate to peers and persist via the server-authoritative path. (The
+// `onRestored` → reloadDocument path above only fires for non-collab REST
+// restores, which don't trigger this branch.)
+if (collabEnabled) {
+  const stopCollabRestore = registerCollabRestore((content) => {
+    editor.value?.commands.setContent(content)
+  })
+  onBeforeUnmount(stopCollabRestore)
+}
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
@@ -1659,9 +1680,19 @@ const _tiptapEditor = useEditor({
 
 // Sync the Tiptap-managed editor ref into our manually created ref
 // so composables (declared above) can access the editor instance reactively.
+//
+// Single-live-editor invariant: under Nuxt's <Suspense>/async-page mount path
+// `useEditor`'s creation can run more than once on the same component instance,
+// producing a second Editor while the first is never torn down. The orphan keeps
+// a live ProseMirror view in the DOM (duplicate body) and — in collab mode — a
+// second CollaborationCursor bound to the shared awareness, which floods peers
+// and corrupts their editable state. `useEditor` only destroys on unmount, so it
+// can't guard against in-place recreation. Destroy the prior instance whenever it
+// is replaced so exactly one editor is ever live.
 watch(
   _tiptapEditor,
-  (e) => {
+  (e, prev) => {
+    if (prev && prev !== e) prev.destroy()
     editor.value = e
     wireDocAiStorage()
   },
@@ -3262,6 +3293,60 @@ defineExpose({ editor })
   --nc-code-block-toolbar-bg-hover: rgba(255, 255, 255, 0.15);
   --nc-code-block-toolbar-fg: rgba(255, 255, 255, 0.6);
   --nc-code-block-toolbar-fg-hover: rgba(255, 255, 255, 0.9);
+}
+
+// Real-time collaboration cursors. Faithful port of Outline's multiplayer cursor
+// styling (shared/editor/components/Styles.ts → `.ProseMirror-yjs-cursor`). TipTap's
+// CollaborationCursor uses different class names (`__caret` / `__label`) but the same
+// DOM shape: a thin caret span with the name flag as an absolutely-positioned child
+// `div`. The extension ships no CSS and sets only an inline color, so without these
+// rules the flag renders as a full-width block. Like Outline: the caret is a 1px bar
+// in the peer's colour (always visible); the name flag is hidden and revealed on hover.
+.nc-doc-editor-content {
+  .collaboration-cursor__caret {
+    position: relative;
+    margin-left: -1px;
+    margin-right: -1px;
+    border-left: 1px solid;
+    border-right: 1px solid;
+    height: 1em; // explicit height so the empty caret span renders a visible bar
+    word-break: normal;
+
+    // Widen the hover target well beyond the 1px caret so the name flag is
+    // actually reachable — Outline's trick; the bare caret is unhoverable.
+    &::after {
+      content: '';
+      display: block;
+      position: absolute;
+      left: -8px;
+      right: -8px;
+      top: 0;
+      bottom: 0;
+    }
+
+    &:hover > .collaboration-cursor__label {
+      opacity: 1;
+    }
+  }
+
+  .collaboration-cursor__label {
+    position: absolute;
+    top: -1.8em;
+    left: -1px;
+    z-index: 20;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    font-style: normal;
+    line-height: normal;
+    white-space: nowrap;
+    color: #fff;
+    user-select: none;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 100ms ease-in-out;
+  }
 }
 
 // Cell mode (SmartText panel): zero out the first child's top margin so a

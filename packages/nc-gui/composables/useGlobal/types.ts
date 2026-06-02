@@ -28,6 +28,7 @@ export interface AppInfo {
   errorReportingEnabled: boolean
   auditEnabled: boolean
   undoRedoEnabled: boolean
+  docsRealtimeEnabled?: boolean
   type: string
   version: string
   ee?: boolean

@@ -24,6 +24,7 @@ import {
   encodeSyncStep1,
   handleSyncMessage,
 } from '~/socket/documentSyncProtocol';
+import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
@@ -42,6 +43,15 @@ export default class NocoSocket {
   private static logger: Logger = new Logger(NocoSocket.name);
   private static clients: Map<string, NcSocket> = new Map();
   public static ioServer: Server | undefined;
+
+  /**
+   * Hard cap on a single inbound Yjs frame (decoded bytes). A normal edit is a
+   * few bytes; even a large paste rarely exceeds a few hundred KB. Anything
+   * above this is rejected so a malformed or hostile client can't OOM the node
+   * or fan out a giant payload to every peer. Override via NC_DOCS_MAX_UPDATE_SIZE.
+   */
+  private static readonly MAX_DOC_FRAME_BYTES =
+    Number(process.env.NC_DOCS_MAX_UPDATE_SIZE) || 5 * 1024 * 1024;
 
   public static handleConnection(socket: NcSocket) {
     this.clients.set(socket.id, socket);
@@ -166,7 +176,14 @@ export default class NocoSocket {
       }
 
       // Collaborative docs: bind this socket to the server-authoritative Y.Doc.
-      if (eventType === EventType.DOCUMENT_SYNC_EVENT && baseId) {
+      // Defense-in-depth for the kill-switch: when realtime is disabled the
+      // frontend already won't open a session (appInfo.docsRealtimeEnabled), but
+      // refuse here too so a stale/forced client can't spin up server Y.Docs.
+      if (
+        eventType === EventType.DOCUMENT_SYNC_EVENT &&
+        baseId &&
+        isDocsRealtimeEnabled()
+      ) {
         const docId = eventHelper[3];
         if (docId) {
           const context = { workspace_id: workspaceId, base_id: baseId };
@@ -686,12 +703,27 @@ export default class NocoSocket {
     // Yjs sync handshake: client sends SyncStep1, server replies SyncStep2.
     socket.on(DocCollabClientEvents.SYNC, (msg) => {
       const session = socket.data.docSessions?.get(msg?.docId);
-      if (!session) return;
-      const reply = handleSyncMessage(
-        session.ydoc,
-        Buffer.from(msg.frame, 'base64'),
-        socket.id,
-      );
+      if (!session || typeof msg?.frame !== 'string') return;
+      const frame = Buffer.from(msg.frame, 'base64');
+      if (frame.length > this.MAX_DOC_FRAME_BYTES) {
+        this.logger.warn(
+          `Rejecting oversized doc sync frame (${frame.length}B) for ${msg.docId} from ${socket.id}`,
+        );
+        return;
+      }
+      let reply: Uint8Array | null;
+      try {
+        // A malformed/incompatible frame (e.g. surrogate-pair edge cases) can
+        // throw inside the Yjs decoder. Isolate it so one bad frame can't crash
+        // the gateway or wedge the shared session.
+        reply = handleSyncMessage(session.ydoc, frame, socket.id);
+      } catch (e: any) {
+        this.logger.error(
+          `Doc sync apply failed for ${msg.docId}: ${e.message}`,
+          e.stack,
+        );
+        return;
+      }
       if (reply) {
         // No socketId: this reply targets the requesting socket itself, and
         // $ncSocket.onMessage drops payloads whose socketId matches the receiver.
@@ -709,8 +741,26 @@ export default class NocoSocket {
     socket.on(DocCollabClientEvents.UPDATE, async (msg) => {
       const session = socket.data.docSessions?.get(msg?.docId);
       if (!session || socket.data.docReadOnly?.has(msg.docId)) return;
+      if (typeof msg?.update !== 'string') return;
       const update = Buffer.from(msg.update, 'base64');
-      Y.applyUpdate(session.ydoc, update, socket.id);
+      if (update.length > this.MAX_DOC_FRAME_BYTES) {
+        this.logger.warn(
+          `Rejecting oversized doc update (${update.length}B) for ${msg.docId} from ${socket.id}`,
+        );
+        return;
+      }
+      try {
+        // Guard the decode/apply (malformed or schema-incompatible bytes throw):
+        // bail before broadcasting so peers never receive an update the server
+        // itself couldn't apply.
+        Y.applyUpdate(session.ydoc, update, socket.id);
+      } catch (e: any) {
+        this.logger.error(
+          `Doc update apply failed for ${msg.docId}: ${e.message}`,
+          e.stack,
+        );
+        return;
+      }
       DocumentCollabManager.markDirty(msg.docId, socket.user?.id);
       // Fan out to OTHER clients (sender excluded by socket.to; cluster-wide via
       // the redis-adapter). The base64 string passes straight through.

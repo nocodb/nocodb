@@ -29,6 +29,7 @@ import {
   detectColumnSchemaPropsChanged,
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
+import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -1180,6 +1181,13 @@ export class MetaDiffsService {
                     virtual: false,
                     fk_index_name: change.cstn,
                     dr,
+                    description: formatLinkDbMapping({
+                      kind: 'bt',
+                      childTable: childModel.table_name,
+                      fkColumn: childCol.column_name,
+                      parentTable: parentModel.table_name,
+                      parentPk: parentCol.column_name,
+                    }),
                   });
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
                   // Uniqueness is checked against parentModel.columns — the
@@ -1205,6 +1213,13 @@ export class MetaDiffsService {
                       plural: pluralize(childModel.title),
                       singular: singularize(childModel.title),
                     },
+                    description: formatLinkDbMapping({
+                      kind: 'hm',
+                      childTable: childModel.table_name,
+                      fkColumn: childCol.column_name,
+                      parentTable: parentModel.table_name,
+                      parentPk: parentCol.column_name,
+                    }),
                   });
                 }
               });
@@ -1389,6 +1404,13 @@ export class MetaDiffsService {
         );
 
         if (!isRelationAvailInA) {
+          const fkChildColA = assocModel.columns.find(
+            (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+          );
+          const fkParentColA = assocModel.columns.find(
+            (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+          );
+
           await Column.insert<LinksColumn>(context, {
             title: getUniqueColumnAliasName(
               modelA.columns,
@@ -1410,9 +1432,25 @@ export class MetaDiffsService {
               plural: pluralize(modelB.title),
               singular: singularize(modelB.title),
             },
+            description:
+              fkChildColA && fkParentColA
+                ? formatLinkDbMapping({
+                    kind: 'mm',
+                    junctionTable: assocModel.table_name,
+                    fkChildColumn: fkChildColA.column_name,
+                    fkParentColumn: fkParentColA.column_name,
+                  })
+                : undefined,
           });
         }
         if (!isRelationAvailInB) {
+          const fkChildColB = assocModel.columns.find(
+            (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+          );
+          const fkParentColB = assocModel.columns.find(
+            (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+          );
+
           await Column.insert<LinksColumn>(context, {
             title: getUniqueColumnAliasName(
               modelB.columns,
@@ -1434,6 +1472,15 @@ export class MetaDiffsService {
               plural: pluralize(modelA.title),
               singular: singularize(modelA.title),
             },
+            description:
+              fkChildColB && fkParentColB
+                ? formatLinkDbMapping({
+                    kind: 'mm',
+                    junctionTable: assocModel.table_name,
+                    fkChildColumn: fkChildColB.column_name,
+                    fkParentColumn: fkParentColB.column_name,
+                  })
+                : undefined,
           });
         }
 

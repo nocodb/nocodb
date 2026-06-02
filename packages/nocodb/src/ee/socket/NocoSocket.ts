@@ -20,7 +20,10 @@ import NocoPresence from '~/socket/NocoPresence';
 import * as Y from 'yjs';
 import { DocumentCollabManager } from '~/socket/DocumentCollabManager';
 import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
-import { handleSyncMessage } from '~/socket/documentSyncProtocol';
+import {
+  encodeSyncStep1,
+  handleSyncMessage,
+} from '~/socket/documentSyncProtocol';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
@@ -181,6 +184,18 @@ export default class NocoSocket {
             if (!socket.data.docReadOnly) socket.data.docReadOnly = new Set();
             socket.data.docReadOnly.add(docId);
           }
+
+          // Server-initiated Yjs handshake (race-free — the session exists now,
+          // unlike a client-initiated sync that can beat this branch). The client
+          // replies with its own step1 and both sides converge. socketId is
+          // omitted so the client's own-echo filter delivers it.
+          socket.emit(event, {
+            kind: 'sync',
+            docId,
+            frame: Buffer.from(encodeSyncStep1(session.ydoc)).toString(
+              'base64',
+            ),
+          });
         }
       }
     } catch (error) {
@@ -668,15 +683,16 @@ export default class NocoSocket {
       if (!session) return;
       const reply = handleSyncMessage(
         session.ydoc,
-        new Uint8Array(msg.frame),
+        Buffer.from(msg.frame, 'base64'),
         socket.id,
       );
       if (reply) {
+        // No socketId: this reply targets the requesting socket itself, and
+        // $ncSocket.onMessage drops payloads whose socketId matches the receiver.
         socket.emit(msg.room, {
           kind: 'sync',
           docId: msg.docId,
-          frame: reply,
-          socketId: socket.id,
+          frame: Buffer.from(reply).toString('base64'),
         });
       }
     });
@@ -687,14 +703,15 @@ export default class NocoSocket {
     socket.on(DocCollabClientEvents.UPDATE, async (msg) => {
       const session = socket.data.docSessions?.get(msg?.docId);
       if (!session || socket.data.docReadOnly?.has(msg.docId)) return;
-      const update = new Uint8Array(msg.update);
+      const update = Buffer.from(msg.update, 'base64');
       Y.applyUpdate(session.ydoc, update, socket.id);
       DocumentCollabManager.markDirty(msg.docId, socket.user?.id);
+      // Fan out to OTHER clients (sender excluded by socket.to; cluster-wide via
+      // the redis-adapter). The base64 string passes straight through.
       socket.to(msg.room).emit(msg.room, {
         kind: 'update',
         docId: msg.docId,
         update: msg.update,
-        socketId: socket.id,
       });
       await DocCollabPubSub.publishUpdate(msg.docId, update);
     });
@@ -706,7 +723,6 @@ export default class NocoSocket {
         kind: 'awareness',
         docId: msg.docId,
         update: msg.update,
-        socketId: socket.id,
       });
     });
   }

@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Integratze guztiak",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Lotu eta kudeatu zeure datubaseak NocoDB-rekin erraz.",
       "communication": "Komunikazioa",
       "communicationSubtitle": "Aldaketak jasotzen ditu eta komunikazioa taldean NocoDB-rekin erraztu.",

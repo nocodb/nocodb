@@ -324,7 +324,7 @@
     "supported": "נתמך",
     "thisFeature": "תכונה זו",
     "usage": "שימוש",
-    "snapshot": "",
+    "snapshot": "תמונת מצב",
     "snapshots": "סנאפשוטים",
     "baseSnapshots": "סנאפשוט בסיסי",
     "featurePreview": "תצוגת תכונה",
@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "כל האינטגרציות",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "חבר ונהל את מסדי הנתונים שלך בצורה מושלמת עם NocoDB.",
       "communication": "תקשורת",
       "communicationSubtitle": "קבל התראות על שינויים ושפר את התקשורת הצוותית עם NocoDB.",

@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Vse integracije",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Brezšivno povezujte in upravljajte svoje baze podatkov z NocoDB.",
       "communication": "Komunikacija",
       "communicationSubtitle": "Bodite obveščeni o spremembah in poenostavite komunikacijo ekipe z NocoDB.",

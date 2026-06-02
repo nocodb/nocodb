@@ -776,7 +776,7 @@
       "orgLevelViewer": "Читатель уровня организации"
     },
     "roleDescription": {
-      "workspace-level-owner": "",
+      "workspace-level-owner": "Имеет полный контроль над всеми базами рабочего пространства, настройками и выставлением счетов",
       "workspace-level-creator": "Можно создавать, настраивать и редактировать все базы в рабочей области",
       "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
       "workspace-level-commenter": "Can view and comment on records within workspace bases",
@@ -785,7 +785,7 @@
       "workspace-level-no-access": "No access to this workspace",
       "owner": "Has full control over the base, including configuration and deletion rights",
       "creator": "Can fully configure the base but cannot delete it",
-      "editor": "",
+      "editor": "Может добавлять, редактировать и удалять записи, но не может изменять конфигурации базы",
       "commenter": "Can view and comment on records within the base",
       "viewer": "Can only view records within the base",
       "inherit": "Наследует роль от базовой команды или команды рабочей области или члена рабочей области",
@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Все интеграции",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Легко подключайте и управляйте вашими базами данных с помощью NocoDB.",
       "communication": "Коммуникация",
       "communicationSubtitle": "Получайте уведомления об изменениях и оптимизируйте командное взаимодействие с NocoDB.",

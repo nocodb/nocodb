@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Todas las integraciones",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Conecte y gestione sin problemas sus bases de datos con NocoDB.",
       "communication": "Comunicación",
       "communicationSubtitle": "Reciba notificaciones sobre los cambios y agilice la comunicación del equipo con NocoDB.",
@@ -2011,7 +2010,7 @@
     "visibilityCondition": "Condición de visibilidad",
     "selectIcon": "ninguno",
     "selectAWebhook": "--seleccionar un webhook--",
-    "selectAScript": "",
+    "selectAScript": "-- seleccionar un script --",
     "openUrl": "Abrir URL",
     "runWebHook": "Ejecutar Webhook",
     "onClick": "Al hacer clic",

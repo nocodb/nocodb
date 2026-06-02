@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "جميع التكاملات",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "قم بتوصيل وإدارة قواعد بياناتك مع NocoDB بسلاسة.",
       "communication": "الاتصالات",
       "communicationSubtitle": "تلقي إشعارات عن التغييرات وتسهيل التواصل بين الفريق مع NocoDB.",

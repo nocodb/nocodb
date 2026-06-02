@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "모든 통합",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "NocoDB를 사용하여 데이터베이스를 원활하게 연결하고 관리하세요.",
       "communication": "커뮤니케이션",
       "communicationSubtitle": "NocoDB를 통해 변경 사항에 대한 알림을 받고 팀 커뮤니케이션을 간소화하세요.",

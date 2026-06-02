@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "सभी एकीकरण",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "NocoDB के साथ अपने डेटाबेस को सहजता से कनेक्ट और प्रबंधित करें।",
       "communication": "संचार",
       "communicationSubtitle": "परिवर्तनों पर सूचित हो जाएं और NocoDB के साथ टीम संचार को सुगम बनाएं।",

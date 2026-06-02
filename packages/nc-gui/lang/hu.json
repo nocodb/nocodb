@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Összes integráció",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Csatlakoztassa és kezelje zökkenőmentesen az adatbázisait a NocoDB-vel.",
       "communication": "Kommunikáció",
       "communicationSubtitle": "Értesüljön a változásokról, és tegye hatékonyabbá a csapat kommunikációját a NocoDB segítségével.",
@@ -1109,7 +1108,7 @@
     "oauthClients": "OAuth ügyfelek",
     "selectAttachmentField": "Melléklet mező kiválasztása",
     "accessRestricted": "Hozzáférés korlátozva",
-    "editTablePermissions": "",
+    "editTablePermissions": "Táblázat engedélyeinek szerkesztése",
     "editFieldPermissions": "Mező-engedélyek szerkesztése",
     "confirmSnapshotRestore": "Pillanatkép visszaállításának megerősítése",
     "urlFilters": "URL-szűrők",

@@ -95,7 +95,7 @@
     "none": "空"
   },
   "upgrade": {
-    "UpgradeToInviteMore": "",
+    "UpgradeToInviteMore": "邀请更多成员",
     "UpgradeToInviteMoreSubtitle": "The {activePlan} plan allows up to {editors} editors & {commenters} commenters per workspace. Upgrade to the {plan} plan for unlimited users.",
     "UpgradeToPlanToAccessThisFeature": "升级到 {plan} 套餐以使用此功能",
     "UpgradeToCreateAdditionalSnapshots": "升级以创建更多快照",
@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "集成中心",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "使用 NocoDB 无缝连接和管理您的数据库。",
       "communication": "沟通",
       "communicationSubtitle": "使用 NocoDB 获取变更通知并简化团队沟通。",

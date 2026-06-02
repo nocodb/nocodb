@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Tüm Entegrasyonlar",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "NocoDB ile veritabanlarınızı sorunsuz bir şekilde bağlayın ve yönetin.",
       "communication": "İletişim",
       "communicationSubtitle": "NocoDB ile değişikliklerden haberdar olun ve ekip iletişimini kolaylaştırın.",

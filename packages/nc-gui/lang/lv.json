@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Visas integrācijas",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Vienkāršā veidā savienojiet un pārvaldiet savas datubāzes ar NocoDB.",
       "communication": "Saziņa",
       "communicationSubtitle": "Saņemiet paziņojumus par izmaiņām un vienkāršojiet komandas saziņu ar NocoDB.",

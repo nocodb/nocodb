@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Alla Integrationer",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Anslut och hantera dina databaser sömlöst med NocoDB.",
       "communication": "Kommunikation",
       "communicationSubtitle": "Få notiser om ändringar och effektivisera teamets kommunikation med NocoDB.",

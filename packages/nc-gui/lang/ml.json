@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "എല്ലാ സംയോജനങ്ങൾ",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "NocoDB ഉപയോഗിച്ച് നിങ്ങളുടെ ഡാറ്റാബേസുകൾ സമ്ഫ്രീതമായി ബന്ധിപ്പിക്കുകയും പ്രാപ്തമാക്കിയെടുക്കുകയും ചെയ്യുക.",
       "communication": "പരിവർത്തനം",
       "communicationSubtitle": "മാറ്റങ്ങളെക്കുറിച്ച് അറിയുക, NocoDB ഉപയോഗിച്ച് ടീം ബന്ധപ്പെടൽ മിനിമൈസ് ചെയ്യുക.",

@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Todas as Integrações",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Conecte e gerencie seus bancos de dados sem interrupções com o NocoDB.",
       "communication": "Comunicação",
       "communicationSubtitle": "Receba notificações sobre alterações e agilize a comunicação da equipe com o NocoDB.",

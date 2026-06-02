@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Tất cả tích hợp",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Kết nối liền mạch và quản lý cơ sở dữ liệu với NocoDB.",
       "communication": "Liên lạc",
       "communicationSubtitle": "Nhận thông báo về thay đổi và tối ưu hóa cuộc giao tiếp nhóm với NocoDB.",

@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Semua Integrasi",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Hubungkan dan kelola database Anda dengan NocoDB dengan lancar.",
       "communication": "Komunikasi",
       "communicationSubtitle": "Dapatkan pemberitahuan tentang perubahan dan alirkan komunikasi tim dengan NocoDB.",

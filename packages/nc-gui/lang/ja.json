@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "すべての統合",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "NocoDBでデータベースをシームレスに接続・管理する。",
       "communication": "コミュニケーション",
       "communicationSubtitle": "NocoDBで変更通知を受け取り、チームのコミュニケーションを効率化しましょう。",

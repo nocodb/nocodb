@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Alle Integraties",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Koppel en beheer naadloos uw databases met NocoDB.",
       "communication": "Communicatie",
       "communicationSubtitle": "Ontvang meldingen over wijzigingen en stroomlijn de communicatie met NocoDB.",

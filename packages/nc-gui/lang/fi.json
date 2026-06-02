@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Kaikki integraatiot",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Yhdistä ja hallitse tietokantojasi saumattomasti NocoDB:llä.",
       "communication": "Viestintä",
       "communicationSubtitle": "Saat ilmoituksia muutoksista ja tehosta tiimiviestintääsi NocoDB:llä.",

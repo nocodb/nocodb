@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "ಎಲ್ಲಾ ಒಕ್ಕೂಟಗಳು",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "ನೋಕೋಡಿಬಿ ಸಹಿತ ನಿಮ್ಮ ಡೇಟಾಬೇಸ್‌ಗಳನ್ನು ನಿರ್ವಿಘ್ನವಾಗಿ ಸಂಪರ್ಕಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ.",
       "communication": "ಸಂವಹನ",
       "communicationSubtitle": "ಬದಲಾವಣೆಗಳ ಬಗ್ಗೆ ಸೂಚಿಸಲಾಗುತ್ತದೆ ಮತ್ತು NocoDB ಸಹಿತ ತಂಡದ ಸಂವಹನವನ್ನು ಸುಗಮಗೊಳಿಸಲಾಗುತ್ತದೆ.",

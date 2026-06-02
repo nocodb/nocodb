@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "همه یکپارچه سازی ها",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "به‌راحتی بانک اطلاعاتی خود را با NocoDB متصل و مدیریت کنید.",
       "communication": "ارتباطات",
       "communicationSubtitle": "با تغییرات مطلع شوید و ارتباطات تیمی خود را با NocoDB بهبود بخشید.",

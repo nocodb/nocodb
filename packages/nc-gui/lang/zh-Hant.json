@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "所有集成",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "輕鬆連接和管理您的數據庫與NocoDB。",
       "communication": "通信",
       "communicationSubtitle": "接收有關變更的通知並通過 NocoDB 簡化團隊溝通。",

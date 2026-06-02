@@ -858,7 +858,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "Всі інтеграції",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Підключайте та керуйте своїми базами даних безперебійно з NocoDB.",
       "communication": "Комунікація",
       "communicationSubtitle": "Отримуйте сповіщення про зміни та оптимізуйте комунікацію в команді з NocoDB.",

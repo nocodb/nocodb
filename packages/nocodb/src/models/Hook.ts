@@ -197,6 +197,7 @@ export default class Hook implements HookType {
         hooks = hooks.filter((hook) => {
           return (
             !hook.trigger_field ||
+            !param.affectedColumns ||
             hook.trigger_fields?.some((field) =>
               param.affectedColumns?.includes(field),
             )

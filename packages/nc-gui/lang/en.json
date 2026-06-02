@@ -4103,6 +4103,7 @@
       "projectNameExceeds50Characters": "{title} name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "{title} name cannot start with space",
       "requiredField": "Required field",
+      "webhookBodyEmpty": "Body cannot be empty for {method} requests — set a custom payload",
       "ipNotAllowed": "IP not allowed",
       "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
       "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",

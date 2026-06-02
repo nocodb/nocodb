@@ -512,13 +512,34 @@ export class WebhookInvoker {
               vars,
             });
 
+            const isBodyEmpty =
+              !reqPayload.data &&
+              ['POST', 'PUT', 'PATCH'].includes(
+                reqPayload.method?.toUpperCase(),
+              );
+
             const { requestPayload, responsePayload } = await handleHttpWebHook(
               {
                 reqPayload,
               },
             );
 
-            if (webhookLogLevel === 'ALL' || (isEE && !webhookLogLevel)) {
+            if (
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel) ||
+              (webhookLogLevel === 'ERROR' && isBodyEmpty)
+            ) {
+              const emptyBodyError = isBodyEmpty
+                ? {
+                    error_code: 'EMPTY_BODY',
+                    error_message: `Webhook body is empty for ${reqPayload.method?.toUpperCase()} request — custom payload may be misconfigured.`,
+                    error: JSON.stringify({
+                      code: 'EMPTY_BODY',
+                      message: `Custom payload body is empty for a ${reqPayload.method?.toUpperCase()} request.`,
+                    }),
+                  }
+                : {};
+
               hookLog = {
                 ...hook,
                 operation: hookPayload.operation as any,
@@ -528,6 +549,7 @@ export class WebhookInvoker {
                 response: JSON.stringify(responsePayload),
                 triggered_by: user?.email,
                 conditions: JSON.stringify(filters),
+                ...emptyBodyError,
               };
             }
           }

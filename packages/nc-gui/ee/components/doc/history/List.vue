@@ -66,15 +66,6 @@ function formatTimestampFull(iso: string): string {
   })
 }
 
-// Full localized "{author} {verb}" line for a non-current revision. Built as a
-// complete sentence per source (rather than injecting a verb) so locales can
-// reorder author/verb naturally.
-function actionLabel(rev: DocRevisionListItem): string {
-  const author = authorLabel(rev)
-  if (rev.source === DocRevisionSource.RESTORE) return t('labels.docHistory.listAction.restored', { author })
-  if (rev.source === DocRevisionSource.MANUAL) return t('labels.docHistory.listAction.saved', { author })
-  return t('labels.docHistory.listAction.edited', { author })
-}
 
 function userTile(rev: DocRevisionListItem) {
   return {
@@ -87,6 +78,12 @@ function userTile(rev: DocRevisionListItem) {
 
 function authorLabel(rev: DocRevisionListItem): string {
   return rev.created_by_display_name ?? rev.created_by_email ?? t('labels.docHistory.authorFallback')
+}
+
+function actionVerb(rev: DocRevisionListItem): string {
+  if (rev.source === DocRevisionSource.RESTORE) return t('labels.docHistory.listAction.restoredVerb')
+  if (rev.source === DocRevisionSource.MANUAL) return t('labels.docHistory.listAction.savedVerb')
+  return t('labels.docHistory.listAction.editedVerb')
 }
 
 function onSelect(rev: DocRevisionListItem) {
@@ -138,9 +135,15 @@ function onSelect(rev: DocRevisionListItem) {
           </div>
           <div class="nc-doc-history-content">
             <div class="text-xs font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
-            <div class="text-xs text-nc-content-gray-muted mt-0.5">
-              <template v-if="idx === 0">{{ $t('labels.docHistory.currentVersion', { author: authorLabel(rev) }) }}</template>
-              <template v-else>{{ actionLabel(rev) }}</template>
+            <div class="text-xs text-nc-content-gray-muted mt-0.5 flex items-center min-w-0">
+              <template v-if="idx === 0">
+                <span class="flex-none">{{ $t('labels.docHistory.currentVersionPrefix') }}</span>
+                <span class="truncate ml-1">{{ authorLabel(rev) }}</span>
+              </template>
+              <template v-else>
+                <span class="truncate">{{ authorLabel(rev) }}</span>
+                <span class="flex-none ml-1">{{ actionVerb(rev) }}</span>
+              </template>
             </div>
           </div>
           <!-- Locked: revision predates the plan's retention window. -->

@@ -22,6 +22,7 @@ export class MigrateService {
     source,
     secret,
     instanceUrl,
+    req,
   }: {
     context: NcContext;
     base: Base;
@@ -47,7 +48,7 @@ export class MigrateService {
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 
-    const { serializedModels: exportedModels } =
+    const { serializedModels: exportedModels, idMap: exportModelMap } =
       await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
         compatibilityMode: source.type !== 'pg',
@@ -60,6 +61,15 @@ export class MigrateService {
     const exportedUsers = await this.exportService.serializeUsers(context, {
       baseId: base.id,
     });
+
+    const exportedDocuments =
+      await this.exportService.serializeDocuments(context);
+
+    const exportedDashboards = await this.exportService.serializeDashboards(
+      context,
+      { idMap: exportModelMap },
+      req,
+    );
 
     const stream = new Readable({
       read() {},
@@ -109,6 +119,20 @@ export class MigrateService {
       type: 'schema',
       data: exportedModels,
     });
+
+    if (exportedDocuments?.length) {
+      pushStream({
+        type: 'documents',
+        data: exportedDocuments,
+      });
+    }
+
+    if (exportedDashboards?.length) {
+      pushStream({
+        type: 'dashboards',
+        data: exportedDashboards,
+      });
+    }
 
     let error = null;
     const handledLinks = [];

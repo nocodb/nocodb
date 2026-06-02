@@ -193,6 +193,19 @@ async function retryImport() {
   listeningImport.value = false
 }
 
+function goToBase() {
+  const workspaceId = activeWorkspace.value?.id ?? 'nc'
+
+  // newBase / workspaceMode create base(s) elsewhere — land on the workspace
+  // dashboard. Otherwise go to the base that received the migration.
+  const path = syncOptions.value.workspaceMode || syncOptions.value.newBase ? `/${workspaceId}` : `/${workspaceId}/${baseId}`
+
+  // Full document load (not a router push) so every per-base store — docs tree,
+  // dashboards, scripts, workflows, … — is rebuilt from the server. A targeted
+  // store refresh would silently miss any newly migratable entity type.
+  window.location.href = path
+}
+
 const isInProgress = computed(() => {
   return !lastProgress.value || ![JobStatus.COMPLETED, JobStatus.FAILED].includes(lastProgress.value?.status)
 })
@@ -331,7 +344,7 @@ onUnmounted(() => {
 
       <div v-if="!isInProgress" class="text-right mt-4">
         <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport"> Retry import </NcButton>
-        <NcButton v-else size="small" @click="dialogShow = false">
+        <NcButton v-else size="small" @click="goToBase">
           {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Base' }}
         </NcButton>
       </div>

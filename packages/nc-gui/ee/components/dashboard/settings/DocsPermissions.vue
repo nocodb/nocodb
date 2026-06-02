@@ -240,7 +240,7 @@ onMounted(loadAllDocs)
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6" data-testid="nc-settings-docs-permissions-tab">
+  <div class="flex flex-col h-full p-4 md:p-6" data-testid="nc-settings-docs-permissions-tab">
     <div class="mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"
@@ -258,7 +258,7 @@ onMounted(loadAllDocs)
         v-if="docPermissionIds.length && isCreatorOrAbove"
         type="text"
         size="small"
-        class="!text-nc-content-gray-muted"
+        class="!text-nc-content-gray-muted flex-none"
         :loading="isResettingAll"
         @click="resetAllDocPermissions"
       >

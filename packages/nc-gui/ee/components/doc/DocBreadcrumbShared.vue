@@ -38,6 +38,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { isRtl } = useRtl()
+const { isMobileMode } = useGlobal()
 
 const ellipsisPlacement = computed(() => (isRtl.value ? 'bottomRight' : 'bottomLeft'))
 const depthIcon = computed(() => (isRtl.value ? 'ncCornerDownLeft' : 'ncCornerDownRight'))
@@ -188,7 +189,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
     <!-- Share root — first segment, present whenever the active doc has
          any ancestor (i.e. active is not the root). Click opens a
          dropdown with the root itself + submenus for its descendants. -->
-    <template v-if="rootAncestor">
+    <template v-if="rootAncestor && !isMobileMode">
       <DocBreadcrumbSegment
         :label="rootAncestor.title || $t('general.untitled')"
         :icon-emoji="rootAncestor.icon ?? null"
@@ -203,7 +204,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
     </template>
 
     <!-- Single middle ancestor inline (exactly 3 ancestors: root, middle, parent) -->
-    <template v-if="middleAncestor">
+    <template v-if="middleAncestor && !isMobileMode">
       <DocBreadcrumbSegment
         :label="middleAncestor.title || $t('general.untitled')"
         :icon-emoji="middleAncestor.icon ?? null"
@@ -218,7 +219,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
     </template>
 
     <!-- Ellipsis dropdown for many collapsed middle ancestors (mirrors in-app) -->
-    <template v-if="hasCollapsed">
+    <template v-if="hasCollapsed && !isMobileMode">
       <NcDropdown v-model:visible="isEllipsisOpen" :placement="ellipsisPlacement">
         <div
           class="nc-doc-breadcrumb-segment rounded-lg h-8 px-2 flex items-center gap-1 cursor-pointer text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis)"
@@ -259,7 +260,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
     </template>
 
     <!-- Parent ancestor -->
-    <template v-if="parentAncestor">
+    <template v-if="parentAncestor && !isMobileMode">
       <DocBreadcrumbSegment
         :label="parentAncestor.title || $t('general.untitled')"
         :icon-emoji="parentAncestor.icon ?? null"
@@ -280,7 +281,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
       :icon-emoji="displayIcon"
       :items="currentSiblings"
       :active-ids="activePathIds"
-      max-width-class="max-w-1/2"
+      :max-width-class="isMobileMode ? '' : 'max-w-1/2'"
       nested
       :get-children="getChildren"
       :load-children="ensureChildrenLoaded"

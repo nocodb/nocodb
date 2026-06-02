@@ -118,7 +118,7 @@ const onCreateBaseClick = () => {
             </template>
           </ProjectActionItem>
 
-          <ProjectActionCreateNewDocument v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
+          <ProjectActionCreateNewDocument v-if="showEEFeatures" :base-id="base?.id" />
 
           <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
 

@@ -242,6 +242,29 @@ export default defineNuxtConfig({
         util: 'rollup-plugin-node-polyfills/polyfills/util',
         url: 'rollup-plugin-node-polyfills/polyfills/url',
       },
+      // Collaborative editing: TipTap (via @tiptap/pm/* → bare prosemirror-*) and
+      // y-prosemirror both import the same bare prosemirror-*/yjs packages. pnpm
+      // hoisting leaves multiple physical copies (e.g. prosemirror-view 1.37.1 vs
+      // 1.37.2), so y-prosemirror builds decorations with a different
+      // prosemirror-view class than TipTap's EditorView renders with → runtime
+      // "Cannot read properties of undefined (reading 'localsInner')". Force a
+      // single copy of each across the bundle.
+      dedupe: [
+        'yjs',
+        'y-prosemirror',
+        'y-protocols',
+        'lib0',
+        'prosemirror-view',
+        'prosemirror-state',
+        'prosemirror-model',
+        'prosemirror-transform',
+        'prosemirror-keymap',
+        'prosemirror-commands',
+        'prosemirror-schema-list',
+        'prosemirror-history',
+        'prosemirror-gapcursor',
+        'prosemirror-dropcursor',
+      ],
     },
     optimizeDeps: {
       include: [
@@ -301,6 +324,7 @@ export default defineNuxtConfig({
         'monaco-editor/esm/vs/basic-languages/javascript/javascript',
         'papaparse',
         'prosemirror-changeset',
+        'y-prosemirror',
         'rehype-sanitize',
         'rehype-stringify',
         'remark-parse',
@@ -333,6 +357,14 @@ export default defineNuxtConfig({
         'leaflet',
         'leaflet.markercluster',
         'uuid',
+        '@tiptap/extension-collaboration',
+        '@tiptap/extension-collaboration-cursor',
+        'yjs',
+        'lib0/encoding',
+        'lib0/decoding',
+        'y-protocols/sync',
+        'y-protocols/awareness',
+        'lib0/buffer',
       ],
       esbuildOptions: {
         define: {

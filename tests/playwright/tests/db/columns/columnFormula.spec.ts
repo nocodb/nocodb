@@ -36,46 +36,57 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15")`,
         result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "minutes")`,
         result: ['-1440', '-1440', '-1440', '-1440', '-1440'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2023/10/14", "2023/01/13", "minutes")`,
         result: ['394560', '394560', '394560', '394560', '394560'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "seconds")`,
         result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "milliseconds")`,
         result: ['-86400000', '-86400000', '-86400000', '-86400000', '-86400000'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "hours")`,
         result: ['-24', '-24', '-24', '-24', '-24'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "w")`,
         result: ['-52', '-52', '-52', '-52', '-52'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "M")`,
         result: ['-12', '-12', '-12', '-12', '-12'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "Q")`,
         result: ['-4', '-4', '-4', '-4', '-4'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "y")`,
         result: ['-1', '-1', '-1', '-1', '-1'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2023/01/12", "2023/10/14", "y")`,
         result: ['0', '0', '0', '0', '0'],
+        unSupDbType: ['mssql'],
       },
 
       {
@@ -131,17 +142,17 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'REGEX_MATCH({City}, "a[a-z]a")',
         result: ['0', '0', '0', '0', '1'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
         result: ['', '', '', '', 'ana'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
         result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'URLENCODE({City})',
@@ -153,27 +164,32 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: `DATETIME_DIFF("2023/10/14", "2023/01/12", "y")`,
         result: ['0', '0', '0', '0', '0'],
-        unSupDbType: [],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2023-01-12", "2021-08-29", "y")`,
         result: ['1', '1', '1', '1', '1'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2021-01-12", "2026-01-29", "y")`,
         result: ['-5', '-5', '-5', '-5', '-5'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("1990-01-12", "2046-12-29", "y")`,
         result: ['-56', '-56', '-56', '-56', '-56'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`,
         result: ['-365', '-365', '-365', '-365', '-365'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/01/12", "d")`,
         result: ['-90', '-90', '-90', '-90', '-90'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,

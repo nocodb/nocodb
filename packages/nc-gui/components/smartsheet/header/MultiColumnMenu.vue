@@ -38,6 +38,8 @@ const { fieldsToGroupBy, groupByLimit, groupBy } = useViewGroupByOrThrow()
 
 const { isUIAllowed } = useRoles()
 
+const { appInfo } = useGlobal()
+
 const { getPlanLimit } = useWorkspace()
 
 const showMultiDeleteModal = ref(false)
@@ -208,7 +210,7 @@ const onPermissionsSaved = () => {
     <NcDivider />
 
     <NcMenuItem
-      v-if="isEeUI && !isPublic && isUIAllowed('permissionEdit')"
+      v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit')"
       data-testid="nc-multi-field-permissions"
       @click="onPermissions"
     >
@@ -218,7 +220,7 @@ const onPermissionsSaved = () => {
       </div>
     </NcMenuItem>
 
-    <NcDivider v-if="isEeUI && !isPublic && isUIAllowed('permissionEdit')" />
+    <NcDivider v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit')" />
 
     <NcTooltip :disabled="isAnyFilterable && !isFilterLimitBlocking">
       <template #title>
@@ -294,7 +296,7 @@ const onPermissionsSaved = () => {
         :on-deleted="onDeleted"
       />
       <DlgFieldMultiPermissions
-        v-if="isEeUI && meta"
+        v-if="appInfo.ee && meta"
         v-model:visible="showMultiPermissionsModal"
         :columns="columns"
         @saved="onPermissionsSaved"

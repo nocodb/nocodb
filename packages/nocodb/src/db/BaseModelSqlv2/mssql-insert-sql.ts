@@ -118,8 +118,10 @@ function tsqlNVarcharLiteral(v: string): string {
  * `sql_variant` PK columns avoid per-column type introspection; tedious
  * unwraps to native JS types on the way back.
  *
- * Throws on empty `rows` or `pkCols` — both produce malformed T-SQL and
- * indicate caller logic errors.
+ * Throws on empty `rows` (malformed T-SQL, caller logic error). With empty
+ * `pkCols` (a PK-less table) it falls back to a plain INSERT with no OUTPUT
+ * capture — there's no PK to return, and `OUTPUT INSERTED.*` is rejected by
+ * triggers anyway, so a plain INSERT is the only valid shape.
  */
 export function mssqlBuildBulkInsertWithCapture(args: {
   knex: Knex;
@@ -146,20 +148,7 @@ export function mssqlBuildBulkInsertWithCapture(args: {
   if (!rows.length) {
     throw new Error('mssqlBuildBulkInsertWithCapture: rows must be non-empty');
   }
-  if (!pkCols.length) {
-    throw new Error(
-      'mssqlBuildBulkInsertWithCapture: pkCols must be non-empty — callers ' +
-        'without a PK should use the standard batchInsert path',
-    );
-  }
-
   const tnSql = knex.raw('??', [tnPath]).toQuery();
-
-  // Hoist per-PK identifier — used in OUTPUT, @nc_pks declaration,
-  // OUTPUT INTO column list, and final SELECT.
-  const pkColIdents = pkCols.map((c) =>
-    knex.raw('??', [c.column_name]).toQuery(),
-  );
 
   const escapeRow = (row: Record<string, any>) => {
     const out: Record<string, any> = {};
@@ -172,6 +161,26 @@ export function mssqlBuildBulkInsertWithCapture(args: {
   const insertSql = knex(tnPath as any)
     .insert(rows.map(escapeRow))
     .toQuery();
+
+  // PK-less table (e.g. an external MSSQL table with no primary key): there's
+  // nothing to capture, and `OUTPUT INSERTED.*` is rejected by triggers — so
+  // emit a plain INSERT with no OUTPUT/SELECT-back. Still Unicode-safe (escaped
+  // literals) and still IDENTITY_INSERT-wrapped when a non-PK IDENTITY column
+  // is set explicitly. Callers receive an empty result set, matching the no-PK
+  // `.returning('*')` / no-returning path used elsewhere.
+  if (!pkCols.length) {
+    const noPkParts: string[] = [];
+    if (explicitIdentity) noPkParts.push(`SET IDENTITY_INSERT ${tnSql} ON;`);
+    noPkParts.push(`${insertSql};`);
+    if (explicitIdentity) noPkParts.push(`SET IDENTITY_INSERT ${tnSql} OFF;`);
+    return noPkParts.join('\n');
+  }
+
+  // Hoist per-PK identifier — used in OUTPUT, @nc_pks declaration,
+  // OUTPUT INTO column list, and final SELECT.
+  const pkColIdents = pkCols.map((c) =>
+    knex.raw('??', [c.column_name]).toQuery(),
+  );
 
   const outputCols = pkColIdents.map((id) => `INSERTED.${id}`).join(', ');
   const outputIntoCols = pkColIdents.join(', ');

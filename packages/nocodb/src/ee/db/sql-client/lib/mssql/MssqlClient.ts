@@ -653,8 +653,14 @@ class MssqlClient extends KnexClient {
         `ALTER TABLE ?? ADD CONSTRAINT ?? FOREIGN KEY (??) REFERENCES ?? (??)`,
         [childArg, fkName, args.childColumn, parentArg, args.parentColumn],
       );
-      if (args.onUpdate) createSql += ` ON UPDATE ${args.onUpdate}`;
-      if (args.onDelete) createSql += ` ON DELETE ${args.onDelete}`;
+      if (args.onUpdate)
+        createSql += ` ON UPDATE ${this._sanitizeReferentialAction(
+          args.onUpdate,
+        )}`;
+      if (args.onDelete)
+        createSql += ` ON DELETE ${this._sanitizeReferentialAction(
+          args.onDelete,
+        )}`;
 
       await this.sqlClient.raw(createSql);
 
@@ -719,8 +725,14 @@ class MssqlClient extends KnexClient {
         `ALTER TABLE ?? ADD CONSTRAINT ?? FOREIGN KEY (??) REFERENCES ?? (??)`,
         [childArg, fkName, args.childColumn, parentArg, args.parentColumn],
       );
-      if (args.onUpdate) recreate += ` ON UPDATE ${args.onUpdate}`;
-      if (args.onDelete) recreate += ` ON DELETE ${args.onDelete}`;
+      if (args.onUpdate)
+        recreate += ` ON UPDATE ${this._sanitizeReferentialAction(
+          args.onUpdate,
+        )}`;
+      if (args.onDelete)
+        recreate += ` ON DELETE ${this._sanitizeReferentialAction(
+          args.onDelete,
+        )}`;
       const downStatement = this.querySeparator() + recreate;
 
       this.emit(`Success : ${upStatement}`);
@@ -1627,6 +1639,31 @@ class MssqlClient extends KnexClient {
       .slice(0, 128);
   }
 
+  // FK referential actions (ON UPDATE / ON DELETE) are interpolated into raw
+  // T-SQL (the base/PG path goes through knex's schema builder; the MSSQL
+  // overrides build the clause by hand), so the value MUST be whitelisted to
+  // avoid SQL injection. NocoDB's UI offers NO ACTION / CASCADE / RESTRICT /
+  // SET NULL / SET DEFAULT; SQL Server has no RESTRICT keyword, so it maps to
+  // its equivalent NO ACTION. Anything else throws.
+  private _sanitizeReferentialAction(action: string): string {
+    const normalized = String(action ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toUpperCase();
+    const allowed: Record<string, string> = {
+      'NO ACTION': 'NO ACTION',
+      CASCADE: 'CASCADE',
+      RESTRICT: 'NO ACTION',
+      'SET NULL': 'SET NULL',
+      'SET DEFAULT': 'SET DEFAULT',
+    };
+    const canonical = allowed[normalized];
+    if (!canonical) {
+      throw new Error(`Invalid referential action: ${action}`);
+    }
+    return canonical;
+  }
+
   // Render an MSSQL column type with correct length / precision-scale. Unlike
   // MySQL, SQL Server rejects a length on non-length types (e.g. `int(10)`), so
   // only the relevant families receive a size suffix:
@@ -1991,6 +2028,32 @@ class MssqlClient extends KnexClient {
             upStatements.push(
               this.genQuery(`DROP INDEX ?? ON ??`, [idx.name, tnArg]),
             );
+          }
+          // PK members can't be dropped while the PRIMARY KEY constraint
+          // still references them — T-SQL refuses DROP COLUMN (unlike
+          // pg/mysql/sqlite, which cascade the drop). Drop the PK here,
+          // before the column goes. `_pkChangeStatements` (run after this
+          // loop) re-adds the reduced PK for a composite key and detects the
+          // dropped PK column so it doesn't DROP the constraint a second time.
+          const pkCols = await this._findPkColumns(schema, tn);
+          if (pkCols.includes(column.cn)) {
+            const pkName = await this._findPkConstraintName(schema, tn);
+            if (pkName) {
+              upStatements.push(
+                this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [
+                  tnArg,
+                  pkName,
+                ]),
+              );
+              // DOWN (applied in reverse): re-add the original PK over its
+              // full column list once the dropped column has been restored.
+              downStatements.push(
+                this.genQuery(
+                  `ALTER TABLE ?? ADD CONSTRAINT ?? PRIMARY KEY (??)`,
+                  [tnArg, pkName, pkCols],
+                ),
+              );
+            }
           }
           upStatements.push(
             this.genQuery(`ALTER TABLE ?? DROP COLUMN ??`, [tnArg, column.cn]),
@@ -2610,7 +2673,17 @@ class MssqlClient extends KnexClient {
       newPk.length !== oldPk.length || newPk.some((c, i) => c !== oldPk[i]);
     if (!changed) return { up, down };
 
-    if (oldPk.length) {
+    // When a PK column is being dropped, the DROP COLUMN branch in
+    // `tableUpdate` already drops the PRIMARY KEY constraint — T-SQL needs it
+    // gone *before* DROP COLUMN. Don't emit a second DROP here (it would
+    // target an already-dropped constraint and error); just re-add the
+    // reduced PK over the surviving key columns below.
+    const droppedCols = newColumns
+      .filter((c) => c.altered & 4)
+      .map((c) => c.cno ?? c.cn);
+    const pkColDropped = oldPk.some((cn) => droppedCols.includes(cn));
+
+    if (oldPk.length && !pkColDropped) {
       const pkName = await this._findPkConstraintName(schema, tn);
       if (pkName) {
         up.push(
@@ -3251,10 +3324,10 @@ class MssqlClient extends KnexClient {
       [childTnArg, fk.name, fk.cols, parentArg, fk.parentCols],
     );
     if (fk.onUpdate && fk.onUpdate !== 'NO ACTION') {
-      stmt += ` ON UPDATE ${fk.onUpdate}`;
+      stmt += ` ON UPDATE ${this._sanitizeReferentialAction(fk.onUpdate)}`;
     }
     if (fk.onDelete && fk.onDelete !== 'NO ACTION') {
-      stmt += ` ON DELETE ${fk.onDelete}`;
+      stmt += ` ON DELETE ${this._sanitizeReferentialAction(fk.onDelete)}`;
     }
     return stmt;
   }
@@ -3280,10 +3353,10 @@ class MssqlClient extends KnexClient {
       [childArg, fk.name, fk.cols, parentArg, fk.parentCols],
     );
     if (fk.onUpdate && fk.onUpdate !== 'NO ACTION') {
-      stmt += ` ON UPDATE ${fk.onUpdate}`;
+      stmt += ` ON UPDATE ${this._sanitizeReferentialAction(fk.onUpdate)}`;
     }
     if (fk.onDelete && fk.onDelete !== 'NO ACTION') {
-      stmt += ` ON DELETE ${fk.onDelete}`;
+      stmt += ` ON DELETE ${this._sanitizeReferentialAction(fk.onDelete)}`;
     }
     return stmt;
   }

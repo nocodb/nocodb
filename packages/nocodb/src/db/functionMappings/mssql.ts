@@ -205,8 +205,12 @@ END`,
     // T-SQL has no MOD() function; use the modulo operator. Interpolate (not
     // `?`) so the composer's `\?` escaping can't mangle the bindings and ship
     // column refs off as standalone batches — see leastGreatestFn.
+    // Wrap the divisor in NULLIF(..., 0): SQL Server raises "Msg 8134: Divide
+    // by zero" for `x % 0` (aborting the whole statement) instead of returning
+    // NULL like MySQL/SQLite — one bad row would otherwise break every
+    // list/sort/filter touching the formula.
     return {
-      builder: knex.raw(`((${dividend}) % (${divisor}))`),
+      builder: knex.raw(`((${dividend}) % NULLIF(${divisor}, 0))`),
     };
   },
 

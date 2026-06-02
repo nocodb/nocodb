@@ -860,7 +860,6 @@
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",
-      "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
       "communication": "Communication",
       "communicationSubtitle": "Get notified on changes and streamline team communication with NocoDB.",

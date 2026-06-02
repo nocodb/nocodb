@@ -316,13 +316,21 @@ export function useCanvasRender({
       const column = columns.value[i]
       if (!column) continue
       const width = parseCellWidth(column.width)
-      // fixed columns are drawn anchored to x=0 in their own pass; selection
-      // tinting on the row-meta / pv column would be visually noisy, so skip.
+      // Fixed columns draw their tint per-row inside renderRows to guarantee a
+      // solid background underneath (prevents scrolled content from bleeding through).
       if (!column.fixed && column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
-        ctx.fillRect(xOffset - _scrollLeft, bodyTop, width, bodyHeight)
+        // Clamp the left edge to fixedColsWidth so the overlay never paints over
+        // the fixed column area (row# + pv) when the user has scrolled right.
+        const rawX = xOffset - _scrollLeft
+        const clampedX = Math.max(rawX, fixedColsWidth.value)
+        const clampedWidth = rawX + width - clampedX
+        if (clampedWidth > 0) {
+          ctx.fillRect(clampedX, bodyTop, clampedWidth, bodyHeight)
+        }
       }
       xOffset += width
     }
+
     ctx.restore()
   }
 
@@ -703,6 +711,17 @@ export function useCanvasRender({
               y: 0,
               radius: 0,
               fillStyle: filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor,
+            })
+          }
+
+          if (selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+            renderTag(ctx, {
+              height: _headerRowHeight,
+              width,
+              x: xOffset,
+              y: 0,
+              radius: 0,
+              fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
             })
           }
         }
@@ -1760,6 +1779,11 @@ export function useCanvasRender({
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           }
 
+          if (column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+            ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.05)
+            ctx.fillRect(xOffset, yOffset, width, _rowH)
+          }
+
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
             renderRowMeta(ctx, row, { xOffset, yOffset, width }, rowColor)
@@ -1926,6 +1950,14 @@ export function useCanvasRender({
           } else {
             ctx.fillStyle =
               isHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          }
+
+          // Draw column-header selection tint on top of the solid bg — solid bg
+          // must come first so scrolled content behind the fixed column can't
+          // bleed through the semi-transparent overlay.
+          if (column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+            ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.05)
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 

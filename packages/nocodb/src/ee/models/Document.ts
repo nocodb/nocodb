@@ -532,14 +532,27 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     updatedBy?: string,
     ncMeta = Noco.ncMeta,
-  ) {
+    title?: string,
+  ): Promise<{ version: number; titleChanged: boolean } | undefined> {
     const existing = await this.getMeta(context, docId, ncMeta);
     if (!existing) return;
 
+    const newVersion = (existing.version || 1) + 1;
     const update: Record<string, any> = {
-      doc_version: (existing.version || 1) + 1,
+      doc_version: newVersion,
     };
     if (updatedBy) update.updated_by = updatedBy;
+
+    // Collaborative title persistence: in collab mode the title lives in the same
+    // Y.Doc (a `Y.Text`), so its authoritative value arrives here on the debounced
+    // persist. Write it only when it actually changed so we don't clobber a
+    // concurrent sidebar rename with an identical value (and so the caller knows
+    // whether to broadcast a title event).
+    let titleChanged = false;
+    if (title !== undefined && title !== existing.title) {
+      update.title = title;
+      titleChanged = true;
+    }
 
     await ncMeta.metaUpdate(
       context.workspace_id,
@@ -550,6 +563,8 @@ export default class Document extends DocumentCE implements DocumentType {
     );
 
     await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+
+    return { version: newVersion, titleChanged };
   }
 
   /**

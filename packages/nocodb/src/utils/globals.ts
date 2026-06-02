@@ -539,6 +539,7 @@ export enum CacheScope {
   WORKFLOW_EXECUTION = 'nc_workflow_execution',
   PRESENCE = 'presence',
   DOC_LIVE = 'docLive',
+  DOC_BOOTSTRAP = 'docBootstrap',
   WORKFLOW_WEBHOOK_TEST_LISTENER = 'nc_workflow_webhook_test_listener',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATION = 'installation',

@@ -64,6 +64,13 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
 
   const synced = ref(false)
 
+  // Server-granted right to seed an empty (legacy) doc into the CRDT. Set from
+  // the server-initiated handshake — at most one editor across the cluster is
+  // granted, so two clients can't seed the same content concurrently (which Yjs
+  // would merge into duplicated body/title content). Read-only clients are never
+  // granted (their seed couldn't persist anyway).
+  const mayBootstrap = ref(false)
+
   const room = getDocSyncRoom(workspaceId, baseId, docId)
 
   let ownStep1Sent = false
@@ -74,6 +81,26 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
 
   let destroyed = false
 
+  // Safety net for a missed handshake frame. The `synced` flip depends on the
+  // server's step1/step2 frames arriving; a subscribe/reconnect timing race can
+  // drop one, which would otherwise leave the editor stuck read-only
+  // (`contenteditable=false` → no caret, though toolbar commands still apply).
+  // If we haven't converged in time, re-request the server's state and unblock
+  // the editor regardless — any content that arrives afterwards merges via CRDT.
+  const SYNC_FALLBACK_MS = 4000
+
+  let syncFallback: ReturnType<typeof setTimeout> | undefined
+
+  function armSyncFallback() {
+    if (syncFallback) clearTimeout(syncFallback)
+    syncFallback = setTimeout(() => {
+      if (destroyed || synced.value) return
+      ownStep1Sent = true
+      $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(encodeSyncStep1(ydoc)) })
+      synced.value = true
+    }, SYNC_FALLBACK_MS)
+  }
+
   function onRemoteMessage(msg: any) {
     if (!msg) return
 
@@ -82,6 +109,9 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
     // the editor — the reconnect handshake re-syncs from scratch if we drift.
     try {
       if (msg.kind === 'sync') {
+        // The server-initiated step1 carries the single-seeder grant. Only the
+        // first frame sets it; subsequent sync replies omit the field.
+        if (typeof msg.mayBootstrap === 'boolean') mayBootstrap.value = msg.mayBootstrap
         const reply = handleSyncMessage(ydoc, fromBase64(msg.frame), 'remote')
         if (reply) {
           $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(reply) })
@@ -90,8 +120,12 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
           // Send our own step1 so the server replies with the content we are missing.
           ownStep1Sent = true
           $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(encodeSyncStep1(ydoc)) })
-        } else if (!reply) {
-          // A sync frame that needed no reply, after our step1 → server content applied.
+        } else {
+          // Any sync frame received after we've sent our own step1 is the server's
+          // reply to it — we now hold the server's state and are converged. Don't
+          // gate on `!reply`: a frame that still needs a counter-reply (e.g. a
+          // re-issued step1) equally means the server answered, so flipping here
+          // is strictly more robust than waiting for a no-reply frame.
           synced.value = true
         }
       } else if (msg.kind === 'update') {
@@ -125,6 +159,7 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
     // re-detach already-removed listeners and double-destroy the Y.Doc.
     if (destroyed) return
     destroyed = true
+    if (syncFallback) clearTimeout(syncFallback)
     // Announce departure so peers drop our cursor immediately (fires a local
     // awareness 'update' that onLocalAwareness broadcasts before we detach).
     awareness.setLocalState(null)
@@ -139,15 +174,17 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
   listenerId = $ncSocket.onMessage(room, onRemoteMessage)
   ydoc.on('update', onLocalUpdate)
   awareness.on('update', onLocalAwareness)
+  armSyncFallback()
 
   offReconnect = $ncSocket.on('reconnect', () => {
     // The plugin re-sends event:subscribe on reconnect → the backend re-emits
     // its step1. Reset handshake state so we re-converge from scratch.
     ownStep1Sent = false
     synced.value = false
+    armSyncFallback()
   })
 
   onScopeDispose(destroy)
 
-  return { ydoc, awareness, synced, destroy }
+  return { ydoc, awareness, synced, mayBootstrap, destroy }
 }

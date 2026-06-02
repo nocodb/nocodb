@@ -4,7 +4,7 @@ import { Awareness } from 'y-protocols/awareness';
 import type { NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { documentCollabPersist } from '~/commands/documentCollabPersist';
 
@@ -15,6 +15,10 @@ interface DocSession {
   localSockets: Set<string>;
   dirty: boolean;
   collaborators: Set<string>;
+  /** True when the server Y.Doc was empty at load (no persisted yjs_state). */
+  wasEmpty: boolean;
+  /** Set once a client has been granted the right to seed an empty doc. */
+  bootstrapClaimed: boolean;
   debounceTimer?: NodeJS.Timeout;
   maxDebounceTimer?: NodeJS.Timeout;
   heartbeatTimer?: NodeJS.Timeout;
@@ -24,6 +28,18 @@ const DEBOUNCE_MS = 3000;
 const MAX_DEBOUNCE_MS = 10000;
 const HOLDER_TTL_SECS = 60;
 const HOLDER_HEARTBEAT_MS = 30000;
+/** TTL on the cross-node bootstrap claim; long enough to seed + persist. */
+const BOOTSTRAP_TTL_SECS = 60;
+/** Bounded retries for the final (last-socket) persist before giving up. */
+const FINAL_FLUSH_RETRIES = 3;
+const FINAL_FLUSH_BACKOFF_MS = 500;
+
+/** Per-doc Redis key for the multi-node "doc is live" holder (see isLive). */
+const liveKey = (docId: string) => `${CacheScope.DOC_LIVE}:${docId}`;
+/** Per-doc Redis key for the single-seeder bootstrap claim (see claimBootstrap). */
+const bootstrapKey = (docId: string) => `${CacheScope.DOC_BOOTSTRAP}:${docId}`;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export class DocumentCollabManager {
   protected static logger = new Logger(DocumentCollabManager.name);
@@ -51,10 +67,10 @@ export class DocumentCollabManager {
   static async isLive(context: NcContext, docId: string): Promise<boolean> {
     if (this.isLiveLocal(docId)) return true;
     try {
-      const holder = await NocoCache.getHashField(
+      const holder = await NocoCache.get(
         context,
-        CacheScope.DOC_LIVE,
-        docId,
+        liveKey(docId),
+        CacheGetType.TYPE_STRING,
       );
       return !!holder;
     } catch {
@@ -83,6 +99,8 @@ export class DocumentCollabManager {
       localSockets: new Set(),
       dirty: false,
       collaborators: new Set(),
+      wasEmpty: !stateRow?.yjs_state,
+      bootstrapClaimed: false,
     };
     this.sessions.set(docId, session);
 
@@ -101,15 +119,55 @@ export class DocumentCollabManager {
 
   private static async touchHolder(context: NcContext, docId: string) {
     try {
-      await NocoCache.setHashField(
+      // Per-doc key with its own TTL — a sibling doc's heartbeat must not keep a
+      // crashed node's stale holder alive (which would wrongly mark this doc live
+      // and have the REST coherence gate reject body writes indefinitely).
+      await NocoCache.setExpiring(
         context,
-        CacheScope.DOC_LIVE,
-        docId,
+        liveKey(docId),
         this.nodeId,
+        HOLDER_TTL_SECS,
       );
-      await NocoCache.expireHash(context, CacheScope.DOC_LIVE, HOLDER_TTL_SECS);
     } catch {
       // Redis unavailable / cache disabled — single-node path uses isLiveLocal().
+    }
+  }
+
+  /**
+   * Grant exactly one client the right to seed an empty (legacy) doc into the
+   * CRDT. The server can't seed itself (no ProseMirror schema backend-side), so
+   * the first eligible subscriber migrates the stored content — but two clients
+   * seeding concurrently would merge into duplicated body/title content. This
+   * arbitrates:
+   *
+   * - In-memory `bootstrapClaimed` is set synchronously (no await before the
+   *   write) so same-node concurrent subscribers can't both win.
+   * - Cross-node, a Redis `SET NX` ensures only one node's client seeds. With
+   *   cache disabled (single node) `setIfNotExist` returns true, so the
+   *   in-memory claim alone is authoritative.
+   *
+   * The caller must only invoke this for clients that can edit — a read-only
+   * client's seed would be rejected by the update handler and never persist,
+   * and granting it would block an editor from seeding. Returns whether the
+   * caller may seed.
+   */
+  static async claimBootstrap(
+    context: NcContext,
+    docId: string,
+  ): Promise<boolean> {
+    const s = this.sessions.get(docId);
+    if (!s || !s.wasEmpty || s.bootstrapClaimed) return false;
+    s.bootstrapClaimed = true; // synchronous — wins the same-node race
+    try {
+      return await NocoCache.setIfNotExist(
+        context,
+        bootstrapKey(docId),
+        this.nodeId,
+        BOOTSTRAP_TTL_SECS,
+      );
+    } catch {
+      // No Redis — single node; the in-memory claim is authoritative.
+      return true;
     }
   }
 
@@ -138,9 +196,14 @@ export class DocumentCollabManager {
     }
   }
 
-  static async flush(docId: string, isLast = false) {
+  /**
+   * Persist the doc. Returns true on success (or when there was nothing to do),
+   * false when the persist threw. On a non-final failure the debounce timers are
+   * re-armed so the write is retried without waiting for the next edit.
+   */
+  static async flush(docId: string, isLast = false): Promise<boolean> {
     const s = this.sessions.get(docId);
-    if (!s || (!s.dirty && !isLast)) return;
+    if (!s || (!s.dirty && !isLast)) return true;
     if (s.debounceTimer) clearTimeout(s.debounceTimer);
     if (s.maxDebounceTimer) clearTimeout(s.maxDebounceTimer);
     s.debounceTimer = s.maxDebounceTimer = undefined;
@@ -155,9 +218,14 @@ export class DocumentCollabManager {
         collaborators,
         isLast,
       });
+      return true;
     } catch (e: any) {
       this.logger.error(`persist failed for ${docId}: ${e.message}`, e.stack);
-      s.dirty = true; // retry next tick
+      s.dirty = true;
+      // Re-arm a retry; the final-flush path (isLast) drives its own retry loop
+      // in release(), where the session is about to be torn down.
+      if (!isLast) this.schedulePersist(docId);
+      return false;
     }
   }
 
@@ -167,14 +235,38 @@ export class DocumentCollabManager {
     if (!s) return;
     s.localSockets.delete(socketId);
     if (s.localSockets.size > 0) return;
-    await this.flush(docId, true);
+
+    // Final persist with bounded retry — the Y.Doc is about to be destroyed, so
+    // a transient DB error here would otherwise silently lose unpersisted edits.
+    let persisted = await this.flush(docId, true);
+    for (let attempt = 1; !persisted && attempt <= FINAL_FLUSH_RETRIES; attempt++) {
+      await sleep(FINAL_FLUSH_BACKOFF_MS * attempt);
+      persisted = await this.flush(docId, true);
+    }
+    if (!persisted) {
+      this.logger.error(
+        `final persist for ${docId} failed after ${FINAL_FLUSH_RETRIES} retries — unsaved collaborative edits may be lost`,
+      );
+    }
+
+    // A client may have re-subscribed while we were flushing (ensure() returns
+    // this same session until it's deleted below). If so, abort teardown and
+    // keep the doc live — destroying the Y.Doc now would orphan that client.
+    if (s.localSockets.size > 0) return;
+
     if (s.heartbeatTimer) clearInterval(s.heartbeatTimer);
     s.awareness.destroy();
     s.ydoc.destroy();
     await DocCollabPubSub.unsubscribe(docId);
     this.sessions.delete(docId);
     try {
-      await NocoCache.delHashField(s.context, CacheScope.DOC_LIVE, docId);
+      await NocoCache.del(s.context, liveKey(docId));
+      // If the doc never got seeded (still empty), release the bootstrap claim
+      // so the next session can re-grant — otherwise a legacy doc whose sole
+      // seeder vanished before seeding would stay un-migrated until TTL expiry.
+      if (s.wasEmpty) {
+        await NocoCache.del(s.context, bootstrapKey(docId));
+      }
     } catch {
       // ignore
     }

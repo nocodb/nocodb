@@ -110,6 +110,82 @@ export class DocumentsService extends DocumentsServiceCE {
   }
 
   /**
+   * Public, non-throwing wrapper around the document-level permission check.
+   *
+   * Exposed so non-controller call-sites that bypass the REST guards — notably
+   * the collaborative-editing socket gateway — can enforce the SAME
+   * DOCUMENT_VISIBILITY / DOCUMENT_EDIT rules the REST endpoints apply. `user`
+   * must carry `id` and `base_roles` (e.g. the result of `User.getWithRoles`).
+   */
+  async hasDocPermission(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    user: { id: string; [key: string]: any },
+  ): Promise<boolean> {
+    return this.checkDocPermission(context, docId, permissionKey, user);
+  }
+
+  /**
+   * Create (or reuse) a FileReference for an attachment inserted into a doc's
+   * body, returning its id.
+   *
+   * Used by the collaborative editor: while a Yjs session owns the body, REST
+   * `content` writes are skipped, so the lazy reconcile in `update()` never
+   * runs. The client therefore creates the ref eagerly at upload time and
+   * embeds the returned id in the editor node (which propagates via Yjs and
+   * persists). Idempotent on (doc, file_url) so retries / re-uploads of the
+   * same physical file don't leak duplicate refs.
+   */
+  async createDocFileReference(
+    context: NcContext,
+    docId: string,
+    params: { path: string; fileSize?: number; req: NcRequest },
+  ): Promise<{ id: string }> {
+    const { path, fileSize, req } = params;
+
+    const doc = await Document.getMeta(context, docId);
+    if (!doc) {
+      NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to edit this document',
+        );
+      }
+    }
+
+    // Idempotent — reuse an existing active ref for the same physical file.
+    const existingId = await FileReference.getActiveIdByFileUrlInDoc(
+      context,
+      docId,
+      path,
+    );
+    if (existingId) {
+      return { id: existingId };
+    }
+
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+    const id = await FileReference.insert(context, {
+      storage: storageAdapter.name,
+      file_url: path,
+      file_size: fileSize || 0,
+      fk_user_id: req.user?.id ?? 'anonymous',
+      fk_doc_id: docId,
+    });
+
+    return { id };
+  }
+
+  /**
    * List documents in a base (lightweight — excludes content).
    * Filters out documents the user cannot see based on visibility permissions.
    *

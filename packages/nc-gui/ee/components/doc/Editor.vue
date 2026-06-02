@@ -160,6 +160,11 @@ const collab = collabEnabled
 
 const collabSynced = collab?.synced ?? ref(false)
 
+// Tell attachment-upload composables whether Yjs owns the body. In collab mode
+// the lazy REST reconcile that creates FileReferences is skipped, so uploads
+// must create the ref eagerly and embed its id (which then propagates via Yjs).
+provide(DocCollabActiveInj, ref(collabEnabled))
+
 // Track whether we've already seeded a legacy doc's PM JSON into the Y.Doc this
 // session, so the bootstrap watch runs at most once.
 let hasBootstrapped = false
@@ -220,6 +225,14 @@ const isDocEditAllowed = computed(() => {
 
 /** Whether the current user can edit document content (base role + doc-level permission). */
 const isEditable = computed(() => !props.readOnly && isUIAllowed('documentUpdate') && isDocEditAllowed.value)
+
+/**
+ * Title input read-only gate. Mirrors the body editor: in collab mode the title
+ * stays read-only until the shared Y.Doc has synced, so a keystroke can't land in
+ * the local Y.Text before the binding adopts the server's title (which would
+ * otherwise merge into a duplicated title once sync arrives).
+ */
+const isTitleReadonly = computed(() => !isEditable.value || (collabEnabled && !collabSynced.value))
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {
@@ -339,6 +352,29 @@ if (collabEnabled) {
   })
   onBeforeUnmount(stopCollabRestore)
 }
+
+// Live collaborative title. In collab mode the title lives in the shared Y.Doc
+// (a Y.Text), so it co-edits in real time like the body. `patchStoreTitle` keeps
+// the documents store (sidebar / breadcrumb / URL slug) in sync as the title
+// changes locally or remotely — replacing the REST-save-driven sync that runs in
+// non-collab mode (disabled below while collab is active).
+function patchStoreTitle(normalized: string) {
+  if (!doc.value) return
+  if (normalized !== doc.value.title) doc.value.title = normalized
+  if (activeDocument.value?.id === doc.value.id && normalized !== activeDocument.value?.title) {
+    activeDocument.value!.title = normalized
+  }
+}
+
+const collabTitle =
+  collabEnabled && collab
+    ? useCollabTitle({
+        ydoc: collab.ydoc,
+        title,
+        getInputEl: () => titleInput.value as HTMLInputElement | null,
+        onTitle: patchStoreTitle,
+      })
+    : undefined
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
@@ -1827,6 +1863,23 @@ watch([isEditable, collabSynced], ([val, synced]) => {
   }
 })
 
+// Mirror remote document meta (icon / cover / font) into the local doc in collab
+// mode. The body and title live in the Y.Doc, but meta stays on the REST path:
+// a peer's icon change arrives via DOCUMENT_EVENT → the store's activeDocument,
+// and the version-reload watch that used to sync store → local doc is disabled
+// for collab. Without this, a peer's icon/cover wouldn't reflect in the editor
+// chrome (which renders from `doc.value.meta` via `docMeta`).
+if (collabEnabled) {
+  watch(
+    () => activeDocument.value?.meta,
+    (storeMeta) => {
+      if (storeMeta === undefined || !doc.value || !isLoaded.value) return
+      if (activeDocument.value?.id !== doc.value.id) return
+      doc.value.meta = storeMeta
+    },
+  )
+}
+
 // Bootstrap legacy docs into the CRDT. The first client to open a doc whose
 // server-side Y.Doc is still empty seeds it from the doc's stored PM JSON, so
 // existing (pre-collab) documents migrate into Yjs. After the first persist the
@@ -1836,8 +1889,14 @@ watch([isEditable, collabSynced], ([val, synced]) => {
 // `content` is available before we decide whether to seed (synced and the doc
 // load resolve independently).
 if (collabEnabled && collab) {
-  watch([collabSynced, isLoaded], ([synced, loaded]) => {
+  watch([collabSynced, isLoaded, collab.mayBootstrap], ([synced, loaded]) => {
     if (!synced || !loaded || hasBootstrapped) return
+
+    // Title: enable the live binding (adopt the shared Y.Text title) and, if this
+    // client is the granted seeder, seed it from the loaded title. Independent of
+    // body content, so it runs even when the body needs no migration.
+    collabTitle?.activate()
+    if (collab.mayBootstrap.value) collabTitle?.seedIfEmpty(title.value)
 
     const fragment = collab.ydoc.getXmlFragment('default')
     if (fragment.length > 0) {
@@ -1845,6 +1904,13 @@ if (collabEnabled && collab) {
       hasBootstrapped = true
       return
     }
+
+    // Only the server-designated seeder migrates legacy content into the CRDT.
+    // Two clients seeding concurrently would merge into duplicated body content,
+    // so a non-granted client waits for the content to arrive over live sync.
+    // Not marked bootstrapped: if the grant arrives after this fires, the watch
+    // re-runs on `mayBootstrap` and re-checks.
+    if (!collab.mayBootstrap.value) return
 
     const schema = editor.value?.schema
     const legacyContent = parseDocContent(doc.value?.content)
@@ -1970,7 +2036,9 @@ watch(
 )
 
 const onTitleBlur = () => {
-  if (!isEditable.value || !doc.value) return
+  // Collab mode persists the title via the shared Y.Doc, and the store stays in
+  // sync live through `patchStoreTitle` — nothing to flush on blur.
+  if (!isEditable.value || !doc.value || collabEnabled) return
 
   const effectiveTitle = title.value || 'Untitled'
 
@@ -2013,7 +2081,10 @@ const debouncedTitleSync = useDebounceFn(() => {
 }, 500)
 
 watch(title, () => {
-  if (isLoaded.value) {
+  // In collab mode the title lives in the shared Y.Doc: `useCollabTitle` pushes
+  // edits to the Y.Text and `patchStoreTitle` keeps the sidebar/URL in sync, while
+  // the server persists from the Y.Doc. The REST-save path must stay out of it.
+  if (isLoaded.value && !collabEnabled) {
     debouncedTitleSync()
   }
 })
@@ -2710,7 +2781,7 @@ defineExpose({ editor })
               <input
                 ref="titleInput"
                 v-model="title"
-                :readonly="!isEditable"
+                :readonly="isTitleReadonly"
                 class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
                 data-testid="docs-page-title"
                 :placeholder="$t('general.untitled')"
@@ -3295,13 +3366,15 @@ defineExpose({ editor })
   --nc-code-block-toolbar-fg-hover: rgba(255, 255, 255, 0.9);
 }
 
-// Real-time collaboration cursors. Faithful port of Outline's multiplayer cursor
-// styling (shared/editor/components/Styles.ts → `.ProseMirror-yjs-cursor`). TipTap's
-// CollaborationCursor uses different class names (`__caret` / `__label`) but the same
-// DOM shape: a thin caret span with the name flag as an absolutely-positioned child
-// `div`. The extension ships no CSS and sets only an inline color, so without these
-// rules the flag renders as a full-width block. Like Outline: the caret is a 1px bar
-// in the peer's colour (always visible); the name flag is hidden and revealed on hover.
+// Real-time collaboration cursors. Adapted from Outline's multiplayer cursor
+// styling (shared/editor/components/Styles.ts → `.ProseMirror-yjs-cursor`), but the
+// caret is `pointer-events: none` and the name flag is persistent rather than
+// hover-revealed. Outline reveals the name on hover via a widened `::after` hover
+// target — that target overlays the text line and intercepts clicks, so clicking
+// near a peer's caret would fail to place the local cursor. Dropping it (and the
+// hover) keeps the cursor decoration purely visual: it can never steal a click or
+// a selection from the local editor. TipTap's CollaborationCursor ships no CSS and
+// sets only an inline colour, so without these rules the flag is a full-width block.
 .nc-doc-editor-content {
   .collaboration-cursor__caret {
     position: relative;
@@ -3311,22 +3384,7 @@ defineExpose({ editor })
     border-right: 1px solid;
     height: 1em; // explicit height so the empty caret span renders a visible bar
     word-break: normal;
-
-    // Widen the hover target well beyond the 1px caret so the name flag is
-    // actually reachable — Outline's trick; the bare caret is unhoverable.
-    &::after {
-      content: '';
-      display: block;
-      position: absolute;
-      left: -8px;
-      right: -8px;
-      top: 0;
-      bottom: 0;
-    }
-
-    &:hover > .collaboration-cursor__label {
-      opacity: 1;
-    }
+    pointer-events: none; // purely decorative — never intercept the local caret
   }
 
   .collaboration-cursor__label {
@@ -3336,7 +3394,7 @@ defineExpose({ editor })
     z-index: 20;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     font-style: normal;
     line-height: normal;
@@ -3344,8 +3402,6 @@ defineExpose({ editor })
     color: #fff;
     user-select: none;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 100ms ease-in-out;
   }
 }
 

@@ -3,8 +3,10 @@ import {
   DocCollabClientEvents,
   EventType,
   extractRolesObj,
+  getDocSyncRoom,
   hasMinimumRoleAccess,
   type PayloadForEvent,
+  PermissionKey,
   ProjectRoles,
   validateRowFilters,
   WorkspaceRolesToProjectRoles,
@@ -25,6 +27,7 @@ import {
   handleSyncMessage,
 } from '~/socket/documentSyncProtocol';
 import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
+import { DocumentsService } from '~/services/documents.service';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
@@ -187,6 +190,35 @@ export default class NocoSocket {
         const docId = eventHelper[3];
         if (docId) {
           const context = { workspace_id: workspaceId, base_id: baseId };
+
+          // Per-document permission gate. The base-level NO_ACCESS check above
+          // is not sufficient — the REST docs endpoints additionally enforce
+          // DOCUMENT_VISIBILITY (read) and DOCUMENT_EDIT (write), so a member
+          // restricted from a specific private page must not read or write it
+          // over the socket either. `docUser` carries id + base_roles, the
+          // shape checkDocPermission expects.
+          const docsService = Noco.nestApp?.get(DocumentsService);
+          if (!docsService) {
+            this.logger.error(
+              'DocumentsService unavailable — refusing doc sync subscription',
+            );
+            return;
+          }
+          const docUser = { id: user.id, base_roles: userWithRole.base_roles };
+
+          const canRead = await docsService.hasDocPermission(
+            context,
+            docId,
+            PermissionKey.DOCUMENT_VISIBILITY,
+            docUser,
+          );
+          if (!canRead) {
+            this.logger.debug(
+              `Socket ${socket.id} denied doc sync (visibility) for ${docId}`,
+            );
+            return;
+          }
+
           const session = await DocumentCollabManager.ensure(context, docId);
           DocumentCollabManager.addSocket(docId, socket.id);
           await DocCollabPubSub.ensureSubscribed(docId);
@@ -196,11 +228,29 @@ export default class NocoSocket {
           if (!socket.data.docRooms) socket.data.docRooms = new Set();
           socket.data.docRooms.add(event);
 
-          // Read-only when the user lacks editor access — updates are ignored.
-          if (!hasMinimumRoleAccess(userWithRole, ProjectRoles.EDITOR)) {
+          // Read-only unless the user has base editor access AND doc-level edit
+          // permission — an explicit DOCUMENT_EDIT restriction overrides the
+          // base role. Updates from a read-only socket are ignored.
+          const canEdit =
+            hasMinimumRoleAccess(userWithRole, ProjectRoles.EDITOR) &&
+            (await docsService.hasDocPermission(
+              context,
+              docId,
+              PermissionKey.DOCUMENT_EDIT,
+              docUser,
+            ));
+          if (!canEdit) {
             if (!socket.data.docReadOnly) socket.data.docReadOnly = new Set();
             socket.data.docReadOnly.add(docId);
           }
+
+          // Grant single-seeder rights for an empty (legacy) doc — exactly one
+          // editor migrates the stored content into the CRDT (see claimBootstrap).
+          // Only editors can claim: a read-only client's seed would be rejected
+          // by the update handler and never persist, and granting it would block
+          // an editor from seeding (risking the legacy content being overwritten).
+          const mayBootstrap =
+            canEdit && (await DocumentCollabManager.claimBootstrap(context, docId));
 
           // Server-initiated Yjs handshake (race-free — the session exists now,
           // unlike a client-initiated sync that can beat this branch). The client
@@ -212,6 +262,7 @@ export default class NocoSocket {
             frame: Buffer.from(encodeSyncStep1(session.ydoc)).toString(
               'base64',
             ),
+            mayBootstrap,
           });
         }
       }
@@ -725,9 +776,16 @@ export default class NocoSocket {
         return;
       }
       if (reply) {
-        // No socketId: this reply targets the requesting socket itself, and
-        // $ncSocket.onMessage drops payloads whose socketId matches the receiver.
-        socket.emit(msg.room, {
+        // Room derived server-side from the validated session — never trust a
+        // client-supplied room (see UPDATE/AWARENESS below). This reply targets
+        // the requesting socket itself; no socketId so the client's own-echo
+        // filter delivers it.
+        const room = getDocSyncRoom(
+          session.context.workspace_id,
+          session.context.base_id,
+          msg.docId,
+        );
+        socket.emit(room, {
           kind: 'sync',
           docId: msg.docId,
           frame: Buffer.from(reply).toString('base64'),
@@ -763,8 +821,15 @@ export default class NocoSocket {
       }
       DocumentCollabManager.markDirty(msg.docId, socket.user?.id);
       // Fan out to OTHER clients (sender excluded by socket.to; cluster-wide via
-      // the redis-adapter). The base64 string passes straight through.
-      socket.to(msg.room).emit(msg.room, {
+      // the redis-adapter). The room is derived server-side from the session —
+      // a client must not be able to broadcast into an arbitrary room by setting
+      // its own `room` field. The base64 string passes straight through.
+      const room = getDocSyncRoom(
+        session.context.workspace_id,
+        session.context.base_id,
+        msg.docId,
+      );
+      socket.to(room).emit(room, {
         kind: 'update',
         docId: msg.docId,
         update: msg.update,
@@ -774,8 +839,15 @@ export default class NocoSocket {
 
     // Presence cursors: relay awareness to other clients (state is client-side).
     socket.on(DocCollabClientEvents.AWARENESS, (msg) => {
-      if (!socket.data.docSessions?.has(msg?.docId)) return;
-      socket.to(msg.room).emit(msg.room, {
+      const session = socket.data.docSessions?.get(msg?.docId);
+      if (!session) return;
+      // Room derived server-side — never trust a client-supplied room.
+      const room = getDocSyncRoom(
+        session.context.workspace_id,
+        session.context.base_id,
+        msg.docId,
+      );
+      socket.to(room).emit(room, {
         kind: 'awareness',
         docId: msg.docId,
         update: msg.update,

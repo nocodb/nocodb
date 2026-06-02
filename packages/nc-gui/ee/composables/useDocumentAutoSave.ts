@@ -62,6 +62,10 @@ export function useDocumentAutoSave({
   watch(
     () => [activeDocument.value?.version, isSaving.value] as const,
     ([storeVersion]) => {
+      // Collab owns the body (Yjs) and the title (shared Y.Text). Version bumps
+      // from the server's debounced persist are advisory only and must not trigger
+      // a REST content reload — that would fight the live CRDT state.
+      if (collabActive?.value) return
       if (!doc.value || !activeDocument.value || !isLoaded.value || isSaving.value) return
       // Guard: only sync if activeDocument matches the editor's local doc
       if (activeDocument.value.id !== doc.value.id) return
@@ -93,6 +97,10 @@ export function useDocumentAutoSave({
 
   /** Whether the document is stale (another user saved a newer version). */
   const isStale = computed(() => {
+    // Never stale in collab mode: the body and title are kept current live via the
+    // shared Y.Doc, and the server's advisory version bump would otherwise read as
+    // "another user saved" and wrongly block editing.
+    if (collabActive?.value) return false
     if (!doc.value || !activeDocument.value) return false
     if (!isLoaded.value || isSaving.value) return false
 
@@ -126,33 +134,30 @@ export function useDocumentAutoSave({
 
     isSaving.value = true
     try {
+      // When collab is active, Yjs owns the document body AND the title (a shared
+      // Y.Text) — both are persisted server-side from the Y.Doc. There is nothing
+      // to write over REST, so skip the save entirely. (The triggers in Editor.vue
+      // are already gated on `!collabEnabled`; this is a defensive backstop.)
+      if (collabActive?.value) {
+        isSaving.value = false
+        return
+      }
+
       const content = editor.value.getJSON()
 
-      // When collab is active, Yjs owns the document body server-side — the REST
-      // path may only carry title/version, never `content` (a content write
-      // would be rejected while the doc is live). So the body-related empty-doc
-      // guard and the `content` payload field are both skipped in that mode.
       const effectiveTitle = title.value || 'Untitled'
       const titleChanged = effectiveTitle !== lastSavedTitle.value
 
-      if (collabActive?.value) {
-        // Title-only save: nothing to persist if the title is unchanged.
-        if (!titleChanged) {
-          isSaving.value = false
-          return
-        }
-      } else {
-        // Guard: skip saving if editor state is empty AND the title hasn't changed
-        // AND no user edit has occurred. This prevents data loss from transient editor
-        // state corruption (e.g. paste bugs) while still allowing intentional clears
-        // and title-only saves on pages with empty bodies.
-        const nodeCount = content?.content?.length ?? 0
-        const firstType = content?.content?.[0]?.type
-        const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
-        if (isEmptyDoc && !titleChanged && !hasUserEdited.value) {
-          isSaving.value = false
-          return
-        }
+      // Guard: skip saving if editor state is empty AND the title hasn't changed
+      // AND no user edit has occurred. This prevents data loss from transient editor
+      // state corruption (e.g. paste bugs) while still allowing intentional clears
+      // and title-only saves on pages with empty bodies.
+      const nodeCount = content?.content?.length ?? 0
+      const firstType = content?.content?.[0]?.type
+      const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+      if (isEmptyDoc && !titleChanged && !hasUserEdited.value) {
+        isSaving.value = false
+        return
       }
 
       // Capture doc ID before the async call — if the user navigates during
@@ -163,7 +168,7 @@ export function useDocumentAutoSave({
 
       const updated = await updateDocument(activeProjectId.value, savingDocId, {
         title: effectiveTitle,
-        ...(collabActive?.value ? {} : { content }),
+        content,
         version: doc.value.version,
       })
 
@@ -309,6 +314,11 @@ export function useDocumentAutoSave({
    * captured snapshot.
    */
   const flushOnUnmount = () => {
+    // Collab owns both the body and the title via the shared Y.Doc and persists
+    // them server-side, so there is nothing to flush over REST. (No debounced save
+    // is ever queued in collab mode either, so `saveTimeout` is empty here.)
+    if (collabActive?.value) return
+
     if (saveTimeout.value) {
       clearTimeout(saveTimeout.value)
       // Skip if stale (another user saved a newer version — our version will be
@@ -322,21 +332,13 @@ export function useDocumentAutoSave({
 
         const titleChanged = docTitle !== lastSavedTitle.value
 
-        if (collabActive?.value) {
-          // Collab owns the body server-side — flush a title-only save when the
-          // title changed; never send `content`.
-          if (titleChanged) {
-            updateDocument(baseId, docId, { title: docTitle, version })
-          }
-        } else {
-          // Guard: skip saving empty doc on unmount unless title changed or user edited
-          const nodeCount = content?.content?.length ?? 0
-          const firstType = content?.content?.[0]?.type
-          const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
-          if (!(isEmptyDoc && !titleChanged && !hasUserEdited.value)) {
-            // Fire-and-forget is acceptable here — content is already captured
-            updateDocument(baseId, docId, { title: docTitle, content, version })
-          }
+        // Guard: skip saving empty doc on unmount unless title changed or user edited
+        const nodeCount = content?.content?.length ?? 0
+        const firstType = content?.content?.[0]?.type
+        const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+        if (!(isEmptyDoc && !titleChanged && !hasUserEdited.value)) {
+          // Fire-and-forget is acceptable here — content is already captured
+          updateDocument(baseId, docId, { title: docTitle, content, version })
         }
       }
     }

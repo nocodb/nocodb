@@ -564,6 +564,32 @@ export default class FileReference {
   }
 
   /**
+   * Return the id of an active (non-deleted, non-revision) FileReference for a
+   * doc + file_url, or null. Used to make eager attachment-ref creation
+   * idempotent in collaborative mode — re-uploading the same physical file or
+   * a retried request must not create duplicate refs for the same node.
+   */
+  public static async getActiveIdByFileUrlInDoc(
+    context: NcContext,
+    docId: string,
+    fileUrl: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string | null> {
+    const row = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_doc_id: docId,
+        file_url: fileUrl,
+        deleted: false,
+      })
+      .whereNull('fk_revision_id')
+      .select('id')
+      .first();
+    return row?.id ?? null;
+  }
+
+  /**
    * Un-delete doc-owned FileReferences whose IDs are being reintroduced by
    * a revision restore. Without this, reconcileFileReferences leaves
    * pre-existing IDs alone, so previously soft-deleted refs stay deleted

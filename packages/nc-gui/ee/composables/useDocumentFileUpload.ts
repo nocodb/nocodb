@@ -12,6 +12,13 @@ import type { Editor } from '@tiptap/core'
 export function useDocumentFileUpload() {
   const { batchUploadFiles } = useAttachment()
 
+  const base = inject(ProjectInj, ref())
+  const docId = inject(DocIdInj, ref(''))
+  const smartTextCell = inject(SmartTextCellAttachmentInj, ref(null))
+  const collabActive = inject(DocCollabActiveInj, ref(false))
+
+  const { createFileRef } = useDocumentsStore()
+
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
 
@@ -67,8 +74,20 @@ export function useDocumentFileUpload() {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          // Keep blob URL in src as reference until save injects FileReference id.
-          updateFileNode(editor, blobUrl, { path: storedRef })
+          // In collab mode Yjs owns the body, so the REST save that lazily
+          // creates the FileReference never runs — create it eagerly and embed
+          // the id so it propagates over Yjs and persists for all clients.
+          // Outside collab the id is injected later by reconcileFileReferences.
+          const docIdVal = docId?.value
+          let fileRefId: string | null = null
+          if (collabActive.value && docIdVal && !smartTextCell?.value && base?.value?.id) {
+            fileRefId = await createFileRef(base.value.id, docIdVal, storedRef, file.size)
+          }
+          updateFileNode(
+            editor,
+            blobUrl,
+            fileRefId ? { path: storedRef, id: fileRefId } : { path: storedRef },
+          )
         } else {
           removeFileNode(editor, blobUrl)
         }

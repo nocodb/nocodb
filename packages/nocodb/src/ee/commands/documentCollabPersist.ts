@@ -3,10 +3,11 @@ import * as Y from 'yjs';
 import { yDocToProsemirrorJSON } from 'y-prosemirror';
 import isEqual from 'fast-deep-equal';
 import type { NcContext } from 'nocodb-sdk';
-import { DocRevisionSource } from 'nocodb-sdk';
+import { DocRevisionSource, EventType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { Document, DocRevision } from '~/models';
+import { Document, DocRevision, FileReference } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 
 const logger = new Logger('documentCollabPersist');
 
@@ -18,6 +19,47 @@ export function mergeYjsState(ydoc: Y.Doc, dbState?: Buffer | null) {
   return { state, contentJson };
 }
 
+/** Collect FileReference ids referenced by image/fileAttachment nodes in PM JSON. */
+function collectDocFileRefIds(content: any): Set<string> {
+  const ids = new Set<string>();
+  const walk = (node: any) => {
+    if (
+      node &&
+      (node.type === 'image' || node.type === 'fileAttachment') &&
+      node.attrs?.id
+    ) {
+      ids.add(node.attrs.id);
+    }
+    if (Array.isArray(node?.content)) for (const child of node.content) walk(child);
+  };
+  walk(content);
+  return ids;
+}
+
+/**
+ * Soft-delete FileReferences for attachments removed from a collab-owned body.
+ *
+ * The lazy reconcile in `DocumentsService.update()` only runs on REST `content`
+ * writes, which are skipped while a Yjs session owns the doc — so without this
+ * the refs of deleted images would leak. Refs are created eagerly client-side
+ * (see `DocumentsService.createDocFileReference`); here we only prune. The cover
+ * image ref lives in `meta` (handled by the REST meta path) and is preserved.
+ */
+async function pruneRemovedFileRefs(context: NcContext, docId: string, contentJson: any) {
+  const contentIds = collectDocFileRefIds(contentJson);
+  const meta = (await Document.getMeta(context, docId))?.meta as
+    | Record<string, any>
+    | undefined;
+  const coverRefId = meta?.cover_image_file_ref_id;
+  const existingIds = await FileReference.listIdsForDoc(context, docId);
+  const removedIds = existingIds.filter(
+    (id) => !contentIds.has(id) && id !== coverRefId,
+  );
+  if (removedIds.length) {
+    await FileReference.delete(context, removedIds);
+  }
+}
+
 export async function documentCollabPersist(params: {
   context: NcContext;
   docId: string;
@@ -27,6 +69,19 @@ export async function documentCollabPersist(params: {
 }) {
   const { context, docId, ydoc, collaborators } = params;
 
+  // The title shares the document's Y.Doc as a `Y.Text` (see useCollabTitle), so
+  // its authoritative value lives here alongside the body. The first client to
+  // open a doc seeds it from `nc_docs.title`, so by the time this debounced
+  // persist runs the Y.Text holds the real title — an empty Y.Text means the
+  // title is genuinely empty (→ the "Untitled" default).
+  const rawTitle = ydoc.getText('title').toString();
+  const normalizedTitle = rawTitle || 'Untitled';
+  const existingDoc = await Document.getMeta(context, docId);
+  const titleChanged = !!existingDoc && normalizedTitle !== existingDoc.title;
+
+  // Hoisted so the post-commit FileReference prune can read the derived body.
+  let contentJson: any;
+
   const trxMeta = await Noco.ncDocsContent.startTransaction();
   try {
     const row = await trxMeta
@@ -35,7 +90,9 @@ export async function documentCollabPersist(params: {
       .forUpdate()
       .first();
 
-    const { state, contentJson } = mergeYjsState(ydoc, row?.yjs_state);
+    const merged = mergeYjsState(ydoc, row?.yjs_state);
+    const state = merged.state;
+    contentJson = merged.contentJson;
 
     const existingContent = row?.content
       ? typeof row.content === 'string'
@@ -43,16 +100,25 @@ export async function documentCollabPersist(params: {
         : row.content
       : undefined;
 
-    if (row && existingContent && isEqual(existingContent, contentJson)) {
+    const contentUnchanged = !!(
+      row &&
+      existingContent &&
+      isEqual(existingContent, contentJson)
+    );
+
+    if (contentUnchanged && !titleChanged) {
       await trxMeta.commit();
-      return; // unchanged — skip write + revision
+      return; // neither body nor title changed — skip write + revision
     }
 
-    const update = {
+    // `yjs_state` encodes both the body and the title, so it always advances when
+    // we persist; the derived `content` JSON only needs rewriting when the body
+    // actually changed (a title-only edit leaves it identical).
+    const update: Record<string, any> = {
       yjs_state: state,
-      content: JSON.stringify(contentJson),
       updated_at: new Date(),
     };
+    if (!contentUnchanged) update.content = JSON.stringify(contentJson);
 
     if (row) {
       await trxMeta
@@ -74,9 +140,33 @@ export async function documentCollabPersist(params: {
     throw e;
   }
 
-  // version bump on the meta DB (advisory, separate connection).
+  // version bump on the meta DB (advisory, separate connection); also persists the
+  // collaborative title when it changed.
   const lastEditor = collaborators[collaborators.length - 1];
-  await Document.bumpVersion(context, docId, lastEditor);
+  const bumped = await Document.bumpVersion(
+    context,
+    docId,
+    lastEditor,
+    undefined,
+    normalizedTitle,
+  );
+
+  // Push the new title to every base client. Editors with the doc open already
+  // have it live via the Y.Text sync; this updates the sidebar / breadcrumb /
+  // URL slug for clients that don't currently hold the doc open.
+  if (bumped?.titleChanged) {
+    try {
+      const fresh = await Document.getMeta(context, docId);
+      if (fresh) {
+        NocoSocket.broadcastEvent(context, {
+          event: EventType.DOCUMENT_EVENT,
+          payload: { id: docId, action: 'update', payload: fresh },
+        });
+      }
+    } catch (e: any) {
+      logger.error(`title broadcast failed for ${docId}: ${e.message}`, e.stack);
+    }
+  }
 
   // revision snapshot (PM JSON), attributed to the last editor.
   try {
@@ -93,5 +183,13 @@ export async function documentCollabPersist(params: {
     }
   } catch (e: any) {
     logger.error(`revision record failed for ${docId}: ${e.message}`, e.stack);
+  }
+
+  // Prune FileReferences whose attachments were removed from the body. Never
+  // fail the persist on a cleanup error — the content write already committed.
+  try {
+    await pruneRemovedFileRefs(context, docId, contentJson);
+  } catch (e: any) {
+    logger.error(`file-ref cleanup failed for ${docId}: ${e.message}`, e.stack);
   }
 }

@@ -142,6 +142,7 @@ export const OPERATION_SCOPES = {
   documentShare: 'base',
   documentUnshare: 'base',
   documentShareUpdate: 'base',
+  documentCreateFileRef: 'base',
   documentRevisionList: 'base',
   documentRevisionGet: 'base',
   documentRevisionRestore: 'base',

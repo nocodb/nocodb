@@ -173,6 +173,13 @@ export const IsSettingsSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-setti
 export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')
 
 /**
+ * Whether real-time collaborative editing (Yjs) currently owns the document
+ * body. When true, attachment uploads must create their FileReference eagerly
+ * (the lazy REST reconcile is skipped in collab mode). Defaults to `false`.
+ */
+export const DocCollabActiveInj: InjectionKey<Ref<boolean>> = Symbol('doc-collab-active-injection')
+
+/**
  * Cell-keyed attachment context for SmartText fields. When present, image and
  * file attachment nodes resolve their URLs via the cell-keyed proxy endpoint
  * (table+column+row triple) instead of the doc-keyed one.

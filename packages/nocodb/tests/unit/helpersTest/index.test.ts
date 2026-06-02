@@ -4,6 +4,7 @@ import { publicDatasSanitizeTest } from './publicDatasSanitize.test';
 import { publicDataExportSanitizeTest } from './publicDataExportSanitize.test';
 import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
+import { seatConfigTests } from './seatConfig.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
 import { emailUtilsTest } from './emailUtils.test';
 import { apiTokenPermissionTest } from './apiTokenPermission.test';
@@ -58,6 +59,7 @@ function _helperTests() {
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();
+  seatConfigTests();
   onPremPlanResolutionTests();
   mfaHelperTests();
   cognitoTestShimTests();

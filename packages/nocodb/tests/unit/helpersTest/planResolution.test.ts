@@ -18,6 +18,7 @@ const allPlans = [
   PlanTitles.FREE,
   PlanTitles.PLUS,
   PlanTitles.BUSINESS,
+  PlanTitles.SCALE,
   PlanTitles.ENTERPRISE,
 ] as const;
 
@@ -260,7 +261,7 @@ function planResolutionTests() {
   });
 
   describe('Plan ordering', () => {
-    it('should have strictly increasing order: FREE < PLUS < BUSINESS < ENTERPRISE', () => {
+    it('should have strictly increasing order: FREE < PLUS < BUSINESS < SCALE < ENTERPRISE', () => {
       expect(PlanOrder[PlanTitles.FREE]).to.be.lessThan(
         PlanOrder[PlanTitles.PLUS],
       );
@@ -268,6 +269,9 @@ function planResolutionTests() {
         PlanOrder[PlanTitles.BUSINESS],
       );
       expect(PlanOrder[PlanTitles.BUSINESS]).to.be.lessThan(
+        PlanOrder[PlanTitles.SCALE],
+      );
+      expect(PlanOrder[PlanTitles.SCALE]).to.be.lessThan(
         PlanOrder[PlanTitles.ENTERPRISE],
       );
     });
@@ -327,6 +331,55 @@ function planResolutionTests() {
         }
       });
     }
+  });
+
+  describe('Scale plan delta', () => {
+    const scaleEnabledEnterpriseFeatures = [
+      PlanFeatureTypes.FEATURE_RLS,
+      PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
+      PlanFeatureTypes.FEATURE_FORCE_2FA,
+      PlanFeatureTypes.FEATURE_API_VIEW_V3,
+      PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+      PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+      PlanFeatureTypes.FEATURE_TRASH_SETTINGS,
+    ];
+
+    it('Scale unlocks all Enterprise-gated features except SCIM', () => {
+      const meta = resolvePlanMeta(PlanTitles.SCALE);
+      for (const f of scaleEnabledEnterpriseFeatures) {
+        expect(meta[f]).to.eq(true, `Scale should enable ${f}`);
+      }
+      expect(meta[PlanFeatureTypes.FEATURE_SCIM]).to.eq(
+        false,
+        'Scale must NOT enable SCIM',
+      );
+    });
+
+    it('SCIM unlocks only at Enterprise', () => {
+      expect(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_SCIM]).to.eq(
+        PlanTitles.ENTERPRISE,
+      );
+    });
+
+    it('Scale limits are <= Enterprise for every finite Enterprise limit', () => {
+      const scale = resolvePlanMeta(PlanTitles.SCALE);
+      const ent = resolvePlanMeta(PlanTitles.ENTERPRISE);
+      for (const limit of allLimits) {
+        const e = ent[limit] as number;
+        const s = scale[limit] as number;
+        if (e !== -1) {
+          expect(s).to.not.eq(
+            -1,
+            `Scale ${limit} should be finite when Enterprise is finite`,
+          );
+          expect(s).to.be.at.most(
+            e,
+            `Scale ${limit} (${s}) should be <= Enterprise (${e})`,
+          );
+        }
+      }
+    });
   });
 }
 

@@ -582,7 +582,11 @@ const scrollDownIfNeeded = () => {
  */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
-  await _addFilter(false, draft)
+  // `_addFilter` (useViewFilters) takes the draft as its single argument. Passing a
+  // leading `false` here made the draft the (ignored) 2nd arg, so the multi-level
+  // list view's `fk_level_id` was dropped — the filter was counted but never shown
+  // under its level tab nor applied. (Filter groups already pass the draft correctly.)
+  await _addFilter(draft)
 
   if (filter && !isCopyFilter) {
     selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)

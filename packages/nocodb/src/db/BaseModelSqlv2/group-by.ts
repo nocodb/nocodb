@@ -560,6 +560,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             sort.direction,
             'FIRST',
           );
+        } else if (baseModel.isMssql) {
+          // MSSQL's default NULL ordering is the inverse of PG's (the
+          // reference dialect): PG treats NULLs as the largest value
+          // (ASC → NULLs last, DESC → NULLs first). knex drops the explicit
+          // NULLS clause for raw-column orderBy, so MSSQL falls back to its
+          // own default (NULLs smallest) and the group order diverges.
+          // Re-create PG semantics with an explicit NULL bucket.
+          outerQb.orderByRaw(
+            `CASE WHEN (${finalStatement}) IS NULL THEN 1 ELSE 0 END ${sort.direction}, (${finalStatement}) ${sort.direction}`,
+          );
         } else {
           outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
@@ -578,6 +588,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
             'FIRST',
+          );
+        } else if (baseModel.isMssql) {
+          // See note above — replicate PG's NULL ordering on MSSQL so the
+          // group list order matches the other dialects.
+          outerQb.orderByRaw(
+            `CASE WHEN ??.?? IS NULL THEN 1 ELSE 0 END ${sort.direction}, ??.?? ${sort.direction}`,
+            ['g', getAs(column), 'g', getAs(column)],
           );
         } else {
           outerQb.orderBy(

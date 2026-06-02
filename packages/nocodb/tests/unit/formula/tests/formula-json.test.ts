@@ -1403,8 +1403,9 @@ function formulaJsonTests() {
     });
 
     it('should be usable inside VALUE() to coerce numeric strings', async function () {
-      // VALUE() is only implemented for PG and MySQL function mappings.
-      if (TestDbMngr.isSqlite()) {
+      // VALUE() is unsupported on SQLite and MSSQL (see
+      // MssqlUi.getUnsupportedFnList) — only PG and MySQL implement it.
+      if (TestDbMngr.isSqlite() || TestDbMngr.isMssqlDataDb()) {
         this.skip();
       }
 

@@ -1426,11 +1426,11 @@
       "dragDropPrefix": "Drag & drop, or",
       "browse": "browse",
       "placeholder": {
-        "productName": "Acme Data",
-        "brandColor": "#0D5A5A",
-        "senderName": "Acme",
-        "footerText": "Acme — modern data management for your team.",
-        "footerUrl": "https://acme.com"
+        "productName": "NocoDB",
+        "brandColor": "#3366FF",
+        "senderName": "NocoDB Inc",
+        "footerText": "Build Databases As Spreadsheets : No-Coding Required",
+        "footerUrl": "https://nocodb.com"
       }
     },
     "syncing": "Syncing",

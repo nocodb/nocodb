@@ -65,6 +65,7 @@ import * as nc_202605160000_cleanup_orphan_base_users from './v0/nc_202605160000
 import * as nc_202605181000_gantt_view from './v0/nc_202605181000_gantt_view';
 import * as nc_202605271200_add_group_by_enabled from './v0/nc_202605271200_add_group_by_enabled';
 import * as nc_202605281200_doc_revisions from './v0/nc_202605281200_doc_revisions';
+import * as nc_202606021300_doc_yjs_state from './v0/nc_202606021300_doc_yjs_state';
 import * as nc_202605180000_table_syncs from './v0/nc_202605180000_table_syncs';
 import * as nc_202605200000_table_sync_column_mappings from './v0/nc_202605200000_table_sync_column_mappings';
 
@@ -143,6 +144,7 @@ export default class XcMigrationSourcev0 {
       'nc_202605181000_gantt_view',
       'nc_202605271200_add_group_by_enabled',
       'nc_202605281200_doc_revisions',
+      'nc_202606021300_doc_yjs_state',
       'nc_202605180000_table_syncs',
       'nc_202605200000_table_sync_column_mappings',
     ]);
@@ -288,6 +290,8 @@ export default class XcMigrationSourcev0 {
         return nc_202605271200_add_group_by_enabled;
       case 'nc_202605281200_doc_revisions':
         return nc_202605281200_doc_revisions;
+      case 'nc_202606021300_doc_yjs_state':
+        return nc_202606021300_doc_yjs_state;
       case 'nc_202605180000_table_syncs':
         return nc_202605180000_table_syncs;
       case 'nc_202605200000_table_sync_column_mappings':

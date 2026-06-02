@@ -16,7 +16,7 @@ const isMssql = (context: NcContext) => context.dbType === 'mssql';
 
 const isMssqlData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'mssql';
 
-const isPglData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'pg';
+const isPgData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'pg';
 
 const isMysqlData = (context: NcContext) => context?.base?.sources?.[0]?.type === 'mysql';
 
@@ -107,7 +107,7 @@ export {
   pgExec,
   isEE,
   enableQuickRun,
-  isPglData,
+  isPgData,
   isMysqlData,
   isSqliteData,
 };

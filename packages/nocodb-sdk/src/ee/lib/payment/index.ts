@@ -280,11 +280,14 @@ export const CloudPlanDefinitions: Record<
   },
 
   // -------------------------------------------------------------------------
-  // SCALE — SCIM stays Enterprise-only; Scale ↔ Enterprise differ by limits
+  // SCALE — all Enterprise-gated features are available on Scale EXCEPT SCIM.
+  // Scale ↔ Enterprise are differentiated by limits below, not by features.
+  // (RLS, workspace audit, team hierarchy, force-2FA, V3 view/dashboard/script
+  //  APIs and trash settings are intentionally enabled on Scale.)
   // -------------------------------------------------------------------------
   [PlanTitles.SCALE]: {
     features: {
-      [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_SCIM]: false, // Enterprise-only
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,

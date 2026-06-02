@@ -278,7 +278,9 @@ export const LOYALTY_SEAT_PRICE_CAP = 4;
 // LEGACY override confined to Plus & Business; new plans must NOT be added.
 // ---------------------------------------------------------------------------
 
-// Minimum billable seats per plan. Plans not listed default to 1.
+// Minimum billable seats per plan. Plans not listed default to 1 — Plus and
+// Business intentionally use 1 (their effective floor is governed by
+// LegacySeatPriceCap, not a minimum).
 export const PlanMinSeats: Partial<Record<PlanTitles, number>> = {
   [PlanTitles.SCALE]: 3,
 };
@@ -299,7 +301,7 @@ export const getSeatPriceCap = (title?: PlanTitles | string): number | null =>
 // plan still carries a legacy cap. Uncapped plans charge every seat.
 export const getChargeableSeats = (
   title: PlanTitles | string,
-  rawSeats: number
+  rawSeats: number | undefined
 ): number => {
   const seats = Math.max(rawSeats ?? 0, getMinSeats(title));
   const cap = getSeatPriceCap(title);

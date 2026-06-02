@@ -941,10 +941,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Ensure stable ordering:
     // - Use auto-increment PK if available
-    // - Otherwise, fallback to system CreatedTime
-    // This avoids issues when order column has duplicates
+    // - Otherwise, fall back to the primary key column(s)
+    // - Otherwise, fall back to system CreatedTime
+    // Without a tie-breaker, paginated reads sorted by a non-unique column
+    // can duplicate or skip rows at page boundaries (see issue #13931).
     if (this.model.primaryKey && this.model.primaryKey.ai) {
       qb.orderBy(this.model.primaryKey.column_name);
+    } else if (this.model.primaryKeys?.length) {
+      for (const pk of this.model.primaryKeys) qb.orderBy(pk.column_name);
     } else {
       const createdCol = this.model.columns.find(
         (c) => c.uidt === UITypes.CreatedTime && c.system,

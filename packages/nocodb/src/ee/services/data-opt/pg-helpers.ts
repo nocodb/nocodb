@@ -252,9 +252,11 @@ export async function singleQueryGroupedList(
   if (orderColumn) {
     tempSortQb.orderBy(orderColumn.column_name);
   }
-  // Ensure stable ordering
+  // Ensure stable ordering — see issue #13931 for why non-AI PKs need this fallback.
   if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
     tempSortQb.orderBy(ctx.model.primaryKey.column_name);
+  } else if (ctx.model.primaryKeys?.length) {
+    for (const pk of ctx.model.primaryKeys) tempSortQb.orderBy(pk.column_name);
   } else {
     const createdAtColumn = ctx.model.columns.find(
       (c) => c.uidt === UITypes.CreatedTime && c.system,

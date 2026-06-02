@@ -75,6 +75,46 @@ const initialTab = validTabs.includes(route.query.tab as AdminTab) ? (route.quer
 
 const activeTab = ref<AdminTab>(initialTab)
 
+// A tab (e.g. White Label) may register an async confirm to run before the
+// panel switches away from it (tabs are an `activeTab` ref, not routes, so
+// onBeforeRouteLeave can't catch this).
+const { leaveGuard } = useAdminTabGuard()
+
+// Guards leaving a tab with unsaved edits. Since the change has already
+// happened by the time the watcher fires, revert synchronously to keep the
+// current tab mounted while we ask, then re-apply on confirm.
+let bypassTabGuard = false
+let guarding = false
+
+watch(
+  activeTab,
+  (tab, prevTab) => {
+    if (bypassTabGuard || !leaveGuard.value || tab === prevTab) return
+
+    const target = tab
+    const guard = leaveGuard.value
+
+    // Revert immediately so the current tab stays mounted during the prompt.
+    bypassTabGuard = true
+    activeTab.value = prevTab
+    bypassTabGuard = false
+
+    // A prompt is already open (e.g. a query-driven change re-triggered us) —
+    // stay reverted, don't stack a second dialog.
+    if (guarding) return
+
+    guarding = true
+    guard().then((proceed) => {
+      guarding = false
+      if (!proceed) return
+      bypassTabGuard = true
+      activeTab.value = target
+      bypassTabGuard = false
+    })
+  },
+  { flush: 'sync' },
+)
+
 watch(activeTab, (tab) => {
   router.replace({ query: { ...route.query, tab } })
 })

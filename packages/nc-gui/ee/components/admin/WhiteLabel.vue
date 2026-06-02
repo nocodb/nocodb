@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { NavigationGuardNext } from 'vue-router'
 import type { WhiteLabelConfig } from 'nocodb-sdk'
 import { PlanFeatureTypes } from 'nocodb-sdk'
 
@@ -125,54 +124,68 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 
 useEventListener(typeof window !== 'undefined' ? window : null, 'beforeunload', onBeforeUnload)
 
-// Warn before in-app navigation away from the admin route with unsaved edits.
-function confirmUnsavedChangesBeforeLeaving(next: NavigationGuardNext) {
-  if (!hasChanges.value) {
-    next()
-    return
-  }
+// Prompt about unsaved edits. Resolves true to proceed (leave), false to stay.
+// Shared by the route guard (real navigation) and the admin tab-switch guard.
+function promptUnsavedChanges(): Promise<boolean> {
+  if (!hasChanges.value) return Promise.resolve(true)
 
-  const isOpen = ref(true)
+  return new Promise<boolean>((resolve) => {
+    const isOpen = ref(true)
+    const okProps = ref({ loading: false })
+    let settled = false
 
-  const okProps = ref({ loading: false })
+    const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+      'visible': isOpen,
+      'title': t('msg.info.unsavedChanges'),
+      'content': t('activity.doYouWantToSaveTheChanges'),
+      'okText': t('tooltip.saveChanges'),
+      'cancelText': t('labels.discard'),
+      'okProps': okProps,
+      'showIcon': false,
+      'keyboard': false,
+      'maskClosable': false,
+      'onCancel': () => finish(true), // Discard → leave
+      'onOk': async () => {
+        okProps.value.loading = true
+        try {
+          await onSave()
+          finish(true)
+        } catch {
+          // Save failed — error already surfaced; stay.
+          okProps.value.loading = false
+          finish(false)
+        }
+      },
+      // Programmatic close (finish) sets isOpen=false too; `settled` guards
+      // against a double-resolve.
+      'onUpdate:visible': (v: boolean) => {
+        if (!v) finish(true)
+      },
+    })
 
-  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
-    'visible': isOpen,
-    'title': t('msg.info.unsavedChanges'),
-    'content': t('activity.doYouWantToSaveTheChanges'),
-    'okText': t('tooltip.saveChanges'),
-    'cancelText': t('labels.discard'),
-    'okProps': okProps,
-    'showIcon': false,
-    'keyboard': false,
-    'maskClosable': false,
-    'onCancel': () => closeDialog(true), // Discard → leave
-    'onOk': async () => {
-      okProps.value.loading = true
-      let ok = true
-      try {
-        await onSave()
-      } catch {
-        // Save failed — error already surfaced; stay on the page.
-        ok = false
-      }
-      okProps.value.loading = false
-      if (ok) next()
-      else next(false)
-      closeDialog(false)
-    },
-    'onUpdate:visible': closeDialog,
+    function finish(proceed: boolean) {
+      if (settled) return
+      settled = true
+      isOpen.value = false
+      close(300)
+      resolve(proceed)
+    }
   })
-
-  function closeDialog(executeNext: boolean = true) {
-    if (executeNext) next()
-    isOpen.value = false
-    close(300)
-  }
 }
 
-onBeforeRouteLeave((_to, _from, next) => {
-  confirmUnsavedChangesBeforeLeaving(next)
+onBeforeRouteLeave(async (_to, _from, next) => {
+  if (await promptUnsavedChanges()) next()
+  else next(false)
+})
+
+// Admin tabs switch via an `activeTab` ref (not a route), so register the same
+// prompt with the parent's tab guard. Cleared on unmount.
+const { leaveGuard } = useAdminTabGuard()
+
+leaveGuard.value = promptUnsavedChanges
+
+onBeforeUnmount(() => {
+  if (leaveGuard.value === promptUnsavedChanges) leaveGuard.value = null
 })
 
 onMounted(async () => {

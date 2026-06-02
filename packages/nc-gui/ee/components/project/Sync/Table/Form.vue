@@ -80,6 +80,13 @@ const sourceColumns = computed<ColumnType[]>(() => sourceTable.value?.columns ??
 
 const isLoadingSourceColumns = ref(false)
 
+// Column ids visible in the picked source view. `null` = not loaded yet (or no
+// view selected) — treated as "show all" so the list never flashes empty while
+// loading. The backend only ever syncs columns visible in the chosen grid view,
+// so the field selector must mirror that: columns hidden in the view are not
+// syncable and must not be offered for selection.
+const visibleSourceColIds = ref<Set<string> | null>(null)
+
 const selectFieldsEnabled = ref(false)
 
 const excludedFieldTitles = ref<Set<string>>(new Set())
@@ -209,35 +216,41 @@ const canSubmit = computed(() => {
 })
 
 const eligibleFields = computed<SelectableField[]>(() => {
-  return sourceColumns.value
-    .filter((col) => !!col.title && !!col.uidt && !isSystemColumn(col))
-    .map<SelectableField>((col) => {
-      const linkedTableId = isLinksOrLTAR(col)
-        ? (col.colOptions as { fk_related_model_id?: string })?.fk_related_model_id
-        : undefined
-      if (UNSYNCABLE_UIDTS.has(col.uidt!)) {
-        return {
-          title: col.title!,
-          uidt: col.uidt!,
-          column: col,
-          locked: true,
-          lockReason: t('labels.fieldTypeNotSyncable'),
-          linkedTableId,
-          notSyncable: true,
+  return (
+    sourceColumns.value
+      .filter((col) => !!col.title && !!col.uidt && !isSystemColumn(col))
+      // Only fields visible in the picked view are syncable. PV is always synced
+      // (and can't be hidden in a grid view) so it's never filtered out. While the
+      // view columns load (`visibleSourceColIds === null`) fall back to showing all.
+      .filter((col) => col.pv || !visibleSourceColIds.value || (!!col.id && visibleSourceColIds.value.has(col.id)))
+      .map<SelectableField>((col) => {
+        const linkedTableId = isLinksOrLTAR(col)
+          ? (col.colOptions as { fk_related_model_id?: string })?.fk_related_model_id
+          : undefined
+        if (UNSYNCABLE_UIDTS.has(col.uidt!)) {
+          return {
+            title: col.title!,
+            uidt: col.uidt!,
+            column: col,
+            locked: true,
+            lockReason: t('labels.fieldTypeNotSyncable'),
+            linkedTableId,
+            notSyncable: true,
+          }
         }
-      }
-      if (col.pv) {
-        return {
-          title: col.title!,
-          uidt: col.uidt!,
-          column: col,
-          locked: true,
-          lockReason: t('labels.primaryFieldAlwaysSync'),
-          linkedTableId,
+        if (col.pv) {
+          return {
+            title: col.title!,
+            uidt: col.uidt!,
+            column: col,
+            locked: true,
+            lockReason: t('labels.primaryFieldAlwaysSync'),
+            linkedTableId,
+          }
         }
-      }
-      return { title: col.title!, uidt: col.uidt!, column: col, locked: false, linkedTableId }
-    })
+        return { title: col.title!, uidt: col.uidt!, column: col, locked: false, linkedTableId }
+      })
+  )
 })
 
 const togglableFields = computed(() => eligibleFields.value.filter((f) => !f.locked))
@@ -316,6 +329,32 @@ const loadSourceColumns = async (tableId: string) => {
   }
 }
 
+// Monotonic token so rapid view flips don't let a stale fetch overwrite
+// `visibleSourceColIds` with the wrong view's visibility set.
+let loadViewColumnsToken = 0
+
+const loadViewVisibleColumns = async (viewId: string) => {
+  if (!viewId || !form.sourceBaseId || !activeWorkspaceId.value) {
+    visibleSourceColIds.value = null
+    return
+  }
+  const token = ++loadViewColumnsToken
+  try {
+    const res = await $api.internal.getOperation(activeWorkspaceId.value, form.sourceBaseId, {
+      operation: 'viewColumnList',
+      viewId,
+    })
+    if (token !== loadViewColumnsToken) return
+    const list = (res?.list ?? []) as Array<{ fk_column_id?: string; show?: boolean | number }>
+    visibleSourceColIds.value = new Set(list.filter((c) => !!c.show && !!c.fk_column_id).map((c) => c.fk_column_id!))
+  } catch (e: any) {
+    if (token !== loadViewColumnsToken) return
+    // Non-fatal — fall back to "show all" so the selector still works. The
+    // backend remains the source of truth and will drop any hidden field anyway.
+    visibleSourceColIds.value = null
+  }
+}
+
 const enableAllowSyncOnSource = async () => {
   if (!form.sourceViewId || !form.sourceBaseId || !activeWorkspaceId.value) return
   if (isEnablingAllowSync.value) return
@@ -389,15 +428,17 @@ watch(
     linkViewByColumn.value = {}
     selectFieldsEnabled.value = false
     sourceTable.value = null
+    visibleSourceColIds.value = null
     await loadSourceColumns(v)
   },
 )
 
 watch(
   () => form.sourceViewId,
-  () => {
+  async () => {
     if (isInitializing.value) return
     saveError.value = null
+    await loadViewVisibleColumns(form.sourceViewId)
   },
 )
 
@@ -428,6 +469,7 @@ watch(inputMode, () => {
   linkViewByColumn.value = {}
   selectFieldsEnabled.value = false
   sourceTable.value = null
+  visibleSourceColIds.value = null
   pasteForm.isResolved = false
   pasteForm.resolvedSummary = ''
   pasteForm.error = ''
@@ -487,6 +529,7 @@ const resolvePastedLink = async () => {
     pasteForm.isResolved = true
     pasteForm.resolvedSummary = `${res.base_id} / ${res.table_id} / ${res.view_id}`
     await loadSourceColumns(res.table_id)
+    await loadViewVisibleColumns(res.view_id)
   } catch (e: any) {
     // Backend's allow_sync=false rejection bubbles up verbatim — guides the user to fix it source-side.
     const errMsg = (await extractSdkResponseErrorMsg(e)) || t('msg.error.failedToResolveLink')
@@ -666,6 +709,9 @@ const applyEditModeInitialValues = async () => {
       }
 
       await loadSourceColumns(mapping.source_table_id)
+      // Load view visibility before the eligibleFields-derived snapshots below
+      // so hidden columns don't leak into excluded/included sets on edit.
+      await loadViewVisibleColumns(mapping.source_view_id)
     }
 
     // Derive link-view picks from LinkedShadow mappings: each shadow's

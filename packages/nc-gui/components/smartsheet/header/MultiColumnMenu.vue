@@ -48,6 +48,9 @@ const isHiding = ref(false)
 
 const columnCount = computed(() => props.columns.length)
 
+// pv (display value) column cannot be hidden or deleted.
+const nonPvColumns = computed(() => props.columns.filter((col) => !col.pv))
+
 const closeAndClear = () => {
   isOpen.value = false
   props.onCleared?.()
@@ -67,7 +70,8 @@ const hideAllSelected = async () => {
     ).list
 
     // Optimistic local update — keep the menu snappy while API calls fan out.
-    for (const col of props.columns) {
+    // pv (display value) column is excluded — it cannot be hidden.
+    for (const col of nonPvColumns.value) {
       if (!col.id) continue
       if (fieldsMap.value[col.id]?.show) {
         hidingViewColumnsMap.value[col.id] = true
@@ -76,7 +80,7 @@ const hideAllSelected = async () => {
     }
 
     const results = await Promise.allSettled(
-      props.columns.map(async (col) => {
+      nonPvColumns.value.map(async (col) => {
         if (!col.id) return
         const viewCol = gridViewCols.value[col.id] ?? viewColumnList.find((f: any) => f.fk_column_id === col.id)
         if (!viewCol) {
@@ -100,7 +104,7 @@ const hideAllSelected = async () => {
     )
 
     // Roll back optimistic flips for any column whose API call failed.
-    for (const col of props.columns) {
+    for (const col of nonPvColumns.value) {
       if (!col.id) continue
       if (hidingViewColumnsMap.value[col.id]) {
         if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
@@ -121,7 +125,7 @@ const hideAllSelected = async () => {
     }
   } catch (e: any) {
     // Unexpected error (e.g. viewColumnList fetch failed) — roll back everything.
-    for (const col of props.columns) {
+    for (const col of nonPvColumns.value) {
       if (!col.id) continue
       if (hidingViewColumnsMap.value[col.id]) {
         if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
@@ -281,19 +285,19 @@ const onPermissionsSaved = () => {
       <div class="nc-multi-column-hide nc-header-menu-item">
         <GeneralLoader v-if="isHiding" size="regular" />
         <component :is="iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
-        {{ t('labels.hideNFields', { count: columnCount }) }}
+        {{ t('labels.hideNFields', { count: nonPvColumns.length }) }}
       </div>
     </NcMenuItem>
 
     <NcMenuItem v-if="isUIAllowed('fieldDelete')" danger data-testid="nc-multi-field-delete" @click="onDelete">
       <div class="nc-multi-column-delete nc-header-menu-item">
         <component :is="iconMap.delete" class="opacity-80" />
-        {{ t('labels.deleteNFields', { count: columnCount }) }}
+        {{ t('labels.deleteNFields', { count: nonPvColumns.length }) }}
       </div>
     </NcMenuItem>
 
     <div class="non-menu-items">
-      <SmartsheetHeaderMultiDeleteColumnModal v-model:visible="showMultiDeleteModal" :columns="columns" :on-deleted="onDeleted" />
+      <SmartsheetHeaderMultiDeleteColumnModal v-model:visible="showMultiDeleteModal" :columns="nonPvColumns" :on-deleted="onDeleted" />
       <DlgFieldMultiPermissions
         v-if="isEeUI && meta"
         v-model:visible="showMultiPermissionsModal"

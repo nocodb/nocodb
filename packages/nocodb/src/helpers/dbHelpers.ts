@@ -306,6 +306,12 @@ export function isDataAuditEnabled() {
   return process.env.NC_DISABLE_AUDIT !== 'true';
 }
 
+// Collaborative (Yjs) realtime editing of docs is enabled by default; set
+// NC_DOCS_REALTIME=false to disable and fall back to debounced REST saves.
+export function isDocsRealtimeEnabled() {
+  return process.env.NC_DOCS_REALTIME !== 'false';
+}
+
 export function getRelatedLinksColumn(
   column: Column<LinkToAnotherRecordColumn>,
   relatedModel: Model,

@@ -520,6 +520,53 @@ export default class Document extends DocumentCE implements DocumentType {
     return await this.get(context, docId, ncMeta);
   }
 
+  /**
+   * Bump the meta-DB version counter after a collaborative (Yjs) persist.
+   * The body's source of truth is `yjs_state` on the docs-content DB; this
+   * advisory bump keeps optimistic-concurrency consumers (REST) aware the
+   * doc changed. Read-then-write — the small race is harmless for an
+   * advisory counter.
+   */
+  public static async bumpVersion(
+    context: NcContext,
+    docId: string,
+    updatedBy?: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const existing = await this.getMeta(context, docId, ncMeta);
+    if (!existing) return;
+
+    const update: Record<string, any> = {
+      doc_version: (existing.version || 1) + 1,
+    };
+    if (updatedBy) update.updated_by = updatedBy;
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      update,
+      { id: docId, ...this.typeCondition },
+    );
+
+    await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+  }
+
+  /**
+   * Null the CRDT state on the docs-content DB. Called after a REST body write
+   * lands while no live session holds the doc, so the next editor re-bootstraps
+   * its Y.Doc from `content` (schema-free, spec §6).
+   */
+  public static async nullYjsState(context: NcContext, docId: string) {
+    await Noco.ncDocsContent.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOC_CONTENT,
+      { yjs_state: null },
+      { fk_doc_id: docId },
+    );
+  }
+
   public static async delete(
     context: NcContext,
     docId: string,

@@ -27,6 +27,8 @@ import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { DocRevision, Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
+import { DocumentCollabManager } from '~/socket/DocumentCollabManager';
+import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
 
@@ -635,6 +637,21 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
+    // Collaborative-editing coherence (spec §6): while a live Yjs session holds
+    // the doc, `yjs_state` is the body's source of truth — reject REST body
+    // writes. With no live session, allow the write but invalidate `yjs_state`
+    // so the next editor re-bootstraps its Y.Doc from this content (schema-free).
+    let invalidateYjsStateAfterUpdate = false;
+    if (payload.content !== undefined && isDocsRealtimeEnabled()) {
+      const live = await DocumentCollabManager.isLive(context, docId);
+      if (live) {
+        NcError.unprocessableEntity(
+          'This document is being edited live. Reload and edit in the editor, or retry shortly.',
+        );
+      }
+      invalidateYjsStateAfterUpdate = true;
+    }
+
     payload.updated_by = req.user.id;
     payload.version = (existing.version || 1) + 1;
 
@@ -681,6 +698,10 @@ export class DocumentsService extends DocumentsServiceCE {
     }
 
     const doc = await Document.update(context, docId, payload);
+
+    if (invalidateYjsStateAfterUpdate) {
+      await Document.nullYjsState(context, docId);
+    }
 
     // Record a revision when content or title actually changed.
     // Coalescing (same author + within window) is handled inside DocRevision.record().

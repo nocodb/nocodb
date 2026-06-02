@@ -43,6 +43,25 @@ export class DocumentCollabManager {
     return this.sessions.has(docId);
   }
 
+  /**
+   * Multi-node aware liveness for the REST coherence gate: a local session,
+   * or a holder key set by another node (Redis). False without Redis when no
+   * local session holds the doc.
+   */
+  static async isLive(context: NcContext, docId: string): Promise<boolean> {
+    if (this.isLiveLocal(docId)) return true;
+    try {
+      const holder = await NocoCache.getHashField(
+        context,
+        CacheScope.DOC_LIVE,
+        docId,
+      );
+      return !!holder;
+    } catch {
+      return false;
+    }
+  }
+
   /** First local connection: load state, mark holder, return the session. */
   static async ensure(context: NcContext, docId: string): Promise<DocSession> {
     let session = this.sessions.get(docId);

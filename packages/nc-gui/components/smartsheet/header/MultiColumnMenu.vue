@@ -59,8 +59,9 @@ const closeAndClear = () => {
 // --- Hide ---------------------------------------------------------------
 
 const hideAllSelected = async () => {
-  if (!props.columns.length || !view.value?.id) return
+  if (!nonPvColumns.value.length || !view.value?.id) return
   isHiding.value = true
+  const hiddenColIds: string[] = []
   try {
     const viewColumnList = (
       await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
@@ -69,68 +70,51 @@ const hideAllSelected = async () => {
       })
     ).list
 
-    // Optimistic local update — keep the menu snappy while API calls fan out.
-    // pv (display value) column is excluded — it cannot be hidden.
+    // Build view-column id → false map for the single batch call.
+    // pv column is already excluded via nonPvColumns.
+    const columnVisibility: Record<string, boolean> = {}
+    for (const col of nonPvColumns.value) {
+      if (!col.id) continue
+      const viewCol = gridViewCols.value[col.id] ?? viewColumnList.find((f: any) => f.fk_column_id === col.id)
+      if (!viewCol?.id) continue
+      columnVisibility[viewCol.id] = false
+    }
+
+    // Snapshot the IDs being hidden now, before any reactive updates can
+    // change nonPvColumns.value (e.g. from a concurrent loadViewColumns call
+    // triggered by the view_column_refresh WebSocket event). We must clear
+    // exactly these IDs later, regardless of what props.columns looks like then.
     for (const col of nonPvColumns.value) {
       if (!col.id) continue
       if (fieldsMap.value[col.id]?.show) {
         hidingViewColumnsMap.value[col.id] = true
         fieldsMap.value[col.id].show = false
+        hiddenColIds.push(col.id)
       }
     }
 
-    const results = await Promise.allSettled(
-      nonPvColumns.value.map(async (col) => {
-        if (!col.id) return
-        const viewCol = gridViewCols.value[col.id] ?? viewColumnList.find((f: any) => f.fk_column_id === col.id)
-        if (!viewCol) {
-          if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
-          delete hidingViewColumnsMap.value[col.id]
-          return
-        }
-        await $api.internal.postOperation(
-          meta.value!.fk_workspace_id!,
-          meta.value!.base_id!,
-          {
-            operation: 'viewColumnUpdate',
-            viewId: view.value!.id!,
-            columnId: viewCol.id!,
-          },
-          { show: false },
-        )
-        // Only remove from the tracking map on success — failures stay in the
-        // map so the rollback loop below can restore their visibility.
-        delete hidingViewColumnsMap.value[col.id]
-      }),
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      { operation: 'viewColumnsBulkSetVisibility', viewId: view.value!.id! },
+      { columnVisibility },
     )
 
-    // Roll back optimistic flips for any column whose API call failed.
-    for (const col of nonPvColumns.value) {
-      if (!col.id) continue
-      if (hidingViewColumnsMap.value[col.id]) {
-        if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
-        delete hidingViewColumnsMap.value[col.id]
-      }
+    // Clear exactly the IDs we set — not nonPvColumns.value which may have
+    // changed while the API call was in-flight.
+    for (const id of hiddenColIds) {
+      delete hidingViewColumnsMap.value[id]
     }
 
-    const failedCount = results.filter((r) => r.status === 'rejected').length
-    if (failedCount) {
-      message.error(t('msg.error.columnVisibilityUpdateFailed'))
-    }
-
-    const succeededCount = results.length - failedCount
-    if (succeededCount) {
-      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-      reloadDataHook?.trigger()
-      $e('a:field:hide:multi', { count: succeededCount })
-    }
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
+    $e('a:field:hide:multi', { count: Object.keys(columnVisibility).length })
   } catch (e: any) {
-    // Unexpected error (e.g. viewColumnList fetch failed) — roll back everything.
-    for (const col of nonPvColumns.value) {
-      if (!col.id) continue
-      if (hidingViewColumnsMap.value[col.id]) {
-        if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
-        delete hidingViewColumnsMap.value[col.id]
+    // Roll back optimistic flips for exactly the IDs we set.
+    for (const id of hiddenColIds) {
+      if (hidingViewColumnsMap.value[id]) {
+        if (fieldsMap.value[id]) fieldsMap.value[id].show = true
+        delete hidingViewColumnsMap.value[id]
       }
     }
     message.error(t('msg.error.columnVisibilityUpdateFailed'))

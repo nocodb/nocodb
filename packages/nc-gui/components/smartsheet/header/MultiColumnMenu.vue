@@ -281,20 +281,26 @@ const onPermissionsSaved = () => {
 
     <NcDivider />
 
-    <NcMenuItem :disabled="isLocked || isHiding" data-testid="nc-multi-field-hide" @click="hideAllSelected">
-      <div class="nc-multi-column-hide nc-header-menu-item">
-        <GeneralLoader v-if="isHiding" size="regular" />
-        <component :is="iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
-        {{ t('labels.hideNFields', { count: nonPvColumns.length }) }}
-      </div>
-    </NcMenuItem>
+    <NcTooltip :disabled="nonPvColumns.length === columnCount" placement="right">
+      <template #title>{{ t('tooltip.displayValueFieldExcluded') }}</template>
+      <NcMenuItem :disabled="isLocked || isHiding" data-testid="nc-multi-field-hide" @click="hideAllSelected">
+        <div class="nc-multi-column-hide nc-header-menu-item">
+          <GeneralLoader v-if="isHiding" size="regular" />
+          <component :is="iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
+          {{ t('labels.hideNFields', { count: nonPvColumns.length }) }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
 
-    <NcMenuItem v-if="isUIAllowed('fieldDelete')" danger data-testid="nc-multi-field-delete" @click="onDelete">
-      <div class="nc-multi-column-delete nc-header-menu-item">
-        <component :is="iconMap.delete" class="opacity-80" />
-        {{ t('labels.deleteNFields', { count: nonPvColumns.length }) }}
-      </div>
-    </NcMenuItem>
+    <NcTooltip v-if="isUIAllowed('fieldDelete')" :disabled="nonPvColumns.length === columnCount" placement="right">
+      <template #title>{{ t('tooltip.displayValueFieldExcluded') }}</template>
+      <NcMenuItem danger data-testid="nc-multi-field-delete" @click="onDelete">
+        <div class="nc-multi-column-delete nc-header-menu-item">
+          <component :is="iconMap.delete" class="opacity-80" />
+          {{ t('labels.deleteNFields', { count: nonPvColumns.length }) }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
 
     <div class="non-menu-items">
       <SmartsheetHeaderMultiDeleteColumnModal v-model:visible="showMultiDeleteModal" :columns="nonPvColumns" :on-deleted="onDeleted" />

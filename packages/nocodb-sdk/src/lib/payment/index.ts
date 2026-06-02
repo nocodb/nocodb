@@ -128,6 +128,7 @@ export enum PlanTitles {
   FREE = 'Free',
   PLUS = 'Plus',
   BUSINESS = 'Business',
+  SCALE = 'Scale',
   ENTERPRISE = 'Enterprise',
 }
 
@@ -143,6 +144,8 @@ export enum PlanPriceLookupKeys {
   PLUS_YEARLY = 'plus_yearly',
   BUSINESS_MONTHLY = 'business_monthly',
   BUSINESS_YEARLY = 'business_yearly',
+  SCALE_MONTHLY = 'scale_monthly',
+  SCALE_YEARLY = 'scale_yearly',
 }
 
 export const LoyaltyPriceLookupKeyMap = {
@@ -208,6 +211,20 @@ export const PlanMeta = {
     staticBadgeBgColor: '#FFF0FB',
     staticBadgeTextColor: '#C44DA0',
   },
+  [PlanTitles.SCALE]: {
+    title: PlanTitles.SCALE,
+    color: 'var(--scale-plan-color, #EEEFFD)',
+    accent: 'var(--scale-plan-accent, #D4D5F9)',
+    primary: 'var(--scale-plan-primary, #5B5DEF)',
+    bgLight: 'var(--scale-plan-bg-light, #EEEFFD)',
+    bgDark: 'var(--scale-plan-bg-dark, #DCDEFA)',
+    border: 'var(--scale-plan-border, #D4D5F9)',
+    chartFillColor: 'var(--scale-plan-chart-fill-color, #5B5DEF)',
+    badgeBgColor: 'var(--scale-plan-badge-bg-color, #EEEFFD)',
+    badgeTextColor: 'var(--scale-plan-badge-text-color, #5B5DEF)',
+    staticBadgeBgColor: '#EEEFFD',
+    staticBadgeTextColor: '#5B5DEF',
+  },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
     color: 'var(--enterprise-plan-color, #EAF7F7)',
@@ -228,7 +245,8 @@ export const PlanOrder = {
   [PlanTitles.FREE]: 0,
   [PlanTitles.PLUS]: 1,
   [PlanTitles.BUSINESS]: 2,
-  [PlanTitles.ENTERPRISE]: 3,
+  [PlanTitles.SCALE]: 3,
+  [PlanTitles.ENTERPRISE]: 4,
 };
 
 export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
@@ -242,7 +260,8 @@ export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
 export const HigherPlan = {
   [PlanTitles.FREE]: PlanTitles.PLUS,
   [PlanTitles.PLUS]: PlanTitles.BUSINESS,
-  [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
+  [PlanTitles.BUSINESS]: PlanTitles.SCALE,
+  [PlanTitles.SCALE]: PlanTitles.ENTERPRISE,
 } as Record<string, PlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
@@ -252,6 +271,40 @@ export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-09-03';
 export const SEAT_PRICE_CAP = 9;
 
 export const LOYALTY_SEAT_PRICE_CAP = 4;
+
+// ---------------------------------------------------------------------------
+// Seat model — uncapped by default, with a per-plan minimum.
+// Direction: moving away from the per-seat cap entirely. The cap below is a
+// LEGACY override confined to Plus & Business; new plans must NOT be added.
+// ---------------------------------------------------------------------------
+
+// Minimum billable seats per plan. Plans not listed default to 1.
+export const PlanMinSeats: Partial<Record<PlanTitles, number>> = {
+  [PlanTitles.SCALE]: 3,
+};
+
+export const getMinSeats = (title?: PlanTitles | string): number =>
+  PlanMinSeats[title as PlanTitles] ?? 1;
+
+// LEGACY per-seat price cap — ONLY Plus & Business. Default = uncapped (null).
+export const LegacySeatPriceCap: Partial<Record<PlanTitles, number>> = {
+  [PlanTitles.PLUS]: SEAT_PRICE_CAP,
+  [PlanTitles.BUSINESS]: SEAT_PRICE_CAP,
+};
+
+export const getSeatPriceCap = (title?: PlanTitles | string): number | null =>
+  LegacySeatPriceCap[title as PlanTitles] ?? null;
+
+// Final chargeable seats: floor at the plan minimum, then cap only if the
+// plan still carries a legacy cap. Uncapped plans charge every seat.
+export const getChargeableSeats = (
+  title: PlanTitles | string,
+  rawSeats: number
+): number => {
+  const seats = Math.max(rawSeats ?? 0, getMinSeats(title));
+  const cap = getSeatPriceCap(title);
+  return cap == null ? seats : Math.min(seats, cap);
+};
 
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',

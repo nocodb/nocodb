@@ -280,6 +280,32 @@ export const CloudPlanDefinitions: Record<
   },
 
   // -------------------------------------------------------------------------
+  // SCALE — SCIM stays Enterprise-only; Scale ↔ Enterprise differ by limits
+  // -------------------------------------------------------------------------
+  [PlanTitles.SCALE]: {
+    features: {
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
+    },
+    limits: {
+      [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
+      [PlanLimitTypes.LIMIT_API_PER_SECOND]: 8,
+      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 270,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 270,
+      [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 180,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100000,
+      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 270,
+      [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 300000,
+      [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
+      [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 500000,
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
+      [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 10,
+      [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 250000,
+      [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10,
+    },
+  },
+
+  // -------------------------------------------------------------------------
   // ENTERPRISE — no features disabled; all unlimited or set high
   // -------------------------------------------------------------------------
   [PlanTitles.ENTERPRISE]: {

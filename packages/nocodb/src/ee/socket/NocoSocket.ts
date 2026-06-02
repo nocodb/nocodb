@@ -633,7 +633,13 @@ export default class NocoSocket {
     NocoPresence.setupHandlers(socket);
 
     // ── Collaborative docs ──────────────────────────────────────────────────────
-    this.setupDocCollabHandlers(socket);
+    // Isolated: doc-collab is optional, so a setup failure here must never break
+    // core realtime (presence, live data) for the whole connection.
+    try {
+      this.setupDocCollabHandlers(socket);
+    } catch (e) {
+      this.logger.error(`Failed to set up doc collab handlers: ${e}`);
+    }
 
     // Error handling
     socket.on('error', (error: Error) => {

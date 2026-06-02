@@ -13,6 +13,21 @@ import tinycolor from 'tinycolor2'
 
 const BRAND_STOPS = [20, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const
 
+const AUTOFILL_SELECTORS = [
+  'input:-webkit-autofill',
+  'input:-webkit-autofill:hover',
+  'input:-webkit-autofill:focus',
+  'textarea:-webkit-autofill',
+  'textarea:-webkit-autofill:hover',
+  'textarea:-webkit-autofill:focus',
+].join(',\n')
+
+const AUTOFILL_NEUTRALIZE = `${AUTOFILL_SELECTORS} {
+  -webkit-box-shadow: inset 0 0 0 1000px var(--nc-bg-default) !important;
+  box-shadow: inset 0 0 0 1000px var(--nc-bg-default) !important;
+  -webkit-text-fill-color: var(--nc-content-gray) !important;
+}`
+
 /**
  * Light-mode lightness interpolation, calibrated against the default #3366ff
  * ramp. The seed is anchored at 500 (frac 0); positive fracs interpolate the
@@ -233,5 +248,10 @@ export function buildBrandStyleCss(seedHex: string): string | null {
     antVars(scale.dark, true),
     '}',
     staticBrandOverrides(scale.light),
+    // Neutralise the browser's blue autofill background so it doesn't clash with
+    // the brand. Only emitted in this white-label sheet, so default logins keep
+    // the native autofill look. box-shadow is the only way to override Chrome's
+    // autofill fill; paint it with the input surface colour (theme-adaptive).
+    AUTOFILL_NEUTRALIZE,
   ].join('\n')
 }

@@ -90,7 +90,25 @@ export class DataAttachmentV3Service {
             },
           );
 
-          // update fileSize, url due to fileName, fileSize etc
+          // Step 1: Create FileReference without workspace info and mark as deleted
+          await FileReference.insert(
+            {
+              ...baseModel.context,
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: downloadedAttachment.storageName,
+              // currently a placeholder
+              // it will be replaced after upload success
+              file_url: downloadedAttachment.url ?? downloadedAttachment.path,
+              file_size: downloadedAttachment.fileSize,
+              fk_user_id: req?.user?.id ?? 'anonymous',
+              is_external: !(await baseModel.getSource()).isMeta(),
+              deleted: true,
+            },
+          );
+          // Step 2: update fileSize, url due to fileName, fileSize etc
           await FileReference.updateById(context, attachment.id, {
             file_url: downloadedAttachment.url ?? downloadedAttachment.path,
             file_size: downloadedAttachment.fileSize,
@@ -276,8 +294,26 @@ export class DataAttachmentV3Service {
         new PassThrough().end(attachment.file, 'base64'),
       );
 
+      // Step 1: Create FileReference without workspace info and mark as deleted
+      await FileReference.insert(
+        {
+          ...context,
+          workspace_id: RootScopes.ROOT,
+          base_id: RootScopes.ROOT,
+        },
+        {
+          storage: storageAdapter.name,
+          file_url:
+            resultAttachmentUrl ?? path.join('download', filePath, filename),
+          file_size: fileSize,
+          fk_user_id: context?.user?.id ?? 'anonymous',
+          is_external: !(await baseModel.getSource()).isMeta(),
+          deleted: true,
+        },
+      );
+
+      // Step 2: Create FileReference with workspace info and deleted: false
       const attachmentId = await FileReference.insert(context, {
-        storage: storageAdapter.name,
         file_url:
           resultAttachmentUrl ?? path.join('download', filePath, filename),
         file_size: fileSize,
@@ -286,7 +322,10 @@ export class DataAttachmentV3Service {
         fk_model_id: modelId,
         fk_column_id: column.id,
         is_external: !(await baseModel.getSource()).isMeta(),
+        deleted: false,
       });
+
+      // Use the second (workspace-aware) FileReference ID as attachment value
 
       const processedAttachment = {
         id: attachmentId, // Generate a new ID for the attachment

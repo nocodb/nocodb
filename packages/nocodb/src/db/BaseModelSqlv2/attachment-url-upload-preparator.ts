@@ -78,8 +78,10 @@ export class AttachmentUrlUploadPreparator {
               const uploadedPath = storageAdapter.getUploadedPath(
                 filePaths.storageDest,
               );
+              // Step 1: Create FileReference without workspace info and mark as deleted
+              // we skip this one for now until the file is actually downloaded and size known
+              // Step 2: Create FileReference with workspace info and deleted: false
               const id = await FileReference.insert(baseModel.context, {
-                storage: storageAdapter.name,
                 // currently a placeholder
                 // it will be replaced after upload success
                 file_url: uploadedPath.url ?? uploadedPath.path,
@@ -91,6 +93,8 @@ export class AttachmentUrlUploadPreparator {
                 is_external: !(await baseModel.getSource()).isMeta(),
                 deleted: true,
               });
+
+              // Use the second (workspace-aware) FileReference ID as attachment value
               return {
                 id,
                 url: attr.url,

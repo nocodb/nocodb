@@ -90,6 +90,8 @@ const activeIntegrationformState = ref<ProjectCreateForm>(defaultFormState())
 
 const isEnabledSaveChangesBtn = ref(false)
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
@@ -121,7 +123,11 @@ const onEasterEgg = () => {
 }
 
 const clientTypes = computed(() => {
+  const mssqlEnabled = easterEgg.value || isFeatureEnabled(FEATURE_FLAG.MSSQL_SOURCE)
+
   return _clientTypes.filter((type) => {
+    if (type.value === ClientType.MSSQL) return mssqlEnabled
+
     return (
       ([ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value) && easterEgg.value) ||
       ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)

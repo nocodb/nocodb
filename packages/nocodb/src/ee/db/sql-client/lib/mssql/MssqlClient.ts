@@ -2224,6 +2224,19 @@ class MssqlClient extends KnexClient {
       );
     }
 
+    // T-SQL has no `ALTER COLUMN … IDENTITY`: the IDENTITY property is fixed at
+    // column creation and can't be toggled in place (unlike pg's ADD/DROP
+    // GENERATED … AS IDENTITY or mysql's MODIFY … AUTO_INCREMENT). The change
+    // detection below ignores `ai`, so a toggle would otherwise silently no-op
+    // and leave the DB column's IDENTITY state stale — later INSERTs then fail
+    // (error 515 when an expected auto-value is missing, or IDENTITY_INSERT
+    // errors). Fail fast; the user must drop and re-add the column instead.
+    if (o && !!n.ai !== !!o.ai) {
+      throw new Error(
+        `Cannot toggle auto-increment (IDENTITY) on existing MSSQL column "${oldName}" — drop and re-add the column instead.`,
+      );
+    }
+
     // 1) Rename via sp_rename ('schema.table.col' as a string, new name only).
     if (oldName && newName && oldName !== newName) {
       up.push(

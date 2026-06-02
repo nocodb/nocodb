@@ -10,6 +10,10 @@ export const clientTypes = [
     value: ClientType.PG,
   },
   {
+    text: 'SQL Server',
+    value: ClientType.MSSQL,
+  },
+  {
     text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },

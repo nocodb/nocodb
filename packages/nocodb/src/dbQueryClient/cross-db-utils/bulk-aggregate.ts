@@ -6,8 +6,43 @@ import type { BulkAggregateCtx, DBQueryClient } from '~/dbQueryClient/types';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import conditionV2 from '~/db/conditionV2';
 import { Filter, Model } from '~/models';
+import { NcError } from '~/helpers/ncError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveAggregateColumns } from '~/dbQueryClient/cross-db-utils/aggregate';
+
+// filterArrJson arrives either as a JSON string (API callers) or an
+// already-parsed Filter[] (internal callers pass it pre-parsed). A malformed
+// JSON string must fail closed with a 400 — silently dropping it would run the
+// aggregation unfiltered (fail-open data exposure). Empty/absent => no extra
+// filter; a value that parses to a non-array is rejected too.
+function parseBulkFilterArrJson(
+  context: NcContext,
+  raw: string | Filter[] | undefined,
+  alias: string,
+): Filter[] | undefined {
+  if (raw == null) return undefined;
+  if (Array.isArray(raw)) return raw;
+
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    NcError.get(context).badRequest(
+      `Invalid filterArrJson for bulk-aggregate bucket "${alias}"`,
+    );
+  }
+
+  if (!Array.isArray(parsed)) {
+    NcError.get(context).badRequest(
+      `Invalid filterArrJson for bulk-aggregate bucket "${alias}"`,
+    );
+  }
+
+  return parsed as Filter[];
+}
 
 /**
  * Shared, dialect-agnostic bulk aggregation orchestration.
@@ -28,6 +63,19 @@ export const bulkAggregate =
     ctx: BulkAggregateCtx,
   ): Promise<Record<string, Record<string, unknown>>> => {
     const { model, view, source, args, bulkFilterList } = ctx;
+
+    // Validate every bucket's filterArrJson up-front — outside the try below,
+    // whose catch swallows errors into `{}`, so a malformed filter surfaces as
+    // a 400 instead of being silently dropped (which would run the aggregation
+    // unfiltered). Keyed by the bucket's unique alias for reuse in the loop.
+    const parsedFilterArrJsonByAlias = new Map(
+      (bulkFilterList ?? []).map(
+        (f): [string, Filter[] | undefined] => [
+          f.alias,
+          parseBulkFilterArrJson(context, f.filterArrJson, f.alias),
+        ],
+      ),
+    );
 
     try {
       if (!bulkFilterList?.length) {
@@ -85,18 +133,8 @@ export const bulkAggregate =
           aliasColObjMap,
         );
 
-        // filterArrJson arrives as a JSON string from the caller; tolerate
-        // pre-parsed input too.
-        let parsedFilterArrJson: Filter[] | undefined;
-        if (typeof f.filterArrJson === 'string') {
-          try {
-            parsedFilterArrJson = JSON.parse(f.filterArrJson) as Filter[];
-          } catch {
-            parsedFilterArrJson = undefined;
-          }
-        } else {
-          parsedFilterArrJson = f.filterArrJson;
-        }
+        // Parsed and validated up-front (see parsedFilterArrJsonByAlias).
+        const parsedFilterArrJson = parsedFilterArrJsonByAlias.get(f.alias);
 
         await conditionV2(
           baseModel,

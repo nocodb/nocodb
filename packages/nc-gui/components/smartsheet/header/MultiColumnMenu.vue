@@ -84,6 +84,7 @@ const hideAllSelected = async () => {
         if (!col.id) return
         const viewCol = gridViewCols.value[col.id] ?? viewColumnList.find((f: any) => f.fk_column_id === col.id)
         if (!viewCol) {
+          if (fieldsMap.value[col.id]) fieldsMap.value[col.id].show = true
           delete hidingViewColumnsMap.value[col.id]
           return
         }

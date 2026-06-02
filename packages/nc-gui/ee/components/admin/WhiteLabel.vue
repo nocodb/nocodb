@@ -104,9 +104,7 @@ async function onSave() {
   }
   await save(payload)
   syncFromConfig()
-  message.toast(
-    form.value.enabled ? 'White-label settings updated' : 'Settings saved. White-labeling is off, so they are not applied yet.',
-  )
+  message.toast(form.value.enabled ? t('labels.whiteLabel.savedAndApplied') : t('labels.whiteLabel.savedNotApplied'))
 }
 
 function onReset() {
@@ -201,7 +199,7 @@ watch(config, syncFromConfig)
     <div class="nc-breadcrumb px-2">
       <div class="nc-breadcrumb-item">{{ $t('labels.adminPanel') }}</div>
       <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
-      <div class="nc-breadcrumb-item active">White Label</div>
+      <div class="nc-breadcrumb-item active">{{ $t('labels.whiteLabel.title') }}</div>
     </div>
 
     <NcPageHeader>
@@ -210,7 +208,7 @@ watch(config, syncFromConfig)
       </template>
       <template #title>
         <span data-rec="true" class="flex items-center gap-2">
-          White Label
+          {{ $t('labels.whiteLabel.title') }}
           <PaymentUpgradeBadge v-if="isOnPrem" :feature="PlanFeatureTypes.FEATURE_WHITE_LABEL" />
         </span>
       </template>
@@ -225,10 +223,9 @@ watch(config, syncFromConfig)
           <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
             <div class="flex items-center justify-between">
               <div>
-                <div class="font-bold text-base" data-rec="true">Enable white-labeling</div>
+                <div class="font-bold text-base" data-rec="true">{{ $t('labels.whiteLabel.enable') }}</div>
                 <span class="text-nc-content-gray-subtle2 mt-1 block">
-                  When enabled, the configured product name, logo, favicon, and brand color replace the NocoDB defaults across the
-                  entire instance.
+                  {{ $t('labels.whiteLabel.enableDescription') }}
                 </span>
               </div>
               <NcSwitch v-model:checked="form.enabled" size="default" />
@@ -242,19 +239,19 @@ watch(config, syncFromConfig)
           >
             <div class="font-bold text-base flex items-center gap-2" data-rec="true">
               <GeneralIcon icon="ncImage" class="h-4 w-4" />
-              Branding
+              {{ $t('labels.whiteLabel.branding') }}
             </div>
             <span class="text-nc-content-gray-subtle2 mt-1">
-              Upload images to replace the default branding. Each slot lists its own format and size.
+              {{ $t('labels.whiteLabel.brandingDescription') }}
             </span>
 
             <div class="flex flex-col gap-6">
               <div>
-                <div class="text-nc-content-gray mb-2">Product name</div>
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.productName') }}</div>
                 <a-input
                   v-model:value="form.productName"
                   class="!rounded-lg !px-4 h-10"
-                  placeholder="Acme Data"
+                  :placeholder="$t('labels.whiteLabel.placeholder.productName')"
                   :maxlength="60"
                   show-count
                 />
@@ -263,7 +260,7 @@ watch(config, syncFromConfig)
               <!-- Logos -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <div class="text-nc-content-gray mb-2">Logo · light mode</div>
+                  <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.logoLight') }}</div>
                   <AdminWhiteLabelAsset
                     v-model="form.logoUrl"
                     path-key="logoUrl"
@@ -271,25 +268,25 @@ watch(config, syncFromConfig)
                     preview-bg="light"
                     box-class="h-28 w-full"
                   />
-                  <div class="text-nc-content-gray-muted text-bodySm mt-2">PNG / SVG · ~240×60 · max 2 MB</div>
+                  <div class="text-nc-content-gray-muted text-bodySm mt-2">{{ $t('labels.whiteLabel.logoFormatHint') }}</div>
                 </div>
                 <div>
-                  <div class="text-nc-content-gray mb-2">Logo · dark mode</div>
+                  <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.logoDark') }}</div>
                   <AdminWhiteLabelAsset
                     v-model="form.logoDarkUrl"
                     path-key="logoDarkUrl"
                     accept="image/*"
                     preview-bg="dark"
                     box-class="h-28 w-full"
-                    empty-hint="Falls back to light logo when empty"
+                    :empty-hint="$t('labels.whiteLabel.logoDarkFallback')"
                   />
-                  <div class="text-nc-content-gray-muted text-bodySm mt-2">PNG / SVG · ~240×60 · max 2 MB</div>
+                  <div class="text-nc-content-gray-muted text-bodySm mt-2">{{ $t('labels.whiteLabel.logoFormatHint') }}</div>
                 </div>
               </div>
 
               <!-- Favicon -->
               <div>
-                <div class="text-nc-content-gray mb-2">Favicon</div>
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.favicon') }}</div>
                 <div class="flex items-start gap-4">
                   <AdminWhiteLabelAsset
                     v-model="form.faviconUrl"
@@ -299,19 +296,23 @@ watch(config, syncFromConfig)
                     compact
                   />
                   <div class="flex flex-col gap-1 pt-1">
-                    <span class="text-nc-content-gray-subtle2">Square icon shown in browser tabs.</span>
-                    <span class="text-nc-content-gray-muted text-bodySm">PNG / ICO · 48×48 · max 2 MB</span>
+                    <span class="text-nc-content-gray-subtle2">{{ $t('labels.whiteLabel.faviconDescription') }}</span>
+                    <span class="text-nc-content-gray-muted text-bodySm">{{ $t('labels.whiteLabel.faviconFormatHint') }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Brand color -->
               <div>
-                <div class="text-nc-content-gray mb-2">Brand color</div>
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.brandColor') }}</div>
                 <div class="flex items-center gap-3">
-                  <a-input v-model:value="form.brandColor" class="!rounded-lg !px-4 h-10 w-60" placeholder="#0D5A5A" />
+                  <a-input
+                    v-model:value="form.brandColor"
+                    class="!rounded-lg !px-4 h-10 w-60"
+                    :placeholder="$t('labels.whiteLabel.placeholder.brandColor')"
+                  />
                   <a-dropdown v-model:visible="isColorPickerOpen" :trigger="['click']" overlay-class-name="nc-wl-color-picker">
-                    <NcTooltip title="Pick a color">
+                    <NcTooltip :title="$t('labels.whiteLabel.pickColor')">
                       <div
                         class="w-10 h-10 rounded-lg border-1 border-nc-border-gray-medium flex-none cursor-pointer transition-shadow hover:shadow-sm"
                         :class="{ 'ring-2 ring-nc-border-brand': isColorPickerOpen }"
@@ -334,18 +335,18 @@ watch(config, syncFromConfig)
                   class="flex items-center gap-1.5 mt-2 text-nc-content-green-dark text-bodySm"
                 >
                   <GeneralIcon icon="ncCheck" class="flex-none h-4 w-4" />
-                  Good contrast
+                  {{ $t('labels.whiteLabel.goodContrast') }}
                 </div>
                 <div
                   v-else-if="brandContrastOk === false"
                   class="flex items-center gap-1.5 mt-2 text-nc-content-yellow-dark text-bodySm"
                 >
                   <GeneralIcon icon="ncAlertTriangle" class="flex-none h-4 w-4" />
-                  This color may make button text hard to read
+                  {{ $t('labels.whiteLabel.lowContrast') }}
                 </div>
 
                 <span class="text-nc-content-gray-muted text-bodySm mt-1 block">
-                  Recolours buttons, links, and accents across the UI.
+                  {{ $t('labels.whiteLabel.brandColorHint') }}
                 </span>
               </div>
             </div>
@@ -356,35 +357,43 @@ watch(config, syncFromConfig)
             class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4 transition-opacity"
             :class="{ 'opacity-60': !form.enabled }"
           >
-            <div class="font-bold text-base" data-rec="true">Email branding</div>
+            <div class="font-bold text-base" data-rec="true">{{ $t('labels.whiteLabel.emailBranding') }}</div>
             <span class="text-nc-content-gray-subtle2 mt-1">
-              These values override the default "NocoDB Team" footer in transactional emails (invites, password reset, etc.).
-              Leave fields blank to keep the defaults.
+              {{ $t('labels.whiteLabel.emailBrandingDescription') }}
             </span>
 
             <div class="flex flex-col gap-6">
               <div>
-                <div class="text-nc-content-gray mb-2">Sender name</div>
-                <a-input v-model:value="form.emailSenderName" class="!rounded-lg !px-4 h-10" placeholder="Acme" :maxlength="60" />
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.senderName') }}</div>
+                <a-input
+                  v-model:value="form.emailSenderName"
+                  class="!rounded-lg !px-4 h-10"
+                  :placeholder="$t('labels.whiteLabel.placeholder.senderName')"
+                  :maxlength="60"
+                />
               </div>
 
               <div>
-                <div class="text-nc-content-gray mb-2">Footer text</div>
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.footerText') }}</div>
                 <a-textarea
                   v-model:value="form.emailFooterText"
                   class="nc-wl-footer-textarea"
                   :rows="2"
                   :maxlength="240"
-                  placeholder="Acme — modern data management for your team."
+                  :placeholder="$t('labels.whiteLabel.placeholder.footerText')"
                   show-count
                 />
               </div>
 
               <div>
-                <div class="text-nc-content-gray mb-2">Footer link URL</div>
-                <a-input v-model:value="form.emailFooterUrl" class="!rounded-lg !px-4 h-10" placeholder="https://acme.com" />
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.footerUrl') }}</div>
+                <a-input
+                  v-model:value="form.emailFooterUrl"
+                  class="!rounded-lg !px-4 h-10"
+                  :placeholder="$t('labels.whiteLabel.placeholder.footerUrl')"
+                />
                 <span class="text-nc-content-gray-muted text-bodySm">
-                  Must be an absolute http(s) URL — same-origin paths don't resolve from an inbox.
+                  {{ $t('labels.whiteLabel.footerUrlHint') }}
                 </span>
               </div>
             </div>
@@ -398,7 +407,7 @@ watch(config, syncFromConfig)
       <div class="w-150 flex flex-row items-center gap-4">
         <div v-if="!form.enabled" class="flex items-center gap-2 min-w-0 text-nc-content-yellow-dark font-medium">
           <GeneralIcon icon="ncAlertTriangle" class="flex-none h-4 w-4" />
-          <span class="truncate">Saved settings won't apply until white-labeling is enabled.</span>
+          <span class="truncate">{{ $t('labels.whiteLabel.disabledNotice') }}</span>
         </div>
         <NcButton
           type="secondary"

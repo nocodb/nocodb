@@ -36,6 +36,8 @@ const { appInfo } = useGlobal()
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const dropZoneRef = ref<HTMLDivElement>()
 
 const fileInput = ref<HTMLInputElement>()
@@ -58,7 +60,7 @@ const previewSrc = computed(() => joinSiteUrl(props.modelValue))
 
 async function uploadAsset(file: File) {
   if (file.size > maxBytes.value) {
-    message.error(`File must be ${props.maxSizeMb} MB or smaller`)
+    message.error(t('labels.whiteLabel.fileTooLarge', { size: props.maxSizeMb }))
     return
   }
 
@@ -76,7 +78,7 @@ async function uploadAsset(file: File) {
     // it to the canonical download path on save and re-signs on read.
     const raw = attachment?.signedPath ?? attachment?.url
     if (!raw) {
-      message.error('Upload succeeded but no URL was returned')
+      message.error(t('labels.whiteLabel.uploadNoUrl'))
       return
     }
     // Local storage returns `dltemp/...` without a leading slash; force absolute.
@@ -132,7 +134,7 @@ function remove() {
         v-else
         class="absolute inset-0 flex items-center justify-center gap-2 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
       >
-        <NcTooltip title="Replace">
+        <NcTooltip :title="$t('general.replace')">
           <button
             type="button"
             class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/90 text-nc-content-gray hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
@@ -166,10 +168,11 @@ function remove() {
       </div>
       <template v-else>
         <GeneralIcon icon="ncUpload" class="text-nc-content-gray-muted" :class="compact ? 'h-5 w-5' : 'h-6 w-6 mb-2'" />
-        <span v-if="compact" class="text-nc-content-brand text-bodySm font-medium">Upload</span>
+        <span v-if="compact" class="text-nc-content-brand text-bodySm font-medium">{{ $t('general.upload') }}</span>
         <template v-else>
           <div class="text-nc-content-gray-subtle2">
-            Drag & drop, or <span class="text-nc-content-brand font-medium">browse</span>
+            {{ $t('labels.whiteLabel.dragDropPrefix') }}
+            <span class="text-nc-content-brand font-medium">{{ $t('labels.whiteLabel.browse') }}</span>
           </div>
           <div v-if="emptyHint" class="text-nc-content-gray-muted text-bodySm mt-1">
             {{ emptyHint }}

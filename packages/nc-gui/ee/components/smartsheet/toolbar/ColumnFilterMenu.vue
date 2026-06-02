@@ -195,10 +195,37 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   }
 
   const column = payload?.column as ColumnType | undefined
-
-  if (!column) return
+  const columns = payload?.columns as ColumnType[] | undefined
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    // Bulk path: a list of columns from the multi-field menu. Stage each
+    // sequentially, waiting for the ColumnFilter watcher to commit each
+    // draft (it resets draftFilter to {} after addFilter resolves).
+    if (columns?.length) {
+      open.value = true
+      const levelExtras =
+        isList.value && listViewStore?.selectedLevelId.value ? { fk_level_id: listViewStore.selectedLevelId.value } : {}
+      for (const col of columns) {
+        if (!col?.id) continue
+        draftFilter.value = { fk_column_id: col.id, ...levelExtras }
+        await new Promise<void>((resolve) => {
+          const stop = watch(
+            draftFilter,
+            (v) => {
+              if (!v || !Object.keys(v).length) {
+                stop()
+                resolve()
+              }
+            },
+            { deep: true },
+          )
+        })
+      }
+      return
+    }
+
+    if (!column) return
+
     draftFilter.value = {
       fk_column_id: column.id,
       ...(isList.value && listViewStore?.selectedLevelId.value ? { fk_level_id: listViewStore.selectedLevelId.value } : {}),

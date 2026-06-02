@@ -79,6 +79,8 @@ export function useCanvasRender({
   isAddingEmptyRowAllowed,
   isAddingEmptyRowPermitted,
   selectedRows,
+  selectedHeaderColumnIds,
+  resizeMarker,
   isDragging,
   draggedRowIndex,
   targetRowIndex,
@@ -149,6 +151,8 @@ export function useCanvasRender({
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
+  selectedHeaderColumnIds: Ref<Set<string>>
+  resizeMarker: Ref<{ x: number; columnIds: Set<string> } | null>
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
@@ -280,6 +284,71 @@ export function useCanvasRender({
     return result
   }
 
+  // Paint a translucent brand overlay on the body cells of every selected
+  // column. We do this separately from the cell-selection (`selection.value`)
+  // because cmd-click selections can be disjoint and CellRange can only
+  // represent a contiguous rectangle — a min..max range would bleed under
+  // unselected columns sitting between selected ones. Drawn after rows /
+  // groups so it sits on top of cell backgrounds, but before the header
+  // (which has its own tint and clips the overlay's top edge anyway).
+  function renderSelectedColumnsOverlay(ctx: CanvasRenderingContext2D) {
+    if (!selectedHeaderColumnIds.value.size) return
+
+    const _scrollLeft = scrollLeft.value
+    const _headerRowHeight = headerRowHeight.value
+    const bodyTop = _headerRowHeight
+    const bodyHeight = height.value - _headerRowHeight - AGGREGATION_HEIGHT
+    if (bodyHeight <= 0) return
+
+    const { start: startColIndex, end: endColIndex } = colSlice.value
+
+    let initialOffset = 1
+    for (let i = 0; i < startColIndex; i++) {
+      initialOffset += parseCellWidth(columns.value[i]?.width)
+    }
+    if (initialOffset === 1) initialOffset = 0
+
+    ctx.save()
+    ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.05)
+
+    let xOffset = initialOffset
+    for (let i = startColIndex; i < endColIndex; i++) {
+      const column = columns.value[i]
+      if (!column) continue
+      const width = parseCellWidth(column.width)
+      // Fixed columns draw their tint per-row inside renderRows to guarantee a
+      // solid background underneath (prevents scrolled content from bleeding through).
+      if (!column.fixed && column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+        // Clamp the left edge to fixedColsWidth so the overlay never paints over
+        // the fixed column area (row# + pv) when the user has scrolled right.
+        const rawX = xOffset - _scrollLeft
+        const clampedX = Math.max(rawX, fixedColsWidth.value)
+        const clampedWidth = rawX + width - clampedX
+        if (clampedWidth > 0) {
+          ctx.fillRect(clampedX, bodyTop, clampedWidth, bodyHeight)
+        }
+      }
+      xOffset += width
+    }
+
+    // Fixed columns (pv/Title) need the same full-height tint as non-fixed
+    // columns so the overlay extends below the last row consistently.
+    // renderRows already paints a solid bg for each row cell, so there is no
+    // bleed-through risk. Row-meta columns have no columnObj.id and are skipped.
+    if (fixedCols.value.length) {
+      let fixedXOffset = 0
+      for (const column of fixedCols.value) {
+        const width = parseCellWidth(column.width)
+        if (column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+          ctx.fillRect(fixedXOffset, bodyTop, width, bodyHeight)
+        }
+        fixedXOffset += width
+      }
+    }
+
+    ctx.restore()
+  }
+
   function renderHeader(
     ctx: CanvasRenderingContext2D,
     activeState?: {
@@ -379,6 +448,21 @@ export function useCanvasRender({
             y: 0,
             radius: 0,
             fillStyle: getColor(filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor),
+          })
+        }
+
+        // Tint headers that are part of the multi-field selection so the user
+        // sees which columns the bulk menu will operate on. Painted on top of
+        // sort/filter tint — selection wins visually because the bulk menu is
+        // the active mode. Semi-transparent brand overlay works in both themes.
+        if (selectedHeaderColumnIds.value.has(colObj.id)) {
+          renderTag(ctx, {
+            height: _headerRowHeight,
+            width,
+            x: xOffset - _scrollLeft,
+            y: 0,
+            radius: 0,
+            fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
           })
         }
       }
@@ -642,6 +726,17 @@ export function useCanvasRender({
               y: 0,
               radius: 0,
               fillStyle: filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor,
+            })
+          }
+
+          if (selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+            renderTag(ctx, {
+              height: _headerRowHeight,
+              width,
+              x: xOffset,
+              y: 0,
+              radius: 0,
+              fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
             })
           }
         }
@@ -1699,6 +1794,11 @@ export function useCanvasRender({
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           }
 
+          if (column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+            ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.05)
+            ctx.fillRect(xOffset, yOffset, width, _rowH)
+          }
+
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
             renderRowMeta(ctx, row, { xOffset, yOffset, width }, rowColor)
@@ -1865,6 +1965,14 @@ export function useCanvasRender({
           } else {
             ctx.fillStyle =
               isHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          }
+
+          // Draw column-header selection tint on top of the solid bg — solid bg
+          // must come first so scrolled content behind the fixed column can't
+          // bleed through the semi-transparent overlay.
+          if (column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+            ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.05)
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -2209,6 +2317,23 @@ export function useCanvasRender({
     ctx.moveTo(xPosition - scrollLeft.value, 0)
     ctx.lineTo(xPosition - scrollLeft.value, height.value)
     ctx.stroke()
+  }
+
+  // Vertical guideline shown during a multi-field resize. Widths aren't changed
+  // until mouseup, so this marker is the only feedback that tracks the pointer.
+  const renderColumnResizeMarker = (ctx: CanvasRenderingContext2D) => {
+    if (!resizeMarker.value) return
+
+    const x = resizeMarker.value.x
+
+    ctx.save()
+    ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, height.value)
+    ctx.stroke()
+    ctx.restore()
   }
 
   function renderAggregations(ctx: CanvasRenderingContext2D) {
@@ -3858,9 +3983,12 @@ export function useCanvasRender({
         }
       }
 
+      renderSelectedColumnsOverlay(ctx)
+
       renderHeader(ctx, activeState)
 
       renderColumnDragIndicator(ctx)
+      renderColumnResizeMarker(ctx)
       renderRowDragPreview(ctx, draggedRowGroupPath.value)
 
       renderAggregations(ctx)

@@ -671,8 +671,7 @@ async function saveHooks() {
     const fieldErrors = error?.errorFields as Array<{ name?: string | string[]; errors?: string[] }> | undefined
 
     if (fieldErrors?.length) {
-      const fieldName = (f: { name?: string | string[] }) =>
-        Array.isArray(f?.name) ? f.name.join('.') : f?.name ?? ''
+      const fieldName = (f: { name?: string | string[] }) => (Array.isArray(f?.name) ? f.name.join('.') : f?.name ?? '')
 
       const hasBodyError = fieldErrors.some((f) => fieldName(f) === 'notification.payload.body')
 

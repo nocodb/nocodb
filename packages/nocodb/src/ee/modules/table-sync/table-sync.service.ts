@@ -610,6 +610,7 @@ export class TableSyncService {
     }
 
     let i = 2;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const candidateTitle = `${candidate.title} ${i}`;
       const candidateColumnName = sanitizeColumnName(
@@ -641,8 +642,7 @@ export class TableSyncService {
     return defs.map((d) => {
       const candidate = {
         title: d.title ?? '',
-        column_name:
-          d.column_name ?? sanitizeColumnName(String(d.title ?? '')),
+        column_name: d.column_name ?? sanitizeColumnName(String(d.title ?? '')),
       };
       const resolved = this.resolveUniqueDestColumnName(seen, candidate);
       seen.push(resolved);

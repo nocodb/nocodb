@@ -352,9 +352,7 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
    *  - `COLUMN_UPDATED` with uidt change → retype (carries newSourceOptions
    *    when the source col is now Single/MultiSelect, so dest swatches match)
    *  - `COLUMN_UPDATED` with title-only diff → null (id matching covers it) */
-  private resolveAction(
-    param: MetaDependencyEventRequest,
-  ):
+  private resolveAction(param: MetaDependencyEventRequest):
     | { kind: 'delete'; sourceColumnId: string; oldTitle: string | undefined }
     | {
         kind: 'retype';

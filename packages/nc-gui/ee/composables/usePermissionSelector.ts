@@ -19,6 +19,12 @@ export interface PermissionSelectorConfig {
   minimumRole?: 'viewer' | 'editor' | 'creator'
   /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
   effectiveValue?: string
+  /**
+   * Multi-entity bulk mode. When set and length > 1, saveState fans the
+   * setPermission / dropPermission API call out over every id. entityId is
+   * still used as the initial-state probe and for the entityKey lookup.
+   */
+  entityIds?: string[]
 }
 
 export const usePermissionSelector = (
@@ -191,39 +197,49 @@ export const usePermissionSelector = (
         (currentPermission.value === PermissionOptionValue.VIEWERS_AND_UP && isDocVisibilityPerm) ||
         (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP && !isTableVisibilityPerm && !isDocVisibilityPerm)
 
-      if (shouldDrop) {
-        // If permission entity is not found, do nothing
-        if (!permissionsByEntity.value[`${config.value.entity}_${config.value.entityId}`]) {
-          return
-        }
+      const bulkIds = config.value.entityIds && config.value.entityIds.length > 1 ? config.value.entityIds : null
+      const targetIds = bulkIds ?? [config.value.entityId]
 
-        await $api.internal.postOperation(
-          base.value.fk_workspace_id,
-          base.value.id,
-          {
-            operation: 'dropPermission',
-          },
-          {
-            entity: config.value.entity,
-            entity_id: config.value.entityId,
-            permission: config.value.permission,
-          },
+      if (shouldDrop) {
+        // For the single-id path, skip the API call when there's nothing to
+        // drop. For bulk, do the same check per-id so we only call the API
+        // for the ids that actually have an override row.
+        await Promise.all(
+          targetIds.map(async (entityId) => {
+            if (!permissionsByEntity.value[`${config.value.entity}_${entityId}`]) return
+            await $api.internal.postOperation(
+              base.value.fk_workspace_id!,
+              base.value.id!,
+              {
+                operation: 'dropPermission',
+              },
+              {
+                entity: config.value.entity,
+                entity_id: entityId,
+                permission: config.value.permission,
+              },
+            )
+          }),
         )
       } else {
-        await $api.internal.postOperation(
-          base.value.fk_workspace_id,
-          base.value.id,
-          {
-            operation: 'setPermission',
-          },
-          {
-            entity: config.value.entity,
-            entity_id: config.value.entityId,
-            permission: config.value.permission,
-            granted_type,
-            granted_role,
-            subjects,
-          },
+        await Promise.all(
+          targetIds.map((entityId) =>
+            $api.internal.postOperation(
+              base.value.fk_workspace_id!,
+              base.value.id!,
+              {
+                operation: 'setPermission',
+              },
+              {
+                entity: config.value.entity,
+                entity_id: entityId,
+                permission: config.value.permission,
+                granted_type,
+                granted_role,
+                subjects,
+              },
+            ),
+          ),
         )
       }
 

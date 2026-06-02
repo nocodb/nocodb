@@ -195,9 +195,13 @@ export const HideAllColumnsContract: OperationContract<
   },
 };
 
+interface ViewColumnsBulkSetVisibilityExtra {
+  prevVisibility?: Record<string, boolean>;
+}
+
 export const ViewColumnsBulkSetVisibilityContract: OperationContract<
   typeof viewColumnsBulkSetVisibilitySchema,
-  Record<string, any>,
+  ViewColumnsBulkSetVisibilityExtra,
   boolean
 > = {
   name: OperationName.viewColumnsBulkSetVisibility,
@@ -206,6 +210,22 @@ export const ViewColumnsBulkSetVisibilityContract: OperationContract<
   entry: {
     entity_id: (params) => params.viewId,
     description: () => 'Restore field visibility',
+    before: async (context, params) => ({
+      extra: {
+        prevVisibility: await captureVisibilitySnapshot(context, params.viewId),
+      },
+    }),
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevVisibility;
+      if (!prev) return null;
+      return {
+        name: OperationName.viewColumnsBulkSetVisibility,
+        params: { viewId: params.viewId, columnVisibility: prev },
+      };
+    },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 

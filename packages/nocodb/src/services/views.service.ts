@@ -933,6 +933,7 @@ export class ViewsService {
     return await View.shareViewList(context, param.tableId);
   }
 
+  @TraceCommand(OperationName.viewColumnsBulkSetVisibility)
   async viewColumnsBulkSetVisibility(
     context: NcContext,
     param: {

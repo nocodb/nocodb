@@ -79,6 +79,7 @@ export class UiPostOperations
     'showAllColumns' as const,
     'hideAllColumns' as const,
     'viewColumnUpdate' as const,
+    'viewColumnsBulkSetVisibility' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
     'timelineColumnUpdate' as const,
@@ -269,6 +270,12 @@ export class UiPostOperations
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
           levelId: req.query.levelId,
+          req,
+        });
+      case 'viewColumnsBulkSetVisibility':
+        return await this.viewsService.viewColumnsBulkSetVisibility(context, {
+          viewId: req.query.viewId,
+          columnVisibility: payload?.columnVisibility,
           req,
         });
       case 'viewColumnUpdate':

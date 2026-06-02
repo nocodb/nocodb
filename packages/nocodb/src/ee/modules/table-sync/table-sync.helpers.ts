@@ -604,7 +604,10 @@ export async function scheduleIncrementalRun(
   nocoJobsService: NocoJobsService,
   args: {
     syncId: string;
-    baseJobData: Omit<TableSyncJobData, 'affectedIdsBySource' | 'jobName' | 'user'>;
+    baseJobData: Omit<
+      TableSyncJobData,
+      'affectedIdsBySource' | 'jobName' | 'user'
+    >;
     newIdsBySource: Record<string, string[]>;
   },
 ): Promise<boolean> {

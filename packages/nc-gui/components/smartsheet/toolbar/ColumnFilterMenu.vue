@@ -172,10 +172,36 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   }
 
   const column = payload?.column as ColumnType | undefined
-
-  if (!column) return
+  const columns = payload?.columns as ColumnType[] | undefined
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    // Bulk path: a list of columns from the multi-field menu. We stage each
+    // as a draft sequentially, waiting for the watcher inside ColumnFilter
+    // to commit (it resets draftFilter to {} when done) before staging the
+    // next — otherwise drafts get overwritten and only the last one lands.
+    if (columns?.length) {
+      open.value = true
+      for (const col of columns) {
+        if (!col?.id) continue
+        draftFilter.value = { fk_column_id: col.id }
+        await new Promise<void>((resolve) => {
+          const stop = watch(
+            draftFilter,
+            (v) => {
+              if (!v || !Object.keys(v).length) {
+                stop()
+                resolve()
+              }
+            },
+            { deep: true },
+          )
+        })
+      }
+      return
+    }
+
+    if (!column) return
+
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }

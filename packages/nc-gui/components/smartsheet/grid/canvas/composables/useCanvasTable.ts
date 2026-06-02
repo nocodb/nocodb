@@ -60,6 +60,7 @@ export function useCanvasTable({
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
   selectedRows,
+  selectedHeaderColumnIds,
   updateRecordOrder,
   expandRows,
   updateOrSaveRow,
@@ -96,6 +97,7 @@ export function useCanvasTable({
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
+  selectedHeaderColumnIds: Ref<Set<string>>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   updateRecordOrder: (
@@ -339,7 +341,18 @@ export function useCanvasTable({
 
   // Override applied during column resize to avoid recomputing the heavy _columnsBase.
   // Set on each resize frame, cleared on mouseup.
-  const resizeWidthOverride = ref<{ columnId: string; width: string } | null>(null)
+  // During an active resize, patch the displayed width of one or more columns
+  // without going through the heavy _columnsBase recomputation. When the
+  // resized column is part of a multi-field header selection, `columnIds`
+  // holds every selected column so they all preview the same width.
+  const resizeWidthOverride = ref<{ columnIds: Set<string>; width: string } | null>(null)
+
+  // Multi-field resize guideline: instead of live-resizing every selected column
+  // while dragging (which shifts the dragged edge away from the pointer), we draw
+  // a single vertical marker at `x` and defer the width change to mouseup.
+  // `columnIds` snapshots the co-resize set so it survives the selection being
+  // cleared by the canvas-level mouseup that fires alongside the resize mouseup.
+  const resizeMarker = ref<{ x: number; columnIds: Set<string> } | null>(null)
 
   const _columnsBase = computed<CanvasGridColumn[]>(() => {
     // Early return if meta is not available yet
@@ -752,7 +765,7 @@ export function useCanvasTable({
     const base = _columnsBase.value
     const override = resizeWidthOverride.value
     const widthApplied = override
-      ? base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
+      ? base.map((col) => (override.columnIds.has(col.id) ? { ...col, width: override.width } : col))
       : base
 
     const sel = selectionAggregations.value
@@ -1176,6 +1189,8 @@ export function useCanvasTable({
     vSelectedAllRecordsSkipPks,
     isRowDraggingEnabled,
     selectedRows,
+    selectedHeaderColumnIds,
+    resizeMarker,
     isDragging,
     draggedRowIndex,
     targetRowIndex,
@@ -1328,6 +1343,16 @@ export function useCanvasTable({
     reloadVisibleDataHook?.trigger()
   }
 
+  // When resizing a column that's part of a multi-field selection (size > 1),
+  // apply the resize to every selected column. Otherwise just the dragged one.
+  const getCoResizeColumnIds = (resizedColumnId: string): Set<string> => {
+    const selected = selectedHeaderColumnIds.value
+    if (selected.size > 1 && selected.has(resizedColumnId)) {
+      return new Set(selected)
+    }
+    return new Set([resizedColumnId])
+  }
+
   const {
     handleMouseMove: resizeMouseMove,
     handleMouseDown: startResize,
@@ -1341,21 +1366,45 @@ export function useCanvasTable({
     isViewOperationsAllowed,
     // onResize (per-frame): set lightweight override instead of mutating gridViewCols,
     // which would trigger the heavy _columnsBase recomputation.
-    (columnId, width) => {
+    //
+    // Single-column resize previews the new width live. A multi-field resize
+    // (the dragged column is part of a header selection) instead shows only a
+    // vertical guideline marker and defers the width change to mouseup — live
+    // fan-out shifts the columns left of the pointer, dragging the resized edge
+    // away from the cursor (Excel / Google Sheets behaviour).
+    (columnId, width, leftX) => {
       const metaCol = metaColumnById.value[columnId]
       if (!metaCol) return
 
       const normalizedWidth = normalizeWidth(metaCol, width)
-      resizeWidthOverride.value = { columnId, width: `${normalizedWidth}px` }
+      const coResizeIds = getCoResizeColumnIds(columnId)
+
+      if (coResizeIds.size > 1) {
+        resizeMarker.value = { x: leftX + normalizedWidth, columnIds: coResizeIds }
+      } else {
+        resizeWidthOverride.value = { columnIds: coResizeIds, width: `${normalizedWidth}px` }
+      }
       reloadVisibleDataHook?.trigger()
     },
-    // onResizeEnd (mouseup): clear override, flush final width to gridViewCols + persist.
+    // onResizeEnd (mouseup): clear override/marker, flush final width to
+    // gridViewCols + persist. For a multi-field resize, apply the same width to
+    // every selected column. Each column is normalized against its own type
+    // (Attachment has a larger minWidth, etc.) before persisting. We read the
+    // co-resize set from the marker / live override (snapshot at drag time)
+    // rather than re-reading `selectedHeaderColumnIds` — the canvas-level mouseup
+    // that bubbles alongside the resize mouseup clears the selection before we
+    // get here.
     (columnId, width) => {
+      const coResizeIds = resizeMarker.value?.columnIds ?? resizeWidthOverride.value?.columnIds ?? getCoResizeColumnIds(columnId)
       resizeWidthOverride.value = null
-      handleColumnWidth(columnId, width, (normalizedWidth) => {
-        gridViewCols.value[columnId]!.width = normalizedWidth
-        updateGridViewColumn(columnId, { width: normalizedWidth })
-      })
+      resizeMarker.value = null
+      for (const id of coResizeIds) {
+        handleColumnWidth(id, width, (normalizedWidth) => {
+          if (!gridViewCols.value[id]) return
+          gridViewCols.value[id]!.width = normalizedWidth
+          updateGridViewColumn(id, { width: normalizedWidth })
+        })
+      }
     },
   )
   const {

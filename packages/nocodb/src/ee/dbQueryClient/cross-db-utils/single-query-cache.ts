@@ -1,7 +1,7 @@
-import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope } from '~/utils/globals';
 import { SINGLE_QUERY_DEFAULT_VIEW } from 'src/dbQueryClient/cross-db-utils/single-query-cache';
 import type { NcContext } from '~/interface/config';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, CacheScope } from '~/utils/globals';
 
 // Re-export so EE callers can keep a single `~/dbQueryClient/...` import.
 export { SINGLE_QUERY_DEFAULT_VIEW };

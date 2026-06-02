@@ -44,31 +44,30 @@ const DEFAULT_CONFIG: WhiteLabelConfig = {
 export class WhiteLabelService {
   protected logger = new Logger(WhiteLabelService.name);
 
-  private cache: WhiteLabelConfig | null = null;
-
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  /** Canonical form, untouched URLs — for internal use only. */
+  /**
+   * Canonical form, untouched URLs — for internal use only.
+   *
+   * Reads through `Store.get(..., lookInCache=true)` which is backed by
+   * NocoCache (Redis when configured). `Store.saveOrUpdate` busts that key on
+   * write, so every node sees fresh config — no per-process cache that would go
+   * stale across a horizontally-scaled deployment.
+   */
   private async getRawConfig(): Promise<WhiteLabelConfig> {
-    if (this.cache) return this.cache;
-
     const row = await Store.get(NC_STORE_KEY_WHITE_LABEL, true);
-    if (!row?.value) {
-      this.cache = { ...DEFAULT_CONFIG };
-      return this.cache;
-    }
+    if (!row?.value) return { ...DEFAULT_CONFIG };
 
     try {
       const parsed = JSON.parse(row.value);
-      this.cache = { ...DEFAULT_CONFIG, ...parsed };
+      return { ...DEFAULT_CONFIG, ...parsed };
     } catch (e) {
       this.logger.error(
         `Failed to parse white-label config: ${(e as Error).message}`,
         (e as Error).stack,
       );
-      this.cache = { ...DEFAULT_CONFIG };
+      return { ...DEFAULT_CONFIG };
     }
-    return this.cache;
   }
 
   /**
@@ -185,13 +184,13 @@ export class WhiteLabelService {
 
     this.validate(next);
 
+    // saveOrUpdate busts the NocoCache key, so subsequent reads (here and on
+    // other nodes) pick up the new value.
     await Store.saveOrUpdate({
       key: NC_STORE_KEY_WHITE_LABEL,
       value: JSON.stringify(next),
       type: 'object',
     });
-
-    this.cache = next;
 
     // Audit this instance-wide, super-admin-only change.
     this.appHooksService.emit(AppEvents.WHITE_LABEL_UPDATE, {

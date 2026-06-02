@@ -171,7 +171,7 @@ const onDelete = async () => {
           {{ table.title }}
         </div>
       </div>
-      <NcAlert v-if="isSynced" type="warning" class="mt-4" :message="$t('labels.deleteSyncedTableWarning')" :show-icon="true" />
+      <NcAlert v-if="isSynced" type="warning" class="mt-4" :description="$t('labels.deleteSyncedTableWarning')" />
       <div class="mt-4">
         <NcDependencyList
           :status="status"

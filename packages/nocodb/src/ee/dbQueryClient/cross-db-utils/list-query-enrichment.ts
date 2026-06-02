@@ -287,24 +287,25 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
         }
       }
 
-    // ignore stable sorting / sort by created time when shuffle
-    if (!+listArgs?.shuffle) {
-      // Ensure stable ordering:
-      // - Use auto-increment PK if available
-      // - Otherwise, fall back to the primary key column(s)
-      // - Otherwise, fall back to system CreatedTime
-      // Without a tie-breaker, paginated reads sorted by a non-unique
-      // column can duplicate or skip rows at page boundaries (#13931).
-      if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-        baseQb.orderBy(ctx.model.primaryKey.column_name);
-      } else if (ctx.model.primaryKeys?.length) {
-        for (const pk of ctx.model.primaryKeys) baseQb.orderBy(pk.column_name);
-      } else {
-        const createdAtColumn = ctx.model.columns.find(
-          (c) => c.uidt === UITypes.CreatedTime && c.system,
-        );
-        if (createdAtColumn) {
-          baseQb.orderBy(createdAtColumn.column_name);
+      // ignore stable sorting / sort by created time when shuffle
+      if (!+listArgs?.shuffle) {
+        // Ensure stable ordering:
+        // - Use auto-increment PK if available
+        // - Otherwise, fall back to the primary key column(s)
+        // - Otherwise, fall back to system CreatedTime
+        // Without a tie-breaker, paginated reads sorted by a non-unique
+        // column can duplicate or skip rows at page boundaries (#13931).
+        if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+          baseQb.orderBy(ctx.model.primaryKey.column_name);
+        } else if (ctx.model.primaryKeys?.length) {
+          for (const pk of ctx.model.primaryKeys) baseQb.orderBy(pk.column_name);
+        } else {
+          const createdAtColumn = ctx.model.columns.find(
+            (c) => c.uidt === UITypes.CreatedTime && c.system,
+          );
+          if (createdAtColumn) {
+            baseQb.orderBy(createdAtColumn.column_name);
+          }
         }
       }
     }

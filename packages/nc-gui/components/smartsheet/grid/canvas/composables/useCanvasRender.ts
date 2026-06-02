@@ -227,6 +227,10 @@ export function useCanvasRender({
 
   const { isDark, getColor } = useTheme()
 
+  // Canvas can't read CSS vars; when a white-label brand colour is set, tint the
+  // row/column selection from it instead of the hardcoded NocoDB blue.
+  const { brandColor } = useBranding()
+
   const { isRowColouringEnabled } = useViewRowColorRender()
 
   // Pre-compute PK columns to avoid filtering all columns on every row render
@@ -1539,6 +1543,8 @@ export function useCanvasRender({
   // Pre-computed colors for renderRow — resolved once per frame, not per cell
   let _rowColors = {
     selectionBg: '',
+    // selection tint overlaid on rows that carry a custom row colour
+    selectionBgOnRowColor: '',
     gray200: '',
     gray100: '',
     gray50: '',
@@ -1547,8 +1553,12 @@ export function useCanvasRender({
   }
 
   function _updateRowColors() {
+    // When white-labelled with a brand colour, derive both selection tints from
+    // the brand ramp; otherwise keep the exact default NocoDB blues.
+    const whiteLabelled = !!brandColor.value
     _rowColors = {
-      selectionBg: getColor('#F6F7FE', themeV4Colors.brand['50']),
+      selectionBg: whiteLabelled ? getColor(themeV4Colors.brand['50']) : getColor('#F6F7FE', themeV4Colors.brand['50']),
+      selectionBgOnRowColor: whiteLabelled ? getColor(themeV4Colors.brand['500'], undefined, 0.05) : '#3366ff0d',
       gray200: getColor(themeV4Colors.gray['200']),
       gray100: getColor(themeV4Colors.gray['100']),
       gray50: getColor(themeV4Colors.gray['50']),
@@ -1659,7 +1669,7 @@ export function useCanvasRender({
         const isCellInRange = hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })
 
         if (recordSelected || isCellInRange) {
-          ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
+          ctx.fillStyle = rowColor ? _rowColors.selectionBgOnRowColor : _rowColors.selectionBg
           ctx.fillRect(xOffset - _scrollLeft, yOffset, width, _rowH)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1774,7 +1784,7 @@ export function useCanvasRender({
               ctx.fillStyle = effectiveColor
               ctx.fillRect(xOffset, yOffset, width, _rowH)
             }
-            ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
+            ctx.fillStyle = rowColor ? _rowColors.selectionBgOnRowColor : _rowColors.selectionBg
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           } else if (rowBgAlreadyApplied) {
             // Row-level fill already painted the correct row color; fixed columns need to

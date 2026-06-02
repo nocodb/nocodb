@@ -275,10 +275,14 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     if (!+listArgs?.shuffle) {
       // Ensure stable ordering:
       // - Use auto-increment PK if available
-      // - Otherwise, fallback to system CreatedTime
-      // This avoids issues when order column has duplicates
+      // - Otherwise, fall back to the primary key column(s)
+      // - Otherwise, fall back to system CreatedTime
+      // Without a tie-breaker, paginated reads sorted by a non-unique
+      // column can duplicate or skip rows at page boundaries (#13931).
       if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
         baseQb.orderBy(ctx.model.primaryKey.column_name);
+      } else if (ctx.model.primaryKeys?.length) {
+        for (const pk of ctx.model.primaryKeys) baseQb.orderBy(pk.column_name);
       } else {
         const createdAtColumn = ctx.model.columns.find(
           (c) => c.uidt === UITypes.CreatedTime && c.system,
@@ -351,9 +355,14 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
 
     // ignore stable sorting / sort by created time when shuffle
     if (!+listArgs?.shuffle) {
-      // Ensure stable ordering on the outer query
+      // Ensure stable ordering on the outer query — same fallback chain
+      // as the inner query above (see #13931).
       if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
         qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+      } else if (ctx.model.primaryKeys?.length) {
+        for (const pk of ctx.model.primaryKeys) {
+          qb.orderBy(`${ROOT_ALIAS}.${pk.column_name}`);
+        }
       } else {
         const createdAtColumn = ctx.model.columns.find(
           (c) => c.uidt === UITypes.CreatedTime && c.system,

@@ -6,6 +6,7 @@ import {
   AppEvents,
   CloudOrgUserRoles,
   EventType,
+  getMinSeats,
   getUpgradeMessage,
   LOYALTY_GRACE_PERIOD_END_DATE,
   LoyaltyPriceReverseLookupKeyMap,
@@ -765,7 +766,7 @@ export class PaymentService {
       items: [
         {
           price: price.id,
-          quantity: seatCount || 1,
+          quantity: this.billableSeatCount(plan.title, seatCount),
         },
       ],
       trial_end: trialEnd,
@@ -1089,7 +1090,7 @@ export class PaymentService {
       line_items: [
         {
           price: price.id,
-          quantity: seat,
+          quantity: this.billableSeatCount(plan.title, seat),
         },
       ],
       ui_mode: 'embedded',
@@ -1260,7 +1261,7 @@ export class PaymentService {
             {
               id: item.id,
               price: newPrice.id,
-              quantity: seatCount,
+              quantity: this.billableSeatCount(newPlan.title, seatCount),
             },
           ],
           metadata: {
@@ -1337,7 +1338,7 @@ export class PaymentService {
                 {
                   id: item.id,
                   price: newPrice.id,
-                  quantity: seatCount,
+                  quantity: this.billableSeatCount(newPlan.title, seatCount),
                 },
               ],
               metadata: {
@@ -1396,7 +1397,7 @@ export class PaymentService {
             {
               id: item.id,
               price: newPrice.id,
-              quantity: seatCount,
+              quantity: this.billableSeatCount(newPlan.title, seatCount),
             },
           ],
           metadata: {
@@ -1706,6 +1707,12 @@ export class PaymentService {
       const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
       if (existingSub.seat_count === seatCount) return;
 
+      const billingPlan = await Plan.get(existingSub.fk_plan_id, ncMeta, true);
+      const billableSeats = this.billableSeatCount(
+        billingPlan?.title,
+        seatCount,
+      );
+
       if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
         await Subscription.update(
           existingSub.id,
@@ -1739,7 +1746,7 @@ export class PaymentService {
           stripeSub,
           existingSub,
           workspaceOrOrg,
-          seatCount,
+          billableSeats,
           ncMeta,
         );
 
@@ -2043,6 +2050,18 @@ export class PaymentService {
     return session;
   }
 
+  /**
+   * Seats to actually bill Stripe for: the raw member count floored at the
+   * plan's minimum. Cap is NOT applied here — Plus/Business caps are enforced
+   * by their Stripe tiered prices; Scale/Enterprise are per-unit (uncapped).
+   */
+  private billableSeatCount(
+    planTitle: PlanTitles | string | undefined,
+    rawSeats: number,
+  ): number {
+    return Math.max(rawSeats ?? 0, getMinSeats(planTitle));
+  }
+
   async getSeatCount(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
     const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
@@ -2083,6 +2102,16 @@ export class PaymentService {
         NcError.genericNotFound('Subscription', workspaceOrOrgId);
       }
 
+      const previewPlan = await Plan.get(
+        subscription.schedule_fk_plan_id ?? subscription.fk_plan_id,
+        ncMeta,
+        true,
+      );
+      const previewSeats = this.billableSeatCount(
+        previewPlan?.title,
+        subscription.seat_count,
+      );
+
       let invoice;
 
       if (subscription.period === 'year') {
@@ -2092,7 +2121,7 @@ export class PaymentService {
               items: [
                 {
                   price: subscription.schedule_stripe_price_id,
-                  quantity: subscription.seat_count,
+                  quantity: previewSeats,
                 },
               ],
               start_date: dayjs(subscription.schedule_phase_start).unix(),
@@ -2121,7 +2150,7 @@ export class PaymentService {
                 items: [
                   {
                     price: subscription.schedule_stripe_price_id,
-                    quantity: subscription.seat_count,
+                    quantity: previewSeats,
                   },
                 ],
                 start_date: scheduleStart,
@@ -2468,6 +2497,7 @@ export class PaymentService {
     }
 
     const firstPhase = sched.phases[0];
+    const currentPlan = await Plan.get(existing.fk_plan_id, ncMeta, true);
     const existingPeriod = existing.period;
 
     const iterationsObject: { iterations?: number } = { iterations: 1 };
@@ -2479,13 +2509,21 @@ export class PaymentService {
       start_date: firstPhase.start_date,
       items: firstPhase.items.map((item) => ({
         price: typeof item.price === 'string' ? item.price : item.price.id,
-        quantity: existing.seat_count,
+        quantity: this.billableSeatCount(
+          currentPlan?.title,
+          existing.seat_count,
+        ),
       })),
       ...iterationsObject,
     };
 
     const changePhase = {
-      items: [{ price: newPrice.id, quantity: existing.seat_count }],
+      items: [
+        {
+          price: newPrice.id,
+          quantity: this.billableSeatCount(newPlan.title, existing.seat_count),
+        },
+      ],
       metadata: {
         ...(stripeSub.metadata.fk_workspace_id && {
           fk_workspace_id: stripeSub.metadata.fk_workspace_id,

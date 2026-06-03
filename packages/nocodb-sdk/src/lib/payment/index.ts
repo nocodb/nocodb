@@ -6,7 +6,11 @@ export enum PlanLimitTypes {
   LIMIT_API_PER_SECOND = 'limit_api_per_second',
   LIMIT_AI_TOKEN = 'limit_ai_token',
   LIMIT_API_CALL = 'limit_api_call',
-  LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
+  // Per-record audit/change history (the record "Audits" tab in the expanded form).
+  LIMIT_RECORD_AUDIT_RETENTION = 'limit_record_audit_retention',
+  // Workspace/base audit log feature (FEATURE_AUDIT_WORKSPACE). Distinct from
+  // record audit — gated Scale+, so lower tiers carry 0 (inert).
+  LIMIT_WORKSPACE_AUDIT_RETENTION = 'limit_workspace_audit_retention',
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
   LIMIT_WORKFLOW_RUN = 'limit_workflow_run',
@@ -315,7 +319,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'due to reaching the API per second limit.',
   [PlanLimitTypes.LIMIT_AI_TOKEN]: 'due to reaching the AI token usage limit.',
   [PlanLimitTypes.LIMIT_API_CALL]: 'due to reaching the API call limit.',
-  [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 'to increase audit retention.',
+  [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]:
+    'to increase record audit retention.',
+  [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]:
+    'to increase workspace audit log retention.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
     'to increase automation retention.',

@@ -196,12 +196,6 @@ watch(config, syncFromConfig)
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-admin-white-label">
-    <div class="nc-breadcrumb px-2">
-      <div class="nc-breadcrumb-item">{{ $t('labels.adminPanel') }}</div>
-      <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
-      <div class="nc-breadcrumb-item active">{{ $t('labels.whiteLabel.title') }}</div>
-    </div>
-
     <NcPageHeader>
       <template #icon>
         <GeneralIcon icon="ncImage" class="flex-none h-5 w-5" />

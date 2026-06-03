@@ -467,8 +467,4 @@ watch(
 :deep(.ant-menu) {
   @apply !pt-0 !rounded-none !border-nc-border-gray-medium;
 }
-
-:deep(.nc-page-header) {
-  @apply !h-[calc(var(--topbar-height)+1px)];
-}
 </style>

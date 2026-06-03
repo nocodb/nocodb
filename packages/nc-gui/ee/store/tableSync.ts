@@ -145,13 +145,16 @@ export const useTableSyncStore = defineStore('tableSync', () => {
   const resolveLink = async (
     baseId: string,
     payload: { url?: string; uuid?: string; password?: string },
-  ): Promise<{
-    workspace_id: string
-    base_id: string
-    table_id: string
-    view_id: string
-    has_password: boolean
-  } | null> => {
+  ): Promise<
+    | ({
+        workspace_id: string
+        base_id: string
+        table_id: string
+        view_id: string
+        has_password: boolean
+      } & TableSyncSourceSchema)
+    | null
+  > => {
     if (!activeWorkspaceId.value) return null
     return (await $api.internal.postOperation(
       activeWorkspaceId.value,
@@ -164,7 +167,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
       table_id: string
       view_id: string
       has_password: boolean
-    }
+    } & TableSyncSourceSchema
   }
 
   /**

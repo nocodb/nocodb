@@ -581,8 +581,16 @@ const resolvePastedLink = async () => {
     }
     pasteForm.isResolved = true
     pasteForm.resolvedSummary = `${res.base_id} / ${res.table_id} / ${res.view_id}`
-    await loadSourceColumns(res.table_id)
-    await loadViewVisibleColumns(res.view_id)
+    sourceTableMissing.value = res.source_table_missing
+    sourceTable.value = res.source_table_missing
+      ? null
+      : ({
+          id: res.table_id,
+          base_id: res.base_id,
+          columns: res.columns,
+          views: res.views,
+        } as TableType)
+    visibleSourceColIds.value = res.source_table_missing ? null : new Set(res.visible_source_column_ids ?? [])
   } catch (e: any) {
     // Backend's allow_sync=false rejection bubbles up verbatim — guides the user to fix it source-side.
     const errMsg = (await extractSdkResponseErrorMsg(e)) || t('msg.error.failedToResolveLink')

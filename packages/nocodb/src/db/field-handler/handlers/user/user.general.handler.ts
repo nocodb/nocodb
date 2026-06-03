@@ -289,9 +289,6 @@ export class UserGeneralHandler extends GenericFieldHandler {
     const { knex, filter, column } = rootArgs;
     const { context } = options;
 
-    // get column name for CreatedBy, LastModifiedBy
-    column.column_name = await getColumnName(context, column);
-
     const baseUsers = await BaseUser.getUsersList(context, {
       base_id: column.base_id,
       include_internal_user: true,

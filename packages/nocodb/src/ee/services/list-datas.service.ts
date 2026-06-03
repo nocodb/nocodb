@@ -451,6 +451,21 @@ export class ListDatasService {
     const allFilters = [...savedFilters, ...extraFilters];
     const allSorts = [...savedSorts, ...extraSorts];
 
+    // [list-filter-debug] TEMPORARY verification log — remove before commit.
+    // Shows every filter's fk_level_id and the view's level ids. An orphaned filter
+    // (fk_level_id null / not in levelIds) is one created without level scoping and
+    // will never be applied to any level below.
+    {
+      const levelIds = displayLevels.map((l) => l.id);
+      this.logger.log(
+        `[list-filter-debug] listViewData view=${
+          view.id
+        } levelIds=${JSON.stringify(levelIds)} filterLevelIds=${JSON.stringify(
+          allFilters.map((f) => (f as any).fk_level_id ?? null),
+        )}`,
+      );
+    }
+
     // 3. Parse collapsed parents: { "0": ["pk1", "pk2"], "1": ["pk3"] }
     const MAX_COLLAPSED_JSON_LENGTH = 10000;
     const MAX_COLLAPSED_IDS_PER_LEVEL = 100;
@@ -520,6 +535,13 @@ export class ListDatasService {
         (f) => (f as any).fk_level_id === level.id,
       );
       const sorts = allSorts.filter((s) => (s as any).fk_level_id === level.id);
+
+      // [list-filter-debug] TEMPORARY verification log — remove before commit.
+      // matchedFilters=0 while the view has filters means those filters lack a
+      // fk_level_id matching this level, so they are silently not applied.
+      this.logger.log(
+        `[list-filter-debug] listViewData level=${level.id} depth=${depth} matchedFilters=${filters.length} matchedSorts=${sorts.length} totalFilters=${allFilters.length}`,
+      );
 
       // Resolve link for child levels (depth > 0) — break if missing
       let link: {

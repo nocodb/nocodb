@@ -1340,6 +1340,88 @@ export function useCanvasListView({
     return (sorts.value ?? []).filter((s: any) => s.fk_level_id === levelId)
   }
 
+  // ---------------------------------------------------------------------------
+  // Self-heal legacy orphaned filters.
+  // Filters created before level-scoping shipped have fk_level_id = null: they are
+  // counted in the toolbar badge but never shown under a level tab nor applied by
+  // the backend ("stuck"). Re-tag each to the level whose table owns its column
+  // (single-level list -> root), persist via filterUpdate, then reload so it takes
+  // effect. Only root filters are healed — group children inherit the parent's level.
+  // ---------------------------------------------------------------------------
+  const healedFilterIds = new Set<string>()
+  let isHealingFilters = false
+
+  function resolveLevelIdForFilter(filter: any): string | undefined {
+    if (levels.value.length === 1) return levels.value[0]?.id
+
+    const baseId = meta.value?.base_id
+    if (filter.fk_column_id && baseId) {
+      const match = levels.value.find((l) => {
+        const levelMeta = metas.value?.[`${baseId}:${l.fk_model_id}`] as TableType | undefined
+        return levelMeta?.columns?.some((c) => c.id === filter.fk_column_id)
+      })
+      if (match?.id) return match.id
+    }
+
+    return selectedLevelId.value ?? levels.value[0]?.id
+  }
+
+  async function healOrphanedFilters() {
+    if (isHealingFilters || !isConfigured.value || !viewId.value) return
+    // Only users who can sync filters can persist the fix (skip public/restricted).
+    if (isPublicView.value || !isUIAllowed('filterSync')) return
+
+    const levelIds = new Set(levels.value.map((l) => l.id))
+    const orphans = (allFilters.value ?? []).filter(
+      (f: any) => f.id && !f.fk_parent_id && !healedFilterIds.has(f.id) && (!f.fk_level_id || !levelIds.has(f.fk_level_id)),
+    )
+    if (!orphans.length) return
+
+    const workspaceId = view.value?.fk_workspace_id ?? meta.value?.fk_workspace_id
+    const baseId = view.value?.base_id ?? meta.value?.base_id
+    if (!workspaceId || !baseId) return
+
+    isHealingFilters = true
+    try {
+      let healed = 0
+      for (const orphan of orphans) {
+        const targetLevelId = resolveLevelIdForFilter(orphan)
+        if (!targetLevelId) continue
+
+        healedFilterIds.add(orphan.id)
+
+        console.log('[list-filter-debug] healing orphan filter', {
+          filterId: orphan.id,
+          fromLevel: orphan.fk_level_id ?? null,
+          toLevel: targetLevelId,
+        })
+
+        await $api.internal.postOperation(
+          workspaceId,
+          baseId,
+          { operation: 'filterUpdate', filterId: orphan.id },
+          stripFilterApiBody({ ...orphan, fk_level_id: targetLevelId }),
+        )
+        orphan.fk_level_id = targetLevelId
+        healed++
+      }
+
+      if (healed) await resetAndReload()
+    } catch (e) {
+      console.error('[list-filter-debug] failed to heal orphaned filters', e)
+    } finally {
+      isHealingFilters = false
+    }
+  }
+
+  watch(
+    [() => allFilters.value?.length, () => levels.value.length, () => viewId.value],
+    () => {
+      healOrphanedFilters()
+    },
+    { immediate: true },
+  )
+
   /**
    * Validate a row against the filters for its level.
    * Returns true if the row passes all filters (should be visible).

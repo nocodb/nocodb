@@ -228,6 +228,9 @@ export class DocumentCollabManager {
     } catch (e: any) {
       this.logger.error(`persist failed for ${docId}: ${e.message}`, e.stack);
       s.dirty = true;
+      // Re-add the attribution we cleared pre-persist so the retry keeps the
+      // correct lastEditor (else updated_by/revision author → undefined).
+      for (const c of collaborators) s.collaborators.add(c);
       // Re-arm a retry; the final-flush path (isLast) drives its own retry loop
       // in release(), where the session is about to be torn down.
       if (!isLast) this.schedulePersist(docId);

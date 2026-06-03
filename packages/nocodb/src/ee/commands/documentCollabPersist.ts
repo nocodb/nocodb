@@ -13,7 +13,8 @@ const logger = new Logger('documentCollabPersist');
 
 /** Pure helper: merge DB state into the in-memory doc, return new state + derived PM JSON. */
 export function mergeYjsState(ydoc: Y.Doc, dbState?: Buffer | null) {
-  if (dbState?.length) Y.applyUpdate(ydoc, new Uint8Array(dbState), 'persist-merge');
+  if (dbState?.length)
+    Y.applyUpdate(ydoc, new Uint8Array(dbState), 'persist-merge');
   const state = Buffer.from(Y.encodeStateAsUpdate(ydoc));
   const contentJson = yDocToProsemirrorJSON(ydoc, 'default');
   return { state, contentJson };
@@ -30,7 +31,8 @@ function collectDocFileRefIds(content: any): Set<string> {
     ) {
       ids.add(node.attrs.id);
     }
-    if (Array.isArray(node?.content)) for (const child of node.content) walk(child);
+    if (Array.isArray(node?.content))
+      for (const child of node.content) walk(child);
   };
   walk(content);
   return ids;
@@ -45,7 +47,11 @@ function collectDocFileRefIds(content: any): Set<string> {
  * (see `DocumentsService.createDocFileReference`); here we only prune. The cover
  * image ref lives in `meta` (handled by the REST meta path) and is preserved.
  */
-async function pruneRemovedFileRefs(context: NcContext, docId: string, contentJson: any) {
+async function pruneRemovedFileRefs(
+  context: NcContext,
+  docId: string,
+  contentJson: any,
+) {
   const contentIds = collectDocFileRefIds(contentJson);
   const meta = (await Document.getMeta(context, docId))?.meta as
     | Record<string, any>
@@ -164,25 +170,32 @@ export async function documentCollabPersist(params: {
         });
       }
     } catch (e: any) {
-      logger.error(`title broadcast failed for ${docId}: ${e.message}`, e.stack);
+      logger.error(
+        `title broadcast failed for ${docId}: ${e.message}`,
+        e.stack,
+      );
     }
   }
 
-  // revision snapshot (PM JSON), attributed to the last editor.
-  try {
-    const doc = await Document.get(context, docId);
-    if (doc?.content) {
+  // revision snapshot, from values captured by THIS persist (contentJson + the
+  // bumped version) — re-reading via Document.get could race a concurrent peer
+  // write and tag the revision with another write's content/version.
+  if (bumped && contentJson) {
+    try {
       await DocRevision.record(context, {
         docId,
-        version: doc.version!,
-        content: doc.content,
-        title: doc.title!,
+        version: bumped.version,
+        content: contentJson,
+        title: normalizedTitle,
         createdBy: lastEditor,
         source: DocRevisionSource.AUTO,
       });
+    } catch (e: any) {
+      logger.error(
+        `revision record failed for ${docId}: ${e.message}`,
+        e.stack,
+      );
     }
-  } catch (e: any) {
-    logger.error(`revision record failed for ${docId}: ${e.message}`, e.stack);
   }
 
   // Prune FileReferences whose attachments were removed from the body. Never

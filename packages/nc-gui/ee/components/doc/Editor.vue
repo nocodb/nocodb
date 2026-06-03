@@ -1875,6 +1875,8 @@ if (collabEnabled && collab) {
     // Title: enable the live binding (adopt the shared Y.Text title) and, if this
     // client is the granted seeder, seed it from the loaded title. Independent of
     // body content, so it runs even when the body needs no migration.
+    // `loaded` gates on isLoaded, which flips true only after loadAndSetDoc has set
+    // title.value — so the seed reads the real title (untitled → '' → no-op).
     collabTitle?.activate()
     if (collab.mayBootstrap.value) collabTitle?.seedIfEmpty(title.value)
 

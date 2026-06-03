@@ -1,11 +1,14 @@
 import { ClientType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import { PgDBErrorExtractor } from './pg.extractor';
-import { SqliteDBErrorExtractor } from './sqlite.extractor';
-import { MysqlDBErrorExtractor } from './mysql.extractor';
-import { MssqlDBErrorExtractor } from './mssql.extractor';
-import { DefaultDBErrorExtractor } from './default.extractor';
-import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import type {
+  DBErrorExtractResult,
+  IClientDbErrorExtractor,
+} from '~/helpers/db-error/utils';
+import { PgDBErrorExtractor } from '~/helpers/db-error/pg.extractor';
+import { SqliteDBErrorExtractor } from '~/helpers/db-error/sqlite.extractor';
+import { MysqlDBErrorExtractor } from '~/helpers/db-error/mysql.extractor';
+import { MssqlDBErrorExtractor } from '~/helpers/db-error/mssql.extractor';
+import { DefaultDBErrorExtractor } from '~/helpers/db-error/default.extractor';
 
 export class DBErrorExtractor {
   constructor() {}

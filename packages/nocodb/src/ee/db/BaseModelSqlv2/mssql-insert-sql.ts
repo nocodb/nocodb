@@ -91,6 +91,13 @@ export async function mssqlTableHasTriggers(
  *   - Replace lone surrogates with U+FFFD: keeps the UTF-16 well-formed
  *     so tedious's connection encoding doesn't reject the batch.
  *   - Double single quotes: the only literal-escape T-SQL needs.
+ *   - Emit any `?` as `CHAR(63)`: this batch runs through `trx.raw(sql)` with
+ *     NO bindings, and knex-mssql's positional→named pass
+ *     (`sql.replace(/\?/g, '@pN')`) rewrites every `?` to an undeclared
+ *     `@pN`, raising "Must declare the scalar variable" (error 137). A string
+ *     value containing `?` (e.g. a URL with a query string) would otherwise
+ *     break the whole insert. The emitted SQL must carry zero `?` characters —
+ *     same workaround as the formula Literal path (formulaQueryBuilderv2).
  */
 function tsqlNVarcharLiteral(v: string): string {
   const safe = v
@@ -100,6 +107,18 @@ function tsqlNVarcharLiteral(v: string): string {
       '�',
     )
     .replace(/'/g, "''");
+  if (safe.includes('?')) {
+    const concatArgs = safe
+      .split('?')
+      .flatMap((part, i) =>
+        i === 0 ? [`N'${part}'`] : ['CHAR(63)', `N'${part}'`],
+      );
+    // Cast the first fragment to NVARCHAR(MAX) so CONCAT never truncates a
+    // long value at the 4000-char nvarchar boundary (matches the bare-literal
+    // branch's MAX guarantee).
+    concatArgs[0] = `CAST(${concatArgs[0]} AS NVARCHAR(MAX))`;
+    return `CONCAT(${concatArgs.join(', ')})`;
+  }
   return `CAST(N'${safe}' AS NVARCHAR(MAX))`;
 }
 

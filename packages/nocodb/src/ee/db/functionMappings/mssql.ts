@@ -171,6 +171,22 @@ const mssql = {
       builder: args.knex.raw(`CAST(? AS NVARCHAR(MAX))`, [source]),
     };
   },
+  URLENCODE: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Same char set + order as commonFns — '%' MUST be replaced first, since
+    // every replacement value itself contains '%'.
+    const specialCharacters = '% :/?#[]@$&+,;=';
+    let str = (await fn(pt.arguments[0])).builder;
+    for (const c of specialCharacters) {
+      // Interpolate literals instead of `?` bindings: knex-mssql's naive
+      // positional→named replace mangles them (see the Literal workaround in
+      // formulaQueryBuilderv2). The '?' search char must be CHAR(63) — even a
+      // quoted N'?' literal gets re-mangled by that same `\?`-stripping regex,
+      // so the emitted SQL must contain zero `?` characters.
+      const search = c === '?' ? 'CHAR(63)' : `N'${c}'`;
+      str = `REPLACE(${str}, ${search}, N'${encodeURIComponent(c)}')`;
+    }
+    return { builder: knex.raw(`(${str})`) };
+  },
 
   // --- numeric / cast ---
   INT: async (args: MapFnArgs) => {

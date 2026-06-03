@@ -445,12 +445,39 @@ function planResolutionTests() {
       expect(scale[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]).to.eq(150000);
     });
 
-    it('automation runs = 250,000', () => {
-      expect(scale[PlanLimitTypes.LIMIT_AUTOMATION_RUN]).to.eq(250000);
+    it('automation runs = 240,000 (workflow runs merged in)', () => {
+      expect(scale[PlanLimitTypes.LIMIT_AUTOMATION_RUN]).to.eq(240000);
     });
 
     it('API calls / month = 5,000,000', () => {
       expect(scale[PlanLimitTypes.LIMIT_API_CALL]).to.eq(5000000);
+    });
+  });
+
+  describe('Automation runs ladder (workflow runs merged in)', () => {
+    // LIMIT_WORKFLOW_RUN is folded into LIMIT_AUTOMATION_RUN — a single
+    // "automation runs" budget that both webhook automations and workflow
+    // executions count against.
+    const automationRunLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 100,
+      [PlanTitles.PLUS]: 30000,
+      [PlanTitles.BUSINESS]: 120000,
+      [PlanTitles.SCALE]: 240000,
+      [PlanTitles.ENTERPRISE]: 600000,
+    };
+
+    for (const plan of allPlans) {
+      it(`${plan} automation runs = ${automationRunLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN]).to.eq(
+          automationRunLadder[plan],
+        );
+      });
+    }
+
+    it('LIMIT_WORKFLOW_RUN no longer exists', () => {
+      expect((PlanLimitTypes as Record<string, string>).LIMIT_WORKFLOW_RUN).to
+        .be.undefined;
     });
   });
 }

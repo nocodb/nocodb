@@ -47,7 +47,7 @@ export class WorkflowProcessor {
 
     await UsageStat.incrby(
       context.workspace_id,
-      PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+      PlanLimitTypes.LIMIT_AUTOMATION_RUN,
       1,
     );
 
@@ -106,7 +106,7 @@ export class WorkflowProcessor {
 
         await UsageStat.incrby(
           context.workspace_id,
-          PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+          PlanLimitTypes.LIMIT_AUTOMATION_RUN,
           -1,
         );
         return result;

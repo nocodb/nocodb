@@ -2431,11 +2431,13 @@ defineExpose({ editor })
                   <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF" class="-mr-1" remove-click />
                 </NcMenuItem>
               </NcSubMenu>
-              <NcDivider />
-              <NcMenuItem v-if="isUIAllowed('documentDelete')" danger @click="onDeletePage">
-                <GeneralIcon icon="delete" />
-                {{ $t('general.delete') }}
-              </NcMenuItem>
+              <template v-if="isUIAllowed('documentDelete')">
+                <NcDivider />
+                <NcMenuItem danger @click="onDeletePage">
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }}
+                </NcMenuItem>
+              </template>
               <NcDivider />
               <div class="nc-doc-menu-info">
                 <span>{{ $t('labels.wordCount', { count: wordCount }) }}</span>

@@ -24,6 +24,8 @@ const { isUIAllowed } = useRoles()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { isBookmarkAllowed } = useBookmarks()
+
 const documentsStore = useDocumentsStore()
 const {
   updateDocument,
@@ -471,7 +473,7 @@ function onStopEdit() {
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
 
-              <NcDivider v-if="canUpdateDocument || isUIAllowed('documentCreate')" />
+              <NcDivider v-if="canUpdateDocument || isUIAllowed('documentCreate') || isBookmarkAllowed" />
 
               <template v-if="canUpdateDocument">
                 <NcMenuItem

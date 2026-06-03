@@ -10,8 +10,6 @@ import { apiTokenPermissionTest } from './apiTokenPermission.test';
 import { mailAuditTests } from './mailAudit.test';
 import { jobsProcessorTest } from './jobsProcessor.test';
 import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
-import { dateTimeMssqlHandlerTest } from './dateTimeMssqlHandler.test';
-import { jsonMssqlHandlerTest } from './jsonMssqlHandler.test';
 import { describeRowErrorTests } from './dataImportProcessor.test';
 import { isTokenExpiredTest } from './isTokenExpired.test';
 import { pkPreservationTests } from './pkPreservation.test';
@@ -26,9 +24,15 @@ let onPremPlanResolutionTests = () => {};
 let modelStatTests = () => {};
 let tableSyncHelpersTests = () => {};
 let mssqlLookupFlattenTest = () => {};
+let dateTimeMssqlHandlerTest = () => {};
+let jsonMssqlHandlerTest = () => {};
 if (process.env.EE === 'true') {
   mssqlLookupFlattenTest =
     require('./mssqlLookupFlatten.test').mssqlLookupFlattenTest;
+  dateTimeMssqlHandlerTest =
+    require('./dateTimeMssqlHandler.test').dateTimeMssqlHandlerTest;
+  jsonMssqlHandlerTest =
+    require('./jsonMssqlHandler.test').jsonMssqlHandlerTest;
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
   dateDependencyHelperTests =

@@ -418,6 +418,7 @@ onMounted(loadDestinationSchema)
 
                     <GeneralIcon
                       v-if="option.value === record.uidt"
+                      id="nc-selected-item-icon"
                       class="flex-none text-nc-content-brand w-4 h-4"
                       icon="check"
                     />

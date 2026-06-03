@@ -197,14 +197,25 @@ class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     const primaryKeys =
       this.config.custom_schema?.[tableName]?.systemFields?.primaryKey;
 
-    if (primaryKeys && primaryKeys.length > 0) {
-      return primaryKeys
-        .sort()
-        .map((pk) => `${row[pk]}`)
-        .join('_');
+    if (!primaryKeys || primaryKeys.length === 0) {
+      throw new Error('No primary keys found for table: ' + tableName);
     }
 
-    throw new Error('No primary keys found for table: ' + tableName);
+    // Single PK: use the raw value.
+    if (primaryKeys.length === 1) {
+      return `${row[primaryKeys[0]]}`;
+    }
+
+    // Composite PK: mirror NocoDB's own composite-key encoding
+    // (extractPkFromPkColumns) — join with `___` and escape `_` inside each
+    // value so two distinct tuples can never collapse to the same id
+    // (e.g. (`a_b`,`c`) vs (`a`,`b_c`)). Sort a COPY so the id is stable
+    // regardless of column order AND so we don't mutate the shared schema
+    // array that `fetchData` reuses to build the paginated ORDER BY.
+    return [...primaryKeys]
+      .sort()
+      .map((pk) => `${row[pk]}`.replace(/_/g, '\\_'))
+      .join('___');
   }
 
   /**
@@ -277,11 +288,13 @@ class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
     if (key === 'tables') {
       const tables = await auth.use(async (knex) => {
-        return knex
-          .select('TABLE_NAME')
-          .from('INFORMATION_SCHEMA.TABLES')
-          .where({ TABLE_SCHEMA: this.config.schema })
-          .whereIn('TABLE_TYPE', ['BASE TABLE', 'VIEW']);
+        return (
+          knex
+            .select('TABLE_NAME')
+            .from('INFORMATION_SCHEMA.TABLES')
+            .where({ TABLE_SCHEMA: this.config.schema })
+            .andWhere('TABLE_TYPE', 'BASE TABLE')
+        );
       });
 
       return tables.map((table: { TABLE_NAME: string }) => ({

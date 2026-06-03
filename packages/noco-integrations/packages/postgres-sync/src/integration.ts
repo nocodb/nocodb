@@ -305,12 +305,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
           .select('table_name')
           .from('information_schema.tables')
           .where({ table_schema: this.config.schema })
-          .unionAll([
-            knex
-              .select('matviewname as table_name')
-              .from('pg_matviews')
-              .where({ schemaname: this.config.schema }),
-          ]);
+          .andWhere('table_type', 'BASE TABLE');
       });
 
       return tables.map((table: { table_name: string }) => ({

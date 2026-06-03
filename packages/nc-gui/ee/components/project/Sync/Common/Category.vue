@@ -158,6 +158,7 @@ onMounted(() => {
             <LazyPaymentUpgradeBadge
               v-if="category.value === SyncCategory.CUSTOM"
               :feature="PlanFeatureTypes.FEATURE_CUSTOM_SYNC"
+              icon-only
               size="xs"
             />
           </div>

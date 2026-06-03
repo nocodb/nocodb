@@ -414,6 +414,7 @@ watch(
                         :value="getSelectValue(field)"
                         :mode="selectMode(field)"
                         :max-tag-count="field.selectMode === 'singleWithInput' ? 1 : undefined"
+                        dropdown-class-name="nc-form-builder-select-dropdown"
                         show-search
                         :placeholder="field.placeholder"
                         :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
@@ -798,4 +799,8 @@ watch(
 }
 </style>
 
-<style lang="scss"></style>
+<style lang="scss">
+.nc-form-builder-select-dropdown .ant-select-item-option-state {
+  @apply !hidden;
+}
+</style>

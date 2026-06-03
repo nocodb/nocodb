@@ -1,4 +1,5 @@
 import {
+  FormulaDataTypes,
   isBtLikeV2Junction,
   isMMOrMMLike,
   NC_ERROR_SENTINEL,
@@ -128,6 +129,11 @@ export default async function genRollupSelectv2(param: {
       refTableAlias,
       rollupColumn.column_name,
     ]);
+    // Tracks whether the resolved value is boolean-typed even though
+    // `rollupColumn.dt` doesn't say so — true for a boolean-returning Formula
+    // subquery (virtual column, so `dt` is null). Drives the MSSQL bit→FLOAT
+    // cast below, which would otherwise only fire for direct `bit` columns.
+    let selectValueIsBoolean = false;
     if (rollupColumn.uidt === UITypes.Formula) {
       const formulOption = await rollupColumn.getColOptions<
         FormulaColumn | ButtonColumn
@@ -168,6 +174,10 @@ export default async function genRollupSelectv2(param: {
       selectColumnName = knex.raw(
         `(${formulaQb.builder.toQuery().replaceAll('?', '\\?')})`,
       );
+      // A boolean-returning formula (e.g. a Checkbox passthrough) lowers to a
+      // `bit`-typed expression on MSSQL — flag it so the bit→FLOAT cast fires.
+      selectValueIsBoolean =
+        formulOption.getParsedTree()?.dataType === FormulaDataTypes.BOOLEAN;
     } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
       const knex = refBaseModel.dbDriver;
 
@@ -259,7 +269,8 @@ export default async function genRollupSelectv2(param: {
       ['sum', 'sumDistinct', 'avgDistinct', 'avg', 'min', 'max'].includes(
         columnOptions.rollup_function,
       ) &&
-      ['bit', 'bool', 'boolean'].includes(rollupColumn.dt?.toLowerCase())
+      (['bit', 'bool', 'boolean'].includes(rollupColumn.dt?.toLowerCase()) ||
+        selectValueIsBoolean)
     ) {
       selectColumnName = knex.raw('CAST(?? AS FLOAT)', [selectColumnName]);
     }

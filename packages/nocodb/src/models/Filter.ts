@@ -409,6 +409,10 @@ export default class Filter implements FilterType {
       'comparison_sub_op',
       'value',
       'fk_parent_id',
+      // Allow re-tagging a filter to a list-view level. Needed so the GUI can heal
+      // legacy filters that were saved with fk_level_id = null (counted but never
+      // applied) by assigning them to the level that owns their column.
+      'fk_level_id',
       'is_group',
       'logical_op',
       'fk_value_col_id',

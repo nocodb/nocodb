@@ -196,6 +196,19 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
   const { setError } = useSsoError()
 
   if (window.location.search && /\bshort-token=/.test(window.location.search)) {
+    // Capture the token and strip it from the URL synchronously, BEFORE any
+    // await. This middleware runs on every route navigation — a navigation
+    // fired while the exchange below is in-flight would otherwise see the
+    // short-token still in the URL and fire a duplicate exchange, which
+    // rotates token_version server-side and invalidates the token issued by
+    // the first call (session dies right after signin).
+    const shortToken = new URLSearchParams(window.location.search).get('short-token')
+
+    const cleanURL = new URL(window.location.href)
+    cleanURL.searchParams.delete('short-token')
+    cleanURL.searchParams.delete('continueAfterSignIn')
+    window.history.pushState('object', document.title, cleanURL.toString())
+
     let extraProps: any = {}
     try {
       // `extra` prop is used in our cloud implementation, so we are keeping it
@@ -204,7 +217,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
         {},
         {
           headers: {
-            'xc-short-token': new URLSearchParams(window.location.search).get('short-token'),
+            'xc-short-token': shortToken,
           } as any,
         },
       )
@@ -230,13 +243,11 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    const cleanURL = new URL(window.location.href)
-    cleanURL.searchParams.delete('short-token')
-    cleanURL.searchParams.delete('continueAfterSignIn')
     if (extraProps?.continueAfterSignIn) {
-      cleanURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+      const continueURL = new URL(window.location.href)
+      continueURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+      window.history.pushState('object', document.title, continueURL.toString())
     }
-    window.history.pushState('object', document.title, cleanURL.toString())
     window.location.reload()
   }
 }

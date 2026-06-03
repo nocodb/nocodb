@@ -38,7 +38,13 @@ export abstract class BaseThumbnailGenerator {
         tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
       };
 
-      const sharpImage = sharp(thumbnailBuffer, { limitInputPixels: false });
+      // `.rotate()` with no arguments auto-applies the EXIF orientation and drops
+      // the tag, baking the rotation into the pixels. sharp does not auto-orient
+      // and strips metadata from output by default, so without this thumbnails of
+      // photos carrying an EXIF orientation render rotated. See nocodb/nocodb#10289.
+      const sharpImage = sharp(thumbnailBuffer, {
+        limitInputPixels: false,
+      }).rotate();
 
       for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
         let height;
@@ -57,7 +63,10 @@ export abstract class BaseThumbnailGenerator {
             break;
         }
 
+        // clone() per size so each output gets an independent pipeline snapshot
+        // (inheriting the rotate above) rather than mutating the shared instance.
         const resizedImage = await sharpImage
+          .clone()
           .resize(undefined, height, {
             fit: sharp.fit.cover,
             kernel: 'lanczos3',

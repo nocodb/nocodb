@@ -8,7 +8,7 @@ import type {
   FilterVerificationResult,
   SortOptions,
 } from '~/db/field-handler/field-handler.interface';
-import type { ButtonColumn, FormulaColumn } from '~/models';
+import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { Column, Filter } from '~/models';
 
@@ -23,20 +23,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     const knex = options.knex as CustomKnex;
     const model = await column.getModel(context);
 
-    const formulaOptions = await column.getColOptions<
-      FormulaColumn | ButtonColumn
-    >(context);
-
-    const isFormulaCompilable =
-      column.uidt === UITypes.Formula ||
-      (column.uidt === UITypes.Button &&
-        (formulaOptions as ButtonColumn).type === 'url');
-
-    if (!isFormulaCompilable) {
-      // Webhook button (or any unsupported button type) — static fk_*.
-      qb.orderBy(knex.raw('?', [1]) as any, direction, nulls);
-      return;
-    }
+    const formulaOptions = await column.getColOptions<FormulaColumn>(context);
 
     const parsedTree = formulaOptions.getParsedTree();
     // Pure literal — `ORDER BY '<literal>'` is meaningless and some

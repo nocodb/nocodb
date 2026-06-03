@@ -250,7 +250,7 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: ComputedFieldHandler,
   },
   [UITypes.Button]: {
-    [CLIENT_DEFAULT]: FormulaGeneralHandler,
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
   },
   [UITypes.Links]: {
     [CLIENT_DEFAULT]: LinksGeneralHandler,

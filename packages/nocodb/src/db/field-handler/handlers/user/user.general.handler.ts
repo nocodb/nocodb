@@ -71,8 +71,10 @@ export class UserGeneralHandler extends GenericFieldHandler {
     const knex = options.knex as CustomKnex;
 
     // For CreatedBy / LastModifiedBy the persisted column name may differ
-    // from `column.column_name` (auto-magic columns). Resolve it.
-    column.column_name = await getColumnName(context, column);
+    // from `column.column_name` (auto-magic columns). Resolve into a local —
+    // never mutate the shared/cached `Column`, which would overwrite its
+    // metadata for the rest of the request (legacy sortV2 never mutated).
+    const columnName = await getColumnName(context, column);
 
     const baseUsers = await BaseUser.getUsersList(context, {
       base_id: column.base_id,
@@ -80,7 +82,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
     });
     const expr = await this.buildDisplayNameExpression(
       knex,
-      column.column_name,
+      columnName,
       baseUsers,
     );
     qb.orderBy(sanitize(knex.raw(expr)), direction, nulls);

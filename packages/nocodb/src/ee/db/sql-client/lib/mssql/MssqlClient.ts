@@ -1137,6 +1137,22 @@ class MssqlClient extends KnexClient {
     return 'AFTER';
   }
 
+  // Whitelist the DML event before interpolating it into the CREATE TRIGGER
+  // text — `args.event` is otherwise injected raw and is a SQL-injection
+  // vector. T-SQL allows a comma-separated combination of INSERT / UPDATE /
+  // DELETE (e.g. "INSERT, UPDATE"); reject anything else. Returns the
+  // normalised uppercase form so the emitted DDL is consistent regardless of
+  // input spacing.
+  private _sanitizeTriggerEvent(event: string): string {
+    const e = String(event || '')
+      .trim()
+      .toUpperCase();
+    if (!/^(INSERT|UPDATE|DELETE)(\s*,\s*(INSERT|UPDATE|DELETE))*$/i.test(e)) {
+      throw new Error(`Invalid trigger event: ${event}`);
+    }
+    return e.replace(/\s*,\s*/g, ', ');
+  }
+
   async triggerList(args: any = {}) {
     const _func = this.triggerList.name;
     const result = new Result();
@@ -1196,8 +1212,9 @@ class MssqlClient extends KnexClient {
       const trigArg = `${schema}.${args.trigger_name}`;
       const tnArg = `${schema}.${args.tn}`;
       const timing = this._mssqlTriggerTiming(args.timing);
+      const event = this._sanitizeTriggerEvent(args.event);
       const createSql = this.genQuery(
-        `CREATE TRIGGER ?? ON ?? ${timing} ${args.event} AS\n${this.sanitize(
+        `CREATE TRIGGER ?? ON ?? ${timing} ${event} AS\n${this.sanitize(
           args.statement,
         )}`,
         [trigArg, tnArg],
@@ -1229,19 +1246,20 @@ class MssqlClient extends KnexClient {
       const trigArg = `${schema}.${args.trigger_name}`;
       const tnArg = `${schema}.${args.tn}`;
       const timing = this._mssqlTriggerTiming(args.timing);
+      const event = this._sanitizeTriggerEvent(args.event);
       const upSql = this.genQuery(
-        `CREATE OR ALTER TRIGGER ?? ON ?? ${timing} ${
-          args.event
-        } AS\n${this.sanitize(args.statement)}`,
+        `CREATE OR ALTER TRIGGER ?? ON ?? ${timing} ${event} AS\n${this.sanitize(
+          args.statement,
+        )}`,
         [trigArg, tnArg],
       );
       await this.sqlClient.raw(upSql);
 
       const oldTiming = this._mssqlTriggerTiming(args.timing);
       const downSql = this.genQuery(
-        `CREATE OR ALTER TRIGGER ?? ON ?? ${oldTiming} ${
-          args.event
-        } AS\n${this.sanitize(args.oldStatement || '')}`,
+        `CREATE OR ALTER TRIGGER ?? ON ?? ${oldTiming} ${event} AS\n${this.sanitize(
+          args.oldStatement || '',
+        )}`,
         [trigArg, tnArg],
       );
 
@@ -1268,8 +1286,9 @@ class MssqlClient extends KnexClient {
       await this.sqlClient.raw(dropSql);
 
       const timing = this._mssqlTriggerTiming(args.timing);
+      const event = this._sanitizeTriggerEvent(args.event);
       const recreate = this.genQuery(
-        `CREATE TRIGGER ?? ON ?? ${timing} ${args.event} AS\n${this.sanitize(
+        `CREATE TRIGGER ?? ON ?? ${timing} ${event} AS\n${this.sanitize(
           args.oldStatement || args.statement || '',
         )}`,
         [trigArg, tnArg],
@@ -1936,6 +1955,13 @@ class MssqlClient extends KnexClient {
       const upStatements: string[] = [];
       const downStatements: string[] = [];
 
+      // A composite PRIMARY KEY shares a single constraint across all its
+      // members, so dropping ≥2 PK columns in one tableUpdate must emit the
+      // `DROP CONSTRAINT [PK_…]` exactly once — a second drop targets an
+      // already-removed constraint and aborts the migration. This flag also
+      // gates the matching DOWN re-add so the original PK is restored once.
+      let pkConstraintDropped = false;
+
       // Soft-delete-aware unique enforcement: when the table carries a
       // `__nc_deleted` column, single-column UNIQUE is enforced via a
       // filtered partial index so trash rows holding the value don't block
@@ -2035,10 +2061,14 @@ class MssqlClient extends KnexClient {
           // before the column goes. `_pkChangeStatements` (run after this
           // loop) re-adds the reduced PK for a composite key and detects the
           // dropped PK column so it doesn't DROP the constraint a second time.
+          // For a composite key the same constraint backs every member, so
+          // guard with `pkConstraintDropped` to emit the DROP (and matching
+          // DOWN re-add) just once when multiple PK columns are dropped here.
           const pkCols = await this._findPkColumns(schema, tn);
-          if (pkCols.includes(column.cn)) {
+          if (!pkConstraintDropped && pkCols.includes(column.cn)) {
             const pkName = await this._findPkConstraintName(schema, tn);
             if (pkName) {
+              pkConstraintDropped = true;
               upStatements.push(
                 this.genQuery(`ALTER TABLE ?? DROP CONSTRAINT ??`, [
                   tnArg,
@@ -3140,6 +3170,16 @@ class MssqlClient extends KnexClient {
     cn: string,
   ): Promise<Array<{ name: string; definition: string }>> {
     try {
+      // Match CHECK constraints that reference this column. `parent_column_id`
+      // covers single-column (column-level) CHECKs; the dependency lookup
+      // covers multi-column (table-level) CHECKs whose `parent_column_id` is 0.
+      //
+      // NOTE: we deliberately do NOT pattern-match `cc.definition` against the
+      // column name. The bracketed identifier form (`[col]`) is a LIKE
+      // character class in T-SQL, so `LIKE '%[col]%'` over-matches any
+      // definition containing a `c`, `o`, or `l` — dropping unrelated CHECKs.
+      // `sys.sql_expression_dependencies` resolves real column references
+      // exactly, with no false positives.
       const resp = await this.sqlClient.raw(
         `SELECT cc.name AS name, cc.definition AS definition
            FROM sys.check_constraints cc
@@ -3151,7 +3191,16 @@ class MssqlClient extends KnexClient {
                 SELECT column_id FROM sys.columns
                  WHERE object_id = t.object_id AND name = ?
               )
-              OR cc.definition LIKE '%' + QUOTENAME(?) + '%'
+              OR EXISTS (
+                SELECT 1
+                  FROM sys.sql_expression_dependencies sed
+                 WHERE sed.referencing_id = cc.object_id
+                   AND sed.referenced_id = t.object_id
+                   AND sed.referenced_minor_id = (
+                     SELECT column_id FROM sys.columns
+                      WHERE object_id = t.object_id AND name = ?
+                   )
+              )
             )`,
         [schema, tn, cn, cn],
       );

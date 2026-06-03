@@ -607,6 +607,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
 
     if (baseModel.isMssql) {
+      // T-SQL requires an ORDER BY whenever OFFSET/FETCH pagination is present
+      // (applyPaginate always sets .offset()). The sort loop above only emits
+      // an ORDER BY when a sort targets a grouped column, so a sortless
+      // group-by — or one whose sorts don't match a group key — would reach
+      // page 2+ with OFFSET/FETCH and no ORDER BY → "Invalid usage of NEXT in
+      // FETCH". pg/mysql/sqlite tolerate OFFSET without ORDER BY. Append a
+      // trailing `(SELECT NULL)` no-op key: it's constant for every row so it
+      // never reorders results, it just satisfies the syntax rule. Mirrors
+      // ensurePaginationOrderBy in the EE single-query client.
+      if (!NC_DISABLE_GROUP_BY_LIMIT) {
+        outerQb.orderByRaw('(SELECT NULL)');
+      }
       // T-SQL forbids wrapping a CTE in a derived table — skip the outer
       // `__nc_group_alias` wrap.
       return await baseModel.execAndParse(outerQb);

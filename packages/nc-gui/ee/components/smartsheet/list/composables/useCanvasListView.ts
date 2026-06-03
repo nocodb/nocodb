@@ -1388,27 +1388,20 @@ export function useCanvasListView({
         const targetLevelId = resolveLevelIdForFilter(orphan)
         if (!targetLevelId) continue
 
-        healedFilterIds.add(orphan.id)
-
-        console.log('[list-filter-debug] healing orphan filter', {
-          filterId: orphan.id,
-          fromLevel: orphan.fk_level_id ?? null,
-          toLevel: targetLevelId,
-        })
-
         await $api.internal.postOperation(
           workspaceId,
           baseId,
           { operation: 'filterUpdate', filterId: orphan.id },
           stripFilterApiBody({ ...orphan, fk_level_id: targetLevelId }),
         )
+        healedFilterIds.add(orphan.id)
         orphan.fk_level_id = targetLevelId
         healed++
       }
 
       if (healed) await resetAndReload()
-    } catch (e) {
-      console.error('[list-filter-debug] failed to heal orphaned filters', e)
+    } catch {
+      // Best-effort heal — a transient failure is retried on the next load.
     } finally {
       isHealingFilters = false
     }

@@ -592,16 +592,6 @@ const scrollDownIfNeeded = () => {
  */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
-  // [list-filter-debug] TEMPORARY verification log — remove before commit.
-  if (isList.value) {
-    console.log('[list-filter-debug] addFilter', {
-      levels: listViewStore?.levels.value?.length,
-      isListConfigured: isListConfigured.value,
-      selectedLevelId: listViewStore?.selectedLevelId.value,
-      resolvedLevelId: levelId.value,
-      draftFkLevelId: (draft as any)?.fk_level_id ?? null,
-    })
-  }
   // `_addFilter` (useViewFilters) takes the draft as its single argument. Passing a
   // leading `false` here made the draft the (ignored) 2nd arg, so the multi-level
   // list view's `fk_level_id` was dropped — the filter was counted but never shown

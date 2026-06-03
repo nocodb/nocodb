@@ -336,32 +336,44 @@ function planResolutionTests() {
   });
 
   describe('Scale plan delta', () => {
+    // Features Scale unlocks over Business.
     const scaleEnabledEnterpriseFeatures = [
       PlanFeatureTypes.FEATURE_RLS,
       PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-      PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
-      PlanFeatureTypes.FEATURE_FORCE_2FA,
-      PlanFeatureTypes.FEATURE_API_VIEW_V3,
-      PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
-      PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
       PlanFeatureTypes.FEATURE_TRASH_SETTINGS,
     ];
 
-    it('Scale unlocks all Enterprise-gated features except SCIM', () => {
+    // Per the pricing matrix these stay Enterprise-only — NOT on Scale.
+    const enterpriseOnlyFeatures = [
+      PlanFeatureTypes.FEATURE_SCIM,
+      PlanFeatureTypes.FEATURE_FORCE_2FA,
+      PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
+      PlanFeatureTypes.FEATURE_API_VIEW_V3,
+      PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+      PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+    ];
+
+    it('Scale enables its tier features (RLS, workspace audit, trash settings)', () => {
       const meta = resolvePlanMeta(PlanTitles.SCALE);
       for (const f of scaleEnabledEnterpriseFeatures) {
         expect(meta[f]).to.eq(true, `Scale should enable ${f}`);
       }
-      expect(meta[PlanFeatureTypes.FEATURE_SCIM]).to.eq(
-        false,
-        'Scale must NOT enable SCIM',
-      );
     });
 
-    it('SCIM unlocks only at Enterprise', () => {
-      expect(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_SCIM]).to.eq(
-        PlanTitles.ENTERPRISE,
-      );
+    it('Scale does NOT enable the Enterprise-only features', () => {
+      const meta = resolvePlanMeta(PlanTitles.SCALE);
+      for (const f of enterpriseOnlyFeatures) {
+        expect(meta[f]).to.eq(false, `Scale must NOT enable ${f}`);
+      }
+    });
+
+    it('Enterprise-only features unlock only at Enterprise', () => {
+      for (const f of enterpriseOnlyFeatures) {
+        expect(PlanFeatureTypesToPlanTitles[f]).to.eq(
+          PlanTitles.ENTERPRISE,
+          `${f} should unlock only at Enterprise`,
+        );
+      }
     });
 
     it('Scale limits are <= Enterprise for every finite Enterprise limit', () => {
@@ -389,10 +401,10 @@ function planResolutionTests() {
     // audit-log feature. Workspace audit is gated to Scale+, so lower tiers
     // carry 0 (inert).
     const recordAuditLadder: Record<PlanTitles, number> = {
-      [PlanTitles.FREE]: 14,
-      [PlanTitles.PLUS]: 60,
-      [PlanTitles.BUSINESS]: 180,
-      [PlanTitles.SCALE]: 365,
+      [PlanTitles.FREE]: 3,
+      [PlanTitles.PLUS]: 30,
+      [PlanTitles.BUSINESS]: 90,
+      [PlanTitles.SCALE]: 180,
       [PlanTitles.ENTERPRISE]: 365,
     };
 
@@ -484,13 +496,13 @@ function planResolutionTests() {
   describe('Automation retention ladder (workflow retention merged in)', () => {
     // LIMIT_WORKFLOW_RETENTION is folded into LIMIT_AUTOMATION_RETENTION — one
     // execution-log retention limit (read cutoff on automation_executions).
-    // Keeps the previously-live workflow retention values (no shrink).
+    // Values track the pricing matrix (Automation Logs row).
     const automationRetentionLadder: Record<PlanTitles, number> = {
-      [PlanTitles.FREE]: 15,
-      [PlanTitles.PLUS]: 60,
-      [PlanTitles.BUSINESS]: 180,
-      [PlanTitles.SCALE]: 270,
-      [PlanTitles.ENTERPRISE]: 365,
+      [PlanTitles.FREE]: 1,
+      [PlanTitles.PLUS]: 30,
+      [PlanTitles.BUSINESS]: 60,
+      [PlanTitles.SCALE]: 90,
+      [PlanTitles.ENTERPRISE]: 180,
     };
 
     for (const plan of allPlans) {

@@ -162,7 +162,7 @@ export class DataImportProcessor {
       }),
     );
 
-    log(`Starting ${importType.toUpperCase()} import...`);
+    log(`Starting ${importType.toUpperCase()} import...`, true);
 
     const results: SheetResult[] = [];
 
@@ -207,9 +207,11 @@ export class DataImportProcessor {
           errorsCount,
           ...(sampleError ? { sampleError } : {}),
         }),
+        true,
       );
       log(
         `Import completed: ${rowsInserted} rows inserted, ${rowsFailed} failed.`,
+        true,
       );
 
       return { rowsInserted, rowsFailed, sheets: results };
@@ -218,7 +220,7 @@ export class DataImportProcessor {
         `${importType.toUpperCase()} import failed: ${e.message}`,
         e.stack,
       );
-      log('Import failed due to an internal error.');
+      log('Import failed due to an internal error.', true);
 
       // NcError messages are user-safe; other errors (knex, etc.) may leak
       // schema details — fall back to a generic message.
@@ -274,7 +276,7 @@ export class DataImportProcessor {
     let tableName = spec.tableName;
 
     if (!options.importDataOnly) {
-      log(`Creating table "${tableName}"...`);
+      log(`Creating table "${tableName}"...`, true);
 
       const source = await Source.get(context, sourceId);
       if (!source) NcError.sourceNotFound(sourceId);
@@ -299,7 +301,7 @@ export class DataImportProcessor {
 
       tableId = created.id;
       tableName = created.title;
-      log(`Table "${tableName}" created successfully.`);
+      log(`Table "${tableName}" created successfully.`, true);
     }
 
     if (!tableId) NcError.badRequest('Table ID could not be determined');
@@ -352,7 +354,7 @@ export class DataImportProcessor {
     }
 
     if (!options.shouldImportData) {
-      log(`Sheet${sheetLabel}: schema only, no data imported.`);
+      log(`Sheet${sheetLabel}: schema only, no data imported.`, true);
       return {
         sheetName: spec.sheetName,
         tableId,
@@ -367,6 +369,7 @@ export class DataImportProcessor {
       spec.sheetName
         ? `Importing sheet "${spec.sheetName}" → "${tableName}"...`
         : 'Importing data...',
+      true,
     );
 
     const stats = await this.streamSheetData({
@@ -386,6 +389,7 @@ export class DataImportProcessor {
 
     log(
       `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed.`,
+      true,
     );
 
     return {

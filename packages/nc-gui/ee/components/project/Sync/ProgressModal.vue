@@ -82,6 +82,13 @@ async function listenForUpdates() {
       } else {
         listeningForUpdates.value = false
         isLoading.value = false
+        // `close` is only sent after the job has finished on the backend. A real
+        // failure arrives as an explicit JobStatus.FAILED on this same channel
+        // (handled above, with the actual "… failed: …" message), so reaching
+        // `close` without a terminal status means we raced past a successful
+        // completion event — resolve as completed. The old code synthesized a
+        // FAILED here from the last log line, which is what surfaced the false
+        // "Sync Failed" (the last log being "Full sync completed …").
         const hadTerminal = [JobStatus.COMPLETED, JobStatus.FAILED].includes(lastProgress.value?.status as JobStatus)
         if (!hadTerminal) {
           onStatus(JobStatus.COMPLETED)

@@ -798,7 +798,7 @@ importers:
         version: 1.13.0(encoding@0.1.13)
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
       lodash:
         specifier: '>=4.18.1 <4.19.0'
         version: 4.18.1
@@ -807,7 +807,7 @@ importers:
     dependencies:
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
       lodash:
         specifier: '>=4.18.1 <4.19.0'
         version: 4.18.1
@@ -883,7 +883,7 @@ importers:
         version: 5.8.5
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
       knex-databricks:
         specifier: link:../nc-knex-dialects/knex-databricks
         version: link:../nc-knex-dialects/knex-databricks
@@ -1229,7 +1229,7 @@ importers:
         version: 9.0.2
       knex:
         specifier: 3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
       knex-databricks:
         specifier: link:../nc-knex-dialects/knex-databricks
         version: link:../nc-knex-dialects/knex-databricks
@@ -1416,9 +1416,6 @@ importers:
       stripe:
         specifier: ^18.2.1
         version: 18.2.1(@types/node@22.15.21)
-      tedious:
-        specifier: ^16.7.1
-        version: 16.7.1
       tinycolor2:
         specifier: ^1.6.0
         version: 1.6.0
@@ -1745,7 +1742,7 @@ importers:
         version: 4.21.2
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
       nocodb-sdk:
         specifier: workspace:^
         version: link:../../packages/nocodb-sdk
@@ -3077,17 +3074,9 @@ packages:
     resolution: {integrity: sha512-ykRMW8PjVAn+RS6ww5cmK9U2CyH9p4Q88YJwvUslfuMmN98w/2rdGRLPqJYObapBCdzBVeDgYWdJnFPFb7qzpg==}
     engines: {node: '>=20.0.0'}
 
-  '@azure/core-auth@1.9.0':
-    resolution: {integrity: sha512-FPwHpZywuyasDSLMqJ6fhbOK3TqUdviZNF8OqRGA4W5Ewib2lEEZ+pBsYcBa88B2NGO/SEnYPGhyBqNlE8ilSw==}
-    engines: {node: '>=18.0.0'}
-
   '@azure/core-client@1.10.1':
     resolution: {integrity: sha512-Nh5PhEOeY6PrnxNPsEHRr9eimxLwgLlpmguQaHKBinFYA/RU9+kOYVOQqOrTsCL+KSxrLLl1gD8Dk5BFW/7l/w==}
     engines: {node: '>=20.0.0'}
-
-  '@azure/core-client@1.9.4':
-    resolution: {integrity: sha512-f7IxTD15Qdux30s2qFARH+JxgwxWLG2Rlr4oSkPGuLWm+1p5y1+C04XGLA0vmX6EtqfutmjvpNmAfgwVIS5hpw==}
-    engines: {node: '>=18.0.0'}
 
   '@azure/core-http-compat@2.3.0':
     resolution: {integrity: sha512-qLQujmUypBBG0gxHd0j6/Jdmul6ttl24c8WGiLXIk7IHXdBlfoBqW27hyz3Xn6xbfdyVSarl1Ttbk0AwnZBYCw==}
@@ -3105,10 +3094,6 @@ packages:
     resolution: {integrity: sha512-zqWdVIt+2Z+3wqxEOGzR5hXFZ8MGKK52x4vFLw8n58pR6ZfKRx3EXYTxTaYxYHc/PexPUTyimcTWFJbji9Z6Iw==}
     engines: {node: '>=14.0.0'}
 
-  '@azure/core-paging@1.6.2':
-    resolution: {integrity: sha512-YKWi9YuCU04B55h25cnOYZHxXYtEvQEbKST5vqRga7hWY9ydd3FZHdeQF8pyh+acWZvppw13M/LMGx0LABUVMA==}
-    engines: {node: '>=18.0.0'}
-
   '@azure/core-rest-pipeline@1.20.0':
     resolution: {integrity: sha512-ASoP8uqZBS3H/8N8at/XwFr6vYrRP3syTK0EUjDXQy0Y1/AUS+QeIRThKmTNJO2RggvBBxaXDPM7YoIwDGeA0g==}
     engines: {node: '>=18.0.0'}
@@ -3117,17 +3102,9 @@ packages:
     resolution: {integrity: sha512-MzHym+wOi8CLUlKCQu12de0nwcq9k9Kuv43j4Wa++CsCpJwps2eeBQwD2Bu8snkxTtDKDx4GwjuR9E8yC8LNrg==}
     engines: {node: '>=20.0.0'}
 
-  '@azure/core-tracing@1.2.0':
-    resolution: {integrity: sha512-UKTiEJPkWcESPYJz3X5uKRYyOcJD+4nYph+KpfdPRnQJVrZfk0KJgdnaAWKfhsBBtAf/D58Az4AvCJEmWgIBAg==}
-    engines: {node: '>=18.0.0'}
-
   '@azure/core-tracing@1.3.1':
     resolution: {integrity: sha512-9MWKevR7Hz8kNzzPLfX4EAtGM2b8mr50HPDBvio96bURP/9C+HjdH3sBlLSNNrvRAr5/k/svoH457gB5IKpmwQ==}
     engines: {node: '>=20.0.0'}
-
-  '@azure/core-util@1.12.0':
-    resolution: {integrity: sha512-13IyjTQgABPARvG90+N2dXpC+hwp466XCdQXPCRlbWHgd3SJd5Q1VvaBGv6k1BIa4MQm6hAF1UBU1m8QUxV8sQ==}
-    engines: {node: '>=18.0.0'}
 
   '@azure/core-util@1.13.1':
     resolution: {integrity: sha512-XPArKLzsvl0Hf0CaGyKHUyVgF7oDnhKoP85Xv6M4StF/1AhfORhZudHtOyf2s+FcbuQ9dPRAjB8J2KvRRMUK2A==}
@@ -3149,9 +3126,13 @@ packages:
     resolution: {integrity: sha512-eDT7iXoBTRZ2n3fLiftuGJFD+yjkiB1GNqzU2KbY1TLYeXeSPVTVgn2eJ5vmRTZ11978jy2Kg2wI7xa9Tyr8ag==}
     engines: {node: '>=18.0.0'}
 
-  '@azure/logger@1.0.4':
-    resolution: {integrity: sha512-ustrPY8MryhloQj7OWGe+HrYx+aoiOxzbXTtgblbV3xwCqpzUK36phH3XNHQKj3EPonyFUuDTfR3qFhTEAuZEg==}
-    engines: {node: '>=14.0.0'}
+  '@azure/keyvault-common@2.1.0':
+    resolution: {integrity: sha512-aCDidWuKY06LWQ4x7/8TIXK6iRqTaRWRL3t7T+LC+j1b07HtoIsOxP/tU90G4jCSBn5TAyUTCtA4MS/y5Hudaw==}
+    engines: {node: '>=20.0.0'}
+
+  '@azure/keyvault-keys@4.10.0':
+    resolution: {integrity: sha512-eDT7iXoBTRZ2n3fLiftuGJFD+yjkiB1GNqzU2KbY1TLYeXeSPVTVgn2eJ5vmRTZ11978jy2Kg2wI7xa9Tyr8ag==}
+    engines: {node: '>=18.0.0'}
 
   '@azure/logger@1.3.0':
     resolution: {integrity: sha512-fCqPIfOcLE+CGqGPd66c8bZpwAji98tZ4JI9i/mlTNTlsIWslCfpg48s/ypyLxZTump5sypjrKn2/kY7q8oAbA==}
@@ -9817,10 +9798,6 @@ packages:
   '@typescript-eslint/visitor-keys@8.18.2':
     resolution: {integrity: sha512-zORcwn4C3trOWiCqFQP1x6G3xTRyZ1LYydnj51cRnJ6hxBlr/cKPckk+PKPUw/fXmvfKTcw7bwY3w9izgx5jZw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
-  '@typespec/ts-http-runtime@0.2.2':
-    resolution: {integrity: sha512-Gz/Sm64+Sq/vklJu1tt9t+4R2lvnud8NbTD/ZfpZtMiUX7YeVpCA8j6NSW8ptwcoLL+NmYANwqP8DV0q/bwl2w==}
-    engines: {node: '>=18.0.0'}
 
   '@typespec/ts-http-runtime@0.3.3':
     resolution: {integrity: sha512-91fp6CAAJSRtH5ja95T1FHSKa8aPW9/Zw6cta81jlZTUw/+Vq8jM/AfF/14h2b71wwR84JUTW/3Y8QPhDAawFA==}
@@ -19469,10 +19446,6 @@ packages:
     resolution: {integrity: sha512-51LAVKUSZSVfI05vjPESNc5vwqqZpbXCsU+/+wxlOrUjk2SnFTt97v9ZgQrD4YmxYW1Px6w2KjaDitCfkvgxMQ==}
     engines: {node: '>=8.0.0'}
 
-  tedious@16.7.1:
-    resolution: {integrity: sha512-NmedZS0NJiTv3CoYnf1FtjxIDUgVYzEmavrc8q2WHRb+lP4deI9BpQfmNnBZZaWusDbP5FVFZCcvzb3xOlNVlQ==}
-    engines: {node: '>=16'}
-
   teeny-request@10.1.2:
     resolution: {integrity: sha512-Xj0ZAQ0CeuQn6UxCDPLbFRlgcSTUEyO3+wiepr2grjIjyL/lMMs1Z4OwXn8kLvn/V1OuaEP0UY7Na6UDNNsYrQ==}
     engines: {node: '>=18'}
@@ -24719,11 +24692,12 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/core-auth@1.9.0':
     dependencies:
       '@azure/abort-controller': 2.1.2
-      '@azure/core-util': 1.13.1
+      '@azure/core-util': 1.12.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -24740,40 +24714,31 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@azure/core-client@1.9.4':
-    dependencies:
-      '@azure/abort-controller': 2.1.2
-      '@azure/core-auth': 1.10.1
-      '@azure/core-rest-pipeline': 1.22.2
-      '@azure/core-tracing': 1.3.1
-      '@azure/core-util': 1.13.1
-      '@azure/logger': 1.3.0
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@azure/core-http-compat@2.3.0':
     dependencies:
       '@azure/abort-controller': 2.1.2
-      '@azure/core-client': 1.10.1
-      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-auth': 1.9.0
+      '@azure/core-rest-pipeline': 1.20.0
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.12.0
+      '@azure/logger': 1.0.4
+      tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
   '@azure/core-lro@2.5.4':
     dependencies:
-      '@azure/abort-controller': 1.1.0
-      '@azure/core-util': 1.13.1
-      '@azure/logger': 1.3.0
-      tslib: 2.8.1
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-client': 1.9.4
+      '@azure/core-rest-pipeline': 1.20.0
     transitivePeerDependencies:
       - supports-color
 
   '@azure/core-lro@2.7.2':
     dependencies:
-      '@azure/abort-controller': 2.1.2
-      '@azure/core-util': 1.13.1
-      '@azure/logger': 1.3.0
+      '@azure/abort-controller': 1.1.0
+      '@azure/core-util': 1.12.0
+      '@azure/logger': 1.0.4
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -24786,17 +24751,15 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@azure/core-rest-pipeline@1.20.0':
+  '@azure/core-paging@1.6.2':
     dependencies:
       '@azure/abort-controller': 2.1.2
-      '@azure/core-auth': 1.10.1
-      '@azure/core-tracing': 1.3.1
-      '@azure/core-util': 1.13.1
-      '@azure/logger': 1.3.0
+      '@azure/core-auth': 1.9.0
+      '@azure/core-tracing': 1.2.0
+      '@azure/core-util': 1.12.0
+      '@azure/logger': 1.0.4
       '@typespec/ts-http-runtime': 0.2.2
       tslib: 2.8.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@azure/core-rest-pipeline@1.22.2':
     dependencies:
@@ -24809,6 +24772,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/core-tracing@1.2.0':
     dependencies:
@@ -24817,6 +24781,7 @@ snapshots:
   '@azure/core-tracing@1.3.1':
     dependencies:
       tslib: 2.8.1
+    optional: true
 
   '@azure/core-util@1.12.0':
     dependencies:
@@ -24854,6 +24819,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/keyvault-common@2.1.0':
     dependencies:
@@ -24885,10 +24851,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@azure/logger@1.0.4':
-    dependencies:
-      tslib: 2.8.1
-
   '@azure/logger@1.3.0':
     dependencies:
       '@typespec/ts-http-runtime': 0.3.3
@@ -24913,16 +24875,16 @@ snapshots:
   '@azure/storage-blob@12.26.0':
     dependencies:
       '@azure/abort-controller': 2.1.2
-      '@azure/core-auth': 1.9.0
-      '@azure/core-client': 1.9.4
+      '@azure/core-auth': 1.10.1
+      '@azure/core-client': 1.10.1
       '@azure/core-http-compat': 2.3.0
       '@azure/core-lro': 2.5.4
       '@azure/core-paging': 1.5.0
-      '@azure/core-rest-pipeline': 1.20.0
-      '@azure/core-tracing': 1.2.0
-      '@azure/core-util': 1.12.0
+      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-tracing': 1.3.1
+      '@azure/core-util': 1.13.1
       '@azure/core-xml': 1.4.5
-      '@azure/logger': 1.0.4
+      '@azure/logger': 1.3.0
       events: 3.3.0
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -33546,14 +33508,6 @@ snapshots:
       '@typescript-eslint/types': 8.18.2
       eslint-visitor-keys: 4.2.0
 
-  '@typespec/ts-http-runtime@0.2.2':
-    dependencies:
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@typespec/ts-http-runtime@0.3.3':
     dependencies:
       http-proxy-agent: 7.0.2
@@ -40442,7 +40396,6 @@ snapshots:
       lodash.once: 4.1.1
       ms: 2.1.3
       semver: 7.8.0
-    optional: true
 
   jsprim@2.0.2:
     dependencies:
@@ -40521,7 +40474,7 @@ snapshots:
 
   klona@2.0.6: {}
 
-  knex@3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)(tedious@16.7.1):
+  knex@3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7):
     dependencies:
       colorette: 2.0.19
       commander: 10.0.1
@@ -40541,7 +40494,6 @@ snapshots:
       mysql2: 3.14.1
       pg: 8.16.0
       sqlite3: 5.1.7
-      tedious: 16.7.1
     transitivePeerDependencies:
       - supports-color
 
@@ -46130,22 +46082,6 @@ snapshots:
       yallist: 5.0.0
 
   tarn@3.0.2: {}
-
-  tedious@16.7.1:
-    dependencies:
-      '@azure/identity': 4.10.0
-      '@azure/keyvault-keys': 4.10.0
-      '@js-joda/core': 5.7.0
-      bl: 6.1.6
-      es-aggregate-error: 1.0.14
-      iconv-lite: 0.6.3
-      js-md4: 0.3.2
-      jsbi: 4.3.2
-      native-duplexpair: 1.0.0
-      node-abort-controller: 3.1.1
-      sprintf-js: 1.1.3
-    transitivePeerDependencies:
-      - supports-color
 
   teeny-request@10.1.2:
     dependencies:

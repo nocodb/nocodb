@@ -12,6 +12,13 @@ const toBool = (
   return value === true || value === 'true';
 };
 
+// The form sends `port` as a string, but tedious requires a number for
+// `config.options.port` and rejects strings outright.
+const toPort = (value: string | number | undefined, fallback: number): number => {
+  const port = Number(value);
+  return Number.isFinite(port) && port > 0 ? port : fallback;
+};
+
 export class MssqlAuthIntegration extends AuthIntegration<
   MssqlAuthConfig,
   Knex
@@ -23,7 +30,7 @@ export class MssqlAuthIntegration extends AuthIntegration<
       // `server` (not `host`) and TLS settings under `options`.
       connection: {
         server: this.config.host,
-        port: this.config.port || 1433,
+        port: toPort(this.config.port, 1433),
         user: this.config.username,
         password: this.config.password,
         database: this.config.database,

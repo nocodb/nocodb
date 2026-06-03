@@ -13,7 +13,8 @@ export enum PlanLimitTypes {
   LIMIT_WORKSPACE_AUDIT_RETENTION = 'limit_workspace_audit_retention',
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-  LIMIT_WORKFLOW_RUN = 'limit_workflow_run',
+  // Workflow runs are merged into LIMIT_AUTOMATION_RUN (single "automation
+  // runs" budget). Workflow execution-log retention stays separate below.
   LIMIT_WORKFLOW_RETENTION = 'limit_workflow_retention',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
@@ -353,7 +354,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
   [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
-  [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',

@@ -480,6 +480,34 @@ function planResolutionTests() {
         .be.undefined;
     });
   });
+
+  describe('Automation retention ladder (workflow retention merged in)', () => {
+    // LIMIT_WORKFLOW_RETENTION is folded into LIMIT_AUTOMATION_RETENTION — one
+    // execution-log retention limit (read cutoff on automation_executions).
+    // Keeps the previously-live workflow retention values (no shrink).
+    const automationRetentionLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 15,
+      [PlanTitles.PLUS]: 60,
+      [PlanTitles.BUSINESS]: 180,
+      [PlanTitles.SCALE]: 270,
+      [PlanTitles.ENTERPRISE]: 365,
+    };
+
+    for (const plan of allPlans) {
+      it(`${plan} automation retention = ${automationRetentionLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]).to.eq(
+          automationRetentionLadder[plan],
+        );
+      });
+    }
+
+    it('LIMIT_WORKFLOW_RETENTION no longer exists', () => {
+      expect(
+        (PlanLimitTypes as Record<string, string>).LIMIT_WORKFLOW_RETENTION,
+      ).to.be.undefined;
+    });
+  });
 }
 
 export { planResolutionTests };

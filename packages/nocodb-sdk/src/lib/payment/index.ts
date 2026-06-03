@@ -11,11 +11,11 @@ export enum PlanLimitTypes {
   // Workspace/base audit log feature (FEATURE_AUDIT_WORKSPACE). Distinct from
   // record audit — gated Scale+, so lower tiers carry 0 (inert).
   LIMIT_WORKSPACE_AUDIT_RETENTION = 'limit_workspace_audit_retention',
+  // Automations and workflows share a single run budget + a single
+  // execution-log retention limit (LIMIT_WORKFLOW_RUN / LIMIT_WORKFLOW_RETENTION
+  // were merged in here). Retention governs the automation_executions log.
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-  // Workflow runs are merged into LIMIT_AUTOMATION_RUN (single "automation
-  // runs" budget). Workflow execution-log retention stays separate below.
-  LIMIT_WORKFLOW_RETENTION = 'limit_workflow_retention',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -355,8 +355,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
   [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
-  [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
-    'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
   [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]:
     'to add more document pages in a base.',

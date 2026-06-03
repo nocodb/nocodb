@@ -162,10 +162,9 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
       [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 3,
-      // Automation & workflow (workflow runs merged into automation runs)
+      // Automation & workflow share one run budget + one retention limit
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
-      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 15,
       // Audit — record-level history; workspace audit log is gated off (0)
       [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 14,
       [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 0,
@@ -233,14 +232,13 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 30,
-      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 30000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 50000,
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 0,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 2,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 20000,
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 60,
     },
   },
 
@@ -267,7 +265,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 90,
-      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 120000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 300000,
@@ -275,7 +273,6 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 100000,
       [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 5,
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 180,
     },
   },
 
@@ -299,9 +296,8 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 30,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 270,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 180,
-      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 270,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 240000,
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 270,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
@@ -330,7 +326,6 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 25,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 500000,
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 365,
     },
   },
 };
@@ -562,7 +557,6 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 21, // days
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 90, // days
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
     },

@@ -725,7 +725,7 @@ interface CanvasGroup {
   groupIndex?: number
   column: ColumnType
   groups: Map<number, CanvasGroup>
-  chunkStates: Array<'loading' | 'loaded' | undefined>
+  chunkStates: Array<'loading' | 'loaded' | 'failed' | undefined>
   count: number
   isExpanded: boolean
   value: any

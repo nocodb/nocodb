@@ -73,7 +73,18 @@ export const useInfiniteGroups = (
 
   const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)
-  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+  const chunkStates = ref<Array<'loading' | 'loaded' | 'failed' | undefined>>([])
+
+  // Canvas-level retry cap: stop re-triggering the same chunk after this many
+  // consecutive failures. Each canvas attempt internally retries the API call
+  // GROUPBY_MAX_RETRIES + 1 times — so total backend hits is bounded by
+  // CANVAS_MAX_CHUNK_FETCH_ATTEMPTS * (GROUPBY_MAX_RETRIES + 1).
+  const CANVAS_MAX_CHUNK_FETCH_ATTEMPTS = 3
+  const GROUPBY_MAX_RETRIES = 3
+  const GROUPBY_RETRY_DELAY_MS = 50
+  const chunkFailureCounts = new Map<string, number>()
+  const getChunkKey = (chunkId: number, parentGroup?: CanvasGroup) =>
+    `${parentGroup ? generateGroupPath(parentGroup) : 'root'}:${chunkId}`
 
   const getGroupChunkIndex = (offset: number) => Math.floor(offset / GROUP_CHUNK_SIZE)
 
@@ -94,8 +105,18 @@ export const useInfiniteGroups = (
 
   const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup, force = false) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
+    const chunkKey = getChunkKey(chunkId, parentGroup)
 
-    if (targetChunkStates[chunkId] === 'loading' || (targetChunkStates[chunkId] === 'loaded' && !force)) return
+    if (
+      targetChunkStates[chunkId] === 'loading' ||
+      (targetChunkStates[chunkId] === 'loaded' && !force) ||
+      (targetChunkStates[chunkId] === 'failed' && !force)
+    )
+      return
+
+    // User-initiated re-fetch (force=true) — clear the failure counter so
+    // we get a fresh CANVAS_MAX_CHUNK_FETCH_ATTEMPTS budget.
+    if (force) chunkFailureCounts.delete(chunkKey)
 
     targetChunkStates[chunkId] = 'loading'
     const offset = chunkId * GROUP_CHUNK_SIZE
@@ -109,35 +130,45 @@ export const useInfiniteGroups = (
 
       const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where.value)
 
-      const response = isPublic.value
-        ? await $api.public.dataGroupBy(
-            sharedView.value!.uuid!,
-            {
-              offset,
-              limit: GROUP_CHUNK_SIZE,
-              where: effectiveWhere,
-              sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
-              column_name: groupCol.column.title,
-              subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
-              sortArrJson: JSON.stringify(sorts.value),
-              filterArrJson: JSON.stringify([...(nestedFilters.value ?? []), ...nestedGrpWhereArr]),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
-            },
-          )
-        : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-            offset,
-            limit: GROUP_CHUNK_SIZE,
-            where: effectiveWhere,
-            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
-            column_name: groupCol.column.title,
-            sortArrJson: JSON.stringify(sorts.value),
-            filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...nestedGrpWhereArr]),
-            subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
-          })
+      let response: Awaited<ReturnType<typeof $api.dbViewRow.groupBy>> | undefined
+      for (let attempt = 0; attempt <= GROUPBY_MAX_RETRIES; attempt++) {
+        try {
+          response = isPublic.value
+            ? await $api.public.dataGroupBy(
+                sharedView.value!.uuid!,
+                {
+                  offset,
+                  limit: GROUP_CHUNK_SIZE,
+                  where: effectiveWhere,
+                  sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+                  column_name: groupCol.column.title,
+                  subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+                  sortArrJson: JSON.stringify(sorts.value),
+                  filterArrJson: JSON.stringify([...(nestedFilters.value ?? []), ...nestedGrpWhereArr]),
+                },
+                {
+                  headers: {
+                    'xc-password': sharedViewPassword.value,
+                  },
+                },
+              )
+            : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+                offset,
+                limit: GROUP_CHUNK_SIZE,
+                where: effectiveWhere,
+                sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+                column_name: groupCol.column.title,
+                sortArrJson: JSON.stringify(sorts.value),
+                filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...nestedGrpWhereArr]),
+                subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+              })
+          break
+        } catch (err) {
+          if (attempt === GROUPBY_MAX_RETRIES) throw err
+          await new Promise((resolve) => setTimeout(resolve, GROUPBY_RETRY_DELAY_MS))
+        }
+      }
+      if (!response) throw new Error('groupBy: empty response after retries')
 
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
@@ -354,7 +385,9 @@ export const useInfiniteGroups = (
       }
     } catch (error) {
       console.error(`Error fetching group chunk at level ${level}:`, error)
-      targetChunkStates[chunkId] = undefined
+      const nextCount = (chunkFailureCounts.get(chunkKey) ?? 0) + 1
+      chunkFailureCounts.set(chunkKey, nextCount)
+      targetChunkStates[chunkId] = nextCount >= CANVAS_MAX_CHUNK_FETCH_ATTEMPTS ? 'failed' : undefined
     }
   }
 
@@ -477,6 +510,10 @@ export const useInfiniteGroups = (
     if (startIndex === Number.NEGATIVE_INFINITY && endIndex === Number.POSITIVE_INFINITY) {
       cachedGroups.value = new Map()
       chunkStates.value = []
+      // Reload-style full reset: any chunk we wipe must also have its failure
+      // count reset, otherwise the canvas retry cap fires on the first
+      // failure of the next fetch.
+      chunkFailureCounts.clear()
       return
     }
 
@@ -490,6 +527,20 @@ export const useInfiniteGroups = (
     for (let i = safeStartIndex; i <= safeEndIndex; i++) {
       const group = targetGroups.get(i)
       if (group) newGroups.set(i, group)
+    }
+
+    // Drop failure counters for chunks we're about to reset so future
+    // re-fetches start with a fresh CANVAS_MAX_CHUNK_FETCH_ATTEMPTS budget.
+    const keptFirstChunk = getGroupChunkIndex(safeStartIndex)
+    const keptLastChunk = getGroupChunkIndex(safeEndIndex)
+    const keyPrefix = parentGroup ? `${generateGroupPath(parentGroup)}:` : 'root:'
+    for (const key of chunkFailureCounts.keys()) {
+      if (!key.startsWith(keyPrefix)) continue
+      const chunkId = Number(key.slice(keyPrefix.length))
+      if (Number.isNaN(chunkId)) continue
+      if (chunkId < keptFirstChunk || chunkId > keptLastChunk) {
+        chunkFailureCounts.delete(key)
+      }
     }
 
     if (parentGroup) {

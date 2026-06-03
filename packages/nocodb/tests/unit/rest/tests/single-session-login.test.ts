@@ -182,6 +182,24 @@ function singleSessionLoginTests() {
   // session, so single-session enforcement should kick in there.
   const ssoIt = process.env.EE === 'true' ? it : it.skip;
 
+  // Helper: mint a short-lived SSO token. The `nonce` keeps tokens minted
+  // within the same second distinct — short tokens are single-use, and two
+  // identical payloads signed in the same second produce byte-identical JWTs.
+  function mintShortToken(): string {
+    const config = Noco.getConfig();
+    return jwt.sign(
+      {
+        id: context.user.id,
+        email: context.user.email,
+        sso_client_type: 'saml',
+        sso_client_id: 'mock-client-id',
+        nonce: Math.random().toString(36).slice(2),
+      },
+      config.auth.jwt.secret,
+      { expiresIn: '1m' },
+    );
+  }
+
   ssoIt('SSO short-token exchange invalidates prior session', async () => {
     // Establish a prior local-password session for the same user.
     const localSession = await signIn();
@@ -190,17 +208,7 @@ function singleSessionLoginTests() {
 
     // Mint a short-lived SSO token directly (mirrors what the SSO passport
     // middleware does after the IdP authenticates the user).
-    const config = Noco.getConfig();
-    const shortToken = jwt.sign(
-      {
-        id: context.user.id,
-        email: context.user.email,
-        sso_client_type: 'saml',
-        sso_client_id: 'mock-client-id',
-      },
-      config.auth.jwt.secret,
-      { expiresIn: '1m' },
-    );
+    const shortToken = mintShortToken();
 
     // Exchange the short token for a full session via /auth/long-lived-token.
     const exchangeRes = await request(context.app)
@@ -395,19 +403,6 @@ function singleSessionLoginTests() {
   });
 
   ssoIt('Cross-mechanism: local → SSO → local chain invalidates each step', async () => {
-    const config = Noco.getConfig();
-    const mintShortToken = () =>
-      jwt.sign(
-        {
-          id: context.user.id,
-          email: context.user.email,
-          sso_client_type: 'saml',
-          sso_client_id: 'mock-client-id',
-        },
-        config.auth.jwt.secret,
-        { expiresIn: '1m' },
-      );
-
     // Step 1: local signin
     const localA = await signIn();
     expect(await isJwtValid(localA.token), 'local A valid').to.be.true;
@@ -429,19 +424,6 @@ function singleSessionLoginTests() {
   });
 
   ssoIt('Second SSO exchange invalidates prior SSO session', async () => {
-    const config = Noco.getConfig();
-    const mintShortToken = () =>
-      jwt.sign(
-        {
-          id: context.user.id,
-          email: context.user.email,
-          sso_client_type: 'saml',
-          sso_client_id: 'mock-client-id',
-        },
-        config.auth.jwt.secret,
-        { expiresIn: '1m' },
-      );
-
     // First SSO exchange
     const firstRes = await request(context.app)
       .post('/auth/long-lived-token')
@@ -460,6 +442,33 @@ function singleSessionLoginTests() {
       .false;
     expect(await isJwtValid(secondRes.body.token), 'second SSO valid').to.be
       .true;
+  });
+
+  ssoIt('Replayed short token is rejected and preserves the session it issued', async () => {
+    const shortToken = mintShortToken();
+
+    // First exchange succeeds and establishes a session.
+    const firstRes = await request(context.app)
+      .post('/auth/long-lived-token')
+      .set('xc-short-token', shortToken)
+      .expect(201);
+    expect(await isJwtValid(firstRes.body.token), 'session valid').to.be.true;
+
+    // Replaying the SAME short token is rejected — short tokens are
+    // single-use.
+    await request(context.app)
+      .post('/auth/long-lived-token')
+      .set('xc-short-token', shortToken)
+      .expect(401);
+
+    // Crucially, the rejected replay must NOT rotate token_version — the
+    // session issued by the first exchange stays valid. (Without single-use
+    // enforcement, a duplicate exchange call invalidates the token the first
+    // call just returned, logging the user out right after signin.)
+    expect(
+      await isJwtValid(firstRes.body.token),
+      'session preserved after replay attempt',
+    ).to.be.true;
   });
 }
 

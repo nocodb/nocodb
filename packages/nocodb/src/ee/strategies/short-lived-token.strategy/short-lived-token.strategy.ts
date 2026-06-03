@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -8,6 +9,11 @@ import { MetaService } from '~/meta/meta.service';
 import Debug from '~/db/util/Debug';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NocoCache from '~/cache/NocoCache';
+
+// Consumed-marker TTL — must outlive the 1m token expiry so a replay can
+// never slip in after the marker lapses but before the JWT itself expires.
+const SHORT_TOKEN_CONSUMED_TTL_SECONDS = 300;
 
 const debug = new Debug('nc:sso:short-lived-token-strategy');
 
@@ -31,6 +37,33 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
   async validate(req, jwtPayload) {
     if (!jwtPayload?.email) {
       return jwtPayload;
+    }
+
+    // Single-use enforcement: a short-lived token can be exchanged exactly
+    // once. Atomic claim (SET NX EX) — the first exchange wins; any replay
+    // (duplicate exchange call, token leaked via URL in history/proxy logs)
+    // is rejected here, BEFORE the controller rotates token_version, so a
+    // replay can never invalidate the session issued by the first exchange.
+    const tokenHash = createHash('sha256')
+      .update(String(req.headers['xc-short-token']))
+      .digest('hex');
+
+    const claimed = await NocoCache.setIfNotExist(
+      'root',
+      `short_token_used:${tokenHash}`,
+      '1',
+      SHORT_TOKEN_CONSUMED_TTL_SECONDS,
+    );
+
+    if (!claimed) {
+      debug.error('Short-lived token replay rejected');
+      this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+        email: jwtPayload.email,
+        provider: jwtPayload.provider ?? 'sso',
+        reason: 'Short-lived token already used',
+        req,
+      });
+      NcError.unauthorized('Token already used');
     }
 
     const user = await User.getByEmail(jwtPayload?.email);

@@ -1383,6 +1383,15 @@ export function useCanvasListView({
 
     isHealingFilters = true
     try {
+      // Pre-load any level metas not yet cached so resolveLevelIdForFilter can
+      // match columns to their level. Without this an unloaded level looks empty
+      // and the filter falls through to the root fallback, persisting a wrong tag.
+      await Promise.all(
+        levels.value
+          .filter((l) => l.fk_model_id && !metas.value?.[`${baseId}:${l.fk_model_id}`])
+          .map((l) => getMeta(baseId, l.fk_model_id!).catch(() => null)),
+      )
+
       let healed = 0
       for (const orphan of orphans) {
         const targetLevelId = resolveLevelIdForFilter(orphan)

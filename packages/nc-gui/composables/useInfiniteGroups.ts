@@ -80,6 +80,8 @@ export const useInfiniteGroups = (
   // GROUPBY_MAX_RETRIES + 1 times — so total backend hits is bounded by
   // CANVAS_MAX_CHUNK_FETCH_ATTEMPTS * (GROUPBY_MAX_RETRIES + 1).
   const CANVAS_MAX_CHUNK_FETCH_ATTEMPTS = 3
+  const GROUPBY_MAX_RETRIES = 3
+  const GROUPBY_RETRY_DELAY_MS = 50
   const chunkFailureCounts = new Map<string, number>()
   const getChunkKey = (chunkId: number, parentGroup?: CanvasGroup) =>
     `${parentGroup ? generateGroupPath(parentGroup) : 'root'}:${chunkId}`
@@ -128,8 +130,6 @@ export const useInfiniteGroups = (
 
       const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where.value)
 
-      const GROUPBY_MAX_RETRIES = 3
-      const GROUPBY_RETRY_DELAY_MS = 50
       let response: Awaited<ReturnType<typeof $api.dbViewRow.groupBy>> | undefined
       for (let attempt = 0; attempt <= GROUPBY_MAX_RETRIES; attempt++) {
         try {

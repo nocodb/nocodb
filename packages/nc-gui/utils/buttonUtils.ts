@@ -1,9 +1,9 @@
 export const buttonColorMap = {
   solid: {
     brand: {
-      base: { background: '#3366FF', text: '#FFFFFF' },
-      hover: { background: '#2952CC', text: '#FFFFFF' },
-      loader: '#3366FF',
+      base: { background: 'var(--nc-brand-accent)', text: '#FFFFFF' },
+      hover: { background: 'var(--color-brand-600)', text: '#FFFFFF' },
+      loader: 'var(--nc-brand-accent)',
       disabled: { background: 'var(--nc-bg-gray-light)', text: 'var(--nc-content-gray-disabled)' },
     },
     red: {
@@ -125,10 +125,10 @@ export const buttonColorMap = {
   },
   text: {
     brand: {
-      base: { background: 'transparent', text: '#3366FF' },
-      hover: { background: 'var(--nc-bg-gray-light)', text: '#3366FF' },
+      base: { background: 'transparent', text: 'var(--nc-brand-accent)' },
+      hover: { background: 'var(--nc-bg-gray-light)', text: 'var(--nc-brand-accent)' },
       disabled: { background: 'var(--nc-bg-gray-light)', text: 'var(--nc-content-gray-disabled)' },
-      loader: '#3366FF',
+      loader: 'var(--nc-brand-accent)',
     },
     red: {
       base: { background: 'transparent', text: '#FF4A3F' },
@@ -198,8 +198,8 @@ export const getButtonColors = (
   const themeColors = buttonColorMap[theme]?.[color]
   if (!themeColors) {
     return isHovered && !isDisabled
-      ? { background: '#2952CC', text: '#FFFFFF', loader: '#3366FF' }
-      : { background: '#3366FF', text: '#FFFFFF', loader: '#3366FF' }
+      ? { background: 'var(--color-brand-600)', text: '#FFFFFF', loader: 'var(--nc-brand-accent)' }
+      : { background: 'var(--nc-brand-accent)', text: '#FFFFFF', loader: 'var(--nc-brand-accent)' }
   }
 
   const state = isHovered && !isDisabled ? 'hover' : 'base'

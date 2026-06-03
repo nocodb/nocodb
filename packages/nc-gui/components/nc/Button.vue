@@ -188,7 +188,7 @@ useEventListener(NcButton, 'mousedown', () => {
 .desktop {
   .nc-button.ant-btn.focused {
     &.theme-default {
-      box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
+      box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-brand-accent);
     }
 
     &.theme-ai {

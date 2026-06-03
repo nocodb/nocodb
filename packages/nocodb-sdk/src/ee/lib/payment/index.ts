@@ -167,8 +167,9 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 1000,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
-      // Audit
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
+      // Audit — record-level history; workspace audit log is gated off (0)
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 14,
+      [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 0,
       // Trash
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 15,
       // Extensions & tools
@@ -229,7 +230,8 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_CALL]: 100000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 60,
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 60,
+      [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 30,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
@@ -263,7 +265,8 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 90,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
@@ -292,18 +295,22 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 8,
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 270,
+      [PlanLimitTypes.LIMIT_API_CALL]: 5000000, // 5M API calls / month
+      // Record audit history matches Enterprise; the Scale ↔ Enterprise audit
+      // differentiator is workspace audit retention (30 vs 365 days).
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 365,
+      [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 30,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 270,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180,
-      [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100000,
+      [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 250000,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 270,
       [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 300000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
-      [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 500000,
+      [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 10,
-      [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 250000,
+      [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 150000, // 150 GB
       [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10,
     },
   },
@@ -316,7 +323,8 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365,
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 365,
+      [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]: 365,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 365,
@@ -518,8 +526,8 @@ export const OnPremPlanDefinitions: Record<
       // API — self-hosted
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: -1,
       [PlanLimitTypes.LIMIT_API_CALL]: -1,
-      // Audit — retain some history even on free
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 30, // days
+      // Record audit — retain some history even on free
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 30, // days
       // Docs — core feature available on unlicensed on-prem (matches paid cloud)
       [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: -1,
       [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
@@ -555,7 +563,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
       [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 0,
+      [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 21, // days

@@ -220,7 +220,9 @@ function planResolutionTests() {
               CloudPlanDefinitions[plan]?.limits?.[limit as PlanLimitTypes];
             expect(meta[limit]).to.eq(
               planOverride ?? value,
-              `${plan} should apply CommonPaidLimits ${limit} = ${planOverride ?? value}`,
+              `${plan} should apply CommonPaidLimits ${limit} = ${
+                planOverride ?? value
+              }`,
             );
           }
         }
@@ -379,6 +381,76 @@ function planResolutionTests() {
           );
         }
       }
+    });
+  });
+
+  describe('Audit retention split (record vs workspace)', () => {
+    // Two distinct limits: per-record audit history vs the workspace/base
+    // audit-log feature. Workspace audit is gated to Scale+, so lower tiers
+    // carry 0 (inert).
+    const recordAuditLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 14,
+      [PlanTitles.PLUS]: 60,
+      [PlanTitles.BUSINESS]: 180,
+      [PlanTitles.SCALE]: 365,
+      [PlanTitles.ENTERPRISE]: 365,
+    };
+
+    const workspaceAuditLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 0,
+      [PlanTitles.PLUS]: 0,
+      [PlanTitles.BUSINESS]: 0,
+      [PlanTitles.SCALE]: 30,
+      [PlanTitles.ENTERPRISE]: 365,
+    };
+
+    for (const plan of allPlans) {
+      it(`${plan} record audit retention = ${recordAuditLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]).to.eq(
+          recordAuditLadder[plan],
+        );
+      });
+
+      it(`${plan} workspace audit retention = ${workspaceAuditLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]).to.eq(
+          workspaceAuditLadder[plan],
+        );
+      });
+    }
+
+    it('record audit retention never decreases as the plan tier rises', () => {
+      for (let i = 1; i < allPlans.length; i++) {
+        expect(recordAuditLadder[allPlans[i]]).to.be.at.least(
+          recordAuditLadder[allPlans[i - 1]],
+          `${allPlans[i]} record audit retention must be >= ${allPlans[i - 1]}`,
+        );
+      }
+    });
+  });
+
+  describe('Scale headline limits (pricing page)', () => {
+    let scale: Record<string, number | boolean>;
+
+    before(() => {
+      scale = resolvePlanMeta(PlanTitles.SCALE);
+    });
+
+    it('records = 1,000,000', () => {
+      expect(scale[PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]).to.eq(1000000);
+    });
+
+    it('storage = 150 GB (150,000 MB)', () => {
+      expect(scale[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]).to.eq(150000);
+    });
+
+    it('automation runs = 250,000', () => {
+      expect(scale[PlanLimitTypes.LIMIT_AUTOMATION_RUN]).to.eq(250000);
+    });
+
+    it('API calls / month = 5,000,000', () => {
+      expect(scale[PlanLimitTypes.LIMIT_API_CALL]).to.eq(5000000);
     });
   });
 }

@@ -70,7 +70,7 @@ function onPremPlanResolutionTests() {
         false,
       );
       expect(plan.meta?.[PlanLimitTypes.LIMIT_AI_INTEGRATIONS]).to.equal(1);
-      expect(plan.meta?.[PlanLimitTypes.LIMIT_AUDIT_RETENTION]).to.equal(0);
+      expect(plan.meta?.[PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]).to.equal(0);
     });
 
     it('Enterprise plan_title resolves to SELF_HOSTED_ENTERPRISE with expected meta', () => {
@@ -85,7 +85,7 @@ function onPremPlanResolutionTests() {
         true,
       );
       expect(plan.meta?.[PlanFeatureTypes.FEATURE_RLS]).to.equal(true);
-      expect(plan.meta?.[PlanLimitTypes.LIMIT_AUDIT_RETENTION]).to.equal(-1);
+      expect(plan.meta?.[PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]).to.equal(-1);
     });
 
     it('empty config with isEE=true and no seat limit falls back to EnterprisePlan', () => {

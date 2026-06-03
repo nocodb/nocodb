@@ -10,6 +10,7 @@ export const DEFAULT_BRANDING = {
   logoDarkUrl: null as string | null,
   faviconUrl: null as string | null,
   brandColor: null as string | null,
+  formBannerUrl: null as string | null,
 }
 
 /**
@@ -22,6 +23,7 @@ export const useBranding = createSharedComposable(() => {
   const logoDarkUrl = computed(() => DEFAULT_BRANDING.logoDarkUrl)
   const faviconUrl = computed(() => DEFAULT_BRANDING.faviconUrl)
   const brandColor = computed(() => DEFAULT_BRANDING.brandColor)
+  const formBannerUrl = computed(() => DEFAULT_BRANDING.formBannerUrl)
   const isWhiteLabelled = computed(() => false)
   const config = computed<WhiteLabelConfig | null>(() => null)
 
@@ -31,6 +33,7 @@ export const useBranding = createSharedComposable(() => {
     logoDarkUrl,
     faviconUrl,
     brandColor,
+    formBannerUrl,
     isWhiteLabelled,
     config,
   }

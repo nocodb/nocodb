@@ -15,6 +15,7 @@ interface FormState {
   logoDarkUrl: string | null
   faviconUrl: string | null
   brandColor: string | null
+  formBannerUrl: string | null
   emailSenderName: string | null
   emailFooterText: string | null
   emailFooterUrl: string | null
@@ -27,6 +28,7 @@ const form = ref<FormState>({
   logoDarkUrl: null,
   faviconUrl: null,
   brandColor: null,
+  formBannerUrl: null,
   emailSenderName: null,
   emailFooterText: null,
   emailFooterUrl: null,
@@ -70,6 +72,7 @@ function syncFromConfig() {
     logoDarkUrl: c.logoDarkUrl ?? null,
     faviconUrl: c.faviconUrl ?? null,
     brandColor: c.brandColor ?? null,
+    formBannerUrl: c.formBannerUrl ?? null,
     emailSenderName: c.email?.senderName ?? null,
     emailFooterText: c.email?.footerText ?? null,
     emailFooterUrl: c.email?.footerUrl ?? null,
@@ -91,6 +94,7 @@ async function onSave() {
     logoDarkUrl: trim(form.value.logoDarkUrl),
     faviconUrl: trim(form.value.faviconUrl),
     brandColor: trim(form.value.brandColor),
+    formBannerUrl: trim(form.value.formBannerUrl),
     email: {
       senderName: trim(form.value.emailSenderName),
       footerText: trim(form.value.emailFooterText),
@@ -294,6 +298,19 @@ watch(config, syncFromConfig)
                     <span class="text-nc-content-gray-muted text-bodySm">{{ $t('labels.whiteLabel.faviconFormatHint') }}</span>
                   </div>
                 </div>
+              </div>
+
+              <!-- Default form banner -->
+              <div>
+                <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.formBanner') }}</div>
+                <AdminWhiteLabelAsset
+                  v-model="form.formBannerUrl"
+                  path-key="formBannerUrl"
+                  accept="image/png,image/jpeg,image/webp"
+                  box-class="h-28 w-full"
+                />
+                <div class="text-nc-content-gray-subtle2 text-bodySm mt-2">{{ $t('labels.whiteLabel.formBannerDescription') }}</div>
+                <div class="text-nc-content-gray-muted text-bodySm mt-1">{{ $t('labels.whiteLabel.formBannerFormatHint') }}</div>
               </div>
 
               <!-- Brand color -->

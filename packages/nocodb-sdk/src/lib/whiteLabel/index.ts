@@ -30,6 +30,8 @@ export interface WhiteLabelConfig {
   faviconUrl?: string | null;
   /** Hex color string (e.g. "#0D5A5A") used to override --color-brand-500 */
   brandColor?: string | null;
+  /** URL/path to the default form banner (4:1 ratio wide image shown when the form author hasn't uploaded one) */
+  formBannerUrl?: string | null;
   /** Optional email-side branding (used by transactional templates) */
   email?: WhiteLabelEmailConfig | null;
 }

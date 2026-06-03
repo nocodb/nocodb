@@ -8,16 +8,11 @@ const { bannerImageUrl } = defineProps<Props>()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { isWhiteLabelled, logoUrl, productName } = useBranding()
+const { formBannerUrl } = useBranding()
 
 const getBannerImageSrc = computed(() => {
   return getPossibleAttachmentSrc(parseProp(bannerImageUrl))
 })
-
-// When the form author hasn't uploaded a custom banner, fall back to the
-// instance white-label logo on white-labelled deployments. The default
-// NocoDB-decorated banner only renders when neither is available.
-const showWhiteLabelBanner = computed(() => !bannerImageUrl && isWhiteLabelled.value && !!logoUrl.value)
 </script>
 
 <template>
@@ -32,16 +27,12 @@ const showWhiteLabelBanner = computed(() => !bannerImageUrl && isWhiteLabelled.v
       class="nc-form-banner-image object-cover w-full"
       :is-cell-preview="false"
     />
-    <div
-      v-else-if="showWhiteLabelBanner"
-      class="h-full flex items-center justify-center bg-nc-bg-default px-6"
-    >
-      <img
-        :src="logoUrl!"
-        :alt="productName"
-        class="max-h-[70%] max-w-[60%] object-contain"
-      />
-    </div>
+    <img
+      v-else-if="formBannerUrl"
+      :src="formBannerUrl"
+      alt=""
+      class="h-full w-full object-cover"
+    />
     <div v-else dir="ltr" class="h-full flex items-stretch justify-between bg-nc-bg-default">
       <div class="flex -mt-1">
         <img src="~assets/img/form-banner-left.png" alt="form-banner-left'" />

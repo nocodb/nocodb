@@ -37,6 +37,7 @@ const DEFAULT_CONFIG: WhiteLabelConfig = {
   logoDarkUrl: null,
   faviconUrl: null,
   brandColor: null,
+  formBannerUrl: null,
   email: null,
 };
 
@@ -82,6 +83,7 @@ export class WhiteLabelService {
       logoUrl: await this.resolveAssetUrl(cfg.logoUrl),
       logoDarkUrl: await this.resolveAssetUrl(cfg.logoDarkUrl),
       faviconUrl: await this.resolveAssetUrl(cfg.faviconUrl),
+      formBannerUrl: await this.resolveAssetUrl(cfg.formBannerUrl),
     };
   }
 
@@ -99,6 +101,7 @@ export class WhiteLabelService {
       logoUrl: await this.resolveAssetUrl(cfg.logoUrl),
       logoDarkUrl: await this.resolveAssetUrl(cfg.logoDarkUrl),
       faviconUrl: await this.resolveAssetUrl(cfg.faviconUrl),
+      formBannerUrl: await this.resolveAssetUrl(cfg.formBannerUrl),
     };
   }
 
@@ -181,6 +184,7 @@ export class WhiteLabelService {
     next.logoUrl = await this.canonicalizeAssetUrl(next.logoUrl);
     next.logoDarkUrl = await this.canonicalizeAssetUrl(next.logoDarkUrl);
     next.faviconUrl = await this.canonicalizeAssetUrl(next.faviconUrl);
+    next.formBannerUrl = await this.canonicalizeAssetUrl(next.formBannerUrl);
 
     this.validate(next);
 
@@ -253,7 +257,7 @@ export class WhiteLabelService {
       }
     }
 
-    for (const key of ['logoUrl', 'logoDarkUrl', 'faviconUrl'] as const) {
+    for (const key of ['logoUrl', 'logoDarkUrl', 'faviconUrl', 'formBannerUrl'] as const) {
       const v = cfg[key];
       if (v != null) {
         if (typeof v !== 'string' || !URL_RE.test(v)) {

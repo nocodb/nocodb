@@ -41,6 +41,9 @@ export const useBranding = createSharedComposable(() => {
     () => joinSiteUrl(config.value?.faviconUrl) || DEFAULT_BRANDING.faviconUrl,
   )
   const brandColor = computed(() => config.value?.brandColor || DEFAULT_BRANDING.brandColor)
+  const formBannerUrl = computed(
+    () => joinSiteUrl(config.value?.formBannerUrl) || DEFAULT_BRANDING.formBannerUrl,
+  )
 
   return {
     productName,
@@ -48,6 +51,7 @@ export const useBranding = createSharedComposable(() => {
     logoDarkUrl,
     faviconUrl,
     brandColor,
+    formBannerUrl,
     isWhiteLabelled,
     config,
   }

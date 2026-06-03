@@ -879,18 +879,21 @@ export const useRealtime = createSharedComposable(() => {
         // Guard: skip if already present (duplicate event)
         if (baseDocs.some((d) => d.id === id)) break
 
-        // Only insert if parent's children have been loaded (lazy loading)
+        // Mark the parent as having children up front so its expand chevron
+        // appears even when this client hasn't loaded the parent's children yet
+        // — the new child is then fetched lazily when the user expands it.
+        if (doc.parent_id) {
+          const parent = baseDocs.find((d) => d.id === doc.parent_id)
+          if (parent) parent.has_children = true
+        }
+
+        // Only insert the node when the parent's children are already loaded;
+        // otherwise it arrives via the lazy fetch on expand.
         const parentKey = doc.parent_id ? doc.parent_id : `root:${baseId}`
         if (!loadedParentIds.value.has(parentKey)) break
 
         baseDocs.push(doc)
         documents.value.set(baseId, baseDocs)
-
-        // Update parent's has_children
-        if (doc.parent_id) {
-          const parent = baseDocs.find((d) => d.id === doc.parent_id)
-          if (parent) parent.has_children = true
-        }
 
         refreshCommandPalette()
         break
@@ -905,6 +908,8 @@ export const useRealtime = createSharedComposable(() => {
           if (doc.version !== undefined) existing.version = doc.version
           if (doc.updated_at !== undefined) existing.updated_at = doc.updated_at
           if (doc.updated_by !== undefined) existing.updated_by = doc.updated_by
+          // Reflect public-share state (uuid cleared on unshare) so peers' share UI stays in sync
+          if (doc.uuid !== undefined) existing.uuid = doc.uuid
 
           // Re-sort only when order changed — avoids triggering full reactivity
           // on every autosave which causes subtitle (comment count etc.) to flicker

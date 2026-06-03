@@ -62,9 +62,8 @@ export function useDocumentAutoSave({
   watch(
     () => [activeDocument.value?.version, isSaving.value] as const,
     ([storeVersion]) => {
-      // Collab owns the body (Yjs) and the title (shared Y.Text). Version bumps
-      // from the server's debounced persist are advisory only and must not trigger
-      // a REST content reload — that would fight the live CRDT state.
+      // In collab mode the server's version bumps are advisory; reloading content
+      // on them would fight the live CRDT state (see `collabActive`).
       if (collabActive?.value) return
       if (!doc.value || !activeDocument.value || !isLoaded.value || isSaving.value) return
       // Guard: only sync if activeDocument matches the editor's local doc
@@ -97,9 +96,8 @@ export function useDocumentAutoSave({
 
   /** Whether the document is stale (another user saved a newer version). */
   const isStale = computed(() => {
-    // Never stale in collab mode: the body and title are kept current live via the
-    // shared Y.Doc, and the server's advisory version bump would otherwise read as
-    // "another user saved" and wrongly block editing.
+    // Never stale in collab mode — the advisory version bump would otherwise read
+    // as "another user saved" and wrongly block editing (see `collabActive`).
     if (collabActive?.value) return false
     if (!doc.value || !activeDocument.value) return false
     if (!isLoaded.value || isSaving.value) return false
@@ -134,10 +132,9 @@ export function useDocumentAutoSave({
 
     isSaving.value = true
     try {
-      // When collab is active, Yjs owns the document body AND the title (a shared
-      // Y.Text) — both are persisted server-side from the Y.Doc. There is nothing
-      // to write over REST, so skip the save entirely. (The triggers in Editor.vue
-      // are already gated on `!collabEnabled`; this is a defensive backstop.)
+      // Nothing to write over REST in collab mode (see `collabActive`). The
+      // Editor.vue triggers are already gated on `!collabEnabled`; this is a
+      // defensive backstop.
       if (collabActive?.value) {
         isSaving.value = false
         return
@@ -314,9 +311,8 @@ export function useDocumentAutoSave({
    * captured snapshot.
    */
   const flushOnUnmount = () => {
-    // Collab owns both the body and the title via the shared Y.Doc and persists
-    // them server-side, so there is nothing to flush over REST. (No debounced save
-    // is ever queued in collab mode either, so `saveTimeout` is empty here.)
+    // Nothing to flush over REST in collab mode (see `collabActive`); no
+    // debounced save is ever queued there either, so `saveTimeout` is empty.
     if (collabActive?.value) return
 
     if (saveTimeout.value) {

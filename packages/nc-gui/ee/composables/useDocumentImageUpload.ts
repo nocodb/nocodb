@@ -17,9 +17,8 @@ export function useDocumentImageUpload() {
   const docId = inject(DocIdInj, ref(''))
   const smartTextCell = inject(SmartTextCellAttachmentInj, ref(null))
   const publicShare = inject(PublicDocShareInj, ref(null))
-  const collabActive = inject(DocCollabActiveInj, ref(false))
 
-  const { createFileRef } = useDocumentsStore()
+  const maybeCreateRef = useDocCollabFileRef()
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
@@ -128,22 +127,8 @@ export function useDocumentImageUpload() {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          // In collab mode Yjs owns the body, so the REST save that lazily
-          // creates the FileReference never runs — create it eagerly and embed
-          // the id now. The id rides the Yjs update to peers and persists, so
-          // every client (and a reload) resolves the image via the proxy.
-          // Outside collab the id is injected later by reconcileFileReferences
-          // on save; until then resolvedSrc falls back to the blob src.
-          const docIdVal = docId?.value
-          let fileRefId: string | null = null
-          if (collabActive.value && docIdVal && !smartTextCell?.value && base?.value?.id) {
-            fileRefId = await createFileRef(base.value.id, docIdVal, storedRef, file.size)
-          }
-          updateImageNode(
-            editor,
-            blobUrl,
-            fileRefId ? { path: storedRef, id: fileRefId } : { path: storedRef },
-          )
+          const fileRefId = await maybeCreateRef(storedRef, file.size)
+          updateImageNode(editor, blobUrl, fileRefId ? { path: storedRef, id: fileRefId } : { path: storedRef })
         } else {
           removeImageNode(editor, blobUrl)
         }

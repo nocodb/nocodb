@@ -95,14 +95,11 @@ const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermission
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 // --- Yjs collaborative editing ---
-// Single source of truth for whether real-time collab is active for this editor.
-// OFF for: CE (isEeUI false), cell mode (SmartText / public reader), the
-// `NC_DOCS_REALTIME=false` kill-switch (appInfo.docsRealtimeEnabled), and any
-// mount where the doc/workspace/base ids aren't resolvable synchronously (the
-// route-derived ids `activeProjectId` / `activeWorkspaceId` are available at
-// setup on the in-app docs page, so collab activates there). When false the
-// editor behaves exactly as before (legacy debounced REST save) — none of the
-// collab branches below run.
+// Single source of truth for whether real-time collab is active. OFF for: CE
+// (isEeUI false), cell mode (SmartText / public reader), the NC_DOCS_REALTIME
+// kill-switch (appInfo.docsRealtimeEnabled), and any mount where the
+// doc/workspace/base ids aren't resolvable synchronously at setup. When false
+// the editor behaves exactly as before (legacy debounced REST save).
 const collabEnabled =
   isEeUI &&
   props.mode === 'doc' &&
@@ -112,37 +109,12 @@ const collabEnabled =
   !!activeWorkspaceId.value &&
   !!user.value?.id
 
-// Stable per-user cursor color (mirrors usePresence's getConsistentColor — that
-// helper is module-private there, so the algorithm is replicated here to keep
-// cursor colors consistent with the presence avatars).
-const COLLAB_CURSOR_COLORS = [
-  '#6366f1',
-  '#f59e0b',
-  '#10b981',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#06b6d4',
-  '#84cc16',
-  '#f97316',
-  '#14b8a6',
-  '#a855f7',
-  '#f43f5e',
-]
-
-function collabColorForUser(userId: string): string {
-  let hash = 0
-  for (let i = 0; i < userId.length; i++) {
-    hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0
-  }
-  return COLLAB_CURSOR_COLORS[Math.abs(hash) % COLLAB_CURSOR_COLORS.length]
-}
-
 const collabUser = collabEnabled
   ? {
       id: user.value!.id,
       name: user.value?.display_name || user.value?.email || 'Anonymous',
-      color: collabColorForUser(user.value!.id),
+      // Same per-user color as the presence avatars (see usePresence).
+      color: getConsistentColor(user.value!.id),
     }
   : null
 

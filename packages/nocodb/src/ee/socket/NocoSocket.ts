@@ -179,9 +179,8 @@ export default class NocoSocket {
       }
 
       // Collaborative docs: bind this socket to the server-authoritative Y.Doc.
-      // Defense-in-depth for the kill-switch: when realtime is disabled the
-      // frontend already won't open a session (appInfo.docsRealtimeEnabled), but
-      // refuse here too so a stale/forced client can't spin up server Y.Docs.
+      // Kill-switch defense-in-depth — refuse here too even though the frontend
+      // won't open a session when realtime is disabled.
       if (
         eventType === EventType.DOCUMENT_SYNC_EVENT &&
         baseId &&
@@ -189,87 +188,96 @@ export default class NocoSocket {
       ) {
         const docId = eventHelper[3];
         if (docId) {
-          const context = { workspace_id: workspaceId, base_id: baseId };
-
-          // Per-document permission gate. The base-level NO_ACCESS check above
-          // is not sufficient — the REST docs endpoints additionally enforce
-          // DOCUMENT_VISIBILITY (read) and DOCUMENT_EDIT (write), so a member
-          // restricted from a specific private page must not read or write it
-          // over the socket either. `docUser` carries id + base_roles, the
-          // shape checkDocPermission expects.
-          const docsService = Noco.nestApp?.get(DocumentsService);
-          if (!docsService) {
-            this.logger.error(
-              'DocumentsService unavailable — refusing doc sync subscription',
-            );
-            return;
-          }
-          const docUser = { id: user.id, base_roles: userWithRole.base_roles };
-
-          const canRead = await docsService.hasDocPermission(
-            context,
+          await this.subscribeDocSync(
+            socket,
+            { workspace_id: workspaceId, base_id: baseId },
             docId,
-            PermissionKey.DOCUMENT_VISIBILITY,
-            docUser,
+            userWithRole,
+            event,
           );
-          if (!canRead) {
-            this.logger.debug(
-              `Socket ${socket.id} denied doc sync (visibility) for ${docId}`,
-            );
-            return;
-          }
-
-          const session = await DocumentCollabManager.ensure(context, docId);
-          DocumentCollabManager.addSocket(docId, socket.id);
-          await DocCollabPubSub.ensureSubscribed(docId);
-
-          if (!socket.data.docSessions) socket.data.docSessions = new Map();
-          socket.data.docSessions.set(docId, session);
-          if (!socket.data.docRooms) socket.data.docRooms = new Set();
-          socket.data.docRooms.add(event);
-
-          // Read-only unless the user has base editor access AND doc-level edit
-          // permission — an explicit DOCUMENT_EDIT restriction overrides the
-          // base role. Updates from a read-only socket are ignored.
-          const canEdit =
-            hasMinimumRoleAccess(userWithRole, ProjectRoles.EDITOR) &&
-            (await docsService.hasDocPermission(
-              context,
-              docId,
-              PermissionKey.DOCUMENT_EDIT,
-              docUser,
-            ));
-          if (!canEdit) {
-            if (!socket.data.docReadOnly) socket.data.docReadOnly = new Set();
-            socket.data.docReadOnly.add(docId);
-          }
-
-          // Grant single-seeder rights for an empty (legacy) doc — exactly one
-          // editor migrates the stored content into the CRDT (see claimBootstrap).
-          // Only editors can claim: a read-only client's seed would be rejected
-          // by the update handler and never persist, and granting it would block
-          // an editor from seeding (risking the legacy content being overwritten).
-          const mayBootstrap =
-            canEdit && (await DocumentCollabManager.claimBootstrap(context, docId));
-
-          // Server-initiated Yjs handshake (race-free — the session exists now,
-          // unlike a client-initiated sync that can beat this branch). The client
-          // replies with its own step1 and both sides converge. socketId is
-          // omitted so the client's own-echo filter delivers it.
-          socket.emit(event, {
-            kind: 'sync',
-            docId,
-            frame: Buffer.from(encodeSyncStep1(session.ydoc)).toString(
-              'base64',
-            ),
-            mayBootstrap,
-          });
         }
       }
     } catch (error) {
       this.logger.error(`Error subscribing to event ${event}:`, error);
       sendConnectionError(socket, error, 'SUBSCRIBE_ERROR');
     }
+  }
+
+  /**
+   * Bind a socket to a doc's server-authoritative Y.Doc. Enforces the same
+   * per-document DOCUMENT_VISIBILITY/DOCUMENT_EDIT permissions the REST docs
+   * endpoints apply (the base-level NO_ACCESS check in subscribeEvent isn't
+   * enough — a member can be restricted from a specific private page), then
+   * registers the session and runs the server-initiated Yjs handshake.
+   */
+  private static async subscribeDocSync(
+    socket: NcSocket,
+    context: { workspace_id: string; base_id: string },
+    docId: string,
+    userWithRole: any,
+    event: string,
+  ) {
+    const docsService = Noco.nestApp?.get(DocumentsService);
+    if (!docsService) {
+      this.logger.error(
+        'DocumentsService unavailable — refusing doc sync subscription',
+      );
+      return;
+    }
+    const docUser = { id: socket.user.id, base_roles: userWithRole.base_roles };
+
+    const canRead = await docsService.hasDocPermission(
+      context,
+      docId,
+      PermissionKey.DOCUMENT_VISIBILITY,
+      docUser,
+    );
+    if (!canRead) {
+      this.logger.debug(
+        `Socket ${socket.id} denied doc sync (visibility) for ${docId}`,
+      );
+      return;
+    }
+
+    const session = await DocumentCollabManager.ensure(context, docId);
+    DocumentCollabManager.addSocket(docId, socket.id);
+    await DocCollabPubSub.ensureSubscribed(docId);
+
+    if (!socket.data.docSessions) socket.data.docSessions = new Map();
+    socket.data.docSessions.set(docId, session);
+    if (!socket.data.docRooms) socket.data.docRooms = new Set();
+    socket.data.docRooms.add(event);
+
+    // Read-only unless the user has base editor access AND doc-level edit
+    // permission. Updates from a read-only socket are ignored.
+    const canEdit =
+      hasMinimumRoleAccess(userWithRole, ProjectRoles.EDITOR) &&
+      (await docsService.hasDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        docUser,
+      ));
+    if (!canEdit) {
+      if (!socket.data.docReadOnly) socket.data.docReadOnly = new Set();
+      socket.data.docReadOnly.add(docId);
+    }
+
+    // Single-seeder grant for an empty (legacy) doc — only an editor may claim,
+    // since a read-only client's seed would be rejected and never persist (see
+    // claimBootstrap).
+    const mayBootstrap =
+      canEdit && (await DocumentCollabManager.claimBootstrap(context, docId));
+
+    // Server-initiated Yjs handshake (race-free — the session exists now). The
+    // client replies with its own step1 and both sides converge. No socketId, so
+    // the client's own-echo filter delivers it.
+    socket.emit(event, {
+      kind: 'sync',
+      docId,
+      frame: Buffer.from(encodeSyncStep1(session.ydoc)).toString('base64'),
+      mayBootstrap,
+    });
   }
 
   /**
@@ -750,6 +758,18 @@ export default class NocoSocket {
    * to the doc's sync room first (see subscribeEvent → DOCUMENT_SYNC_EVENT),
    * which populates socket.data.docSessions.
    */
+  /** A doc's sync room, derived from the validated session — never client-supplied. */
+  private static docRoomFor(
+    session: { context: { workspace_id: string; base_id: string } },
+    docId: string,
+  ) {
+    return getDocSyncRoom(
+      session.context.workspace_id,
+      session.context.base_id,
+      docId,
+    );
+  }
+
   private static setupDocCollabHandlers(socket: NcSocket) {
     // Yjs sync handshake: client sends SyncStep1, server replies SyncStep2.
     socket.on(DocCollabClientEvents.SYNC, (msg) => {
@@ -776,15 +796,9 @@ export default class NocoSocket {
         return;
       }
       if (reply) {
-        // Room derived server-side from the validated session — never trust a
-        // client-supplied room (see UPDATE/AWARENESS below). This reply targets
-        // the requesting socket itself; no socketId so the client's own-echo
-        // filter delivers it.
-        const room = getDocSyncRoom(
-          session.context.workspace_id,
-          session.context.base_id,
-          msg.docId,
-        );
+        // Reply targets the requesting socket itself; no socketId so the
+        // client's own-echo filter delivers it.
+        const room = this.docRoomFor(session, msg.docId);
         socket.emit(room, {
           kind: 'sync',
           docId: msg.docId,
@@ -821,14 +835,8 @@ export default class NocoSocket {
       }
       DocumentCollabManager.markDirty(msg.docId, socket.user?.id);
       // Fan out to OTHER clients (sender excluded by socket.to; cluster-wide via
-      // the redis-adapter). The room is derived server-side from the session —
-      // a client must not be able to broadcast into an arbitrary room by setting
-      // its own `room` field. The base64 string passes straight through.
-      const room = getDocSyncRoom(
-        session.context.workspace_id,
-        session.context.base_id,
-        msg.docId,
-      );
+      // the redis-adapter). The base64 string passes straight through.
+      const room = this.docRoomFor(session, msg.docId);
       socket.to(room).emit(room, {
         kind: 'update',
         docId: msg.docId,
@@ -841,12 +849,7 @@ export default class NocoSocket {
     socket.on(DocCollabClientEvents.AWARENESS, (msg) => {
       const session = socket.data.docSessions?.get(msg?.docId);
       if (!session) return;
-      // Room derived server-side — never trust a client-supplied room.
-      const room = getDocSyncRoom(
-        session.context.workspace_id,
-        session.context.base_id,
-        msg.docId,
-      );
+      const room = this.docRoomFor(session, msg.docId);
       socket.to(room).emit(room, {
         kind: 'awareness',
         docId: msg.docId,

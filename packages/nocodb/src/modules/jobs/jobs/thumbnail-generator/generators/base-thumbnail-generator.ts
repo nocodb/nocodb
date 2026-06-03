@@ -38,7 +38,13 @@ export abstract class BaseThumbnailGenerator {
         tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
       };
 
-      const sharpImage = sharp(thumbnailBuffer, { limitInputPixels: false });
+      // `.rotate()` with no args bakes EXIF orientation into the pixels and
+      // resets the tag, so thumbnails match how browsers render the original.
+      // It must be applied before resizing. `.clone()` snapshots this rotated
+      // pipeline so each size reuses the single decode + orientation pass.
+      const sharpImage = sharp(thumbnailBuffer, {
+        limitInputPixels: false,
+      }).rotate();
 
       for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
         let height;
@@ -58,6 +64,7 @@ export abstract class BaseThumbnailGenerator {
         }
 
         const resizedImage = await sharpImage
+          .clone()
           .resize(undefined, height, {
             fit: sharp.fit.cover,
             kernel: 'lanczos3',

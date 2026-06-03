@@ -2026,22 +2026,33 @@ if (isCellMode.value) {
 // Guard: only sync when activeDocument still matches the editor's local doc — during
 // navigation activeDocument switches to the new page before loadAndSetDoc flushes
 // the pending save, which would corrupt title.value with the wrong page's title.
-watch(
-  () => activeDocument.value?.title,
-  (storeTitle) => {
-    if (!storeTitle || isSaving.value || !isLoaded.value) return
-    if (!doc.value || activeDocument.value?.id !== doc.value.id) return
+//
+// Collab mode owns the title through the shared Y.Text (useCollabTitle): local edits
+// push to the Y.Text and a peer's edits arrive via its observer. The store
+// (`activeDocument.title`) is a *downstream* consumer there — fed by `patchStoreTitle`
+// and by `DOCUMENT_EVENT`s for the sidebar. Letting the store drive `title.value` back
+// into the editor would close a feedback loop: a debounced collab persist broadcasts a
+// `DOCUMENT_EVENT`, and if that lands just after a local rename, this watch would push
+// the stale title back into the Y.Text — corrupting the open doc's title. So this REST
+// reflection is disabled while collab is active.
+if (!collabEnabled) {
+  watch(
+    () => activeDocument.value?.title,
+    (storeTitle) => {
+      if (!storeTitle || isSaving.value || !isLoaded.value) return
+      if (!doc.value || activeDocument.value?.id !== doc.value.id) return
 
-    // Map the server default "Untitled" to empty (editor convention)
-    const normalized = storeTitle === 'Untitled' ? '' : storeTitle
+      // Map the server default "Untitled" to empty (editor convention)
+      const normalized = storeTitle === 'Untitled' ? '' : storeTitle
 
-    if (normalized !== title.value) {
-      title.value = normalized
-      // Also sync the local doc ref so version/title stay consistent
-      doc.value.title = storeTitle
-    }
-  },
-)
+      if (normalized !== title.value) {
+        title.value = normalized
+        // Also sync the local doc ref so version/title stay consistent
+        doc.value.title = storeTitle
+      }
+    },
+  )
+}
 
 const onTitleBlur = () => {
   // Collab mode persists the title via the shared Y.Doc, and the store stays in

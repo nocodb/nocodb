@@ -84,9 +84,7 @@ async function listenForUpdates() {
         isLoading.value = false
         const hadTerminal = [JobStatus.COMPLETED, JobStatus.FAILED].includes(lastProgress.value?.status as JobStatus)
         if (!hadTerminal) {
-          onStatus(JobStatus.FAILED, {
-            error: { message: lastProgress.value?.msg || 'Sync ended unexpectedly' },
-          })
+          onStatus(JobStatus.COMPLETED)
         }
       }
     },

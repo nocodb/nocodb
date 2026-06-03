@@ -1,6 +1,13 @@
 import { acceptHMRUpdate } from 'pinia'
-import type { TableSyncCreateReqType, TableSyncType, TableSyncUpdateReqType } from 'nocodb-sdk'
+import type { ColumnType, TableSyncCreateReqType, TableSyncType, TableSyncUpdateReqType, ViewType } from 'nocodb-sdk'
 import { ProjectSyncTableForm } from '#components'
+
+export interface TableSyncSourceSchema {
+  source_table_missing: boolean
+  columns: ColumnType[]
+  views: ViewType[]
+  visible_source_column_ids: string[]
+}
 
 export const useTableSyncStore = defineStore('tableSync', () => {
   const { $api, $e } = useNuxtApp()
@@ -160,6 +167,22 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     }
   }
 
+  /**
+   * Source schema (columns + views + the bound view's visible-column ids) for
+   * an existing sync, read through the sync's own authorization on the backend
+   * rather than the caller's base ACL. The edit form uses this instead of
+   * `tableGet`/`viewColumnList` so it doesn't 403 when the importing user has
+   * no access to the source base (the share view, not base membership, is the
+   * authorization for sync-from-shared-view).
+   */
+  const fetchSourceSchema = async (baseId: string, syncId: string): Promise<TableSyncSourceSchema | null> => {
+    if (!activeWorkspaceId.value) return null
+    return (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+      operation: 'tableSyncSourceSchema',
+      tableSyncId: syncId,
+    })) as TableSyncSourceSchema
+  }
+
   async function openTableSyncCreateModal({ baseId }: { baseId?: string }) {
     if (!baseId || showUpgradeToUseTableSync()) return
 
@@ -219,6 +242,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     freezeSync,
     resumeSync,
     resolveLink,
+    fetchSourceSchema,
     openTableSyncCreateModal,
     openTableSyncEditModal,
   }

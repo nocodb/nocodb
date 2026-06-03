@@ -82,6 +82,66 @@ export class TableSyncService {
     return TableSync.list(context);
   }
 
+  async getSourceSchema(
+    context: NcContext,
+    params: { syncId: string },
+  ): Promise<{
+    source_table_missing: boolean;
+    columns: Column[];
+    views: View[];
+    visible_source_column_ids: string[];
+  }> {
+    const empty = {
+      source_table_missing: false,
+      columns: [] as Column[],
+      views: [] as View[],
+      visible_source_column_ids: [] as string[],
+    };
+
+    const sync = await TableSync.get(context, params.syncId);
+    if (!sync) NcError.get(context).tableSyncNotFound(params.syncId);
+
+    const mainMapping = (sync.mappings ?? []).find(
+      (m) => m.role === TableSyncMappingRole.Main,
+    );
+
+    if (!mainMapping) return empty;
+
+    const sourceCtx: NcContext = {
+      workspace_id: mainMapping.source_workspace_id,
+      base_id: mainMapping.source_base_id,
+    };
+
+    const sourceTable = await Model.getWithInfo(sourceCtx, {
+      id: mainMapping.source_table_id,
+    });
+
+    if (!sourceTable) return { ...empty, source_table_missing: true };
+
+    // getWithInfo already populated columns + views; just mask any share-view
+    // password hashes before returning them.
+    const views = (sourceTable.views ?? []).map((v) =>
+      View.maskPasswordForResponse(v),
+    );
+
+    const sourceView = await View.get(sourceCtx, mainMapping.source_view_id);
+    let visibleSourceColumnIds: string[] = [];
+    if (sourceView) {
+      const viewColumns = await View.getColumns(sourceCtx, sourceView.id);
+      visibleSourceColumnIds = viewColumns
+        .filter((c) => c.show)
+        .map((c) => c.fk_column_id)
+        .filter((id): id is string => !!id);
+    }
+
+    return {
+      source_table_missing: false,
+      columns: sourceTable.columns ?? [],
+      views,
+      visible_source_column_ids: visibleSourceColumnIds,
+    };
+  }
+
   @Untraced()
   async updateSync(
     context: NcContext,

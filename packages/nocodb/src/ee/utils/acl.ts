@@ -462,6 +462,7 @@ const permissionScopes = {
     'tableSyncResume',
     'tableSyncList',
     'tableSyncGet',
+    'tableSyncSourceSchema',
     'tableSyncResolveLink',
 
     // MCP
@@ -1627,6 +1628,7 @@ const permissionDescriptions: Record<string, string> = {
   viewSectionDelete: 'delete a view section',
   tableSyncList: 'view list of table syncs',
   tableSyncGet: 'view table sync details',
+  tableSyncSourceSchema: 'view a table sync source schema',
   tableSyncCreate: 'create a table sync',
   tableSyncUpdate: 'update a table sync',
   tableSyncDelete: 'delete a table sync',

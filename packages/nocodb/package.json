@@ -235,7 +235,7 @@
     "sqlite3": "^5.1.7",
     "stream-json": "^1.9.1",
     "stripe": "^18.2.1",
-    "tedious": "^16.7.1",
+    "tedious": "^18.6.1",
     "tinycolor2": "^1.6.0",
     "tokenlens": "2.0.0-alpha.3",
     "twilio": "^4.23.0",

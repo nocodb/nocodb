@@ -44,6 +44,8 @@ import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
 import MailchimpAuth from '@noco-local-integrations/mailchimp-auth';
 import MailchimpWorkflowNode from '@noco-local-integrations/mailchimp-workflow-node';
+import MssqlAuth from '@noco-local-integrations/mssql-auth';
+import MssqlSync from '@noco-local-integrations/mssql-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
 import MysqlSync from '@noco-local-integrations/mysql-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
@@ -107,6 +109,8 @@ export default [
   ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),
   ...(Array.isArray(MailchimpAuth) ? MailchimpAuth : [MailchimpAuth]),
   ...(Array.isArray(MailchimpWorkflowNode) ? MailchimpWorkflowNode : [MailchimpWorkflowNode]),
+  ...(Array.isArray(MssqlAuth) ? MssqlAuth : [MssqlAuth]),
+  ...(Array.isArray(MssqlSync) ? MssqlSync : [MssqlSync]),
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),

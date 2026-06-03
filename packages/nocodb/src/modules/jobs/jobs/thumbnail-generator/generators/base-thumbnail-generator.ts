@@ -63,7 +63,10 @@ export abstract class BaseThumbnailGenerator {
             break;
         }
 
+        // clone() per size so each output gets an independent pipeline snapshot
+        // (inheriting the rotate above) rather than mutating the shared instance.
         const resizedImage = await sharpImage
+          .clone()
           .resize(undefined, height, {
             fit: sharp.fit.cover,
             kernel: 'lanczos3',

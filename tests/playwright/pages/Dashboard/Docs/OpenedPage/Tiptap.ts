@@ -134,12 +134,6 @@ export class TiptapPage extends BasePage {
     await this.openedPage.waitForRender();
     await this.rootPage.waitForTimeout(500);
 
-    const waitNetwork = waitForNetwork
-      ? this.rootPage.waitForResponse(async response => {
-          return response.url().includes('operation=documentUpdate') && response.request().method() === 'POST';
-        })
-      : Promise.resolve();
-
     await this.get().click({ force: true });
 
     // Click on the specific node to position cursor
@@ -158,7 +152,13 @@ export class TiptapPage extends BasePage {
       await this.rootPage.keyboard.type(char);
     }
 
-    await waitNetwork;
+    // Body edits persist via Yjs (collab) or debounced REST (legacy). In collab
+    // mode the body never issues an `operation=documentUpdate` POST, so the
+    // reliable "settled" signal from the test side is the typed content landing
+    // in the editor — not a specific network response.
+    if (waitForNetwork) {
+      await expect(this.get()).toContainText(content);
+    }
   }
 
   /**

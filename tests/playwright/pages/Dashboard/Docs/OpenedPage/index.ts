@@ -40,16 +40,20 @@ export class DocsOpenedPagePage extends BasePage {
   async fillTitle({ title }: { title: string }) {
     await this.waitForRender();
 
-    await this.get().getByTestId('docs-page-title').click();
+    const titleInput = this.get().getByTestId('docs-page-title');
 
-    await this.get().getByTestId('docs-page-title').press('ControlOrMeta+A');
-    await this.get().getByTestId('docs-page-title').press('Backspace');
+    await titleInput.click();
 
-    await this.waitForResponse({
-      uiAction: () => this.get().getByTestId('docs-page-title').type(title, { delay: 0 }),
-      httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `operation=documentUpdate`,
-    });
+    await titleInput.press('ControlOrMeta+A');
+    await titleInput.press('Backspace');
+
+    await titleInput.type(title, { delay: 0 });
+
+    // The title input is the source of truth in both modes. Legacy debounce-saves
+    // it via REST (operation=documentUpdate); collab mode rides the shared Y.Doc
+    // (no documentUpdate REST call), so wait for the value to be applied rather
+    // than for a network response that does not occur under collab.
+    await expect.poll(() => titleInput.inputValue()).toBe(title);
   }
 
   async verifyTitle({ title }: { title: string }) {

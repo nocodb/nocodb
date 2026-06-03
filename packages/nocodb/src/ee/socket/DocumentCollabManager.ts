@@ -24,8 +24,13 @@ interface DocSession {
   heartbeatTimer?: NodeJS.Timeout;
 }
 
-const DEBOUNCE_MS = 3000;
-const MAX_DEBOUNCE_MS = 10000;
+// Debounced persist window. Configurable so the E2E backend can shorten it
+// (the Playwright suite asserts on per-edit persistence / revision cadence and
+// would otherwise race the default 3s debounce). Production default unchanged.
+const DEBOUNCE_MS = process.env.NC_DOCS_PERSIST_DEBOUNCE_MS
+  ? Number(process.env.NC_DOCS_PERSIST_DEBOUNCE_MS)
+  : 3000;
+const MAX_DEBOUNCE_MS = Math.max(10000, DEBOUNCE_MS);
 const HOLDER_TTL_SECS = 60;
 const HOLDER_HEARTBEAT_MS = 30000;
 /** TTL on the cross-node bootstrap claim; long enough to seed + persist. */
@@ -39,7 +44,8 @@ const liveKey = (docId: string) => `${CacheScope.DOC_LIVE}:${docId}`;
 /** Per-doc Redis key for the single-seeder bootstrap claim (see claimBootstrap). */
 const bootstrapKey = (docId: string) => `${CacheScope.DOC_BOOTSTRAP}:${docId}`;
 
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export class DocumentCollabManager {
   protected static logger = new Logger(DocumentCollabManager.name);
@@ -239,7 +245,11 @@ export class DocumentCollabManager {
     // Final persist with bounded retry — the Y.Doc is about to be destroyed, so
     // a transient DB error here would otherwise silently lose unpersisted edits.
     let persisted = await this.flush(docId, true);
-    for (let attempt = 1; !persisted && attempt <= FINAL_FLUSH_RETRIES; attempt++) {
+    for (
+      let attempt = 1;
+      !persisted && attempt <= FINAL_FLUSH_RETRIES;
+      attempt++
+    ) {
       await sleep(FINAL_FLUSH_BACKOFF_MS * attempt);
       persisted = await this.flush(docId, true);
     }

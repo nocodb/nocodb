@@ -1730,6 +1730,14 @@ watch(
   (e, prev) => {
     if (prev && prev !== e) prev.destroy()
     editor.value = e
+    // Apply the current editable state to the freshly-adopted instance. The
+    // editor is created asynchronously, so the `editable` option captured when
+    // `useEditor()` ran may be stale by now — in collab mode `collabSynced` can
+    // flip true (sync converged) before the instance exists, and the editable
+    // watch above skips while `editor.value` is null. Without re-applying here,
+    // the editor is born read-only and nothing ever flips it (no further
+    // `collabSynced`/`isEditable` change to trigger the watch).
+    if (e) e.setEditable(isEditable.value && (!collabEnabled || collabSynced.value))
     wireDocAiStorage()
   },
   { immediate: true },

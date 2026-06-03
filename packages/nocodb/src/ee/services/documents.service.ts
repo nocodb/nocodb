@@ -682,17 +682,29 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // Optimistic concurrency: reject stale writes.
-    // Version is mandatory to prevent silent overwrites by API consumers
-    // that omit it.
-    if (payload.version === undefined || payload.version === null) {
-      NcError.unprocessableEntity('version is required for document updates');
-    }
+    // Optimistic concurrency: reject stale writes — but only for writes that can
+    // suffer a lost update, i.e. `content` or `title`. Other fields (`meta`:
+    // icon / cover / font / full_width / dir) are independent, last-write-wins
+    // metadata; `Document.update` is a partial update so a meta-only write can't
+    // clobber content/title and never needs the version gate. Exempting it also
+    // fixes a collab-mode conflict: the server bumps `version` on every Yjs
+    // body/title persist (see documentCollabPersist → bumpVersion), so a meta
+    // write issued shortly after — or concurrently with — a collaborative edit
+    // would otherwise 422 on a version the client never had a chance to observe.
+    const writesBody =
+      payload.content !== undefined || payload.title !== undefined;
+    if (writesBody) {
+      // Version is mandatory to prevent silent overwrites by API consumers
+      // that omit it.
+      if (payload.version === undefined || payload.version === null) {
+        NcError.unprocessableEntity('version is required for document updates');
+      }
 
-    if (payload.version !== existing.version) {
-      NcError.unprocessableEntity(
-        'Document has been modified by another user. Please reload and try again.',
-      );
+      if (payload.version !== existing.version) {
+        NcError.unprocessableEntity(
+          'Document has been modified by another user. Please reload and try again.',
+        );
+      }
     }
 
     // Guard against oversized documents (plan-aware)

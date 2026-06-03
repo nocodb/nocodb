@@ -176,6 +176,16 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
   awareness.on('update', onLocalAwareness)
   armSyncFallback()
 
+  // Proactively request the server's state with our own SyncStep1 instead of
+  // relying solely on the server's subscribe-triggered step1. When the same doc
+  // is re-opened on a still-connected socket the plugin skips re-sending
+  // `event:subscribe` (the room is already in its subscribed set), so the server
+  // never re-emits its step1 — convergence would otherwise stall until the
+  // fallback timer fires (a multi-second read-only window on every re-open).
+  // No-op while the socket is still connecting on first load, where the buffered
+  // `event:subscribe` triggers the server's step1, so this is purely additive.
+  $ncSocket.emit(DocCollabClientEvents.SYNC, { docId, room, frame: toBase64(encodeSyncStep1(ydoc)) })
+
   offReconnect = $ncSocket.on('reconnect', () => {
     // The plugin re-sends event:subscribe on reconnect → the backend re-emits
     // its step1. Reset handshake state so we re-converge from scratch.

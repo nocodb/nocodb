@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { OperationSource } from 'nocodb-sdk';
 import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
@@ -9,6 +10,8 @@ import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
 import { LRUMap } from '~/utils/LRUMap';
+import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 const CONNECTION_CACHE_MAX_SIZE = +(
   process.env.NC_CONNECTION_CACHE_MAX_SIZE || 500
@@ -88,7 +91,7 @@ export default class NcConnectionMgrv2 {
 
     const connectionConfig = await source.getConnectionConfig();
 
-    const knex = XKnex({
+    const knexConfig = {
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -117,7 +120,16 @@ export default class NcConnectionMgrv2 {
           return res;
         },
       },
-    } as any);
+    } as any;
+
+    // SSRF: external user-supplied source only. Meta/internal connections
+    // return earlier (source.isMeta) and never reach here.
+    applyDbSsrfProtection(
+      knexConfig,
+      isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
+    );
+
+    const knex = XKnex(knexConfig);
 
     this.connectionRefs.set(source.id, knex);
     return knex;

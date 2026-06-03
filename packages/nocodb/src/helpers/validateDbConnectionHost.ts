@@ -1,9 +1,9 @@
 import dns from 'dns/promises';
 import { isIP } from 'net';
-import ipaddr from 'ipaddr.js';
 import { OperationSource } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
+import { isBlockedIp } from '~/helpers/dbSsrfLookup';
 
 /**
  * Reject database hosts that resolve to non-routable ranges (private,
@@ -29,10 +29,11 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
     NcError.badRequest('Connection to internal hosts is not allowed');
   }
 
-  // TOCTOU note: the driver re-resolves at connect-time; a controlled DNS
-  // record with short TTL could flip between this lookup and the driver's
-  // connect(). Mitigating fully requires passing the resolved IP to the
-  // driver, which is per-driver wiring out of scope here.
+  // Save-time fail-fast for better UX. The authoritative, TOCTOU-free check runs
+  // at connect-time via the validating lookup wired into the knex stream factory
+  // (see dbSsrfLookup.ts + CustomKnex.ts) — that resolution is the one the driver
+  // actually connects to, so a short-TTL DNS flip can't slip past it. The range
+  // check itself is shared via isBlockedIp so both paths stay in sync.
   let resolvedIps: string[] = [];
   if (isIP(trimmed)) {
     resolvedIps = [trimmed];
@@ -47,33 +48,7 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
   }
 
   for (const addr of resolvedIps) {
-    if (!ipaddr.isValid(addr)) continue;
-    let parsed = ipaddr.parse(addr);
-    // Normalise IPv4-mapped IPv6 (::ffff:192.168.1.1 -> 192.168.1.1).
-    if (
-      parsed.kind() === 'ipv6' &&
-      (parsed as ipaddr.IPv6).isIPv4MappedAddress()
-    ) {
-      parsed = (parsed as ipaddr.IPv6).toIPv4Address();
-    }
-    const range = parsed.range();
-    // ipaddr.js range values:
-    // ipv4: "unicast" | "private" | "loopback" | "linkLocal" | "multicast"
-    //       | "reserved" | "broadcast" | "unspecified" | "carrierGradeNat"
-    // ipv6: "unicast" | "loopback" | "linkLocal" | "uniqueLocal" |
-    //       "ipv4Mapped" | "rfc6145" | "rfc6052" | "6to4" | "teredo" |
-    //       "reserved" | "unspecified" | "benchmarking" | "amt"
-    const blocked = new Set([
-      'private',
-      'loopback',
-      'linkLocal',
-      'uniqueLocal',
-      'reserved',
-      'unspecified',
-      'broadcast',
-      'carrierGradeNat',
-    ]);
-    if (blocked.has(range)) {
+    if (isBlockedIp(addr)) {
       NcError.badRequest('Connection to internal hosts is not allowed');
     }
   }

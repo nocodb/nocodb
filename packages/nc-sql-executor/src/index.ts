@@ -9,6 +9,7 @@ import path from 'path';
 import fastifyStatic from '@fastify/static';
 import { SnowflakeClient } from 'knex-snowflake';
 import { DatabricksClient } from 'knex-databricks';
+import { applyDbSsrfProtection } from './dbSsrfLookup';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -134,6 +135,7 @@ const BodyJsonSchema = {
       required: ['client', 'connection'],
     },
     raw: { type: 'boolean' },
+    ssrf: { type: 'boolean' },
     sourceId: { type: 'string' },
   },
 };
@@ -177,6 +179,7 @@ async function getDynamicPoolSize(
   config: any,
   connectionKey: string,
   sourceId: string | null,
+  ssrfEnabled: boolean,
 ) {
   if (!dynamicPoolSize) return undefined;
 
@@ -189,14 +192,19 @@ async function getDynamicPoolSize(
   }
 
   // Temporary knex to query max connections
-  const tempKnex = knex({
-    ...config,
-    connection: {
-      ...(config.connection || {}),
-      typeCast,
-    },
-    pool: { min: 0, max: 1 },
-  });
+  const tempKnex = knex(
+    applyDbSsrfProtection(
+      {
+        ...config,
+        connection: {
+          ...(config.connection || {}),
+          typeCast,
+        },
+        pool: { min: 0, max: 1 },
+      },
+      ssrfEnabled,
+    ),
+  );
 
   let maxConnections;
   try {
@@ -232,9 +240,18 @@ function isPoolReferenced(connectionKey: string): boolean {
   return false;
 }
 
-async function getConnectionPool(config: any, sourceId: string | null) {
+async function getConnectionPool(
+  config: any,
+  sourceId: string | null,
+  ssrfEnabled: boolean,
+) {
   const { pool, ...configWithoutPool } = config;
-  const connectionKey = hash(configWithoutPool, { unorderedArrays: true });
+  // Fold the SSRF decision into the pool key so toggling it yields a fresh pool
+  // instead of reusing one built with a different (or no) stream factory.
+  const connectionKey = hash(
+    { ...configWithoutPool, __ssrf: ssrfEnabled },
+    { unorderedArrays: true },
+  );
 
   // If this sourceId previously used a different config, destroy the old pool
   if (sourceId) {
@@ -264,6 +281,7 @@ async function getConnectionPool(config: any, sourceId: string | null) {
         config,
         connectionKey,
         sourceId,
+        ssrfEnabled,
       );
       if (dynamicPoolMax) {
         poolSizeConfig = { min: 0, max: dynamicPoolMax };
@@ -272,14 +290,20 @@ async function getConnectionPool(config: any, sourceId: string | null) {
       poolSizeConfig = { min: 0, max: MAX_POOL_SIZE };
     }
 
-    connectionPools[connectionKey] = knex({
-      ...config,
-      connection: {
-        ...(config.connection || {}),
-        typeCast,
-      },
-      pool: Object.keys(poolSizeConfig).length > 0 ? poolSizeConfig : undefined,
-    });
+    connectionPools[connectionKey] = knex(
+      applyDbSsrfProtection(
+        {
+          ...config,
+          connection: {
+            ...(config.connection || {}),
+            typeCast,
+          },
+          pool:
+            Object.keys(poolSizeConfig).length > 0 ? poolSizeConfig : undefined,
+        },
+        ssrfEnabled,
+      ),
+    );
 
     if (sourceId) {
       connectionStats[sourceId] = {
@@ -333,16 +357,19 @@ async function handleQuery(
 
 async function queryHandler(req, res) {
   const startTime = dayjs();
-  const { query: queries, config, raw = false } = req.body;
+  const { query: queries, config, raw = false, ssrf } = req.body;
   const { sourceId = null } = req.params || {};
 
   config.client = getKnexClient(config.client);
+
+  // Honor the backend's SSRF decision; fail closed if the flag is absent.
+  const ssrfEnabled = typeof ssrf === 'boolean' ? ssrf : true;
 
   const query = queries.length === 1 ? queries[0] : queries;
 
   let kn: Knex;
   try {
-    kn = await getConnectionPool(config, sourceId);
+    kn = await getConnectionPool(config, sourceId, ssrfEnabled);
   } catch (err) {
     console.error('Error establishing connection pool:', err);
     return res.status(500).send({ error: serializeError(err) });
@@ -402,19 +429,23 @@ const StreamBodyJsonSchema = {
       },
       required: ['client', 'connection'],
     },
+    ssrf: { type: 'boolean' },
     sourceId: { type: 'string' },
   },
 };
 
 async function streamQueryHandler(req, res) {
-  const { query, config } = req.body;
+  const { query, config, ssrf } = req.body;
   const { sourceId = null } = req.params || {};
 
   config.client = getKnexClient(config.client);
 
+  // Honor the backend's SSRF decision; fail closed if the flag is absent.
+  const ssrfEnabled = typeof ssrf === 'boolean' ? ssrf : true;
+
   let kn: Knex;
   try {
-    kn = await getConnectionPool(config, sourceId);
+    kn = await getConnectionPool(config, sourceId, ssrfEnabled);
   } catch (err) {
     console.error('Error establishing connection pool:', err);
     return res.status(500).send({ error: serializeError(err) });

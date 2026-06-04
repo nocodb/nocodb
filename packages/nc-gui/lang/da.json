@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Vælg en version at forhåndsvise",
       "previewEmptySubtitle": "Vælg en fra listen til højre for at se siden, som den var på det tidspunkt. Ændringer i forhold til den aktuelle version er fremhævet inline.",
       "currentVersion": "Nuværende version · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Indlæs ældre",
       "emptyTitle": "Ingen versioner gemt endnu",
       "emptySubtitle": "En version registreres hver gang siden gemmes. Gemmer lavet inden for 2 minutter af den samme forfatter bliver flettet sammen til én.",
@@ -1465,9 +1466,9 @@
         "edited": "Redigeret af {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} gendannet",
-        "saved": "{author} gemt",
-        "edited": "{author} redigeret"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

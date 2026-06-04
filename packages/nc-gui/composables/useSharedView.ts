@@ -290,9 +290,18 @@ export function useSharedView() {
   ) => {
     if (!sharedView.value) return {}
 
-    return await $api.public.dataTableBulkDataList(sharedView.value.uuid!, bulkFilterList, {
-      ...param,
-    } as any)
+    return await $api.public.dataTableBulkDataList(
+      sharedView.value.uuid!,
+      bulkFilterList,
+      {
+        ...param,
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
   }
 
   const fetchBulkGroupData = async (

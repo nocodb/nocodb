@@ -380,7 +380,7 @@ watch(
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="ncImage" class="!h-4 !w-4" />
-                <div class="select-none flex-1">White Label</div>
+                <div class="select-none flex-1">{{ $t('labels.whiteLabel.title') }}</div>
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_WHITE_LABEL"
                   :feature-enabled-callback="() => !blockWhiteLabel"

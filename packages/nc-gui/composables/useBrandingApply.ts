@@ -9,6 +9,12 @@
  * Document title is intentionally not handled here — pages already manage
  * their own titles via `useTitle()`; they read the product name from
  * `useBranding().productName`.
+ *
+ * SEO/social meta (og:*, twitter:*, description) is intentionally NOT handled:
+ * the app runs SPA (ssr: false), so those are baked into the static index.html
+ * and crawlers/link-unfurlers never execute our JS — overriding them at runtime
+ * would be theatre. theme-color and apple-touch-icon DO take effect at runtime
+ * (browser chrome, iOS add-to-home-screen reads the live DOM), so we manage them.
  */
 export const useBrandingApply = createSharedComposable(() => {
   if (typeof document === 'undefined') return
@@ -21,6 +27,8 @@ export const useBrandingApply = createSharedComposable(() => {
   const STYLE_ID = 'nc-brand-color-override'
 
   const DEFAULT_FAVICON = '/favicon.ico'
+  const DEFAULT_THEME_COLOR = '#3366FF'
+  const DEFAULT_APPLE_TOUCH_ICON = '/apple-touch-icon-180x180.png'
 
   function ensureFaviconLink(): HTMLLinkElement {
     let el = document.getElementById(FAVICON_ID) as HTMLLinkElement | null
@@ -46,6 +54,23 @@ export const useBrandingApply = createSharedComposable(() => {
     const el = ensureFaviconLink()
     const next = url || DEFAULT_FAVICON
     if (el.getAttribute('href') !== next) el.setAttribute('href', next)
+
+    // iOS home-screen icon — point it at the white-label favicon too (better a
+    // small brand icon than the NocoDB one); restore the default when off.
+    const apple = document.querySelector("link[rel~='apple-touch-icon']") as HTMLLinkElement | null
+    if (apple) {
+      const appleNext = url || DEFAULT_APPLE_TOUCH_ICON
+      if (apple.getAttribute('href') !== appleNext) apple.setAttribute('href', appleNext)
+    }
+  }
+
+  // Mobile browser chrome / PWA splash colour. Follows the brand colour; resets
+  // to the built-in NocoDB blue when white-labelling is off / no colour set.
+  function applyThemeColor(hex: string | null) {
+    const meta = document.querySelector("meta[name='theme-color']") as HTMLMetaElement | null
+    if (!meta) return
+    const next = hex || DEFAULT_THEME_COLOR
+    if (meta.getAttribute('content') !== next) meta.setAttribute('content', next)
   }
 
   function applyBrandColor(hex: string | null) {
@@ -74,5 +99,12 @@ export const useBrandingApply = createSharedComposable(() => {
 
   watch(faviconUrl, (v) => applyFavicon(v), { immediate: true })
 
-  watch(brandColor, (v) => applyBrandColor(v), { immediate: true })
+  watch(
+    brandColor,
+    (v) => {
+      applyBrandColor(v)
+      applyThemeColor(v)
+    },
+    { immediate: true },
+  )
 })

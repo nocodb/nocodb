@@ -16,11 +16,12 @@ import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { NcRequest } from '~/interface/config';
+import { Job } from '~/models';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
@@ -91,6 +92,26 @@ export class JobsController implements OnModuleDestroy {
     }
 
     if (this.closedJobs.includes(jobId)) {
+      res.send({
+        status: 'close',
+      });
+      return;
+    }
+
+    const persistedJob = await Job.get(
+      {
+        workspace_id: RootScopes.ROOT,
+        base_id: RootScopes.ROOT,
+      },
+      jobId,
+    ).catch(() => null);
+
+    if (
+      persistedJob &&
+      [JobStatus.COMPLETED, JobStatus.FAILED].includes(
+        persistedJob.status as JobStatus,
+      )
+    ) {
       res.send({
         status: 'close',
       });

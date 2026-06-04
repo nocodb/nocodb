@@ -48,7 +48,10 @@ ENV NODE_ENV production
 ENV PORT 8080
 ENV NC_TOOL_DIR=/usr/app/data/
 
-RUN apk --update --no-cache add \
+# Patch OS packages (libssl3/libcrypto3/musl/zlib CVEs) to the latest in the Alpine
+# branch, then install runtime tools. Node is installed outside apk, so it stays pinned.
+RUN apk --no-cache upgrade \
+    && apk --no-cache add \
     dumb-init \
     curl \
     jq

@@ -33,8 +33,14 @@ COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
 # for pnpm to generate a flat node_modules without symlinks
 RUN echo "node-linker=hoisted" > .npmrc
 
-# Remove workspace/link deps and already-bundled packages
-RUN node -e "\
+# Remove workspace/link deps and already-bundled packages, and pin pnpm's optional-dep
+# resolution to the TARGET arch (musl/Alpine). This makes the `pnpm install` below fetch the
+# right prebuilt native binaries (e.g. sharp's @img/sharp-linuxmusl-<arch>) for the target on
+# the amd64 build host — replacing the old `npm install sharp` step, which ignored
+# pnpm.overrides and re-resolved nested deps at vulnerable versions. (armv7 has no musl sharp
+# prebuilt — best-effort, as before.)
+RUN export TARGET_CPU=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/') \
+  && node -e "\
   const p=require('./package.json'); \
   for (const [k,v] of Object.entries(p.dependencies||{})) { \
     if (String(v).startsWith('link:') || String(v).startsWith('workspace:')) delete p.dependencies[k]; \
@@ -42,6 +48,8 @@ RUN node -e "\
   delete p.dependencies['nocodb-sdk']; \
   delete p.dependencies['knex-snowflake']; \
   delete p.dependencies['knex-databricks']; \
+  p.pnpm = p.pnpm || {}; \
+  p.pnpm.supportedArchitectures = { os: ['linux'], cpu: [process.env.TARGET_CPU], libc: ['musl'] }; \
   require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2)); \
 "
 
@@ -57,15 +65,10 @@ RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | se
     && npx --yes prebuild-install -r napi --platform linux --arch ${TARGET_ARCH} --libc musl 2>/dev/null; \
     rm -rf node_modules/sqlite3/deps 2>/dev/null; true
 
-# Install sharp for the target platform (sharp uses npm optional deps for prebuilds)
-RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
-    && npm install --no-save --ignore-scripts --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
-
-# Remove msgpackr-extract local build that npm install may have regenerated for
-# the host arch. The NAPI prebuilt in @msgpackr-extract/msgpackr-extract-linux-<arch>
-# works on all supported platforms (linux x64/arm64/arm). Keeping build/Release
-# loads a broken binary on aarch64 musl with "unsupported relocation type 7",
-# segfaulting on Pi 5 Cortex-A76 inside musl's dynamic loader memset.
+# Defensively remove any msgpackr-extract local build. The NAPI prebuilt in
+# @msgpackr-extract/msgpackr-extract-linux-<arch> works on all supported platforms
+# (linux x64/arm64/arm). Keeping build/Release loads a broken binary on aarch64 musl with
+# "unsupported relocation type 7", segfaulting on Pi 5 Cortex-A76 inside musl's loader memset.
 RUN rm -rf ./node_modules/msgpackr-extract/build
 
 # Copy application files
@@ -91,10 +94,18 @@ ENV NODE_ENV=production
 ENV PORT=8080
 ENV NC_TOOL_DIR=/usr/app/data/
 
-RUN apk --update --no-cache add \
+# Patch OS packages (libssl3/libcrypto3/musl/zlib CVEs) to the latest in the Alpine
+# branch, then install runtime tools. Node is installed outside apk, so it stays pinned.
+RUN apk --no-cache upgrade \
+    && apk --no-cache add \
     dumb-init \
     curl \
     jq
+
+# Drop the base image's bundled npm CLI — unused at runtime (the app runs via node/dumb-init,
+# and the entrypoint scripts never call npm/npx), and it ships its own vulnerable nested deps
+# (minimatch/tar/picomatch/ip-address). Removing it clears those findings from the final image.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/

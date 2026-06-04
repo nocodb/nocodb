@@ -2279,6 +2279,16 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseAudit = () => {
+    if (isWsAuditEnabled.value) return
+
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseMfa = () => {
     if (!blockMfa.value) return
     handleUpgradePlan({
@@ -2539,6 +2549,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockSSO,
     blockScim,
     showUpgradeToUseScim,
+    showUpgradeToUseAudit,
     blockSnapshots,
     blockTrashSettings,
     blockFormGridLayout,

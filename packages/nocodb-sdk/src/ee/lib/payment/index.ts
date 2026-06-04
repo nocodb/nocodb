@@ -303,6 +303,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
+      // On-prem-only features (always disabled on cloud)
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,

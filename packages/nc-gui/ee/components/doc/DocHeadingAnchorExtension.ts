@@ -74,7 +74,10 @@ function buildDecorations(doc: PmNode): DecorationSet {
           el.setAttribute('aria-label', 'Copy link to section')
           return el
         },
-        { side: 1 },
+        // side must exceed the y-prosemirror collaboration caret's side (10) so a
+        // peer's caret at the heading end renders BEFORE this anchor icon — otherwise
+        // the cursor appears past the copy-link, misrepresenting where they are.
+        { side: 11 },
       ),
     )
   })

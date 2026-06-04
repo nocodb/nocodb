@@ -628,7 +628,7 @@ export default class Model implements TableType {
 
     if (source?.isMeta(true, 1)) {
       schema = source.getConfig()?.schema;
-    } else if (source?.type === 'pg') {
+    } else if (source?.type === 'pg' || source?.type === 'mssql') {
       schema = source.getConfig()?.searchPath?.[0];
     }
 
@@ -848,6 +848,7 @@ export default class Model implements TableType {
       isMySQL: false,
       isSqlite: false,
       isPg: false,
+      isMssql: false,
     },
     knex,
     columns?: Column[],
@@ -866,7 +867,7 @@ export default class Model implements TableType {
           col.uidt === UITypes.DateTime &&
           dayjs(val).isValid()
         ) {
-          const { isMySQL, isSqlite, isPg } = clientMeta;
+          const { isMySQL, isSqlite, isPg, isMssql } = clientMeta as any;
           if (
             val.indexOf('-') < 0 &&
             val.indexOf('+') < 0 &&
@@ -876,7 +877,14 @@ export default class Model implements TableType {
             // then append +00:00 to make it as UTC
             val += '+00:00';
           }
-          if (isMySQL) {
+          if (isMssql) {
+            // T-SQL `datetime`/`datetime2` reject the `+00:00` offset
+            // suffix that the other dialects accept. NocoDB stores UTC
+            // wall-clock without TZ on mssql — strip the offset after
+            // computing the UTC instant (matches
+            // `DateTimeMssqlHandler.parseUserInput`).
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+          } else if (isMySQL) {
             // first convert the value to utc
             // from UI
             // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00

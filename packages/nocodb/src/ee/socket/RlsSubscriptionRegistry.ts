@@ -185,10 +185,6 @@ export class RlsSubscriptionRegistry {
       }
     }
 
-    this.logger.debug(
-      `Invalidated table ${tableId}, ${affectedSocketIds.length} sockets need re-subscribe`,
-    );
-
     return affectedSocketIds;
   }
 

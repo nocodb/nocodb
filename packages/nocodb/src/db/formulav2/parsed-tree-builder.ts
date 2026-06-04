@@ -62,6 +62,10 @@ export const callExpressionBuilder = async ({
           {
             type: JSEPNode.BINARY_EXP,
             operator: '+',
+            // Preserve the numeric dataType from the original ADD/SUM call so
+            // the MSSQL FLOAT-cast (see binaryExpressionBuilder) still fires —
+            // otherwise `ADD({Num}, 10)` surfaces as the string '10' on mssql.
+            dataType: pt.dataType,
             left: {
               type: JSEPNode.CALL_EXP,
               callee: { type: 'Identifier', name: 'COALESCE' },
@@ -79,6 +83,7 @@ export const callExpressionBuilder = async ({
           {
             type: JSEPNode.CALL_EXP,
             callee: { type: 'Identifier', name: 'COALESCE' },
+            dataType: pt.dataType,
             arguments: [
               pt.arguments[0],
               { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
@@ -467,7 +472,7 @@ export const binaryExpressionBuilder = async ({
     // comparing a date with empty string would throw
     // `ERROR: zero-length delimited identifier` in Postgres
     if (
-      knex.clientType() === 'pg' &&
+      (knex.clientType() === 'pg' || knex.clientType() === 'mssql') &&
       columnIdToUidt[(pt.left as IdentifierNode).name] === UITypes.Date
     ) {
       // The correct way to compare with Date should be using
@@ -490,7 +495,7 @@ export const binaryExpressionBuilder = async ({
       }
     }
     if (
-      knex.clientType() === 'pg' &&
+      (knex.clientType() === 'pg' || knex.clientType() === 'mssql') &&
       columnIdToUidt[(pt.right as IdentifierNode).name] === UITypes.Date
     ) {
       // The correct way to compare with Date should be using
@@ -548,27 +553,47 @@ export const binaryExpressionBuilder = async ({
           : (pt.right as any).value === ''
         : 0
     })`;
-  } else if (knex.clientType() === 'sqlite3' || knex.clientType() === 'pg') {
+  } else if (
+    knex.clientType() === 'sqlite3' ||
+    knex.clientType() === 'pg' ||
+    knex.clientType() === 'mssql'
+  ) {
+    // SQL Server has no `TEXT` cast (use NVARCHAR(MAX)) and no boolean literals
+    // (use 1/0 instead of true/false). NULLIF divide-by-zero works as-is.
+    const isMssql = knex.clientType() === 'mssql';
+    const textType = isMssql ? 'NVARCHAR(MAX)' : 'TEXT';
     if (pt.operator === '=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
-        sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
+        sql = `${right} IS NULL OR CAST(${right} AS ${textType}) = ''`;
       } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-        sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
+        sql = `${left} IS NULL OR CAST(${left} AS ${textType}) = ''`;
       }
     } else if (pt.operator === '!=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
-        sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
+        sql = `${right} IS NOT NULL AND CAST(${right} AS ${textType}) != ''`;
       } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-        sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
+        sql = `${left} IS NOT NULL AND CAST(${left} AS ${textType}) != ''`;
       }
     }
 
-    if (
-      (pt.operator === '=' || pt.operator === '!=') &&
+    // T-SQL has no boolean type, so bare predicates are invalid in scalar
+    // contexts. CASE-materialize all comparisons to 1/0 on mssql; pg/sqlite
+    // only need `=`/`!=` wrapped to coerce them into a boolean-shaped value.
+    const isMssqlScalarComparison =
+      isMssql &&
+      ['=', '!=', '<', '>', '<=', '>='].includes(pt.operator) &&
       prevBinaryOp !== 'AND' &&
-      prevBinaryOp !== 'OR'
+      prevBinaryOp !== 'OR';
+
+    if (
+      isMssqlScalarComparison ||
+      ((pt.operator === '=' || pt.operator === '!=') &&
+        prevBinaryOp !== 'AND' &&
+        prevBinaryOp !== 'OR')
     ) {
-      sql = `(CASE WHEN ${sql} THEN true ELSE false END )`;
+      sql = isMssql
+        ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
+        : `(CASE WHEN ${sql} THEN true ELSE false END )`;
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({
@@ -599,6 +624,21 @@ export const binaryExpressionBuilder = async ({
       sql = `${sql} `;
     }
   }
+
+  // MSSQL: arithmetic over BIGINT/DECIMAL/NUMERIC preserves the input type,
+  // and tedious returns those as JS strings (precision preservation). NocoDB
+  // Number maps to BIGINT, so `{Number} + 10` would surface as `'10'`. Cast
+  // the result to FLOAT so the formula matches pg/mysql/sqlite, which return
+  // these as JS numbers. Only applies to numeric +/-/* — comparisons already
+  // materialize to CASE 1/0 above, and `/` double-casts its operands to FLOAT.
+  if (
+    knex.clientType() === 'mssql' &&
+    ['+', '-', '*'].includes(pt.operator) &&
+    pt.dataType === FormulaDataTypes.NUMERIC
+  ) {
+    sql = `CAST(${sql} AS FLOAT)`;
+  }
+
   const query = knex.raw(sql.replace(/\?/g, '\\?'));
   if (prevBinaryOp && pt.operator !== prevBinaryOp) {
     query.wrap('(', ')');

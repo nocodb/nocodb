@@ -85,8 +85,9 @@ const cleanUpSakila = async (forceReset) => {
             } else {
               await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
             }
-          } catch (e) {
-            console.error(e);
+          } catch (e) {if (e?.code !== 'SQLITE_READONLY') {
+              console.error(e);
+            }
           }
         }),
     );
@@ -105,6 +106,7 @@ const sakilaTableNames = [
   'film',
   'film_actor',
   'film_category',
+  'film_text',
   'inventory',
   'language',
   'payment',

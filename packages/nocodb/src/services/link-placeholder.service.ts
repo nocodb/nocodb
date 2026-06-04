@@ -377,11 +377,15 @@ export class LinkPlaceholderService {
     const phCn = placeholderColumnName;
 
     // COALESCE so a single NULL doesn't contaminate the whole aggregate to
-    // NULL (PG behaviour).
+    // NULL (PG behaviour). mssql has no GROUP_CONCAT — STRING_AGG is the
+    // T-SQL equivalent (SQL Server 2017+, separator as second arg, ignores
+    // pure NULL rows so the COALESCE keeps empty segments visible).
     const aggFn = baseModel.isPg
       ? `string_agg(COALESCE(${pvExpr}::text, ''), ', ')`
       : baseModel.isMySQL
       ? `GROUP_CONCAT(COALESCE(${pvExpr}, '') SEPARATOR ', ')`
+      : baseModel.isMssql
+      ? `STRING_AGG(COALESCE(${pvExpr}, ''), ', ')`
       : `GROUP_CONCAT(COALESCE(${pvExpr}, ''), ', ')`;
 
     const isMMLike = isMMOrMMLike({ ...originalCol, colOptions: colOpt });
@@ -548,6 +552,19 @@ export class LinkPlaceholderService {
             srcTn,
             phCn,
           )} = ${pvExprAliased} WHERE ${qCol(
+            srcTn,
+            childCol.column_name,
+          )} IS NOT NULL`,
+          null,
+          { raw: true },
+        );
+      } else if (baseModel.isMssql) {
+        await baseModel.execAndParse(
+          `UPDATE ${srcTn} SET ${qi(
+            phCn,
+          )} = (SELECT ${pvExprAliased} FROM ${relTn} AS ${relAliasQ} WHERE ${relAliasQ}.${qi(
+            parentCol.column_name,
+          )} = ${qCol(srcTn, childCol.column_name)}) WHERE ${qCol(
             srcTn,
             childCol.column_name,
           )} IS NOT NULL`,

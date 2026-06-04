@@ -5,6 +5,7 @@ import {
   CURRENT_USER_TOKEN,
   enumColors,
   isAIPromptCol,
+  isArrayShapeLtar,
   isAttachment,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -54,12 +55,17 @@ import type {
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { DisplacedRecord, LinkChange } from '~/command-registry/types';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 // import type { SelectOption } from '~/models';
 import { PrincipalAssignment, Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
+import {
+  mssqlBuildBulkInsertWithCapture,
+  mssqlChunkSize,
+  mssqlNeedsIdentityInsert,
+} from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import {
   batchUpdate,
   extractColsMetaForAudit,
@@ -104,6 +110,7 @@ import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import {
   _wherePk,
   dataWrapper,
+  deletedColValue,
   extractSortsObject,
   formatDataForAudit,
   getAs,
@@ -120,6 +127,7 @@ import { getProjectRole } from '~/utils/roleHelper';
 import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
+import { singleQueryList as mssqlSingleQueryList } from '~/services/data-opt/mssql-helpers';
 import { Profiler } from '~/helpers/profiler';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
@@ -142,6 +150,7 @@ import {
   isTraceActive,
 } from '~/decorators/trace-command.decorator';
 import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
+import { deepUnwrapLkv, flattenNestedLookup } from '~/db/mssql-lookup-flatten';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -264,7 +273,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
-    if (this.isPg && this.schema) {
+    if ((this.isPg || this.isMssql) && this.schema) {
       return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
     } else if (this.isSnowflake) {
       return `${[
@@ -323,7 +332,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const query = typeof qb === 'string' ? qb : qb.toQuery();
 
     let data;
-
     if (this.dbDriver.isExternal) {
       data = await runExternal(this.sanitizeQuery(query), this.dbDriver.extDb);
     } else {
@@ -332,6 +340,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);
+    }
+
+    // MSSQL preprocessing — applied BEFORE every converter so the rest of the
+    // pipeline sees the same shape pg produces. Skipped for raw / bulkAggregate
+    // paths (those bypass the converter pipeline entirely).
+    if (
+      this.isMssql &&
+      !options.raw &&
+      !options.bulkAggregate &&
+      Array.isArray(data) &&
+      data.length
+    ) {
+      data = await this.preProcessMssqlRows(data, dependencyColumns);
     }
 
     // we need to post process lookup fields based on the looked up column instead of the lookup column
@@ -423,6 +444,335 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return data;
   }
 
+  /**
+   * MSSQL-only: parse FOR JSON nvarchar payloads for relational columns into
+   * JS objects/arrays. Mirrors what node-pg's json type does automatically.
+   *
+   * Column shapes the EE mssql client produces and we recover here:
+   *   • LTAR / Links(as-LTAR)   → JSON object (BT/OO) or array of objects (HM/MM)
+   *   • Lookup scalar           → JSON `{"_lkv": value}`     — unwrap to value
+   *   • Lookup array (HM/MM)    → JSON `[{"_lkv": v}, …]`    — unwrap to `[v, …]`
+   *   • Lookup of array-target  → nested `[{"_lkv":[…]}, …]` — flatten to pg's
+   *                               single-level shape (`flattenNestedLookup`)
+   *
+   * The `{_lkv:…}` sentinel exists because T-SQL has no `json_agg(value)`. All
+   * unwrapping is centralized in `deepUnwrapLkv` / `flattenNestedLookup`
+   * (mssql-lookup-flatten.ts) rather than re-implemented per case. `deepUnwrapLkv`
+   * additionally strips the sentinel from Lookups nested inside field-expanded
+   * linked records (`nested[Link][fields]=…`), which the top-level passes —
+   * the per-column switch and the defensive sweep below — never reach.
+   *
+   * Also normalizes `null` → `[]` for known array-shaped relational columns
+   * (HM / MM / MM-like LTARs and HM / MM Lookups). MSSQL's FOR JSON subquery
+   * returns SQL NULL for an empty result set, where pg's `json_agg` typically
+   * returns `[]` via `COALESCE`. Normalizing here keeps downstream consumers
+   * (frontend, scripts, hooks) from having to null-guard.
+   */
+  // Per-instance cache of the expensive Lookup-shape determination
+  // (`array` vs `scalar`). Keyed by column id; values survive for the
+  // lifetime of the BaseModel instance (typically one per request).
+  private _mssqlLookupShape?: Map<string, 'array' | 'scalar' | 'nested'>;
+
+  protected async preProcessMssqlRows(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]> {
+    if (!Array.isArray(data) || !data.length) return data;
+
+    const cols = (this.model?.columns ?? []).concat(dependencyColumns ?? []);
+    const shapeCache =
+      this._mssqlLookupShape ?? (this._mssqlLookupShape = new Map());
+
+    // ── Per-call classification ────────────────────────────────────────
+    // Build a single `actions` array — `id -> kind` — so the per-row loop is
+    // ONE iteration with a switch, instead of six independent loops. Each
+    // entry stores the row key (col.id, since EE mssql extract aliases by
+    // `getAs(column) = column.asId || column.id`) and the action to take.
+    type Kind =
+      | 'ltarArr'
+      | 'ltarObj'
+      | 'lkpArr'
+      | 'lkpNested'
+      | 'lkpScalar'
+      | 'linksMaybe'
+      | 'numeric'
+      | 'time';
+    const actions: Array<{ id: string; kind: Kind }> = [];
+    let hasLookup = false;
+
+    for (const col of cols) {
+      const id = col.asId || col.id;
+      switch (col.uidt) {
+        case UITypes.LinkToAnotherRecord: {
+          actions.push({
+            id,
+            kind: isArrayShapeLtar(col) ? 'ltarArr' : 'ltarObj',
+          });
+          break;
+        }
+        case UITypes.Links: {
+          actions.push({ id, kind: 'linksMaybe' });
+          break;
+        }
+        case UITypes.Number:
+        case UITypes.Decimal:
+        case UITypes.Currency:
+        case UITypes.Duration: {
+          // Skip when the underlying SQL type is one tedious already returns
+          // as a JS number (int family, float, money). Only `bigint`,
+          // `decimal`, `numeric` need coercion. Unset dt (e.g. for nullable
+          // formula-derived columns) falls back to coercion.
+          const dt = (col.dt ?? '').toLowerCase();
+          if (
+            dt !== 'int' &&
+            dt !== 'smallint' &&
+            dt !== 'tinyint' &&
+            dt !== 'float' &&
+            dt !== 'real' &&
+            dt !== 'money' &&
+            dt !== 'smallmoney'
+          ) {
+            actions.push({ id, kind: 'numeric' });
+          }
+          break;
+        }
+        case UITypes.Time: {
+          // tedious returns the T-SQL `time` type as a JS Date anchored at
+          // 1970-01-01. convertDateFormat (CE) skips UITypes.Time entirely, so
+          // without this the API leaks a Date/ISO value for mssql while every
+          // other dialect emits `YYYY-MM-DD HH:mm:ssZ`. Normalize here.
+          actions.push({ id, kind: 'time' });
+          break;
+        }
+        case UITypes.Lookup: {
+          // Walk-through-to-relation is expensive; cache per column id.
+          let shape = shapeCache.get(col.id);
+          if (!shape) {
+            try {
+              const lkOpt = col.colOptions as LookupColumn;
+              const rel = await lkOpt?.getRelationColumn?.(this.context);
+              const relOpts = rel
+                ? await rel.getColOptions<LinkToAnotherRecordColumn>(
+                    this.context,
+                  )
+                : null;
+              const isMMLike = rel ? isMMOrMMLike(rel) : false;
+              const isArray =
+                isMMLike ||
+                relOpts?.type === RelationTypes.HAS_MANY ||
+                (relOpts?.type === RelationTypes.ONE_TO_ONE && !rel?.meta?.bt);
+              if (!isArray) {
+                shape = 'scalar';
+              } else {
+                // When the looked-up column is itself array-shaped, the FOR
+                // JSON extract produces an array-of-arrays. pg flattens this
+                // (json_array_elements) iff BOTH the lookup AND its target are
+                // array-shaped — mirror that decision so the post-parse shape
+                // matches. A scalar/object/attachment target stays as-is.
+                shape = (await this.isArrayShapedLookupTarget(lkOpt))
+                  ? 'nested'
+                  : 'array';
+              }
+            } catch {
+              // Lookup resolution can fail on cross-base; treat as scalar so
+              // the `_lkv` unwrap still runs.
+              shape = 'scalar';
+            }
+            shapeCache.set(col.id, shape);
+          }
+          actions.push({
+            id,
+            kind:
+              shape === 'nested'
+                ? 'lkpNested'
+                : shape === 'array'
+                ? 'lkpArr'
+                : 'lkpScalar',
+          });
+          hasLookup = true;
+          break;
+        }
+      }
+    }
+
+    if (!actions.length) return data;
+
+    const tryParse = (v: any) => {
+      // Inline-fast: avoid trimStart when first char already matches; only
+      // trim+retest on whitespace-leading payloads.
+      if (typeof v !== 'string') return v;
+      let c = v.charCodeAt(0);
+      if (c === 0x20 || c === 0x09 || c === 0x0a || c === 0x0d) {
+        const t = v.trimStart();
+        c = t.charCodeAt(0);
+        if (c === 0x5b /* [ */ || c === 0x7b /* { */) {
+          try {
+            return JSON.parse(v);
+          } catch {
+            return v;
+          }
+        }
+        return v;
+      }
+      if (c === 0x5b /* [ */ || c === 0x7b /* { */) {
+        try {
+          return JSON.parse(v);
+        } catch {
+          return v;
+        }
+      }
+      return v;
+    };
+
+    // ── Per-row pass ──────────────────────────────────────────────────
+    // Single tight loop, hoisted action list, hoisted length. The defensive
+    // `_lkv` sweep is gated on `hasLookup` so the common case (no Lookup
+    // columns) pays NO extra per-row cost beyond the action loop itself.
+    const n = actions.length;
+    for (let r = 0; r < data.length; r++) {
+      const row = data[r];
+      for (let i = 0; i < n; i++) {
+        const a = actions[i];
+        const id = a.id;
+        if (!(id in row)) continue;
+        const v = row[id];
+        switch (a.kind) {
+          case 'ltarArr':
+            if (v == null) row[id] = [];
+            // deepUnwrapLkv: strip `_lkv` from field-expanded child records.
+            else row[id] = deepUnwrapLkv(tryParse(v));
+            break;
+          case 'ltarObj':
+            if (v != null) row[id] = deepUnwrapLkv(tryParse(v));
+            break;
+          case 'lkpScalar': {
+            // scalar lookup `{_lkv:x}` → x (no-op on an already-bare value).
+            if (v == null) break;
+            row[id] = deepUnwrapLkv(tryParse(v));
+            break;
+          }
+          case 'lkpArr': {
+            // array lookup `[{_lkv:v},…]` → `[v,…]`; deepUnwrapLkv unwraps each.
+            if (v == null) {
+              row[id] = [];
+              break;
+            }
+            row[id] = deepUnwrapLkv(tryParse(v));
+            break;
+          }
+          case 'lkpNested': {
+            // Lookup whose target column is array-shaped: the extract nests an
+            // array per multi-hop. Flatten to the single-level array pg emits.
+            if (v == null) {
+              row[id] = [];
+              break;
+            }
+            const parsed = tryParse(v);
+            row[id] = Array.isArray(parsed)
+              ? flattenNestedLookup(parsed)
+              : parsed;
+            break;
+          }
+          case 'linksMaybe': {
+            // Links column: count number, null, or JSON payload string.
+            // `tryParse` already short-circuits on non-JSON-shaped strings —
+            // call it directly without re-running the shape sniff here.
+            // deepUnwrapLkv strips `_lkv` from any field-expanded child records.
+            if (typeof v === 'string') row[id] = deepUnwrapLkv(tryParse(v));
+            break;
+          }
+          case 'numeric': {
+            if (typeof v !== 'string' || v === '') break;
+            const num = Number(v);
+            if (Number.isFinite(num)) row[id] = num;
+            break;
+          }
+          case 'time': {
+            // Date (tedious) or ISO string -> `YYYY-MM-DD HH:mm:ssZ`, matching
+            // the shape pg/sqlite/mysql return so the API, frontend Time cell
+            // and filter-value normalization stay dialect-consistent.
+            if (v == null) break;
+            // A plain number on a Time column is an aggregate scalar (count /
+            // sum / percent over the column), not a time value — tedious always
+            // returns the T-SQL `time` type as a JS Date. dayjs(<number>) would
+            // wrongly coerce e.g. a count of 6 into "1970-01-01 00:00:00Z".
+            if (typeof v === 'number') break;
+            const t = dayjs(v).utc();
+            if (t.isValid()) row[id] = t.format('YYYY-MM-DD HH:mm:ssZ');
+            break;
+          }
+        }
+      }
+
+      // Defensive `_lkv` sweep — covers stragglers (cross-base lookups where
+      // the column metadata didn't resolve into `cols`, asId/title-aliased
+      // rows, etc.). Skipped entirely when no Lookup columns are present —
+      // the dominant case for most tables — so unrelated workloads pay zero
+      // cost here. `for…in` instead of `Object.keys` avoids an array
+      // allocation per row. The array branch short-circuits on the first
+      // element since the extract emits a uniform `[{_lkv:…},…]` shape.
+      if (!hasLookup) continue;
+      for (const key in row) {
+        const v = row[key];
+        if (v == null || typeof v !== 'object') continue;
+        if (!Array.isArray(v)) {
+          if ('_lkv' in v) {
+            row[key] = (v as { _lkv: unknown })._lkv;
+          }
+          continue;
+        }
+        if (v.length === 0) continue;
+        const first = v[0];
+        if (
+          !first ||
+          typeof first !== 'object' ||
+          !('_lkv' in (first as object))
+        ) {
+          continue;
+        }
+        for (let i = 0; i < v.length; i++) {
+          const item = v[i];
+          if (item && typeof item === 'object' && '_lkv' in item) {
+            v[i] = (item as { _lkv: unknown })._lkv;
+          }
+        }
+      }
+    }
+
+    return data;
+  }
+
+  /**
+   * Whether a lookup's looked-up column is array-shaped — i.e. its `extractColumn`
+   * would set `result.isArray`. Mirrors pg's flatten gate (pg.ts Lookup case):
+   *   • LTAR / Links    → array iff isArrayShapeLtar (HM / MM / OO-forward)
+   *   • nested Lookup   → array iff its own relation is array-shaped
+   *   • anything else   → false (scalar, attachment, json, formula, rollup…)
+   * Resolution is best-effort on cross-base; failures fall back to `false`
+   * (no flatten — safe, preserves the pre-fix shape).
+   */
+  protected async isArrayShapedLookupTarget(
+    lkOpt: LookupColumn,
+  ): Promise<boolean> {
+    try {
+      const target = await lkOpt?.getLookupColumn?.(this.context);
+      if (!target) return false;
+      if (!target.colOptions) {
+        await target.getColOptions(this.context).catch(() => undefined);
+      }
+      if (isLinksOrLTAR(target)) return isArrayShapeLtar(target);
+      if (target.uidt === UITypes.Lookup) {
+        const innerRel = await (
+          target.colOptions as LookupColumn
+        )?.getRelationColumn?.(this.context);
+        return innerRel ? isArrayShapeLtar(innerRel) : false;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   public async handleRichTextMentions(
     prevData,
     newData: Record<string, any> | Array<Record<string, any>>,
@@ -502,11 +852,49 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // const driver = trx ? trx : this.dbDriver;
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
-      if (this.isPg && this.model.primaryKey) {
+      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
-        response = await this.execAndParse(query, null, { raw: true });
+
+        if (this.isMssql) {
+          // MSSQL: ALWAYS route through `mssqlBuildBulkInsertWithCapture`.
+          //
+          // The OUTPUT-INTO-table-variable shape is required by triggers
+          // (T-SQL error 334 on bare OUTPUT INSERTED) and by explicit
+          // IDENTITY values (error 544). We used to keep a "fast" branch
+          // for the no-triggers, no-explicit-identity case that called
+          // `execAndParse(query, ...)` on the knex QueryBuilder directly,
+          // but execAndParse renders that QB via `qb.toQuery()` and ships
+          // the resulting string to `runExternal` (sql-executor). knex's
+          // mssql `.toQuery()` inlines string bindings as bare varchar
+          // literals (`'…'`) — those get implicit-converted to nvarchar
+          // through the connection collation (default
+          // SQL_Latin1_General_CP1_CI_AS = CP-1252) on the way to the
+          // nvarchar(MAX) column, stripping anything outside Latin-1
+          // (emoji, supplementary CJK, …) to `?`. `mssqlBuildBulkInsertWithCapture`
+          // emits `CAST(N'…' AS NVARCHAR(MAX))` literals via
+          // `tsqlNVarcharLiteral` (see mssql-insert-sql.ts) which
+          // round-trip Unicode losslessly, so unifying the branches is
+          // also the correctness fix.
+          const aiColName =
+            this.model.columns?.find((c) => c.ai)?.column_name ?? null;
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiColName,
+          );
+          const sql = mssqlBuildBulkInsertWithCapture({
+            knex: this.dbDriver,
+            tnPath: this.tnPath,
+            rows: [insertObj],
+            pkCols: this.model.primaryKeys ?? [],
+            explicitIdentity,
+            aliasField: 'id',
+          });
+          response = await this.execAndParse(sql, null, { raw: true });
+        } else {
+          response = await this.execAndParse(query, null, { raw: true });
+        }
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -777,9 +1165,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
 
+      const wherePkClause = await this._wherePk(id, true);
+
+      // mssql rejects UPDATEs that touch an IDENTITY column (error 8102:
+      // "Cannot update identity column 'X'") even when the new value
+      // equals the old.
+      const updateObjForDriver = this.isMssql
+        ? Object.fromEntries(
+            Object.entries(updateObj).filter(([k]) => !(k in wherePkClause)),
+          )
+        : updateObj;
+
       const query = this.dbDriver(this.tnPath)
-        .update(updateObj)
-        .where(await this._wherePk(id, true));
+        .update(updateObjForDriver)
+        .where(wherePkClause);
 
       const rlsConditions = await this.getRlsConditions();
       if (rlsConditions.length) {
@@ -995,6 +1394,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
         .map((_pk) => `rn.?? = ??.??`)
         .join(' AND ')})`,
+      mssql: `UPDATE t SET ?? = s.rn FROM ?? t INNER JOIN (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s ON ${this.model.primaryKeys
+        .map((_pk) => `t.?? = s.??`)
+        .join(' AND ')}`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -1029,6 +1435,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         this.tnPath,
         orderColumn.column_name,
         ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
+      ],
+      mssql: [
+        orderColumn.column_name, // SET ??
+        this.tnPath, // FROM ?? t
+        ...primaryKeys, // SELECT (?? per pk)
+        orderColumn.column_name, // ORDER BY ?? (inside subquery)
+        this.tnPath, // FROM ?? (inside subquery)
+        ...primaryKeys.flatMap((pk) => [pk, pk]), // ON t.?? = s.?? per pk
       ],
     };
 
@@ -1296,8 +1710,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // instances (bulkUpdate creates a new instance internally).
     if (this.context.additionalContext?.isDatePropagating) return;
 
-    // Recursive CTE: PostgreSQL and MySQL 8+ only
-    if (!this.isPg && !this.isMySQL) return;
+    // Recursive CTE: PostgreSQL, MySQL 8+, and SQL Server (T-SQL 2008+) only.
+    // sqlite + databricks have no support for the cycle-detection +
+    // recursive-CTE shape `buildDateDependencyPropagationSQL` generates.
+    if (!this.isPg && !this.isMySQL && !this.isMssql) return;
 
     const rules = await DateDependency.listByModelId(
       this.context,
@@ -1459,7 +1875,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
       bufferDays: rule.dependency_buffer_days ?? 0,
       seedIds,
-      dialect: (this.isPg ? 'pg' : 'mysql') as 'pg' | 'mysql',
+      dialect: (this.isPg ? 'pg' : this.isMssql ? 'mssql' : 'mysql') as
+        | 'pg'
+        | 'mysql'
+        | 'mssql',
       includeWeekends: rule.include_weekends ?? true,
       junction: junctionInfo,
     };
@@ -1999,7 +2418,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const operationNow = this.now();
         const where = await this._wherePk(id);
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(this, true),
         };
         // Stamp deleted-at / deleted-by so the trash UI can display them
         const lmtCol = this.model.columns.find(
@@ -2625,7 +3044,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   col.uidt === UITypes.DateTime &&
                   dayjs(val).isValid()
                 ) {
-                  const { isMySQL, isSqlite, isPg } = this.clientMeta;
+                  const { isMySQL, isSqlite, isPg, isMssql } = this.clientMeta;
                   if (
                     val.indexOf('-') < 0 &&
                     val.indexOf('+') < 0 &&
@@ -2635,7 +3054,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     // then append +00:00 to make it as UTC
                     val += '+00:00';
                   }
-                  if (isMySQL) {
+                  if (isMssql) {
+                    // T-SQL `datetime` / `datetime2` types reject a
+                    // `+00:00` offset suffix. NocoDB stores UTC wall-clock
+                    // without TZ on mssql — strip the offset after
+                    // computing the UTC instant (mirrors
+                    // `DateTimeMssqlHandler.parseUserInput`).
+                    val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+                  } else if (isMySQL) {
                     // first convert the value to utc
                     // from UI
                     // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
@@ -2858,26 +3284,67 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           queries.push(this.dbDriver(this.tnPath).insert(insertData).toQuery());
         }
       } else {
-        const batches = [];
+        // MSSQL: route through the OUTPUT-INTO-table-variable pattern in
+        // mssql-insert-sql.ts when triggers or explicit IDENTITY values are
+        // present (or pre-emptively, for chunk-cap safety). Standard
+        // .returning() path stays for non-mssql.
+        //
+        const mssqlAiColName = this.isMssql
+          ? this.model.columns?.find((c) => c.ai)?.column_name ?? null
+          : null;
+        const mssqlExplicitIdentity =
+          this.isMssql && mssqlNeedsIdentityInsert(insertDatas, mssqlAiColName);
+        // Per-dialect effective chunk size — mssql also enforces the
+        // 2100-param cap.
+        const effectiveChunkSize = this.isMssql
+          ? mssqlChunkSize(insertDatas, chunkSize)
+          : chunkSize;
 
-        const returningObj: Record<string, string> = {};
-
-        for (const col of this.model.primaryKeys) {
-          returningObj[col.title] = col.column_name;
+        const batches: any[][] = [];
+        for (let i = 0; i < insertDatas.length; i += effectiveChunkSize) {
+          batches.push(insertDatas.slice(i, i + effectiveChunkSize));
         }
 
-        for (let i = 0; i < insertDatas.length; i += chunkSize) {
-          batches.push(insertDatas.slice(i, i + chunkSize));
-        }
+        // String-array form (`'col as alias'`), not a plain object: knex's
+        // mssql dialect silently drops the plain-object form and emits a
+        // bare `OUTPUT` (T-SQL syntax error). The string form compiles to
+        // `RETURNING "col" AS "alias"` on pg and `OUTPUT inserted.[col] AS
+        // [alias]` on mssql — same `[{ alias: value }, ...]` row shape.
+        const returningSpec = this.model.primaryKeys.map(
+          (col) => `${col.column_name} as ${col.title}`,
+        );
 
         for (const batch of batches) {
-          if (this.isPg) {
+          if (this.isMssql) {
+            // ALWAYS go through `mssqlBuildBulkInsertWithCapture`. The
+            // "fast" `.toQuery()` path inlines string values as bare
+            // varchar literals (`'…'`); shipped to the SQL-executor as a
+            // string and re-parsed by MSSQL, those literals get implicit-
+            // converted to nvarchar through the connection's collation
+            // (default SQL_Latin1_General_CP1_CI_AS = CP-1252) BEFORE
+            // hitting the `nvarchar(MAX)` column, stripping anything
+            // outside Latin-1 (emoji, supplementary CJK, …) to `?`. The
+            // capture path emits `CAST(N'…' AS NVARCHAR(MAX))` literals
+            // (see `tsqlNVarcharLiteral` in mssql-insert-sql.ts) which
+            // round-trip Unicode losslessly. The trigger-/IDENTITY-aware
+            // SQL shape is also a superset of the fast path, so collapsing
+            // both branches changes correctness for everyone and gives up
+            // a negligible amount of plan-cache reuse (each bulk INSERT
+            // chunk has unique row tuples either way).
+            queries.push(
+              mssqlBuildBulkInsertWithCapture({
+                knex: this.dbDriver,
+                tnPath: this.tnPath,
+                rows: batch,
+                pkCols: this.model.primaryKeys ?? [],
+                explicitIdentity: mssqlExplicitIdentity,
+              }),
+            );
+          } else if (this.isPg) {
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
-                .returning(
-                  this.model.primaryKeys?.length ? (returningObj as any) : '*',
-                )
+                .returning(returningSpec.length ? returningSpec : '*')
                 .toQuery(),
             );
           } else {
@@ -3160,6 +3627,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         });
       } else if (['pg', 'postgres', 'postgresql'].includes(source.type)) {
         chunkData = await singleQueryList(this.context, {
+          ...ctx,
+          skipPaginateWrapper: true,
+          params: ctx.params,
+          model: this.model,
+          apiVersion: args.apiVersion,
+        });
+      } else if (source.type === 'mssql') {
+        chunkData = await mssqlSingleQueryList(this.context, {
           ...ctx,
           skipPaginateWrapper: true,
           params: ctx.params,
@@ -3495,28 +3970,54 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             );
           }
         } else {
-          const batches = [];
+          // MSSQL: see EE bulkInsert path for the rationale. Same pattern —
+          // OUTPUT-INTO-table-variable when triggers / explicit identity,
+          // standard knex .returning() otherwise. 2100-param cap enforced
+          // via mssqlChunkSize.
+          const bulkUpsertAiColName = this.isMssql
+            ? this.model.columns?.find((c) => c.ai)?.column_name ?? null
+            : null;
+          const mssqlExplicitIdentity =
+            this.isMssql &&
+            mssqlNeedsIdentityInsert(toInsert, bulkUpsertAiColName);
+          const effectiveChunkSize = this.isMssql
+            ? mssqlChunkSize(toInsert, chunkSize)
+            : chunkSize;
 
-          const returningObj: Record<string, string> = {};
-
-          for (const col of this.model.primaryKeys) {
-            returningObj[col.title] = col.column_name;
+          const batches: any[][] = [];
+          for (let i = 0; i < toInsert.length; i += effectiveChunkSize) {
+            batches.push(toInsert.slice(i, i + effectiveChunkSize));
           }
 
-          for (let i = 0; i < toInsert.length; i += chunkSize) {
-            batches.push(toInsert.slice(i, i + chunkSize));
-          }
+          // See the upper bulk path for why the string-array form
+          // (`'col as alias'`) is required instead of a plain object
+          // (knex mssql dialect drops the plain-object form).
+          const returningSpec = this.model.primaryKeys.map(
+            (col) => `${col.column_name} as ${col.title}`,
+          );
 
           for (const batch of batches) {
-            if (this.isPg) {
+            if (this.isMssql) {
+              // Always go through `mssqlBuildBulkInsertWithCapture` — see
+              // the matching comment in the bulkInsert path above. The
+              // .toQuery() fast path inlines string values as bare varchar
+              // literals which lose non-Latin1 chars (emoji, supplementary
+              // CJK) via the connection's CP-1252 collation on the way to
+              // the nvarchar(MAX) column.
+              insertQueries.push(
+                mssqlBuildBulkInsertWithCapture({
+                  knex: this.dbDriver,
+                  tnPath: this.tnPath,
+                  rows: batch,
+                  pkCols: this.model.primaryKeys ?? [],
+                  explicitIdentity: mssqlExplicitIdentity,
+                }),
+              );
+            } else if (this.isPg) {
               insertQueries.push(
                 this.dbDriver(this.tnPath)
                   .insert(batch)
-                  .returning(
-                    this.model.primaryKeys?.length
-                      ? (returningObj as any)
-                      : '*',
-                  )
+                  .returning(returningSpec.length ? returningSpec : '*')
                   .toQuery(),
               );
             } else {
@@ -3559,32 +4060,26 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           const wherePk = await this._wherePk(pkValues, true);
 
-          // remove pk from update data for databricks
-          if (this.isDatabricks) {
-            const dWithoutPk = {};
+          // databricks and mssql can't update PK columns — mssql rejects
+          // any UPDATE that touches an IDENTITY column (error 8102 "Cannot
+          // update identity column 'X'") even when the new value equals
+          // the old; databricks lacks IDENTITY UPDATE support too. Strip
+          // PK keys from the SET clause for both.
+          const dataToUpdate =
+            this.isDatabricks || this.isMssql
+              ? Object.fromEntries(
+                  Object.entries(d).filter(([k]) => !(k in wherePk)),
+                )
+              : d;
 
-            for (const k in d) {
-              if (!(k in wherePk)) {
-                dWithoutPk[k] = d[k];
-              }
-            }
-
-            const qb = this.dbDriver(this.tnPath)
-              .update(dWithoutPk)
-              .where(wherePk);
-            if (rlsFilterGroup.length) {
-              await conditionV2(this, rlsFilterGroup, qb, undefined, true);
-            }
-            if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
-            updateQueries.push(qb.toQuery());
-          } else {
-            const qb = this.dbDriver(this.tnPath).update(d).where(wherePk);
-            if (rlsFilterGroup.length) {
-              await conditionV2(this, rlsFilterGroup, qb, undefined, true);
-            }
-            if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
-            updateQueries.push(qb.toQuery());
+          const qb = this.dbDriver(this.tnPath)
+            .update(dataToUpdate)
+            .where(wherePk);
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, qb, undefined, true);
           }
+          if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
+          updateQueries.push(qb.toQuery());
         }
       }
 
@@ -3920,11 +4415,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           const wherePk = await this._wherePk(pk, true);
 
-          const dataToUpdate = this.isDatabricks
-            ? Object.fromEntries(
-                Object.entries(data).filter(([k]) => !(k in wherePk)),
-              )
-            : data;
+          // databricks and mssql both reject UPDATEs that touch the PK
+          // column. T-SQL specifically: "Cannot update identity column 'X'"
+          // (error 8102) — fires even when the new value equals the old.
+          // NocoDB never legitimately changes a PK through the update flow,
+          // so dropping the PK keys from the payload is safe on every
+          // dialect; we only opt in for the ones that error to avoid
+          // churning the cached SQL on pg/mysql/sqlite.
+          const dataToUpdate =
+            this.isDatabricks || this.isMssql
+              ? Object.fromEntries(
+                  Object.entries(data).filter(([k]) => !(k in wherePk)),
+                )
+              : data;
 
           toBeUpdated.push({ d: dataToUpdate, wherePk });
 
@@ -4359,10 +4862,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let bulkOperationNow: string | null = null;
       if (isSoftDelete) {
-        // Soft-delete: flag records instead of removing them, skip link cleanup
+        // Soft-delete: flag records instead of removing them, skip link cleanup.
+        // Mssql gets 1 (bit) not `true` — see #__nc_deleted note above.
         bulkOperationNow = this.now();
         const softDeletePayload: Record<string, any> = {
-          [deletedColumn.column_name]: true,
+          [deletedColumn.column_name]: deletedColValue(this, true),
         };
         const lmtCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedTime && c.system,

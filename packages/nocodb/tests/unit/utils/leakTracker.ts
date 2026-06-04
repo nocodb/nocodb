@@ -83,7 +83,21 @@ export function installLeakTracker(): void {
     }
   }
 
-  patchTransactionLifecycle();
+  patchTransactionLifecycle(KnexTransaction.prototype);
+  // Transaction_MSSQL / Transaction_Oracledb override commit/rollback as
+  // their own methods, so the base-prototype patch above doesn't reach them.
+  for (const dialect of DIALECTS) {
+    let mod: any;
+    try {
+      mod = require(`knex/lib/dialects/${dialect}/transaction`);
+    } catch {
+      continue;
+    }
+    const TrxClass = mod && (mod.default ?? mod);
+    if (TrxClass && typeof TrxClass === 'function' && TrxClass.prototype) {
+      patchTransactionLifecycle(TrxClass.prototype);
+    }
+  }
   patchPoolLifecycle();
 }
 
@@ -121,9 +135,12 @@ function patchClientTransactionMethod(ClientClass: any): void {
   proto.__leakPatched = true;
 }
 
-function patchTransactionLifecycle(): void {
-  const proto = KnexTransaction.prototype;
-  if (proto.__leakLifecyclePatched) return;
+function patchTransactionLifecycle(proto: any): void {
+  if (!proto) return;
+  // Own-only check — subclass prototypes inherit the marker otherwise.
+  if (Object.prototype.hasOwnProperty.call(proto, '__leakLifecyclePatched')) {
+    return;
+  }
 
   // commit/rollback are top-level trx terminators; release/rollbackTo are
   // savepoint terminators (nested transactions). Patch all four.
@@ -138,6 +155,7 @@ function patchTransactionLifecycle(): void {
   // a leak. Deregistering at call time avoids the race; the contract is
   // "user attempted to terminate" rather than "SQL has flushed".
   for (const method of ['commit', 'rollback', 'release', 'rollbackTo']) {
+    if (!Object.prototype.hasOwnProperty.call(proto, method)) continue;
     const orig = proto[method];
     if (typeof orig !== 'function') continue;
     proto[method] = function patchedTrxTerminator(...args: unknown[]) {

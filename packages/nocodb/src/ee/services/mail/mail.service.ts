@@ -19,7 +19,6 @@ export class MailService extends MailServiceCE {
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
-      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 

@@ -3,15 +3,15 @@ import 'mocha';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import init from '../../init';
-import { createProject, createSakilaProject } from '../../factory/base';
+import init from '~test/init';
+import { createProject, createSakilaProject } from '~test/factory/base';
 import {
   createColumn,
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
-} from '../../factory/column';
-import { createTable, getTable } from '../../factory/table';
+} from '~test/factory/column';
+import { createTable, getTable } from '~test/factory/table';
 import {
   countRows,
   createBulkRows,
@@ -21,9 +21,15 @@ import {
   getOneRow,
   getRow,
   listRow,
-} from '../../factory/row';
-import { listenForJob } from '../../factory/job';
-import { isMysql, isPg, isSqlite } from '../../init/db';
+} from '~test/factory/row';
+import { listenForJob } from '~test/factory/job';
+import {
+  isMysqlData,
+  isPg,
+  isPgData,
+  isSqlite,
+  isSqliteData,
+} from '~test/init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type Model from '~/models/Model';
 import type View from '~/models/View';
@@ -89,8 +95,8 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
-    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], customerColumns)) {
+      console.log('response.body.list[0]', response.body.list[0]);
       throw new Error('Wrong columns');
     }
   });
@@ -111,8 +117,8 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
-    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
+      console.log('response.body.list[0]', response.body.list[0]);
       throw new Error('Wrong columns');
     }
   });
@@ -1221,6 +1227,8 @@ function tableTest() {
   });
 
   it('Get nested sorted filtered table data list with a rollup column in customer table', async function () {
+    // Sakila-on-pg test — skip rationale is the pg-dialect rollup behavior on
+    // the sakila DB (which tracks the meta dialect, not the data DB).
     if (isPg(context)) return;
     const rollupColumn = await createRollupColumn(context, {
       base: sakilaProject,
@@ -1911,11 +1919,10 @@ function tableTest() {
       .expect(200);
 
     const rows = await listRow({ base, table });
-    console.log(rows.length);
     // Mysql will not return the batched inserted rows
-    if (!isMysql(context)) {
+    if (!isMysqlData(context)) {
       if (
-        !isSqlite(context) &&
+        !isSqliteData(context) &&
         response.body.length !== rowAttributes.length &&
         rows.length !== rowAttributes.length
       ) {
@@ -1923,7 +1930,7 @@ function tableTest() {
       }
 
       // Max 10 rows will be inserted in sqlite
-      if (isSqlite(context) && rows.length !== rowAttributes.length) {
+      if (isSqliteData(context) && rows.length !== rowAttributes.length) {
         throw new Error('Wrong number of rows inserted');
       }
     } else {
@@ -1949,9 +1956,9 @@ function tableTest() {
 
     const rows = await listRow({ base, table });
     // Mysql will not return the batched inserted rows
-    if (!isMysql(context)) {
+    if (!isMysqlData(context)) {
       if (
-        !isSqlite(context) &&
+        !isSqliteData(context) &&
         response.body.length !== rowAttributes.length &&
         rows.length !== rowAttributes.length
       ) {
@@ -1959,7 +1966,7 @@ function tableTest() {
       }
 
       // Max 10 rows will be inserted in sqlite
-      if (isSqlite(context) && rows.length !== rowAttributes.length) {
+      if (isSqliteData(context) && rows.length !== rowAttributes.length) {
         console.log(response.body);
         throw new Error('Wrong number of rows inserted');
       }
@@ -1972,7 +1979,7 @@ function tableTest() {
 
   it('Bulk update', async function () {
     // todo: Since sqlite doesn't support multiple sql connections, we can't test bulk update in sqlite
-    if (isSqlite(context)) {
+    if (isSqliteData(context)) {
       return;
     }
     const table = await createTable(context, base);
@@ -2220,7 +2227,8 @@ function tableTest() {
   });
 
   it('Create list mm', async () => {
-    // todo: Foreign key has non nullable clause in sqlite sakila
+    // todo: Foreign key has non nullable clause in sqlite sakila — sakila
+    // tracks the meta dialect, so gate on the meta helper.
     if (isSqlite(context)) return;
 
     const rowId = 1;
@@ -2305,7 +2313,8 @@ function tableTest() {
   });
 
   it('Delete list hm with existing ref row id with non nullable clause', async () => {
-    // todo: Foreign key has non nullable clause in sqlite sakila
+    // todo: Foreign key has non nullable clause in sqlite/pg sakila — sakila
+    // tracks the meta dialect, so gate on the meta helpers.
     if (isSqlite(context) || isPg(context)) return;
 
     const rowId = 1;

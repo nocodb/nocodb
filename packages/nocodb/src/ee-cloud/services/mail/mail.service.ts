@@ -102,7 +102,6 @@ export class MailService extends MailServiceEE {
   ): Promise<boolean> {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
-      this.logger.error('Email Plugin not configured / active');
       return false;
     }
     if (!(await this.ensurePublicUrl(ncMeta))) return false;

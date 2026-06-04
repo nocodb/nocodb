@@ -28,88 +28,115 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Unit Tests (wait for pre-build to warm caches) ─────────────
+  # ── Unit Tests (backend-only; run independently of the UI pre-build) ──
 
   jest-unit-test:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/jest-unit-test.yml
     secrets: inherit
 
   unit-tests-sqlite:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-sqlite.yml
     secrets: inherit
     with:
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-sqlite-2:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-sqlite.yml
     secrets: inherit
     with:
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-sqlite-3:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci')))) }}
     uses: ./.github/workflows/unit-test-sqlite.yml
     secrets: inherit
     with:
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
     with:
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-2:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
     with:
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-3:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci')))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
     with:
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
     with:
       reflection: true
       test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection-2:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
     with:
       reflection: true
       test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   unit-tests-pg-reflection-3:
-    needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft))) }}
     uses: ./.github/workflows/unit-test-pg.yml
     secrets: inherit
     with:
       reflection: true
       test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
+
+  # PG meta + MSSQL data DB. Always runs on push-to-develop so post-merge
+  # regressions are caught immediately; opt-in on PRs via the `mssql` label
+  # (or `trigger-ci` / force) to keep the MSSQL container cost off PRs that
+  # don't touch the dialect.
+  unit-tests-pg-mssql:
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
+    uses: ./.github/workflows/unit-test-pg-mssql.yml
+    secrets: inherit
+    with:
+      test_set: 1
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
+
+  unit-tests-pg-mssql-2:
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
+    uses: ./.github/workflows/unit-test-pg-mssql.yml
+    secrets: inherit
+    with:
+      test_set: 2
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
+
+  unit-tests-pg-mssql-3:
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
+    uses: ./.github/workflows/unit-test-pg-mssql.yml
+    secrets: inherit
+    with:
+      test_set: 3
+      mem_log: ${{ contains(github.event.pull_request.labels.*.name, 'mem-log') }}
 
   # ── Pre-build UI (single job builds EE always, CE on develop push) ──
 
@@ -212,3 +239,34 @@ jobs:
       db: mysql
       shard: 3
       ee: false
+
+  # ── Playwright E2E: PG meta + MSSQL data, EE (3 shards) ───────────
+  # Always on push-to-develop; opt-in on PRs via the `mssql` label (or
+  # `trigger-ci` / force). Mirrors the unit-tests-pg-mssql gating so the
+  # MSSQL container cost stays off PRs that don't touch the dialect.
+  playwright-mssql-1:
+    needs: pre-build-for-ci
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mssql
+      shard: 1
+
+  playwright-mssql-2:
+    needs: pre-build-for-ci
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mssql
+      shard: 2
+
+  playwright-mssql-3:
+    needs: pre-build-for-ci
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'mssql') || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mssql
+      shard: 3

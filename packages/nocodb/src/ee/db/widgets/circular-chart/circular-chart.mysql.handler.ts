@@ -8,7 +8,7 @@ import type {
 } from 'nocodb-sdk';
 import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
-import applyAggregation from '~/db/aggregation';
+import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';

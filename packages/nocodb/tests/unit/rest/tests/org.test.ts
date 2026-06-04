@@ -40,8 +40,6 @@ function authTests() {
       .send({ email: 'a@nocodb.com' })
       .expect(200);
 
-    console.log(response.body);
-
     expect(response.body).to.have.property('invite_token').to.be.a('string');
     // todo: verify invite token
   });

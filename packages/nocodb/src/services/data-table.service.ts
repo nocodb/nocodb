@@ -11,6 +11,7 @@ import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 import { Column, Filter, Model, Source, View } from '~/models';
@@ -110,13 +111,6 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
     if (view && view.type !== ViewTypes.GRID) {
       NcError.get(context).badRequest(
         'Aggregation is only supported on grid views',
@@ -133,9 +127,12 @@ export class DataTableService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    const data = await baseModel.aggregate(listArgs, view);
-
-    return data;
+    return await DBQueryClient.get(source.type).aggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+    });
   }
 
   @TraceCommand((_ctx, p) =>
@@ -1618,87 +1615,6 @@ export class DataTableService {
     }, {});
   }
 
-  async bulkGroupBy(
-    context: NcContext,
-    param: {
-      baseId?: string;
-      modelId: string;
-      viewId?: string;
-      query: any;
-      body: any;
-      user?: any;
-    },
-  ) {
-    const { model, view } = await this.getModelAndView(context, param);
-
-    const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    let bulkFilterList = param.body;
-
-    const listArgs: any = { ...param.query };
-    try {
-      bulkFilterList = JSON.parse(bulkFilterList);
-    } catch (e) {}
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJSON);
-    } catch (e) {}
-
-    if (!bulkFilterList?.length) {
-      NcError.get(context).badRequest('Invalid bulkFilterList');
-    }
-
-    // Each column_name token must resolve to a real column on this model.
-    const allColumns = await model.getColumns(context);
-    const allowedColumnTokens = new Set<string>();
-    for (const c of allColumns) {
-      if (c.column_name) allowedColumnTokens.add(c.column_name);
-      if (c.title) allowedColumnTokens.add(c.title);
-    }
-    for (const dF of bulkFilterList as Array<{ column_name?: string }>) {
-      if (!dF?.column_name) continue;
-      for (const name of dF.column_name.split(',')) {
-        const trimmed = name.trim();
-        if (!allowedColumnTokens.has(trimmed)) {
-          NcError.get(context).fieldNotFound(trimmed);
-        }
-      }
-    }
-
-    const [data, count] = await Promise.all([
-      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
-      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
-    ]);
-
-    bulkFilterList.forEach((dF: any) => {
-      // sqlite3 returns data as string. Hence needs to be converted to json object
-      let parsedData = data[dF.alias];
-
-      if (typeof parsedData === 'string') {
-        parsedData = JSON.parse(parsedData);
-      }
-
-      let parsedCount = count[dF.alias];
-
-      if (typeof parsedCount === 'string') {
-        parsedCount = JSON.parse(parsedCount);
-      }
-
-      data[dF.alias] = new PagedResponseImpl(parsedData, {
-        ...dF,
-        count: parsedCount?.count,
-      });
-    });
-
-    return data;
-  }
-
   async bulkAggregate(
     context: NcContext,
     param: {
@@ -1712,12 +1628,6 @@ export class DataTableService {
     const { model, view } = await this.getModelAndView(context, param);
 
     const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
 
     if (view && view.type !== ViewTypes.GRID) {
       NcError.badRequest('Aggregation is only supported on grid views');
@@ -1739,7 +1649,13 @@ export class DataTableService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+    return await DBQueryClient.get(source.type).bulkAggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+      bulkFilterList,
+    });
   }
 
   async getLinkedDataList(

@@ -572,10 +572,6 @@ export default class NocoSocket {
       // The socket originally subscribed to the base eventKey
       await this.subscribeEvent(socket, eventKey);
     }
-
-    this.logger.debug(
-      `Re-subscribed ${affectedSocketIds.length} sockets for table ${tableId}`,
-    );
   }
 
   private static setupClientEventHandlers(socket: NcSocket) {

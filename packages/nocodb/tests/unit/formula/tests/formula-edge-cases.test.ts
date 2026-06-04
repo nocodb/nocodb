@@ -5,6 +5,7 @@ import { Source } from '~/models';
 import { createColumn } from '../../factory/column';
 import { createBulkRows, listRow } from '../../factory/row';
 import { initInitialModel } from '../initModel';
+import TestDbMngr from '../../TestDbMngr';
 
 function formulaEdgeCasesTests() {
   let _context;
@@ -1137,6 +1138,71 @@ function formulaEdgeCasesTests() {
         expect(row.RoundPrecFormula).to.be.oneOf(
           [2.55, 2.56],
           `Expected ROUND(2.555, 2) to equal 2.55 or 2.56`,
+        );
+      }
+    });
+  });
+
+  // ============================================================
+  // URLENCODE — encodes every reserved char in the set; the expected output is
+  // identical on every dialect, so this runs unchanged on sqlite/pg/mysql/mssql.
+  // The '?' cases are the MSSQL regression guard (run live under
+  // NC_TEST_DATA_CLIENT=mssql): knex-mssql's positional→named substitution
+  // corrupts any stray '?' in the compiled SQL, so (a) the URLENCODE mapping
+  // must emit CHAR(63) for the '?' search term, and (b) the insert path must
+  // emit a '?'-containing value as CHAR(63) too (tsqlNVarcharLiteral) — else
+  // storing the value fails before the formula is ever evaluated.
+  // ============================================================
+  describe('URLENCODE special-character encoding', () => {
+    const INPUT = 'https://x.com/a b?q=1&r=2#frag';
+    const ENCODED = 'https%3A%2F%2Fx.com%2Fa%20b%3Fq%3D1%26r%3D2%23frag';
+    // A '?' inside a string *literal* only reaches the URLENCODE mapping
+    // cleanly on mssql (formulaQueryBuilderv2 rewrites it to CHAR(63)); the
+    // generic `?`-binding URLENCODE in commonFns mis-aligns bindings when the
+    // literal itself contains '?'. So the literal case is an mssql-only guard.
+    const isMssql = TestDbMngr.isMssqlDataDb();
+
+    it('encodes a column value containing ? and other reserved chars', async () => {
+      await createColumn(_context, _tables.table1, {
+        title: 'UrlCol',
+        uidt: UITypes.SingleLineText,
+      });
+
+      await createBulkRows(_context, {
+        base: _base,
+        table: _tables.table1,
+        values: [{ UrlCol: INPUT }],
+      });
+
+      await createColumn(_context, _tables.table1, {
+        title: 'UrlEncFormula',
+        uidt: UITypes.Formula,
+        formula: 'URLENCODE({UrlCol})',
+        formula_raw: 'URLENCODE({UrlCol})',
+      });
+
+      const rows = await listRow({ base: _base, table: _tables.table1 });
+      const row = rows.find((r: any) => r.UrlCol === INPUT)!;
+      expect(row.UrlEncFormula).to.eq(
+        ENCODED,
+        `Expected URLENCODE({UrlCol}) to encode reserved chars including '?'`,
+      );
+    });
+
+    (isMssql ? it : it.skip)("encodes a string literal containing '?' (mssql ? placeholder regression)", async () => {
+      await createColumn(_context, _tables.table1, {
+        title: 'UrlEncLiteral',
+        uidt: UITypes.Formula,
+        formula: `URLENCODE("${INPUT}")`,
+        formula_raw: `URLENCODE("${INPUT}")`,
+      });
+
+      const rows = await listRow({ base: _base, table: _tables.table1 });
+      expect(rows.length).to.be.greaterThan(0);
+      for (const row of rows) {
+        expect(row.UrlEncLiteral).to.eq(
+          ENCODED,
+          `Expected URLENCODE("${INPUT}") to encode reserved chars including '?'`,
         );
       }
     });

@@ -52,6 +52,12 @@ export interface RoundTripSpec<F = Record<string, any>> {
   forwardIsDelete?: boolean;
   /** Suppress the entity_id equality check (bulk ops record `null`). */
   expectNullEntityId?: boolean;
+  /**
+   * Skip this spec entirely when the predicate returns true. Use for ops
+   * gated on the data-DB dialect (e.g. list view is pg-only) so the test
+   * doesn't fail on MSSQL data DB runs with a "feature not supported" 400.
+   */
+  skipIf?: (ctx: Context, env: TestEnv) => boolean;
 }
 
 export interface TestEnv {

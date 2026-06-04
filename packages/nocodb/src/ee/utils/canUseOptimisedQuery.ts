@@ -21,6 +21,7 @@ export default async function canUseOptimisedQuery(
     (process.env.DEBUG_MYSQL_OPTIMIZED === 'true' &&
       ['mysql', 'mysql2'].includes(source.type) &&
       (await isMysqlVersionSupported(context, source))) ||
-    (['pg'].includes(source.type) && !disableOptimization)
+    (['pg'].includes(source.type) && !disableOptimization) ||
+    (source.type === 'mssql' && !disableOptimization)
   );
 }

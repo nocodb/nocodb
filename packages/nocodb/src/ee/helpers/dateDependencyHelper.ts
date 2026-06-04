@@ -20,7 +20,7 @@ export interface DateDependencyPropagationParams {
   bufferType: 'flexible' | 'fixed';
   bufferDays: number;
   seedIds: string[];
-  dialect: 'pg' | 'mysql';
+  dialect: 'pg' | 'mysql' | 'mssql';
   /** When false, all date arithmetic skips weekends (Sat/Sun). Default true. */
   includeWeekends?: boolean;
   /**
@@ -44,24 +44,39 @@ export interface DateDependencyPropagationParams {
 // ─── Business-day SQL helpers ─────────────────────────────────────────────
 //
 // Pure-formula approach (no generate_series / subqueries) so they work inside
-// the recursive member of a CTE on both PostgreSQL and MySQL 8+.
+// the recursive member of a CTE on PostgreSQL, MySQL 8+, and SQL Server 2008+.
 //
 // PG uses ISODOW (1=Mon … 7=Sun).
 // MySQL uses WEEKDAY (0=Mon … 6=Sun).
+// MSSQL uses a DATEDIFF-based ISODOW equivalent (1=Mon … 7=Sun), computed
+// against the known-Monday `'19000101'` anchor — independent of @@DATEFIRST,
+// which can vary per session/language on SQL Server. Layout in helpers
+// mirrors PG's so the same formulas apply.
+
+type DialectSpec = 'pg' | 'mysql' | 'mssql';
+
+// T-SQL ISODOW: `((DATEDIFF(DAY, '19000101', date) % 7) + 1)` — 1=Mon..7=Sun.
+// 1900-01-01 was a Monday, so the DATEDIFF gives 0 for Monday, 5 for Sat, 6 for Sun.
+const mssqlIsoDow = (dateExpr: string) =>
+  `((DATEDIFF(DAY, '19000101', ${dateExpr}) % 7) + 1)`;
 
 /**
  * Add `n` business days (Mon–Fri) to a date expression.
  *
  * Truth-table validated for all 25 (dow, n%5) weekday combinations:
- *   remainder r = n%5 (0–4), weekday dow (1–5 for PG ISODOW, 0–4 for MySQL WEEKDAY).
- *   When dow+r crosses the weekend boundary (>5 in PG, >4 in MySQL), we add 2
+ *   remainder r = n%5 (0–4), weekday dow (1–5 for PG/MSSQL ISODOW, 0–4 for MySQL WEEKDAY).
+ *   When dow+r crosses the weekend boundary (>5 in PG/MSSQL, >4 in MySQL), we add 2
  *   calendar days to skip both Sat and Sun. This is correct for both one-weekend-day
  *   crossing (dow+r=6 → lands on Sat → +2 = Mon) and two-day crossing
  *   (dow+r=7 → lands on Sun → +2 = Tue, which is correct because r already accounts
  *   for the business days before the weekend).
  */
-function addBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
-  if (isPg) {
+function addBizDaysSql(
+  dateExpr: string,
+  nExpr: string,
+  dialect: DialectSpec,
+): string {
+  if (dialect === 'pg') {
     // ISODOW: 1=Mon..5=Fri, 6=Sat, 7=Sun
     // Explicit ::int casts ensure integer division even if nExpr resolves to numeric
     const dw = `EXTRACT(ISODOW FROM (${dateExpr})::date)::int`;
@@ -72,6 +87,19 @@ function addBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
       (${dateExpr})::date + (${n} / 5) * 7 + (${n} % 5)
       + CASE WHEN ${dw} + (${n} % 5) > 5 THEN 2 ELSE 0 END
     END)::date`;
+  }
+  if (dialect === 'mssql') {
+    // T-SQL: same ISODOW shape as PG (1=Mon..7=Sun), but date arithmetic
+    // goes through `DATEADD`. Integer division (`/`) and modulo (`%`)
+    // behave identically when both operands are int.
+    const dw = mssqlIsoDow(dateExpr);
+    const n = `(${nExpr})`;
+    return `CAST(CASE WHEN ${dw} >= 6 THEN
+      DATEADD(DAY, (8 - ${dw}) + (${n} / 5) * 7 + (${n} % 5), ${dateExpr})
+    ELSE
+      DATEADD(DAY, (${n} / 5) * 7 + (${n} % 5)
+        + CASE WHEN ${dw} + (${n} % 5) > 5 THEN 2 ELSE 0 END, ${dateExpr})
+    END AS DATE)`;
   }
   // MySQL WEEKDAY: 0=Mon..4=Fri, 5=Sat, 6=Sun
   // MySQL DIV/MOD are always integer operations — no cast needed
@@ -86,8 +114,12 @@ function addBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
 }
 
 /** Subtract `n` business days from a date expression. */
-function subBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
-  if (isPg) {
+function subBizDaysSql(
+  dateExpr: string,
+  nExpr: string,
+  dialect: DialectSpec,
+): string {
+  if (dialect === 'pg') {
     const dw = `EXTRACT(ISODOW FROM (${dateExpr})::date)::int`;
     const n = `(${nExpr})::int`;
     return `(CASE WHEN ${dw} >= 6 THEN
@@ -96,6 +128,16 @@ function subBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
       (${dateExpr})::date - (${n} / 5) * 7 - (${n} % 5)
       - CASE WHEN ${dw} - (${n} % 5) < 1 THEN 2 ELSE 0 END
     END)::date`;
+  }
+  if (dialect === 'mssql') {
+    const dw = mssqlIsoDow(dateExpr);
+    const n = `(${nExpr})`;
+    return `CAST(CASE WHEN ${dw} >= 6 THEN
+      DATEADD(DAY, -((${dw} - 5) + (${n} / 5) * 7 + (${n} % 5)), ${dateExpr})
+    ELSE
+      DATEADD(DAY, -((${n} / 5) * 7 + (${n} % 5)
+        + CASE WHEN ${dw} - (${n} % 5) < 1 THEN 2 ELSE 0 END), ${dateExpr})
+    END AS DATE)`;
   }
   const dw = `WEEKDAY(${dateExpr})`;
   return `CAST(CASE WHEN ${dw} >= 5 THEN
@@ -112,13 +154,19 @@ function subBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
  * If the date is already Mon–Fri it is returned unchanged.
  * Used to sanitize inputs to bizDaysBetweenSql which assumes weekday dates.
  */
-function snapToWeekdaySql(dateExpr: string, isPg: boolean): string {
-  if (isPg) {
+function snapToWeekdaySql(dateExpr: string, dialect: DialectSpec): string {
+  if (dialect === 'pg') {
     // ISODOW: 6=Sat, 7=Sun — snap Sat→Fri (-1), Sun→Fri (-2)
     const dw = `EXTRACT(ISODOW FROM (${dateExpr})::date)::int`;
     return `(CASE WHEN ${dw} = 6 THEN (${dateExpr})::date - 1
                  WHEN ${dw} = 7 THEN (${dateExpr})::date - 2
                  ELSE (${dateExpr})::date END)`;
+  }
+  if (dialect === 'mssql') {
+    const dw = mssqlIsoDow(dateExpr);
+    return `(CASE WHEN ${dw} = 6 THEN DATEADD(DAY, -1, ${dateExpr})
+                 WHEN ${dw} = 7 THEN DATEADD(DAY, -2, ${dateExpr})
+                 ELSE CAST(${dateExpr} AS DATE) END)`;
   }
   // WEEKDAY: 5=Sat, 6=Sun
   const dw = `WEEKDAY(${dateExpr})`;
@@ -139,14 +187,39 @@ function snapToWeekdaySql(dateExpr: string, isPg: boolean): string {
  * combinations. The ::int cast on the PG result ensures addBizDaysSql receives
  * an integer operand for its / and % operators.
  */
-function bizDaysBetweenSql(d1: string, d2: string, isPg: boolean): string {
+function bizDaysBetweenSql(
+  d1: string,
+  d2: string,
+  dialect: DialectSpec,
+): string {
   // Snap both dates to weekdays so the formula's weekday assumption holds
-  const sd1 = snapToWeekdaySql(d1, isPg);
-  const sd2 = snapToWeekdaySql(d2, isPg);
-  if (isPg) {
+  const sd1 = snapToWeekdaySql(d1, dialect);
+  const sd2 = snapToWeekdaySql(d2, dialect);
+  if (dialect === 'pg') {
     const diff = `(${sd2} - ${sd1})`;
     const dw = `EXTRACT(ISODOW FROM ${sd1})::int`;
     return `(${diff} - FLOOR((${diff} + ${dw} - 1)::numeric / 7) - FLOOR((${diff} + ${dw})::numeric / 7))::int`;
+  }
+  if (dialect === 'mssql') {
+    // T-SQL `DATEDIFF(DAY, d1, d2)` returns the same integer-day diff
+    // as MySQL's two-arg `DATEDIFF(d2, d1)`. ISODOW shape matches PG.
+    //
+    // Bare `/` would diverge from pg's `FLOOR(...::numeric / 7)` for negative
+    // operands — T-SQL `/` truncates toward zero while FLOOR rounds toward
+    // negative infinity. For diff=-3, dw=1: pg yields -1 (one biz-day back),
+    // T-SQL `/` yields -3 (broken). Route through `FLOOR(1.0 * x / 7)` so
+    // the formula stays a true inverse of `addBizDaysSql`/`subBizDaysSql`
+    // across negative diffs (callers shouldn't pass them today, but the
+    // function's contract says it computes the signed distance — keep that
+    // contract honest).
+    const diff = `DATEDIFF(DAY, ${sd1}, ${sd2})`;
+    const dw = mssqlIsoDow(sd1);
+    return (
+      `CAST(${diff}` +
+      ` - CAST(FLOOR(1.0 * (${diff} + ${dw} - 1) / 7) AS INT)` +
+      ` - CAST(FLOOR(1.0 * (${diff} + ${dw}) / 7) AS INT)` +
+      ` AS INT)`
+    );
   }
   const diff = `DATEDIFF(${sd2}, ${sd1})`;
   const dw = `WEEKDAY(${sd1})`;
@@ -160,7 +233,16 @@ function bizDaysBetweenSql(d1: string, d2: string, isPg: boolean): string {
  *     already-computed dates — no application-level loops needed
  *  3. Returns { id, new_start, new_end } for every row that actually changed
  *
- * Supports PostgreSQL (ARRAY path) and MySQL 8+ (string path with FIND_IN_SET).
+ * Supports:
+ *  - PostgreSQL — uses `ARRAY` for the cycle-tracking path and the `= ANY(p.path)`
+ *    containment check.
+ *  - MySQL 8+ — uses a comma-delimited string path with `FIND_IN_SET`.
+ *  - SQL Server (T-SQL, 2008+) — uses a comma-delimited string path with
+ *    `CHARINDEX(',' + id + ',', ',' + path + ',') = 0` for cycle detection.
+ *    Recursive CTE syntax is `WITH cte AS (anchor UNION ALL recursive)` — no
+ *    `RECURSIVE` keyword. `OPTION (MAXRECURSION 0)` is appended to the final
+ *    SELECT to lift T-SQL's default 100-level recursion cap (matches pg's
+ *    unbounded recursion).
  */
 export function buildDateDependencyPropagationSQL(
   params: DateDependencyPropagationParams,
@@ -188,13 +270,22 @@ export function buildDateDependencyPropagationSQL(
   }
 
   const isPg = dialect === 'pg';
+  const isMssql = dialect === 'mssql';
   const skipWeekends = !includeWeekends;
   const isBackward = direction === 'backward';
 
-  // Quote table/column names per dialect
-  const qChar = isPg ? '"' : '`';
-  const esc = (s: string) =>
-    `${qChar}${s.replace(new RegExp(qChar, 'g'), qChar + qChar)}${qChar}`;
+  // Quote table/column names per dialect.
+  //   pg     → "name"
+  //   mysql  → `name`
+  //   mssql  → [name]   (closing-bracket inside an identifier doubles to ]])
+  const esc = (s: string) => {
+    if (isMssql) return `[${s.replace(/]/g, ']]')}]`;
+    const qChar = isPg ? '"' : '`';
+    return `${qChar}${s.replace(
+      new RegExp(qChar, 'g'),
+      qChar + qChar,
+    )}${qChar}`;
+  };
   const quotedTn = tn
     .split('.')
     .map((p) => esc(p))
@@ -220,8 +311,13 @@ export function buildDateDependencyPropagationSQL(
   const idPlaceholders = seedIds.map(() => '?').join(', ');
 
   // Dialect-specific helpers
-  const castText = (expr: string) =>
-    isPg ? `${expr}::text` : `CAST(${expr} AS CHAR)`;
+  //   pg     → x::text          | mysql → CAST(x AS CHAR)    | mssql → CAST(x AS NVARCHAR(MAX))
+  //   pg     → (x)::date        | mysql → CAST(x AS DATE)    | mssql → CAST(x AS DATE)
+  const castText = (expr: string) => {
+    if (isPg) return `${expr}::text`;
+    if (isMssql) return `CAST(${expr} AS NVARCHAR(MAX))`;
+    return `CAST(${expr} AS CHAR)`;
+  };
   const castDate = (expr: string) =>
     isPg ? `(${expr})::date` : `CAST(${expr} AS DATE)`;
 
@@ -237,28 +333,34 @@ export function buildDateDependencyPropagationSQL(
   // falls through to the original t.start_col, newEnd = old_start + old_dur =
   // old_end, which correctly means "no change" for rows that don't need shifting.
   const dur = skipWeekends
-    ? bizDaysBetweenSql(`t.${sc}`, `t.${ec}`, isPg)
+    ? bizDaysBetweenSql(`t.${sc}`, `t.${ec}`, dialect)
     : isPg
     ? `(t.${ec}::date - t.${sc}::date)`
+    : isMssql
+    ? `DATEDIFF(DAY, t.${sc}, t.${ec})`
     : `DATEDIFF(t.${ec}, t.${sc})`;
 
   // Add N days (calendar or business) to a date → date
   const addN = (base: string, n: string): string =>
     skipWeekends
-      ? addBizDaysSql(base, n, isPg)
+      ? addBizDaysSql(base, n, dialect)
       : castDate(
           isPg
             ? `(${base})::date + (${n})`
+            : isMssql
+            ? `DATEADD(DAY, (${n}), ${base})`
             : `DATE_ADD(${base}, INTERVAL (${n}) DAY)`,
         );
 
   // Subtract N days (calendar or business) from a date → date
   const subN = (base: string, n: string): string =>
     skipWeekends
-      ? subBizDaysSql(base, n, isPg)
+      ? subBizDaysSql(base, n, dialect)
       : castDate(
           isPg
             ? `(${base})::date - (${n})`
+            : isMssql
+            ? `DATEADD(DAY, -(${n}), ${base})`
             : `DATE_SUB(${base}, INTERVAL (${n}) DAY)`,
         );
 
@@ -414,8 +516,14 @@ export function buildDateDependencyPropagationSQL(
   const recursivePath = isPg
     ? `p.path || ${compositeId('t')}`
     : `CONCAT(p.path, ',', ${compositeId('t')})`;
+  // Cycle-check: pg uses array containment, mysql uses FIND_IN_SET, mssql
+  // has neither — wrap both sides in `,` separators so a comma-delimited
+  // CHARINDEX hit means the id is already in the path. T-SQL `CHARINDEX`
+  // returns 0 when the substring isn't found.
   const cycleCheck = isPg
     ? `NOT (${compositeId('t')} = ANY(p.path))`
+    : isMssql
+    ? `CHARINDEX(',' + ${compositeId('t')} + ',', ',' + p.path + ',') = 0`
     : `NOT FIND_IN_SET(${compositeId('t')}, p.path)`;
 
   // Backward propagation needs FK value in CTE to walk up the parent chain.
@@ -489,14 +597,28 @@ export function buildDateDependencyPropagationSQL(
   ) ranked WHERE rn = 1`;
 
   // Changed-row filter
-  // PG:    IS DISTINCT FROM (null-safe inequality)
-  // MySQL: NOT <=> (null-safe equality operator, negated)
+  //   PG:    IS DISTINCT FROM (null-safe inequality)
+  //   MySQL: NOT <=> (null-safe equality operator, negated)
+  //   MSSQL: neither — expand each pair into the three-case form:
+  //          (a != b) OR (a NULL ∧ b NOT NULL) OR (a NOT NULL ∧ b NULL)
+  const distinctMssql = (a: string, b: string) =>
+    `((${a} <> ${b}) OR (${a} IS NULL AND ${b} IS NOT NULL) OR (${a} IS NOT NULL AND ${b} IS NULL))`;
   const changedFilter = isPg
     ? `old_start IS DISTINCT FROM new_start OR old_end IS DISTINCT FROM new_end`
+    : isMssql
+    ? `${distinctMssql('old_start', 'new_start')} OR ${distinctMssql(
+        'old_end',
+        'new_end',
+      )}`
     : `NOT (old_start <=> new_start) OR NOT (old_end <=> new_end)`;
 
+  // T-SQL recursive CTEs use just `WITH cte (cols) AS (...)` — the
+  // `RECURSIVE` keyword is invalid; recursion is detected automatically
+  // when the CTE references itself in the second leg of the UNION ALL.
+  const withKeyword = isMssql ? 'WITH' : 'WITH RECURSIVE';
+
   const sql = `
-WITH RECURSIVE propagated(${cteColumns}) AS (
+${withKeyword} propagated(${cteColumns}) AS (
   SELECT
     ${castText(`t.${pk}`)}${anchorFkVal},
     t.${sc},
@@ -529,7 +651,7 @@ deduped AS (
 )
 SELECT id${extraPkOuterPrefix}, new_start, new_end
 FROM deduped
-WHERE ${changedFilter}`.trim();
+WHERE ${changedFilter}${isMssql ? '\nOPTION (MAXRECURSION 0)' : ''}`.trim();
 
   return { sql, bindings: [...seedIds] };
 }

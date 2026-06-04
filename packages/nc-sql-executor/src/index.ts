@@ -154,6 +154,10 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
     return (
       await kn.raw(query).timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client))
     )?.rows;
+  } else if (client === 'mssql') {
+    return await kn
+      .raw(query)
+      .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
   } else if (isSelect) {
     // Wrap select queries (some dialects require this)
     return await kn

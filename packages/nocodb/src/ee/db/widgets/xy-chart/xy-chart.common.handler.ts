@@ -5,6 +5,7 @@ import {
   ncIsNumber,
   UITypes,
 } from 'nocodb-sdk';
+import { validateAggregationColType } from 'nocodb-sdk';
 import type {
   BarChartConfig,
   ChartWidgetType,
@@ -21,8 +22,7 @@ import {
   type WidgetDependencies,
 } from '~/db/widgets/base-widget.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
-import { validateAggregationColType } from '~/db/aggregation';
-import applyAggregation from '~/db/aggregation';
+import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
@@ -190,10 +190,8 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
 
       if (
         !validateAggregationColType(
-          context,
           yAxisColumn,
           field.aggregation as unknown as string,
-          false,
         )
       ) {
         addError(

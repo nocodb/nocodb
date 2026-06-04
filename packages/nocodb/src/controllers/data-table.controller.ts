@@ -146,23 +146,6 @@ export class DataTableController {
     });
   }
 
-  @Post(['/api/v2/tables/:modelId/bulk/group'])
-  @Acl('dataGroupBy')
-  async bulkGroupBy(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
-  ) {
-    return await this.dataTableService.bulkGroupBy(context, {
-      query: req.query,
-      modelId,
-      viewId,
-      body: req.body,
-      user: req.user,
-    });
-  }
-
   @Post(['/api/v2/tables/:modelId/bulk/datalist'])
   @Acl('dataList')
   async bulkDataList(

@@ -5,6 +5,12 @@ import net from 'net';
 let openIDChildProcess: ChildProcess;
 let samlChildProcess: ChildProcess;
 
+// Flip to true to echo the SAML/OIDC IdP child-process output (verbose SAML XML
+// dumps, oidc-provider WARNING/NOTICE lines) while debugging SSO locally.
+// Kept off in CI to avoid flooding the test log. Real startup failures are still
+// surfaced via the promise reject path and the startup timeout.
+const debugLog = false;
+
 /**
  * Kill any process listening on the given port.
  * Uses lsof (macOS/Linux) — more reliable than matching by process name,
@@ -74,20 +80,21 @@ export const startOpenIDIdp = async (env = {}) => {
 
       openIDChildProcess.stdout.on('data', function (data) {
         const log = data.toString();
-        console.log(log);
+        if (debugLog) console.log(log);
         if (log.includes('oidc-provider listening on port 4000')) resolve(null);
       });
 
       openIDChildProcess.stderr.on('data', function (data) {
         const log = data.toString();
-        console.log(log);
+        if (debugLog) console.log(log);
 
-        // skip warning logs (npm warn, debugger, deprecation warnings, etc.)
+        // skip non-fatal logs (npm warn, debugger, deprecation/notice messages, etc.)
         const lowerCaseLog = log.toLowerCase();
         if (
           lowerCaseLog.includes('npm') ||
           lowerCaseLog.includes('debugger') ||
           lowerCaseLog.includes('warn') ||
+          lowerCaseLog.includes('notice') ||
           lowerCaseLog.includes('deprecat')
         )
           return;
@@ -133,20 +140,21 @@ export const startSAMLIdp = async (env = {}) => {
 
       samlChildProcess.stdout.on('data', function (data) {
         const log = data.toString();
-        console.log(log);
+        if (debugLog) console.log(log);
         if (log.includes('IdP server ready at')) resolve(null);
       });
 
       samlChildProcess.stderr.on('data', function (data) {
         const log = data.toString();
-        console.log(log);
+        if (debugLog) console.log(log);
 
-        // skip warning logs (npm warn, debugger, deprecation warnings, etc.)
+        // skip non-fatal logs (npm warn, debugger, deprecation/notice messages, etc.)
         const lowerCaseLog = log.toLowerCase();
         if (
           lowerCaseLog.includes('npm') ||
           lowerCaseLog.includes('debugger') ||
           lowerCaseLog.includes('warn') ||
+          lowerCaseLog.includes('notice') ||
           lowerCaseLog.includes('deprecat')
         )
           return;

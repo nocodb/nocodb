@@ -129,12 +129,16 @@ export default async function () {
 
     const mem = process.memoryUsage();
     const mb = (n: number) => Math.round(n / 1024 / 1024);
-    const ts = new Date().toISOString();
-    console.log(
-      `[cleanupMeta ${ts}] heap=${mb(mem.heapUsed)}/${mb(mem.heapTotal)} MB ` +
-        `rss=${mb(mem.rss)} MB external=${mb(mem.external)} MB ` +
-        `arrayBuffers=${mb(mem.arrayBuffers)} MB`,
-    );
+    // Heap line is opt-in: set NC_TEST_MEM_LOG=1 when investigating OOM/leaks.
+    // Snapshot writer below has its own NC_TEST_HEAP_SNAPSHOT gate.
+    if (process.env.NC_TEST_MEM_LOG) {
+      const ts = new Date().toISOString();
+      console.log(
+        `[cleanupMeta ${ts}] heap=${mb(mem.heapUsed)}/${mb(mem.heapTotal)} MB ` +
+          `rss=${mb(mem.rss)} MB external=${mb(mem.external)} MB ` +
+          `arrayBuffers=${mb(mem.arrayBuffers)} MB`,
+      );
+    }
     maybeWriteHeapSnapshot(mb(mem.heapUsed));
   } catch (e) {
     console.error('cleanupMeta', e);

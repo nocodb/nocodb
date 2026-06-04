@@ -6,9 +6,11 @@ import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
 import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-chart.pg.handler';
 import { CircularChartMysqlHandler } from '~/db/widgets/circular-chart/circular-chart.mysql.handler';
+import { CircularChartMssqlHandler } from '~/db/widgets/circular-chart/circular-chart.mssql.handler';
 import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
 import { XyChartPgHandler } from '~/db/widgets/xy-chart/xy-chart.pg.handler';
 import { XyChartMysqlHandler } from '~/db/widgets/xy-chart/xy-chart.mysql.handler';
+import { XyChartMssqlHandler } from '~/db/widgets/xy-chart/xy-chart.mssql.handler';
 import { XyChartCommonHandler } from '~/db/widgets/xy-chart/xy-chart.common.handler';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
@@ -44,6 +46,8 @@ export async function getWidgetHandler(
             return new CircularChartPgHandler();
           } else if (['mysql', 'mysql2'].includes(source?.type)) {
             return new CircularChartMysqlHandler();
+          } else if (source?.type === 'mssql') {
+            return new CircularChartMssqlHandler();
           }
           return new CircularChartCommonHandler();
         case ChartTypes.BAR:
@@ -53,6 +57,8 @@ export async function getWidgetHandler(
             return new XyChartPgHandler();
           } else if (['mysql', 'mysql2'].includes(source?.type)) {
             return new XyChartMysqlHandler();
+          } else if (source?.type === 'mssql') {
+            return new XyChartMssqlHandler();
           }
           return new XyChartCommonHandler();
         default:

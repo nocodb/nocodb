@@ -228,6 +228,9 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
@@ -993,6 +996,9 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
@@ -1109,6 +1115,7 @@ export class TablesService {
           {
             is_meta: !!source.is_meta,
             is_local: !!source.is_local,
+            type: source.type,
           },
           cdfValue as unknown as string,
         );

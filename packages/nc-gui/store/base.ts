@@ -118,6 +118,10 @@ export const useBase = defineStore('baseStore', () => {
     return getBaseType(sourceId) === 'pg'
   }
 
+  function isMssql(sourceId?: string) {
+    return getBaseType(sourceId) === ClientType.MSSQL
+  }
+
   function isSnowflake(sourceId?: string) {
     return getBaseType(sourceId) === 'snowflake'
   }
@@ -328,6 +332,7 @@ export const useBase = defineStore('baseStore', () => {
     loadTables,
     isMysql,
     isPg,
+    isMssql,
     isSqlite,
     isSnowflake,
     isDatabricks,

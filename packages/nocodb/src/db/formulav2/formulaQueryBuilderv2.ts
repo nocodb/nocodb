@@ -12,8 +12,6 @@ import {
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
-import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -30,6 +28,7 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { DBQueryClient } from '~/dbQueryClient';
 import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -251,17 +250,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const columnName = await getColumnName(context, col, columns);
 
             // create nested replace statement for each user
-            if (knex.clientType() === 'pg') {
-              finalStatement = `(${replaceDelimitedWithKeyValuePg({
-                knex,
-                needleColumn: columnName,
-                stack: baseUsers.map((user) => ({
-                  key: user.id,
-                  value: `${user.email}`,
-                })),
-              })})`;
-            } else if (knex.clientType() === 'sqlite3') {
-              finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            if (knex.clientType() === 'pg' || knex.clientType() === 'sqlite3') {
+              finalStatement = `(${DBQueryClient.get(
+                knex.clientType() as ClientType,
+              ).replaceDelimitedWithKeyValue({
                 knex,
                 needleColumn: columnName,
                 stack: baseUsers.map((user) => ({
@@ -307,6 +299,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(`json_extract(??, '$.value')`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          } else if (knex.clientType() === 'mssql') {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
                   col.column_name,
                 ]),
               };
@@ -380,6 +380,39 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
       });
     } else if (pt.type === 'Literal') {
+      // MSSQL workaround: inline string literals directly instead of going
+      // through knex bindings. knex-mssql's positional-to-named substitution
+      // does a naive `sql.replace(/\?/g, '@pN')` that DOES NOT track
+      // string-literal context — so a `?` inside a user's literal (e.g. a
+      // URL like `https://x.com/?q=1`) gets corrupted to `@p0`.
+      //
+      // Inlining with the standard `N'...'` SQL Server literal isn't enough:
+      // the formula composer (parsed-tree-builder) further runs
+      // `.replace(/\?/g, '\\?')` on the composed expression to escape any
+      // surviving `?` placeholders, but knex then strips that backslash and
+      // hands a plain `?` to the dialect adapter — which mangles it again.
+      //
+      // The robust workaround: emit ZERO `?` characters in the resulting
+      // SQL by splitting on `?` and re-composing the literal via
+      // `CHAR(63)` (T-SQL for `?`). Empty fragments and trailing `?`s are
+      // handled naturally by `CONCAT`.
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'string') {
+        const escapeSingles = (s: string) => s.replace(/'/g, "''");
+        const v = pt.value;
+        if (v.includes('?')) {
+          const parts = v.split('?');
+          const sqlArgs: string[] = [];
+          for (let i = 0; i < parts.length; i++) {
+            if (i > 0) sqlArgs.push('CHAR(63)');
+            sqlArgs.push(`N'${escapeSingles(parts[i])}'`);
+          }
+          return { builder: knex.raw(`CONCAT(${sqlArgs.join(', ')})`) };
+        }
+        return { builder: knex.raw(`N'${escapeSingles(v)}'`) };
+      }
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'boolean') {
+        return { builder: knex.raw(pt.value ? '1' : '0') };
+      }
       return { builder: knex.raw(`?`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } =

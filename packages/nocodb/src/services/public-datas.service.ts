@@ -6,10 +6,11 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import type { NcRequest } from 'nocodb-sdk';
+import type { ClientType, NcRequest } from 'nocodb-sdk';
 import type { GridViewColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
+import { DBQueryClient } from '~/dbQueryClient';
 import { nocoExecute } from '~/utils';
 import {
   Base,
@@ -627,13 +628,6 @@ export class PublicDatasService {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
     const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
 
     const listArgs: any = { ...param.query };
@@ -655,7 +649,9 @@ export class PublicDatasService {
       );
     }
 
-    return await baseModel.aggregate(listArgs, view);
+    return await DBQueryClient.get(
+      source.type as unknown as ClientType,
+    ).aggregate(context, { model, view, source, args: listArgs });
   }
 
   // todo: Handle the error case where view doesnt belong to model
@@ -1528,110 +1524,6 @@ export class PublicDatasService {
     return dataListResults;
   }
 
-  async bulkGroupBy(
-    context: NcContext,
-    param: {
-      sharedViewUuid: string;
-      password?: string;
-      query: any;
-      body: any;
-    },
-  ) {
-    const view = await View.getByUUID(context, param.sharedViewUuid);
-
-    if (!view) NcError.viewNotFound(param.sharedViewUuid);
-
-    const base = await Base.get(context, view.base_id);
-
-    this.publicMetasService.checkViewBaseType(view, base);
-    if (!(await View.verifyPassword(view, param.password))) {
-      return NcError.invalidSharedViewPassword();
-    }
-
-    const model = await Model.getByIdOrName(context, {
-      id: view?.fk_model_id,
-    });
-
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
-    // Validate column_name in query-level args
-    if (param.query?.column_name) {
-      this.validateGroupByColumnNames(
-        context,
-        param.query.column_name,
-        visibleInfo,
-      );
-    }
-
-    const source = await Source.get(context, model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
-    const listArgs: any = { ...param.query };
-
-    let bulkFilterList = param.body;
-
-    try {
-      bulkFilterList = JSON.parse(bulkFilterList);
-    } catch (e) {}
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
-
-    // Validate column_name in each bulk filter entry
-    if (ncIsArray(bulkFilterList)) {
-      for (const entry of bulkFilterList) {
-        if (entry?.column_name) {
-          this.validateGroupByColumnNames(
-            context,
-            entry.column_name,
-            visibleInfo,
-          );
-        }
-        this.sanitizeListArgsForPublicView(context, entry, visibleInfo);
-      }
-    }
-
-    if (!bulkFilterList?.length) {
-      NcError.badRequest('Invalid bulkFilterList');
-    }
-
-    const [data, count] = await Promise.all([
-      baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
-      baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),
-    ]);
-
-    bulkFilterList.forEach((dF: any) => {
-      // sqlite3 returns data as string. Hence needs to be converted to json object
-      let parsedData = data[dF.alias];
-
-      if (typeof parsedData === 'string') {
-        parsedData = JSON.parse(parsedData);
-      }
-
-      let parsedCount = count[dF.alias];
-
-      if (typeof parsedCount === 'string') {
-        parsedCount = JSON.parse(parsedCount);
-      }
-
-      data[dF.alias] = new PagedResponseImpl(parsedData, {
-        ...dF,
-        count: parsedCount?.count,
-      });
-    });
-
-    return data;
-  }
-
   async bulkAggregate(
     context: NcContext,
     param: {
@@ -1697,14 +1589,14 @@ export class PublicDatasService {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
+    return await DBQueryClient.get(
+      source.type as unknown as ClientType,
+    ).bulkAggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+      bulkFilterList,
     });
-
-    const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
-
-    return data;
   }
 }

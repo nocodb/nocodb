@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import nocobuild from '~/nocobuild';
 // import { Noco } from '~/lib';
-import { createUser } from '../factory/user';
+import { createUser } from '~test/factory/user';
 import cleanupMeta from './cleanupMeta';
 import { cleanUpSakila, resetAndSeedSakila } from './cleanupSakila';
 import type { Base } from '~/models';
@@ -76,6 +76,7 @@ export default async function init(
 
   if (isFirstTimeRun()) {
     await resetAndSeedSakila();
+    await TestDbMngr.setupDataDb();
     const serverInitResult = await serverInit();
     server = serverInitResult.serverInstance;
     nestApp = serverInitResult.nestApp;
@@ -86,6 +87,7 @@ export default async function init(
     await cleanUpSakila(forceReset);
   }
   await cleanupMeta();
+  await TestDbMngr.cleanupDataDb();
 
   const { token, user } = await createUser({ app: server }, { roles });
 
@@ -121,6 +123,16 @@ export default async function init(
       .expect(200)
   ).body.token;
 
+  // `dbConfig` describes the meta DB. `dataDbConfig` describes the user-data
+  // DB — equal to `dbConfig` in the standard setup, distinct when
+  // `NC_TEST_DATA_CLIENT=mssql` (pg meta + mssql data). Tests that gate on
+  // dialect should use `isMssqlData(context)` / `isPgData(context)` from
+  // `init/db.ts` to read this — `isPg(context)` etc. inspect the META client
+  // only and silently mis-route on mixed-dialect runs.
+  const dataDbConfig = TestDbMngr.isMssqlDataDb()
+    ? TestDbMngr.getMssqlDataDbConfig()
+    : TestDbMngr.dbConfig;
+
   return {
     app: server,
     nestApp,
@@ -128,6 +140,7 @@ export default async function init(
     xc_token,
     user,
     dbConfig: TestDbMngr.dbConfig,
+    dataDbConfig,
     sakilaDbConfig: TestDbMngr.getSakilaDbConfig(),
     ...extra,
   };

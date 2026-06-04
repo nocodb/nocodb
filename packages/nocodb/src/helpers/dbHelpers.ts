@@ -438,6 +438,18 @@ export function getAs(column: Column) {
   return column.asId || column.id;
 }
 
+/**
+ * Cache-key builder for display-value lookups.
+ * Composite-key ids contain `_` and may collide once mapped to a single
+ * string; callers are responsible for using `set()` carefully so the first
+ * value isn't silently overwritten.
+ */
+export const displayValueMapKey = (props: {
+  model: Model;
+  id: any;
+  displayColumn?: Column;
+}): string => `${props.model.id}:${props.id}:${props.displayColumn?.id ?? ''}`;
+
 export function replaceDynamicFieldWithValue(
   _row: any,
   _rowId,
@@ -561,8 +573,11 @@ export async function getAliasedSoftDeleteFilter(
   if (!source.isMeta()) return null;
 
   const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
+  const notDeletedSql = boolSqlLiteral(baseModel, false);
   return function () {
-    this.whereNull(qualifiedName).orWhereRaw(`?? = false`, [qualifiedName]);
+    this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
+      qualifiedName,
+    ]);
   };
 }
 
@@ -872,6 +887,79 @@ export function generateRecursiveCTE(_params: {
   qb: Knex.QueryBuilder;
 }) {
   return false;
+}
+
+/**
+ * Anything that lets us detect the underlying knex dialect: a Knex /
+ * Knex.QueryBuilder / Knex.Raw exposes `.client.config.client`, while
+ * `BaseModelSqlv2`-like objects expose `.isMssql` directly (and the
+ * driver via `.dbDriver`).
+ */
+export type DialectAware =
+  | { isMssql: boolean }
+  | { dbDriver: { client: { config: { client?: unknown } } } }
+  | { client: { config: { client?: unknown } } };
+
+/**
+ * Returns the dialect-correct value for a `bit`/`boolean` column
+ * comparison or write — used by every soft-delete (`__nc_deleted`)
+ * code path.
+ *
+ * MSSQL `bit` columns can't compare against or accept the bare T-SQL
+ * identifiers `true` / `false` that knex inlines for JS booleans
+ * ("Invalid column name 'true'" / `'false'`). Use 1/0 instead.
+ *
+ * PG `boolean` columns reject `boolean = integer` — pg needs the real
+ * boolean literal. MySQL `tinyint(1)` and SQLite numeric-bool tolerate
+ * both; we keep them on `true`/`false` for consistency.
+ */
+export function deletedColValue(
+  knexOrModel: DialectAware,
+  isDeleted: boolean,
+): boolean | number {
+  const m = knexOrModel as Partial<{
+    isMssql: boolean;
+    dbDriver: { client: { config: { client?: unknown } } };
+    client: { config: { client?: unknown } };
+  }>;
+  const isMssql =
+    typeof m.isMssql === 'boolean'
+      ? m.isMssql
+      : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
+        'mssql';
+  return isMssql ? (isDeleted ? 1 : 0) : isDeleted;
+}
+
+/**
+ * Dialect-aware SQL literal text for a boolean. Use this when the value must
+ * be inlined into a `whereRaw` / `orWhereRaw` / `raw` string (i.e. it MUST
+ * NOT become a `?` binding placeholder, otherwise it collides with other
+ * `?` placeholders in the same fragment — see the comment on
+ * `getAliasedSoftDeleteFilter` for the rollup/formula failure mode).
+ *
+ *  - MSSQL: `bit` has no boolean literal — use `0` / `1`.
+ *  - PG / MySQL / SQLite: `false` / `true` works.
+ *
+ * Primary user is the soft-delete (`__nc_deleted`) family of queries, but
+ * any code path inlining a bool into a `raw` template can use this — e.g.
+ * `COALESCE(??, ${boolSqlLiteral(baseModel, false)})` on Checkbox.
+ */
+export function boolSqlLiteral(
+  knexOrModel: DialectAware,
+  value: boolean,
+): string {
+  const m = knexOrModel as Partial<{
+    isMssql: boolean;
+    dbDriver: { client: { config: { client?: unknown } } };
+    client: { config: { client?: unknown } };
+  }>;
+  const isMssql =
+    typeof m.isMssql === 'boolean'
+      ? m.isMssql
+      : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
+        'mssql';
+  if (isMssql) return value ? '1' : '0';
+  return value ? 'true' : 'false';
 }
 
 export const dataWrapper = (data: any) => {

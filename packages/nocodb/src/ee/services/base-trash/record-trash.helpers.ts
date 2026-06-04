@@ -2,7 +2,11 @@ import { UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { Column, Model } from '~/models';
 import { Filter } from '~/models';
-import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  deletedColValue,
+  getCompositePkValue,
+} from '~/helpers/dbHelpers';
 import { decodeEventId, encodeEventId } from '~/ee/helpers/trashHelpers';
 import conditionV2 from '~/db/conditionV2';
 
@@ -41,6 +45,18 @@ export function parseRecordResourceId(
  * stays bounded for events of any size.
  */
 export const TRASH_BATCH_SIZE = 100;
+
+/**
+ * Format the trash event's `deletedAt` for a WHERE comparison against the
+ * row's `LastModifiedTime` column. `this.now()` stamps soft-deletes as
+ * offset-less wall-clock on MySQL/MSSQL (`'YYYY-MM-DD HH:mm:ss'`) and with a
+ * `+00:00` offset on PG/SQLite — `toISOString()` produces `'…T…Z'`, which
+ * matches none of them. Strip `T` and `Z` so the value matches what the
+ * iterator, enrich query, and empties-count query all need to see.
+ */
+export function trashLmtValue(deletedAt: Date): string {
+  return deletedAt.toISOString().replace('T', ' ').replace('Z', '');
+}
 
 /**
  * Per-row conflict discovered by the restore pre-flight. The `kind`
@@ -153,9 +169,7 @@ export function makeTrashBatchIterator(
   const primaryKeys = model.primaryKeys;
   const pkColNames = primaryKeys.map((pk) => pk.column_name);
   const pkOrderCol = primaryKeys[0].column_name;
-  const lmtValue = decoded
-    ? decoded.deletedAt.toISOString().replace('T', ' ').replace('Z', '')
-    : null;
+  const lmtValue = decoded ? trashLmtValue(decoded.deletedAt) : null;
 
   return async () => {
     if (!decoded) {
@@ -171,7 +185,7 @@ export function makeTrashBatchIterator(
 
     const qb = baseModel
       .dbDriver(baseModel.tnPath)
-      .where(deletedColumn.column_name, true)
+      .where(deletedColumn.column_name, deletedColValue(baseModel, true))
       .where(lmtCol.column_name, lmtValue)
       .orderBy(pkOrderCol)
       .limit(TRASH_BATCH_SIZE)
@@ -233,7 +247,7 @@ export async function filterRowIdsByRls(
   ).select(pkColNames);
 
   if (opts.requireDeleted !== false) {
-    qb.where(deletedColumn.column_name, true);
+    qb.where(deletedColumn.column_name, deletedColValue(baseModel, true));
   }
 
   const rlsConditions = await baseModel.getRlsConditions();

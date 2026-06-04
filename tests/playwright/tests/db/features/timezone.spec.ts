@@ -2,7 +2,17 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, PaginatedType, ProjectListType, UITypes } from 'nocodb-sdk';
-import { enableQuickRun, isEE, isMysql, isPg, isSqlite } from '../../../setup/db';
+import {
+  enableQuickRun,
+  isEE,
+  isMssqlData,
+  isMysql,
+  isMysqlData,
+  isPg,
+  isPgData,
+  isSqlite,
+  isSqliteData,
+} from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
 import config from '../../../playwright.config';
@@ -100,6 +110,15 @@ async function connectToExtDb(context: any, dbName: string, api: Api<any>) {
           useNullAsDefault: true,
         },
       },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    });
+  } else if (isMssqlData(context)) {
+    await api.source.create(context.base.id, {
+      alias: dbName,
+      type: 'mssql',
+      // searchPath defaults to the `dbo` schema for SQL Server sources.
+      config: { ...getKnexConfig({ dbName, dbType: 'mssql' }), searchPath: ['dbo'] },
       inflection_column: 'camelize',
       inflection_table: 'camelize',
     });
@@ -520,6 +539,18 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
     },
+    // MSSQL: datetime2 drops the offset (≈ PG timestamp-without-tz) and
+    // datetimeoffset preserves it (≈ PG timestamptz) → same as PG. Verify in CI.
+    mssql: {
+      DatetimeWithoutTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+      ],
+      DatetimeWithTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
+      ],
+    },
   };
 
   test.beforeEach(async ({ page }) => {
@@ -666,6 +697,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       }
     }
 
+    // DATEADD and DATETIME_DIFF are unsupported on MSSQL
+    // (see MssqlUi.getUnsupportedFnList) — skip formula verification there.
+    if (isMssqlData(context)) return;
+
     // verify display value for formula columns (formula-1, formula-2)
     // source data : ['2023-04-27 10:00', '2023-04-27 10:00']
     await verifyFormula({
@@ -804,7 +839,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     let expectedDateTimeWithoutTz = [];
     let expectedDateTimeWithTz = [];
 
-    if (isSqlite(context)) {
+    if (isSqliteData(context)) {
       expectedDateTimeWithoutTz = [
         getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+05:30'),
@@ -815,7 +850,9 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+05:30'),
         getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
-    } else if (isPg(context)) {
+    } else if (isPgData(context) || isMssqlData(context)) {
+      // MSSQL matches PG: datetime2 stores offset-less (read as UTC) and
+      // datetimeoffset is fetched in UTC, so the API values are identical.
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 10:00:00+00:00',
@@ -826,7 +863,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         '2023-04-27 04:30:00+00:00',
         getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
-    } else if (isMysql(context)) {
+    } else if (isMysqlData(context)) {
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 04:30:00+00:00',
@@ -885,6 +922,8 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
   //  - verify API response value
   //
   test('Formula, verify display value', async () => {
+    // DATEADD is unsupported on MSSQL (see MssqlUi.getUnsupportedFnList).
+    if (isMssqlData(context)) return;
     await connectToExtDb(context, 'datetimetable02', api);
     await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);

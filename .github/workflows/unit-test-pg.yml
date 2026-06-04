@@ -11,6 +11,10 @@ on:
         description: 'Enable PG data reflection (no table prefix) during test'
         required: false
         type: boolean
+      mem_log:
+        description: 'Print per-suite heap/rss after cleanupMeta (for OOM/leak investigation)'
+        required: false
+        type: boolean
   # Triggered manually
   workflow_dispatch:
     inputs:
@@ -20,6 +24,10 @@ on:
         type: string
       reflection:
         description: 'Enable PG data reflection (no table prefix) during test'
+        required: false
+        type: boolean
+      mem_log:
+        description: 'Print per-suite heap/rss after cleanupMeta (for OOM/leak investigation)'
         required: false
         type: boolean
 
@@ -91,5 +99,7 @@ jobs:
           pnpm run dev &
       - name: run unit tests
         working-directory: ./packages/nocodb
+        env:
+          NC_TEST_MEM_LOG: ${{ inputs.mem_log && '1' || '' }}
         run: |
           pnpm run test:unit:pg:ee${{ inputs.reflection && ':reflection' || '' }} --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}

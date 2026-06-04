@@ -2,12 +2,13 @@ import 'mocha';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import init from '../../../init';
-import { createProject } from '../../../factory/base';
-import { createColumn, deleteColumn } from '../../../factory/column';
-import { createTable } from '../../../factory/table';
-import { createView } from '../../../factory/view';
-import { createBulkRows, listRow } from '../../../factory/row';
+import init from '~test/init';
+import { isPgData } from '~test/init/db';
+import { createProject } from '~test/factory/base';
+import { createColumn, deleteColumn } from '~test/factory/column';
+import { createTable } from '~test/factory/table';
+import { createView } from '~test/factory/view';
+import { createBulkRows, listRow } from '~test/factory/row';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 import { Column } from '~/models';
 import type Model from '~/models/Model';
@@ -21,6 +22,13 @@ function autoNumberTests() {
 
   beforeEach(async function () {
     context = await init();
+    // AutoNumber is PostgreSQL-only — the columns service rejects creation
+    // on any other dialect at `columns.service.ts:~3937` with a 400. Skip
+    // the suite on non-PG data DBs so the rejection isn't asserted as a
+    // success in the harness.
+    if (!isPgData(context)) {
+      this.skip();
+    }
     base = await createProject(context);
     ctx = {
       workspace_id: base.fk_workspace_id,

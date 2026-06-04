@@ -1,5 +1,5 @@
 import debug from 'debug';
-import { NcApiVersion } from 'nocodb-sdk';
+import { ClientType, NcApiVersion } from 'nocodb-sdk';
 import { listQueryEnrichment } from './list-query-enrichment';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Logger } from '@nestjs/common';
@@ -9,7 +9,7 @@ import type { DBQueryClient } from '~/dbQueryClient/types';
 import { shouldSkipCache } from '~/services/data-opt/common-helpers';
 import NocoCache from '~/cache/NocoCache';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { getListArgs } from '~/db/BaseModelSqlv2';
+import { getListArgs } from '~/helpers/dbHelpers';
 import { getDataWithCountCache } from '~/dbQueryClient/cross-db-utils/get-data-with-count-cache';
 import {
   getSingleQueryCache,
@@ -211,14 +211,27 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     // including the unique placeholder for limit/offset.
     // Escape any literal ? to prevent them from being treated as bindings,
     // then replace the placeholder limit/offset with binding placeholders.
+    //
+    // pg/mysql emit `limit X offset Y` — substitute back to `limit ? offset ?`
+    // and bindings are passed in `[limit, offset]` order (see get-data-with-count-cache).
+    // mssql emits T-SQL `offset Y rows fetch next X rows only` (always with
+    // ORDER BY); substitute to `offset ? rows fetch next ? rows only` and
+    // pass bindings in `[offset, limit]` order — handled in
+    // get-data-with-count-cache by branching on knex.clientType().
     let dataQuery = finalQb.toQuery();
     if (!skipCache) {
-      dataQuery = dataQuery
-        .replace(/\?/g, '\\?')
-        .replace(
+      dataQuery = dataQuery.replace(/\?/g, '\\?');
+      if (client.clientType === ClientType.MSSQL) {
+        dataQuery = dataQuery.replace(
+          `offset ${limitOffsetPlaceholder} rows fetch next ${limitOffsetPlaceholder} rows only`,
+          'offset ? rows fetch next ? rows only',
+        );
+      } else {
+        dataQuery = dataQuery.replace(
           `limit ${limitOffsetPlaceholder} offset ${limitOffsetPlaceholder}`,
           'limit ? offset ?',
         );
+      }
     }
     profiler.log('get data without cache');
 

@@ -31,6 +31,12 @@ export function safeDateAddUnitSQL(knex: Knex, unitBuilder: any): Knex.Raw {
   return knex.raw(`CASE LOWER(?) ${branches} ELSE 'day' END`, [unitBuilder]);
 }
 
+function logicalScalarSql(knex: MapFnArgs['knex'], predicates: string): string {
+  return knex.clientType() === 'mssql'
+    ? `CASE WHEN (${predicates}) THEN 1 ELSE 0 END`
+    : `(${predicates})`;
+}
+
 async function treatArgAsConditionalExp(
   args: MapFnArgs,
   argument = args.pt?.arguments?.[0],
@@ -54,14 +60,37 @@ async function treatArgAsConditionalExp(
       condStr = `(:condArg) IS NOT NULL AND (:condArg) != ''`;
       bindings = { condArg };
       break;
-    case FormulaDataTypes.BOOLEAN:
-      condStr = `(:condArg) IS NOT NULL AND (:condArg) != false`;
+    case FormulaDataTypes.BOOLEAN: {
+      // T-SQL has no `false` literal; use 0 (matches bit columns and the
+      // 1/0 CASE materialization from the mssql binary-builder).
+      const falseLit = args.knex.clientType() === 'mssql' ? '0' : 'false';
+      condStr = `(:condArg) IS NOT NULL AND (:condArg) != ${falseLit}`;
       bindings = { condArg };
       break;
+    }
     case FormulaDataTypes.DATE:
       condStr = `(:condArg) IS NOT NULL`;
       bindings = { condArg };
       break;
+    case FormulaDataTypes.COND_EXP: {
+      // A comparison expression (`x > 0`, `a = b`, …). On MSSQL the binary
+      // builder materializes a top-level comparison into a `1/0` int (T-SQL
+      // has no boolean type), so it can't be used bare as a `CASE WHEN <int>`
+      // predicate — "An expression of non-boolean type ... near 'THEN'".
+      // Coerce it back to a boolean predicate with `<> 0`. Logical combos
+      // (AND/OR) stay native boolean predicates and pg/sqlite keep the bare
+      // comparison, both already valid in a CASE WHEN — so leave those as-is.
+      const isComparison =
+        argument?.type === 'BinaryExpression' &&
+        ['==', '=', '<', '>', '<=', '>=', '!='].includes(
+          (argument as { operator?: string }).operator,
+        );
+      if (args.knex.clientType() === 'mssql' && isComparison) {
+        condStr = `(:condArg) <> 0`;
+        bindings = { condArg };
+      }
+      break;
+    }
   }
 
   if (condStr) {
@@ -115,7 +144,8 @@ export default {
     }
 
     // helper: resolve an AST argument and wrap with a DB-specific text cast.
-    // PG: (?)::text, MySQL: CAST(? AS CHAR), SQLite: passthrough.
+    // PG: (?)::text, MySQL: CAST(? AS CHAR), MSSQL: CAST(? AS NVARCHAR(MAX)),
+    // SQLite: passthrough.
     // Returns { builder } (not a bare Raw) to avoid async-function thenable
     // unwrapping — knex.Raw implements .then() which would execute the SQL.
     const castToString = async (arg: any) => {
@@ -129,6 +159,10 @@ export default {
         client === 'maridb'
       ) {
         return { builder: args.knex.raw(`CAST(? AS CHAR)`, [builder]) };
+      } else if (client === 'mssql') {
+        return {
+          builder: args.knex.raw(`CAST(? AS NVARCHAR(MAX))`, [builder]),
+        };
       }
       return { builder };
     };
@@ -296,7 +330,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})`,
+        logicalScalarSql(args.knex, predicates),
         parsedArguments.map((k) => k.builder),
       ),
     };
@@ -315,7 +349,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})`,
+        logicalScalarSql(args.knex, predicates),
         parsedArguments.map((k) => k.builder),
       ),
     };

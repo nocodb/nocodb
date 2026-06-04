@@ -1,4 +1,4 @@
-import { type NcContext } from 'nocodb-sdk';
+import { type NcContext, isNumericCol, UITypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -11,6 +11,7 @@ import type {
   FilterOperationResult,
   FilterOptions,
   FilterVerificationResult,
+  SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import {
@@ -19,6 +20,21 @@ import {
 } from '~/db/field-handler/utils/handlerUtils';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
+
+// Empty-string comparisons (`= ''` / `!= ''`) only make sense for text-like
+// columns. Numeric / date / time columns can't be compared to '' — PG raises a
+// cast error — so `blank`/`notblank` reduce to IS NULL / IS NOT NULL for them.
+// Mirrors the type gate the legacy conditionV2 switch used.
+const isEmptyStringIncompatible = (uidt: UITypes): boolean =>
+  isNumericCol(uidt) ||
+  [
+    UITypes.Date,
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+    UITypes.Time,
+    UITypes.Checkbox,
+  ].includes(uidt);
 
 export class GenericFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
@@ -47,6 +63,23 @@ export class GenericFieldHandler
     qb.select({ [selectAlias]: selectColumn });
   }
 
+  /**
+   * Default ORDER BY: plain column name, optionally alias-qualified. Per-type
+   * overrides on subclasses handle Rollup/Formula/Lookup/User/etc. The MSSQL
+   * `text`/`ntext`/`image`/`xml` cast lives in the sortV2 orchestrator since
+   * it's keyed on `column.dt`, not `column.uidt`.
+   */
+  async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    const { alias, nulls } = options;
+    const field = alias ? `${alias}.${column.column_name}` : column.column_name;
+    qb.orderBy(sanitize(field), direction, nulls);
+  }
+
   async filter(
     knex: CustomKnex,
     filter: Filter,
@@ -67,7 +100,7 @@ export class GenericFieldHandler
 
   async handleFilter(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -101,14 +134,26 @@ export class GenericFieldHandler
         filterOperation = this.filterNlike;
         break;
 
-      case 'empty':
       case 'null':
+        filterOperation = this.filterNull;
+        break;
+
+      case 'notnull':
+        filterOperation = this.filterNotnull;
+        break;
+
+      case 'empty':
+        filterOperation = this.filterEmpty;
+        break;
+
+      case 'notempty':
+        filterOperation = this.filterNotempty;
+        break;
+
       case 'blank':
         filterOperation = this.filterBlank;
         break;
 
-      case 'notempty':
-      case 'notnull':
       case 'notblank':
         filterOperation = this.filterNotblank;
         break;
@@ -139,6 +184,13 @@ export class GenericFieldHandler
         filterOperation = this.filterLte;
         break;
 
+      case 'btw':
+        filterOperation = this.filterBtw;
+        break;
+      case 'nbtw':
+        filterOperation = this.filterNbtw;
+        break;
+
       case 'in':
         filterOperation = this.filterIn;
         break;
@@ -153,6 +205,13 @@ export class GenericFieldHandler
         break;
       case 'nanyof':
         filterOperation = this.filterNanyof;
+        break;
+
+      case 'checked':
+        filterOperation = this.filterChecked;
+        break;
+      case 'notchecked':
+        filterOperation = this.filterNotchecked;
         break;
 
       default:
@@ -173,7 +232,7 @@ export class GenericFieldHandler
   // region filter comparisons
   async filterEq(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -202,7 +261,7 @@ export class GenericFieldHandler
 
   async filterNeq(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -244,7 +303,7 @@ export class GenericFieldHandler
 
   async filterNot(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -337,7 +396,7 @@ export class GenericFieldHandler
 
   async filterBlank(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -350,13 +409,17 @@ export class GenericFieldHandler
     const { sourceField } = args;
     const { knex, column } = rootArgs;
     const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
+    // Legacy conditionV2 only added the `= ''` check for text-like columns.
+    // Numeric / date / time columns can't be compared to '' (PG raises a cast
+    // error), so for them `blank` is `IS NULL` only.
+    const skipEmptyStringCompare = isEmptyStringIncompatible(column.uidt);
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           nestedQb.whereNull(sourceField as any);
-          if (!isNativePgEnum) {
+          if (!isNativePgEnum && !skipEmptyStringCompare) {
             nestedQb.orWhere(knex.raw("?? = ''", [sourceField]));
           }
         });
@@ -364,9 +427,118 @@ export class GenericFieldHandler
     };
   }
 
+  /**
+   * `null` op — strict `IS NULL`. Matches the legacy conditionV2 behavior
+   * preserved for SingleLineText/Email/Phone/URL. Empty strings are NOT
+   * included (that's `blank`). Column-type-specific blank logic (Attachment
+   * `[]`, JSON `{}`, Formula text-cast) does NOT apply here — `null` was
+   * always plain `whereNull` regardless of column type.
+   */
+  async filterNull(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNull(sourceField as any);
+      },
+    };
+  }
+
+  /**
+   * `notnull` op — strict `IS NOT NULL`. Empty strings are included.
+   * Counterpart of `filterNull`; see that method's docstring.
+   */
+  async filterNotnull(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNotNull(sourceField as any);
+      },
+    };
+  }
+
+  /**
+   * `empty` op — strict `= ''`. NULLs are NOT included (that's `blank`).
+   * The legacy conditionV2 path emits `qb.where(field, '')` for every
+   * column type unconditionally; we replicate that here. If a numeric or
+   * date column is filtered with `empty`, the resulting SQL will surface
+   * the same dialect-level type error it did before the refactor.
+   */
+  async filterEmpty(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where(sourceField as any, '');
+      },
+    };
+  }
+
+  /**
+   * `notempty` op — `<> ''` OR `IS NULL`. NULLs are included; only the
+   * empty string is excluded.
+   */
+  async filterNotempty(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          nestedQb.whereNot(sourceField as any, '');
+          nestedQb.orWhereNull(sourceField as any);
+        });
+      },
+    };
+  }
+
   async filterNotblank(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -379,14 +551,19 @@ export class GenericFieldHandler
     const { sourceField } = args;
     const { knex, column } = rootArgs;
     const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
+    // Legacy conditionV2 used `whereNotNull().whereNot(field, '')` — an AND, and
+    // the `!= ''` was only added for text-like columns. The migration changed it
+    // to `orWhere` (which wrongly includes empty strings, since '' IS NOT NULL)
+    // and dropped the type gate (so numeric/date/time hit a '' cast error).
+    const skipEmptyStringCompare = isEmptyStringIncompatible(column.uidt);
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           nestedQb.whereNotNull(sourceField as any);
-          if (!isNativePgEnum) {
-            nestedQb.orWhere(knex.raw("?? != ''", [sourceField]));
+          if (!isNativePgEnum && !skipEmptyStringCompare) {
+            nestedQb.andWhere(knex.raw("?? != ''", [sourceField]));
           }
         });
       },
@@ -395,7 +572,7 @@ export class GenericFieldHandler
 
   async filterIs(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -407,21 +584,24 @@ export class GenericFieldHandler
   ) {
     const { val } = args;
 
+    // Legacy conditionV2 differentiated `is/empty` (= '' only) from
+    // `is/blank` (= '' OR IS NULL). Route to the corresponding handler so
+    // each sub-value keeps its strict meaning.
     switch (val) {
       case 'blank':
-      case 'empty': {
         return this.filterBlank(args, rootArgs, options);
-      }
+      case 'empty':
+        return this.filterEmpty(args, rootArgs, options);
       case 'notblank':
-      case 'notempty': {
         return this.filterNotblank(args, rootArgs, options);
-      }
+      case 'notempty':
+        return this.filterNotempty(args, rootArgs, options);
     }
   }
 
   async filterIsnot(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
       qb: Knex.QueryBuilder;
     },
@@ -434,21 +614,22 @@ export class GenericFieldHandler
   ) {
     const { val } = args;
 
+    // Each `isnot/X` is the complement of `is/X` (see filterIs above).
     switch (val) {
       case 'blank':
-      case 'empty': {
         return this.filterNotblank(args, rootArgs, options);
-      }
+      case 'empty':
+        return this.filterNotempty(args, rootArgs, options);
       case 'notblank':
-      case 'notempty': {
         return this.filterBlank(args, rootArgs, options);
-      }
+      case 'notempty':
+        return this.filterEmpty(args, rootArgs, options);
     }
   }
 
   async filterGt(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     _rootArgs: {
@@ -470,7 +651,7 @@ export class GenericFieldHandler
 
   async filterGte(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     _rootArgs: {
@@ -492,7 +673,7 @@ export class GenericFieldHandler
 
   async filterLt(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     _rootArgs: {
@@ -514,7 +695,7 @@ export class GenericFieldHandler
 
   async filterLte(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     _rootArgs: {
@@ -534,9 +715,49 @@ export class GenericFieldHandler
     };
   }
 
+  // `btw` / `nbtw` — value is "lower,upper". Mirrors the legacy conditionV2
+  // `whereBetween` / `whereNotBetween` (both exclude NULL rows, matching SQL
+  // BETWEEN semantics). The generic switch previously had no case for these,
+  // so they fell through to unsupportedFilter after the migration.
+  async filterBtw(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    const [lower, upper] = String(rootArgs.filter.value ?? '').split(',');
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereBetween(sourceField as any, [lower, upper]);
+      },
+    };
+  }
+
+  async filterNbtw(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    const [lower, upper] = String(rootArgs.filter.value ?? '').split(',');
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNotBetween(sourceField as any, [lower, upper]);
+      },
+    };
+  }
+
   async innerFilterAllAnyOf(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -595,7 +816,7 @@ export class GenericFieldHandler
 
   async filterAllof(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -610,7 +831,7 @@ export class GenericFieldHandler
 
   async filterNallof(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -625,7 +846,7 @@ export class GenericFieldHandler
 
   async filterAnyof(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -639,7 +860,7 @@ export class GenericFieldHandler
   }
   async filterNanyof(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {
@@ -654,7 +875,7 @@ export class GenericFieldHandler
 
   async filterIn(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     _rootArgs: {
@@ -677,11 +898,27 @@ export class GenericFieldHandler
     };
   }
 
-  // to be implemented on checkbox itself
-  filterChecked = unsupportedFilter;
+  async filterChecked(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ): Promise<FilterOperationResult> {
+    return unsupportedFilter(args, rootArgs, options) as any;
+  }
 
-  // to be implemented on checkbox itself
-  filterNotchecked = unsupportedFilter;
+  async filterNotchecked(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ): Promise<FilterOperationResult> {
+    return unsupportedFilter(args, rootArgs, options) as any;
+  }
   // endregion filter comparisons
 
   async verifyFilter(

@@ -1,9 +1,27 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import init from '../../../init';
+import init from '~test/init';
+import TestDbMngr from '../../../TestDbMngr';
 
 export default function () {
+  // MSSQL unique support is per-field: numeric/date/uuid types work, but the
+  // `nvarchar(MAX)`-backed text types (SingleLineText/Email/PhoneNumber/URL)
+  // can't be a UNIQUE/index key and are rejected. So the suite runs on every
+  // dialect; the type-support tests assert per-dialect, and the behavior tests
+  // use a `Number` column (unique-able on every dialect, including MSSQL).
+  const isMssql = TestDbMngr.isMssqlDataDb();
+
+  // Unique-able text types that MSSQL rejects (nvarchar(MAX) can't be a key).
+  const mssqlUniqueUnsupportedTypes = [
+    'SingleLineText',
+    'Email',
+    'PhoneNumber',
+    'URL',
+  ];
+  const isUniqueSupportedForDialect = (type: string) =>
+    !(isMssql && mssqlUniqueUnsupportedTypes.includes(type));
+
   describe('Unique Constraint v3', () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
@@ -23,7 +41,7 @@ export default function () {
     });
 
     describe('table create with unique constraint column', () => {
-      it('should create table with unique constraint on SingleLineText field', async () => {
+      it('should create table with unique constraint on a text field (rejected on MSSQL)', async () => {
         const tableData = {
           title: 'TableWithUnique',
           fields: [
@@ -35,20 +53,24 @@ export default function () {
           ],
         };
 
-        const response = await request(context.app)
+        const req = request(context.app)
           .post(`${API_PREFIX}/tables`)
           .set('xc-token', context.xc_token)
-          .send(tableData)
-          .expect(200);
+          .send(tableData);
 
+        if (isMssql) {
+          // Email → nvarchar(MAX) on MSSQL, which can't be a UNIQUE key.
+          const response = await req.expect(400);
+          expect(response.body.msg).to.include('not supported');
+          return;
+        }
+
+        const response = await req.expect(200);
         expect(response.body.id).to.not.be.empty;
         const emailField = response.body.fields.find(
           (f: any) => f.title === 'UniqueEmail',
         );
         expect(emailField).to.exist;
-        // Check if unique is set (may be true, false, or undefined depending on implementation)
-        // For now, just verify the field exists and table was created
-        // The unique constraint should be enforced at the database level
         if (emailField.unique !== undefined) {
           expect(emailField.unique).to.eq(true);
         }
@@ -83,14 +105,17 @@ export default function () {
       });
 
       it('should reject table creation with unique constraint and default value', async () => {
+        // Use Number — unique-able on every dialect (incl. MSSQL) — so the
+        // rejection here is specifically the unique+default mutual exclusion,
+        // not the per-dialect text-type restriction.
         const tableData = {
           title: 'TableWithUniqueAndDefault',
           fields: [
             {
               title: 'UniqueWithDefault',
-              type: 'SingleLineText',
+              type: 'Number',
               unique: true,
-              default_value: 'default',
+              default_value: '1',
             },
           ],
         };
@@ -122,7 +147,7 @@ export default function () {
       it('should create column with unique constraint', async () => {
         const columnData = {
           title: 'UniqueColumn',
-          type: 'SingleLineText',
+          type: 'Number',
           unique: true,
         };
 
@@ -170,13 +195,18 @@ export default function () {
             unique: true,
           };
 
-          const response = await request(context.app)
+          const req = request(context.app)
             .post(`${API_PREFIX}/tables/${table.id}/fields`)
             .set('xc-token', context.xc_token)
-            .send(columnData)
-            .expect(200);
+            .send(columnData);
 
-          // Check if unique is set (may be true, false, or undefined depending on implementation)
+          if (!isUniqueSupportedForDialect(type)) {
+            const rejected = await req.expect(400);
+            expect(rejected.body.msg).to.include('not supported');
+            continue;
+          }
+
+          const response = await req.expect(200);
           if (response.body.unique !== undefined) {
             expect(response.body.unique).to.eq(true);
           }
@@ -192,9 +222,9 @@ export default function () {
       it('should reject unique constraint with default value', async () => {
         const columnData = {
           title: 'UniqueWithDefault',
-          type: 'SingleLineText',
+          type: 'Number',
           unique: true,
-          default_value: 'default',
+          default_value: '1',
         };
 
         const response = await request(context.app)
@@ -246,7 +276,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             title: 'RegularColumn',
-            type: 'SingleLineText',
+            type: 'Number',
           })
           .expect(200);
         column = columnResult.body;
@@ -291,7 +321,7 @@ export default function () {
         const setDefaultResponse = await request(context.app)
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
-          .send({ default_value: 'default' });
+          .send({ default_value: '1' });
 
         // If setting default value fails, skip this test
         if (setDefaultResponse.status !== 200) {
@@ -318,8 +348,8 @@ export default function () {
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
           .send([
-            { fields: { RegularColumn: 'duplicate' } },
-            { fields: { RegularColumn: 'duplicate' } },
+            { fields: { RegularColumn: 42 } },
+            { fields: { RegularColumn: 42 } },
           ])
           .expect(200);
 
@@ -353,7 +383,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             title: 'UniqueColumn',
-            type: 'SingleLineText',
+            type: 'Number',
             unique: true,
           })
           .expect(200);
@@ -442,14 +472,19 @@ export default function () {
         const response = await request(context.app)
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
-          .send({ default_value: 'default', title: column.title })
+          .send({ default_value: '1', title: column.title })
           .expect(200);
 
         expect(response.body.default_value).to.exist;
       });
     });
 
-    describe('data operations with unique constraint', () => {
+    // Data-layer unique enforcement (insert/update dedup) is dialect-agnostic
+    // and exercised here with a text column. On MSSQL text columns can't be
+    // unique (nvarchar(MAX)), so this describe is skipped there — the same
+    // mechanism is covered by the numeric-column behavior tests above.
+    const dataOpsDescribe = isMssql ? describe.skip : describe;
+    dataOpsDescribe('data operations with unique constraint', () => {
       let table: any;
       let column: any;
 

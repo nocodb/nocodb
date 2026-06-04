@@ -5,6 +5,7 @@ import { SnowflakeClient } from 'knex-snowflake';
 import { DatabricksClient } from 'knex-databricks';
 import SfClient from '~/db/sql-client/lib/snowflake/SnowflakeClient';
 import DbClient from '~/db/sql-client/lib/databricks/DatabricksClient';
+import MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 
 export class SqlClientFactory extends SqlClientFactoryCE {
   static create(connectionConfig) {
@@ -18,6 +19,8 @@ export class SqlClientFactory extends SqlClientFactoryCE {
     } else if (connectionConfig.client === 'databricks') {
       connectionConfig.client = DatabricksClient;
       return new DbClient(connectionConfig);
+    } else if (connectionConfig.client === 'mssql') {
+      return new MssqlClient(connectionConfig);
     }
     return super.create(connectionConfig);
   }

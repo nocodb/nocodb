@@ -14,7 +14,6 @@ import { MySqlDBQueryClient as MySqlDBQueryClientCE } from 'src/dbQueryClient/my
 import type { Knex } from 'knex';
 import type { NcContext } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { DBQueryClient } from '~/dbQueryClient/types';
@@ -33,7 +32,7 @@ import {
   getAs,
   getColumnName,
   getListArgs,
-} from '~/db/BaseModelSqlv2';
+} from '~/helpers/dbHelpers';
 import conditionV2, { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -825,7 +824,7 @@ export class MySqlDBQueryClient
           let relQb;
           const relTableAlias = getAlias();
 
-          let refBaseModel: BaseModelSqlv2;
+          let refBaseModel: IBaseModelSqlV2;
 
           const lookupIsSingleTargetV2 = isBtLikeV2Junction(relationColumn);
 
@@ -1469,7 +1468,7 @@ export class MySqlDBQueryClient
       validateFormula?: boolean;
       ignorePagination?: boolean;
       limitOverride?: number;
-      baseModel?: BaseModelSqlv2;
+      baseModel?: IBaseModelSqlV2;
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;

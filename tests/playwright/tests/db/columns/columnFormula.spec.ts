@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { enableQuickRun, isPg } from '../../../setup/db';
+import { enableQuickRun, isMssqlData, isPg } from '../../../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -36,46 +36,57 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15")`,
         result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "minutes")`,
         result: ['-1440', '-1440', '-1440', '-1440', '-1440'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2023/10/14", "2023/01/13", "minutes")`,
         result: ['394560', '394560', '394560', '394560', '394560'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "seconds")`,
         result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "milliseconds")`,
         result: ['-86400000', '-86400000', '-86400000', '-86400000', '-86400000'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "hours")`,
         result: ['-24', '-24', '-24', '-24', '-24'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "w")`,
         result: ['-52', '-52', '-52', '-52', '-52'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "M")`,
         result: ['-12', '-12', '-12', '-12', '-12'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "Q")`,
         result: ['-4', '-4', '-4', '-4', '-4'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "y")`,
         result: ['-1', '-1', '-1', '-1', '-1'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2023/01/12", "2023/10/14", "y")`,
         result: ['0', '0', '0', '0', '0'],
+        unSupDbType: ['mssql'],
       },
 
       {
@@ -93,7 +104,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'VALUE("12ab-c345")',
         result: ['-12345', '-12345', '-12345', '-12345', '-12345'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'TRUE()',
@@ -131,17 +142,17 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'REGEX_MATCH({City}, "a[a-z]a")',
         result: ['0', '0', '0', '0', '1'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
         result: ['', '', '', '', 'ana'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
         result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
-        unSupDbType: ['sqlite3'],
+        unSupDbType: ['sqlite3', 'mssql'],
       },
       {
         formula: 'URLENCODE({City})',
@@ -153,27 +164,32 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: `DATETIME_DIFF("2023/10/14", "2023/01/12", "y")`,
         result: ['0', '0', '0', '0', '0'],
-        unSupDbType: [],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2023-01-12", "2021-08-29", "y")`,
         result: ['1', '1', '1', '1', '1'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2021-01-12", "2026-01-29", "y")`,
         result: ['-5', '-5', '-5', '-5', '-5'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("1990-01-12", "2046-12-29", "y")`,
         result: ['-56', '-56', '-56', '-56', '-56'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`,
         result: ['-365', '-365', '-365', '-365', '-365'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `DATETIME_DIFF("2022/10/14", "2023/01/12", "d")`,
         result: ['-90', '-90', '-90', '-90', '-90'],
+        unSupDbType: ['mssql'],
       },
       {
         formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,
@@ -191,7 +207,11 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       },
       {
         formula: `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`,
-        result: isPg(context)
+        // Float results differ in the last sig-fig(s) per engine (FLOAT vs
+        // double rounding) — each dialect carries its own expected values.
+        result: isMssqlData(context)
+          ? ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667897', '284.87145481680676']
+          : isPg(context)
           ? ['13.04566088154786', '24.74547123273205', '57.61253379902822', '126.94617671688704', '283.9609869087087']
           : ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
         unSupDbType: ['sqlite3'],
@@ -276,8 +296,7 @@ test.describe('Virtual Columns', () => {
       });
 
       if (formulaData[i].unSupDbType?.includes(dbType)) {
-        // assert for message not supported or greyed out save button.
-        await dashboard.grid.column.checkMessageAndClose({ errorMessage: new RegExp('Function .* is not available') });
+        await dashboard.grid.column.verifyFormulaUnsupportedAndClose();
         continue;
       }
       await dashboard.grid.column.save({ isUpdated: true });

@@ -335,6 +335,11 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           }
         }
         break;
+      case '22012': // division_by_zero
+        message = 'Cannot divide by zero.';
+        httpStatus = 422;
+        break;
+
       case '40001': // serialization_failure
         message = 'Transaction serialization failure. Please retry.';
         httpStatus = 409;
@@ -344,6 +349,25 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'Too many database connections.';
         httpStatus = 503;
         break;
+
+      case 'XX000': // internal_error — leave unhandled on purpose.
+        // PG raises this for assertion failures or driver-level wrap of
+        // an otherwise-uncategorised internal exception. The bare code
+        // doesn't tell us anything actionable, and `error.message` often
+        // contains backend internals (SQL fragments, OIDs, stack
+        // fragments) we don't want surfacing on end-user toasts (see
+        // the `describeRowError` "does not leak raw text when the code
+        // is unknown" contract).
+        //
+        // Callers that want the raw text for operator triage
+        // (formulaQueryBuilderv2, the global exception filter) already
+        // fall back to `e.message` when `extractDbError` returns
+        // undefined — no behavioural regression for them, just the
+        // user-facing leak gone.
+        this.option.dbErrorLogger.error(
+          `XX000 internal_error from pg: ${error.message}`,
+        );
+        return;
       default:
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database pg`,

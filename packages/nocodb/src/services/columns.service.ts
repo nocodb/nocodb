@@ -543,16 +543,23 @@ export class ColumnsService implements IColumnsService {
       column.cdf = nonTokenValues.length ? nonTokenValues.join(',') : null;
     }
 
+    const unfilteredColumns = await table.getColumns(
+      context,
+      Noco.ncMeta,
+      undefined,
+      false,
+    );
+
     const tableUpdateBody = {
       ...table,
       tn: table.table_name,
-      originalColumns: table.columns.map((c) => ({
+      originalColumns: unfilteredColumns.map((c) => ({
         ...c,
         cn: c.column_name,
         cno: c.column_name,
       })),
       columns: await Promise.all(
-        table.columns.map(async (c) => {
+        unfilteredColumns.map(async (c) => {
           if (c.id === column.id) {
             // Determine unique value: use column.unique if provided, otherwise preserve existing value
             const uniqueValue =
@@ -1102,10 +1109,18 @@ export class ColumnsService implements IColumnsService {
       // if uidt is invalid, do not try to set default dt
       Object.values(UITypes).includes(param.column.uidt as UITypes)
     ) {
-      (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+      const colProp = sqlUi.getDataTypeForUiType(
         { uidt: param.column.uidt as UITypes },
         column?.['meta']?.['ag'] ? 'AG' : 'AI',
-      )?.dt;
+      );
+      (param.column as Column).dt = colProp?.dt;
+      // Carry the explicit length/scale the SqlUi set (e.g. MSSQL maps
+      // Attachment/LongText to `nvarchar` MAX) — dropping it would default
+      // `nvarchar` to 255 and truncate large payloads on MSSQL.
+      if (colProp?.dtxp !== undefined)
+        (param.column as Column).dtxp = colProp.dtxp;
+      if (colProp?.dtxs !== undefined)
+        (param.column as Column).dtxs = colProp.dtxs;
     }
     // for API call, if dt is supplied, try to check if it's valid, otherwise set default
     else if (
@@ -1117,10 +1132,15 @@ export class ColumnsService implements IColumnsService {
     ) {
       const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);
       if (!dtList.includes((param.column as Column).dt)) {
-        (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+        const colProp = sqlUi.getDataTypeForUiType(
           { uidt: param.column.uidt as UITypes },
           column?.['meta']?.['ag'] ? 'AG' : 'AI',
-        )?.dt;
+        );
+        (param.column as Column).dt = colProp?.dt;
+        if (colProp?.dtxp !== undefined)
+          (param.column as Column).dtxp = colProp.dtxp;
+        if (colProp?.dtxs !== undefined)
+          (param.column as Column).dtxs = colProp.dtxs;
       }
     }
     // extract missing required props from column to avoid broken column
@@ -1684,7 +1704,7 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
-        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3'];
+        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'mssql'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
         );
@@ -1844,6 +1864,19 @@ export class ColumnsService implements IColumnsService {
               [
                 baseModel.getTnPath(table.table_name),
                 column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else if (driverType === 'mssql') {
+            // T-SQL: take everything before the first comma. Appending
+            // `+ ','` makes CHARINDEX always find a hit, so values without
+            // commas pass through unchanged (LEFT(x, LEN(x)) = x).
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = LEFT(??, CHARINDEX(',', ?? + ',') - 1)`,
+              [
+                baseModel.getTnPath(table.table_name),
                 column.column_name,
                 column.column_name,
                 column.column_name,
@@ -2101,6 +2134,31 @@ export class ColumnsService implements IColumnsService {
                 column_name: column.column_name,
               },
             );
+          } else if (driverType === 'mssql') {
+            // No regex/array funcs — mirror the sqlite path: wrap in commas,
+            // collapse whitespace around the delimiter (', '→',', ' ,'→',',
+            // ',,'→','), then strip the bounding commas. CASE guards an
+            // all-empty value (collapsed result is ',') so SUBSTRING never
+            // gets a negative length.
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = SUBSTRING(
+                REPLACE(REPLACE(REPLACE(',' + :column_name: + ',', ', ', ','), ' ,', ','), ',,', ','),
+                2,
+                CASE
+                  WHEN LEN(REPLACE(REPLACE(REPLACE(',' + :column_name: + ',', ', ', ','), ' ,', ','), ',,', ',')) > 2
+                  THEN LEN(REPLACE(REPLACE(REPLACE(',' + :column_name: + ',', ', ', ','), ' ,', ','), ',,', ',')) - 2
+                  ELSE 0
+                END
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
           }
         }
 
@@ -2174,6 +2232,25 @@ export class ColumnsService implements IColumnsService {
                     column.column_name,
                     column.column_name,
                     option.title,
+                  ],
+                );
+              } else if (driverType === 'mssql') {
+                // No array type — the value is a comma-joined nvarchar. Wrap it
+                // in delimiters, splice the option out, then strip the bounding
+                // commas. The CASE guards the all-removed case (result is ',')
+                // so SUBSTRING never receives a negative length.
+                await sqlClient.raw(
+                  `UPDATE ?? SET ?? = SUBSTRING(REPLACE(',' + ?? + ',', ',' + ? + ',', ','), 2, CASE WHEN LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',')) > 2 THEN LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',')) - 2 ELSE 0 END) WHERE ?? IS NOT NULL`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
                   ],
                 );
               }
@@ -2370,6 +2447,23 @@ export class ColumnsService implements IColumnsService {
                     newOp.title,
                   ],
                 );
+              } else if (driverType === 'mssql') {
+                // Swap the option title inside the comma-joined nvarchar. A
+                // rename never empties the value, so LEN - 2 is always >= 0.
+                await sqlClient.raw(
+                  `UPDATE ?? SET ?? = SUBSTRING(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ','), 2, LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ',')) - 2) WHERE ?? IS NOT NULL`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    column.column_name,
+                  ],
+                );
               }
             }
           }
@@ -2450,6 +2544,21 @@ export class ColumnsService implements IColumnsService {
                   column.column_name,
                   ch.temp_title,
                   newOp.title,
+                ],
+              );
+            } else if (driverType === 'mssql') {
+              await sqlClient.raw(
+                `UPDATE ?? SET ?? = SUBSTRING(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ','), 2, LEN(REPLACE(',' + ?? + ',', ',' + ? + ',', ',' + ? + ',')) - 2) WHERE ?? IS NOT NULL`,
+                [
+                  baseModel.getTnPath(table.table_name),
+                  column.column_name,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  column.column_name,
                 ],
               );
             }
@@ -2816,6 +2925,19 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
+          } else if (driverType === 'mssql') {
+            // T-SQL: take everything before the first comma. Appending
+            // `+ ','` makes CHARINDEX always find a hit, so values without
+            // commas pass through unchanged (LEFT(x, LEN(x)) = x).
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = LEFT(??, CHARINDEX(',', ?? + ',') - 1)`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
           }
         }
 
@@ -2900,6 +3022,10 @@ export class ColumnsService implements IColumnsService {
             trimColumn = `BTRIM(??)`;
           } else if (driverType === 'sqlite3') {
             trimColumn = `TRIM(??)`;
+          } else if (driverType === 'mssql') {
+            // SQL Server 2008+ supports LTRIM(RTRIM(…)). Plain TRIM(…) is
+            // 2017+ only, so the nested form keeps older engines happy too.
+            trimColumn = `LTRIM(RTRIM(??))`;
           }
 
           setStatement = baseUsers
@@ -3479,6 +3605,7 @@ export class ColumnsService implements IColumnsService {
         {
           is_meta: !!source.is_meta,
           is_local: !!source.is_local,
+          type: source.type,
         },
         originalCdf,
       );
@@ -3577,10 +3704,9 @@ export class ColumnsService implements IColumnsService {
         break;
       case UITypes.UUID:
         {
-          // UUID is only supported for PostgreSQL databases
-          if (source.type !== 'pg') {
+          if (source.type !== 'pg' && source.type !== 'mssql') {
             NcError.get(context).badRequest(
-              'UUID field type is supported only for PostgreSQL databases',
+              'UUID field type is supported only for PostgreSQL and SQL Server databases',
             );
           }
 
@@ -7399,10 +7525,6 @@ export class ColumnsService implements IColumnsService {
         hmColOptions.type === RelationTypes.MANY_TO_MANY;
       const isLinksColumn = hmColumn.uidt === UITypes.Links && isHmOrMm;
 
-      Logger.log(
-        `[convertLinkToV2] hmColumn.id=${hmColumn.id}, hmColumn.uidt=${hmColumn.uidt}, isLinksColumn=${isLinksColumn}`,
-      );
-
       // ── Phase B: Meta transaction ──
       // Only pure meta operations (metaDelete/metaInsert2/metaUpdate)
       // that accept ncMeta go here — no data-DB or indirect meta queries.
@@ -7481,9 +7603,6 @@ export class ColumnsService implements IColumnsService {
 
         if (isLinksColumn) {
           // Links column → convert to Rollup in-place (preserves filters/sorts/group-by)
-          Logger.log(
-            `[convertLinkToV2] Converting hmColumn ${hmColumn.id} (${hmColumn.uidt}) to Rollup`,
-          );
           await ncMeta.metaUpdate(
             context.workspace_id,
             context.base_id,
@@ -7658,15 +7777,6 @@ export class ColumnsService implements IColumnsService {
             );
             dependentRollupColIds = dependentRollupRows.map(
               (r: any) => r.fk_column_id,
-            );
-          }
-
-          Logger.log(
-            `[convertLinkToV2] newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}. Original ${hmColumn.id} is now Rollup.`,
-          );
-          if (dependentLookupColIds.length || dependentRollupColIds.length) {
-            Logger.log(
-              `[convertLinkToV2] Retargeted ${dependentLookupColIds.length} Lookup and ${dependentRollupColIds.length} Rollup columns from ${hmColumn.id} → ${newLtarCol.id}.`,
             );
           }
         }
@@ -8073,11 +8183,6 @@ export class ColumnsService implements IColumnsService {
           );
         }
 
-        if (dependentLookupRows.length || dependentRollupRows.length) {
-          Logger.log(
-            `[convertMMToV2] Retargeted ${dependentLookupRows.length} Lookup and ${dependentRollupRows.length} Rollup columns from ${column.id} → ${mmNewLtarCol.id}.`,
-          );
-        }
       }
 
       await ncMeta.commit();

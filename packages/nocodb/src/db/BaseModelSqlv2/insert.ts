@@ -10,6 +10,12 @@ import type { Knex } from 'knex';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { DisplacedRecord } from '~/command-registry/types';
+import {
+  mssqlBuildBulkInsertWithCapture,
+  mssqlChunkSize,
+  mssqlNeedsIdentityInsert,
+  mssqlTableHasTriggers,
+} from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
@@ -61,11 +67,47 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // const driver = trx ? trx : baseModel.dbDriver;
 
       const query = baseModel.dbDriver(baseModel.tnPath).insert(insertObj);
-      if (baseModel.isPg && baseModel.model.primaryKey) {
+      // pg + mssql both support inline RETURNING/OUTPUT. knex's mssql
+      // dialect translates `.returning('col as alias')` to
+      // `OUTPUT INSERTED.[col] AS [alias]`, returning the same
+      // `[{ alias: value }]` shape the downstream extractor expects.
+      // Without this, mssql falls into the generic else-branch (shaped
+      // for mysql's `insertId`) and `extractCompositePK` returns '' →
+      // ERR_INVALID_PK_VALUE.
+      if ((baseModel.isPg || baseModel.isMssql) && baseModel.model.primaryKey) {
         query.returning(
           `${baseModel.model.primaryKey.column_name} as ${baseModel.model.primaryKey.id}`,
         );
-        response = await baseModel.execAndParse(query, null, { raw: true });
+
+        if (baseModel.isMssql) {
+          // MSSQL: AI columns are stripped above (line ~33), so
+          // IDENTITY_INSERT only matters when caller explicitly bypasses
+          // that strip (rare; left here defensively). Triggers always
+          // require the OUTPUT-INTO pattern.
+          const aiColName =
+            baseModel.model.columns?.find((c) => c.ai)?.column_name ??
+            null;
+          const explicitIdentity = mssqlNeedsIdentityInsert(
+            [insertObj],
+            aiColName,
+          );
+          const hasTriggers = await mssqlTableHasTriggers(baseModel);
+          if (hasTriggers || explicitIdentity) {
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: baseModel.dbDriver,
+              tnPath: baseModel.tnPath,
+              rows: [insertObj],
+              pkCols: baseModel.model.primaryKeys ?? [],
+              explicitIdentity,
+              aliasField: 'id', // single-row path expects `col.id` keys
+            });
+            response = await baseModel.execAndParse(sql, null, { raw: true });
+          } else {
+            response = await baseModel.execAndParse(query, null, { raw: true });
+          }
+        } else {
+          response = await baseModel.execAndParse(query, null, { raw: true });
+        }
       }
 
       const ai = baseModel.model.columns.find((c) => c.ai);
@@ -380,14 +422,86 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           returningObj[col.title] = col.column_name;
         }
 
-        responses =
-          !raw && baseModel.isPg
-            ? await trx
-                .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
-                .returning(
-                  baseModel.model.primaryKeys?.length ? returningObj : '*',
-                )
-            : await trx.batchInsert(baseModel.tnPath, insertDatas, chunkSize);
+        const mssqlAiColName =
+          baseModel.isMssql && insertDatas.length
+            ? baseModel.model.columns?.find((c) => c.ai)?.column_name ??
+              null
+            : null;
+        const mssqlExplicitIdentity = mssqlNeedsIdentityInsert(
+          insertDatas,
+          mssqlAiColName,
+        );
+
+        if (!raw && baseModel.isMssql && insertDatas.length) {
+          // MSSQL bulk path — uses the OUTPUT-INTO-table-variable pattern
+          // that's safe across all three quirks (triggers, IDENTITY_INSERT,
+          // 2100-param cap). See `mssql-insert-sql.ts` for the SQL shape.
+          const chunk = mssqlChunkSize(insertDatas, chunkSize);
+          const hasTriggers = await mssqlTableHasTriggers(baseModel);
+
+          // Standard path still uses knex's .returning() when neither
+          // triggers nor explicit identity is in play — faster and exercises
+          // the well-trodden code path.
+          if (!hasTriggers && !mssqlExplicitIdentity) {
+            responses = await trx
+              .batchInsert(baseModel.tnPath, insertDatas, chunk)
+              .returning(
+                baseModel.model.primaryKeys?.length ? returningObj : '*',
+              );
+          } else {
+            responses = [];
+            for (let i = 0; i < insertDatas.length; i += chunk) {
+              const slice = insertDatas.slice(i, i + chunk);
+              const sql = mssqlBuildBulkInsertWithCapture({
+                knex: baseModel.dbDriver,
+                tnPath: baseModel.tnPath,
+                rows: slice,
+                pkCols: baseModel.model.primaryKeys ?? [],
+                explicitIdentity: mssqlExplicitIdentity,
+              });
+              const result: any = await trx.raw(sql);
+              const rows: any[] = Array.isArray(result)
+                ? result
+                : result?.rows ?? result?.recordset ?? [];
+              responses.push(...rows);
+            }
+          }
+        } else if (
+          raw &&
+          baseModel.isMssql &&
+          insertDatas.length &&
+          mssqlExplicitIdentity
+        ) {
+          // Raw + MSSQL + explicit identity values (import / duplicate flow
+          // with PKs preserved). The standard `batchInsert` below would hit
+          // T-SQL error 544 — `Cannot insert explicit value for identity
+          // column…` — because the table has an IDENTITY column and we're
+          // supplying values for it. Wrap each chunk in
+          // `SET IDENTITY_INSERT ON/OFF`, but skip the trigger check and
+          // `.returning()` plumbing — raw callers discard the response.
+          const chunk = mssqlChunkSize(insertDatas, chunkSize);
+          responses = [];
+          for (let i = 0; i < insertDatas.length; i += chunk) {
+            const slice = insertDatas.slice(i, i + chunk);
+            const sql = mssqlBuildBulkInsertWithCapture({
+              knex: baseModel.dbDriver,
+              tnPath: baseModel.tnPath,
+              rows: slice,
+              pkCols: baseModel.model.primaryKeys ?? [],
+              explicitIdentity: true,
+            });
+            await trx.raw(sql);
+          }
+        } else {
+          responses =
+            !raw && baseModel.isPg
+              ? await trx
+                  .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
+                  .returning(
+                    baseModel.model.primaryKeys?.length ? returningObj : '*',
+                  )
+              : await trx.batchInsert(baseModel.tnPath, insertDatas, chunkSize);
+        }
       }
 
       if (!foreign_key_checks) {

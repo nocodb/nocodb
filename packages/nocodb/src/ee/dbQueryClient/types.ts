@@ -8,6 +8,8 @@ import type { Source, View } from '~/models';
 import type { Filter } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 
+export * from 'src/dbQueryClient/types';
+
 export interface ExtractColumnParam {
   column: Column;
   qb: Knex.QueryBuilder;

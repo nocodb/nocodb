@@ -43,6 +43,9 @@ export/**
 # test dbs
 test_sakila_?.db
 
+# local/CI-generated MSSQL data-DB config for the pg-meta+mssql-data PW lane
+mssql-data-db.json
+
 # ignoring to avoid commiting those files
 # nc-gui dir is copied for building local docker.
 /docker/main.js

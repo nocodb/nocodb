@@ -13,6 +13,7 @@ import type { MetaService } from '~/meta/meta.service';
 import { Column } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { boolSqlLiteral } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
 
 /**
@@ -127,8 +128,9 @@ export async function getColumnNameQuery({
     }
 
     case UITypes.Checkbox: {
+      const falseLiteral = boolSqlLiteral(baseModelSqlv2, false);
       column_name_query = {
-        builder: baseModelSqlv2.dbDriver.raw(`COALESCE(??, false)`, [
+        builder: baseModelSqlv2.dbDriver.raw(`COALESCE(??, ${falseLiteral})`, [
           column_name_query,
         ]),
       };

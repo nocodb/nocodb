@@ -1969,6 +1969,11 @@ export default class Column<T = any> implements ColumnType {
       fieldLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       fieldLengthLimit = 59;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)); 128 is the hard
+      // cap. Without this branch the validator passes 129–255 char names
+      // that knex then fails to CREATE/ALTER.
+      fieldLengthLimit = 128;
     }
     return fieldLengthLimit;
   }

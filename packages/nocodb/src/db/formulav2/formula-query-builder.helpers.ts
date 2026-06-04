@@ -4,21 +4,32 @@ export interface IGetAggregateFn {
   (fnName: string): (args: { qb; knex?: CustomKnex; cn }) => any;
 }
 
+// SQL Server's `bit` (Checkbox) type is invalid for SUM/AVG/MIN/MAX. In this
+// lookup-aggregation context the parent is a numeric formula function, so the
+// aggregated values are numeric/bit — cast a `bit` column to FLOAT (harmless
+// for other numeric types) so the aggregate works. Only applied when `cn` is a
+// plain column identifier; a raw subquery is left as-is (aggregating over a
+// subquery is a separate, cross-dialect limitation that a cast can't fix).
+const mssqlNumericCn = (qb: any, cn: any) =>
+  typeof cn === 'string' && qb?.client?.config?.client === 'mssql'
+    ? qb.client.raw('CAST(?? AS FLOAT)', [cn])
+    : cn;
+
 export const getAggregateFn: IGetAggregateFn = (parentFn) => {
   switch (parentFn?.toUpperCase()) {
     case 'MIN':
-      return ({ qb, cn }) => qb.clear('select').min(cn);
+      return ({ qb, cn }) => qb.clear('select').min(mssqlNumericCn(qb, cn));
     case 'MAX':
-      return ({ qb, cn }) => qb.clear('select').max(cn);
+      return ({ qb, cn }) => qb.clear('select').max(mssqlNumericCn(qb, cn));
     case 'ADD':
     case 'SUM':
     case 'FLOAT':
     case 'NUMBER':
     case 'ARITH':
-      return ({ qb, cn }) => qb.clear('select').sum(cn);
+      return ({ qb, cn }) => qb.clear('select').sum(mssqlNumericCn(qb, cn));
 
     case 'AVG':
-      return ({ qb, cn }) => qb.clear('select').sum(cn);
+      return ({ qb, cn }) => qb.clear('select').sum(mssqlNumericCn(qb, cn));
 
     case 'ARRAY_AGG':
       return ({ qb, knex, cn }) =>

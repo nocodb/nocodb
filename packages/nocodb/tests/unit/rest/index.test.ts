@@ -14,8 +14,7 @@ import groupByTest from './tests/groupby.test';
 import formulaTests from './tests/formula.test';
 import typeCastsTest from './tests/typeCasts.test';
 import readOnlyTest from './tests/readOnlySource.test';
-import aggregationTest from './tests/aggregation.test';
-import selectionAggregationTest from './tests/selectionAggregation.test';
+import aggregationMatrixTest from './tests/aggregationMatrix.test';
 
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
 import bulkV1Test from './tests/bulk-v1.test';
@@ -37,7 +36,6 @@ let scimComplianceTest = () => {};
 let cloudOrgTest = () => {};
 let orgUserInvitePickerTest = () => {};
 let orgAdminRoleTest = () => {};
-let bulkAggregationTest = () => {};
 let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
 let oauthDCRTest = () => {};
@@ -58,7 +56,6 @@ if (process.env.EE === 'true') {
   cloudOrgTest = require('./tests/ee/cloud-org.test').default;
   orgUserInvitePickerTest = require('./tests/ee/org-user-invite-picker.test').default;
   orgAdminRoleTest = require('./tests/ee/org-admin-role.test').default;
-  bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
   oauthTests = require('./tests/oauth.test').default;
@@ -101,9 +98,7 @@ function restTests() {
     orgAdminRoleTest();
     typeCastsTest();
     readOnlyTest();
-    aggregationTest();
-    selectionAggregationTest();
-    bulkAggregationTest();
+    aggregationMatrixTest();
     columnTest();
     integrationTest();
     paymentTest();

@@ -183,6 +183,16 @@ const FEATURES = [
     version: 2,
     isEngineering: false,
   },
+  {
+    id: 'mssql_source',
+    title: 'SQL Server data source',
+    description: 'Allow connecting Microsoft SQL Server as an external data source (experimental).',
+    // Off in the UI by default; revealed via the engineering feature modal.
+    // Enabled automatically under Playwright so e2e can create MSSQL sources.
+    enabled: ncIsPlaywright(),
+    version: 1,
+    isEngineering: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

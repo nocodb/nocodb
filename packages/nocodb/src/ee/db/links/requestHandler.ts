@@ -136,9 +136,10 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     const softDeleteFilterValidate =
       await relatedBaseModel.getSoftDeleteFilter();
 
-    const notExistsQb = DBQueryClient.get(
+    const dbQueryClient = DBQueryClient.get(
       baseModel.dbDriver.clientType() as ClientType,
-    )
+    );
+    const notExistsQb = dbQueryClient
       .temporaryTable({
         knex,
         data: [...relatedLinkIds].map((link) => {
@@ -150,14 +151,26 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         alias: '_tbl',
       })
       .whereNotExists(function () {
+        // Both sides of the comparison may be different SQL types (the
+        // value supplied by the user vs the PK column's native type).
+        // Route through `simpleCast(field, 'TEXT')` so each dialect picks
+        // its own correct string-cast shape:
+        //   pg     → `field::text`
+        //   mysql  → `CAST(field AS CHAR)`
+        //   sqlite → `CAST(field AS TEXT)`
+        //   mssql  → `CAST(field AS NVARCHAR(MAX))`
+        // The previous pg-specific `??::text = ??::text` worked only on pg.
+        const leftCast = dbQueryClient.simpleCast(
+          knex.raw('??', [relatedModel.primaryKey.column_name]).toQuery(),
+          'TEXT',
+        );
+        const rightCast = dbQueryClient.simpleCast(
+          knex.raw('??', ['_tbl._id']).toQuery(),
+          'TEXT',
+        );
         const subQb = this.from(
           relatedBaseModel.getTnPath(relatedModel) as '_rel_tbl',
-        ).whereRaw(
-          knex.raw(`??::text = ??::text`, [
-            relatedModel.primaryKey.column_name,
-            '_tbl._id',
-          ]),
-        );
+        ).whereRaw(knex.raw(`${leftCast} = ${rightCast}`));
 
         // Exclude soft-deleted records — treat them as non-existent
         if (softDeleteFilterValidate) {
@@ -907,9 +920,10 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         }) ?? [],
       );
       if (toDelete.length) {
-        const toDeleteUnionTableWithAlias = DBQueryClient.get(
+        const dbQueryClient = DBQueryClient.get(
           baseModel.dbDriver.clientType() as ClientType,
-        ).temporaryTable({
+        );
+        const toDeleteUnionTableWithAlias = dbQueryClient.temporaryTable({
           knex,
           data: [...toDelete].map((row) => {
             return {
@@ -921,17 +935,24 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
           alias: '_rel_tbl',
         });
 
+        // Cross-dialect TEXT cast (pg `::text`, mysql `CAST AS CHAR`, sqlite
+        // `CAST AS TEXT`, mssql `CAST AS NVARCHAR(MAX)`). Without this,
+        // the previous `??::text` form fails on every non-pg dialect.
+        const c = (n: string) =>
+          dbQueryClient.simpleCast(knex.raw('??', [n]).toQuery(), 'TEXT');
+
         const qb = knex(mmBaseModel.getTnPath(mmModel, '_tbl'))
           .whereExists(
             toDeleteUnionTableWithAlias
               .select(knex.raw('1'))
               .where(
-                knex.raw(`??::text = ??::text AND ??::text = ??::text`, [
-                  `_tbl.${parentColumn.column_name}`,
-                  `_rel_tbl.parent_id`,
-                  `_tbl.${childColumn.column_name}`,
-                  `_rel_tbl.child_id`,
-                ]),
+                knex.raw(
+                  `${c(`_tbl.${parentColumn.column_name}`)} = ${c(
+                    `_rel_tbl.parent_id`,
+                  )} AND ${c(`_tbl.${childColumn.column_name}`)} = ${c(
+                    `_rel_tbl.child_id`,
+                  )}`,
+                ),
               ),
           )
           .delete();

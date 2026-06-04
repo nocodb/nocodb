@@ -24,7 +24,16 @@ let dynamicFieldFilterTests = () => {};
 let onPremPlanResolutionTests = () => {};
 let modelStatTests = () => {};
 let tableSyncHelpersTests = () => {};
+let mssqlLookupFlattenTest = () => {};
+let dateTimeMssqlHandlerTest = () => {};
+let jsonMssqlHandlerTest = () => {};
 if (process.env.EE === 'true') {
+  mssqlLookupFlattenTest =
+    require('./mssqlLookupFlatten.test').mssqlLookupFlattenTest;
+  dateTimeMssqlHandlerTest =
+    require('./dateTimeMssqlHandler.test').dateTimeMssqlHandlerTest;
+  jsonMssqlHandlerTest =
+    require('./jsonMssqlHandler.test').jsonMssqlHandlerTest;
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
   dateDependencyHelperTests =
@@ -54,6 +63,9 @@ function _helperTests() {
   tableSyncHelpersTests();
   jobsProcessorTest();
   dateTimeFilterHandlerTest();
+  dateTimeMssqlHandlerTest();
+  jsonMssqlHandlerTest();
+  mssqlLookupFlattenTest();
   describeRowErrorTests();
   pkPreservationTests();
   dashboardV3ConfigTransformTest();

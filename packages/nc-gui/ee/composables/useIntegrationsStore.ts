@@ -11,10 +11,11 @@ enum IntegrationsPageMode {
   EDIT,
 }
 
-const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'OpenAI', ClientType | SyncDataType> = {
+const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'SQLServer' | 'OpenAI', ClientType | SyncDataType> = {
   PostgreSQL: ClientType.PG,
   MySQL: ClientType.MYSQL,
   SQLITE: ClientType.SQLITE,
+  SQLServer: ClientType.MSSQL,
   OpenAI: SyncDataType.OPENAI,
 }
 
@@ -53,6 +54,16 @@ function getStaticInitializor(type: IntegrationsSubType) {
         title: 'SQLite',
         logo: h(GeneralBaseLogo, {
           'source-type': 'sqlite3',
+          'class': 'logo',
+        }),
+      }
+    case integrationType.SQLServer:
+      return {
+        ...genericValues,
+        type: integrationType.SQLServer,
+        title: 'SQL Server',
+        logo: h(GeneralBaseLogo, {
+          'source-type': 'mssql',
           'class': 'logo',
         }),
       }

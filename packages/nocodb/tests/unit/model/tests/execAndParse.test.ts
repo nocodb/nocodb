@@ -1,10 +1,10 @@
 import 'mocha';
 import { expect } from 'chai';
-import init from '../../init';
-import { createProject } from '../../factory/base';
-import { createTable } from '../../factory/table';
-import { generateDefaultRowAttributes } from '../../factory/row';
-import { isSqlite } from '../../init/db';
+import init from '~test/init';
+import { createProject } from '~test/factory/base';
+import { createTable } from '~test/factory/table';
+import { generateDefaultRowAttributes } from '~test/factory/row';
+import { isSqliteData } from '~test/init/db';
 import type { Knex } from 'knex';
 import type View from '~/models/View';
 import type Base from '~/models/Base';
@@ -99,7 +99,7 @@ function execAndParseTests() {
     });
 
     it('returns an array for INSERT queries', async () => {
-      if (isSqlite(context)) return;
+      if (isSqliteData(context)) return;
 
       const insertQuery = baseModelSql
         .dbDriver(baseModelSql.tnPath)
@@ -111,7 +111,7 @@ function execAndParseTests() {
     });
 
     it('returns an array when run inside a transaction', async () => {
-      if (isSqlite(context)) return;
+      if (isSqliteData(context)) return;
 
       const dbDriver = await NcConnectionMgrv2.get(source);
       const trx = await dbDriver.transaction();
@@ -158,7 +158,7 @@ function execAndParseTests() {
     });
 
     it('handles multiple sequential queries with consistent return types', async () => {
-      if (isSqlite(context)) return;
+      if (isSqliteData(context)) return;
 
       const columns = await table.getColumns(ctx);
       const request = {

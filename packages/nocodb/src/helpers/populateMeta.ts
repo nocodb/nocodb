@@ -6,10 +6,10 @@ import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
 import type { UserType } from 'nocodb-sdk';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
-import type Source from '~/models/Source';
 import type Base from '~/models/Base';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
+import Source from '~/models/Source';
 import { META_COL_NAME } from '~/constants';
 import { normalizeDr } from '~/helpers/dbHelpers';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
@@ -265,6 +265,20 @@ export async function populateMeta(
 
   const t = process.hrtime();
   const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+
+  if (!source.is_meta) {
+    try {
+      const dbVersion = (await sqlClient.version())?.data?.object?.version;
+      if (dbVersion && source.meta?.dbVersion !== dbVersion) {
+        const meta = { ...(source.meta || {}), dbVersion };
+        source.meta = meta;
+        await Source.update(context, source.id, { meta });
+      }
+    } catch (e) {
+      logger?.(`Could not determine source DB version: ${e?.message}`);
+    }
+  }
+
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 
@@ -431,6 +445,18 @@ export async function populateMeta(
       for (const column of columns) {
         if (source.type === 'databricks') {
           if (column.pk && !column.cdf) {
+            column.meta = {
+              ag: 'nc',
+            };
+          }
+        }
+
+        // MSSQL: a PK that is neither IDENTITY (auto-increment → AI) nor backed
+        // by a DB default (e.g. NEWID()) must be NocoDB-generated (AG). Identity
+        // columns report no column_default, so the !ai guard is required to
+        // avoid mis-tagging them as AG.
+        if (source.type === 'mssql') {
+          if (column.pk && !column.cdf && !column.ai) {
             column.meta = {
               ag: 'nc',
             };

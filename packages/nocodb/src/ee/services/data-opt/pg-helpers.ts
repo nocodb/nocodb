@@ -13,7 +13,7 @@ import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { extractSortsObject, getAs, getListArgs } from '~/db/BaseModelSqlv2';
+import { extractSortsObject, getAs, getListArgs } from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -21,6 +21,7 @@ import getAst from '~/helpers/getAst';
 import { Profiler } from '~/helpers/profiler';
 import { Filter, Model, Sort } from '~/models';
 import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
+import { singleQueryRead as mssqlSingleQueryRead } from '~/services/data-opt/mssql-helpers';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
@@ -421,6 +422,9 @@ export async function singleQueryGroupedList(
 export function getSingleQueryReadFn(source: Source) {
   if (['mysql', 'mysql2'].includes(source.type)) {
     return mysqlSingleQueryRead;
+  }
+  if (source.type === 'mssql') {
+    return mssqlSingleQueryRead;
   }
   return singleQueryRead;
 }

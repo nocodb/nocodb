@@ -1,7 +1,11 @@
 import { isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
+import { LookupGeneralHandler } from '../lookup/lookup.general.handler';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
-import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
+import type {
+  FilterOptions,
+  SortOptions,
+} from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
 import {
@@ -13,6 +17,20 @@ import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 
 export class LtarGeneralHandler extends GenericFieldHandler {
+  /**
+   * Sort by the linked record's display value — delegates to
+   * `LookupGeneralHandler.applySort` since both produce SQL via
+   * `generateLookupSelectQuery`. Keeps the lookup-chain logic in one place.
+   */
+  override async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    return new LookupGeneralHandler().applySort(qb, column, direction, options);
+  }
+
   override async filter(
     knex: CustomKnex,
     filter: Filter,

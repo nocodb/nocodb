@@ -601,6 +601,16 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
     case 'sqlite3':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;
+    case 'mssql':
+      // STRING_AGG (SQL Server 2017+); cast so non-text lookup values
+      // aggregate. RTRIM strips trailing-space padding T-SQL preserves on
+      // fixed-length char/nchar columns (no-op for varchar/numeric).
+      this.select(
+        this.client.raw(`STRING_AGG(RTRIM(CAST(?? AS NVARCHAR(MAX))), ',')`, [
+          cn,
+        ]),
+      );
+      break;
   }
   return this;
 });

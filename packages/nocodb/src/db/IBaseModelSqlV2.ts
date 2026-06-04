@@ -427,6 +427,7 @@ export interface IBaseModelSqlV2 {
   get isSqlite(): boolean;
   get isPg(): boolean;
   get isMySQL(): boolean;
+  get isMssql(): boolean;
   get isSnowflake(): boolean;
   get isDatabricks(): boolean;
   get clientType(): string;
@@ -434,6 +435,7 @@ export interface IBaseModelSqlV2 {
     isSqlite: boolean;
     isPg: boolean;
     isMySQL: boolean;
+    isMssql: boolean;
   };
 
   /**

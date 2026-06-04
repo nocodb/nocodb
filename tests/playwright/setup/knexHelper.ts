@@ -1,10 +1,125 @@
 import { knex, Knex } from 'knex';
 import { promises as fs } from 'fs';
+import path from 'path';
 import { getKnexConfig } from '../tests/utils/config';
+
+// ── MSSQL Sakila ────────────────────────────────────────────────────────────
+// MSSQL has no fast `CREATE DATABASE ... TEMPLATE` like pg, and the data file is
+// ~46k single-row INSERTs (≈95s if autocommitted). Strategy mirroring pg's
+// template approach but tuned for MSSQL:
+//   • Build the worker's Sakila DB ONCE (schema GO-split + data in ONE
+//     transaction with SET NOCOUNT ON → ~10s instead of ~95s), then BACKUP it.
+//   • Per-test reset = RESTORE from that backup (~0.7s) — full isolation, cheap.
+// Backup/data files live inside the MSSQL container's data dir; SQL Server (not
+// this host process) reads/writes them via BACKUP/RESTORE T-SQL.
+const MSSQL_DATA_DIR = '/var/opt/mssql/data';
+// Per-worker-process flag: each Playwright worker is its own Node process, so a
+// module-level set persists for that worker's lifetime — build once, restore after.
+const mssqlSakilaBuilt = new Set<string>();
+
+function stripSakilaDbStatements(sql: string): string {
+  // The fixture hardcodes `CREATE DATABASE sakila;` / `USE sakila;` — drop them
+  // so we load into our own per-worker DB via the connection's `database`.
+  return sql
+    .split(/\r?\n/)
+    .filter(l => !/^\s*CREATE\s+DATABASE\s+sakila\b/i.test(l) && !/^\s*USE\s+sakila\b/i.test(l))
+    .join('\n');
+}
+
+async function initializeSakilaMssql(database: string) {
+  const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
+  const sakilaDir = `${testsDir}/sql-server-sakila-db`;
+
+  // (re)create the target DB from master
+  {
+    const kn = knex(getKnexConfig({ dbName: 'master', dbType: 'mssql' }));
+    await kn.raw(
+      `IF DB_ID('${database}') IS NOT NULL BEGIN ALTER DATABASE [${database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [${database}]; END`
+    );
+    await kn.raw(`CREATE DATABASE [${database}]`);
+    await kn.destroy();
+  }
+
+  const kn = knex(getKnexConfig({ dbName: database, dbType: 'mssql' }));
+  try {
+    // schema: T-SQL `GO` batch separators must be split (tedious can't parse GO)
+    const schema = stripSakilaDbStatements(
+      (await fs.readFile(`${sakilaDir}/01-sql-server-sakila-schema.sql`)).toString()
+    );
+    for (const batch of schema
+      .split(/^\s*GO\s*$/im)
+      .map(b => b.trim())
+      .filter(Boolean)) {
+      await kn.raw(batch);
+    }
+
+    // data: ~46k single-row INSERTs — one transaction + SET NOCOUNT ON (≈10s vs ≈95s)
+    const data = stripSakilaDbStatements(
+      (await fs.readFile(`${sakilaDir}/02-sql-server-sakila-insert-data.sql`)).toString()
+    );
+    const trx = await kn.transaction();
+    try {
+      await trx.raw('SET NOCOUNT ON;');
+      await trx.raw(data);
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  } finally {
+    await kn.destroy();
+  }
+}
+
+export async function resetSakilaMssql(database: string) {
+  const bak = path.posix.join(MSSQL_DATA_DIR, `${database}.bak`);
+  const kn = knex(getKnexConfig({ dbName: 'master', dbType: 'mssql' }));
+  try {
+    if (!mssqlSakilaBuilt.has(database)) {
+      // First use in this worker: full load (~10s) then back it up. The freshly
+      // built DB is already clean, so no restore is needed on this first call.
+      await kn.destroy();
+      await initializeSakilaMssql(database);
+      const kn2 = knex(getKnexConfig({ dbName: 'master', dbType: 'mssql' }));
+      try {
+        await kn2.raw(`BACKUP DATABASE [${database}] TO DISK = N'${bak}' WITH INIT, FORMAT, COMPRESSION`);
+      } finally {
+        await kn2.destroy();
+      }
+      mssqlSakilaBuilt.add(database);
+      return;
+    }
+
+    // Subsequent resets: restore over the live DB (kill open connections first).
+    // Logical file names are `${database}` / `${database}_log` because the DB
+    // was created via `CREATE DATABASE [${database}]`.
+    await kn.raw(`ALTER DATABASE [${database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE`);
+    await kn.raw(
+      `RESTORE DATABASE [${database}] FROM DISK = N'${bak}' WITH REPLACE, ` +
+        `MOVE N'${database}' TO N'${path.posix.join(MSSQL_DATA_DIR, `${database}.mdf`)}', ` +
+        `MOVE N'${database}_log' TO N'${path.posix.join(MSSQL_DATA_DIR, `${database}_log.ldf`)}'`
+    );
+    await kn.raw(`ALTER DATABASE [${database}] SET MULTI_USER`);
+  } finally {
+    await kn.destroy().catch(() => {});
+  }
+}
 
 async function dropAndCreateDb(kn: Knex, dbName: string, dbType: string) {
   if (dbType === 'pg') {
     await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [dbName]);
+  } else if (dbType === 'mssql') {
+    // mssql has no `DROP DATABASE ... WITH FORCE`. A lingering external-source
+    // connection (NocoDB pools them) keeps the DB in use and makes DROP hang.
+    // Force every other session off first, mirroring pg's WITH (FORCE).
+    await kn.raw(
+      `IF DB_ID(?) IS NOT NULL
+       BEGIN
+         ALTER DATABASE ?? SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+         DROP DATABASE ??;
+       END`,
+      [dbName, dbName, dbName]
+    );
   } else {
     await kn.raw(`DROP DATABASE IF EXISTS ??`, [dbName]);
   }
@@ -168,6 +283,40 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
     }
 
     await sqliteknex.destroy();
+  } else if (database === 'mssql') {
+    {
+      const mssqlknex = knex(getKnexConfig({ dbName: 'master', dbType: 'mssql' }));
+      await dropAndCreateDb(mssqlknex, dbName, 'mssql');
+      await mssqlknex.destroy();
+    }
+
+    {
+      const mssqlknex = knex(getKnexConfig({ dbName, dbType: 'mssql' }));
+      try {
+        // datetime2 has no offset (≈ pg `timestamp without time zone`);
+        // datetimeoffset carries the offset (≈ pg `timestamptz`).
+        await mssqlknex.raw(`
+          CREATE TABLE my_table (
+            title INT IDENTITY(1,1) PRIMARY KEY,
+            datetime_without_tz datetime2,
+            datetime_with_tz datetimeoffset
+          )`);
+        const datetimeData = [
+          ['2023-04-27 10:00:00', '2023-04-27 10:00:00'],
+          ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
+        ];
+        for (const [datetime_without_tz, datetime_with_tz] of datetimeData) {
+          await mssqlknex.raw(`INSERT INTO my_table (datetime_without_tz, datetime_with_tz) VALUES (?, ?)`, [
+            datetime_without_tz,
+            datetime_with_tz,
+          ]);
+        }
+      } catch (e) {
+        console.error(`Error resetting mssql sakila db: Worker ${dbName}`);
+      }
+
+      await mssqlknex.destroy();
+    }
   }
 }
 

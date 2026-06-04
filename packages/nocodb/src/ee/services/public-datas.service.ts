@@ -7,8 +7,8 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import { Base, Column, Dashboard, Model, Source, View, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
+import canUseOptimisedQuery from '~/utils/canUseOptimisedQuery';
 import { ListDatasService } from '~/ee/services/list-datas.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
@@ -84,11 +84,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     const source = await Source.get(context, model.source_id);
 
-    if (
-      (['mysql', 'mysql2'].includes(source.type) &&
-        (await isMysqlVersionSupported(context, source))) ||
-      ['pg'].includes(source.type)
-    ) {
+    if (await canUseOptimisedQuery(context, { source, disableOptimization: false })) {
       const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,

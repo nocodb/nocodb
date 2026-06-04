@@ -7,7 +7,7 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
 import { Api } from 'nocodb-sdk';
-import { isEE } from '../../../setup/db';
+import { isEE, isMssqlData } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
 
 const users: string[] = isEE()
@@ -367,8 +367,16 @@ test.describe('User single select - filter, sort & GroupBy', () => {
   }
 
   test('User sort & validate, filter & validate', async () => {
-    const ascendingOrderRowTitle = ['1', '2', '3', '4', '0'];
-    const descendingOrderRowTitle = ['0', '4', '3', '2', '1'];
+    // MSSQL's default collation (SQL_Latin1_General_CP1_CI_AS) treats '-' as
+    // low-weight punctuation and sorts '@' ahead of digits, so the user emails
+    // order differently than the byte ordering used by pg/mysql/sqlite
+    // ('-' < '@'). Same rows, different stable order.
+    //
+    // Detect from the base's actual source type, NOT context.dbType: in the
+    // pg-meta + mssql-data run (NC_DATA_DB_JSON) the empty-project table lives
+    // on the mssql data DB while context.dbType stays 'pg'.
+    const ascendingOrderRowTitle = isMssqlData(context) ? ['0', '1', '2', '3', '4'] : ['1', '2', '3', '4', '0'];
+    const descendingOrderRowTitle = isMssqlData(context) ? ['4', '3', '2', '1', '0'] : ['0', '4', '3', '2', '1'];
 
     // Sort ascending and validate
     await toolbar.sort.add({
@@ -758,8 +766,16 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
   }
 
   test('User sort & validate, filter & validate', async () => {
-    const ascendingOrderRowTitle = ['1', '2', '3', '4', '0'];
-    const descendingOrderRowTitle = ['0', '4', '3', '2', '1'];
+    // MSSQL's default collation (SQL_Latin1_General_CP1_CI_AS) treats '-' as
+    // low-weight punctuation and sorts '@' ahead of digits, so the user emails
+    // order differently than the byte ordering used by pg/mysql/sqlite
+    // ('-' < '@'). Same rows, different stable order.
+    //
+    // Detect from the base's actual source type, NOT context.dbType: in the
+    // pg-meta + mssql-data run (NC_DATA_DB_JSON) the empty-project table lives
+    // on the mssql data DB while context.dbType stays 'pg'.
+    const ascendingOrderRowTitle = isMssqlData(context) ? ['0', '1', '2', '3', '4'] : ['1', '2', '3', '4', '0'];
+    const descendingOrderRowTitle = isMssqlData(context) ? ['4', '3', '2', '1', '0'] : ['0', '4', '3', '2', '1'];
 
     // Sort ascending and validate
     await toolbar.sort.add({

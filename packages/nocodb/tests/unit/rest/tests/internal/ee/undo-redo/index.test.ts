@@ -104,6 +104,10 @@ function runGroup(
       const title = spec.label ?? spec.forward_op;
       it(`round-trip: ${title}`, async function () {
         this.timeout(60000);
+        if (spec.skipIf?.(getCtx(), getEnv())) {
+          this.skip();
+          return;
+        }
         await runSpec(getCtx(), getEnv(), spec);
       });
     }

@@ -13,6 +13,19 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 
 export class JsonGeneralHandler extends GenericFieldHandler {
+  /**
+   * SQL fragment used to reference the JSON column inside string comparisons.
+   * Default is the bare quoted identifier (`??`). Dialects whose JSON type
+   * forbids implicit string comparison (e.g. SQL Server's native `json`, which
+   * behaves like `xml`) override this to wrap the field in an explicit cast.
+   * The single `??` binding is filled with the (already sanitized) field.
+   * Receives the column so a dialect can decide per underlying type (e.g. only
+   * cast a native `json` column, not an `nvarchar` column manually typed JSON).
+   */
+  protected fieldExpr(_column?: Column): string {
+    return '??';
+  }
+
   override async filter(
     knex: CustomKnex,
     filter: Filter,
@@ -23,6 +36,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     const field = sanitize(
       alias ? `${alias}.${column.column_name}` : column.column_name,
     );
+    const fieldExpr = this.fieldExpr(column);
     let val = filter.value;
 
     return {
@@ -32,14 +46,14 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           qb.where((nestedQb) => {
             nestedQb
               .whereNull(field)
-              .orWhere(knex.raw("?? = '{}'", [field]))
-              .orWhere(knex.raw("?? = '[]'", [field]));
+              .orWhere(knex.raw(`${fieldExpr} = '{}'`, [field]))
+              .orWhere(knex.raw(`${fieldExpr} = '[]'`, [field]));
           });
         };
         const appendIsNotNull = () => {
           qb.whereNotNull(field)
-            .whereNot(knex.raw("?? = '{}'", [field]))
-            .whereNot(knex.raw("?? = '[]'", [field]));
+            .whereNot(knex.raw(`${fieldExpr} = '{}'`, [field]))
+            .whereNot(knex.raw(`${fieldExpr} = '[]'`, [field]));
         };
 
         switch (filter.comparison_op) {
@@ -51,9 +65,9 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             } else {
               const { jsonVal, isValidJson } = this.parseJsonValue(val);
               if (isValidJson) {
-                qb.where(knex.raw('?? = ?', [field, jsonVal]));
+                qb.where(knex.raw(`${fieldExpr} = ?`, [field, jsonVal]));
               } else {
-                qb.where(knex.raw('?? = ?', [field, jsonVal]));
+                qb.where(knex.raw(`${fieldExpr} = ?`, [field, jsonVal]));
               }
             }
             break;
@@ -68,9 +82,13 @@ export class JsonGeneralHandler extends GenericFieldHandler {
               const { jsonVal, isValidJson } = this.parseJsonValue(val);
               qb.where((nestedQb) => {
                 if (isValidJson) {
-                  nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
+                  nestedQb.where(
+                    knex.raw(`${fieldExpr} != ?`, [field, jsonVal]),
+                  );
                 } else {
-                  nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
+                  nestedQb.where(
+                    knex.raw(`${fieldExpr} != ?`, [field, jsonVal]),
+                  );
                 }
                 nestedQb.orWhereNull(field);
               });
@@ -82,7 +100,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             if (!val) {
               qb.whereNotNull(field);
             } else {
-              qb.where(knex.raw('?? like ?', [field, val]));
+              qb.where(knex.raw(`${fieldExpr} like ?`, [field, val]));
             }
             break;
 
@@ -92,9 +110,13 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             } else {
               val = `%${val}%`;
               qb.where((nestedQb) => {
-                nestedQb.where(knex.raw('?? not like ?', [field, val]));
+                nestedQb.where(
+                  knex.raw(`${fieldExpr} not like ?`, [field, val]),
+                );
                 if (val !== '%%') {
-                  nestedQb.orWhere(field, '').orWhereNull(field);
+                  nestedQb
+                    .orWhere(knex.raw(`${fieldExpr} = ?`, [field, '']))
+                    .orWhereNull(field);
                 } else {
                   nestedQb.orWhereNull(field);
                 }

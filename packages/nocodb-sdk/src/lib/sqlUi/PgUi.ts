@@ -1,4 +1,5 @@
 import UITypes from '../UITypes';
+import { abstractTypeToMetaUIType } from './metaUiDataType';
 import { IDType } from './index';
 import { ColumnType } from '~/lib/Api';
 import { SqlUi } from './SqlUI.types';
@@ -1641,6 +1642,202 @@ export class PgUi implements SqlUi {
     return 'string';
   }
 
+  // Introspection UIType for meta-sync — exact port of the removed
+  // ModelXcMetaPg.getUIDataType (+ its getAbstractType). Distinct from
+  // getUIType (column-creation default). See metaUiDataType.ts.
+  static getMetaUIDataType(col): any {
+    return abstractTypeToMetaUIType(this.getMetaAbstractType(col));
+  }
+
+  static getMetaAbstractType(col): any {
+    const dt = col.dt.toLowerCase();
+    switch (dt) {
+      case 'anyenum':
+        return 'enum';
+      case 'user-defined':
+        // PG groups every user-defined type under data_type='USER-DEFINED'.
+        // Disambiguate via pg_type.typtype (plumbed by PgClient.columnList).
+        return col.udt_typtype === 'e' ? 'enum' : dt;
+      case 'anynonarray':
+      case 'anyrange':
+        return dt;
+
+      case 'bit':
+        return 'integer';
+      case 'bigint':
+      case 'bigserial':
+        return 'integer';
+
+      case 'bool':
+        return 'boolean';
+
+      case 'bpchar':
+      case 'bytea':
+        return dt;
+      case 'char':
+      case 'character':
+      case 'character varying':
+        return 'string';
+
+      case 'cid':
+      case 'cidr':
+      case 'cstring':
+        return dt;
+
+      case 'date':
+        return 'date';
+      case 'daterange':
+        return 'string';
+
+      case 'event_trigger':
+      case 'fdw_handler':
+        return dt;
+
+      case 'double precision':
+      case 'float4':
+      case 'float8':
+      case 'numeric':
+        return 'float';
+
+      case 'gtsvector':
+      case 'index_am_handler':
+      case 'inet':
+        return dt;
+
+      case 'int':
+      case 'int2':
+      case 'int4':
+      case 'int8':
+      case 'integer':
+        return 'integer';
+      case 'int4range':
+      case 'int8range':
+      case 'internal':
+      case 'interval':
+        return 'string';
+      case 'json':
+      case 'jsonb':
+        return 'json';
+
+      case 'language_handler':
+      case 'lsec':
+      case 'macaddr':
+      case 'money':
+      case 'name':
+      case 'numrange':
+      case 'oid':
+      case 'opaque':
+      case 'path':
+      case 'pg_ddl_command':
+      case 'pg_lsn':
+      case 'pg_node_tree':
+        return dt;
+      case 'real':
+        return 'float';
+      case 'record':
+      case 'refcursor':
+      case 'regclass':
+      case 'regconfig':
+      case 'regdictionary':
+      case 'regnamespace':
+      case 'regoper':
+      case 'regoperator':
+      case 'regproc':
+      case 'regpreocedure':
+      case 'regrole':
+      case 'regtype':
+      case 'reltime':
+        return dt;
+      case 'serial':
+      case 'serial2':
+      case 'serial8':
+      case 'smallint':
+      case 'smallserial':
+        return 'integer';
+      case 'smgr':
+        return dt;
+      case 'text':
+        return 'text';
+      case 'tid':
+        return dt;
+      case 'time':
+      case 'time without time zone':
+        return 'time';
+      case 'timestamp':
+      case 'timestamp without time zone':
+      case 'timestamptz':
+      case 'timestamp with time zone':
+        return 'datetime';
+      case 'timetz':
+      case 'time with time zone':
+        return 'time';
+
+      case 'tinterval':
+      case 'trigger':
+      case 'tsm_handler':
+      case 'tsquery':
+      case 'tsrange':
+      case 'tstzrange':
+      case 'tsvector':
+      case 'txid_snapshot':
+      case 'unknown':
+      case 'void':
+      case 'xid':
+      case 'xml':
+        return dt;
+
+      case 'tinyint':
+      case 'mediumint':
+        return 'integer';
+
+      case 'float':
+      case 'decimal':
+      case 'double':
+        return 'float';
+      case 'boolean':
+        return 'boolean';
+      case 'datetime':
+        return 'datetime';
+
+      case 'uuid':
+      case 'year':
+      case 'varchar':
+      case 'nchar':
+        return 'string';
+
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
+        return 'text';
+
+      case 'binary':
+      case 'varbinary':
+        return 'text';
+
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
+        return 'blob';
+      case 'enum':
+        return 'enum';
+      case 'set':
+        return 'set';
+
+      case 'line':
+      case 'point':
+      case 'polygon':
+      case 'circle':
+      case 'box':
+      case 'geometry':
+      case 'linestring':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+        return 'geometry';
+    }
+  }
+
   static getUIType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
@@ -2208,6 +2405,9 @@ export class PgUi implements SqlUi {
   }
   getUIType(col: ColumnType): string {
     return PgUi.getUIType(col);
+  }
+  getMetaUIDataType(col: ColumnType): UITypes {
+    return PgUi.getMetaUIDataType(col);
   }
   getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     return PgUi.getDataTypeForUiType(col, idType);

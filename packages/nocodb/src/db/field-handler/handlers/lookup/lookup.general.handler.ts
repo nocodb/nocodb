@@ -8,11 +8,13 @@ import type {
   FilterOperationResult,
   FilterOptions,
   IFieldHandler,
+  SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
 import type { Filter } from '~/models';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import {
   getAlias,
   negatedMapping,
@@ -24,6 +26,29 @@ import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
+  /**
+   * Sort by the looked-up display value. `generateLookupSelectQuery`
+   * resolves the lookup chain to a single SQL expression (potentially with
+   * GROUP_CONCAT for HM/MM lookups). Used by both Lookup and LTAR — LTAR's
+   * handler delegates to this method.
+   */
+  override async applySort(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: 'asc' | 'desc',
+    options: SortOptions,
+  ): Promise<void> {
+    const { alias, nulls, baseModel: baseModelSqlv2, context } = options;
+    const model = await column.getModel(context);
+    const selectQb = await generateLookupSelectQuery({
+      baseModelSqlv2,
+      column,
+      alias,
+      model,
+    });
+    qb.orderBy(selectQb?.builder, direction, nulls);
+  }
+
   /**
    * Applies a filter condition for lookup columns based on the relation type.
    * It constructs a subquery to find related records that match the filter criteria

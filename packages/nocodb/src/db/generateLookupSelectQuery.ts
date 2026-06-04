@@ -674,6 +674,40 @@ export default async function generateLookupSelectQuery({
             .from(selectQb.as(subQueryAlias)),
           applyCte,
         };
+      } else if (baseModelSqlv2.isMssql) {
+        return {
+          builder: knex
+            .select(
+              // Emit a JSON array string (`["English","English"]`) to match
+              // the shape pg's `json_agg(col)::text` / mysql's
+              // `JSON_ARRAYAGG(col)` return. The legacy `STRING_AGG(.., '___')`
+              // form was a delimited string, awkward to JSON.parse on the
+              // consumer side.
+              //
+              // Steps:
+              //   • RTRIM    — strip trailing-space padding T-SQL preserves on
+              //                fixed-length char/nchar columns (no-op on
+              //                varchar/nvarchar/numeric).
+              //   • CAST     — every value is rendered as a string for JSON
+              //                quoting; T-SQL has no auto-type-preserving JSON
+              //                aggregate so numeric lookups become quoted
+              //                strings ("1" not 1). Acceptable tradeoff —
+              //                lookups are display-oriented values.
+              //   • STRING_ESCAPE — JSON-escapes embedded quotes/backslashes.
+              //   • STRING_AGG — joins with `,` between the quoted elements.
+              //   • COALESCE — STRING_AGG returns NULL for an empty/all-NULL
+              //                input set; default to `''` so the wrapper
+              //                yields `[]` rather than `[NULL]`.
+              //   • JSON_QUERY — tells SQL Server the result IS JSON, so a
+              //                parent `FOR JSON PATH` won't double-escape it.
+              knex.raw(
+                `JSON_QUERY('[' + COALESCE(STRING_AGG('"' + STRING_ESCAPE(RTRIM(CAST(?? AS NVARCHAR(MAX))), 'json') + '"', ','), '') + ']')`,
+                [lookupColumn.id],
+              ),
+            )
+            .from(selectQb.as(subQueryAlias)),
+          applyCte,
+        };
       }
 
       NcError.get(context).notImplemented(

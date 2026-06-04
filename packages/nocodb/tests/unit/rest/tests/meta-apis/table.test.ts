@@ -2,11 +2,12 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import { Model } from '~/models';
-import { createProject } from '../../../factory/base';
-import { defaultColumns } from '../../../factory/column';
-import { createTable, getAllTables } from '../../../factory/table';
-import init from '../../../init';
-import { runOnSet } from '../../../utils/runOnSet';
+import { createProject } from '~test/factory/base';
+import { defaultColumns } from '~test/factory/column';
+import { isPgData } from '~test/init/db';
+import { createTable, getAllTables } from '~test/factory/table';
+import init from '~test/init';
+import { runOnSet } from '~test/utils/runOnSet';
 import type { Base } from '~/models';
 
 export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
@@ -161,8 +162,13 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
             defaultColumns(context, isV3).length,
           );
         } else {
+          // System columns added per table:
+          //   CE (6): nc_order, createdby, updatedby, created_at, updated_at, __nc_deleted
+          //   EE (7): + `meta` — but `meta` is only added on pg-backed data
+          //   DBs, so non-pg EE matches the CE count.
+          const eeMeta = isEE && isPgData(context) ? 1 : 0;
           expect(response.body.columns.length).to.eq(
-          defaultColumns(context, isV3).length + (isEE ? 7 : 6), // nc_order, createdby, updatedby, created_at, updated_at, __nc_deleted, meta(EE)
+            defaultColumns(context, isV3).length + 6 + eeMeta,
           );
         }
 

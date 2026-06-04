@@ -15,6 +15,22 @@ import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
 
+// SQLite AND MSSQL forbid `ORDER BY` (and `TOP`/`LIMIT`) inside a parenthesized
+// `UNION ALL` operand — only pg/mysql accept `(SELECT … ORDER BY … LIMIT …)`
+// branches. For those two dialects we instead wrap each branch in a derived
+// table (`SELECT * FROM (<branch>)`) and tell knex NOT to parenthesize the
+// union members. MSSQL additionally requires the derived table to be aliased.
+function needsUnionMemberWrap(model: IBaseModelSqlV2): boolean {
+  return (model as any).isSqlite || (model as any).isMssql;
+}
+
+function wrapUnionMember(model: IBaseModelSqlV2, query: any): any {
+  if (!needsUnionMemberWrap(model)) return query;
+  return (model as any).dbDriver
+    .select()
+    .from((model as any).isMssql ? query.as('__nc_u') : query);
+}
+
 export const relationDataFetcher = (param: {
   baseModel: IBaseModelSqlV2;
   logger: Logger;
@@ -165,11 +181,9 @@ export const relationDataFetcher = (param: {
                 );
                 query.offset(+rest?.offset || 0);
 
-                return baseModel.isSqlite
-                  ? baseModel.dbDriver.select().from(query)
-                  : query;
+                return wrapUnionMember(baseModel, query);
               }),
-              !baseModel.isSqlite,
+              !needsUnionMemberWrap(baseModel),
             )
             .as('list'),
         );
@@ -506,11 +520,9 @@ export const relationDataFetcher = (param: {
 
               if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
 
-              return childBaseModel.isSqlite
-                ? childBaseModel.dbDriver.select().from(query)
-                : query;
+              return wrapUnionMember(childBaseModel, query);
             }),
-            !childBaseModel.isSqlite,
+            !needsUnionMemberWrap(childBaseModel),
           ),
           null,
           { raw: true },
@@ -848,11 +860,9 @@ export const relationDataFetcher = (param: {
               (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
           );
           query.offset(+rest?.offset || 0);
-          return baseModel.isSqlite
-            ? baseModel.dbDriver.select().from(query)
-            : query;
+          return wrapUnionMember(baseModel, query);
         }),
-        !baseModel.isSqlite,
+        !needsUnionMemberWrap(baseModel),
       );
 
       const children = await refBaseModel.execAndParse(
@@ -941,11 +951,9 @@ export const relationDataFetcher = (param: {
               )
               .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
             // baseModel._paginateAndSort(query, { sort, limit, offset }, null, true);
-            return baseModel.isSqlite
-              ? baseModel.dbDriver.select().from(query)
-              : query;
+            return wrapUnionMember(baseModel, query);
           }),
-          !baseModel.isSqlite,
+          !needsUnionMemberWrap(baseModel),
         ),
         null,
         { raw: true },

@@ -16,6 +16,7 @@ import { NcError } from '~/helpers/catchError';
 import {
   _wherePk,
   dataWrapper,
+  deletedColValue,
   extractIds,
   getOppositeRelationType,
   getRelatedLinksColumn,
@@ -462,7 +463,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   baseModel
                     .dbDriver(parentTn)
                     .select(1)
-                    .where(parentSoftDeleteCol.column_name, true)
+                    .where(
+                      parentSoftDeleteCol.column_name,
+                      deletedColValue(baseModel, true),
+                    )
                     .whereRaw('?? = ??', [
                       parentTable.primaryKey.column_name,
                       `${vTn}.${vParentCol.column_name}`,
@@ -486,7 +490,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     baseModel
                       .dbDriver(parentTn)
                       .select(1)
-                      .where(parentSoftDeleteCol.column_name, true)
+                      .where(
+                        parentSoftDeleteCol.column_name,
+                        deletedColValue(baseModel, true),
+                      )
                       .whereRaw('?? = ??', [
                         parentTable.primaryKey.column_name,
                         `${vTn}.${vParentCol.column_name}`,
@@ -538,7 +545,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     baseModel
                       .dbDriver(childTn)
                       .select(1)
-                      .where(childSoftDeleteCol.column_name, true)
+                      .where(
+                        childSoftDeleteCol.column_name,
+                        deletedColValue(baseModel, true),
+                      )
                       .whereRaw('?? = ??', [
                         childTable.primaryKey.column_name,
                         `${vTn}.${vChildCol.column_name}`,
@@ -562,7 +572,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                       baseModel
                         .dbDriver(childTn)
                         .select(1)
-                        .where(childSoftDeleteCol.column_name, true)
+                        .where(
+                          childSoftDeleteCol.column_name,
+                          deletedColValue(baseModel, true),
+                        )
                         .whereRaw('?? = ??', [
                           childTable.primaryKey.column_name,
                           `${vTn}.${vChildCol.column_name}`,

@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import init from '~test/init';
+import { isPgData } from '~test/init/db';
 import { isEE } from '~test/utils/helpers';
 import { createProject } from '~test/factory/base';
 import { createTable } from '~test/factory/table';
@@ -78,6 +79,11 @@ function tableSyncTests() {
 
     beforeEach(async function () {
       context = await init();
+      // Table sync depends on custom links, which aren't supported on
+      // MSSQL — skip the suite when the data DB isn't PG.
+      if (!isPgData(context)) {
+        this.skip();
+      }
       workspaceId = context.fk_workspace_id!;
 
       sourceBase = await createProject(context, { title: 'SyncSourceBase' });

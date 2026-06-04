@@ -2,10 +2,11 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import { PlanFeatureTypes, PlanLimitTypes, ViewLockType } from 'nocodb-sdk';
-import init from '../../../../init';
-import { isEE } from '../../../../utils/helpers';
-import { overridePlan } from '../../../../utils/plan.utils';
-import { createUser } from '../../../../factory/user';
+import init from '~test/init';
+import { isPgData } from '~test/init/db';
+import { isEE } from '~test/utils/helpers';
+import { overridePlan } from '~test/utils/plan.utils';
+import { createUser } from '~test/factory/user';
 
 /**
  * Editor-role view CRUD permissions — verifies the expanded editor powers:
@@ -898,7 +899,9 @@ export const viewEditorPermissionsTests = function () {
             .send({ meta: { __qa: 'editor' } });
         };
 
-        it(`editor cannot ${updateOp} on locked view`, async () => {
+        it(`editor cannot ${updateOp} on locked view`, async function () {
+          // List view is pg-only — listViewCreate returns 400 on other dialects.
+          if (label === 'list' && !isPgData(context)) return this.skip();
           const create = await mkView(ownerToken, `TL_${label}_locked`);
           expect(create.status, `create ${createOp} failed: ${JSON.stringify(create.body)}`).to.eq(200);
           await updateView(ownerToken, create.body.id, {
@@ -908,7 +911,8 @@ export const viewEditorPermissionsTests = function () {
           expect(res.status).to.eq(403);
         });
 
-        it(`editor cannot ${updateOp} on another editor's personal view`, async () => {
+        it(`editor cannot ${updateOp} on another editor's personal view`, async function () {
+          if (label === 'list' && !isPgData(context)) return this.skip();
           const create = await mkView(editorToken, `TP_${label}_others`);
           expect(create.status, `create ${createOp} failed: ${JSON.stringify(create.body)}`).to.eq(200);
           await updateView(editorToken, create.body.id, {
@@ -918,7 +922,8 @@ export const viewEditorPermissionsTests = function () {
           expect(res.status).to.eq(403);
         });
 
-        it(`creator can ${updateOp} on locked view`, async () => {
+        it(`creator can ${updateOp} on locked view`, async function () {
+          if (label === 'list' && !isPgData(context)) return this.skip();
           const create = await mkView(creatorToken, `TC_${label}_locked`);
           expect(create.status, `create ${createOp} failed: ${JSON.stringify(create.body)}`).to.eq(200);
           await updateView(creatorToken, create.body.id, {
@@ -1127,7 +1132,9 @@ export const viewEditorPermissionsTests = function () {
       ];
 
       for (const [label, createOp] of byTypeEnabled) {
-        it(`${label}ViewCreate with lock_type=Personal returns 200`, async () => {
+        it(`${label}ViewCreate with lock_type=Personal returns 200`, async function () {
+          // List view is pg-only — listViewCreate returns 400 on other dialects.
+          if (label === 'list' && !isPgData(context)) return this.skip();
           const res = await request(context.app)
             .post(INTERNAL_API_BASE)
             .query({ operation: createOp, tableId })

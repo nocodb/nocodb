@@ -10,6 +10,10 @@ import type { DbConfig } from '~/interface/config';
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
   public static readonly sakilaDbName = 'test_sakila';
+  // Data DB for internal/default (is_meta) sources. Normally the same client
+  // as meta (pg/mysql/sqlite). Can be overridden to MSSQL via env so the suite
+  // runs with pg meta + mssql data — NocoDB picks it up via NC_DATA_DB_JSON.
+  public static readonly dataDbName = 'test_data';
   public static metaKnex: Knex;
   public static sakilaKnex: Knex;
 
@@ -39,6 +43,27 @@ export default class TestDbMngr {
 
   public static dbConfig: DbConfig;
 
+  // Build a printable summary that hides the password but shows everything
+  // else — both the meta-DB config and (in mssql split-data mode) the data-DB
+  // config. Logging the password verbatim was a footgun, so we redact it.
+  private static printableConfig() {
+    const redact = (cfg: Record<string, any>) => ({
+      ...cfg,
+      password: cfg.password ? '***' : cfg.password,
+    });
+    const summary: Record<string, any> = {
+      meta: redact(TestDbMngr.connection),
+    };
+    if (TestDbMngr.isMssqlDataDb()) {
+      const data = TestDbMngr.getMssqlDataDbConfig();
+      summary.data = {
+        client: data.client,
+        ...redact(data.connection),
+      };
+    }
+    return summary;
+  }
+
   static populateConnectionConfig() {
     const { user, password, host, port, client } = TestDbMngr.defaultConnection;
     TestDbMngr.connection = {
@@ -49,12 +74,12 @@ export default class TestDbMngr {
       client: process.env['DB_CLIENT'] || client,
     };
 
-    console.log(TestDbMngr.connection);
+    console.log('TestDbMngr config:', TestDbMngr.printableConfig());
   }
 
   static async testConnection(config: DbConfig) {
     try {
-      console.log('Testing connection', TestDbMngr.connection);
+      console.log('Testing connection:', TestDbMngr.printableConfig());
       return await SqlMgrv2.testConnection(config);
     } catch (e) {
       console.log(e);
@@ -251,6 +276,83 @@ export default class TestDbMngr {
     return sakilaDbConfig;
   }
 
+  // --- MSSQL data DB (pg meta + mssql data) --------------------------------
+  // Enabled via NC_TEST_DATA_CLIENT=mssql. Connection from
+  // NC_TEST_DATA_{HOST,PORT,USER,PASSWORD,DATABASE} with local defaults.
+  // When enabled, NocoDB's internal/default (is_meta) source uses this DB via
+  // NC_DATA_DB_JSON — so the standard table builders create tables in MSSQL
+  // while meta stays on pg. Other dialects (pg/mysql/sqlite) leave NC_DATA_DB
+  // unset, so their data DB == meta DB as before.
+
+  static isMssqlDataDb() {
+    return (process.env.NC_TEST_DATA_CLIENT || '').toLowerCase() === 'mssql';
+  }
+
+  static getMssqlDataDbConfig() {
+    return {
+      client: 'mssql',
+      connection: {
+        host: process.env.NC_TEST_DATA_HOST || 'localhost',
+        port: Number(process.env.NC_TEST_DATA_PORT) || 1433,
+        user: process.env.NC_TEST_DATA_USER || 'sa',
+        password: process.env.NC_TEST_DATA_PASSWORD || 'Password123!',
+        database: process.env.NC_TEST_DATA_DATABASE || TestDbMngr.dataDbName,
+        options: { encrypt: false, trustServerCertificate: true },
+      },
+      searchPath: ['dbo'],
+    };
+  }
+
+  // Drop + recreate the MSSQL data DB and point NocoDB at it via
+  // NC_DATA_DB_JSON. Call once before server init.
+  static async setupDataDb() {
+    if (!TestDbMngr.isMssqlDataDb()) return;
+    const cfg = TestDbMngr.getMssqlDataDbConfig();
+    const dbName = cfg.connection.database;
+    const adminKnex = knex({
+      client: cfg.client,
+      connection: { ...cfg.connection, database: 'master' },
+      pool: { min: 0, max: 1 },
+    });
+    try {
+      await adminKnex.raw(
+        `IF DB_ID('${dbName}') IS NOT NULL BEGIN
+           ALTER DATABASE [${dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+           DROP DATABASE [${dbName}];
+         END`,
+      );
+      await adminKnex.raw(`CREATE DATABASE [${dbName}]`);
+    } finally {
+      await adminKnex.destroy();
+    }
+    // EE NcConnectionMgrv2.getDataConfig() reads this for is_meta sources.
+    process.env.NC_DATA_DB_JSON = JSON.stringify(cfg);
+  }
+
+  // Drop all FK constraints + tables in the MSSQL data DB (per-test reset).
+  static async cleanupDataDb() {
+    if (!TestDbMngr.isMssqlDataDb()) return;
+    const cfg = TestDbMngr.getMssqlDataDbConfig();
+    const dataKnex = knex({
+      client: cfg.client,
+      connection: cfg.connection,
+      pool: { min: 0, max: 1 },
+    });
+    try {
+      await dataKnex.raw(`
+        DECLARE @sql NVARCHAR(MAX) = N'';
+        SELECT @sql += 'ALTER TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.'
+          + QUOTENAME(OBJECT_NAME(parent_object_id)) + ' DROP CONSTRAINT '
+          + QUOTENAME(name) + ';' FROM sys.foreign_keys;
+        SELECT @sql += 'DROP TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.'
+          + QUOTENAME(name) + ';' FROM sys.tables;
+        IF LEN(@sql) > 0 EXEC sp_executesql @sql;
+      `);
+    } finally {
+      await dataKnex.destroy();
+    }
+  }
+
   static async seedSakila() {
     const testsDir = __dirname.replace('tests/unit', 'tests');
 
@@ -285,42 +387,91 @@ export default class TestDbMngr {
     }
   }
 
+  private static _dialect(
+    knexClient: any,
+  ): 'sqlite' | 'pg' | 'mysql' | 'mssql' {
+    const c = knexClient?.client?.config?.client;
+    if (c === 'sqlite3' || c === 'sqlite') return 'sqlite';
+    if (c === 'pg') return 'pg';
+    if (c === 'mssql') return 'mssql';
+    if (c === 'mysql' || c === 'mysql2') return 'mysql';
+    // Unknown client — fall back to the meta-DB helpers so we keep behaving
+    // the way the caller expects from before this dispatch existed.
+    if (TestDbMngr.isSqlite()) return 'sqlite';
+    if (TestDbMngr.isPg()) return 'pg';
+    return 'mysql';
+  }
+
   static async disableForeignKeyChecks(knexClient) {
-    if (TestDbMngr.isSqlite()) {
-      await knexClient.raw('PRAGMA foreign_keys = OFF');
-    } else if (TestDbMngr.isPg()) {
-      await knexClient.raw(`SET session_replication_role = 'replica'`);
-    } else {
-      await knexClient.raw(`SET FOREIGN_KEY_CHECKS = 0`);
+    switch (TestDbMngr._dialect(knexClient)) {
+      case 'sqlite':
+        return knexClient.raw(`PRAGMA foreign_keys = OFF`);
+      case 'pg':
+        return knexClient.raw(`SET session_replication_role = 'replica'`);
+      case 'mssql':
+        // T-SQL has no session-level FK toggle; `sp_msforeachtable`
+        // iterates every user table in the current DB. The `?` inside the
+        // command is sp_msforeachtable's own table-name placeholder — escape
+        // it so knex passes it through literally instead of binding it.
+        return knexClient.raw(
+          `EXEC sp_msforeachtable 'ALTER TABLE \\? NOCHECK CONSTRAINT ALL'`,
+        );
+      case 'mysql':
+        return knexClient.raw(`SET FOREIGN_KEY_CHECKS = 0`);
     }
   }
 
   static async enableForeignKeyChecks(knexClient) {
-    if (TestDbMngr.isSqlite()) {
-      await knexClient.raw(`PRAGMA foreign_keys = ON;`);
-    } else if (TestDbMngr.isPg()) {
-      await knexClient.raw(`SET session_replication_role = 'origin'`);
-    } else {
-      await knexClient.raw(`SET FOREIGN_KEY_CHECKS = 1`);
+    switch (TestDbMngr._dialect(knexClient)) {
+      case 'sqlite':
+        return knexClient.raw(`PRAGMA foreign_keys = ON`);
+      case 'pg':
+        return knexClient.raw(`SET session_replication_role = 'origin'`);
+      case 'mssql':
+        // `WITH CHECK CHECK CONSTRAINT ALL` re-enables AND re-validates the
+        // FK against existing rows — `CHECK CONSTRAINT ALL` (no `WITH
+        // CHECK`) would re-enable without validating. Escape sp_msforeachtable's
+        // `?` placeholder (see disableForeignKeyChecks).
+        return knexClient.raw(
+          `EXEC sp_msforeachtable 'ALTER TABLE \\? WITH CHECK CHECK CONSTRAINT ALL'`,
+        );
+      case 'mysql':
+        return knexClient.raw(`SET FOREIGN_KEY_CHECKS = 1`);
     }
   }
 
-  static async showAllTables(knexClient) {
-    if (TestDbMngr.isSqlite()) {
-      const tables = await knexClient.raw(
-        `SELECT name FROM sqlite_master WHERE type='table'`,
-      );
-      return tables
-        .filter((t) => t.name !== 'sqlite_sequence' && t.name !== '_evolutions')
-        .map((t) => t.name);
-    } else if (TestDbMngr.isPg()) {
-      const tables = await knexClient.raw(
-        `SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';`,
-      );
-      return tables.rows.map((t) => t.tablename);
-    } else {
-      const response = await knexClient.raw(`SHOW TABLES`);
-      return response[0].map((table) => Object.values(table)[0]);
+  static async showAllTables(knexClient): Promise<string[]> {
+    switch (TestDbMngr._dialect(knexClient)) {
+      case 'sqlite': {
+        const rows = await knexClient.raw(
+          `SELECT name FROM sqlite_master WHERE type='table'`,
+        );
+        return rows
+          .filter(
+            (t: any) => t.name !== 'sqlite_sequence' && t.name !== '_evolutions',
+          )
+          .map((t: any) => t.name);
+      }
+      case 'pg': {
+        const rows = await knexClient.raw(
+          `SELECT tablename FROM pg_catalog.pg_tables
+            WHERE schemaname NOT IN ('pg_catalog', 'information_schema')`,
+        );
+        return rows.rows.map((t: any) => t.tablename);
+      }
+      case 'mssql': {
+        // tedious returns array-of-rows directly (no `.rows` wrapper).
+        const rows = await knexClient.raw(
+          `SELECT t.name AS table_name
+             FROM sys.tables t
+            WHERE t.is_ms_shipped = 0`,
+        );
+        return rows.map((t: any) => t.table_name);
+      }
+      case 'mysql': {
+        const rows = await knexClient.raw(`SHOW TABLES`);
+        return rows[0].map((row: any) => Object.values(row)[0] as string);
+      }
     }
   }
 }

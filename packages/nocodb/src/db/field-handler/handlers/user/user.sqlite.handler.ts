@@ -1,9 +1,10 @@
-import { replaceDelimitedWithKeyValueSqlite3 } from 'src/db/aggregations/sqlite3';
+import { ClientType } from 'nocodb-sdk';
 import { GenericSqliteFieldHandler } from '../generic.sqlite';
 import { UserGeneralHandler } from './user.general.handler';
 import type CustomKnex from 'src/db/CustomKnex';
 import type { Knex } from 'src/db/CustomKnex';
 import type { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export class UserLikeNLikeSqliteHandler extends UserGeneralHandler {
   override singleLineTextHandler: GenericFieldHandler =
@@ -15,12 +16,9 @@ export class UserLikeNLikeSqliteHandler extends UserGeneralHandler {
     needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
     delimiter?: string;
   }) {
-    const { knex, needleColumn, stack } = param;
-    return `(${replaceDelimitedWithKeyValueSqlite3({
-      knex,
-      needleColumn,
-      stack,
-    })})`;
+    return `(${DBQueryClient.get(
+      ClientType.SQLITE,
+    ).replaceDelimitedWithKeyValue(param)})`;
   }
 }
 
@@ -30,6 +28,8 @@ export class UserSqliteHandler extends GenericSqliteFieldHandler {
   override filter = this.userHandler.filter;
   override filterLike = this.userHandler.filterLikeNlike;
   override filterNlike = this.userHandler.filterLikeNlike;
+  override applySort = (...args: Parameters<UserGeneralHandler['applySort']>) =>
+    this.userHandler.applySort(...args);
   override parseUserInput = this.userHandler.parseUserInput;
   singleLineTextHandler = this.userHandler.singleLineTextHandler;
   replaceDelimitedWithKeyValue = this.userHandler.replaceDelimitedWithKeyValue;

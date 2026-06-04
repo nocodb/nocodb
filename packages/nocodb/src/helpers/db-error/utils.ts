@@ -93,8 +93,38 @@ export function isTransientError(error: any): boolean {
     // SQLite errors
     if (['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(code)) return true;
 
+    // MSSQL / tedious driver-level transport errors. `EREQUEST` is
+    // omitted intentionally — it wraps server errors that include
+    // permanent ones (e.g. constraint violations) where retry is wrong.
+    if (
+      ['ETIMEOUT', 'ESOCKET', 'EABORT', 'ECANCEL', 'EINVALIDSTATE'].includes(
+        code,
+      )
+    ) {
+      return true;
+    }
+
     // File system errors (relevant for SQLite and file-based operations)
     if (['EACCES', 'EROFS', 'ENOSPC'].includes(code)) return true;
+  }
+
+  // MSSQL server-side transient error numbers — deadlock / lock timeout,
+  // snapshot-isolation conflicts, DB-in-transition, and the Azure SQL
+  // "service busy / session killed" family.
+  if (typeof error?.number === 'number') {
+    const mssqlTransientNumbers = new Set([
+      952, // Database is in transition
+      1205, // Transaction was deadlocked
+      1222, // Lock request time-out exceeded
+      3960, // Snapshot isolation transaction aborted (serialization conflict)
+      40197, // Service has encountered an error processing your request
+      40501, // Service is currently busy
+      40613, // Database is unavailable (Azure SQL)
+      49918, // Cannot process request — too many operations in progress
+      49919, // Cannot process create or update request
+      49920, // Cannot process request — too many operations
+    ]);
+    if (mssqlTransientNumbers.has(error.number)) return true;
   }
 
   // 4. Check error message for specific connection-related patterns

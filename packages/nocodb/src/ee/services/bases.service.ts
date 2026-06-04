@@ -15,6 +15,7 @@ import {
 } from 'nocodb-sdk';
 import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import type {
+  BaseReqType,
   NcApiVersion,
   ProjectReqType,
   ProjectUpdateReqType,
@@ -224,10 +225,17 @@ export class BasesService extends BasesServiceCE {
           },
         ];
       } else {
-        const db = Noco.getConfig().meta?.db;
+        // Use `getDataConfig()` (not `meta?.db` directly) so the source's
+        // `type` reflects the DATA DB's client when the data DB diverges
+        // from the meta DB. In EE, `getDataConfig` reads `NC_DATA_DB_JSON`
+        // / `NC_DATA_DB` first — without this, an is_meta source on a
+        // PG-meta + MSSQL-data deployment would persist `type='pg'` and
+        // downstream dispatchers (`getSingleQueryReadFn`,
+        // `DataOptService.read`) would route to the wrong dialect path.
+        const db = await NcConnectionMgrv2.getDataConfig();
         baseBody.sources = [
           {
-            type: db?.client,
+            type: db?.client as BaseReqType['type'],
             config: null,
             is_meta: true,
             inflection_column: 'camelize',

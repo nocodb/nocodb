@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IntegrationCategoryType } from 'nocodb-sdk'
+import { ClientType, IntegrationCategoryType } from 'nocodb-sdk'
 
 interface Props {
   /** 'workspace' shows all available categories, 'base' shows only Database */
@@ -69,6 +69,7 @@ const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (ty
   if (i.hidden) return false
   if (!i.isAvailable) return false
   if (i.sub_type === SyncDataType.NOCODB) return false
+  if (i.sub_type === ClientType.MSSQL && !isFeatureEnabled(FEATURE_FLAG.MSSQL_SOURCE)) return false
   // OSS-only integrations (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem);
   // hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is true exactly for that case.
   if (!isEEFeatureBlocked.value && i.isOssOnly) return false

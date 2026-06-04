@@ -12,7 +12,12 @@ import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
-import { _wherePk, extractSortsObject, getListArgs } from '~/db/BaseModelSqlv2';
+import {
+  _wherePk,
+  deletedColValue,
+  extractSortsObject,
+  getListArgs,
+} from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import getAst from '~/helpers/getAst';
@@ -235,7 +240,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     if (ctx.deletedOnly) {
       const deletedCol = columns.find((c) => isDeletedCol(c));
       if (deletedCol) {
-        baseQb.where(deletedCol.column_name, true);
+        baseQb.where(deletedCol.column_name, deletedColValue(baseQb, true));
       } else {
         baseQb.whereRaw('1 = 0');
       }
@@ -261,34 +266,46 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
 
     const orderColumn = columns.find((c) => isOrderCol(c));
 
-    // apply sort on baseQb (innerQb when provided) so formula-based
-    // sorts reference the original table name which is in scope
-    if (sorts?.length) await sortV2(baseModel, sorts, baseQb);
+    // The inner sort only matters when pagination is applied — it determines
+    // which rows fall inside the limit/offset window. When pagination is
+    // ignored (e.g. calendar / date-range views fetch the whole filtered set)
+    // the inner ORDER BY is redundant: the outer query below re-applies the
+    // identical sort over the wrapped result. Emitting it anyway breaks MSSQL,
+    // which rejects `ORDER BY` in a derived table that has no TOP/OFFSET/FOR
+    // XML (error 1033) — and `rootQb` only gets its OFFSET/FETCH when
+    // `!ignorePagination` (see the pagination block below). So gate the inner
+    // sort on the same condition. (When paginating, the limit→OFFSET/FETCH
+    // makes the ORDER BY valid on MSSQL.)
+    if (!ctx.ignorePagination) {
+      // apply sort on baseQb (innerQb when provided) so formula-based
+      // sorts reference the original table name which is in scope
+      if (sorts?.length) await sortV2(baseModel, sorts, baseQb);
 
-    if (!skipSortBasedOnOrderCol) {
-      if (orderColumn) {
-        baseQb.orderBy(orderColumn.column_name);
+      if (!skipSortBasedOnOrderCol) {
+        if (orderColumn) {
+          baseQb.orderBy(orderColumn.column_name);
+        }
       }
-    }
 
-    // ignore stable sorting / sort by created time when shuffle
-    if (!+listArgs?.shuffle) {
-      // Ensure stable ordering:
-      // - Use auto-increment PK if available
-      // - Otherwise, fall back to the primary key column(s)
-      // - Otherwise, fall back to system CreatedTime
-      // Without a tie-breaker, paginated reads sorted by a non-unique
-      // column can duplicate or skip rows at page boundaries (#13931).
-      if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-        baseQb.orderBy(ctx.model.primaryKey.column_name);
-      } else if (ctx.model.primaryKeys?.length) {
-        for (const pk of ctx.model.primaryKeys) baseQb.orderBy(pk.column_name);
-      } else {
-        const createdAtColumn = ctx.model.columns.find(
-          (c) => c.uidt === UITypes.CreatedTime && c.system,
-        );
-        if (createdAtColumn) {
-          baseQb.orderBy(createdAtColumn.column_name);
+      // ignore stable sorting / sort by created time when shuffle
+      if (!+listArgs?.shuffle) {
+        // Ensure stable ordering:
+        // - Use auto-increment PK if available
+        // - Otherwise, fall back to the primary key column(s)
+        // - Otherwise, fall back to system CreatedTime
+        // Without a tie-breaker, paginated reads sorted by a non-unique
+        // column can duplicate or skip rows at page boundaries (#13931).
+        if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+          baseQb.orderBy(ctx.model.primaryKey.column_name);
+        } else if (ctx.model.primaryKeys?.length) {
+          for (const pk of ctx.model.primaryKeys) baseQb.orderBy(pk.column_name);
+        } else {
+          const createdAtColumn = ctx.model.columns.find(
+            (c) => c.uidt === UITypes.CreatedTime && c.system,
+          );
+          if (createdAtColumn) {
+            baseQb.orderBy(createdAtColumn.column_name);
+          }
         }
       }
     }
@@ -333,6 +350,8 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     });
 
     if (!ctx.ignorePagination) {
+      client.ensurePaginationOrderBy(rootQb, ctx.model);
+
       if (!skipCache && ctx.limitOffsetPlaceholder) {
         rootQb.limit(ctx.limitOffsetPlaceholder);
         rootQb.offset(ctx.limitOffsetPlaceholder);

@@ -28,7 +28,7 @@ jobs:
 
       # ── Start only the required database container ─────────────
       - name: Start PostgreSQL
-        if: ${{ inputs.db == 'pg' }}
+        if: ${{ inputs.db == 'pg' || inputs.db == 'mssql' }}
         run: |
           docker run -d --name postgres \
             -e POSTGRES_PASSWORD=password \
@@ -54,6 +54,19 @@ jobs:
             -p 3306:3306 \
             mysql:8
           until docker exec mysql mysqladmin ping -h localhost --silent 2>/dev/null; do sleep 3; done
+
+      # Start MSSQL early so it has time to boot; readiness + DB provisioning
+      # happens after bootstrap (needs the knex/tedious driver). Matches the
+      # unit-test-pg-mssql container config.
+      - name: Start MSSQL
+        if: ${{ inputs.db == 'mssql' }}
+        run: |
+          docker run -d --name mssql \
+            -e ACCEPT_EULA=Y \
+            -e MSSQL_SA_PASSWORD='Password123!' \
+            -e MSSQL_PID=Developer \
+            -p 1433:1433 \
+            mcr.microsoft.com/mssql/server:2022-latest
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
@@ -89,6 +102,50 @@ jobs:
             integrations-
       - name: install dependencies
         run: pnpm bootstrap
+
+      # Wait for MSSQL (no sqlcmd in the image — poll via tedious), then create
+      # the internal data DB (pw_ncdb_data) and write the NC_DATA_DB_JSON_FILE
+      # the pg:ee:mssql backend reads. Every base on this lane uses this
+      # internal data DB; external MSSQL sources are a follow-up.
+      - name: Wait for MSSQL and provision data DB
+        if: ${{ inputs.db == 'mssql' }}
+        working-directory: ./packages/nocodb
+        run: |
+          cat > provision-mssql.cjs <<'EOF'
+          const fs = require('fs');
+          const knex = require('knex')({
+            client: 'mssql',
+            connection: {
+              server: 'localhost', port: 1433, user: 'sa', password: 'Password123!',
+              database: 'master', options: { encrypt: false, trustServerCertificate: true },
+            },
+            pool: { min: 0, max: 1 },
+          });
+          (async () => {
+            for (let i = 0; i < 60; i++) {
+              try { await knex.raw('SELECT 1'); break; }
+              catch (e) {
+                console.log('waiting for mssql...', e.code || e.message);
+                if (i === 59) { console.error('MSSQL did not become ready in time'); process.exit(1); }
+                await new Promise((r) => setTimeout(r, 5000));
+              }
+            }
+            await knex.raw("IF DB_ID('pw_ncdb_data') IS NULL CREATE DATABASE [pw_ncdb_data]");
+            await knex.destroy();
+            const cfg = {
+              client: 'mssql',
+              connection: {
+                host: 'localhost', port: 1433, user: 'sa', password: 'Password123!',
+                database: 'pw_ncdb_data', options: { encrypt: false, trustServerCertificate: true },
+              },
+              searchPath: ['dbo'],
+            };
+            fs.writeFileSync('./mssql-data-db.json', JSON.stringify(cfg));
+            console.log('MSSQL ready; data DB created; config written');
+            process.exit(0);
+          })();
+          EOF
+          node provision-mssql.cjs
 
       - name: Setup mysql
         if: ${{ inputs.db == 'mysql' }}
@@ -178,6 +235,14 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+
+      # PG meta + MSSQL data: NC_DATA_DB_JSON_FILE (written above) points the
+      # internal/default source at MSSQL while meta stays on PG.
+      - name: Run backend:pg:mssql
+        if: ${{ inputs.db == 'mssql' }}
+        working-directory: ./packages/nocodb
+        run: |
+          pnpm run watch:run:playwright:pg:ee:mssql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
 
       - name: Cache Playwright browsers
         uses: actions/cache@v5

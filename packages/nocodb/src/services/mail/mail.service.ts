@@ -23,11 +23,15 @@ type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
 @Injectable()
 export class MailService {
   protected logger = new Logger(MailService.name);
+  private static adapterMissingLogged = false;
   protected async getAdapter(ncMeta = Noco.ncMeta) {
     try {
       return await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
     } catch (e) {
-      this.logger.error('Email Plugin not configured / active');
+      if (!MailService.adapterMissingLogged) {
+        MailService.adapterMissingLogged = true;
+        this.logger.warn('Email Plugin not configured / active');
+      }
       return null;
     }
   }
@@ -253,7 +257,6 @@ export class MailService {
   async sendMailRaw(params: RawMailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
-      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 
@@ -283,7 +286,6 @@ export class MailService {
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
-      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 

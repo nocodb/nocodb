@@ -12,6 +12,17 @@ export function getAliasGenerator(prefix = '__nc_') {
 export const ROOT_ALIAS = '__nc_root';
 
 /**
+ * Alias used by nested-list paths (hmList / mmList / btList) when they
+ * wrap a pre-filtered base query as `qb.as(SOURCE_ALIAS)` to give
+ * `listQueryEnrichment` a derived-table source. Wrapping isolates the
+ * pagination/outer-sort layer from the inner filter/formula scope on
+ * dialects that accept ORDER BY inside a derived table (pg, mysql,
+ * sqlite). Mssql doesn't accept that and skips the wrap entirely —
+ * see the caller in `data-alias-nested.service.ts`.
+ */
+export const SOURCE_ALIAS = 'source_qb';
+
+/**
  * Calculate a 32 bit FNV-1a hash
  * Found here: https://gist.github.com/vaiorabbit/5657561
  * Ref.: http://isthe.com/chongo/tech/comp/fnv/
@@ -151,12 +162,19 @@ export function batchUpdate(
 ) {
   if (!data.length) return null;
 
-  // Extract all unique primary keys
-  const pks = [...new Set(data.map((row) => row[pk]))];
+  // Rows missing the primary key can't be targeted by the CASE/WHEN — and on
+  // MSSQL knex's binding-validation pass rejects the resulting `undefined`
+  // outright ("Undefined binding(s) detected for keys [1] when compiling RAW
+  // query: CASE [id] WHEN ? THEN ?"). Drop them up front so every row we go
+  // on to bind has both a pk and at least one non-undefined column.
+  const rowsWithPk = data.filter((row) => !ncIsUndefined(row[pk]));
+  if (!rowsWithPk.length) return null;
+
+  const pks = [...new Set(rowsWithPk.map((row) => row[pk]))];
 
   // Get all columns except primary key that need to be updated
   const allColumns = new Set<string>();
-  data.forEach((row) => {
+  rowsWithPk.forEach((row) => {
     Object.keys(row).forEach((col) => {
       if (col !== pk) allColumns.add(col);
     });
@@ -173,7 +191,10 @@ export function batchUpdate(
   const updateObj: Record<string, Knex.Raw> = {};
 
   columns.forEach((column) => {
-    const filteredData = data.filter((row) => !ncIsUndefined(row[column]));
+    const filteredData = rowsWithPk.filter(
+      (row) => !ncIsUndefined(row[column]),
+    );
+    if (!filteredData.length) return;
     updateObj[column] = kn.raw(
       `CASE ?? ${filteredData
         .map(() => 'WHEN ? THEN ?')
@@ -192,6 +213,7 @@ export function batchUpdate(
   });
 
   // Build and return the query
+  if (Object.keys(updateObj).length === 0) return null;
   return kn(tn).update(updateObj).whereIn(pk, pks);
 }
 

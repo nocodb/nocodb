@@ -2,12 +2,12 @@
 import { expect } from 'chai';
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import { createBulkRows } from '../../../factory/row';
-import { createTable, getTable } from '../../../factory/table';
-import { createUser } from '../../../factory/user';
-import { isPg } from '../../../init/db';
-import { customColumns } from '../../../factory/column';
-import { initTblCountry } from '../../../init/initTblCountry';
+import { createBulkRows } from '~test/factory/row';
+import { createTable, getTable } from '~test/factory/table';
+import { createUser } from '~test/factory/user';
+import { isPgData } from '~test/init/db';
+import { customColumns } from '~test/factory/column';
+import { initTblCountry } from '~test/init/initTblCountry';
 import {
   beforeEachAttachment,
   beforeEachCheckbox,
@@ -21,7 +21,7 @@ import {
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import { getUsers } from './helpers';
-import type { ITestContext } from '../../../init';
+import type { ITestContext } from '~test/init';
 import type { Column, Model } from '~/models';
 import type { INcAxios } from './ncAxios';
 
@@ -622,7 +622,7 @@ describe('dataApiV3', () => {
         });
       });
       it(`will handle insert field format not valid`, async () => {
-        if (!isPg(testContext.context)) {
+        if (!isPgData(testContext.context)) {
           return;
         }
         const response = await ncAxiosPost({
@@ -662,7 +662,7 @@ describe('dataApiV3', () => {
         }
       });
       it(`will handle insert field format not valid for uidt Rating and above max`, async () => {
-        if (!isPg(testContext.context)) {
+        if (!isPgData(testContext.context)) {
           return;
         }
         const response = await ncAxiosPost({
@@ -682,7 +682,7 @@ describe('dataApiV3', () => {
         ).to.eq(true);
       });
       it(`will handle insert field format not valid for uidt Year`, async () => {
-        if (!isPg(testContext.context)) {
+        if (!isPgData(testContext.context)) {
           return;
         }
         for (const year of [99, 19999, 'HELLOW', 19.778, -123]) {
@@ -753,7 +753,7 @@ describe('dataApiV3', () => {
         );
       });
       it(`will handle update field format not valid`, async () => {
-        if (!isPg(testContext.context)) {
+        if (!isPgData(testContext.context)) {
           return;
         }
         const response = await ncAxiosPatch({
@@ -808,7 +808,7 @@ describe('dataApiV3', () => {
       });
 
       it(`will handle insert field format not valid`, async () => {
-        if (!isPg(testContext.context)) {
+        if (!isPgData(testContext.context)) {
           return;
         }
         const response = await ncAxiosPost({

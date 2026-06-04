@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isMssql, isPg, isSqlite } from '../../../setup/db';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
@@ -22,7 +22,7 @@ test.describe('View', () => {
 
     await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
-    if (isSqlite(context)) {
+    if (isSqlite(context) || isMssql(context)) {
       await dashboard.treeView.deleteTable({ title: 'FilmList', baseTitle: context.base.title });
     }
 
@@ -35,7 +35,9 @@ test.describe('View', () => {
     // in hub, after table delete- first table in the list gets rendered
     await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
-    if (isSqlite(context)) {
+    if (isSqlite(context) || isMssql(context)) {
+      // SQL Server has no native enum, so Sakila's `film.rating` introspects as
+      // text (not SingleSelect). Convert it so the Kanban view can stack by it.
       await dashboard.grid.column.openEdit({ title: 'Rating', type: 'SingleSelect' });
       await dashboard.grid.column.selectType({ type: 'SingleSelect' });
       let count = 0;

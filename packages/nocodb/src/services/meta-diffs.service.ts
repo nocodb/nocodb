@@ -18,7 +18,6 @@ import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
-import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -1023,17 +1022,13 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
-              const metaFact = ModelXcMetaFactory.create(
-                { client: source.type },
-                {},
-              );
 
               // check if new type is compatible with old uidt
               const allowedDatatypes = sqlUi.getDataTypeListForUiType(column);
 
               // if UIDT not compatible with new type then change uidt
               if (!allowedDatatypes?.includes(column.dt)) {
-                column.uidt = metaFact.getUIDataType(column);
+                column.uidt = sqlUi.getMetaUIDataType(column);
               }
 
               column.title = change.column.title;

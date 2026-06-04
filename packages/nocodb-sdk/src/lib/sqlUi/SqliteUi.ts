@@ -1,4 +1,5 @@
 import UITypes from '../UITypes';
+import { abstractTypeToMetaUIType } from './metaUiDataType';
 import { IDType } from './index';
 import { ColumnType } from '~/lib/Api';
 import { SqlUi } from '~/lib/sqlUi/SqlUI.types';
@@ -575,6 +576,54 @@ export class SqliteUi implements SqlUi {
     return 'string';
   }
 
+  // Introspection UIType for meta-sync — exact port of the removed
+  // ModelXcMetaSqlite.getUIDataType (+ its getAbstractType). Distinct from
+  // getUIType (column-creation default). See metaUiDataType.ts.
+  static getMetaUIDataType(col): any {
+    return abstractTypeToMetaUIType(this.getMetaAbstractType(col), {
+      jsonAsLongText: true,
+    });
+  }
+
+  static getMetaAbstractType(col): any {
+    // remove length value from datatype (for ex. varchar(45) => varchar)
+    // (for ex. decimal(13,2) => decimal)
+    switch (col.dt?.replace(/\(\d+\)|\(\d+,\d+\)$/, '').toLowerCase()) {
+      case 'date':
+        return 'date';
+      case 'datetime':
+      case 'timestamp':
+        return 'datetime';
+      case 'integer':
+      case 'int':
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'bigint':
+      case 'int2':
+      case 'int8':
+        return 'integer';
+      case 'text':
+        return 'text';
+      case 'boolean':
+        return 'boolean';
+      case 'real':
+      case 'decimal':
+      case 'double':
+      case 'double precision':
+      case 'float':
+      case 'numeric':
+        return 'float';
+
+      case 'blob sub_type text':
+      case 'blob':
+        return 'blob';
+      case 'character':
+      case 'varchar':
+        return 'string';
+    }
+  }
+
   static getUIType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
@@ -1077,6 +1126,9 @@ export class SqliteUi implements SqlUi {
   }
   getUIType(col: ColumnType): string {
     return SqliteUi.getUIType(col);
+  }
+  getMetaUIDataType(col: ColumnType): UITypes {
+    return SqliteUi.getMetaUIDataType(col);
   }
   getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     return SqliteUi.getDataTypeForUiType(col, idType);

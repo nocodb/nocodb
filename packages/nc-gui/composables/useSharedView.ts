@@ -304,33 +304,6 @@ export function useSharedView() {
     )
   }
 
-  const fetchBulkGroupData = async (
-    param: {
-      filtersArr?: FilterType[]
-      where?: string
-    },
-    bulkFilterList: Array<{
-      where: string
-      alias: string
-    }>,
-  ) => {
-    if (!sharedView.value) return {}
-
-    return await $api.public.dataTableBulkGroup(
-      sharedView.value.uuid!,
-      bulkFilterList,
-      {
-        ...param,
-        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
-      } as any,
-      {
-        headers: {
-          'xc-password': password.value,
-        },
-      },
-    )
-  }
-
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
@@ -479,7 +452,6 @@ export function useSharedView() {
     fetchAggregatedData,
     fetchBulkAggregatedData,
     fetchSharedViewAttachment,
-    fetchBulkGroupData,
     fetchBulkListData,
     paginationData,
     sorts,

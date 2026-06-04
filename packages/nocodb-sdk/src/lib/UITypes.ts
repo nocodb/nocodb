@@ -605,6 +605,45 @@ export function isBtLikeV2Junction(
   return false;
 }
 
+/**
+ * Whether an LTAR/Links column resolves to an array of related records (`[]`
+ * when unlinked) vs a single record / null (object-shape).
+ *
+ * This is the single source of truth for the rule, used by:
+ *   - V3 record-transform `recordsV2ToV3` (decides unlinked-shape: `[]` vs `null`)
+ *   - EE BaseModel `preProcessMssqlRows` (decides LTAR bucket: array vs object)
+ *
+ * Priority order:
+ *   1. `isBtLikeV2Junction` — V2 MO / OO / BT-through-junction. These have
+ *      `colOptions.type === MANY_TO_MANY` on the wire (so `isMMOrMMLike`
+ *      would say true) but semantically return a single record. Caught first.
+ *   2. `isMMOrMMLike` — V2 (anything else) and V1 MANY_TO_MANY → array.
+ *   3. V1 HAS_MANY → array.
+ *   4. V1 MANY_TO_MANY → array.
+ *   5. V1 ONE_TO_ONE with `meta.bt` unset → OO-forward → array;
+ *      with `meta.bt` set → BT-style → object.
+ *   6. Default → object.
+ */
+export function isArrayShapeLtar(
+  col:
+    | ColumnType
+    | {
+        uidt: UITypes | string;
+        colOptions?: any;
+        type?: RelationTypes;
+        meta?: any;
+      }
+): boolean {
+  if (isBtLikeV2Junction(col)) return false;
+  if (isMMOrMMLike(col)) return true;
+  const relType = (col as any).colOptions?.type as RelationTypes | undefined;
+  if (relType === RelationTypes.HAS_MANY) return true;
+  if (relType === RelationTypes.MANY_TO_MANY) return true;
+  if (relType === RelationTypes.ONE_TO_ONE && !(col as any).meta?.bt)
+    return true;
+  return false;
+}
+
 export function isSelfLinkCol(
   col: ColumnType & { colOptions: unknown }
 ): boolean {

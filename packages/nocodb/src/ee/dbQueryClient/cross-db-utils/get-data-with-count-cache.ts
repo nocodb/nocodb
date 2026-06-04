@@ -52,6 +52,7 @@ export const getDataWithCountCache = async (
       const startTime = process.hrtime();
       const result = await params.baseModel.execAndParse(params.query, null, {
         skipSubstitutingColumnIds: params.skipSubstitutingColumnIds,
+        apiVersion: params.apiVersion,
       });
       params?.recordQueryTime?.(
         parseHrtimeToMilliSeconds(process.hrtime(startTime)),
@@ -59,8 +60,16 @@ export const getDataWithCountCache = async (
       return result;
     } else {
       const startTime = process.hrtime();
+      // T-SQL pagination puts the offset FIRST in the emitted SQL
+      // (`OFFSET … ROWS FETCH NEXT … ROWS ONLY`), so the binding order
+      // must flip for mssql. pg/mysql `limit ? offset ?` keep
+      // `[limit, offset]`.
+      const isMssql = params.knex.clientType?.() === 'mssql';
+      const bindings = isMssql
+        ? [params.offset, params.limit]
+        : [params.limit, params.offset];
       const res = await params.baseModel.execAndParse(
-        params.knex.raw(params.query, [params.limit, params.offset]).toQuery(),
+        params.knex.raw(params.query, bindings).toQuery(),
         null,
         // unsure why params.apiVersion only used when fetching from cache
         {

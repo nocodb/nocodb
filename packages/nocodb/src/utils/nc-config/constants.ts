@@ -11,6 +11,7 @@ export const defaultClientPortMapping = {
   mysql2: 3306,
   postgres: 5432,
   pg: 5432,
+  mssql: 1433,
 };
 
 export const defaultConnectionConfig: any = {
@@ -78,6 +79,7 @@ export enum DriverClient {
   MYSQL_LEGACY = 'mysql',
   PG = 'pg',
   SQLITE = 'sqlite3',
+  MSSQL = 'mssql',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }

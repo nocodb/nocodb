@@ -111,7 +111,6 @@ export class TopbarSharePage extends BasePage {
       await roleField.click();
 
       const roleOptionsMenu: Locator = this.rootPage.locator('.ant-select-dropdown.nc-dropdown-user-role');
-      console.log(await roleOptionsMenu.locator(`.nc-role-option`).count());
       await roleOptionsMenu
         .locator(`.nc-role-option`)
         .nth(role === 'editor' ? 0 : 1)

@@ -5,11 +5,15 @@ import { getDefaultPwd } from '../tests/utils/general';
 import { Knex, knex } from 'knex';
 import { promises as fs } from 'fs';
 import { isEE } from './db';
-import { resetSakilaPg } from './knexHelper';
+import { resetSakilaMssql, resetSakilaPg } from './knexHelper';
 import path from 'path';
 
 // License reset only needs to happen once per worker
 let licenseResetDone = false;
+
+// Flip to true to print per-test setup timing (`Setup: X.Xs`). Off in CI to keep
+// the log quiet; failure/retry summaries below are always logged regardless.
+const debugLog = false;
 
 // MySQL Configuration
 const mysqlConfig = {
@@ -93,6 +97,32 @@ const extPgProject = (workspaceId, title, parallelId, baseType) => ({
           database: `sakila${parallelId}`,
         },
         searchPath: ['public'],
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
+
+const extMssqlProject = (workspaceId, title, parallelId, baseType) => ({
+  fk_workspace_id: workspaceId,
+  title,
+  type: baseType,
+  sources: [
+    {
+      type: 'mssql',
+      config: {
+        client: 'mssql',
+        connection: {
+          host: 'localhost',
+          port: '1433',
+          user: 'sa',
+          password: 'Password123!',
+          database: `sakila${parallelId}`,
+          options: { encrypt: false, trustServerCertificate: true },
+        },
+        searchPath: ['dbo'],
       },
       inflection_column: 'camelize',
       inflection_table: 'camelize',
@@ -289,6 +319,10 @@ async function localInit({
         } finally {
           await nc_knex.destroy();
         }
+      } else if (dbType === 'mssql' && !isEmptyProject) {
+        // Restore the per-worker MSSQL Sakila DB from its backup (~0.7s);
+        // first call builds + backs it up (~10s). See resetSakilaMssql.
+        await resetSakilaMssql(`sakila${workerId}`);
       }
     };
 
@@ -308,13 +342,13 @@ async function localInit({
               try {
                 await api.base.delete(base.id);
               } catch (e) {
-                console.log(`Error deleting base: ws delete`, base);
+                console.log(`Error deleting base ${base.id}:`, e instanceof Error ? e.message : e);
               }
             }
 
             await api['workspace'].delete(w.id);
           } catch (e) {
-            console.log(`Error deleting workspace: ${w.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+            console.log(`Error deleting workspace ${w.id}:`, e instanceof Error ? e.message : e);
           }
         }
       }
@@ -335,7 +369,7 @@ async function localInit({
             try {
               await api.base.delete(p.id);
             } catch (e) {
-              console.log(`Error deleting base: ${p.id}`, `user-${parallelId}@nocodb.com`, isSuperUser);
+              console.log(`Error deleting base ${p.id}:`, e instanceof Error ? e.message : e);
             }
           }
         }
@@ -364,7 +398,11 @@ async function localInit({
       } else {
         if (workspace && 'id' in workspace) {
           // @ts-ignore
-          base = await api.base.create(extPgProject(workspace.id, baseTitle, workerId, baseType));
+          base = await api.base.create(
+            dbType === 'mssql'
+              ? extMssqlProject(workspace.id, baseTitle, workerId, baseType)
+              : extPgProject(workspace.id, baseTitle, workerId, baseType)
+          );
         }
       }
     } else {
@@ -390,8 +428,10 @@ async function localInit({
     // get current user information
     const user = await api.auth.me();
     return { data: { base, user, workspace, token, api, apiToken }, status: 200 };
-  } catch (e) {
-    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+  } catch {
+    // Swallow the verbose driver error here — for MSSQL it can be the entire
+    // reset SQL script. setup() reports each failed attempt + the final failure
+    // concisely, which is enough to diagnose without flooding the log.
     return { data: {}, status: 500 };
   }
 }
@@ -413,7 +453,7 @@ const setup = async ({
   resetSsoClients?: boolean;
   resetPlugins?: boolean;
 }): Promise<NcContext> => {
-  console.time('Setup');
+  if (debugLog) console.time('Setup');
 
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || (isEE() ? 'pg' : 'sqlite');
@@ -440,8 +480,9 @@ const setup = async ({
         resetSsoClients,
         resetPlugins,
       });
-    } catch (e) {
-      console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    } catch {
+      // localInit threw; the attempt summary below reports the failure without
+      // dumping the verbose driver error (which can be the entire reset SQL).
     }
 
     if (response?.status === 200 && response.data?.token && response.data?.base) {
@@ -552,7 +593,7 @@ const setup = async ({
   // Wait for the sidebar to render before handing off to the test
   await page.locator('.nc-sidebar').waitFor({ state: 'visible', timeout: 10000 });
 
-  console.timeEnd('Setup');
+  if (debugLog) console.timeEnd('Setup');
 
   return {
     base,

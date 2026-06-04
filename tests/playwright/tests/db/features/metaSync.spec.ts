@@ -1,7 +1,17 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { enableQuickRun, isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../../../setup/db';
+import {
+  enableQuickRun,
+  isMssqlData,
+  isMysqlData,
+  isPgData,
+  isSqliteData,
+  mssqlExec,
+  mysqlExec,
+  pgExec,
+  sqliteExec,
+} from '../../../setup/db';
 import { MetaDataPage } from '../../../pages/Dashboard/ProjectView/Metadata';
 
 test.describe('Meta sync', () => {
@@ -16,16 +26,17 @@ test.describe('Meta sync', () => {
     dashboard = new DashboardPage(page, context.base);
     metaData = dashboard.baseView.dataSources.metaData;
 
-    switch (context.dbType) {
-      case 'sqlite':
-        dbExec = sqliteExec;
-        break;
-      case 'mysql':
-        dbExec = mysqlExec;
-        break;
-      case 'pg':
-        dbExec = query => pgExec(query, context);
-        break;
+    // Pick the raw-SQL executor by the base's data-source type (not
+    // context.dbType) so the hybrid pg-meta / mssql-data setup targets the
+    // DB the source actually points at.
+    if (isSqliteData(context)) {
+      dbExec = sqliteExec;
+    } else if (isMysqlData(context)) {
+      dbExec = mysqlExec;
+    } else if (isPgData(context)) {
+      dbExec = query => pgExec(query, context);
+    } else if (isMssqlData(context)) {
+      dbExec = query => mssqlExec(query, context);
     }
 
     await dashboard.leftSidebar.verifyBaseListOpen(false);
@@ -55,31 +66,31 @@ test.describe('Meta sync', () => {
     await dashboard.rootPage.waitForTimeout(5000);
 
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: `table1`,
       state: 'New table',
     });
     await metaData.verifyRow({
-      index: isPg(context) ? 22 : 17,
+      index: isPgData(context) ? 22 : 17,
       model: `table2`,
       state: 'New table',
     });
 
     await metaData.sync();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
     await metaData.verifyRow({
-      index: isPg(context) ? 22 : 17,
+      index: isPgData(context) ? 22 : 17,
       model: 'Table2',
       state: 'No change identified',
     });
 
-    if (!isSqlite(context)) {
+    if (!isSqliteData(context)) {
       // Add relation
-      if (isPg(context)) {
+      if (isPgData(context) || isMssqlData(context)) {
         await dbExec(`ALTER TABLE table1 ADD CONSTRAINT fk_idx FOREIGN KEY (id) REFERENCES table2 (id);`);
       } else {
         await dbExec(`ALTER TABLE table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`);
@@ -89,7 +100,7 @@ test.describe('Meta sync', () => {
       }
       await metaData.clickReload();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPgData(context) ? 21 : 16,
         model: 'Table1',
         state: 'New relation added',
       });
@@ -97,13 +108,13 @@ test.describe('Meta sync', () => {
       //verify after sync
       await metaData.sync();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPgData(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
 
       // Remove relation
-      if (isPg(context)) {
+      if (isPgData(context) || isMssqlData(context)) {
         await dbExec(`ALTER TABLE table1 DROP CONSTRAINT fk_idx`);
       } else {
         await dbExec(`ALTER TABLE table1 DROP FOREIGN KEY fk1`);
@@ -111,7 +122,7 @@ test.describe('Meta sync', () => {
       }
       await metaData.clickReload();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPgData(context) ? 21 : 16,
         model: 'Table1',
         state: 'Relation removed',
       });
@@ -119,24 +130,27 @@ test.describe('Meta sync', () => {
       //verify after sync
       await metaData.sync();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPgData(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
     }
 
     // Add column
-    if (isSqlite(context)) {
+    if (isSqliteData(context)) {
       await dbExec(`ALTER TABLE table1 ADD COLUMN newCol TEXT NULL`);
-    } else if (isMysql(context)) {
+    } else if (isMysqlData(context)) {
       await dbExec(`ALTER TABLE table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`);
-    } else if (isPg(context)) {
+    } else if (isPgData(context)) {
       await dbExec(`ALTER TABLE table1 ADD COLUMN newCol INT`);
+    } else if (isMssqlData(context)) {
+      // T-SQL has no ADD COLUMN — just ADD <col> <type>.
+      await dbExec(`ALTER TABLE table1 ADD newCol INT`);
     }
 
     await metaData.clickReload();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newCol)',
     });
@@ -144,23 +158,25 @@ test.describe('Meta sync', () => {
     //verify after sync
     await metaData.sync();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
 
     // Edit column
-    if (isSqlite(context)) {
+    if (isSqliteData(context)) {
       await dbExec(`ALTER TABLE table1 RENAME COLUMN newCol TO newColName`);
-    } else if (isMysql(context)) {
+    } else if (isMysqlData(context)) {
       await dbExec(`ALTER TABLE table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`);
-    } else if (isPg(context)) {
+    } else if (isPgData(context)) {
       await dbExec(`ALTER TABLE table1 RENAME COLUMN newCol TO newColName`);
+    } else if (isMssqlData(context)) {
+      await dbExec(`EXEC sp_rename 'table1.newCol', 'newColName', 'COLUMN'`);
     }
 
     await metaData.clickReload();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newColName), Column removed(newCol)',
     });
@@ -168,18 +184,18 @@ test.describe('Meta sync', () => {
     //verify after sync
     await metaData.sync();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
 
     // Delete column
     // todo: Add for sqlite
-    if (!isSqlite(context)) {
+    if (!isSqliteData(context)) {
       await dbExec(`ALTER TABLE table1 DROP COLUMN newColName`);
       await metaData.clickReload();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPgData(context) ? 21 : 16,
         model: `Table1`,
         state: 'Column removed(newColName)',
       });
@@ -187,7 +203,7 @@ test.describe('Meta sync', () => {
       //verify after sync
       await metaData.sync();
       await metaData.verifyRow({
-        index: isPg(context) ? 21 : 16,
+        index: isPgData(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
@@ -198,12 +214,12 @@ test.describe('Meta sync', () => {
     await dbExec(`DROP TABLE table2`);
     await metaData.clickReload();
     await metaData.verifyRow({
-      index: isPg(context) ? 21 : 16,
+      index: isPgData(context) ? 21 : 16,
       model: `table1`,
       state: 'Table removed',
     });
     await metaData.verifyRow({
-      index: isPg(context) ? 22 : 17,
+      index: isPgData(context) ? 22 : 17,
       model: `table2`,
       state: 'Table removed',
     });
@@ -211,7 +227,9 @@ test.describe('Meta sync', () => {
     //verify after sync
     await metaData.sync();
 
-    if (isSqlite(context)) {
+    if (isSqliteData(context) || isMssqlData(context)) {
+      // MSSQL sakila has the same 5 views as sqlite (no ActorInfo) and lists
+      // them right after the 16 base tables → CustomerList@16, FilmList@17.
       await metaData.verifyRow({
         index: 16,
         model: 'CustomerList',
@@ -223,7 +241,7 @@ test.describe('Meta sync', () => {
         state: 'No change identified',
       });
     }
-    if (isPg(context)) {
+    if (isPgData(context)) {
       await metaData.verifyRow({
         index: 21,
         model: 'ActorInfo',
@@ -234,7 +252,7 @@ test.describe('Meta sync', () => {
         model: 'CustomerList',
         state: 'No change identified',
       });
-    } else if (isMysql(context)) {
+    } else if (isMysqlData(context)) {
       await metaData.verifyRow({
         index: 16,
         model: 'ActorInfo',

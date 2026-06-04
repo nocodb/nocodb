@@ -51,6 +51,8 @@ export function useFillHandler({
 }) {
   const { isMysql, isPg } = useBase()
 
+  const { metas } = useMetas()
+
   const { fillRows } = useNocoAi()
 
   const { base } = storeToRefs(useBase())
@@ -317,6 +319,7 @@ export function useFillHandler({
               isPg,
               isMysql,
               meta: unref(meta),
+              metas: metas.value,
             },
             {
               skipUidt: [UITypes.Percent, UITypes.Currency],

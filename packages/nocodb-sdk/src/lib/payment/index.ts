@@ -127,6 +127,7 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_VISIBILITY = 'feature_table_visibility',
   FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
   FEATURE_BOOKMARKS = 'feature_bookmarks',
+  FEATURE_MSSQL = 'feature_mssql',
 }
 
 export enum PlanTitles {
@@ -476,6 +477,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FIELD_VISIBILITY]:
     'to control field-level visibility.',
   [PlanFeatureTypes.FEATURE_BOOKMARKS]: 'to use bookmarks.',
+  [PlanFeatureTypes.FEATURE_MSSQL]:
+    'to connect Microsoft SQL Server sources.',
 };
 
 export const getUpgradeMessage = (

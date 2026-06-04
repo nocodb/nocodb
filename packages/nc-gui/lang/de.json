@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Wählen Sie eine Version für die Vorschau",
       "previewEmptySubtitle": "Wählen Sie eine aus der Liste rechts aus, um die Seite so zu sehen, wie sie zu diesem Zeitpunkt war. Änderungen an der aktuellen Version werden inline hervorgehoben.",
       "currentVersion": "Aktuelle Version · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Ältere laden",
       "emptyTitle": "Noch keine Versionen gespeichert",
       "emptySubtitle": "Eine Version wird jedes Mal aufgezeichnet, wenn die Seite gespeichert wird. Speicher, die innerhalb von 2 Minuten vom gleichen Autor erstellt wurden, werden in eine eine.",
@@ -1465,9 +1466,9 @@
         "edited": "Bearbeitet von {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} wiederhergestellt",
-        "saved": "{author} gespeichert",
-        "edited": "{author} bearbeitet"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

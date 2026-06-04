@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "選擇要預覽的版本",
       "previewEmptySubtitle": "從右側清單中選取一個，即可看到當時的頁面。與目前版本相較的變更會在線上高亮顯示。",
       "currentVersion": "目前版本 - {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "載入舊版",
       "emptyTitle": "尚未儲存版本",
       "emptySubtitle": "每次儲存頁面都會記錄一個版本。同一作者在 2 分鐘內儲存的版本會合併為一個版本。",
@@ -1465,9 +1466,9 @@
         "edited": "編輯： {author} - {when}"
       },
       "listAction": {
-        "restored": "{author} 恢復",
-        "saved": "{author} 已儲存",
-        "edited": "{author} 編輯"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

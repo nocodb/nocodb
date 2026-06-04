@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Seleccione una versión para previsualizar",
       "previewEmptySubtitle": "Elija una de la lista a la derecha para ver la página tal como estaba en ese punto. Los cambios contra la versión actual se resaltan en línea.",
       "currentVersion": "Versión actual · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Cargar anterior",
       "emptyTitle": "No hay versiones guardadas aún",
       "emptySubtitle": "Una versión se registra cada vez que la página es guardada. Los datos de guardado hechos en 2 minutos por el mismo autor se combinan en uno.",
@@ -1465,9 +1466,9 @@
         "edited": "Editado por {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} restaurado",
-        "saved": "{author} guardado",
-        "edited": "{author} editado"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

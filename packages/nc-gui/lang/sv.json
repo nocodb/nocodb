@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Välj en version att förhandsgranska",
       "previewEmptySubtitle": "Välj en från listan till höger för att se sidan som det var på den punkten. Ändringar mot den aktuella versionen markeras inline.",
       "currentVersion": "Aktuell version · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Ladda äldre",
       "emptyTitle": "Inga versioner har sparats ännu",
       "emptySubtitle": "En version spelas in varje gång sidan sparas. Sparningar som görs inom 2 minuter av samma författare slås samman till en.",
@@ -1465,9 +1466,9 @@
         "edited": "Redigerad av {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} återställt",
-        "saved": "{author} sparad",
-        "edited": "{author} redigerad"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

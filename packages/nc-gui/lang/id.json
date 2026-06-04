@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Pilih versi yang akan dipratinjau",
       "previewEmptySubtitle": "Pilih salah satu dari daftar di sebelah kanan untuk melihat halaman seperti pada saat itu. Perubahan terhadap versi saat ini disorot sebaris.",
       "currentVersion": "Versi saat ini - {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Memuat lebih lama",
       "emptyTitle": "Belum ada versi yang disimpan",
       "emptySubtitle": "Sebuah versi direkam setiap kali halaman disimpan. Penyimpanan yang dilakukan dalam waktu 2 menit oleh penulis yang sama akan digabungkan menjadi satu.",
@@ -1465,9 +1466,9 @@
         "edited": "Diedit oleh {author} - {when}"
       },
       "listAction": {
-        "restored": "{author} dipulihkan",
-        "saved": "{author} disimpan",
-        "edited": "{author} diedit"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

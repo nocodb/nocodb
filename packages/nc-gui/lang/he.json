@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "בחר גרסה לתצוגה מקדימה",
       "previewEmptySubtitle": "בחר אפשרות מהרשימה מימין כדי לראות את הדף כפי שהיה באותו מועד. השינויים ביחס לגרסה הנוכחית מסומנים בטקסט.",
       "currentVersion": "הגרסה הנוכחית · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "טען תוצאות ישנות יותר",
       "emptyTitle": "עדיין לא נשמרו גרסאות",
       "emptySubtitle": "בכל פעם שהדף נשמר, נרשמת גרסה חדשה. שמירות שבוצעו תוך שתי דקות על ידי אותו מחבר מאוחדות לגרסה אחת.",
@@ -1465,9 +1466,9 @@
         "edited": "בעריכת {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} שוחזר",
-        "saved": "{author} נשמר",
-        "edited": "{author} ערוך"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

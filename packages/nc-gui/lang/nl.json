@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Selecteer een versie om een voorbeeld te bekijken",
       "previewEmptySubtitle": "Kies er een uit de lijst aan de rechterkant om de pagina te bekijken zoals die op dat moment was. Wijzigingen ten opzichte van de huidige versie worden inline gemarkeerd.",
       "currentVersion": "Huidige versie · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Laad oudere",
       "emptyTitle": "Er zijn nog geen versies opgeslagen",
       "emptySubtitle": "Telkens als de pagina wordt opgeslagen. Reddingen gemaakt binnen 2 minuten door dezelfde auteur worden samengevoegd tot één.",
@@ -1465,9 +1466,9 @@
         "edited": "Bewerkt door {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} hersteld",
-        "saved": "{author} opgeslagen",
-        "edited": "{author} bewerkt"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

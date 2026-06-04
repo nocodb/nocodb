@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "पूर्वावलोकन के लिए एक संस्करण चुनें",
       "previewEmptySubtitle": "पृष्ठ को उस समय जैसा दिखता था, वैसा देखने के लिए दाईं ओर दी गई सूची में से एक चुनें। वर्तमान संस्करण के विरुद्ध परिवर्तन इनलाइन में हाइलाइट किए गए हैं।",
       "currentVersion": "वर्तमान संस्करण · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "पुराने लोड करें",
       "emptyTitle": "अभी तक कोई संस्करण सहेजा नहीं गया है।",
       "emptySubtitle": "पृष्ठ को सहेजने पर प्रत्येक बार एक संस्करण दर्ज किया जाता है। एक ही लेखक द्वारा दो मिनट के भीतर किए गए सहेज एक में विलय कर दिए जाते हैं।",
@@ -1465,9 +1466,9 @@
         "edited": "संपादित: {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} पुनर्स्थापित",
-        "saved": "{author} बचाया गया",
-        "edited": "{author} संपादित"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

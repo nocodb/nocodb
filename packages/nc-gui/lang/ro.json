@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Selectați o versiune pentru a o previzualiza",
       "previewEmptySubtitle": "Alege unul din lista din dreapta pentru a vedea pagina așa cum era în acel moment. Modificările față de versiunea curentă sunt evidențiate în linie.",
       "currentVersion": "Versiunea curentă · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Încarcă mai vechi",
       "emptyTitle": "Nicio versiune salvată încă",
       "emptySubtitle": "O versiune este înregistrată de fiecare dată când pagina este salvată. Salvările făcute în decurs de 2 minute de acelaşi autor sunt îmbinate într-unul singur.",
@@ -1465,9 +1466,9 @@
         "edited": "Editat de {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} restaurat",
-        "saved": "{author} salvat",
-        "edited": "{author} editat"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "プレビューするバージョンを選択",
       "previewEmptySubtitle": "右側のリストから1つを選択すると、その時点でページが表示されます。 現在のバージョンに対する変更はインラインハイライトされます。",
       "currentVersion": "現在のバージョン · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "古いものを読み込む",
       "emptyTitle": "バージョンはまだ保存されていません",
       "emptySubtitle": "ページが保存されるたびにバージョンが記録されます。同じ著者が2分以内に作成した保存は1つにまとめられます。",
@@ -1465,9 +1466,9 @@
         "edited": "{author} · {when} が編集しました"
       },
       "listAction": {
-        "restored": "{author} が復元されました",
-        "saved": "{author} を保存しました",
-        "edited": "{author} が編集されました"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

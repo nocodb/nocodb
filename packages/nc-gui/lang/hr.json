@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Odaberite verziju za pregled",
       "previewEmptySubtitle": "Odaberite jednu s popisa s desne strane da biste vidjeli stranicu onakvu kakva je bila u tom trenutku. Promjene u odnosu na trenutnu verziju istaknute su u tekstu.",
       "currentVersion": "Trenutna verzija · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Učitaj starije",
       "emptyTitle": "Još nisu spremljene nijedne verzije",
       "emptySubtitle": "Svaki put kada se stranica spremi, snima se verzija. Spremovi koje isti autor napravi unutar dvije minute objedinjuju se u jedan.",
@@ -1465,9 +1466,9 @@
         "edited": "Uredio {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} obnovljeno",
-        "saved": "{author} sačuvano",
-        "edited": "{author} uređeno"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

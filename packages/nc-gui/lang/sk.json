@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Select a version to preview",
       "previewEmptySubtitle": "Pick one from the list on the right to see the page as it was at that point. Changes against the current version are highlighted inline.",
       "currentVersion": "Current version · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Load older",
       "emptyTitle": "No versions saved yet",
       "emptySubtitle": "A version is recorded each time the page is saved. Saves made within 2 minutes by the same author are merged into one.",
@@ -1465,9 +1466,9 @@
         "edited": "Edited by {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} restored",
-        "saved": "{author} saved",
-        "edited": "{author} edited"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

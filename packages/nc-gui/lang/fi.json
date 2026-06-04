@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Valitse esikatseluun käytettävä versio",
       "previewEmptySubtitle": "Valitse yksi luettelosta oikealla näet sivun sellaisena kuin se oli siinä vaiheessa. Muutokset nykyiseen versioon on korostettu inline.",
       "currentVersion": "Nykyinen versio · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Lataa vanhempi",
       "emptyTitle": "Yhtään versiota ei vielä tallennettu",
       "emptySubtitle": "Versio kirjataan joka kerta kun sivu on tallennettu. Tallennukset tehdään 2 minuutin kuluessa sama tekijä on yhdistetty yhteen.",
@@ -1465,9 +1466,9 @@
         "edited": "Viimeksi muokannut {author} - {when}"
       },
       "listAction": {
-        "restored": "{author} palautettu",
-        "saved": "{author} tallennettu",
-        "edited": "{author} muokattu"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

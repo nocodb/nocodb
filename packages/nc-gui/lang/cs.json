@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Vyberte verzi pro náhled",
       "previewEmptySubtitle": "Vyberte jednu ze seznamu vpravo a uvidíte stránku, jak to bylo v tomto bodě. Změny oproti aktuální verzi jsou zvýrazněny inline.",
       "currentVersion": "Aktuální verze · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Načíst starší",
       "emptyTitle": "Zatím nebyly uloženy žádné verze",
       "emptySubtitle": "Verze je zaznamenána pokaždé, když je stránka uložena. Uložené do 2 minut stejným autorem jsou sloučeny do jednoho.",
@@ -1465,9 +1466,9 @@
         "edited": "Upraveno {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} obnoven",
-        "saved": "{author} uloženo",
-        "edited": "{author} upraveno"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

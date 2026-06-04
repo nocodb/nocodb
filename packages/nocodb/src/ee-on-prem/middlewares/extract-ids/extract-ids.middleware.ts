@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ExtractIdsMiddleware as ExtractIdsMiddlewareEE } from 'src/ee/middlewares/extract-ids/extract-ids.middleware';
 import NocoLicense from '../../NocoLicense';
 import type {
@@ -17,8 +18,8 @@ export class ExtractIdsMiddleware
 {
   private cachedWorkspaceId: string = null;
 
-  constructor() {
-    super();
+  constructor(reflector: Reflector) {
+    super(reflector);
   }
 
   async use(req, res, next): Promise<any> {

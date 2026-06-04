@@ -100,6 +100,8 @@ const getApiVersionFromUrl = (url: string) => {
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
+  constructor(protected readonly reflector: Reflector) {}
+
   async use(req, res, next): Promise<any> {
     const { params, query } = req;
 
@@ -433,11 +435,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    await this.use(
-      context.switchToHttp().getRequest(),
-      context.switchToHttp().getResponse(),
-      () => {},
-    );
+    const req = context.switchToHttp().getRequest();
+    // @Acl scope gates the default-workspace fallback in use() (undefined = no @Acl)
+    req.ncAclScope = this.reflector.get<string>('scope', context.getHandler());
+    await this.use(req, context.switchToHttp().getResponse(), () => {});
     return true;
   }
 
@@ -986,7 +987,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     markPersonalViewIfNeeded(req, view);
 
-    if (!req.ncWorkspaceId) {
+    // Workspace/base routes with no resolved workspace fall back to the default
+    // one so their ACL resolves; org/no-scope routes stay above workspace.
+    if (
+      !req.ncWorkspaceId &&
+      (req.ncAclScope === 'workspace' || req.ncAclScope === 'base')
+    ) {
       req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
     }
 

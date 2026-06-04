@@ -340,6 +340,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseScim = (..._args: any[]) => {}
 
+  const showUpgradeToUseAudit = (..._args: any[]) => {}
+
   const blockTrashSettings = computed(() => true)
 
   const showUpgradeToUseTrashSettings = (..._args: any[]) => {}
@@ -528,6 +530,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseSSO,
     blockScim,
     showUpgradeToUseScim,
+    showUpgradeToUseAudit,
     blockSnapshots,
     showUpgradeToUseSnapshots,
     blockCustomUrls,

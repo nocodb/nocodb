@@ -18,6 +18,7 @@ const {
   blockScim,
   showUpgradeToUseScim,
   isWsAuditEnabled,
+  showUpgradeToUseAudit,
 } = useEeConfig()
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
@@ -264,7 +265,7 @@ watch(
               key="audit"
               :class="{ active: activeTab === 'audit' }"
               class="item"
-              @click="isWsAuditEnabled ? (activeTab = 'audit') : undefined"
+              @click="isWsAuditEnabled ? (activeTab = 'audit') : showUpgradeToUseAudit()"
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon class="!h-4 !w-4" icon="ncFileText" />

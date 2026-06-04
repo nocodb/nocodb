@@ -47,9 +47,11 @@ const isLoading = computed(() => {
   const { path, src, id } = props.node.attrs
   // Uploading: no durable ref and no preview yet.
   if (!path && !src) return true
-  // Source failed to load (e.g. a peer can't load the uploader's local blob) and
-  // there's no durable id yet — keep the skeleton while the id propagates.
-  return imgError.value && !id
+  // A peer can't load the uploader's local blob preview (`blob:` URLs resolve only
+  // in the client that created them); show the skeleton until the durable id
+  // propagates. Scoped to blob: so a genuinely broken external image still surfaces
+  // its error state instead of spinning forever.
+  return imgError.value && !id && typeof src === 'string' && src.startsWith('blob:')
 })
 
 // --- Alignment ---

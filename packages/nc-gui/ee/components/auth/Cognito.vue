@@ -386,7 +386,7 @@ const onForgotPasswordClicked = (): void => {
   --amplify-components-divider-label-color: var(--nc-content-gray-muted);
   --amplify-components-button-primary-background-color: var(--nc-brand-accent);
   --amplify-components-button-border-radius: 8px;
-  --amplify-components-button-primary-hover-background-color: #2952cc;
+  --amplify-components-button-primary-hover-background-color: var(--nc-brand-accent-hover);
   --amplify-components-button-primary-focus-background-color: var(--nc-brand-accent);
   --amplify-components-button-primary-active-background-color: var(--nc-brand-accent);
   --amplify-components-button-link-color: var(--amplify-colors-brand-secondary-80);

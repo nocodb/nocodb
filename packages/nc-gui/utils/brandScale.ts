@@ -240,14 +240,18 @@ export function buildBrandStyleCss(seedHex: string): string | null {
   if (!scale) return null
 
   const accent = scale.light[500]
+  const accentHover = scale.light[600]
 
   return [
     ':root {',
     brandVars(scale.light),
     antVars(scale.light),
-    // Mode-independent (defined only here, mirroring the source literals).
+    // Mode-independent (defined only here under :root, NOT in the [theme='dark']
+    // block below — so they stay constant across light/dark, mirroring the
+    // source literals #3366ff / #2952cc).
     `  --nc-brand-accent: ${accent.hex};`,
     `  --nc-brand-accent-rgb: ${accent.rgb};`,
+    `  --nc-brand-accent-hover: ${accentHover.hex};`,
     '}',
     "[theme='dark'] {",
     brandVars(scale.dark),

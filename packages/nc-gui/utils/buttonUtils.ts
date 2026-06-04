@@ -2,7 +2,7 @@ export const buttonColorMap = {
   solid: {
     brand: {
       base: { background: 'var(--nc-brand-accent)', text: '#FFFFFF' },
-      hover: { background: 'var(--color-brand-600)', text: '#FFFFFF' },
+      hover: { background: 'var(--nc-brand-accent-hover)', text: '#FFFFFF' },
       loader: 'var(--nc-brand-accent)',
       disabled: { background: 'var(--nc-bg-gray-light)', text: 'var(--nc-content-gray-disabled)' },
     },
@@ -198,7 +198,7 @@ export const getButtonColors = (
   const themeColors = buttonColorMap[theme]?.[color]
   if (!themeColors) {
     return isHovered && !isDisabled
-      ? { background: 'var(--color-brand-600)', text: '#FFFFFF', loader: 'var(--nc-brand-accent)' }
+      ? { background: 'var(--nc-brand-accent-hover)', text: '#FFFFFF', loader: 'var(--nc-brand-accent)' }
       : { background: 'var(--nc-brand-accent)', text: '#FFFFFF', loader: 'var(--nc-brand-accent)' }
   }
 

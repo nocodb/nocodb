@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "পূর্বরূপের জন্য একটি ভার্সন নির্বাচন করুন",
       "previewEmptySubtitle": "ডান পাশের তালিকা থেকে একটি নির্বাচন করুন, পৃষ্ঠাটি যেমন ছিল তখন দেখুন। বর্তমান ভার্সনের বিপরীতে পরিবর্তনসমূহ ইনলাইনে হাইলাইট করা হয়েছে।",
       "currentVersion": "বর্তমান ভার্সন · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "পুরনো লোড করুন",
       "emptyTitle": "এখনও কোনো ভার্সন সংরক্ষিত হয়নি",
       "emptySubtitle": "প্রতি বার পৃষ্ঠাটি সংরক্ষণ হলে একটি ভার্সন রেকর্ড করা হয়। একই লেখকের মাধ্যমে ২ মিনিটের মধ্যে করা সংরক্ষণ একত্রিত হয়।",
@@ -1465,9 +1466,9 @@
         "edited": "{author} দ্বারা সম্পাদিত · {when}"
       },
       "listAction": {
-        "restored": "{author} পুনরুদ্ধার করেছেন",
-        "saved": "{author} সংরক্ষণ করেছেন",
-        "edited": "{author} সম্পাদনা করেছেন"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

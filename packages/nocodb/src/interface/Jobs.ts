@@ -112,7 +112,6 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.MailDispatch,
   JobTypes.MailOutboxRecovery,
   JobTypes.MailScanner,
-  JobTypes.TableSyncRun,
 ];
 
 export enum JobStatus {

@@ -1,6 +1,5 @@
-import fs from 'fs';
-import { promisify } from 'util';
 import { NcError } from '~/helpers/ncError';
+import { resolveSslFileConfig } from '~/helpers/resolveSslFileConfig';
 import MySqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import PgClient from '~/db/sql-client/lib/pg/PgClient';
@@ -38,35 +37,7 @@ export class SqlClientFactory {
 
 export default class {
   static async create(connectionConfig) {
-    if (
-      connectionConfig.connection.ssl &&
-      typeof connectionConfig.connection.ssl === 'object'
-    ) {
-      if (connectionConfig.connection.ssl.caFilePath) {
-        connectionConfig.connection.ssl.ca = (
-          await promisify(fs.readFile)(
-            connectionConfig.connection.ssl.caFilePath,
-          )
-        ).toString();
-        delete connectionConfig.connection.ssl.caFilePath;
-      }
-      if (connectionConfig.connection.ssl.keyFilePath) {
-        connectionConfig.connection.ssl.key = (
-          await promisify(fs.readFile)(
-            connectionConfig.connection.ssl.keyFilePath,
-          )
-        ).toString();
-        delete connectionConfig.connection.ssl.keyFilePath;
-      }
-      if (connectionConfig.connection.ssl.certFilePath) {
-        connectionConfig.connection.ssl.cert = (
-          await promisify(fs.readFile)(
-            connectionConfig.connection.ssl.certFilePath,
-          )
-        ).toString();
-        delete connectionConfig.connection.ssl.certFilePath;
-      }
-    }
+    await resolveSslFileConfig(connectionConfig);
 
     return SqlClientFactory.create(connectionConfig);
   }

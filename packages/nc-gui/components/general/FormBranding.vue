@@ -21,19 +21,10 @@ const onClick = () => {
     :class="{ 'cursor-pointer': !!config?.email?.footerUrl }"
     @click="onClick"
   >
-    <img
-      v-if="logoUrl"
-      :src="logoUrl"
-      :alt="productName"
-      class="h-7 max-w-[112px] object-contain -my-0.5"
-    />
+    <img v-if="logoUrl" :src="logoUrl" :alt="productName" class="h-7 max-w-[112px] object-contain -my-0.5" />
     <div class="text-sm">{{ productName }} Forms</div>
   </div>
-  <div
-    v-else
-    class="flex items-center gap-3 cursor-pointer text-gray-700 dark:text-slate-300"
-    @click="onClick"
-  >
+  <div v-else class="flex items-center gap-3 cursor-pointer text-gray-700 dark:text-slate-300" @click="onClick">
     <GeneralIcon icon="nocodb1" class="w-7 h-7 -my-0.5" />
 
     <div class="text-sm">NocoDB Forms</div>

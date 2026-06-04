@@ -27,12 +27,7 @@ const getBannerImageSrc = computed(() => {
       class="nc-form-banner-image object-cover w-full"
       :is-cell-preview="false"
     />
-    <img
-      v-else-if="formBannerUrl"
-      :src="formBannerUrl"
-      alt=""
-      class="h-full w-full object-cover"
-    />
+    <img v-else-if="formBannerUrl" :src="formBannerUrl" alt="" class="h-full w-full object-cover" />
     <div v-else dir="ltr" class="h-full flex items-stretch justify-between bg-nc-bg-default">
       <div class="flex -mt-1">
         <img src="~assets/img/form-banner-left.png" alt="form-banner-left'" />

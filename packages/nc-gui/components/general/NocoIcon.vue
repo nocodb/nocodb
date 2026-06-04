@@ -36,14 +36,7 @@ const onClick = useThrottleFn(() => {
     @click="onClick"
   >
     <div class="relative">
-      <img
-        v-if="brandIcon"
-        :width="size"
-        :height="size"
-        :alt="productName"
-        :src="brandIcon"
-        class="object-contain"
-      />
+      <img v-if="brandIcon" :width="size" :height="size" :alt="productName" :src="brandIcon" class="object-contain" />
       <template v-else>
         <img
           v-if="isDark"

@@ -220,7 +220,8 @@ export class WhiteLabelService {
   private async canonicalizeAssetUrl(value: string | null | undefined) {
     // Normalize empty/blank → null so a cleared field doesn't trip URL_RE in
     // validate() (the front-end already trims, but direct API callers may send '').
-    if (!value || (typeof value === 'string' && value.trim() === '')) return null;
+    if (!value || (typeof value === 'string' && value.trim() === ''))
+      return null;
     // Tolerate any signed URL by detecting the `dltemp` segment anywhere in
     // the value — the leading slash and the `?expireAt=...` query are both
     // optional from the client's perspective.
@@ -267,7 +268,12 @@ export class WhiteLabelService {
       }
     }
 
-    for (const key of ['logoUrl', 'logoDarkUrl', 'faviconUrl', 'formBannerUrl'] as const) {
+    for (const key of [
+      'logoUrl',
+      'logoDarkUrl',
+      'faviconUrl',
+      'formBannerUrl',
+    ] as const) {
       const v = cfg[key];
       if (v != null) {
         if (typeof v !== 'string' || !URL_RE.test(v)) {

@@ -1,7 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { MailService as MailServiceEE } from 'src/ee/services/mail/mail.service';
-import { WhiteLabelService } from '~/services/white-label.service';
 import { render } from '@react-email/render';
 import type { Queue } from 'bull';
 import type { ComponentProps } from 'react';
@@ -24,6 +23,7 @@ import type {
   TrialEndedPayload,
   TrialEndingPayload,
 } from '~/interface/Mail';
+import { WhiteLabelService } from '~/services/white-label.service';
 import * as CloudMailTemplates from '~/mail/templates/transactional';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MailEvent } from '~/interface/Mail';

@@ -1,22 +1,15 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common';
 import {
   OrgUserRoles,
   PlanFeatureTypes,
   type WhiteLabelConfig,
 } from 'nocodb-sdk';
+import { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { License } from '~/decorators/license.decorator';
 import { WhiteLabelService } from '~/services/white-label.service';
-import type { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

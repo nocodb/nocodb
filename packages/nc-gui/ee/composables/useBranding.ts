@@ -25,9 +25,7 @@ export const useBranding = createSharedComposable(() => {
     return new URL(url, base).toString()
   }
 
-  const productName = computed(
-    () => config.value?.productName?.trim() || DEFAULT_BRANDING.productName,
-  )
+  const productName = computed(() => config.value?.productName?.trim() || DEFAULT_BRANDING.productName)
   const logoUrl = computed(
     () =>
       joinSiteUrl(config.value?.logoUrl) ||
@@ -37,18 +35,11 @@ export const useBranding = createSharedComposable(() => {
       DEFAULT_BRANDING.logoUrl,
   )
   const logoDarkUrl = computed(
-    () =>
-      joinSiteUrl(config.value?.logoDarkUrl) ||
-      joinSiteUrl(config.value?.logoUrl) ||
-      DEFAULT_BRANDING.logoDarkUrl,
+    () => joinSiteUrl(config.value?.logoDarkUrl) || joinSiteUrl(config.value?.logoUrl) || DEFAULT_BRANDING.logoDarkUrl,
   )
-  const faviconUrl = computed(
-    () => joinSiteUrl(config.value?.faviconUrl) || DEFAULT_BRANDING.faviconUrl,
-  )
+  const faviconUrl = computed(() => joinSiteUrl(config.value?.faviconUrl) || DEFAULT_BRANDING.faviconUrl)
   const brandColor = computed(() => config.value?.brandColor || DEFAULT_BRANDING.brandColor)
-  const formBannerUrl = computed(
-    () => joinSiteUrl(config.value?.formBannerUrl) || DEFAULT_BRANDING.formBannerUrl,
-  )
+  const formBannerUrl = computed(() => joinSiteUrl(config.value?.formBannerUrl) || DEFAULT_BRANDING.formBannerUrl)
 
   return {
     productName,

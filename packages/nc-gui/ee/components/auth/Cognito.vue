@@ -6,6 +6,8 @@ import { Auth } from 'aws-amplify'
 
 const { isDark } = useTheme()
 
+const { productName, logoUrl, logoDarkUrl, isWhiteLabelled } = useBranding()
+
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 const { lastUsedAuthMethod } = useGlobal()
 const facade = useAuthenticator() as any
@@ -139,8 +141,13 @@ const onForgotPasswordClicked = (): void => {
     >
       <template #header>
         <div style="padding: var(--amplify-space-large); text-align: center">
-          <img v-if="isDark" class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/text.png" />
-          <img v-else class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
+          <template v-if="isWhiteLabelled && (isDark ? logoDarkUrl : logoUrl)">
+            <img :src="(isDark ? logoDarkUrl : logoUrl) ?? ''" :alt="productName" class="amplify-image object-contain" />
+          </template>
+          <template v-else-if="!isWhiteLabelled">
+            <img v-if="isDark" class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/text.png" />
+            <img v-else class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
+          </template>
         </div>
       </template>
       <template #sign-in-footer>

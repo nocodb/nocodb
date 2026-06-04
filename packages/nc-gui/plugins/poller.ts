@@ -1,4 +1,5 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
+import { JobStatus } from '~/lib/enums'
 
 const pollPlugin = async (nuxtApp) => {
   const api: BaseAPI<any> = nuxtApp.$api as any
@@ -47,22 +48,39 @@ const pollPlugin = async (nuxtApp) => {
 
       if (Array.isArray(response)) {
         let lastMid = 0
+        let terminal = false
         for (const r of response) {
           if (r.status === 'close') {
             return cb(r)
           } else {
             if (r.status === 'update') {
               cb(r.data)
+
+              // Stop on a terminal job status without waiting for `close`.
+              // `close` can be lost (server restart, sibling instance, or the
+              // backend's closedJobs window elapsing), which would otherwise
+              // leave this loop polling forever. The terminal status is the
+              // last message in an ordered batch, so the rest of the batch is
+              // still delivered before we stop.
+              if (r.data?.status && [JobStatus.COMPLETED, JobStatus.FAILED].includes(r.data.status as JobStatus)) {
+                terminal = true
+              }
             }
             lastMid = r._mid
           }
         }
+        if (terminal) return
         await subscribe(topic, cb, lastMid)
       } else {
         if (response.status === 'close') {
           return cb(response)
         } else if (response.status === 'update') {
           cb(response.data)
+
+          if (response.data?.status && [JobStatus.COMPLETED, JobStatus.FAILED].includes(response.data.status as JobStatus)) {
+            return
+          }
+
           await subscribe(topic, cb, response._mid)
         } else if (response.status === 'refresh') {
           await subscribe(topic, cb, _mid)

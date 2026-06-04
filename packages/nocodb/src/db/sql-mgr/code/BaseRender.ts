@@ -55,7 +55,7 @@ class BaseRender {
    * @returns {Promise<void>}
    */
   async prepare() {
-    console.log('BaseRender::prepare -> Should be overriden');
+    console.log('BaseRender::prepare -> Should be overridden');
   }
 
   /**

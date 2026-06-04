@@ -59,6 +59,16 @@ function joinSiteUrl(url: string | null): string {
 const previewSrc = computed(() => joinSiteUrl(props.modelValue))
 
 async function uploadAsset(file: File) {
+  // `accept` is only a hint — the OS picker's "All files" option and drag-and-drop
+  // both bypass it. Enforce by BLOCKING svg (the actual XSS risk) rather than an
+  // allowlist: browsers report `.ico` inconsistently (image/x-icon vs
+  // image/vnd.microsoft.icon vs application/x-icon), so an allowlist would
+  // false-reject valid favicons. Check both the reported type and the filename.
+  if (file.type === 'image/svg+xml' || /\.svgz?$/i.test(file.name)) {
+    message.error(t('labels.whiteLabel.unsupportedFileType'))
+    return
+  }
+
   if (file.size > maxBytes.value) {
     message.error(t('labels.whiteLabel.fileTooLarge', { size: props.maxSizeMb }))
     return
@@ -149,7 +159,7 @@ function remove() {
             class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/90 text-nc-content-red-medium hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             @click="remove"
           >
-            <GeneralIcon icon="ncDelete" class="h-4 w-4" />
+            <GeneralIcon icon="ncTrash2" class="h-4 w-4" />
           </button>
         </NcTooltip>
       </div>

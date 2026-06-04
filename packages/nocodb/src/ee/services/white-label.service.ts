@@ -22,6 +22,14 @@ const MAX_FOOTER_TEXT_LEN = 240;
 //     (re-signed at read time in `getPublicConfig`)
 // Anything else is rejected to block javascript:, data: URIs, etc.
 const URL_RE = /^(https?:\/\/[^\s]+|\/[^\s]*|download\/[^\s]+)$/;
+// SVG can embed scripts; since white-label assets are served same-origin and
+// rendered inline, an uploaded SVG would be a stored-XSS vector. Reject it (and
+// the gzipped .svgz variant) regardless of the front-end `accept` filter, which
+// drag-and-drop / "All files" can bypass. The negative lookahead matches a
+// `.svg`/`.svgz` segment anywhere — including double extensions like
+// `logo.svg.png` and query/fragment suffixes — so it can't be sneaked past by
+// appending another extension. Raster formats (PNG/JPG/ICO) only.
+const DISALLOWED_ASSET_EXT_RE = /\.svgz?(?![a-z0-9])/i;
 // Email footer URL must be absolute http(s) — these links are resolved from
 // inboxes, not the app, so same-origin paths don't apply.
 const ABSOLUTE_URL_RE = /^https?:\/\/[^\s]+$/;
@@ -210,7 +218,9 @@ export class WhiteLabelService {
 
   /** Reverse of resolveAssetUrl — only touches `/dltemp/...` signed URLs. */
   private async canonicalizeAssetUrl(value: string | null | undefined) {
-    if (!value) return value ?? null;
+    // Normalize empty/blank → null so a cleared field doesn't trip URL_RE in
+    // validate() (the front-end already trims, but direct API callers may send '').
+    if (!value || (typeof value === 'string' && value.trim() === '')) return null;
     // Tolerate any signed URL by detecting the `dltemp` segment anywhere in
     // the value — the leading slash and the `?expireAt=...` query are both
     // optional from the client's perspective.
@@ -263,6 +273,11 @@ export class WhiteLabelService {
         if (typeof v !== 'string' || !URL_RE.test(v)) {
           NcError.badRequest(
             `\`${key}\` must be an http(s) URL or a same-origin path starting with /`,
+          );
+        }
+        if (DISALLOWED_ASSET_EXT_RE.test(v)) {
+          NcError.badRequest(
+            `\`${key}\` must be a PNG, JPG, or ICO image — SVG is not allowed`,
           );
         }
       }

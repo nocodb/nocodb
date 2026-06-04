@@ -98,26 +98,6 @@ export class JobsController implements OnModuleDestroy {
       return;
     }
 
-    const persistedJob = await Job.get(
-      {
-        workspace_id: RootScopes.ROOT,
-        base_id: RootScopes.ROOT,
-      },
-      jobId,
-    ).catch(() => null);
-
-    if (
-      persistedJob &&
-      [JobStatus.COMPLETED, JobStatus.FAILED].includes(
-        persistedJob.status as JobStatus,
-      )
-    ) {
-      res.send({
-        status: 'close',
-      });
-      return;
-    }
-
     if (this.jobRooms[jobId]) {
       this.jobRooms[jobId].listeners.push(res);
     } else {

@@ -25,6 +25,10 @@ export class MailService extends MailServiceCE {
     return this.whiteLabelService.getPublicConfig();
   }
 
+  protected async getEmailSenderName(): Promise<string | null> {
+    return this.whiteLabelService.getEmailSenderName();
+  }
+
   @EEOnly()
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);

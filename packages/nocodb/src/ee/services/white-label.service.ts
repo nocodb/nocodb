@@ -142,6 +142,20 @@ export class WhiteLabelService {
   }
 
   /**
+   * Raw From display-name override for transactional emails. Plan-gated like
+   * the public config, but skips asset signing (callers only need the string).
+   * Returns null when disabled / not entitled / unset.
+   */
+  async getEmailSenderName(): Promise<string | null> {
+    const cfg = await this.getRawConfig();
+    if (!cfg.enabled || !this.planAllowsWhiteLabel()) return null;
+    // Never blank — fall back to the product name, then the NocoDB default, so
+    // the email From always shows a friendly sender name (a bare address or an
+    // empty name looks broken in inboxes).
+    return cfg.email?.senderName?.trim() || cfg.productName?.trim() || 'NocoDB';
+  }
+
+  /**
    * Sanitized view for the unauthenticated `appInfo` response. Same as
    * getPublicConfig but strips the email sender name / footer text — anonymous
    * callers only need `footerUrl` (the public-form footer link); the configured

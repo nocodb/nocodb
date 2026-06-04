@@ -5,6 +5,7 @@ import type { IEmailAdapter } from '~/types/nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
 import { NcError } from '~/helpers/ncError';
+import { emailAddressOnly } from '~/helpers/emailFrom';
 
 export default class SES implements IEmailAdapter {
   private transporter: Mail;
@@ -33,8 +34,14 @@ export default class SES implements IEmailAdapter {
 
   public async mailSend(mail: XcEmail): Promise<any> {
     if (this.transporter) {
+      const { fromName, ...rest } = mail;
+      // Override only the display name (keep the verified SES sender address)
+      // when a sender name is supplied (white-label); otherwise unchanged.
+      const from = fromName
+        ? { name: fromName, address: emailAddressOnly(this.input.from) }
+        : this.input.from;
       this.transporter.sendMail(
-        { ...mail, from: this.input.from },
+        { ...rest, from },
         (err, info) => {
           if (err) {
             console.log(err);

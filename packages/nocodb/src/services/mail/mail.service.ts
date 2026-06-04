@@ -107,6 +107,14 @@ export class MailService {
   }
 
   /**
+   * Hook: subclasses (EE) return the white-label From display-name override for
+   * emails (the configured sender NAME, not address). CE has none.
+   */
+  protected async getEmailSenderName(): Promise<string | null> {
+    return null;
+  }
+
+  /**
    * Build the subject line, substituting the product name when white-labelled.
    * Templates can pass either a plain string or `(productName) => string`.
    */
@@ -153,10 +161,14 @@ export class MailService {
   ): Promise<void> {
     let sendError: Error | undefined;
     try {
+      // White-label sender-name override (display name only; null when not
+      // white-labelled — the adapter then uses its configured From unchanged).
+      const fromName = await this.getEmailSenderName();
       await adapter.mailSend({
         to: args.to,
         subject: args.subject,
         html: args.html,
+        ...(fromName ? { fromName } : {}),
       });
     } catch (e) {
       sendError = e as Error;
@@ -289,6 +301,7 @@ export class MailService {
     }
 
     try {
+      const fromName = await this.getEmailSenderName();
       await mailerAdapter.mailSend({
         to: params.to,
         subject: params.subject,
@@ -297,6 +310,7 @@ export class MailService {
         cc: ncIsArray(params.cc) ? params?.cc?.join(',') : params?.cc,
         bcc: ncIsArray(params.bcc) ? params?.bcc?.join(',') : params?.bcc,
         attachments: params.attachments,
+        ...(fromName ? { fromName } : {}),
       });
     } catch (e) {
       this.logger.error(e);

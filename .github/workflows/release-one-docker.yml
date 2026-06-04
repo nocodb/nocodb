@@ -278,6 +278,17 @@ jobs:
           echo "${TAGS}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Inject root pnpm.overrides into nocodb package.json
+        # Image builds use packages/nocodb as the build context, so the isolated
+        # `pnpm install --prod` can't see the repo-root pnpm.overrides (security pins).
+        # Copy them into packages/nocodb/package.json before the build so they apply.
+        run: |
+          jq --slurpfile root "$GITHUB_WORKSPACE/package.json" \
+            '.pnpm.overrides = $root[0].pnpm.overrides' \
+            "$GITHUB_WORKSPACE/packages/nocodb/package.json" > /tmp/nocodb-pkg.json
+          mv /tmp/nocodb-pkg.json "$GITHUB_WORKSPACE/packages/nocodb/package.json"
+          echo "Injected $(jq '.pnpm.overrides | length' "$GITHUB_WORKSPACE/packages/nocodb/package.json") root pnpm.overrides into packages/nocodb/package.json"
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:

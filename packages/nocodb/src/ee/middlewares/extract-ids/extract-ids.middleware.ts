@@ -144,6 +144,8 @@ const isBaseLocked = (base: Base): boolean => {
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
+  constructor(protected readonly reflector: Reflector) {}
+
   async use(req, res, next): Promise<any> {
     const { params, query } = req;
 
@@ -594,15 +596,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
-    // Single-workspace deployments (on-prem): fall back to the default workspace
-    // when the request carries no workspace context. Without this, endpoints
-    // like GET /api/v2/meta/bases — which are gated by a workspace-scoped ACL
-    // but don't carry :workspaceId in the URL — return 403 because the API
-    // token loads no workspace roles. Cloud has no default workspace concept.
-    // Mirror req.context.workspace_id so downstream consumers (services,
-    // TenantContext) see the same workspace the auth strategy resolves roles
-    // against — matches the 'nc' fallback above and the CE middleware.
-    if (!isCloud && !req.ncWorkspaceId && Noco.ncDefaultWorkspaceId) {
+    // Workspace/base routes with no resolved workspace fall back to the default
+    // one so their ACL resolves (e.g. GET /api/v2/meta/bases under API-token
+    // auth); org/no-scope routes stay above workspace. Non-cloud only.
+    if (
+      !isCloud &&
+      !req.ncWorkspaceId &&
+      Noco.ncDefaultWorkspaceId &&
+      (req.ncAclScope === 'workspace' || req.ncAclScope === 'base')
+    ) {
       req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
       if (req.context) {
         req.context.workspace_id = Noco.ncDefaultWorkspaceId;
@@ -637,11 +639,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    await this.use(
-      context.switchToHttp().getRequest(),
-      context.switchToHttp().getResponse(),
-      () => {},
-    );
+    const req = context.switchToHttp().getRequest();
+    // @Acl scope gates the default-workspace fallback in use() (undefined = no @Acl)
+    req.ncAclScope = this.reflector.get<string>('scope', context.getHandler());
+    await this.use(req, context.switchToHttp().getResponse(), () => {});
     return true;
   }
 

@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Ön izlemek için bir sürüm seçin",
       "previewEmptySubtitle": "Sağdaki listeden birini seçerek sayfanın o andaki halini görebilirsiniz. Şu anki sürüme yapılan değişiklikler satır içinde vurgulanır.",
       "currentVersion": "Mevcut sürüm · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Daha eskileri yükle",
       "emptyTitle": "Henüz sürüm kaydedilmedi",
       "emptySubtitle": "Sayfa her kaydedildiğinde yeni bir sürüm kaydedilir. Aynı yazarın 2 dakika içinde yaptığı kayıtlar birleştirilir.",
@@ -1465,9 +1466,9 @@
         "edited": "{author} tarafından düzenlendi · {when}"
       },
       "listAction": {
-        "restored": "{author} geri yükledi",
-        "saved": "{author} kaydetti",
-        "edited": "{author} düzenledi"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

@@ -41,6 +41,7 @@ export const CommonPaidLimits: Partial<Record<PlanLimitTypes, number>> = {
   [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 1000,
+  [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: -1,
 };
 
 // ---------------------------------------------------------------------------

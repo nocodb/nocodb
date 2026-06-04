@@ -57,9 +57,12 @@ RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | se
     && npx --yes prebuild-install -r napi --platform linux --arch ${TARGET_ARCH} --libc musl 2>/dev/null; \
     rm -rf node_modules/sqlite3/deps 2>/dev/null; true
 
-# Install sharp for the target platform (sharp uses npm optional deps for prebuilds)
+# Install sharp for the target platform (sharp uses npm optional deps for prebuilds).
+# --omit=dev is REQUIRED: npm installs devDependencies by default, which would re-hydrate
+# the full devDep tree (react-email's bundled esbuild → Go-stdlib CRITICAL, typescript-eslint,
+# etc.) on top of the pnpm --prod install, at override-free versions. Keeps the image prod-only.
 RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
-    && npm install --no-save --ignore-scripts --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
+    && npm install --no-save --omit=dev --ignore-scripts --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
 
 # Remove msgpackr-extract local build that npm install may have regenerated for
 # the host arch. The NAPI prebuilt in @msgpackr-extract/msgpackr-extract-linux-<arch>

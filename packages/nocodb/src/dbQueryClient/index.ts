@@ -1,20 +1,26 @@
 import { ClientType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { DBQueryClient as DBQueryClientType } from '~/dbQueryClient/types';
+import { DriverClient } from '~/utils/nc-config';
 import { PGDBQueryClient } from '~/dbQueryClient/pg';
 import { MySqlDBQueryClient } from '~/dbQueryClient/mysql';
 import { SqliteDBQueryClient } from '~/dbQueryClient/sqlite';
 import { MssqlDBQueryClient } from '~/dbQueryClient/mssql';
 
 export class DBQueryClient {
-  static get(clientType: ClientType, dbVersion?: string): DBQueryClientType {
+  static get(
+    clientType: ClientType | DriverClient,
+    dbVersion?: string,
+  ): DBQueryClientType {
     let client: DBQueryClientType;
     switch (clientType) {
       case ClientType.PG: {
         client = new PGDBQueryClient();
         break;
       }
-      case ClientType.MYSQL: {
+      case ClientType.MYSQL:
+      // eslint-disable-next-line no-fallthrough
+      case DriverClient.MYSQL_LEGACY: {
         client = new MySqlDBQueryClient();
         break;
       }

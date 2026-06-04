@@ -9,7 +9,7 @@ import {
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
-import type { ClientType, NcRequest } from 'nocodb-sdk';
+import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
@@ -127,9 +127,12 @@ export class DataTableService {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
 
-    return await DBQueryClient.get(
-      source.type as unknown as ClientType,
-    ).aggregate(context, { model, view, source, args: listArgs });
+    return await DBQueryClient.get(source.type).aggregate(context, {
+      model,
+      view,
+      source,
+      args: listArgs,
+    });
   }
 
   @TraceCommand((_ctx, p) =>
@@ -1646,9 +1649,7 @@ export class DataTableService {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    return await DBQueryClient.get(
-      source.type as unknown as ClientType,
-    ).bulkAggregate(context, {
+    return await DBQueryClient.get(source.type).bulkAggregate(context, {
       model,
       view,
       source,

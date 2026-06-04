@@ -10,8 +10,11 @@ export interface ContentWrapperProps {
   branding?: WhiteLabelConfig | null;
 }
 
-// Same-origin logo paths (e.g. /uploads/...) can't be resolved from an inbox,
-// so we only embed white-label logos that are absolute http(s) URLs.
+// White-label logos resolve to an absolute, permanent asset-endpoint URL
+// (built by `getPublicConfig` in white-label.service) which loads from an inbox
+// and survives restarts. We still guard for http(s) so a manually-pasted
+// same-origin path — which an inbox can't resolve — is dropped rather than
+// rendered broken.
 function pickEmailLogo(
   branding: WhiteLabelConfig | null | undefined,
 ): string | null {
@@ -34,12 +37,21 @@ export const ContentWrapper = ({
     <Container className="px-3 mt-16 !my-0 max-w-[480px]">
       <Section className="py-6 m-auto bg-gray-50 border border-gray-200 border-solid rounded-t-xl">
         {customLogo ? (
+          // Custom logos are an unknown aspect ratio (often a ~4:1 wordmark),
+          // so constrain the height and let the width scale — fixing both would
+          // squash a landscape logo into a square. `maxWidth` guards a very wide
+          // logo from overflowing the 480px container.
           <Img
             alt={productName}
             src={customLogo}
-            width={40}
-            style={{ display: 'block', margin: 'auto auto', maxHeight: 40 }}
             height={40}
+            style={{
+              display: 'block',
+              margin: 'auto auto',
+              width: 'auto',
+              maxHeight: 40,
+              maxWidth: 240,
+            }}
           />
         ) : isBranded ? (
           <Text className="text-center font-bold text-gray-900 !my-0 text-base">

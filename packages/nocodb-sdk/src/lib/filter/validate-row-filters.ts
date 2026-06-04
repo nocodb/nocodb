@@ -103,6 +103,16 @@ export class RowFilterValidator {
               params.options?.timezone
             );
           };
+
+          // dayjs.tz() resolves the zone offset via Intl.DateTimeFormat#formatToParts,
+          // which throws ("date value is not finite" on Safari, "Invalid time value" in
+          // V8) for a non-finite date. Build the tz value only for inputs that parse to a
+          // valid date; otherwise return the (safe) Invalid dayjs so date comparisons
+          // evaluate to no-match instead of crashing filter validation.
+          const toTz = (value: any) =>
+            dayjs(value).isValid()
+              ? dayjs.tz(value, getTimezone())
+              : dayjs(value);
           const dateFormat =
             client === 'mysql2'
               ? 'YYYY-MM-DD HH:mm:ss'
@@ -115,10 +125,9 @@ export class RowFilterValidator {
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
             // reset to 1st
             now = now.date(1);
-            if (val) val = dayjs.tz(val, getTimezone()).date(1);
+            if (val) val = toTz(val).date(1);
           }
-          if (filterVal)
-            res = dayjs.tz(filterVal, getTimezone()).isSame(dataVal, 'day');
+          if (filterVal) res = toTz(filterVal).isSame(dataVal, 'day');
 
           // handle sub operation
           switch (filter.comparison_sub_op) {
@@ -186,7 +195,7 @@ export class RowFilterValidator {
           if (dataVal) {
             const getDayjsDataVal = () => {
               if (column.uidt === UITypes.Date) {
-                return dayjs.tz(dataVal, getTimezone());
+                return toTz(dataVal);
               } else {
                 return dayjs.utc(dataVal).tz(getTimezone());
               }

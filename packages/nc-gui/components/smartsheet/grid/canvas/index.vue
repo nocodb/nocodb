@@ -218,6 +218,7 @@ const paddingLessUITypes = new Set([
   UITypes.Formula,
 ])
 const scroller = ref()
+
 provide(ClientMousePositionInj, clientMousePosition)
 // provide the column ref since at a time only one column can be active
 // and this need to avail the column ref inside modals(delete, duplicate,... etc) even after closing menu
@@ -2462,6 +2463,24 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
 
 let rafId: number | null = null
 
+// Persist the last scroll position per view so the user returns to where they
+// left off when they navigate back to the view. Debounced to avoid hammering
+// localStorage on every scroll frame; the viewId is captured at call time so a
+// pending save can't be misattributed after a view switch.
+const persistScrollPosition = useDebounceFn((viewId: string | undefined, top: number, left: number) => {
+  viewScrollPositionManager.set(viewId, { scrollTop: top, scrollLeft: left })
+}, 250)
+
+// True only while restoreScrollPosition() is driving the scroller, so the
+// resulting scroll event doesn't re-persist (it's already the saved value).
+const isRestoringScrollPosition = ref(false)
+
+// Last user-driven scroll state, tagged with the view it belongs to. Used to
+// flush on unmount WITHOUT reading the global `view` ref — which has already
+// advanced to the next view by unmount time, so reading it live would write
+// this view's scroll under the next view's key (a cross-view leak).
+const lastScrollState = ref<{ viewId?: string; scrollTop: number; scrollLeft: number } | null>(null)
+
 const handleScroll = (e: { left: number; top: number }) => {
   hideDescriptionPopoverImmediate()
   if (rafId) cancelAnimationFrame(rafId)
@@ -2479,7 +2498,47 @@ const handleScroll = (e: { left: number; top: number }) => {
     // triggerRefreshCanvas() would schedule ANOTHER RAF, deferring the paint
     // to the next frame — causing visible frame skipping during fast scroll.
     renderCanvasDirect()
+
+    if (!isRestoringScrollPosition.value && !isPublicView.value && !isGroupBy.value) {
+      const viewId = view.value?.id
+      lastScrollState.value = { viewId, scrollTop: scrollTop.value, scrollLeft: scrollLeft.value }
+      persistScrollPosition(viewId, scrollTop.value, scrollLeft.value)
+    }
   })
+}
+
+// Drive the scroller to an absolute position without re-persisting it. The
+// canvas instance is reused across grid views of the same table (no :key), so
+// every view switch must explicitly set the scroll offset — otherwise the
+// previous view's offset leaks into the next one.
+function applyScrollPosition(top: number, left: number) {
+  isRestoringScrollPosition.value = true
+  scrollTop.value = Math.max(0, top)
+  scrollLeft.value = Math.max(0, left)
+
+  nextTick(() => {
+    scroller.value?.scrollTo({ top, left })
+    // Sync local refs in case the scroller clamped the request (e.g. fewer rows
+    // than when it was saved), then release the guard on the next frame.
+    requestAnimationFrame(() => {
+      const pos = scroller.value?.getScrollPosition?.()
+      if (pos) {
+        scrollTop.value = Math.max(0, pos.top)
+        scrollLeft.value = Math.max(0, pos.left)
+      }
+      isRestoringScrollPosition.value = false
+    })
+  })
+}
+
+// Restore the saved scroll position for the current view (or top if none).
+// Deferred via applyScrollPosition's nextTick so totalHeight/totalWidth — and
+// thus the Scroller's clamp bounds — reflect the freshly-loaded data.
+function restoreScrollPosition() {
+  if (isPublicView.value || isGroupBy.value) return
+
+  const saved = viewScrollPositionManager.get(view.value?.id)
+  applyScrollPosition(saved?.scrollTop ?? 0, saved?.scrollLeft ?? 0)
 }
 
 const triggerReload = () => {
@@ -2912,6 +2971,7 @@ watch(
           await syncCount()
           calculateSlices()
           updateVisibleRows()
+          restoreScrollPosition()
         }
         await loadViewAggregate()
       }
@@ -2977,6 +3037,15 @@ onBeforeUnmount(() => {
   openNewRecordFormHook?.off(openNewRecordHandler)
   selectCellHook.off(selectCell)
   hideDescriptionPopoverImmediate()
+
+  // Flush the latest scroll position synchronously in case the user navigated
+  // away within the debounce window of the last scroll. Use the captured
+  // lastScrollState (NOT the live `view` ref, which has already advanced to the
+  // next view by now) so we don't write this view's scroll under another's key.
+  if (lastScrollState.value && !isPublicView.value) {
+    const { viewId, scrollTop: top, scrollLeft: left } = lastScrollState.value
+    viewScrollPositionManager.set(viewId, { scrollTop: top, scrollLeft: left })
+  }
 })
 
 function resetActiveCell(path?: Array<number>, force = false) {

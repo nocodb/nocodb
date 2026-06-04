@@ -1070,6 +1070,14 @@ interface GroupKeysStorage {
   }
 }
 
+interface ViewScrollPositionStorage {
+  [viewId: string]: {
+    scrollTop: number
+    scrollLeft: number
+    lastAccessed: number // timestamp
+  }
+}
+
 interface OAuthAuthorization {
   id: string
   client_id: string
@@ -1179,6 +1187,7 @@ export type {
   NcClipboardDataItemType,
   AttachmentCellDropOverType,
   GroupKeysStorage,
+  ViewScrollPositionStorage,
   OAuthAuthorization,
   SupportedDocsType,
   TeamType,

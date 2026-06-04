@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "حدد إصدار للمعاينة",
       "previewEmptySubtitle": "اختر واحدة من القائمة على اليمين لرؤية الصفحة كما كانت في ذلك الوقت. يتم تسليط الضوء على التغييرات في النسخة الحالية.",
       "currentVersion": "الإصدار الحالي · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "تحميل أقدم",
       "emptyTitle": "لم يتم حفظ الإصدارات بعد",
       "emptySubtitle": "يتم تسجيل نسخة في كل مرة يتم فيها حفظ الصفحة. يتم دمج الحفظ الذي يتم في غضون دقيقتين من قبل نفس المؤلف في واحدة.",
@@ -1465,9 +1466,9 @@
         "edited": "تم التعديل بواسطة {author} · {when}"
       },
       "listAction": {
-        "restored": "تم إستعادة {author}",
-        "saved": "{author} تم الحفظ",
-        "edited": "{author} تم التعديل"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

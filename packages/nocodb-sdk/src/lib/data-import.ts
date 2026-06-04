@@ -32,11 +32,19 @@ export interface FileImportOptions {
   typecast?: boolean;
 }
 
+/** Per-column settings used when the destination is a link (LTAR) field. */
+export interface FileImportLinkConfig {
+  /** Delimiter separating multiple display values within one cell. Default ','. */
+  delimiter?: string;
+}
+
 /** Maps a source column name to a destination column on an existing table. */
 export interface FileImportColumnMapping {
   sourceCn: string;
   destCn: string;
   enabled: boolean;
+  /** Set when `destCn` resolves to a link (LTAR) column. */
+  linkConfig?: FileImportLinkConfig;
 }
 
 /**

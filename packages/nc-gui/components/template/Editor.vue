@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 
@@ -57,12 +57,43 @@ const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
+const DEFAULT_LINK_DELIMITER = ','
+
+function getDestColumn(destCn?: string): ColumnType | undefined {
+  if (!destCn) return undefined
+  return (meta.value?.columns || []).find((c) => c.title === destCn)
+}
+
+function isLinkDest(destCn?: string): boolean {
+  const col = getDestColumn(destCn)
+  return !!col && isLinksOrLTAR(col)
+}
+
+// has-many / one-to-many / one-to-one links store an exclusive FK on the
+// child record. Linking a child that already belongs to another record
+// reassigns it — silently removing it from that other (existing) record.
+// many-to-many (junction) and belongs-to (own FK) carry no such risk.
+function isReassigningLinkDest(destCn?: string): boolean {
+  const col = getDestColumn(destCn)
+  if (!col || !isLinksOrLTAR(col)) return false
+  const relationType = (col as any).colOptions?.type
+  return (
+    relationType === RelationTypes.HAS_MANY ||
+    relationType === RelationTypes.ONE_TO_MANY ||
+    relationType === RelationTypes.ONE_TO_ONE
+  )
+}
+
 const filterForDestinationColumn = (col: ColumnType): boolean => {
   if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
     return true
-  } else {
-    return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
   }
+  // Link columns are importable in data-only mode: their cells hold display
+  // values resolved to record links in a post-insert phase on the backend.
+  if (importDataOnly && isLinksOrLTAR(col)) {
+    return true
+  }
+  return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
 }
 
 const columns = computed(() =>
@@ -514,6 +545,8 @@ function updateImportTips(baseName: string, tableName: string, progress: number,
 interface ImportFinalStats {
   rowsInserted: number
   rowsFailed: number
+  linksCreated?: number
+  valuesUnmatched?: number
   sampleError?: string
 }
 
@@ -524,6 +557,18 @@ interface ImportFinalStats {
 // every 'completed' event as a success regardless of failed-row counts.
 function surfaceImportResult(stats: ImportFinalStats | undefined) {
   if (!stats || stats.rowsFailed === 0) {
+    // Some link display values matched no record — surface a soft warning so
+    // the user knows links were partially created, but the import still ran.
+    if (stats?.valuesUnmatched) {
+      message.warning({
+        content: t('msg.warning.tableDataImportedLinksUnmatched', {
+          links: stats.linksCreated ?? 0,
+          unmatched: stats.valuesUnmatched,
+        }),
+        duration: 10,
+      })
+      return
+    }
     message.success(t('msg.success.tableDataImported'))
     return
   }
@@ -613,6 +658,7 @@ async function importViaJob() {
                 sourceCn: m.srcCn,
                 destCn: m.destCn,
                 enabled: m.enabled,
+                ...(isLinkDest(m.destCn) ? { linkConfig: { delimiter: m.delimiter || DEFAULT_LINK_DELIMITER } } : {}),
               }))
             : undefined,
         })
@@ -664,6 +710,8 @@ async function importViaJob() {
                 importFinalStats = {
                   rowsInserted: Number(progress.rowsInserted) || 0,
                   rowsFailed: Number(progress.rowsFailed) || 0,
+                  linksCreated: Number(progress.linksCreated) || 0,
+                  valuesUnmatched: Number(progress.valuesUnmatched) || 0,
                   sampleError: typeof progress.sampleError === 'string' ? progress.sampleError : undefined,
                 }
               }
@@ -707,7 +755,13 @@ function mapDefaultColumns() {
   srcDestMapping.value = {}
   for (let i = 0; i < data.tables.length; i++) {
     for (const col of importColumns[i]) {
-      const o = { srcCn: col.column_name, srcTitle: col.title, destCn: undefined, enabled: true }
+      const o = {
+        srcCn: col.column_name,
+        srcTitle: col.title,
+        destCn: undefined,
+        enabled: true,
+        delimiter: DEFAULT_LINK_DELIMITER,
+      }
       if (columns.value) {
         const tableColumn = columns.value.find((c) => !c.readonly && (c.title === col.title || c.column_name === col.column_name))
         if (tableColumn) {
@@ -735,6 +789,15 @@ defineExpose({
 
 function getMappedColumns(tableName: string) {
   return (srcDestMapping.value[tableName] || []).filter((item) => item.destCn)
+}
+
+// Mapped destination titles that are has-many/one-to-many/one-to-one links —
+// linking these can reassign records away from other rows. Surfaced as a
+// full-width warning below the mapping table.
+function reassigningLinkFields(tableName: string): string[] {
+  return (srcDestMapping.value[tableName] || [])
+    .filter((item) => item.enabled && isReassigningLinkDest(item.destCn))
+    .map((item) => item.destCn as string)
 }
 
 function isAllMappedSelected(tableName: string) {
@@ -1027,9 +1090,32 @@ function getErrorByTableName(tableName: string) {
                       </a-select-option>
                     </NcSelect>
                   </a-form-item>
+                  <div v-if="isLinkDest(record.destCn)" class="flex items-center gap-2 mt-1.5 pl-1">
+                    <NcTooltip class="text-tiny text-nc-content-gray-muted whitespace-nowrap">
+                      <template #title>{{ $t('tooltip.linkValueDelimiter') }}</template>
+                      {{ $t('labels.linkValueDelimiter') }}
+                    </NcTooltip>
+                    <a-input
+                      v-model:value="record.delimiter"
+                      class="!w-14 !rounded-md nc-link-delimiter-input"
+                      size="small"
+                      :maxlength="3"
+                      :placeholder="DEFAULT_LINK_DELIMITER"
+                      data-testid="nc-import-link-delimiter"
+                    />
+                  </div>
                 </template>
               </template>
             </NcTable>
+          </div>
+          <div
+            v-for="fieldName in reassigningLinkFields(table.table_name)"
+            :key="`reassign-${fieldName}`"
+            class="w-full flex items-start gap-2 px-4 py-2 bg-nc-bg-gray-extralight border-t border-nc-border-gray-light text-tiny text-nc-content-orange-medium"
+            data-testid="nc-import-link-reassign-warning"
+          >
+            <GeneralIcon icon="ncAlertTriangle" class="w-4 h-4 flex-none mt-0.5" />
+            <span class="flex-1">{{ $t('msg.warning.importLinkReassignField', { field: fieldName }) }}</span>
           </div>
         </a-collapse-panel>
       </a-collapse>

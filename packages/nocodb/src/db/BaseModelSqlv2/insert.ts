@@ -227,6 +227,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       allowSystemColumn = false,
       undo = false,
       apiVersion = NcApiVersion.V2,
+      onInsertedPks,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -239,8 +240,18 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       typecast?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
+      /**
+       * Runtime-only sink invoked with the inserted rows' primary keys in
+       * insertion order. Used by file import to correlate each inserted row
+       * back to its source LTAR cell. Forces pk-bearing ordered responses
+       * (PG `returning` even in raw mode; mysql/sqlite one-by-one) so the
+       * order is reliable — unlike the `list({pks})` re-read which does not
+       * preserve order.
+       */
+      onInsertedPks?: (pks: (string | number)[]) => void;
     } = {},
   ) => {
+    const capturePks = typeof onInsertedPks === 'function';
     let trx;
     try {
       const insertDatas = raw ? datas : [];
@@ -389,9 +400,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       let responses;
 
-      // insert one by one as fallback to get ids for sqlite and mysql
+      // insert one by one as fallback to get ids for sqlite and mysql.
+      // also forced when the caller needs inserted pks (onInsertedPks) since
+      // those engines can't `returning` from a batch insert.
       if (
-        insertOneByOneAsFallback &&
+        (insertOneByOneAsFallback || capturePks) &&
         (baseModel.isSqlite || baseModel.isMySQL)
       ) {
         // sqlite and mysql doesn't support returning, so insert one by one and return ids
@@ -494,7 +507,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           }
         } else {
           responses =
-            !raw && baseModel.isPg
+            (!raw || capturePks) && baseModel.isPg
               ? await trx
                   .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
                   .returning(
@@ -584,6 +597,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await baseModel.statsUpdate({
         count: insertDatas.length,
       });
+
+      // Hand back inserted pks in insertion order. `responses` are pk-bearing
+      // (PG returning / mysql-sqlite one-by-one) whenever `capturePks` is set.
+      if (capturePks) {
+        onInsertedPks(responses.map((r) => baseModel.extractPksValues(r, true)));
+      }
 
       return responses;
     } catch (e: any) {

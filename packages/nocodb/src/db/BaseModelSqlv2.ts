@@ -4026,6 +4026,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       typecast?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
+      onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);

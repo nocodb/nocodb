@@ -2926,6 +2926,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       allowSystemColumn = false,
       undo = false,
       apiVersion = NcApiVersion.V2,
+      onInsertedPks,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -2938,8 +2939,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
       undo?: boolean;
+      /** See CE `BaseModelSqlv2/insert.ts` — inserted pks in insertion order. */
+      onInsertedPks?: (pks: (string | number)[]) => void;
     } = {},
   ) {
+    const capturePks = typeof onInsertedPks === 'function';
     const queries: string[] = [];
     const profiler = Profiler.start('base-model/bulkInsert');
     try {
@@ -3273,8 +3277,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      // insert one by one as fallback to get ids for sqlite and mysql
-      if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
+      // insert one by one as fallback to get ids for sqlite and mysql.
+      // also forced when the caller needs inserted pks (onInsertedPks).
+      if (
+        (insertOneByOneAsFallback || capturePks) &&
+        (this.isSqlite || this.isMySQL)
+      ) {
         // sqlite and mysql doesnt support returning, so insert one by one and return ids
         // response = [];
 
@@ -3377,7 +3385,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // be applied directly on the trx, and trimLeading/trimTrailing must be
       // skipped for that path.
       const usingInsertOneByOneTrxPath =
-        insertOneByOneAsFallback &&
+        (insertOneByOneAsFallback || capturePks) &&
         (this.clientMeta.isSqlite || this.clientMeta.isMySQL) &&
         !this.dbDriver.isExternal;
 
@@ -3487,6 +3495,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       if (trimTrailing && !usingInsertOneByOneTrxPath) {
         responses = responses.slice(0, -trimTrailing);
+      }
+
+      // Hand back inserted pks in insertion order. PG insert always uses
+      // `.returning()` here, and the one-by-one path (forced above when
+      // capturePks) wraps each row via extractCompositePK — both leave
+      // `responses` pk-bearing and ordered. Mirrors CE `insert.ts`.
+      if (capturePks) {
+        onInsertedPks(responses.map((r) => this.extractPksValues(r, true)));
       }
 
       if (!raw && !skip_hooks) {

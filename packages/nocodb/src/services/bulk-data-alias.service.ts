@@ -58,6 +58,7 @@ export class BulkDataAliasService {
       raw?: boolean;
       allowSystemColumn?: boolean;
       undo?: boolean;
+      onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -74,6 +75,7 @@ export class BulkDataAliasService {
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
           undo: param.undo,
+          onInsertedPks: param.onInsertedPks,
         },
       ],
     });

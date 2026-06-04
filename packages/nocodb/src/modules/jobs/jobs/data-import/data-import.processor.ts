@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AuditV1OperationTypes,
+  isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
   serializeDecimalValue,
@@ -35,10 +36,22 @@ import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { generateAuditV1Payload } from '~/utils/audit';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { processConcurrently } from '~/utils';
+import {
+  getLtarDisplayValueContext,
+  resolveLtarDisplayValuesToPks,
+} from '~/helpers/ltarDisplayValueResolver';
 
 const BATCH_SIZE = 1000;
 const MAX_ERROR_SAMPLES = 1000;
 const MAX_SYSTEM_ERRORS = 20;
+/** Distinct display values resolved per related-table lookup query. */
+const LINK_RESOLVE_CHUNK = 200;
+/** Parent rows linked in parallel during the link phase. */
+const LINK_CONCURRENCY = 25;
+/** Default delimiter for multiple display values in one LTAR cell. */
+const DEFAULT_LINK_DELIMITER = ',';
 
 /** Row-level errors are retried one-by-one; everything else fails the batch. */
 const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
@@ -53,6 +66,27 @@ interface ColumnMapEntry {
   destCn: string;
   uidt: string;
   col: ColumnType;
+}
+
+/** A source column mapped to a link (LTAR) destination column. */
+interface LtarColMapEntry {
+  colId: string;
+  delimiter: string;
+}
+
+/** One inserted parent row's pk + the display values to link for a column. */
+interface LinkAccumEntry {
+  pk: string | number;
+  values: string[];
+}
+
+/** Split an LTAR cell into trimmed, non-empty display values. */
+function splitDisplayValues(raw: any, delimiter: string): string[] {
+  if (raw === null || raw === undefined) return [];
+  return String(raw)
+    .split(delimiter)
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
 }
 
 /** Coerce a raw imported value into the type expected by the destination column. */
@@ -91,6 +125,10 @@ interface SheetResult {
   tableName: string;
   rowsInserted: number;
   rowsFailed: number;
+  /** Record links created during the link phase. */
+  linksCreated: number;
+  /** Display values that matched no related record (skipped). */
+  valuesUnmatched: number;
   errors: Array<{ row: number; error: string }>;
 }
 
@@ -187,6 +225,11 @@ export class DataImportProcessor {
 
       const rowsInserted = results.reduce((s, r) => s + r.rowsInserted, 0);
       const rowsFailed = results.reduce((s, r) => s + r.rowsFailed, 0);
+      const linksCreated = results.reduce((s, r) => s + r.linksCreated, 0);
+      const valuesUnmatched = results.reduce(
+        (s, r) => s + r.valuesUnmatched,
+        0,
+      );
       const errorsCount = results.reduce((s, r) => s + r.errors.length, 0);
       const sampleError = results
         .flatMap((r) => r.errors)
@@ -204,17 +247,22 @@ export class DataImportProcessor {
           status: 'completed',
           rowsInserted,
           rowsFailed,
+          linksCreated,
+          valuesUnmatched,
           errorsCount,
           ...(sampleError ? { sampleError } : {}),
         }),
         true,
       );
       log(
-        `Import completed: ${rowsInserted} rows inserted, ${rowsFailed} failed.`,
+        `Import completed: ${rowsInserted} rows inserted, ${rowsFailed} failed` +
+          (linksCreated || valuesUnmatched
+            ? `, ${linksCreated} links created, ${valuesUnmatched} unmatched.`
+            : '.'),
         true,
       );
 
-      return { rowsInserted, rowsFailed, sheets: results };
+      return { rowsInserted, rowsFailed, linksCreated, sheets: results };
     } catch (e) {
       this.logger.error(
         `${importType.toUpperCase()} import failed: ${e.message}`,
@@ -317,6 +365,28 @@ export class DataImportProcessor {
       tableColumns.find((c) => c.column_name === name || c.title === name);
 
     const colMap: Record<string, ColumnMapEntry> = {};
+    // Link (LTAR) destinations are handled in a separate post-insert phase —
+    // their cells hold display values to resolve, not scalar data to insert.
+    const ltarColMap: Record<string, LtarColMapEntry> = {};
+
+    const classifyDest = (
+      srcColName: string,
+      dest: any,
+      delimiter?: string,
+    ) => {
+      if (isLinksOrLTAR(dest)) {
+        ltarColMap[srcColName] = {
+          colId: dest.id,
+          delimiter: delimiter || DEFAULT_LINK_DELIMITER,
+        };
+      } else {
+        colMap[srcColName] = {
+          destCn: dest.column_name,
+          uidt: dest.uidt,
+          col: dest,
+        };
+      }
+    };
 
     if (options.importDataOnly && spec.columnMapping) {
       // Explicit user mapping wins — disabled/renamed entries are respected.
@@ -327,27 +397,20 @@ export class DataImportProcessor {
         );
         const dest = findDest(m.destCn);
         if (src && dest) {
-          colMap[src.column_name] = {
-            destCn: dest.column_name,
-            uidt: dest.uidt,
-            col: dest,
-          };
+          classifyDest(src.column_name, dest, m.linkConfig?.delimiter);
         }
       }
     } else {
       for (const col of spec.columns ?? []) {
         const dest = findDest(col.column_name) ?? findDest(col.title);
-        if (dest) {
-          colMap[col.column_name] = {
-            destCn: dest.column_name,
-            uidt: dest.uidt,
-            col: dest,
-          };
-        }
+        if (dest) classifyDest(col.column_name, dest);
       }
     }
 
-    if (Object.keys(colMap).length === 0) {
+    if (
+      Object.keys(colMap).length === 0 &&
+      Object.keys(ltarColMap).length === 0
+    ) {
       NcError.badRequest(
         'No valid column mappings found. Please check your column configuration.',
       );
@@ -361,6 +424,8 @@ export class DataImportProcessor {
         tableName: tableName as string,
         rowsInserted: 0,
         rowsFailed: 0,
+        linksCreated: 0,
+        valuesUnmatched: 0,
         errors: [],
       };
     }
@@ -382,13 +447,18 @@ export class DataImportProcessor {
       spec,
       tableId,
       tableName: tableName as string,
+      model,
       colMap,
+      ltarColMap,
       req,
       log,
     });
 
     log(
-      `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed.`,
+      `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed` +
+        (stats.linksCreated || stats.valuesUnmatched
+          ? `, ${stats.linksCreated} links created, ${stats.valuesUnmatched} unmatched.`
+          : '.'),
       true,
     );
 
@@ -398,6 +468,8 @@ export class DataImportProcessor {
       tableName: tableName as string,
       rowsInserted: stats.rowsInserted,
       rowsFailed: stats.rowsFailed,
+      linksCreated: stats.linksCreated,
+      valuesUnmatched: stats.valuesUnmatched,
       errors: stats.errors.slice(0, 100),
     };
   }
@@ -417,7 +489,9 @@ export class DataImportProcessor {
     spec: FileImportSheet;
     tableId: string;
     tableName: string;
+    model: Model;
     colMap: Record<string, ColumnMapEntry>;
+    ltarColMap: Record<string, LtarColMapEntry>;
     req: NcRequest;
     log: (msg: string, verbose?: boolean) => void;
   }) {
@@ -431,7 +505,9 @@ export class DataImportProcessor {
       spec,
       tableId,
       tableName,
+      model,
       colMap,
+      ltarColMap,
       req,
       log,
     } = params;
@@ -446,13 +522,41 @@ export class DataImportProcessor {
     const stats = {
       rowsInserted: 0,
       rowsFailed: 0,
+      linksCreated: 0,
+      valuesUnmatched: 0,
       errors: [] as Array<{ row: number; error: string }>,
     };
     let batch: Record<string, any>[] = [];
     let processedRows = 0;
     let systemErrorCount = 0;
 
-    const insert = (rows: Record<string, any>[]) =>
+    // Link phase bookkeeping: per LTAR column id → inserted rows' pk + the
+    // display values to link. Only rows with at least one link value are kept.
+    const ltarSrcCols = Object.keys(ltarColMap);
+    const hasLtar = ltarSrcCols.length > 0;
+    const linkAccum = new Map<string, LinkAccumEntry[]>();
+    // Parallel to `batch`: each entry is the row's [colId, values][] or null.
+    let batchLtar: Array<Array<[string, string[]]> | null> = [];
+
+    const accumulateRow = (
+      pk: string | number,
+      rowLtar: Array<[string, string[]]> | null,
+    ) => {
+      if (!rowLtar || pk === undefined || pk === null) return;
+      for (const [colId, values] of rowLtar) {
+        let arr = linkAccum.get(colId);
+        if (!arr) {
+          arr = [];
+          linkAccum.set(colId, arr);
+        }
+        arr.push({ pk, values });
+      }
+    };
+
+    const insert = (
+      rows: Record<string, any>[],
+      onInsertedPks?: (pks: (string | number)[]) => void,
+    ) =>
       this.bulkDataService.bulkDataInsert(context, {
         baseName: baseId,
         tableName: tableId,
@@ -461,6 +565,7 @@ export class DataImportProcessor {
         skip_hooks: true,
         raw: true,
         ...(options.typecast ? { typecast: 'true' } : {}),
+        ...(onInsertedPks ? { onInsertedPks } : {}),
       });
 
     const progressKey = spec.tableName || tableName;
@@ -481,11 +586,24 @@ export class DataImportProcessor {
     const flush = async () => {
       if (!batch.length) return;
       const pending = batch;
+      const pendingLtar = batchLtar;
       batch = [];
+      batchLtar = [];
 
       try {
-        await insert(pending);
+        let insertedPks: (string | number)[] = [];
+        await insert(
+          pending,
+          hasLtar ? (pks) => (insertedPks = pks) : undefined,
+        );
         stats.rowsInserted += pending.length;
+        if (hasLtar) {
+          // PG `returning` / mysql-sqlite one-by-one keep insertion order, so
+          // insertedPks[i] corresponds to pending[i].
+          for (let i = 0; i < pendingLtar.length; i++) {
+            accumulateRow(insertedPks[i], pendingLtar[i]);
+          }
+        }
       } catch (err: any) {
         this.logger.error(
           `Bulk insert failed for batch of ${pending.length} rows at row ~${processedRows}: ${err.message}`,
@@ -513,8 +631,15 @@ export class DataImportProcessor {
         // Retry one-by-one so well-formed rows in the batch still make it in.
         for (let i = 0; i < pending.length; i++) {
           try {
-            await insert([pending[i]]);
+            let rowPk: string | number | undefined;
+            await insert(
+              [pending[i]],
+              hasLtar ? (pks) => (rowPk = pks[0]) : undefined,
+            );
             stats.rowsInserted += 1;
+            if (hasLtar && rowPk !== undefined) {
+              accumulateRow(rowPk, pendingLtar[i]);
+            }
           } catch (rowErr) {
             stats.rowsFailed += 1;
             if (stats.errors.length < MAX_ERROR_SAMPLES) {
@@ -542,7 +667,18 @@ export class DataImportProcessor {
         dbRow[mapping.destCn] = coerceValue(sourceRow[srcCol], mapping);
       }
 
+      // Extract link display values for the post-insert link phase.
+      let rowLtar: Array<[string, string[]]> | null = null;
+      if (hasLtar) {
+        for (const srcCol of ltarSrcCols) {
+          const { colId, delimiter } = ltarColMap[srcCol];
+          const values = splitDisplayValues(sourceRow[srcCol], delimiter);
+          if (values.length) (rowLtar ??= []).push([colId, values]);
+        }
+      }
+
       batch.push(dbRow);
+      batchLtar.push(rowLtar);
       processedRows++;
       if (batch.length >= BATCH_SIZE) {
         await flush();
@@ -553,6 +689,121 @@ export class DataImportProcessor {
     await flush();
     reportProgress();
 
+    if (hasLtar && linkAccum.size) {
+      log('Creating record links...', true);
+      const linkStats = await this.processLinks({
+        context,
+        model,
+        linkAccum,
+        req,
+        log,
+      });
+      stats.linksCreated = linkStats.linksCreated;
+      stats.valuesUnmatched = linkStats.valuesUnmatched;
+    }
+
     return stats;
+  }
+
+  /**
+   * Link phase: for each LTAR column, resolve the captured display values to
+   * related-record pks (case-insensitive, batched) and create the links via
+   * `addLinks` (append-only — import never unlinks). Unmatched values are
+   * skipped and counted; ambiguous values resolve to the first match;
+   * single-link relations take only the first matched value.
+   */
+  private async processLinks(params: {
+    context: NcContext;
+    model: Model;
+    linkAccum: Map<string, LinkAccumEntry[]>;
+    req: NcRequest;
+    log: (msg: string, verbose?: boolean) => void;
+  }): Promise<{ linksCreated: number; valuesUnmatched: number }> {
+    const { context, model, linkAccum, req, log } = params;
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    let linksCreated = 0;
+    let valuesUnmatched = 0;
+
+    for (const [colId, rows] of linkAccum) {
+      const column = (model.columns as any[]).find((c) => c.id === colId);
+      if (!column) continue;
+
+      let groupCtx;
+      try {
+        groupCtx = await getLtarDisplayValueContext(context, column);
+      } catch (e) {
+        // No usable display value column etc. — skip, count intents as missed.
+        this.logger.warn(
+          `Skipping links for column "${column.title}": ${e.message}`,
+        );
+        for (const r of rows) valuesUnmatched += r.values.length;
+        continue;
+      }
+
+      // Collect distinct display values and resolve them in bounded chunks so
+      // a huge import doesn't build one giant OR query.
+      const distinct = new Set<string>();
+      for (const r of rows) for (const v of r.values) distinct.add(v);
+
+      const valueToPk = new Map<string, string | number>();
+      const distinctArr = [...distinct];
+      for (let i = 0; i < distinctArr.length; i += LINK_RESOLVE_CHUNK) {
+        const chunk = distinctArr.slice(i, i + LINK_RESOLVE_CHUNK);
+        const resolved = await resolveLtarDisplayValuesToPks(groupCtx, chunk);
+        for (const [k, v] of resolved) valueToPk.set(k, v);
+      }
+
+      await processConcurrently(
+        rows,
+        async (r) => {
+          const seen = new Set<string>();
+          const childIds: (string | number)[] = [];
+          for (const v of r.values) {
+            const pk = valueToPk.get(v);
+            if (pk === undefined || pk === null) {
+              valuesUnmatched += 1;
+              continue;
+            }
+            const key = String(pk);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            childIds.push(pk);
+          }
+          if (!childIds.length) return;
+
+          const finalChildIds = groupCtx.isSingleLink
+            ? [childIds[0]]
+            : childIds;
+          try {
+            await baseModel.addLinks({
+              cookie: req,
+              colId,
+              rowId: String(r.pk),
+              childIds: finalChildIds,
+            });
+            linksCreated += finalChildIds.length;
+          } catch (e) {
+            this.logger.warn(
+              `Failed to link row ${r.pk} on "${column.title}": ${e.message}`,
+            );
+          }
+        },
+        LINK_CONCURRENCY,
+      );
+
+      log(
+        `Column "${column.title}": ${linksCreated} links created so far` +
+          (valuesUnmatched ? `, ${valuesUnmatched} unmatched.` : '.'),
+        true,
+      );
+    }
+
+    return { linksCreated, valuesUnmatched };
   }
 }

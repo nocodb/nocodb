@@ -2627,6 +2627,7 @@
     "pressEnter": "Press Enter",
     "newFormLoaded": "Loading new form in",
     "webhook": "Webhook",
+    "linkValueDelimiter": "Separator",
     "multiField": {
       "newField": "New field",
       "saveChanges": "Save changes",
@@ -3164,6 +3165,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "linkValueDelimiter": "Character separating multiple linked values within a single cell (default ,)",
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
     "milestone": "Milestone",
     "allowSyncDescription": "Let other bases sync data from this view",
@@ -3676,6 +3678,8 @@
     "privateBaseShareRestrictedMsg": "This base is set as Private and cannot be shared publicly.",
     "privateBaseViewShareRestrictedMsg": "Views within a Private base cannot be shared publicly.",
     "warning": {
+      "tableDataImportedLinksUnmatched": "Imported successfully. {links} record links created, {unmatched} value(s) matched no record and were skipped.",
+      "importLinkReassignField": "“{field}” is a has-many / one-to-one link — importing values here can move records away from other records they're currently linked to.",
       "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",
       "timelineNoFields": "Timeline view requires a date or date time field to be setup. Try setting up a timeline view after adding a date/ date time field!",

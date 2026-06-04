@@ -1,3 +1,5 @@
+import path from 'path';
+import { createHash } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
@@ -5,15 +7,18 @@ import {
   PlanFeatureTypes,
   type WhiteLabelConfig,
 } from 'nocodb-sdk';
+import mime from 'mime/lite';
 import type { NcRequest } from '~/interface/config';
 import Store from '~/models/Store';
 import Noco from '~/Noco';
-import path from 'path';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { getOnPremPlan } from '~/helpers/paymentHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { ncSiteUrl } from '~/utils/envs';
+import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
+import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const MAX_PRODUCT_NAME_LEN = 60;
@@ -44,6 +49,16 @@ const MAX_SUPPORT_EMAIL_LEN = 254;
 // is cached; one week is the longest signing window the existing utility
 // supports without expiry surprises.
 const ASSET_URL_EXPIRE_SECONDS = 7 * 24 * 60 * 60;
+
+// Asset types served by the stable public endpoint (`/api/v2/meta/white-label/
+// asset/:type`) → the config field each maps to. The form banner is NOT here:
+// it only renders in-product on a live page, so it keeps the signed URL.
+const PUBLIC_ASSET_FIELDS = {
+  logo: 'logoUrl',
+  logoDark: 'logoDarkUrl',
+  favicon: 'faviconUrl',
+} as const;
+type PublicAssetType = keyof typeof PUBLIC_ASSET_FIELDS;
 
 const DEFAULT_CONFIG: WhiteLabelConfig = {
   enabled: false,
@@ -95,12 +110,14 @@ export class WhiteLabelService {
   async getConfig(): Promise<WhiteLabelConfig> {
     const cfg = await this.getRawConfig();
     // Sign the 4 asset URLs in parallel — each may hit the storage adapter.
-    const [logoUrl, logoDarkUrl, faviconUrl, formBannerUrl] = await Promise.all([
-      this.resolveAssetUrl(cfg.logoUrl),
-      this.resolveAssetUrl(cfg.logoDarkUrl),
-      this.resolveAssetUrl(cfg.faviconUrl),
-      this.resolveAssetUrl(cfg.formBannerUrl),
-    ]);
+    const [logoUrl, logoDarkUrl, faviconUrl, formBannerUrl] = await Promise.all(
+      [
+        this.resolveAssetUrl(cfg.logoUrl),
+        this.resolveAssetUrl(cfg.logoDarkUrl),
+        this.resolveAssetUrl(cfg.faviconUrl),
+        this.resolveAssetUrl(cfg.formBannerUrl),
+      ],
+    );
     return { ...cfg, logoUrl, logoDarkUrl, faviconUrl, formBannerUrl };
   }
 
@@ -132,15 +149,21 @@ export class WhiteLabelService {
     // feature). Both the appInfo response and transactional emails resolve
     // through here, so a single gate covers both.
     if (!this.planAllowsWhiteLabel()) return null;
-    // Sign the 4 asset URLs in parallel — appInfo is a hot endpoint and each
-    // sign may hit the storage adapter; serial awaits add ~4x latency.
-    const [logoUrl, logoDarkUrl, faviconUrl, formBannerUrl] = await Promise.all([
-      this.resolveAssetUrl(cfg.logoUrl),
-      this.resolveAssetUrl(cfg.logoDarkUrl),
-      this.resolveAssetUrl(cfg.faviconUrl),
-      this.resolveAssetUrl(cfg.formBannerUrl),
-    ]);
-    return { ...cfg, logoUrl, logoDarkUrl, faviconUrl, formBannerUrl };
+    // Logo, dark logo and favicon resolve to the stable, never-expiring asset
+    // endpoint — absolute URLs that survive restarts and resolve from email
+    // clients (a signed `/dltemp` URL expires and, on local storage without
+    // Redis, dies on the next restart). These are pure string builds (no
+    // signing / storage hit), so the hot appInfo path stays cheap. The form
+    // banner only ever renders in-product on a live page that re-fetches
+    // appInfo, so it keeps the cheaper 7-day signed URL.
+    const formBannerUrl = await this.resolveAssetUrl(cfg.formBannerUrl);
+    return {
+      ...cfg,
+      logoUrl: this.publicAssetUrl('logo', cfg.logoUrl),
+      logoDarkUrl: this.publicAssetUrl('logoDark', cfg.logoDarkUrl),
+      faviconUrl: this.publicAssetUrl('favicon', cfg.faviconUrl),
+      formBannerUrl,
+    };
   }
 
   /**
@@ -235,6 +258,118 @@ export class WhiteLabelService {
       : `/${attachment.signedPath}`;
   }
 
+  // ---- Stable public asset endpoint -----------------------------------------
+
+  /**
+   * Absolute origin for building asset-endpoint URLs. These URLs are embedded
+   * in transactional emails (and, later, og tags), so they must be absolute —
+   * an inbox can't resolve a same-origin path. `getPublicConfig` has no request
+   * in scope (it's also called from the mail service), so derive from the
+   * configured site URL with a localhost fallback for dev.
+   */
+  private baseUrl(): string {
+    return (
+      ncSiteUrl || `http://localhost:${process.env.PORT || 8080}`
+    ).replace(/\/+$/, '');
+  }
+
+  /** Cache-busting token so a re-uploaded asset (new nanoid) yields a new URL. */
+  private assetVersion(canonical: string): string {
+    return createHash('sha1').update(canonical).digest('hex').slice(0, 8);
+  }
+
+  /**
+   * Public-facing URL for a brand asset. Our own uploads (canonical
+   * `download/whiteLabel/...`) route through the stable, never-expiring asset
+   * endpoint so they survive restarts and load from email clients; external/CDN
+   * URLs and same-origin paths pass through unchanged.
+   */
+  private publicAssetUrl(
+    type: PublicAssetType,
+    value: string | null | undefined,
+  ): string | null {
+    if (!value) return null;
+    if (/^download\//i.test(value)) {
+      return `${this.baseUrl()}/api/v2/meta/white-label/asset/${type}?v=${this.assetVersion(
+        value,
+      )}`;
+    }
+    return value;
+  }
+
+  /** NocoDB default served when white-label is off / the asset isn't set. */
+  private defaultAssetUrl(type: string): string {
+    if (type === 'favicon') return `${this.baseUrl()}/favicon.ico`;
+    return `${NC_EMAIL_ASSETS_BASE_URL}/nocodb-logo.png`;
+  }
+
+  /**
+   * Backing resolver for `GET /api/v2/meta/white-label/asset/:type`. Returns
+   * either a `redirectUrl` (external/CDN value, a freshly-signed cloud URL, or
+   * the NocoDB default) or a local `filePath` + `contentType` for the controller
+   * to stream. Never expires from the caller's perspective: cloud URLs are
+   * re-minted per request; local files are read straight off disk (no cache),
+   * so the URL keeps working across restarts.
+   */
+  async getAssetServeInfo(type: string): Promise<{
+    redirectUrl?: string;
+    filePath?: string;
+    contentType?: string;
+  }> {
+    const field = PUBLIC_ASSET_FIELDS[type as PublicAssetType];
+    if (!field) return { redirectUrl: this.defaultAssetUrl(type) };
+
+    const cfg = await this.getRawConfig();
+    if (!cfg.enabled || !this.planAllowsWhiteLabel()) {
+      return { redirectUrl: this.defaultAssetUrl(type) };
+    }
+
+    // Light ↔ dark cross-fallback: a single uploaded logo should serve in both
+    // modes (mirrors the frontend `useBranding`). favicon has no counterpart.
+    let value = cfg[field];
+    if (!value) {
+      if (type === 'logo') value = cfg.logoDarkUrl;
+      else if (type === 'logoDark') value = cfg.logoUrl;
+    }
+    if (!value) return { redirectUrl: this.defaultAssetUrl(type) };
+
+    // External CDN URL — redirect as-is.
+    if (/^https?:\/\//i.test(value)) return { redirectUrl: value };
+    // Manually-pasted same-origin path — absolutize.
+    if (value.startsWith('/')) {
+      return { redirectUrl: `${this.baseUrl()}${value}` };
+    }
+    // Anything that isn't our own canonical upload → fall back to the default.
+    if (!/^download\/whiteLabel\//i.test(value) || value.includes('..')) {
+      return { redirectUrl: this.defaultAssetUrl(type) };
+    }
+
+    const relPath = value.replace(/^download[/\\]/i, '');
+    const contentType = mime.getType(value) || 'image/png';
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+    // Cloud (S3/GCS): mint a fresh signed URL and redirect to it. The 7-day cap
+    // is irrelevant because the redirect consumes it immediately, while the
+    // endpoint URL itself never changes.
+    if (typeof (storageAdapter as any).getSignedUrl === 'function') {
+      const signed = await PresignedUrl.getSignedUrl({
+        pathOrUrl: relPath,
+        preview: true,
+        mimetype: contentType,
+        expireSeconds: ASSET_URL_EXPIRE_SECONDS,
+      });
+      return { redirectUrl: signed };
+    }
+
+    // Local storage: stream the file straight off disk — permanent, no cache
+    // dependency, survives restarts. `validateAndNormaliseLocalPath` rejects
+    // any path escaping the `nc/` root (defence-in-depth over the prefix check).
+    return {
+      filePath: validateAndNormaliseLocalPath(path.join('nc', relPath), true),
+      contentType,
+    };
+  }
+
   async updateConfig(
     body: Partial<WhiteLabelConfig>,
     req: NcRequest,
@@ -308,7 +443,10 @@ export class WhiteLabelService {
    */
   private async deleteAssetFile(value: string): Promise<void> {
     const canonical = value.split('?')[0];
-    if (!/^download\/whiteLabel\//i.test(canonical) || canonical.includes('..')) {
+    if (
+      !/^download\/whiteLabel\//i.test(canonical) ||
+      canonical.includes('..')
+    ) {
       return;
     }
     try {

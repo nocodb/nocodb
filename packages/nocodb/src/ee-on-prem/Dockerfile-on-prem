@@ -33,8 +33,14 @@ COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
 # for pnpm to generate a flat node_modules without symlinks
 RUN echo "node-linker=hoisted" > .npmrc
 
-# Remove workspace/link deps and already-bundled packages
-RUN node -e "\
+# Remove workspace/link deps and already-bundled packages, and pin pnpm's optional-dep
+# resolution to the TARGET arch (musl/Alpine). This makes the `pnpm install` below fetch the
+# right prebuilt native binaries (e.g. sharp's @img/sharp-linuxmusl-<arch>) for the target on
+# the amd64 build host — replacing the old `npm install sharp` step, which ignored
+# pnpm.overrides and re-resolved nested deps at vulnerable versions. (armv7 has no musl sharp
+# prebuilt — best-effort, as before.)
+RUN export TARGET_CPU=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/') \
+  && node -e "\
   const p=require('./package.json'); \
   for (const [k,v] of Object.entries(p.dependencies||{})) { \
     if (String(v).startsWith('link:') || String(v).startsWith('workspace:')) delete p.dependencies[k]; \
@@ -42,6 +48,8 @@ RUN node -e "\
   delete p.dependencies['nocodb-sdk']; \
   delete p.dependencies['knex-snowflake']; \
   delete p.dependencies['knex-databricks']; \
+  p.pnpm = p.pnpm || {}; \
+  p.pnpm.supportedArchitectures = { os: ['linux'], cpu: [process.env.TARGET_CPU], libc: ['musl'] }; \
   require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2)); \
 "
 
@@ -57,34 +65,11 @@ RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | se
     && npx --yes prebuild-install -r napi --platform linux --arch ${TARGET_ARCH} --libc musl 2>/dev/null; \
     rm -rf node_modules/sqlite3/deps 2>/dev/null; true
 
-# Install sharp for the target platform (sharp uses npm optional deps for prebuilds).
-# --omit=dev is REQUIRED: npm installs devDependencies by default, which would re-hydrate
-# the full devDep tree (react-email's bundled esbuild → Go-stdlib CRITICAL, typescript-eslint,
-# etc.) on top of the pnpm --prod install, at override-free versions. Keeps the image prod-only.
-RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
-    && npm install --no-save --omit=dev --ignore-scripts --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
-
-# Remove msgpackr-extract local build that npm install may have regenerated for
-# the host arch. The NAPI prebuilt in @msgpackr-extract/msgpackr-extract-linux-<arch>
-# works on all supported platforms (linux x64/arm64/arm). Keeping build/Release
-# loads a broken binary on aarch64 musl with "unsupported relocation type 7",
-# segfaulting on Pi 5 Cortex-A76 inside musl's dynamic loader memset.
+# Defensively remove any msgpackr-extract local build. The NAPI prebuilt in
+# @msgpackr-extract/msgpackr-extract-linux-<arch> works on all supported platforms
+# (linux x64/arm64/arm). Keeping build/Release loads a broken binary on aarch64 musl with
+# "unsupported relocation type 7", segfaulting on Pi 5 Cortex-A76 inside musl's loader memset.
 RUN rm -rf ./node_modules/msgpackr-extract/build
-
-# Security cleanup. Two classes of CVE-bearing packages survive the prod install:
-#   1. Build-only tooling not used at runtime (node-gyp, cacache + their nested `tar`).
-#   2. Override-free nested copies the `npm install` step above re-resolved against each
-#      consumer's own range (npm ignores pnpm.overrides). Removing each nested copy makes
-#      Node fall back to the pnpm-overridden top-level (multer 2.1.1, dompurify 3.4.8, qs 6.15.2).
-RUN rm -rf \
-      ./node_modules/node-gyp \
-      ./node_modules/cacache \
-      ./node_modules/sqlite3/node_modules/tar \
-      ./node_modules/@nestjs/platform-express/node_modules/multer \
-      ./node_modules/@nestjs/platform-express/node_modules/qs \
-      ./node_modules/body-parser/node_modules/qs \
-      ./node_modules/postman-request/node_modules/qs \
-      ./node_modules/monaco-editor/node_modules/dompurify
 
 # Copy application files
 COPY ./docker/nc-gui/ ./docker/nc-gui/

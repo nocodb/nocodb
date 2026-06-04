@@ -160,7 +160,16 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       lookupKey = mode === 'month' ? PlanPriceLookupKeys.BUSINESS_MONTHLY : PlanPriceLookupKeys.BUSINESS_YEARLY
     }
 
-    if (lookupKey && isLoyaltyDiscountAvailable.value && activeWorkspace.value?.segment_code !== 7) {
+    if (planTitle === PlanTitles.SCALE) {
+      lookupKey = mode === 'month' ? PlanPriceLookupKeys.SCALE_MONTHLY : PlanPriceLookupKeys.SCALE_YEARLY
+    }
+
+    if (
+      lookupKey &&
+      LoyaltyPriceLookupKeyMap[lookupKey] &&
+      isLoyaltyDiscountAvailable.value &&
+      activeWorkspace.value?.segment_code !== 7
+    ) {
       lookupKey = LoyaltyPriceLookupKeyMap[lookupKey]
     }
 

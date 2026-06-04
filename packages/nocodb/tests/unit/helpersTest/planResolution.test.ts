@@ -18,6 +18,7 @@ const allPlans = [
   PlanTitles.FREE,
   PlanTitles.PLUS,
   PlanTitles.BUSINESS,
+  PlanTitles.SCALE,
   PlanTitles.ENTERPRISE,
 ] as const;
 
@@ -219,7 +220,9 @@ function planResolutionTests() {
               CloudPlanDefinitions[plan]?.limits?.[limit as PlanLimitTypes];
             expect(meta[limit]).to.eq(
               planOverride ?? value,
-              `${plan} should apply CommonPaidLimits ${limit} = ${planOverride ?? value}`,
+              `${plan} should apply CommonPaidLimits ${limit} = ${
+                planOverride ?? value
+              }`,
             );
           }
         }
@@ -260,7 +263,7 @@ function planResolutionTests() {
   });
 
   describe('Plan ordering', () => {
-    it('should have strictly increasing order: FREE < PLUS < BUSINESS < ENTERPRISE', () => {
+    it('should have strictly increasing order: FREE < PLUS < BUSINESS < SCALE < ENTERPRISE', () => {
       expect(PlanOrder[PlanTitles.FREE]).to.be.lessThan(
         PlanOrder[PlanTitles.PLUS],
       );
@@ -268,6 +271,9 @@ function planResolutionTests() {
         PlanOrder[PlanTitles.BUSINESS],
       );
       expect(PlanOrder[PlanTitles.BUSINESS]).to.be.lessThan(
+        PlanOrder[PlanTitles.SCALE],
+      );
+      expect(PlanOrder[PlanTitles.SCALE]).to.be.lessThan(
         PlanOrder[PlanTitles.ENTERPRISE],
       );
     });
@@ -327,6 +333,192 @@ function planResolutionTests() {
         }
       });
     }
+  });
+
+  describe('Scale plan delta', () => {
+    // Features Scale unlocks over Business.
+    const scaleEnabledEnterpriseFeatures = [
+      PlanFeatureTypes.FEATURE_RLS,
+      PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      PlanFeatureTypes.FEATURE_TRASH_SETTINGS,
+    ];
+
+    // Per the pricing matrix these stay Enterprise-only — NOT on Scale.
+    const enterpriseOnlyFeatures = [
+      PlanFeatureTypes.FEATURE_SCIM,
+      PlanFeatureTypes.FEATURE_FORCE_2FA,
+      PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
+      PlanFeatureTypes.FEATURE_API_VIEW_V3,
+      PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+      PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+    ];
+
+    it('Scale enables its tier features (RLS, workspace audit, trash settings)', () => {
+      const meta = resolvePlanMeta(PlanTitles.SCALE);
+      for (const f of scaleEnabledEnterpriseFeatures) {
+        expect(meta[f]).to.eq(true, `Scale should enable ${f}`);
+      }
+    });
+
+    it('Scale does NOT enable the Enterprise-only features', () => {
+      const meta = resolvePlanMeta(PlanTitles.SCALE);
+      for (const f of enterpriseOnlyFeatures) {
+        expect(meta[f]).to.eq(false, `Scale must NOT enable ${f}`);
+      }
+    });
+
+    it('Enterprise-only features unlock only at Enterprise', () => {
+      for (const f of enterpriseOnlyFeatures) {
+        expect(PlanFeatureTypesToPlanTitles[f]).to.eq(
+          PlanTitles.ENTERPRISE,
+          `${f} should unlock only at Enterprise`,
+        );
+      }
+    });
+
+    it('Scale limits are <= Enterprise for every finite Enterprise limit', () => {
+      const scale = resolvePlanMeta(PlanTitles.SCALE);
+      const ent = resolvePlanMeta(PlanTitles.ENTERPRISE);
+      for (const limit of allLimits) {
+        const e = ent[limit] as number;
+        const s = scale[limit] as number;
+        if (e !== -1) {
+          expect(s).to.not.eq(
+            -1,
+            `Scale ${limit} should be finite when Enterprise is finite`,
+          );
+          expect(s).to.be.at.most(
+            e,
+            `Scale ${limit} (${s}) should be <= Enterprise (${e})`,
+          );
+        }
+      }
+    });
+  });
+
+  describe('Audit retention split (record vs workspace)', () => {
+    // Two distinct limits: per-record audit history vs the workspace/base
+    // audit-log feature. Workspace audit is gated to Scale+, so lower tiers
+    // carry 0 (inert).
+    const recordAuditLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 3,
+      [PlanTitles.PLUS]: 30,
+      [PlanTitles.BUSINESS]: 90,
+      [PlanTitles.SCALE]: 180,
+      [PlanTitles.ENTERPRISE]: 365,
+    };
+
+    const workspaceAuditLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 0,
+      [PlanTitles.PLUS]: 0,
+      [PlanTitles.BUSINESS]: 0,
+      [PlanTitles.SCALE]: 30,
+      [PlanTitles.ENTERPRISE]: 365,
+    };
+
+    for (const plan of allPlans) {
+      it(`${plan} record audit retention = ${recordAuditLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]).to.eq(
+          recordAuditLadder[plan],
+        );
+      });
+
+      it(`${plan} workspace audit retention = ${workspaceAuditLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]).to.eq(
+          workspaceAuditLadder[plan],
+        );
+      });
+    }
+
+    it('record audit retention never decreases as the plan tier rises', () => {
+      for (let i = 1; i < allPlans.length; i++) {
+        expect(recordAuditLadder[allPlans[i]]).to.be.at.least(
+          recordAuditLadder[allPlans[i - 1]],
+          `${allPlans[i]} record audit retention must be >= ${allPlans[i - 1]}`,
+        );
+      }
+    });
+  });
+
+  describe('Scale headline limits (pricing page)', () => {
+    let scale: Record<string, number | boolean>;
+
+    before(() => {
+      scale = resolvePlanMeta(PlanTitles.SCALE);
+    });
+
+    it('records = 1,000,000', () => {
+      expect(scale[PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]).to.eq(1000000);
+    });
+
+    it('storage = 150 GB (150,000 MB)', () => {
+      expect(scale[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]).to.eq(150000);
+    });
+
+    it('automation runs = 240,000 (workflow runs merged in)', () => {
+      expect(scale[PlanLimitTypes.LIMIT_AUTOMATION_RUN]).to.eq(240000);
+    });
+
+    it('API calls / month = 5,000,000', () => {
+      expect(scale[PlanLimitTypes.LIMIT_API_CALL]).to.eq(5000000);
+    });
+  });
+
+  describe('Automation runs ladder (workflow runs merged in)', () => {
+    // LIMIT_WORKFLOW_RUN is folded into LIMIT_AUTOMATION_RUN — a single
+    // "automation runs" budget that both webhook automations and workflow
+    // executions count against.
+    const automationRunLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 100,
+      [PlanTitles.PLUS]: 30000,
+      [PlanTitles.BUSINESS]: 120000,
+      [PlanTitles.SCALE]: 240000,
+      [PlanTitles.ENTERPRISE]: 600000,
+    };
+
+    for (const plan of allPlans) {
+      it(`${plan} automation runs = ${automationRunLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN]).to.eq(
+          automationRunLadder[plan],
+        );
+      });
+    }
+
+    it('LIMIT_WORKFLOW_RUN no longer exists', () => {
+      expect((PlanLimitTypes as Record<string, string>).LIMIT_WORKFLOW_RUN).to
+        .be.undefined;
+    });
+  });
+
+  describe('Automation retention ladder (workflow retention merged in)', () => {
+    // LIMIT_WORKFLOW_RETENTION is folded into LIMIT_AUTOMATION_RETENTION — one
+    // execution-log retention limit (read cutoff on automation_executions).
+    // Values track the pricing matrix (Automation Logs row).
+    const automationRetentionLadder: Record<PlanTitles, number> = {
+      [PlanTitles.FREE]: 1,
+      [PlanTitles.PLUS]: 30,
+      [PlanTitles.BUSINESS]: 60,
+      [PlanTitles.SCALE]: 90,
+      [PlanTitles.ENTERPRISE]: 180,
+    };
+
+    for (const plan of allPlans) {
+      it(`${plan} automation retention = ${automationRetentionLadder[plan]}`, () => {
+        const meta = resolvePlanMeta(plan);
+        expect(meta[PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]).to.eq(
+          automationRetentionLadder[plan],
+        );
+      });
+    }
+
+    it('LIMIT_WORKFLOW_RETENTION no longer exists', () => {
+      expect(
+        (PlanLimitTypes as Record<string, string>).LIMIT_WORKFLOW_RETENTION,
+      ).to.be.undefined;
+    });
   });
 }
 

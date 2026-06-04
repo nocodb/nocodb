@@ -272,7 +272,7 @@ export class InternalController extends InternalControllerCE {
         let retentionLimit: number | undefined;
         if (isCloud) {
           const { limit } = await getLimit(
-            PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+            PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION,
             context.workspace_id,
           );
           retentionLimit = limit;
@@ -293,7 +293,7 @@ export class InternalController extends InternalControllerCE {
         let retentionLimit: number | undefined;
         if (isCloud) {
           const { limit } = await getLimit(
-            PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+            PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION,
             context.workspace_id,
           );
           retentionLimit = limit;

@@ -6,11 +6,16 @@ export enum PlanLimitTypes {
   LIMIT_API_PER_SECOND = 'limit_api_per_second',
   LIMIT_AI_TOKEN = 'limit_ai_token',
   LIMIT_API_CALL = 'limit_api_call',
-  LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
+  // Per-record audit/change history (the record "Audits" tab in the expanded form).
+  LIMIT_RECORD_AUDIT_RETENTION = 'limit_record_audit_retention',
+  // Workspace/base audit log feature (FEATURE_AUDIT_WORKSPACE). Distinct from
+  // record audit — gated Scale+, so lower tiers carry 0 (inert).
+  LIMIT_WORKSPACE_AUDIT_RETENTION = 'limit_workspace_audit_retention',
+  // Automations and workflows share a single run budget + a single
+  // execution-log retention limit (LIMIT_WORKFLOW_RUN / LIMIT_WORKFLOW_RETENTION
+  // were merged in here). Retention governs the automation_executions log.
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-  LIMIT_WORKFLOW_RUN = 'limit_workflow_run',
-  LIMIT_WORKFLOW_RETENTION = 'limit_workflow_retention',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -128,6 +133,7 @@ export enum PlanTitles {
   FREE = 'Free',
   PLUS = 'Plus',
   BUSINESS = 'Business',
+  SCALE = 'Scale',
   ENTERPRISE = 'Enterprise',
 }
 
@@ -143,6 +149,8 @@ export enum PlanPriceLookupKeys {
   PLUS_YEARLY = 'plus_yearly',
   BUSINESS_MONTHLY = 'business_monthly',
   BUSINESS_YEARLY = 'business_yearly',
+  SCALE_MONTHLY = 'scale_monthly',
+  SCALE_YEARLY = 'scale_yearly',
 }
 
 export const LoyaltyPriceLookupKeyMap = {
@@ -208,6 +216,20 @@ export const PlanMeta = {
     staticBadgeBgColor: '#FFF0FB',
     staticBadgeTextColor: '#C44DA0',
   },
+  [PlanTitles.SCALE]: {
+    title: PlanTitles.SCALE,
+    color: 'var(--scale-plan-color, #EEEFFD)',
+    accent: 'var(--scale-plan-accent, #D4D5F9)',
+    primary: 'var(--scale-plan-primary, #5B5DEF)',
+    bgLight: 'var(--scale-plan-bg-light, #EEEFFD)',
+    bgDark: 'var(--scale-plan-bg-dark, #DCDEFA)',
+    border: 'var(--scale-plan-border, #D4D5F9)',
+    chartFillColor: 'var(--scale-plan-chart-fill-color, #5B5DEF)',
+    badgeBgColor: 'var(--scale-plan-badge-bg-color, #EEEFFD)',
+    badgeTextColor: 'var(--scale-plan-badge-text-color, #5B5DEF)',
+    staticBadgeBgColor: '#EEEFFD',
+    staticBadgeTextColor: '#5B5DEF',
+  },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
     color: 'var(--enterprise-plan-color, #EAF7F7)',
@@ -228,7 +250,8 @@ export const PlanOrder = {
   [PlanTitles.FREE]: 0,
   [PlanTitles.PLUS]: 1,
   [PlanTitles.BUSINESS]: 2,
-  [PlanTitles.ENTERPRISE]: 3,
+  [PlanTitles.SCALE]: 3,
+  [PlanTitles.ENTERPRISE]: 4,
 };
 
 export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
@@ -242,7 +265,8 @@ export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
 export const HigherPlan = {
   [PlanTitles.FREE]: PlanTitles.PLUS,
   [PlanTitles.PLUS]: PlanTitles.BUSINESS,
-  [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
+  [PlanTitles.BUSINESS]: PlanTitles.SCALE,
+  [PlanTitles.SCALE]: PlanTitles.ENTERPRISE,
 } as Record<string, PlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
@@ -253,6 +277,42 @@ export const SEAT_PRICE_CAP = 9;
 
 export const LOYALTY_SEAT_PRICE_CAP = 4;
 
+// ---------------------------------------------------------------------------
+// Seat model — uncapped by default, with a per-plan minimum.
+// Direction: moving away from the per-seat cap entirely. The cap below is a
+// LEGACY override confined to Plus & Business; new plans must NOT be added.
+// ---------------------------------------------------------------------------
+
+// Minimum billable seats per plan. Plans not listed default to 1 — Plus and
+// Business intentionally use 1 (their effective floor is governed by
+// LegacySeatPriceCap, not a minimum).
+export const PlanMinSeats: Partial<Record<PlanTitles, number>> = {
+  [PlanTitles.SCALE]: 3,
+};
+
+export const getMinSeats = (title?: PlanTitles | string): number =>
+  PlanMinSeats[title as PlanTitles] ?? 1;
+
+// LEGACY per-seat price cap — ONLY Plus & Business. Default = uncapped (null).
+export const LegacySeatPriceCap: Partial<Record<PlanTitles, number>> = {
+  [PlanTitles.PLUS]: SEAT_PRICE_CAP,
+  [PlanTitles.BUSINESS]: SEAT_PRICE_CAP,
+};
+
+export const getSeatPriceCap = (title?: PlanTitles | string): number | null =>
+  LegacySeatPriceCap[title as PlanTitles] ?? null;
+
+// Final chargeable seats: floor at the plan minimum, then cap only if the
+// plan still carries a legacy cap. Uncapped plans charge every seat.
+export const getChargeableSeats = (
+  title: PlanTitles | string,
+  rawSeats: number | undefined
+): number => {
+  const seats = Math.max(rawSeats ?? 0, getMinSeats(title));
+  const cap = getSeatPriceCap(title);
+  return cap == null ? seats : Math.min(seats, cap);
+};
+
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
   [PlanLimitTypes.LIMIT_EDITOR]: 'to add more editors.',
@@ -261,7 +321,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'due to reaching the API per second limit.',
   [PlanLimitTypes.LIMIT_AI_TOKEN]: 'due to reaching the AI token usage limit.',
   [PlanLimitTypes.LIMIT_API_CALL]: 'due to reaching the API call limit.',
-  [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 'to increase audit retention.',
+  [PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION]:
+    'to increase record audit retention.',
+  [PlanLimitTypes.LIMIT_WORKSPACE_AUDIT_RETENTION]:
+    'to increase workspace audit log retention.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
     'to increase automation retention.',
@@ -292,9 +355,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
   [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
-  [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
-  [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
-    'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
   [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]:
     'to add more document pages in a base.',

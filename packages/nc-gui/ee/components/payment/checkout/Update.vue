@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { PlanLimitTypes, PlanOrder, PlanTitles, SEAT_PRICE_CAP } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanOrder, PlanTitles, getChargeableSeats, getMinSeats } from 'nocodb-sdk'
 
 const props = defineProps<{
   plan: PaymentPlan
@@ -113,10 +113,12 @@ const changes = computed(() => {
   return changes
 })
 
+const chargeableSeats = computed(() => getChargeableSeats(props.plan.title, workspaceOrOrgSeatCount.value))
+
 const priceInfo = computed(() => {
   const p = getPlanPrice(props.plan)
 
-  let total = p * Math.min(workspaceOrOrgSeatCount.value, SEAT_PRICE_CAP)
+  let total = p * chargeableSeats.value
 
   const pMonthly = getPlanPrice(props.plan, 'month')
 
@@ -125,7 +127,7 @@ const priceInfo = computed(() => {
   if (paymentMode.value === 'year') {
     total = total * 12
 
-    discount = pMonthly * 12 * Math.min(workspaceOrOrgSeatCount.value, SEAT_PRICE_CAP) - total
+    discount = pMonthly * 12 * chargeableSeats.value - total
 
     if (discount < 0) {
       discount = 0
@@ -214,6 +216,10 @@ const onCancelSubscription = async () => {
             <div class="nc-upgrade-info-subtitle">
               This workspace has <span class="nc-upgrade-info-title"> {{ workspaceOrOrgSeatCount }} billable users.</span>
             </div>
+            <div v-if="chargeableSeats > workspaceOrOrgSeatCount" class="nc-upgrade-info-subtitle mt-1">
+              The {{ plan?.title }} plan has a minimum of {{ getMinSeats(plan?.title) }} seats, so you'll be billed for
+              {{ chargeableSeats }}.
+            </div>
             <div class="nc-upgrade-info-subtitle mt-1">
               Credits from the unused portion of your current billing period will be applied to your new plan’s invoice.
             </div>
@@ -257,7 +263,7 @@ const onCancelSubscription = async () => {
                     {{ paymentMode === 'year' ? 'yearly' : 'monthly' }}
                   </div>
                 </div>
-                <div>x{{ workspaceOrOrgSeatCount }}</div>
+                <div>x{{ chargeableSeats }}</div>
                 <div class="min-w-[100px] text-right">${{ priceInfo.price + priceInfo.discount }}</div>
               </div>
               <div class="flex justify-between text-nc-content-gray text-sm font-500">

@@ -687,7 +687,10 @@ export const useEeConfig = createSharedComposable(() => {
       return
     }
 
-    const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
+    const planCtaBtnQuery =
+      limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE
+        ? `&activeBtn=${PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]}`
+        : ''
 
     if (redirectToWorkspace) {
       navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/billing?autoScroll=plan${planCtaBtnQuery}`)
@@ -767,7 +770,9 @@ export const useEeConfig = createSharedComposable(() => {
     const paramsObj = {
       ...(autoScroll ? { go: autoScroll } : {}),
       ...(ctaPlan ? { activeBtn: ctaPlan } : {}),
-      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
+      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE
+        ? { activeBtn: PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE] }
+        : {}),
     }
 
     const searchQuery = new URLSearchParams(paramsObj).toString()

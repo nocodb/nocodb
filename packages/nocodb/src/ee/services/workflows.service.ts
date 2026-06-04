@@ -493,7 +493,8 @@ export class WorkflowsService implements OnModuleInit {
 
     await checkLimit({
       workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+      // Workflow runs share the automation-run budget.
+      type: PlanLimitTypes.LIMIT_AUTOMATION_RUN,
       message: ({ limit }) =>
         `You have reached the limit of ${limit} workflow executions for your plan.`,
     });
@@ -571,8 +572,9 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).badRequest('Workflow ID is required');
     }
 
+    // Workflow execution-log retention shares the automation retention limit.
     const { limit } = await getLimit(
-      PlanLimitTypes.LIMIT_WORKFLOW_RETENTION,
+      PlanLimitTypes.LIMIT_AUTOMATION_RETENTION,
       context.workspace_id,
     );
 

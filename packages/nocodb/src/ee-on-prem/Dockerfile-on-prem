@@ -71,6 +71,21 @@ RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | se
 # segfaulting on Pi 5 Cortex-A76 inside musl's dynamic loader memset.
 RUN rm -rf ./node_modules/msgpackr-extract/build
 
+# Security cleanup. Two classes of CVE-bearing packages survive the prod install:
+#   1. Build-only tooling not used at runtime (node-gyp, cacache + their nested `tar`).
+#   2. Override-free nested copies the `npm install` step above re-resolved against each
+#      consumer's own range (npm ignores pnpm.overrides). Removing each nested copy makes
+#      Node fall back to the pnpm-overridden top-level (multer 2.1.1, dompurify 3.4.8, qs 6.15.2).
+RUN rm -rf \
+      ./node_modules/node-gyp \
+      ./node_modules/cacache \
+      ./node_modules/sqlite3/node_modules/tar \
+      ./node_modules/@nestjs/platform-express/node_modules/multer \
+      ./node_modules/@nestjs/platform-express/node_modules/qs \
+      ./node_modules/body-parser/node_modules/qs \
+      ./node_modules/postman-request/node_modules/qs \
+      ./node_modules/monaco-editor/node_modules/dompurify
+
 # Copy application files
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./docker/main.js ./docker/index.js
@@ -101,6 +116,11 @@ RUN apk --no-cache upgrade \
     dumb-init \
     curl \
     jq
+
+# Drop the base image's bundled npm CLI — unused at runtime (the app runs via node/dumb-init,
+# and the entrypoint scripts never call npm/npx), and it ships its own vulnerable nested deps
+# (minimatch/tar/picomatch/ip-address). Removing it clears those findings from the final image.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/

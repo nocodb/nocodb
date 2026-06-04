@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { WhiteLabelConfig } from 'nocodb-sdk'
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PublicAttachmentScope } from 'nocodb-sdk'
 
 const { config, isLoading, isSaving, load, save } = useWhiteLabel()
 
@@ -35,6 +35,76 @@ const form = ref<FormState>({
 })
 
 const initial = ref<FormState | null>(null)
+
+// Form banner — separate file dialog + cropper (4:1 aspect ratio)
+const showFormBannerCropper = ref(false)
+
+const formBannerImageConfig = ref({ src: '', type: '', name: '' })
+
+const { open: openFormBannerPicker, onChange: onFormBannerFileChange } = useFileDialog({
+  accept: 'image/png,image/jpeg',
+  multiple: false,
+  reset: true,
+})
+
+const formBannerDropZone = ref<HTMLDivElement>()
+
+function loadBannerFile(file: File) {
+  // Drag-and-drop bypasses the file dialog's `accept`, so guard the type here.
+  if (!['image/png', 'image/jpeg'].includes(file.type)) {
+    message.error(t('labels.whiteLabel.unsupportedFileType'))
+    return
+  }
+  if (formBannerImageConfig.value.src) URL.revokeObjectURL(formBannerImageConfig.value.src)
+  formBannerImageConfig.value = { src: URL.createObjectURL(file), type: file.type, name: file.name }
+  showFormBannerCropper.value = true
+}
+
+onFormBannerFileChange((files) => {
+  const file = files?.[0]
+  if (file) loadBannerFile(file)
+})
+
+const { isOverDropZone: isOverBannerDropZone } = useDropZone(formBannerDropZone, (files) => {
+  const file = files?.[0]
+  if (file) loadBannerFile(file)
+})
+
+function revokeBannerBlob() {
+  if (formBannerImageConfig.value.src) {
+    URL.revokeObjectURL(formBannerImageConfig.value.src)
+    formBannerImageConfig.value = { src: '', type: '', name: '' }
+  }
+}
+
+// The object URL is only needed while the cropper is open (it reads
+// `imageConfig.src`; the upload uses the cropped canvas, not the blob). Revoke
+// it whenever the cropper closes — saved or cancelled — to avoid a memory leak.
+watch(showFormBannerCropper, (open) => {
+  if (!open) revokeBannerBlob()
+})
+
+function onFormBannerUploaded(attachment: any) {
+  const raw = attachment?.signedPath ?? attachment?.path ?? attachment?.url
+  if (!raw) return
+  form.value.formBannerUrl = /^(https?:\/\/|\/)/.test(raw) ? raw : `/${raw}`
+}
+
+function removeFormBanner() {
+  form.value.formBannerUrl = null
+}
+
+// In dev the frontend (:3000) and backend (:8080) differ; a bare `/dltemp/...`
+// would resolve against the frontend origin and 404. Join with ncSiteUrl so the
+// preview loads (mirrors AdminWhiteLabelAsset). Absolute URLs pass through.
+const formBannerPreviewSrc = computed(() => {
+  const url = form.value.formBannerUrl
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  if (typeof window === 'undefined') return url
+  const base = new URL(appInfo.value?.ncSiteUrl || '/', window.location.origin)
+  return new URL(url, base).toString()
+})
 
 const hasChanges = computed(() => {
   if (!initial.value) return true
@@ -114,6 +184,9 @@ async function onSave() {
 function onReset() {
   if (!initial.value) return
   form.value = { ...initial.value }
+  // Drop any in-flight cropper selection (and its blob) the user hadn't saved.
+  showFormBannerCropper.value = false
+  revokeBannerBlob()
 }
 
 // Warn before losing edits on browser refresh / tab close.
@@ -188,6 +261,8 @@ leaveGuard.value = promptUnsavedChanges
 
 onBeforeUnmount(() => {
   if (leaveGuard.value === promptUnsavedChanges) leaveGuard.value = null
+  // Revoke a leftover blob if the component is torn down with the cropper open.
+  revokeBannerBlob()
 })
 
 onMounted(async () => {
@@ -262,7 +337,7 @@ watch(config, syncFromConfig)
                   <AdminWhiteLabelAsset
                     v-model="form.logoUrl"
                     path-key="logoUrl"
-                    accept="image/*"
+                    accept="image/png"
                     preview-bg="light"
                     box-class="h-28 w-full"
                   />
@@ -273,7 +348,7 @@ watch(config, syncFromConfig)
                   <AdminWhiteLabelAsset
                     v-model="form.logoDarkUrl"
                     path-key="logoDarkUrl"
-                    accept="image/*"
+                    accept="image/png"
                     preview-bg="dark"
                     box-class="h-28 w-full"
                     :empty-hint="$t('labels.whiteLabel.logoDarkFallback')"
@@ -289,7 +364,7 @@ watch(config, syncFromConfig)
                   <AdminWhiteLabelAsset
                     v-model="form.faviconUrl"
                     path-key="faviconUrl"
-                    accept="image/x-icon,image/png,image/svg+xml"
+                    accept="image/png,image/x-icon"
                     box-class="w-20 h-20"
                     compact
                   />
@@ -303,14 +378,62 @@ watch(config, syncFromConfig)
               <!-- Default form banner -->
               <div>
                 <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.formBanner') }}</div>
-                <AdminWhiteLabelAsset
-                  v-model="form.formBannerUrl"
-                  path-key="formBannerUrl"
-                  accept="image/png,image/jpeg,image/webp"
-                  box-class="h-28 w-full"
-                />
-                <div class="text-nc-content-gray-subtle2 text-bodySm mt-2">{{ $t('labels.whiteLabel.formBannerDescription') }}</div>
+
+                <!-- Preview when uploaded -->
+                <div
+                  v-if="form.formBannerUrl"
+                  class="group relative rounded-lg border-1 border-nc-border-gray-medium overflow-hidden h-28 w-full flex items-center justify-center bg-nc-bg-gray-light"
+                >
+                  <img :src="formBannerPreviewSrc" alt="" class="w-full h-full object-cover" />
+                  <div
+                    class="absolute inset-0 flex items-center justify-center gap-2 bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                  >
+                    <NcTooltip :title="$t('general.replace')">
+                      <button
+                        type="button"
+                        class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/90 text-nc-content-gray hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        @click="openFormBannerPicker()"
+                      >
+                        <GeneralIcon icon="ncEdit" class="h-4 w-4" />
+                      </button>
+                    </NcTooltip>
+                    <NcTooltip :title="$t('general.remove')">
+                      <button
+                        type="button"
+                        class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/90 text-nc-content-red-medium hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        @click="removeFormBanner"
+                      >
+                        <GeneralIcon icon="ncTrash2" class="h-4 w-4" />
+                      </button>
+                    </NcTooltip>
+                  </div>
+                </div>
+
+                <!-- Empty: dropzone (click or drag & drop) -->
+                <div
+                  v-else
+                  ref="formBannerDropZone"
+                  class="rounded-lg border-1 border-dashed border-nc-border-gray-medium h-28 w-full flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors hover:border-nc-border-brand hover:bg-nc-bg-gray-light"
+                  :class="{ '!border-nc-border-brand bg-nc-bg-brand': isOverBannerDropZone }"
+                  @click="openFormBannerPicker()"
+                >
+                  <GeneralIcon icon="ncUpload" class="h-6 w-6 text-nc-content-gray-muted" />
+                  <span class="text-nc-content-gray-subtle2">
+                    {{ $t('labels.whiteLabel.dragDropPrefix') }}
+                    <span class="text-nc-content-brand font-medium">{{ $t('labels.whiteLabel.browse') }}</span>
+                  </span>
+                </div>
+
+                <div class="text-nc-content-gray-muted text-bodySm mt-2">{{ $t('labels.whiteLabel.formBannerDescription') }}</div>
                 <div class="text-nc-content-gray-muted text-bodySm mt-1">{{ $t('labels.whiteLabel.formBannerFormatHint') }}</div>
+
+                <GeneralImageCropper
+                  v-model:show-cropper="showFormBannerCropper"
+                  :image-config="formBannerImageConfig"
+                  :cropper-config="{ stencilProps: { aspectRatio: 4 / 1 }, imageRestriction: 'none' }"
+                  :upload-config="{ path: 'noco/whiteLabel/formBannerUrl', scope: PublicAttachmentScope.WHITELABEL }"
+                  @submit="onFormBannerUploaded"
+                />
               </div>
 
               <!-- Brand color -->

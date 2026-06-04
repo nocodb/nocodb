@@ -29,7 +29,12 @@ export const useBranding = createSharedComposable(() => {
     () => config.value?.productName?.trim() || DEFAULT_BRANDING.productName,
   )
   const logoUrl = computed(
-    () => joinSiteUrl(config.value?.logoUrl) || DEFAULT_BRANDING.logoUrl,
+    () =>
+      joinSiteUrl(config.value?.logoUrl) ||
+      // Fall back to the dark logo so a single uploaded logo shows in both
+      // modes (mirrors the dark→light fallback below).
+      joinSiteUrl(config.value?.logoDarkUrl) ||
+      DEFAULT_BRANDING.logoUrl,
   )
   const logoDarkUrl = computed(
     () =>

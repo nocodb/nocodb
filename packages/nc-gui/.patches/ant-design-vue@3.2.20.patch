@@ -1,0 +1,13 @@
+diff --git a/es/input/Input.js b/es/input/Input.js
+index b82d75140e62213973551b10a852a2ce194f3e83..c2c00a079518d3ded4f89cd831b63fd115e42d64 100644
+--- a/es/input/Input.js
++++ b/es/input/Input.js
+@@ -178,7 +178,7 @@ export default defineComponent({
+         stateValue.value = value;
+       } else {
+         nextTick(function () {
+-          if (inputRef.value.value !== stateValue.value) {
++          if (inputRef.value && inputRef.value.value !== stateValue.value) {
+             instance.update();
+           }
+         });

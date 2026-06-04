@@ -197,7 +197,8 @@
       ]
     },
     "patchedDependencies": {
-      "splitpanes@3.1.5": "packages/nc-gui/.patches/splitpanes@3.1.5.patch"
+      "splitpanes@3.1.5": "packages/nc-gui/.patches/splitpanes@3.1.5.patch",
+      "ant-design-vue@3.2.20": "packages/nc-gui/.patches/ant-design-vue@3.2.20.patch"
     },
     "onlyBuiltDependencies": [
       "@biomejs/biome",

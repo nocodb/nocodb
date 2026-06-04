@@ -549,7 +549,18 @@ export const SlashCommandExtension = Extension.create({
 
           // Helper to update the placeholder decoration state
           const setPlaceholder = (editor: Editor, active: boolean, pos = 0) => {
-            editor.view.dispatch(editor.view.state.tr.setMeta(slashPlaceholderKey, { active, pos }))
+            // The suggestion plugin fires onExit -> setPlaceholder while the editor is being
+            // destroyed (e.g. the user navigates away). Mid-teardown neither editor.isDestroyed
+            // nor view.isDestroyed is true yet — docView is nulled only after plugin views are
+            // destroyed — so dispatching re-enters updateState on a half-destroyed view and
+            // throws inside ProseMirror (DecorationGroup.eq). The placeholder is purely cosmetic,
+            // so guard the fast path and ignore failures during teardown.
+            if (!editor || editor.isDestroyed) return
+            try {
+              editor.view.dispatch(editor.view.state.tr.setMeta(slashPlaceholderKey, { active, pos }))
+            } catch {
+              // editor/view is tearing down — the placeholder decoration no longer matters
+            }
           }
 
           return {

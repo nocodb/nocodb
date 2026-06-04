@@ -645,6 +645,42 @@ describe('validateRowFilters', () => {
       ).toBe(false);
     });
 
+    // Regression: a non-finite (invalid) date value used to reach dayjs.tz(...), whose
+    // Intl.DateTimeFormat#formatToParts call throws — "date value is not finite" on
+    // Safari, "Invalid time value" in V8. This crashed filter validation (e.g. when a
+    // realtime update delivered a malformed date), so the validator must not throw.
+    it('does not throw when the row value is an invalid date', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '9', comparison_op: 'eq', comparison_sub_op: 'today' },
+      ];
+      expect(() =>
+        validateRowFilters({
+          filters,
+          data: { DateData: 'abc' },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+          options: { timezone: 'Etc/UTC' },
+        })
+      ).not.toThrow();
+    });
+
+    it('does not throw when the filter value is an invalid date', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '4', comparison_op: 'eq', value: 'not-a-date' },
+      ];
+      expect(() =>
+        validateRowFilters({
+          filters,
+          data: { CreatedAt: today },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+          options: { timezone: 'Etc/UTC' },
+        })
+      ).not.toThrow();
+    });
+
     it('should correctly evaluate "isWithin" with "nextNumberOfDays" sub-op', () => {
       const filters: FilterType[] = [
         {

@@ -252,7 +252,12 @@ function promptUnsavedChanges(): Promise<boolean> {
   })
 }
 
-onBeforeRouteLeave(async (_to, _from, next) => {
+onBeforeRouteLeave(async (to, _from, next) => {
+  // A forced logout / session-expiry redirects to an auth page (e.g. /signin)
+  // via navigateTo, so this guard fires. Don't prompt there: the user can't
+  // save once logged out, and blocking the redirect would strand them on the
+  // admin page. Auth pages opt out of auth via `requiresAuth: false`.
+  if (to.meta.requiresAuth === false) return next()
   if (await promptUnsavedChanges()) next()
   else next(false)
 })

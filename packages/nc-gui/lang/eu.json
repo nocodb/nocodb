@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Aurreikusteko bertsio bat hautatu",
       "previewEmptySubtitle": "Eskubiko zerrendatik bat hautatu orria une hartan nola zegoen ikusteko. Aldaketak egungo bertsioarekiko lerroan nabarmenduta daude.",
       "currentVersion": "Egungo bertsioa · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Kargatu zaharragoak",
       "emptyTitle": "Oraindik ez da bertsiorik gorde",
       "emptySubtitle": "Orrialdea gordetzen den bakoitzean bertsio bat erregistratzen da. Egile berak bi minutuko epean egindako gordetzeak bertsio bakarrean batzen dira.",
@@ -1465,9 +1466,9 @@
         "edited": "{author} -k editatua · {when}"
       },
       "listAction": {
-        "restored": "{author} berreskuratu",
-        "saved": "{author} gordea",
-        "edited": "{author} editatu"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

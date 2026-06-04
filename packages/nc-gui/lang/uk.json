@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Виберіть версію для перегляду",
       "previewEmptySubtitle": "Виберіть один зі списку з правого боку, щоб побачити сторінку в цій точці. Зміни проти поточної версії виділяються в Інтернеті.",
       "currentVersion": "Поточна версія · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Завантажити старі",
       "emptyTitle": "Немає збережених версій",
       "emptySubtitle": "Версію буде записано кожен раз, коли сторінка буде збережена. Збереження здійснюється в межах двох хвилин тим самим автором в одне об'єднання.",
@@ -1465,9 +1466,9 @@
         "edited": "Змінено {author} · {when}"
       },
       "listAction": {
-        "restored": "Відновлено {author}",
-        "saved": "{author} збережено",
-        "edited": "{author} edited"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

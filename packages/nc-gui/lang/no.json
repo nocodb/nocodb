@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Velg en versjon å forhåndsvise",
       "previewEmptySubtitle": "Velg en fra listen til høyre for å se siden som den var på det punktet. Endringer mot den gjeldende versjonen er uthevet.",
       "currentVersion": "Nåværende versjon · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Last inn eldre",
       "emptyTitle": "Ingen versjoner lagret ennå",
       "emptySubtitle": "En versjon registreres hver gang siden lagres. Lagrede lagres innen 2 minutter av den samme forfatteren blir slått sammen til en.",
@@ -1465,9 +1466,9 @@
         "edited": "Redigert av {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} gjenopprettet",
-        "saved": "{author} er lagret",
-        "edited": "{author} redigert"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

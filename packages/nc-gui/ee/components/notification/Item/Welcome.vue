@@ -12,6 +12,8 @@ const { productName } = useBranding()
 
 <template>
   <NotificationItemWrapper :item="item">
-    <div>Welcome to <span class="font-semibold">{{ productName }}!</span> We’re excited to have you onboard.</div>
+    <div>
+      Welcome to <span class="font-semibold">{{ productName }}!</span> We’re excited to have you onboard.
+    </div>
   </NotificationItemWrapper>
 </template>

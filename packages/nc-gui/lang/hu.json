@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Válasszon ki egy verziót az előnézethez",
       "previewEmptySubtitle": "Válasszon egyet a jobb oldali listából, hogy az oldalt az adott időpontban láthassa. Az aktuális verzióhoz képest bekövetkezett változásokat a sorban kiemeljük.",
       "currentVersion": "Jelenlegi verzió - {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Régebbi betöltése",
       "emptyTitle": "Még nincsenek elmentett verziók",
       "emptySubtitle": "Az oldal mentésekor minden alkalommal rögzítésre kerül egy verzió. Az ugyanazon szerző által 2 percen belül készített mentések egybeolvadnak.",
@@ -1465,9 +1466,9 @@
         "edited": "Szerkesztette: {author} - {when}"
       },
       "listAction": {
-        "restored": "{author} helyreállított",
-        "saved": "{author} mentett",
-        "edited": "{author} szerkesztett"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

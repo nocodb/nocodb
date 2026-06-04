@@ -8,6 +8,13 @@
           }
         ]
       },
+      "TableCreateField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TableFieldBaseCreate"
+          }
+        ]
+      },
       "FieldUpdate": {
         "allOf": [
           {

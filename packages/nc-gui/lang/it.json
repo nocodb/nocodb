@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Seleziona una versione da visualizzare in anteprima",
       "previewEmptySubtitle": "Sceglierne uno dalla lista a destra per vedere la pagina come era in quel punto. Le modifiche rispetto alla versione corrente sono evidenziate in linea.",
       "currentVersion": "Versione attuale · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Carico più vecchio",
       "emptyTitle": "Nessuna versione salvata",
       "emptySubtitle": "Viene registrata una versione ogni volta che la pagina viene salvata. I salvataggi effettuati entro 2 minuti dallo stesso autore vengono uniti in uno.",
@@ -1465,9 +1466,9 @@
         "edited": "Modificato da {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} ripristinato",
-        "saved": "{author} salvato",
-        "edited": "{author} modificato"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

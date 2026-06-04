@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "选择要预览的版本",
       "previewEmptySubtitle": "从右边的列表中选择一个，看看当时的页面。 与当前版本相比的更改在线突出显示。",
       "currentVersion": "当前版本 - {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "加载旧版",
       "emptyTitle": "尚未保存任何版本",
       "emptySubtitle": "每次保存页面都会记录一个版本。由同一作者在两分钟内保存并入一个版本。",
@@ -1465,9 +1466,9 @@
         "edited": "编辑： {author} - {when}"
       },
       "listAction": {
-        "restored": "{author} 恢复",
-        "saved": "{author} 节省",
-        "edited": "{author} 编辑过的"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

@@ -32,6 +32,13 @@ export interface WhiteLabelConfig {
   brandColor?: string | null;
   /** URL/path to the default form banner (4:1 ratio wide image shown when the form author hasn't uploaded one) */
   formBannerUrl?: string | null;
+  /**
+   * Support contact email shown in the in-app help menu, replacing
+   * support@nocodb.com. When white-labelled the NocoDB docs / API / community /
+   * changelog links are hidden outright; this is the one help entry a reseller
+   * can surface. Null hides the support entry too.
+   */
+  supportEmail?: string | null;
   /** Optional email-side branding (used by transactional templates) */
   email?: WhiteLabelEmailConfig | null;
 }

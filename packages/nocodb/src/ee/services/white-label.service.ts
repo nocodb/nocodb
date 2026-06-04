@@ -35,6 +35,9 @@ const DISALLOWED_ASSET_EXT_RE = /\.svgz?(?![a-z0-9])/i;
 // Email footer URL must be absolute http(s) — these links are resolved from
 // inboxes, not the app, so same-origin paths don't apply.
 const ABSOLUTE_URL_RE = /^https?:\/\/[^\s]+$/;
+// Pragmatic email check (not RFC-perfect) for the support-contact address.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_SUPPORT_EMAIL_LEN = 254;
 // One-hour signed URLs are short enough to misbehave if the appInfo response
 // is cached; one week is the longest signing window the existing utility
 // supports without expiry surprises.
@@ -48,6 +51,7 @@ const DEFAULT_CONFIG: WhiteLabelConfig = {
   faviconUrl: null,
   brandColor: null,
   formBannerUrl: null,
+  supportEmail: null,
   email: null,
 };
 
@@ -334,6 +338,16 @@ export class WhiteLabelService {
         !HEX_COLOR_RE.test(cfg.brandColor)
       ) {
         NcError.badRequest('`brandColor` must be a hex color like #0D5A5A');
+      }
+    }
+
+    if (cfg.supportEmail != null) {
+      if (
+        typeof cfg.supportEmail !== 'string' ||
+        cfg.supportEmail.length > MAX_SUPPORT_EMAIL_LEN ||
+        !EMAIL_RE.test(cfg.supportEmail)
+      ) {
+        NcError.badRequest('`supportEmail` must be a valid email address');
       }
     }
 

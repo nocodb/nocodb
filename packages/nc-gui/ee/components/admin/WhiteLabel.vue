@@ -16,6 +16,7 @@ interface FormState {
   faviconUrl: string | null
   brandColor: string | null
   formBannerUrl: string | null
+  supportEmail: string | null
   emailSenderName: string | null
   emailFooterText: string | null
   emailFooterUrl: string | null
@@ -29,6 +30,7 @@ const form = ref<FormState>({
   faviconUrl: null,
   brandColor: null,
   formBannerUrl: null,
+  supportEmail: null,
   emailSenderName: null,
   emailFooterText: null,
   emailFooterUrl: null,
@@ -143,6 +145,7 @@ function syncFromConfig() {
     faviconUrl: c.faviconUrl ?? null,
     brandColor: c.brandColor ?? null,
     formBannerUrl: c.formBannerUrl ?? null,
+    supportEmail: c.supportEmail ?? null,
     emailSenderName: c.email?.senderName ?? null,
     emailFooterText: c.email?.footerText ?? null,
     emailFooterUrl: c.email?.footerUrl ?? null,
@@ -165,6 +168,7 @@ async function onSave() {
     faviconUrl: trim(form.value.faviconUrl),
     brandColor: trim(form.value.brandColor),
     formBannerUrl: trim(form.value.formBannerUrl),
+    supportEmail: trim(form.value.supportEmail),
     email: {
       senderName: trim(form.value.emailSenderName),
       footerText: trim(form.value.emailFooterText),
@@ -530,6 +534,30 @@ watch(config, syncFromConfig)
                   {{ $t('labels.whiteLabel.footerUrlHint') }}
                 </span>
               </div>
+            </div>
+          </div>
+
+          <!-- Support -->
+          <div
+            class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4 transition-opacity"
+            :class="{ 'opacity-60': !form.enabled }"
+          >
+            <div class="font-bold text-base" data-rec="true">{{ $t('labels.whiteLabel.helpSupport') }}</div>
+            <span class="text-nc-content-gray-subtle2 mt-1">
+              {{ $t('labels.whiteLabel.helpSupportDescription') }}
+            </span>
+
+            <div>
+              <div class="text-nc-content-gray mb-2">{{ $t('labels.whiteLabel.supportEmail') }}</div>
+              <a-input
+                v-model:value="form.supportEmail"
+                class="!rounded-lg !px-4 h-10"
+                :placeholder="$t('labels.whiteLabel.placeholder.supportEmail')"
+                :maxlength="254"
+              />
+              <span class="text-nc-content-gray-muted text-bodySm">
+                {{ $t('labels.whiteLabel.supportEmailHint') }}
+              </span>
             </div>
           </div>
         </template>

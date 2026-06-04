@@ -5,13 +5,10 @@ export const useProvideChatwoot = createSharedComposable(() => {
   const { activeWorkspace } = storeToRefs(useWorkspace())
   const route = router.currentRoute
 
-  // A white-labelled instance must not surface NocoDB's support chat.
-  const { isWhiteLabelled } = useBranding()
-
   const chatwootReady = ref(false)
   const sdkLoaded = ref(false)
 
-  const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat && !isWhiteLabelled.value)
+  const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat)
 
   /**
    * Determine the Chatwoot website token based on deployment mode.
@@ -35,7 +32,7 @@ export const useProvideChatwoot = createSharedComposable(() => {
    * after its initial run()) before reinitializing.
    */
   function initChatwootWidget() {
-    if (sdkLoaded.value || isWhiteLabelled.value) return
+    if (sdkLoaded.value) return
 
     const token = getChatwootToken()
     if (!token) return
@@ -80,13 +77,7 @@ export const useProvideChatwoot = createSharedComposable(() => {
   }
 
   const initUserCustomerAttributes = () => {
-    if (
-      !chatwootReady.value ||
-      ncIsPlaywright() ||
-      !user.value?.id ||
-      appInfo.value.disableSupportChat ||
-      isWhiteLabelled.value
-    ) {
+    if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id || appInfo.value.disableSupportChat) {
       return
     }
 
@@ -127,7 +118,7 @@ export const useProvideChatwoot = createSharedComposable(() => {
   }
 
   const chatwootInit = async () => {
-    if (ncIsIframe() || appInfo.value.disableSupportChat || isWhiteLabelled.value) return
+    if (ncIsIframe() || appInfo.value.disableSupportChat) return
     chatwootReady.value = true
     initUserCustomerAttributes()
   }

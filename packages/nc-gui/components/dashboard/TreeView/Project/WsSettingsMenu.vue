@@ -26,8 +26,9 @@ const {
   handleUpgradePlan,
 } = useEeConfig()
 
+// Workspace-level SSO is cloud-only for now (on-prem uses instance-level SSO)
 const isWorkspaceSsoAvail = computed(() => {
-  return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
+  return isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
 const navigateToWsSettings = (page: string) => {

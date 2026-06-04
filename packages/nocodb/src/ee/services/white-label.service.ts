@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   NC_STORE_KEY_WHITE_LABEL,
+  PlanFeatureTypes,
   type WhiteLabelConfig,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -10,6 +11,7 @@ import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { getOnPremPlan } from '~/helpers/paymentHelpers';
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const MAX_PRODUCT_NAME_LEN = 60;
@@ -86,13 +88,26 @@ export class WhiteLabelService {
    */
   async getConfig(): Promise<WhiteLabelConfig> {
     const cfg = await this.getRawConfig();
-    return {
-      ...cfg,
-      logoUrl: await this.resolveAssetUrl(cfg.logoUrl),
-      logoDarkUrl: await this.resolveAssetUrl(cfg.logoDarkUrl),
-      faviconUrl: await this.resolveAssetUrl(cfg.faviconUrl),
-      formBannerUrl: await this.resolveAssetUrl(cfg.formBannerUrl),
-    };
+    // Sign the 4 asset URLs in parallel — each may hit the storage adapter.
+    const [logoUrl, logoDarkUrl, faviconUrl, formBannerUrl] = await Promise.all([
+      this.resolveAssetUrl(cfg.logoUrl),
+      this.resolveAssetUrl(cfg.logoDarkUrl),
+      this.resolveAssetUrl(cfg.faviconUrl),
+      this.resolveAssetUrl(cfg.formBannerUrl),
+    ]);
+    return { ...cfg, logoUrl, logoDarkUrl, faviconUrl, formBannerUrl };
+  }
+
+  /**
+   * True only when the current plan actually entitles white-label. On-prem,
+   * white-label is Enterprise-only; `getOnPremPlan()` returns null on
+   * cloud / local-EE (where the instance config is empty anyway), so we only
+   * deny when there's a real on-prem plan that lacks the feature.
+   */
+  private planAllowsWhiteLabel(): boolean {
+    const plan = getOnPremPlan();
+    if (!plan) return true;
+    return plan.meta?.[PlanFeatureTypes.FEATURE_WHITE_LABEL] === true;
   }
 
   /**
@@ -104,12 +119,36 @@ export class WhiteLabelService {
   async getPublicConfig(): Promise<WhiteLabelConfig | null> {
     const cfg = await this.getRawConfig();
     if (!cfg.enabled) return null;
+    // Enforce the plan entitlement on the READ path too. The controller's
+    // @License only guards writes; without this check, branding set under a
+    // valid Enterprise license keeps serving via appInfo + emails after the
+    // license expires or the plan downgrades (all lower plans disable the
+    // feature). Both the appInfo response and transactional emails resolve
+    // through here, so a single gate covers both.
+    if (!this.planAllowsWhiteLabel()) return null;
+    // Sign the 4 asset URLs in parallel — appInfo is a hot endpoint and each
+    // sign may hit the storage adapter; serial awaits add ~4x latency.
+    const [logoUrl, logoDarkUrl, faviconUrl, formBannerUrl] = await Promise.all([
+      this.resolveAssetUrl(cfg.logoUrl),
+      this.resolveAssetUrl(cfg.logoDarkUrl),
+      this.resolveAssetUrl(cfg.faviconUrl),
+      this.resolveAssetUrl(cfg.formBannerUrl),
+    ]);
+    return { ...cfg, logoUrl, logoDarkUrl, faviconUrl, formBannerUrl };
+  }
+
+  /**
+   * Sanitized view for the unauthenticated `appInfo` response. Same as
+   * getPublicConfig but strips the email sender name / footer text — anonymous
+   * callers only need `footerUrl` (the public-form footer link); the configured
+   * sender copy is only used server-side when rendering emails.
+   */
+  async getAppInfoConfig(): Promise<WhiteLabelConfig | null> {
+    const cfg = await this.getPublicConfig();
+    if (!cfg) return null;
     return {
       ...cfg,
-      logoUrl: await this.resolveAssetUrl(cfg.logoUrl),
-      logoDarkUrl: await this.resolveAssetUrl(cfg.logoDarkUrl),
-      faviconUrl: await this.resolveAssetUrl(cfg.faviconUrl),
-      formBannerUrl: await this.resolveAssetUrl(cfg.formBannerUrl),
+      email: cfg.email?.footerUrl ? { footerUrl: cfg.email.footerUrl } : null,
     };
   }
 

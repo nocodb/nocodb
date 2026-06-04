@@ -193,8 +193,9 @@ export class UtilsService extends UtilsServiceCE {
     // legacy debounced REST save (NC_DOCS_REALTIME=false kill-switch).
     result.docsRealtimeEnabled = isDocsRealtimeEnabled();
 
-    // White-label config — sanitized (null when disabled or unconfigured)
-    result.whiteLabel = await this.whiteLabelService.getPublicConfig();
+    // White-label config — sanitized (null when disabled, unconfigured, or the
+    // plan lacks the feature); email sender/footer copy stripped to footerUrl.
+    result.whiteLabel = await this.whiteLabelService.getAppInfoConfig();
 
     return result;
   }

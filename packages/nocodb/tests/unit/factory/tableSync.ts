@@ -37,6 +37,12 @@ export const tableSyncList = (ctx: Ctx, env: Env) =>
 export const tableSyncGet = (ctx: Ctx, env: Env, syncId: string) =>
   internalGet(ctx, env, { operation: 'tableSyncGet', tableSyncId: syncId });
 
+export const tableSyncSourceSchema = (ctx: Ctx, env: Env, syncId: string) =>
+  internalGet(ctx, env, {
+    operation: 'tableSyncSourceSchema',
+    tableSyncId: syncId,
+  });
+
 export const tableSyncUpdate = (
   ctx: Ctx,
   env: Env,

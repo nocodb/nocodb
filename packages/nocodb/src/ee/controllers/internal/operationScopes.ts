@@ -213,5 +213,6 @@ export const OPERATION_SCOPES = {
   tableSyncResume: 'base',
   tableSyncList: 'base',
   tableSyncGet: 'base',
+  tableSyncSourceSchema: 'base',
   tableSyncResolveLink: 'base',
 } as const;

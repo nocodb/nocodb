@@ -40,6 +40,12 @@ export type InternalGETResponseType = Promise<
   | Model[]
   | Column[]
   | View[]
+  | {
+      source_table_missing: boolean;
+      columns: Column[];
+      views: View[];
+      visible_source_column_ids: string[];
+    }
   | Filter[]
   | Sort[]
   | Hook[]

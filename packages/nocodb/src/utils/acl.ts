@@ -290,6 +290,7 @@ const permissionScopes = {
     // Table Sync
     'tableSyncList',
     'tableSyncGet',
+    'tableSyncSourceSchema',
     'tableSyncCreate',
     'tableSyncUpdate',
     'tableSyncDelete',
@@ -1024,6 +1025,7 @@ const permissionDescriptions: Record<string, string> = {
 
   tableSyncList: 'view list of table syncs',
   tableSyncGet: 'view table sync details',
+  tableSyncSourceSchema: 'view a table sync source schema',
   tableSyncCreate: 'create a table sync',
   tableSyncUpdate: 'update a table sync',
   tableSyncDelete: 'delete a table sync',

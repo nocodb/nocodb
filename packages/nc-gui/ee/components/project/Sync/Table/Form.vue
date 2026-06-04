@@ -41,7 +41,7 @@ const { blockTableSyncAuto, getPlanTitle } = useEeConfig()
 
 const tableSyncStore = useTableSyncStore()
 
-const { createSync, updateSync, loadSyncs, resolveLink, activeBaseSyncs: activeBaseSyncsFn } = tableSyncStore
+const { createSync, updateSync, loadSyncs, resolveLink, fetchSourceSchema, activeBaseSyncs: activeBaseSyncsFn } = tableSyncStore
 
 const activeBaseSyncs = computed(() => activeBaseSyncsFn(props.baseId))
 
@@ -126,6 +126,13 @@ const editSourceViewPassword = ref<string>('')
 // (deleted upstream). The destination schema is structurally tied to that
 // table, so the sync can't be repaired — the only fix is to delete it.
 const sourceTableMissing = ref(false)
+
+// Edit-mode-only: the sync-authorized source-schema fetch failed for a reason
+// other than a deleted source (network, etc.). With no source columns loaded,
+// the field selector can't be trusted — so we disable it and, crucially, never
+// send a (now-empty) `selected_fields` on save, which would drop every synced
+// column. See `performUpdate`.
+const sourceSchemaLoadFailed = ref(false)
 
 // Edit-mode-only: the sync exists but its Main mapping row is missing
 // (data integrity issue). Same recovery path as `sourceTableMissing` —
@@ -355,6 +362,52 @@ const loadViewVisibleColumns = async (viewId: string) => {
   }
 }
 
+// Edit-mode source loader. Reads the source table's columns + the bound
+// view's visible-column ids through the SYNC's authorization (the share view)
+// instead of `tableGet`/`viewColumnList`, which enforce base-level ACL on the
+// source base. The importing user often has no access to that base (the whole
+// point of sync-from-shared-view), so the ACL-guarded path 403s — leaving the
+// field selector blank and risking a destructive empty `selected_fields` on
+// save. This endpoint mirrors the backend's createSync/updateSync source reads.
+const loadSourceSchema = async (syncId: string) => {
+  if (!activeWorkspaceId.value) return
+  isLoadingSourceColumns.value = true
+  try {
+    const res = await fetchSourceSchema(props.baseId, syncId)
+    if (!res) {
+      sourceSchemaLoadFailed.value = true
+      sourceTable.value = null
+      visibleSourceColIds.value = null
+      return
+    }
+    if (res.source_table_missing) {
+      // Drives the broken-source recovery banner — replaces the old reliance on
+      // a tableGet ERR_TABLE_NOT_FOUND, which no longer fires now that the
+      // source is read via the sync rather than the user's base access.
+      sourceTableMissing.value = true
+      sourceTable.value = null
+      visibleSourceColIds.value = null
+      return
+    }
+    sourceTableMissing.value = false
+    sourceSchemaLoadFailed.value = false
+    sourceTable.value = {
+      id: form.sourceTableId,
+      base_id: form.sourceBaseId,
+      columns: res.columns,
+      views: res.views,
+    } as TableType
+    visibleSourceColIds.value = new Set(res.visible_source_column_ids ?? [])
+  } catch (e: any) {
+    sourceSchemaLoadFailed.value = true
+    sourceTable.value = null
+    visibleSourceColIds.value = null
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoadingSourceColumns.value = false
+  }
+}
+
 const enableAllowSyncOnSource = async () => {
   if (!form.sourceViewId || !form.sourceBaseId || !activeWorkspaceId.value) return
   if (isEnablingAllowSync.value) return
@@ -528,8 +581,16 @@ const resolvePastedLink = async () => {
     }
     pasteForm.isResolved = true
     pasteForm.resolvedSummary = `${res.base_id} / ${res.table_id} / ${res.view_id}`
-    await loadSourceColumns(res.table_id)
-    await loadViewVisibleColumns(res.view_id)
+    sourceTableMissing.value = res.source_table_missing
+    sourceTable.value = res.source_table_missing
+      ? null
+      : ({
+          id: res.table_id,
+          base_id: res.base_id,
+          columns: res.columns,
+          views: res.views,
+        } as TableType)
+    visibleSourceColIds.value = res.source_table_missing ? null : new Set(res.visible_source_column_ids ?? [])
   } catch (e: any) {
     // Backend's allow_sync=false rejection bubbles up verbatim — guides the user to fix it source-side.
     const errMsg = (await extractSdkResponseErrorMsg(e)) || t('msg.error.failedToResolveLink')
@@ -630,15 +691,23 @@ const performUpdate = async () => {
       activeLinkViews[title] = viewId
     }
 
-    // Always send link_view_by_column whenever selected_fields is sent —
-    // the backend's reconcileFields treats undefined as `{}` and would
-    // otherwise drop the link-view bindings restored on edit-mode mount.
+    // If the source schema couldn't load, `eligibleFields` is empty and
+    // `selectedFields` would serialize to `[]` — which the backend reads as
+    // "sync nothing" and drops every synced column. Omit the field patch
+    // entirely so reconcileFields leaves the current selection untouched; the
+    // non-field settings (title/trigger/on-delete) still save.
+    // Always send link_view_by_column alongside selected_fields — the backend's
+    // reconcileFields treats undefined as `{}` and would otherwise drop the
+    // link-view bindings restored on edit-mode mount.
+    const fieldPatch = sourceSchemaLoadFailed.value
+      ? {}
+      : { selected_fields: selectedFields, link_view_by_column: activeLinkViews }
+
     await updateSync(props.baseId, props.sync.id, {
       title: form.title.trim(),
       sync_trigger: form.syncTrigger,
       on_delete_action: form.onDeleteAction,
-      selected_fields: selectedFields,
-      link_view_by_column: activeLinkViews,
+      ...fieldPatch,
       ...(sourceViewChangedInEdit.value
         ? {
             source_view_id: form.sourceViewId,
@@ -708,10 +777,11 @@ const applyEditModeInitialValues = async () => {
         pasteForm.url = `${dashboardUrl.value}/nc/view/${mapping.source_uuid}`
       }
 
-      await loadSourceColumns(mapping.source_table_id)
-      // Load view visibility before the eligibleFields-derived snapshots below
-      // so hidden columns don't leak into excluded/included sets on edit.
-      await loadViewVisibleColumns(mapping.source_view_id)
+      // Read the source table's columns AND the bound view's visible-column
+      // ids in one sync-authorized call (see `loadSourceSchema`). Both feed the
+      // eligibleFields-derived snapshots below, so hidden columns don't leak
+      // into excluded/included sets on edit.
+      await loadSourceSchema(props.sync.id)
     }
 
     // Derive link-view picks from LinkedShadow mappings: each shadow's
@@ -1105,14 +1175,14 @@ onMounted(async () => {
               <div class="text-bodySm text-nc-content-gray-muted">{{ $t('labels.allFieldsAreSyncedByDefault') }}</div>
               <div
                 class="flex items-center justify-between gap-3 px-3 py-2 border-1 border-nc-border-gray-medium rounded-lg"
-                :class="{ 'opacity-60 cursor-not-allowed': !form.sourceTableId }"
+                :class="{ 'opacity-60 cursor-not-allowed': !form.sourceTableId || sourceSchemaLoadFailed }"
                 data-testid="nc-table-sync-fields-toggle"
               >
                 <div class="flex items-center gap-2">
                   <NcSwitch
                     v-model:checked="selectFieldsEnabled"
                     size="small"
-                    :disabled="!form.sourceTableId || isLoadingSourceColumns"
+                    :disabled="!form.sourceTableId || isLoadingSourceColumns || sourceSchemaLoadFailed"
                   />
                   <span class="text-caption text-nc-content-gray">{{ $t('labels.selectSpecificFieldsToSync') }}</span>
                 </div>

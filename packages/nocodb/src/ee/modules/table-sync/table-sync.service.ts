@@ -82,6 +82,95 @@ export class TableSyncService {
     return TableSync.list(context);
   }
 
+  /**
+   * Read a source table's columns + views + the bound view's visible-column
+   * ids, given a context already pointed at the source base. The caller is
+   * responsible for authorization — both callers reach here through the share
+   * view (sync mapping for edit, resolved share UUID for create), NOT the
+   * caller's base ACL, so the importing user never needs source-base access.
+   */
+  private async buildSourceSchema(
+    sourceCtx: NcContext,
+    tableId: string,
+    viewId: string,
+  ): Promise<{
+    source_table_missing: boolean;
+    columns: Column[];
+    views: View[];
+    visible_source_column_ids: string[];
+  }> {
+    const empty = {
+      source_table_missing: false,
+      columns: [] as Column[],
+      views: [] as View[],
+      visible_source_column_ids: [] as string[],
+    };
+
+    const sourceTable = await Model.getWithInfo(sourceCtx, { id: tableId });
+
+    if (!sourceTable) return { ...empty, source_table_missing: true };
+
+    // getWithInfo already populated columns + views; just mask any share-view
+    // password hashes before returning them.
+    const views = (sourceTable.views ?? []).map((v) =>
+      View.maskPasswordForResponse(v),
+    );
+
+    const sourceView = await View.get(sourceCtx, viewId);
+    let visibleSourceColumnIds: string[] = [];
+    if (sourceView) {
+      const viewColumns = await View.getColumns(sourceCtx, sourceView.id);
+      visibleSourceColumnIds = viewColumns
+        .filter((c) => c.show)
+        .map((c) => c.fk_column_id)
+        .filter((id): id is string => !!id);
+    }
+
+    return {
+      source_table_missing: false,
+      columns: sourceTable.columns ?? [],
+      views,
+      visible_source_column_ids: visibleSourceColumnIds,
+    };
+  }
+
+  async getSourceSchema(
+    context: NcContext,
+    params: { syncId: string },
+  ): Promise<{
+    source_table_missing: boolean;
+    columns: Column[];
+    views: View[];
+    visible_source_column_ids: string[];
+  }> {
+    const empty = {
+      source_table_missing: false,
+      columns: [] as Column[],
+      views: [] as View[],
+      visible_source_column_ids: [] as string[],
+    };
+
+    const sync = await TableSync.get(context, params.syncId);
+    if (!sync) NcError.get(context).tableSyncNotFound(params.syncId);
+
+    const mainMapping = (sync.mappings ?? []).find(
+      (m) => m.role === TableSyncMappingRole.Main,
+    );
+
+    if (!mainMapping) return empty;
+
+    const sourceCtx: NcContext = {
+      workspace_id: mainMapping.source_workspace_id,
+      base_id: mainMapping.source_base_id,
+    };
+
+    return this.buildSourceSchema(
+      sourceCtx,
+      mainMapping.source_table_id,
+      mainMapping.source_view_id,
+    );
+  }
+
   @Untraced()
   async updateSync(
     context: NcContext,
@@ -2178,6 +2267,10 @@ export class TableSyncService {
     table_id: string;
     view_id: string;
     has_password: boolean;
+    source_table_missing: boolean;
+    columns: Column[];
+    views: View[];
+    visible_source_column_ids: string[];
   }> {
     validatePayload(
       'swagger.json#/components/schemas/TableSyncResolveLinkReq',
@@ -2207,12 +2300,27 @@ export class TableSyncService {
       );
     }
 
+    // The share view IS the authorization here — read the source schema in the
+    // same call so create (paste mode) never has to fall back to base-ACL
+    // guarded `tableGet`/`viewColumnList`, which 403 when the importing user
+    // has no access to the source base.
+    const sourceCtx: NcContext = {
+      workspace_id: view.fk_workspace_id!,
+      base_id: view.base_id!,
+    };
+    const schema = await this.buildSourceSchema(
+      sourceCtx,
+      view.fk_model_id!,
+      view.id!,
+    );
+
     return {
       workspace_id: view.fk_workspace_id!,
       base_id: view.base_id!,
       table_id: view.fk_model_id!,
       view_id: view.id!,
       has_password: !!view.password,
+      ...schema,
     };
   }
 

@@ -25,7 +25,11 @@ export class TableSyncGetOperations
 {
   constructor(private readonly tableSyncService: TableSyncService) {}
 
-  operations = ['tableSyncList' as const, 'tableSyncGet' as const];
+  operations = [
+    'tableSyncList' as const,
+    'tableSyncGet' as const,
+    'tableSyncSourceSchema' as const,
+  ];
   httpMethod = 'GET' as const;
 
   async handle(
@@ -53,6 +57,11 @@ export class TableSyncGetOperations
             syncId: req.query.tableSyncId as string,
           }),
         );
+
+      case 'tableSyncSourceSchema':
+        return await this.tableSyncService.getSourceSchema(context, {
+          syncId: req.query.tableSyncId as string,
+        });
     }
   }
 }

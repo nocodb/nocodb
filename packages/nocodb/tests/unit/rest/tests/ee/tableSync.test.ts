@@ -16,6 +16,7 @@ import {
   tableSyncGet,
   tableSyncList,
   tableSyncResume,
+  tableSyncSourceSchema,
   tableSyncUpdate,
   waitForSyncSettled,
 } from '~test/factory/tableSync';
@@ -208,6 +209,53 @@ function tableSyncTests() {
 
         expect(res.body.id).to.eq(syncId);
         expect(res.body.title).to.eq('LifecycleSync');
+      });
+
+      // The edit form reads the SOURCE schema through the sync's own
+      // authorization (its Main mapping), NOT the caller's base ACL — so a user
+      // who imported a shared view but has no access to the source base can
+      // still populate the field selector. This endpoint is what makes that
+      // possible; `tableGet`/`viewColumnList` would 403 on the source base.
+      it('returns the source schema for the sync', async () => {
+        const res = await tableSyncSourceSchema(
+          context,
+          destEnv,
+          syncId,
+        ).expect(200);
+
+        expect(res.body.source_table_missing).to.eq(false);
+
+        expect(res.body.columns, 'source columns').to.be.an('array').that.is.not
+          .empty;
+
+        expect(res.body.visible_source_column_ids, 'visible source col ids')
+          .to.be.an('array').that.is.not.empty;
+        // Every visible id must map to a real source column.
+        const colIds = new Set(
+          (res.body.columns as any[]).map((c: any) => c.id),
+        );
+        for (const id of res.body.visible_source_column_ids as string[]) {
+          expect(colIds.has(id), `visible col ${id} exists in columns`).to.eq(
+            true,
+          );
+        }
+
+        // The bound grid view comes back (so the form can render its
+        // allow_sync / password state) with the password hash masked, never
+        // raw bcrypt.
+        const boundView = (res.body.views as any[]).find(
+          (v: any) => v.id === sourceView.id,
+        );
+        expect(boundView, 'bound source view should be returned').to.exist;
+        expect(boundView.allow_sync).to.eq(true);
+        if (boundView.password) {
+          expect(boundView.password).to.not.match(/^\$2[aby]\$/);
+        }
+      });
+
+      it('404s when the sync id is unknown in this base', async () => {
+        await tableSyncSourceSchema(context, destEnv, 'tsy_does_not_exist')
+          .expect(404);
       });
 
       it('updates the sync title', async () => {

@@ -154,9 +154,16 @@ const buildTooltipContent = (row: Row, lat: number, long: number): string => {
         displayValue = `${displayValue.substring(0, MAX_TOOLTIP_VALUE_LENGTH)}…`
       }
 
-      // Escape HTML to prevent XSS
+      // Escape HTML to prevent XSS. Coerce to string first: parsePlainCellValue is typed
+      // string but can return a raw number (e.g. a Lookup/Rollup/Formula over a numeric
+      // column), which would throw "replace is not a function".
       const escapeHtml = (str: string) =>
-        str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+        (str?.toString() ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
       const escaped = escapeHtml(displayValue)
       const label = escapeHtml(f.title ?? '')
 

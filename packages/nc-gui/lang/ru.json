@@ -1451,6 +1451,7 @@
       "previewEmptyTitle": "Выберите версию для просмотра",
       "previewEmptySubtitle": "Выберите один из списков справа, чтобы увидеть страницу как это было в этой точке. Изменения по сравнению с текущей версией подсвечены в строке.",
       "currentVersion": "Текущая версия · {author}",
+      "currentVersionPrefix": "Current version · ",
       "loadOlder": "Загрузить старые",
       "emptyTitle": "Нет сохраненных версий",
       "emptySubtitle": "Версия записывается каждый раз при сохранении страницы. Сохранения, сделанные тем же автором в течение 2 минут, объединены в одну.",
@@ -1465,9 +1466,9 @@
         "edited": "Отредактировано {author} · {when}"
       },
       "listAction": {
-        "restored": "{author} восстановлен",
-        "saved": "{author} сохранен",
-        "edited": "{author} отредактирован"
+        "restoredVerb": "· restored",
+        "savedVerb": "· saved",
+        "editedVerb": "· edited"
       }
     },
     "editNFieldPermissions": "Edit {count} field permissions",

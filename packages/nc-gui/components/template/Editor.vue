@@ -556,17 +556,22 @@ interface ImportFinalStats {
 // numeric / CHAR-width constraint errors etc.) because the poller treated
 // every 'completed' event as a success regardless of failed-row counts.
 function surfaceImportResult(stats: ImportFinalStats | undefined) {
+  // Some link display values matched no record — surface a soft warning so the
+  // user knows links were only partially created, but the import still ran.
+  const warnUnmatchedLinks = () => {
+    if (!stats?.valuesUnmatched) return
+    message.warning({
+      content: t('msg.warning.tableDataImportedLinksUnmatched', {
+        links: stats.linksCreated ?? 0,
+        unmatched: stats.valuesUnmatched,
+      }),
+      duration: 10,
+    })
+  }
+
   if (!stats || stats.rowsFailed === 0) {
-    // Some link display values matched no record — surface a soft warning so
-    // the user knows links were partially created, but the import still ran.
     if (stats?.valuesUnmatched) {
-      message.warning({
-        content: t('msg.warning.tableDataImportedLinksUnmatched', {
-          links: stats.linksCreated ?? 0,
-          unmatched: stats.valuesUnmatched,
-        }),
-        duration: 10,
-      })
+      warnUnmatchedLinks()
       return
     }
     message.success(t('msg.success.tableDataImported'))
@@ -593,6 +598,10 @@ function surfaceImportResult(stats: ImportFinalStats | undefined) {
       duration: 10,
     })
   }
+
+  // Row failures and unmatched links can co-occur; the partial-failure toast
+  // above only reports rows, so surface skipped links as a separate warning.
+  warnUnmatchedLinks()
 }
 
 // One import job per uploaded file. Each job carries all the sheets that

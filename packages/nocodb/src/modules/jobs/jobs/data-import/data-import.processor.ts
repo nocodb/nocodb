@@ -262,7 +262,13 @@ export class DataImportProcessor {
         true,
       );
 
-      return { rowsInserted, rowsFailed, linksCreated, sheets: results };
+      return {
+        rowsInserted,
+        rowsFailed,
+        linksCreated,
+        valuesUnmatched,
+        sheets: results,
+      };
     } catch (e) {
       this.logger.error(
         `${importType.toUpperCase()} import failed: ${e.message}`,
@@ -734,6 +740,11 @@ export class DataImportProcessor {
       const column = (model.columns as any[]).find((c) => c.id === colId);
       if (!column) continue;
 
+      // Snapshot the cumulative counters so the per-column log line below
+      // reports this column's own deltas, not every prior column's totals.
+      const linksCreatedBefore = linksCreated;
+      const valuesUnmatchedBefore = valuesUnmatched;
+
       let groupCtx;
       try {
         groupCtx = await getLtarDisplayValueContext(context, column);
@@ -797,9 +808,11 @@ export class DataImportProcessor {
         LINK_CONCURRENCY,
       );
 
+      const colLinksCreated = linksCreated - linksCreatedBefore;
+      const colValuesUnmatched = valuesUnmatched - valuesUnmatchedBefore;
       log(
-        `Column "${column.title}": ${linksCreated} links created so far` +
-          (valuesUnmatched ? `, ${valuesUnmatched} unmatched.` : '.'),
+        `Column "${column.title}": ${colLinksCreated} links created` +
+          (colValuesUnmatched ? `, ${colValuesUnmatched} unmatched.` : '.'),
         true,
       );
     }

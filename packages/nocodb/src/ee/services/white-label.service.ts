@@ -8,10 +8,12 @@ import {
 import type { NcRequest } from '~/interface/config';
 import Store from '~/models/Store';
 import Noco from '~/Noco';
+import path from 'path';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { getOnPremPlan } from '~/helpers/paymentHelpers';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const MAX_PRODUCT_NAME_LEN = 60;
@@ -237,8 +239,9 @@ export class WhiteLabelService {
     body: Partial<WhiteLabelConfig>,
     req: NcRequest,
   ): Promise<WhiteLabelConfig> {
+    const prev = await this.getRawConfig();
     const next: WhiteLabelConfig = {
-      ...(await this.getRawConfig()),
+      ...prev,
       ...body,
     };
 
@@ -261,6 +264,10 @@ export class WhiteLabelService {
       type: 'object',
     });
 
+    // Best-effort: delete asset files that were replaced or cleared, so old
+    // uploads don't accumulate in storage. Never blocks the save.
+    await this.cleanupReplacedAssets(prev, next);
+
     // Audit this instance-wide, super-admin-only change.
     this.appHooksService.emit(AppEvents.WHITE_LABEL_UPDATE, {
       orgId: Noco.ncDefaultOrgId,
@@ -271,6 +278,52 @@ export class WhiteLabelService {
     // Return the admin-facing form so the UI can keep rendering previews
     // (canonical paths get re-signed here too).
     return this.getConfig();
+  }
+
+  /** Delete the storage files for asset fields that changed value. */
+  private async cleanupReplacedAssets(
+    prev: WhiteLabelConfig,
+    next: WhiteLabelConfig,
+  ): Promise<void> {
+    for (const key of [
+      'logoUrl',
+      'logoDarkUrl',
+      'faviconUrl',
+      'formBannerUrl',
+    ] as const) {
+      const oldVal = prev[key];
+      if (oldVal && oldVal !== next[key]) {
+        await this.deleteAssetFile(oldVal);
+      }
+    }
+  }
+
+  /**
+   * Best-effort deletion of a previously-uploaded white-label asset file.
+   * Strictly scoped: only our own canonical `download/whiteLabel/...` paths are
+   * touched — external/CDN URLs, same-origin paths, and anything attempting
+   * traversal or a different scope are ignored. Each upload lives under a unique
+   * nanoid, so removing the old value never affects the replacement. Never
+   * throws — a failed cleanup must not fail the config save.
+   */
+  private async deleteAssetFile(value: string): Promise<void> {
+    const canonical = value.split('?')[0];
+    if (!/^download\/whiteLabel\//i.test(canonical) || canonical.includes('..')) {
+      return;
+    }
+    try {
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      // Stored `download/whiteLabel/<hash>/<nanoid>/<file>` maps to the storage
+      // key `nc/whiteLabel/<hash>/<nanoid>/<file>` (same key for every adapter).
+      const key = path.join('nc', canonical.replace(/^download[/\\]/i, ''));
+      await storageAdapter.fileDelete(key);
+    } catch (e) {
+      this.logger.error(
+        `Failed to delete old white-label asset ${canonical}: ${
+          (e as Error).message
+        }`,
+      );
+    }
   }
 
   /** Reverse of resolveAssetUrl — only touches `/dltemp/...` signed URLs. */

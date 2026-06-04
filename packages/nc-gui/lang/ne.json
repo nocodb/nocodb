@@ -838,6 +838,7 @@
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
       "sqlite": "SQLite",
+      "mssql": "SQL Server",
       "dataBricks": "DataBricks",
       "telegram": "टेलिग्राम",
       "whatsapp": "व्हाट्सएप",

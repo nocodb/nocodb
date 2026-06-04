@@ -1417,6 +1417,19 @@ export const useRealtime = createSharedComposable(() => {
             if (activeDocId.value && _payload.id === activeDocId.value) {
               applyRealtimeEvent(_payload.action, _payload.payload)
             }
+
+            // Keep the per-doc comment count live even when the comments panel was
+            // never opened (the fresh-page-load case) — the count above only updates
+            // once the panel has loaded the comments list. Patch the store doc's
+            // count snapshot by delta so the editor header stays in sync.
+            if (_payload.action === 'add' || _payload.action === 'delete') {
+              const baseDocs = documents.value.get(activeBaseId.value) || []
+              const target = baseDocs.find((d) => d.id === _payload.id)
+              if (target) {
+                const delta = _payload.action === 'add' ? 1 : -1
+                target.comment_count = Math.max(0, (target.comment_count || 0) + delta)
+              }
+            }
           },
         )
       }

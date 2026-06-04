@@ -1198,7 +1198,10 @@ const {
 // comments, which would show a stale count.
 const commentCount = computed(() => {
   if (commentsDocId.value === docId.value && docComments.value.length) return docComments.value.length
-  return doc.value?.comment_count ?? 0
+  // Prefer the store doc — its `comment_count` is kept live by the realtime comment
+  // handler (useRealtime), so the count updates even with the panel closed. Fall back
+  // to the loaded doc for the brief window before the store row resolves.
+  return activeDocument.value?.comment_count ?? doc.value?.comment_count ?? 0
 })
 
 watch(isDocCommentsLoading, (loading, wasLoading) => {
@@ -3359,25 +3362,19 @@ defineExpose({ editor })
   --nc-code-block-toolbar-fg-hover: rgba(255, 255, 255, 0.9);
 }
 
-// Real-time collaboration cursors. Adapted from Outline's multiplayer cursor
-// styling (shared/editor/components/Styles.ts → `.ProseMirror-yjs-cursor`), but the
-// caret is `pointer-events: none` and the name flag is persistent rather than
-// hover-revealed. Outline reveals the name on hover via a widened `::after` hover
-// target — that target overlays the text line and intercepts clicks, so clicking
-// near a peer's caret would fail to place the local cursor. Dropping it (and the
-// hover) keeps the cursor decoration purely visual: it can never steal a click or
-// a selection from the local editor. TipTap's CollaborationCursor ships no CSS and
-// sets only an inline colour, so without these rules the flag is a full-width block.
+// Real-time collaboration cursors (TipTap's CollaborationCursor ships no CSS).
+// The caret is absolutely positioned so it takes up no inline space: an in-flow
+// caret splits the text node it sits in, which both adds a visible gap and breaks
+// native double-click word selection across a peer's cursor. `pointer-events: none`
+// keeps it purely decorative so it can never steal a click from the local editor.
 .nc-doc-editor-content {
   .collaboration-cursor__caret {
-    position: relative;
-    margin-left: -1px;
-    margin-right: -1px;
-    border-left: 1px solid;
-    border-right: 1px solid;
-    height: 1em; // explicit height so the empty caret span renders a visible bar
+    position: absolute;
+    width: 0;
+    border-left: 2px solid;
+    height: 1.2em; // explicit height so the zero-width caret renders a visible bar
     word-break: normal;
-    pointer-events: none; // purely decorative — never intercept the local caret
+    pointer-events: none;
   }
 
   .collaboration-cursor__label {

@@ -32,11 +32,24 @@ const resolvedSrc = computed(() => {
   return ''
 })
 
+// A collaborator's local blob preview (`src = blob:…`) propagates over the CRDT
+// before the durable FileReference `id` does, and a blob URL only loads in the
+// client that created it — so on a peer it fails to load. Track that failure and
+// fall back to the skeleton until the `id` arrives and resolvedSrc switches to the
+// proxy URL (@error flips this; the watcher resets it when the source changes).
+const imgError = ref(false)
+
+watch(resolvedSrc, () => {
+  imgError.value = false
+})
+
 const isLoading = computed(() => {
-  // Only show loading during upload (no path yet, no src yet).
-  // path is set when upload completes; id is set later when doc is saved.
-  const { path, src } = props.node.attrs
-  return !path && !src
+  const { path, src, id } = props.node.attrs
+  // Uploading: no durable ref and no preview yet.
+  if (!path && !src) return true
+  // Source failed to load (e.g. a peer can't load the uploader's local blob) and
+  // there's no durable id yet — keep the skeleton while the id propagates.
+  return imgError.value && !id
 })
 
 // --- Alignment ---
@@ -312,6 +325,8 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         class="nc-doc-image"
         data-testid="nc-doc-image"
         draggable="false"
+        @error="imgError = true"
+        @load="imgError = false"
       />
 
       <!-- Resize handles (visible when selected + editable) -->

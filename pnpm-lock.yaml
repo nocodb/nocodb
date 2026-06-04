@@ -132,6 +132,9 @@ overrides:
   js-cookie@<=3.0.5: '>=3.0.7'
 
 patchedDependencies:
+  ant-design-vue@3.2.20:
+    hash: 8eb832e948f90840410a7681d4e03d7fc48e8a789f1cdcc2c363166781b591c7
+    path: packages/nc-gui/.patches/ant-design-vue@3.2.20.patch
   splitpanes@3.1.5:
     hash: 203a092b77593dfaf72ce85769a33061a3f4dbb0999eb458b5ead220efd0750b
     path: packages/nc-gui/.patches/splitpanes@3.1.5.patch
@@ -328,7 +331,7 @@ importers:
         version: 6.183.0
       ant-design-vue:
         specifier: ^3.2.20
-        version: 3.2.20(vue@3.5.14(typescript@5.8.3))
+        version: 3.2.20(patch_hash=8eb832e948f90840410a7681d4e03d7fc48e8a789f1cdcc2c363166781b591c7)(vue@3.5.14(typescript@5.8.3))
       aws-amplify:
         specifier: ^5.3.27
         version: 5.3.27(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.27.1)(@babel/preset-env@7.24.0(@babel/core@7.27.1))(encoding@0.1.13)(react@18.2.0))
@@ -34379,7 +34382,7 @@ snapshots:
 
   ansis@4.3.0: {}
 
-  ant-design-vue@3.2.20(vue@3.5.14(typescript@5.8.3)):
+  ant-design-vue@3.2.20(patch_hash=8eb832e948f90840410a7681d4e03d7fc48e8a789f1cdcc2c363166781b591c7)(vue@3.5.14(typescript@5.8.3)):
     dependencies:
       '@ant-design/colors': 6.0.0
       '@ant-design/icons-vue': 6.1.0(vue@3.5.14(typescript@5.8.3))

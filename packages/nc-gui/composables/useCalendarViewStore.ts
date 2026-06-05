@@ -218,7 +218,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // reload or new tab restores the user's last choice without overwriting the
     // view creator's default (`viewMetaProperties.active_view`).
     const CALENDAR_MODE_STORAGE_PREFIX = 'nc-calendar-mode:'
-    const validCalendarModes = ['day', 'week', '2week', 'month', '6week', 'year'] as const
+    const validCalendarModes = ['day', '3day', 'week', '2week', 'month', '6week', 'year'] as const
     type CalendarMode = (typeof validCalendarModes)[number]
 
     const calendarModeStorageKey = () => (viewMeta.value?.id ? `${CALENDAR_MODE_STORAGE_PREFIX}${viewMeta.value.id}` : null)
@@ -288,6 +288,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     watch(activeCalendarView, (value) => {
       writeStoredCalendarMode(value)
     })
+
+    // 3-day mode anchors on the selected day (not week-aligned). The
+    // activeCalendarView watcher only fires on later changes, so when the
+    // persisted mode is already '3day' on a cold load we seed the range here.
+    if (activeCalendarView.value === '3day') {
+      selectedDateRange.value = {
+        start: selectedDate.value.startOf('day'),
+        end: selectedDate.value.add(2, 'day').endOf('day'),
+      }
+    }
 
     // Number of consecutive weeks rendered by the multi-week grid (week / 2week / 6week).
     const weeksInRange = computed(() => {
@@ -387,6 +397,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         ]
       } else if (
         sideBarFilterOption.value === 'week' ||
+        sideBarFilterOption.value === '3day' ||
         sideBarFilterOption.value === '2week' ||
         sideBarFilterOption.value === '6week' ||
         sideBarFilterOption.value === 'month' ||
@@ -407,6 +418,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             toDate = selectedDate.value.endOf('day')
             prevDate = selectedDate.value.subtract(1, 'day').endOf('day')
             nextDate = selectedDate.value.add(1, 'day').startOf('day')
+            break
+          case '3day':
+            fromDate = selectedDateRange.value.start.startOf('day')
+            toDate = selectedDateRange.value.start.add(2, 'day').endOf('day')
+            prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
+            nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
             break
           case 'week':
           case '2week':
@@ -644,6 +661,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (
         activeCalendarView.value === 'week' ||
         activeCalendarView.value === 'day' ||
+        activeCalendarView.value === '3day' ||
         activeCalendarView.value === '2week' ||
         activeCalendarView.value === '6week'
       ) {
@@ -706,7 +724,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     // Update the calendar view
-    const changeCalendarView = async (view: 'month' | 'year' | 'day' | 'week' | '2week' | '6week') => {
+    const changeCalendarView = async (view: 'month' | 'year' | 'day' | '3day' | 'week' | '2week' | '6week') => {
       $e('c:calendar:change-calendar-view', view)
 
       try {
@@ -721,7 +739,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           })
         }
 
-        if (activeCalendarView.value === 'week' || activeCalendarView.value === '2week' || activeCalendarView.value === '6week') {
+        if (
+          activeCalendarView.value === 'week' ||
+          activeCalendarView.value === '3day' ||
+          activeCalendarView.value === '2week' ||
+          activeCalendarView.value === '6week'
+        ) {
           selectedTime.value = null
         }
       } catch (e) {
@@ -781,6 +804,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           fromDate = selectedDate.value.startOf('day')
           toDate = selectedDate.value.endOf('day')
           break
+        case '3day': {
+          // Day-anchored 3-column window — selectedDateRange.start is the first
+          // visible day (not week-aligned like the week/2week/6week modes).
+          fromDate = selectedDateRange.value.start.startOf('day')
+          toDate = selectedDateRange.value.start.add(2, 'day').endOf('day')
+          prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
+          nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
+          break
+        }
         case 'week':
         case '2week':
         case '6week': {
@@ -912,6 +944,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             pageDate.value = selectedDate.value
           }
           break
+        case '3day': {
+          // Step the 3-day window by its full span.
+          const dayShift = action === 'next' ? 3 : -3
+          const newStart = selectedDateRange.value.start.add(dayShift, 'day')
+          selectedDateRange.value = {
+            start: newStart.startOf('day'),
+            end: newStart.add(2, 'day').endOf('day'),
+          }
+          if (pageDate.value.month() !== newStart.month()) {
+            pageDate.value = newStart
+          }
+          break
+        }
         case 'week':
         case '2week':
         case '6week': {
@@ -1028,6 +1073,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (
         activeCalendarView.value === 'month' ||
         activeCalendarView.value === 'week' ||
+        activeCalendarView.value === '3day' ||
         activeCalendarView.value === '2week' ||
         activeCalendarView.value === '6week'
       ) {
@@ -1065,14 +1111,26 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(selectedDateRange, async () => {
-      if (activeCalendarView.value !== 'week' && activeCalendarView.value !== '2week' && activeCalendarView.value !== '6week') {
+      if (
+        activeCalendarView.value !== 'week' &&
+        activeCalendarView.value !== '3day' &&
+        activeCalendarView.value !== '2week' &&
+        activeCalendarView.value !== '6week'
+      ) {
         return
       }
       await Promise.all([loadCalendarData(), loadSidebarData()])
     })
 
     watch(activeCalendarView, async (value, oldValue) => {
-      if (oldValue === 'week' || oldValue === '2week' || oldValue === '6week') {
+      if (oldValue === '3day') {
+        // Leaving 3-day: anchor every cursor on the first visible day of the window.
+        const anchor = selectedDateRange.value.start
+        pageDate.value = anchor
+        selectedMonth.value = anchor
+        selectedDate.value = anchor
+        selectedTime.value = anchor
+      } else if (oldValue === 'week' || oldValue === '2week' || oldValue === '6week') {
         pageDate.value = selectedDate.value
         selectedMonth.value = selectedDate.value ?? selectedDateRange.value.start
         selectedDate.value = selectedDate.value ?? selectedDateRange.value.start
@@ -1099,6 +1157,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         selectedDateRange.value = {
           start: selectedDate.value.startOf('week'),
           end: selectedDate.value.endOf('week'),
+        }
+      }
+      // Entering 3-day: anchor the day-window on the currently selected day.
+      if (value === '3day') {
+        selectedDateRange.value = {
+          start: selectedDate.value.startOf('day'),
+          end: selectedDate.value.add(2, 'day').endOf('day'),
         }
       }
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'

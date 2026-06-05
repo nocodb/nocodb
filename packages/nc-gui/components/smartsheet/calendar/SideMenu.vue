@@ -109,6 +109,7 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === 'selectedDate' ||
           sideBarFilterOption.value === 'selectedHours' ||
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '3day' ||
           sideBarFilterOption.value === '2week' ||
           sideBarFilterOption.value === '6week' ||
           sideBarFilterOption.value === 'day'
@@ -120,6 +121,10 @@ const renderData = computed<Array<Row>>(() => {
             case 'month':
               fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
               toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
+              break
+            case '3day':
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
               break
             case 'year':
               fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
@@ -179,6 +184,7 @@ const renderData = computed<Array<Row>>(() => {
           }
         } else if (
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '3day' ||
           sideBarFilterOption.value === '2week' ||
           sideBarFilterOption.value === '6week' ||
           sideBarFilterOption.value === 'month' ||
@@ -188,6 +194,10 @@ const renderData = computed<Array<Row>>(() => {
           let toDate: dayjs.Dayjs
 
           switch (sideBarFilterOption.value) {
+            case '3day':
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
+              break
             case 'week':
             case '2week':
             case '6week': {
@@ -233,6 +243,23 @@ const options = computed(() => {
         return [
           { label: 'All records', value: 'allRecords' },
           { label: 'In this day', value: 'day' },
+          { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'Without dates', value: 'withoutDates' },
+        ]
+      }
+    case '3day' as const:
+      if (calDataType.value === UITypes.Date) {
+        return [
+          { label: 'All records', value: 'allRecords' },
+          { label: 'In selected range', value: '3day' },
+          { label: 'In selected date', value: 'selectedDate' },
+          { label: 'Without dates', value: 'withoutDates' },
+        ]
+      } else {
+        return [
+          { label: 'All records', value: 'allRecords' },
+          { label: 'In selected range', value: '3day' },
+          { label: 'In selected date', value: 'selectedDate' },
           { label: 'In selected hours', value: 'selectedHours' },
           { label: 'Without dates', value: 'withoutDates' },
         ]

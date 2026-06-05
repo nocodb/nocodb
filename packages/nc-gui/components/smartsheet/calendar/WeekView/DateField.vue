@@ -16,11 +16,14 @@ const {
   viewMetaProperties,
   updateFormat,
   isSyncedFromColumn,
+  activeCalendarView,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
+  // 3-day mode always renders exactly 3 day columns (weekends included).
+  if (activeCalendarView.value === '3day') return 3
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
@@ -112,7 +115,7 @@ const isInRange = (date: dayjs.Dayjs) => {
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
 
-  const recordsInDay = Array.from({ length: 7 }, () => ({})) as Record<number, Record<number, boolean>>
+  const recordsInDay = Array.from({ length: maxVisibleDays.value }, () => ({})) as Record<number, Record<number, boolean>>
   const recordsInRange = [] as Row[]
   const perDayWidth = containerWidth.value / maxVisibleDays.value
 
@@ -546,6 +549,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         :key="weekIndex"
         :class="{
           'selected-date-header': dayjs(date).isSame(selectedDate, 'day'),
+          'w-1/3': maxVisibleDays === 3,
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
@@ -563,6 +567,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         :class="{
           'selected-date': dayjs(date).isSame(selectedDate, 'day'),
           '!bg-nc-bg-gray-extralight': date.get('day') === 0 || date.get('day') === 6,
+          'w-1/3': maxVisibleDays === 3,
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"

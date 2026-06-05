@@ -16,6 +16,18 @@ const {
 
 const calendarRangeDropdown = ref(false)
 
+// 3-day mode anchors on a single day; the picker selects the first visible day
+// and the window spans that day + 2.
+const threeDayDate = computed<dayjs.Dayjs>({
+  get: () => timezoneDayjs.timezonize(selectedDateRange.value.start),
+  set: (date: dayjs.Dayjs) => {
+    selectedDateRange.value = {
+      start: date.startOf('day'),
+      end: date.add(2, 'day').endOf('day'),
+    }
+  },
+})
+
 const formatWeekRange = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
   if (startDate.isSame(endDate, 'month')) {
     return `${startDate.format('D')} - ${endDate.format('D MMM YY')}`
@@ -30,6 +42,10 @@ const headerText = computed(() => {
   switch (activeCalendarView.value) {
     case 'day':
       return timezoneDayjs.timezonize(selectedDate.value).format('D MMM YYYY')
+    case '3day': {
+      const startDate = timezoneDayjs.timezonize(selectedDateRange.value.start)
+      return formatWeekRange(startDate, startDate.add(2, 'day'))
+    }
     case 'week': {
       const startDate = timezoneDayjs.timezonize(selectedDateRange.value.start)
       const endDate = timezoneDayjs.timezonize(selectedDateRange.value.end)
@@ -59,7 +75,11 @@ const headerText = computed(() => {
           'w-20': activeCalendarView === 'year',
           'w-26.5': activeCalendarView === 'month',
           'w-29': activeCalendarView === 'day',
-          'w-38': activeCalendarView === 'week' || activeCalendarView === '2week' || activeCalendarView === '6week',
+          'w-38':
+            activeCalendarView === 'week' ||
+            activeCalendarView === '3day' ||
+            activeCalendarView === '2week' ||
+            activeCalendarView === '6week',
         }"
         class="prev-next-btn !h-7"
         full-width
@@ -70,7 +90,10 @@ const headerText = computed(() => {
           <span
             :class="{
               'max-w-38 truncate':
-                activeCalendarView === 'week' || activeCalendarView === '2week' || activeCalendarView === '6week',
+                activeCalendarView === 'week' ||
+                activeCalendarView === '3day' ||
+                activeCalendarView === '2week' ||
+                activeCalendarView === '6week',
             }"
             class="font-bold text-[13px] text-center text-nc-content-gray"
             data-testid="nc-calendar-active-date"
@@ -88,6 +111,15 @@ const headerText = computed(() => {
             v-model:active-dates="activeDates"
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
+            :timezone="timezone"
+            header="v2"
+            size="medium"
+          />
+          <NcDateWeekSelector
+            v-else-if="activeCalendarView === ('3day' as const)"
+            v-model:active-dates="activeDates"
+            v-model:page-date="pageDate"
+            v-model:selected-date="threeDayDate"
             :timezone="timezone"
             header="v2"
             size="medium"

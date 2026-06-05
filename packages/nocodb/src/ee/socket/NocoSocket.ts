@@ -787,7 +787,8 @@ export default class NocoSocket {
         // A malformed/incompatible frame (e.g. surrogate-pair edge cases) can
         // throw inside the Yjs decoder. Isolate it so one bad frame can't crash
         // the gateway or wedge the shared session.
-        reply = handleSyncMessage(session.ydoc, frame, socket.id);
+        const readOnly = socket.data.docReadOnly?.has(msg.docId) ?? false;
+        reply = handleSyncMessage(session.ydoc, frame, socket.id, readOnly);
       } catch (e: any) {
         this.logger.error(
           `Doc sync apply failed for ${msg.docId}: ${e.message}`,

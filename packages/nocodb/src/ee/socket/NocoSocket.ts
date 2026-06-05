@@ -56,6 +56,14 @@ export default class NocoSocket {
   private static readonly MAX_DOC_FRAME_BYTES =
     Number(process.env.NC_DOCS_MAX_UPDATE_SIZE) || 5 * 1024 * 1024;
 
+  /**
+   * Optional soft cap on concurrent live doc sessions per node. 0 = unlimited
+   * (default). Past the cap, new docs are declined and stay on REST (realtime is
+   * additive). Off by default until the no-sync client fallback is verified.
+   */
+  private static readonly MAX_LOCAL_DOC_SESSIONS =
+    Number(process.env.NC_DOCS_MAX_LOCAL_SESSIONS) || 0;
+
   public static handleConnection(socket: NcSocket) {
     this.clients.set(socket.id, socket);
     this.logger.debug(`Client connected: ${socket.id}`);
@@ -235,6 +243,17 @@ export default class NocoSocket {
     if (!canRead) {
       this.logger.debug(
         `Socket ${socket.id} denied doc sync (visibility) for ${docId}`,
+      );
+      return;
+    }
+
+    if (
+      this.MAX_LOCAL_DOC_SESSIONS > 0 &&
+      !DocumentCollabManager.isLiveLocal(docId) &&
+      DocumentCollabManager.sessionCount() >= this.MAX_LOCAL_DOC_SESSIONS
+    ) {
+      this.logger.warn(
+        `Doc session cap reached (${this.MAX_LOCAL_DOC_SESSIONS}); ${docId} stays on REST`,
       );
       return;
     }

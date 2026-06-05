@@ -71,6 +71,10 @@ export class DocumentCollabManager {
     return this.sessions.has(docId);
   }
 
+  static sessionCount(): number {
+    return this.sessions.size;
+  }
+
   /**
    * Multi-node aware liveness for the REST coherence gate: a local session,
    * or a holder key set by another node (Redis). False without Redis when no
@@ -115,6 +119,9 @@ export class DocumentCollabManager {
       bootstrapClaimed: false,
     };
     this.sessions.set(docId, session);
+    this.logger.debug(
+      `doc session opened ${docId} (live local sessions: ${this.sessions.size})`,
+    );
 
     // Multi-node "doc is live" holder key for the REST coherence gate.
     // Refreshed on a heartbeat so it survives idle-but-open sessions and

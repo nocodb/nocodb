@@ -130,8 +130,17 @@ const isColorPickerOpen = ref(false)
 // button text. The free hex input remains for exact brand matching.
 const brandPresetColors = ['#3366FF', '#1F3D99', '#0D5A5A', '#0FA14E', '#C86827', '#D50000', '#B33771', '#7D26CD']
 
+// The colour picker emits an 8-digit hex (#RRGGBBAA); the brand colour is solid
+// and the backend only accepts #RGB / #RRGGBB, so drop the alpha channel.
+function normalizeBrandColor(color: string | null | undefined): string | null {
+  if (!color) return null
+  const c = color.trim()
+  const hex8 = c.match(/^#?([0-9a-fA-F]{6})[0-9a-fA-F]{2}$/)
+  return (hex8 ? `#${hex8[1]}` : c).toUpperCase()
+}
+
 function onPickBrandColor(color: string | null) {
-  form.value.brandColor = color ? color.toUpperCase() : null
+  form.value.brandColor = normalizeBrandColor(color)
 }
 
 function syncFromConfig() {
@@ -166,7 +175,7 @@ async function onSave() {
     logoUrl: trim(form.value.logoUrl),
     logoDarkUrl: trim(form.value.logoDarkUrl),
     faviconUrl: trim(form.value.faviconUrl),
-    brandColor: trim(form.value.brandColor),
+    brandColor: normalizeBrandColor(form.value.brandColor),
     formBannerUrl: trim(form.value.formBannerUrl),
     supportEmail: trim(form.value.supportEmail),
     email: {

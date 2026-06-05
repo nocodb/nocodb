@@ -30,19 +30,31 @@ import {
   CustomUrl,
   Dashboard,
   DataReflection,
+  DependencyTracker,
+  Document,
   Extension,
   FileReference,
+  HookLog,
+  IntegrationLink,
   ManagedAppVersion,
   MCPToken,
+  ModelRoleVisibility,
   ModelStat,
+  OperationLog,
   Permission,
+  RecordTemplate,
+  RlsPolicy,
   Sandbox,
+  SandboxChangelog,
   Script,
   Source,
+  SyncLogs,
+  TableSync,
   User,
   Workflow,
   Workspace,
 } from '~/models';
+import CommentReaction from '~/models/CommentReaction';
 import { isOnPrem } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -478,6 +490,7 @@ export default class Base extends BaseCE {
       if (sandbox) {
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);
+        await SandboxChangelog.deleteBySandboxId(sandbox.id, ncMeta);
 
         const remainingSandboxes = await Sandbox.listByProductionBaseId(
           sandbox.production_base_id,
@@ -500,6 +513,7 @@ export default class Base extends BaseCE {
       for (const sandbox of sandboxes) {
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);
+        await SandboxChangelog.deleteBySandboxId(sandbox.id, ncMeta);
         // Delete sandbox base (recursively)
         await Base.delete(
           { ...context, base_id: sandbox.sandbox_base_id },
@@ -538,6 +552,26 @@ export default class Base extends BaseCE {
     await Script.deleteByBaseId(context, baseId, ncMeta);
     await BaseVariable.deleteByBaseId(context, baseId, ncMeta);
     await BaseTrash.deleteByBaseId(context, ncMeta);
+
+    // Base-scoped cleanups the source/model cascade does not cover — keep the
+    // hard delete complete so no orphan rows survive (mirrors softDelete).
+    await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
+    await ModelStat.deleteByBaseId(context, baseId, ncMeta);
+    await IntegrationLink.deleteByBase(context, baseId, ncMeta);
+    await HookLog.deleteByBaseId(context, baseId, ncMeta);
+    await SyncLogs.deleteByBaseId(context, baseId, ncMeta);
+    await TableSync.deleteByBaseId(context, baseId, ncMeta);
+    await RecordTemplate.deleteByBaseId(context, baseId, ncMeta);
+    await CommentReaction.deleteByBaseId(context, baseId, ncMeta);
+    await ModelRoleVisibility.deleteByBaseId(context, baseId, ncMeta);
+    await DependencyTracker.deleteByBaseId(context, baseId, ncMeta);
+    await RlsPolicy.deleteByBaseId(context, baseId, ncMeta);
+    await Permission.deleteByBaseId(context, baseId, ncMeta);
+    await Document.deleteByBaseId(context, baseId, ncMeta);
+
+    // Satellite DB (separate connection, NC_OP_LOG_DB) — best-effort, not part
+    // of the meta transaction. Operation logs also expire via OperationCleanup.
+    await OperationLog.deleteByBaseId(context, baseId);
 
     const sources = await Source.list(
       context,

@@ -218,6 +218,24 @@ export default class DependencyTracker implements DependencyTrackerType {
   }
 
   /**
+   * Clear all dependency rows for a base (used on base hard-delete).
+   */
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DEPENDENCY_TRACKER,
+      {
+        base_id: baseId,
+      },
+    );
+  }
+
+  /**
    * Get dependencies with filters based on dependent type - type-safe overloads
    */
   public static async getDependentsBySource<T extends DependencyTableType>(

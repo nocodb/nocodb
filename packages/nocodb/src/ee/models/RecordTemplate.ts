@@ -245,6 +245,19 @@ export default class RecordTemplate {
     return true;
   }
 
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const templates = await this.list(context, { base_id: baseId }, ncMeta);
+
+    // reuse delete() so per-item + list caches are evicted
+    for (const template of templates) {
+      await this.delete(context, template.id, ncMeta);
+    }
+  }
+
   public static async incrementUsageCount(
     context: NcContext,
     id: string,

@@ -150,6 +150,23 @@ export default class OperationLog implements OperationLogType {
     return this.castType(row);
   }
 
+  // Satellite cleanup (NC_OP_LOG_DB). Runs on its own connection, so it is NOT
+  // part of the caller's meta transaction — best-effort on base hard-delete.
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta: MetaService = Noco.ncOperationLogs,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.OPERATION_LOGS,
+      {
+        base_id: baseId,
+      },
+    );
+  }
+
   public static async getLatestActive(
     context: NcContext,
     key: OperationLogLookupKey,

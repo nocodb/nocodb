@@ -8,9 +8,10 @@ export const internalTests = runOnSet(2, function () {
     internalUiViewTests();
     internalDocumentTests();
 
-    if(isEE()) {
+    if (isEE()) {
       try {
         require('./ee/base-trash.test').baseTrashTests();
+        require('./ee/base-hard-delete-orphans.test').baseHardDeleteOrphansTests();
         require('./ee/base-trash-field.test').baseTrashFieldTests();
         require('./ee/base-trash-table.test').baseTrashTableTests();
         require('./ee/date-dependency.test').dateDependencyTests();

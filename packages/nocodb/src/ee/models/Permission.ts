@@ -427,6 +427,28 @@ export default class Permission {
     return res;
   }
 
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const permissions = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+
+    // bulkDelete cascades to PERMISSION_SUBJECTS and clears the list cache
+    await this.bulkDelete(
+      context,
+      permissions.map((p) => p.id),
+      ncMeta,
+    );
+  }
+
   public static async setSubjects(
     context: NcContext,
     permissionId: string,

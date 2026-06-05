@@ -343,6 +343,26 @@ export default class RlsPolicy {
     return res;
   }
 
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const policies = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.RLS_POLICIES,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+
+    // reuse delete() so subjects (RLS_POLICY_SUBJECTS) and cache are cleaned
+    for (const policy of policies) {
+      await this.delete(context, policy.id, ncMeta);
+    }
+  }
+
   public static async setSubjects(
     context: NcContext,
     policyId: string,

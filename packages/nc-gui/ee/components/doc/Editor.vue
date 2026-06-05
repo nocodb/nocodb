@@ -62,8 +62,22 @@ const props = withDefaults(
     initialContent?: Record<string, any> | null
     /** Force editor non-editable regardless of role / doc permissions (e.g. locked / shared views). */
     readOnly?: boolean
+    /**
+     * Opt into the heading marker rail while `embedded`. Non-embedded docs
+     * always get it; embedded consumers (SmartText) don't — except the public
+     * share reader, which sets this to render anchors + surface the heading
+     * model so it can mount the rail against its own external scroller.
+     */
+    headingRail?: boolean
+    /**
+     * External scroll viewport for scroll-spy / scroll-to-heading. Used with
+     * `headingRail` when the editor's internal scroller is flattened and the
+     * page owns the scroll container (public share reader). Defaults to the
+     * editor's own internal scroll area.
+     */
+    scrollContainer?: HTMLElement | null
   }>(),
-  { docId: '', embedded: false, mode: 'doc', initialContent: null, readOnly: false },
+  { docId: '', embedded: false, mode: 'doc', initialContent: null, readOnly: false, headingRail: false, scrollContainer: null },
 )
 
 const emit = defineEmits<{
@@ -307,17 +321,26 @@ const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
   },
 })
 
+// Non-embedded docs always get the heading rail; embedded consumers (SmartText)
+// don't, except the public share reader which opts in via `headingRail`.
+const isHeadingRailEnabled = !props.embedded || props.headingRail
+
+// When the page supplies an external scroll viewport (public share, where the
+// editor's own scroller is flattened) spy/scroll target it; otherwise the
+// editor's internal scroll area.
+const effectiveScrollRef = computed(() => props.scrollContainer ?? scrollContainerRef.value)
+
 const {
   scrollToHeading,
   headings: docHeadings,
   activeHeadingId,
-} = props.embedded
-  ? {
+} = isHeadingRailEnabled
+  ? useDocHeadingAnchors(editor, effectiveScrollRef, isLoaded)
+  : {
       scrollToHeading: (_id: string) => false,
       headings: ref<DocHeadingEntry[]>([]),
       activeHeadingId: ref<string | null>(null),
     }
-  : useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
 
@@ -1224,7 +1247,10 @@ const _tiptapEditor = useEditor({
     DocActiveBlockExtension,
     DocBlockDirExtension,
     DocHeadingCollapseExtension,
-    ...(props.embedded ? [] : [DocHeadingAnchorExtension]),
+    // Anchors are decoration-only (no doc mutation) — safe to render in
+    // read-only embedded mode. Excluded only for embedded consumers that don't
+    // opt into the rail (SmartText cells), keeping their PM output untouched.
+    ...(props.embedded && !props.headingRail ? [] : [DocHeadingAnchorExtension]),
     DocDragHandleExtension,
     DocSearchExtension,
     DocAiExtension,
@@ -2237,7 +2263,9 @@ onBeforeUnmount(() => {
 
 // Expose the Tiptap editor instance so parents (e.g. SmartTextPanel) can run
 // the same export pipeline (markdown / html / pdf) used in the docs surface.
-defineExpose({ editor })
+// Also surface the heading model + scroll-to-heading so the public share reader
+// can mount the marker rail against its own external scroller.
+defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading })
 </script>
 
 <template>

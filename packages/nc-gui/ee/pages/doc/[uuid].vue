@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PublicDocTreeNode } from 'nocodb-sdk'
+import type { DocHeadingEntry } from '../../composables/useDocHeadingAnchors'
 
 // Defensive walk-depth cap on the deep-link ancestor walk — terminates on a
 // malformed parent chain. Document nesting in practice is shallow.
@@ -116,7 +117,29 @@ const updatedAgo = computed(() => {
   return ts ? timeAgo(ts) : ''
 })
 
-const docEditorRef = ref<{ editor: any } | null>(null)
+// Exposed members are unwrapped by Vue's expose proxy, so they read as plain
+// values here (not refs). `headings`/`activeHeadingId`/`scrollToHeading` power
+// the gutter marker rail, mounted by this page against its own `<main>` scroller.
+const docEditorRef = ref<{
+  editor: any
+  headings: DocHeadingEntry[]
+  activeHeadingId: string | null
+  scrollToHeading: (id: string) => boolean
+} | null>(null)
+
+// External scroll viewport handed to DocEditor — the editor's internal scroller
+// is flattened here (see :deep overrides below), so spy + scroll-to-heading must
+// target this element instead.
+const mainRef = ref<HTMLElement | null>(null)
+
+const railHeadings = computed<DocHeadingEntry[]>(() => docEditorRef.value?.headings ?? [])
+
+const railActiveId = computed<string | null>(() => docEditorRef.value?.activeHeadingId ?? null)
+
+const onRailJump = (id: string) => {
+  docEditorRef.value?.scrollToHeading(id)
+}
+
 const docTitle = computed(() => activeContent.value?.title || activeNode.value?.title || '')
 
 // Build the absolute attachment URL for the markdown export and the cover
@@ -512,100 +535,115 @@ watch(
         </aside>
       </Transition>
 
-      <main class="flex-1 min-w-0 overflow-y-auto">
-        <div v-if="isLoading && !activeContent" class="max-w-[900px] mx-auto px-10 pt-12 text-center text-nc-content-gray-subtle">
-          {{ $t('general.loading') }}…
-        </div>
-        <template v-else-if="activeContent">
-          <!-- Cover banner — mirrors DocEditor's doc-mode cover (full-width
+      <!-- Content column — `relative` so the marker rail positions against the
+           content's left edge (not the sidebar) and stays centered in the
+           viewport while <main> scrolls inside it. -->
+      <div class="nc-shared-doc-content flex-1 min-w-0 relative">
+        <main ref="mainRef" class="absolute inset-0 overflow-y-auto">
+          <div
+            v-if="isLoading && !activeContent"
+            class="max-w-[900px] mx-auto px-10 pt-12 text-center text-nc-content-gray-subtle"
+          >
+            {{ $t('general.loading') }}…
+          </div>
+          <template v-else-if="activeContent">
+            <!-- Cover banner — mirrors DocEditor's doc-mode cover (full-width
                240px image). Editor renders the cover only in doc mode and
                the public reader runs the editor in cell mode, so we draw
                the banner ourselves above the title row. -->
-          <div v-if="coverImageSrc" class="nc-shared-doc-cover" data-testid="nc-shared-doc-cover">
-            <img :src="coverImageSrc" class="nc-shared-doc-cover-image" alt="" />
-          </div>
-          <!-- Title row mirrors DocEditor's inner container (max-w 900 + px-10)
+            <div v-if="coverImageSrc" class="nc-shared-doc-cover" data-testid="nc-shared-doc-cover">
+              <img :src="coverImageSrc" class="nc-shared-doc-cover-image" alt="" />
+            </div>
+            <!-- Title row mirrors DocEditor's inner container (max-w 900 + px-10)
                so it aligns with the prose body below, and uses the same icon
                + title + updated-ago shape DocEditor renders in doc mode. -->
-          <div class="max-w-[900px] mx-auto px-10 pb-4" :class="coverImageSrc ? 'pt-8' : 'pt-12'">
-            <div class="nc-doc-title-row flex items-center">
-              <div class="nc-doc-editor-icon-wrapper">
-                <LazyGeneralEmojiPicker
-                  :key="activeContent.icon ?? ''"
-                  :emoji="activeContent.icon ?? undefined"
-                  :readonly="true"
-                  class="nc-doc-editor-icon"
-                  size="large"
-                >
-                  <template #default>
-                    <GeneralIcon class="text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
-                  </template>
-                </LazyGeneralEmojiPicker>
-              </div>
-              <h1 class="nc-doc-title text-3xl font-semibold text-nc-content-gray-extreme m-0">
-                {{ activeContent.title || activeNode?.title || $t('general.untitled') }}
-              </h1>
-            </div>
-            <div v-if="updatedAgo" class="nc-doc-subtitle mt-2 text-sm text-nc-content-gray-muted">
-              {{ $t('general.updated') }} {{ updatedAgo }}
-            </div>
-          </div>
-          <!-- Read-only PM renderer. `mode='cell' + embedded` makes it take
-               content from `initialContent` and skip its breadcrumb / page
-               actions; the editor still applies its own 900px max-width and
-               px-10 padding internally. -->
-          <LazyDocEditor
-            :key="activeContent.id"
-            ref="docEditorRef"
-            mode="cell"
-            embedded
-            :initial-content="activeContent.content"
-            :read-only="true"
-          />
-          <!-- "Sub documents" panel — mirrors components/doc/SubDocumentsList.vue
-               for anonymous reads. The in-app version reads from the docs
-               store; here we use the share-scope tree we already loaded. -->
-          <!-- pt-2 (vs pt-8 in the in-app component) — DocEditor in
-               cell+embedded mode leaves less trailing whitespace than doc
-               mode, so the in-app spacing reads as too much here. -->
-          <div
-            v-if="subDocs.length"
-            class="max-w-[900px] mx-auto px-10 nc-shared-doc-sub-documents pt-2 pb-12"
-            data-testid="nc-shared-doc-sub-documents"
-          >
-            <div class="nc-shared-doc-sub-documents-header">
-              <span class="nc-shared-doc-sub-documents-title">{{ $t('labels.subDocuments') }}</span>
-            </div>
-            <div class="nc-shared-doc-sub-documents-list mt-2">
-              <div
-                v-for="child in subDocs"
-                :key="child.id"
-                v-e="['c:doc:share:sub-document:open']"
-                class="nc-shared-doc-sub-documents-item"
-                :data-testid="`nc-shared-doc-sub-documents-item-${child.id}`"
-                @click="navigateToDoc(child.id)"
-              >
-                <div class="nc-shared-doc-sub-documents-icon">
+            <div class="max-w-[900px] mx-auto px-10 pb-4" :class="coverImageSrc ? 'pt-8' : 'pt-12'">
+              <div class="nc-doc-title-row flex items-center">
+                <div class="nc-doc-editor-icon-wrapper">
                   <LazyGeneralEmojiPicker
-                    :key="child.icon ?? ''"
-                    :emoji="child.icon ?? undefined"
+                    :key="activeContent.icon ?? ''"
+                    :emoji="activeContent.icon ?? undefined"
                     :readonly="true"
-                    size="xsmall"
-                    class="!text-[16px]"
+                    class="nc-doc-editor-icon"
+                    size="large"
                   >
                     <template #default>
-                      <GeneralIcon icon="ncFileText" class="!text-[16px] text-nc-content-gray-subtle" />
+                      <GeneralIcon class="text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
                     </template>
                   </LazyGeneralEmojiPicker>
                 </div>
-                <span class="nc-shared-doc-sub-documents-name truncate">
-                  {{ child.title || $t('general.untitled') }}
-                </span>
+                <h1 class="nc-doc-title text-3xl font-semibold text-nc-content-gray-extreme m-0">
+                  {{ activeContent.title || activeNode?.title || $t('general.untitled') }}
+                </h1>
+              </div>
+              <div v-if="updatedAgo" class="nc-doc-subtitle mt-2 text-sm text-nc-content-gray-muted">
+                {{ $t('general.updated') }} {{ updatedAgo }}
               </div>
             </div>
-          </div>
-        </template>
-      </main>
+            <!-- Read-only PM renderer. `mode='cell' + embedded` makes it take
+               content from `initialContent` and skip its breadcrumb / page
+               actions; the editor still applies its own 900px max-width and
+               px-10 padding internally. -->
+            <LazyDocEditor
+              :key="activeContent.id"
+              ref="docEditorRef"
+              mode="cell"
+              embedded
+              heading-rail
+              :scroll-container="mainRef"
+              :initial-content="activeContent.content"
+              :read-only="true"
+            />
+            <!-- "Sub documents" panel — mirrors components/doc/SubDocumentsList.vue
+               for anonymous reads. The in-app version reads from the docs
+               store; here we use the share-scope tree we already loaded. -->
+            <!-- pt-2 (vs pt-8 in the in-app component) — DocEditor in
+               cell+embedded mode leaves less trailing whitespace than doc
+               mode, so the in-app spacing reads as too much here. -->
+            <div
+              v-if="subDocs.length"
+              class="max-w-[900px] mx-auto px-10 nc-shared-doc-sub-documents pt-2 pb-12"
+              data-testid="nc-shared-doc-sub-documents"
+            >
+              <div class="nc-shared-doc-sub-documents-header">
+                <span class="nc-shared-doc-sub-documents-title">{{ $t('labels.subDocuments') }}</span>
+              </div>
+              <div class="nc-shared-doc-sub-documents-list mt-2">
+                <div
+                  v-for="child in subDocs"
+                  :key="child.id"
+                  v-e="['c:doc:share:sub-document:open']"
+                  class="nc-shared-doc-sub-documents-item"
+                  :data-testid="`nc-shared-doc-sub-documents-item-${child.id}`"
+                  @click="navigateToDoc(child.id)"
+                >
+                  <div class="nc-shared-doc-sub-documents-icon">
+                    <LazyGeneralEmojiPicker
+                      :key="child.icon ?? ''"
+                      :emoji="child.icon ?? undefined"
+                      :readonly="true"
+                      size="xsmall"
+                      class="!text-[16px]"
+                    >
+                      <template #default>
+                        <GeneralIcon icon="ncFileText" class="!text-[16px] text-nc-content-gray-subtle" />
+                      </template>
+                    </LazyGeneralEmojiPicker>
+                  </div>
+                  <span class="nc-shared-doc-sub-documents-name truncate">
+                    {{ child.title || $t('general.untitled') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </main>
+
+        <!-- Heading marker rail — mounted here (not inside DocEditor) so it
+             positions against this page's external <main> scroller. DocEditor
+             surfaces the heading model + scrollToHeading via defineExpose. -->
+        <DocHeadingRail v-if="railHeadings.length > 1" :headings="railHeadings" :active-id="railActiveId" @jump="onRailJump" />
+      </div>
     </div>
 
     <!-- Noindex meta (Phase 1: always set) -->

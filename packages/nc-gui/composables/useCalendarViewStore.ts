@@ -739,6 +739,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       )
     })
 
+    // Order records by their start (scheduled) time ascending so that records falling on the
+    // same day read in chronological order across every calendar view. JS sort is stable, so
+    // records sharing a start time — and records without one (pushed to the end) — keep their
+    // original relative order.
+    function sortRecordsByStartTime(rows: Row[]): Row[] {
+      const startCol = calendarRange.value?.[0]?.fk_from_col
+      if (!startCol?.title) return rows
+
+      const title = startCol.title
+
+      return [...rows].sort((a, b) => {
+        const aVal = a.row[title]
+        const bVal = b.row[title]
+
+        if (!aVal && !bVal) return 0
+        if (!aVal) return 1
+        if (!bVal) return -1
+
+        return timezoneDayjs.timezonize(aVal).valueOf() - timezoneDayjs.timezonize(bVal).valueOf()
+      })
+    }
+
     async function loadCalendarData(showLoading = true) {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) || !calendarRange.value?.length)
         return
@@ -819,7 +841,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               where: queryParams.value.where,
               whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
-        formattedData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
+        formattedData.value = sortRecordsByStartTime(formatData(res!.list, getEvaluatedRowMetaRowColorInfo))
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(

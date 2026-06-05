@@ -1423,7 +1423,7 @@
       "footerUrl": "Footer link URL",
       "footerUrlHint": "Must be an absolute http(s) URL — same-origin paths don't resolve from an inbox.",
       "helpSupport": "Support",
-      "helpSupportDescription": "Optionally set your own support email for the in-app help menu. When white-labeling is on it replaces support@nocodb.com; leave blank to fall back to NocoDB support.",
+      "helpSupportDescription": "Optionally set your own support email for the in-app help menu. When white-labeling is on it replaces support{'@'}nocodb.com; leave blank to fall back to NocoDB support.",
       "supportEmail": "Support email",
       "supportEmailHint": "Replaces the support contact in the help menu. Leave blank to fall back to NocoDB support.",
       "disabledNotice": "Saved settings won't apply until white-labeling is enabled.",
@@ -1439,7 +1439,7 @@
         "senderName": "NocoDB Inc",
         "footerText": "Build Databases As Spreadsheets : No-Coding Required",
         "footerUrl": "https://nocodb.com",
-        "supportEmail": "support@nocodb.com"
+        "supportEmail": "support{'@'}nocodb.com"
       }
     },
     "syncing": "Syncing",

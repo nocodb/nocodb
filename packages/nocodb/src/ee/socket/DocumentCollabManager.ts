@@ -38,11 +38,17 @@ const BOOTSTRAP_TTL_SECS = 60;
 /** Bounded retries for the final (last-socket) persist before giving up. */
 const FINAL_FLUSH_RETRIES = 3;
 const FINAL_FLUSH_BACKOFF_MS = 500;
+/** TTL on the per-doc persist lock — held only for the duration of a write, so
+ *  this only needs to exceed a slow persist; it self-expires if the writer dies. */
+const PERSIST_LOCK_TTL_SECS = 15;
 
 /** Per-doc Redis key for the multi-node "doc is live" holder (see isLive). */
 const liveKey = (docId: string) => `${CacheScope.DOC_LIVE}:${docId}`;
 /** Per-doc Redis key for the single-seeder bootstrap claim (see claimBootstrap). */
 const bootstrapKey = (docId: string) => `${CacheScope.DOC_BOOTSTRAP}:${docId}`;
+/** Per-doc Redis key for the best-effort single-writer persist lock (see flush). */
+const persistLockKey = (docId: string) =>
+  `${CacheScope.DOC_PERSIST_LOCK}:${docId}`;
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -140,6 +146,38 @@ export class DocumentCollabManager {
   }
 
   /**
+   * Best-effort per-doc persist lock. NOT a safety lock — the `FOR UPDATE` row
+   * lock + content-unchanged guard in documentCollabPersist are the correctness
+   * backstop. Without Redis there's only one node, so we always own the write.
+   */
+  private static async acquirePersistLock(
+    context: NcContext,
+    docId: string,
+  ): Promise<boolean> {
+    try {
+      return await NocoCache.setIfNotExist(
+        context,
+        persistLockKey(docId),
+        this.nodeId,
+        PERSIST_LOCK_TTL_SECS,
+      );
+    } catch {
+      return true; // no Redis / cache disabled → single node → always the writer
+    }
+  }
+
+  private static async releasePersistLock(
+    context: NcContext,
+    docId: string,
+  ): Promise<void> {
+    try {
+      await NocoCache.del(context, persistLockKey(docId));
+    } catch {
+      // ignore — the lock self-expires via TTL.
+    }
+  }
+
+  /**
    * Grant exactly one client the right to seed an empty (legacy) doc into the
    * CRDT. The server can't seed itself (no ProseMirror schema backend-side), so
    * the first eligible subscriber migrates the stored content — but two clients
@@ -210,6 +248,22 @@ export class DocumentCollabManager {
   static async flush(docId: string, isLast = false): Promise<boolean> {
     const s = this.sessions.get(docId);
     if (!s || (!s.dirty && !isLast)) return true;
+
+    // Single-writer optimization (Hocuspocus-style): only one node persists a
+    // given doc per write. Perf dedup only — correctness is still guaranteed by
+    // documentCollabPersist's FOR UPDATE row lock + content-unchanged guard. The
+    // lock is held only across the write, so contention windows are sub-second.
+    const gotLock = await this.acquirePersistLock(s.context, docId);
+    if (!gotLock) {
+      // A peer holds this cycle's write. It has our edits (converged via
+      // DocCollabPubSub) and will persist them, so skipping is lossless. The
+      // final flush must still land the converged state, so signal the caller's
+      // bounded retry loop (release) to re-attempt once the peer releases.
+      if (isLast) return false;
+      this.schedulePersist(docId);
+      return true;
+    }
+
     if (s.debounceTimer) clearTimeout(s.debounceTimer);
     if (s.maxDebounceTimer) clearTimeout(s.maxDebounceTimer);
     s.debounceTimer = s.maxDebounceTimer = undefined;
@@ -235,6 +289,8 @@ export class DocumentCollabManager {
       // in release(), where the session is about to be torn down.
       if (!isLast) this.schedulePersist(docId);
       return false;
+    } finally {
+      await this.releasePersistLock(s.context, docId);
     }
   }
 

@@ -158,14 +158,16 @@ onClickOutside(railRef, () => {
 
 <style lang="scss" scoped>
 .nc-doc-toc-rail {
-  @apply absolute left-2 top-1/2 z-20 items-center;
+  @apply absolute top-1/2 z-20 items-center;
+  left: 4px;
   transform: translateY(-50%);
-  // Comfortable hover hit-area wider than the visible dashes.
-  padding: 8px 12px 8px 4px;
+  // Hover hit-area extends to the right of the dashes; no left padding so the
+  // dashes sit close to the gutter border.
+  padding: 8px 12px 8px 0;
 }
 
 .nc-doc-toc-dashes {
-  @apply flex flex-col items-start;
+  @apply flex flex-col items-end;
   gap: 8px;
   transition: opacity 0.12s ease;
 }

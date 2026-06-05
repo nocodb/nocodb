@@ -1881,7 +1881,12 @@ if (collabEnabled) {
 // `content` is available before we decide whether to seed (synced and the doc
 // load resolve independently).
 if (collabEnabled && collab) {
-  watch([collabSynced, isLoaded, collab.mayBootstrap], ([synced, loaded]) => {
+  // `editor` is a watch source too: if sync + load + grant all resolve before
+  // the (async) editor instance exists, the seed must re-run once it does —
+  // otherwise the doc would be marked bootstrapped without ever migrating its
+  // legacy content (and a later persist could overwrite the stored content with
+  // the empty Y.Doc).
+  watch([collabSynced, isLoaded, collab.mayBootstrap, editor], ([synced, loaded]) => {
     if (!synced || !loaded || hasBootstrapped) return
 
     // Title: enable the live binding (adopt the shared Y.Text title) and, if this
@@ -1906,13 +1911,17 @@ if (collabEnabled && collab) {
     // re-runs on `mayBootstrap` and re-checks.
     if (!collab.mayBootstrap.value) return
 
+    // Editor not materialized yet — wait. Do NOT mark bootstrapped here, or the
+    // legacy doc would never be seeded. The watch re-runs when `editor` resolves.
     const schema = editor.value?.schema
+    if (!schema) return
+
     const legacyContent = parseDocContent(doc.value?.content)
     const isEmptyLegacy =
       !legacyContent?.content?.length ||
       (legacyContent.content.length === 1 && legacyContent.content[0]?.type === 'paragraph' && !legacyContent.content[0]?.content)
 
-    if (!schema || isEmptyLegacy) {
+    if (isEmptyLegacy) {
       // Nothing meaningful to seed; mark bootstrapped so we don't re-check.
       hasBootstrapped = true
       return

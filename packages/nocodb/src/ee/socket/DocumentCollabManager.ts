@@ -1,6 +1,11 @@
 import { Logger } from '@nestjs/common';
 import * as Y from 'yjs';
-import { Awareness } from 'y-protocols/awareness';
+import {
+  Awareness,
+  applyAwarenessUpdate,
+  encodeAwarenessUpdate,
+  removeAwarenessStates,
+} from 'y-protocols/awareness';
 import type { NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
@@ -15,6 +20,15 @@ interface DocSession {
   localSockets: Set<string>;
   dirty: boolean;
   collaborators: Set<string>;
+  /** awareness clientID -> the socket that owns it, for disconnect cleanup. */
+  awarenessClients: Map<number, string>;
+  /**
+   * The collaborative title (the Y.Text 'title') as of the last persist, seeded
+   * at session start from the loaded Y.Doc. Used to tell a genuine in-editor
+   * title edit apart from an unchanged title, so a debounced persist never
+   * clobbers a concurrent REST/sidebar rename by re-writing the stale value.
+   */
+  lastPersistedTitle: string;
   /** True when the server Y.Doc was empty at load (no persisted yjs_state). */
   wasEmpty: boolean;
   /** Set once a client has been granted the right to seed an empty doc. */
@@ -107,16 +121,42 @@ export class DocumentCollabManager {
       Y.applyUpdate(ydoc, new Uint8Array(stateRow.yjs_state));
     }
 
-    session = {
+    const tracked: DocSession = {
       ydoc,
       awareness: new Awareness(ydoc),
       context,
       localSockets: new Set(),
       dirty: false,
       collaborators: new Set(),
+      awarenessClients: new Map(),
+      // The Y.Text title currently in the loaded Y.Doc (the persisted title; '' →
+      // 'Untitled' for an empty/legacy doc). See DocSession.lastPersistedTitle.
+      lastPersistedTitle: ydoc.getText('title').toString() || 'Untitled',
       wasEmpty: !stateRow?.yjs_state,
       bootstrapClaimed: false,
     };
+    session = tracked;
+
+    // Map each awareness clientID to the socket that last updated it (origin is
+    // the socketId we pass in trackAwareness), so a disconnect can reap exactly
+    // that socket's cursors. The server never sets local awareness state, so the
+    // only entries here come from relayed client frames.
+    tracked.awareness.on(
+      'update',
+      (
+        changes: { added: number[]; updated: number[]; removed: number[] },
+        origin: any,
+      ) => {
+        if (typeof origin === 'string') {
+          for (const id of changes.added)
+            tracked.awarenessClients.set(id, origin);
+          for (const id of changes.updated)
+            tracked.awarenessClients.set(id, origin);
+        }
+        for (const id of changes.removed) tracked.awarenessClients.delete(id);
+      },
+    );
+
     this.sessions.set(docId, session);
     this.logger.debug(
       `doc session opened ${docId} (live local sessions: ${this.sessions.size})`,
@@ -225,6 +265,49 @@ export class DocumentCollabManager {
     this.sessions.get(docId)?.localSockets.add(socketId);
   }
 
+  /**
+   * Apply a relayed awareness frame to the session's awareness purely to record
+   * which clientIDs the socket owns (so {@link buildSocketAwarenessRemoval} can
+   * drop them on disconnect). Never throws — a bad frame is dropped.
+   */
+  static trackAwareness(docId: string, socketId: string, update: Buffer) {
+    const s = this.sessions.get(docId);
+    if (!s) return;
+    try {
+      applyAwarenessUpdate(s.awareness, new Uint8Array(update), socketId);
+    } catch (e: any) {
+      this.logger.debug(`awareness track failed for ${docId}: ${e.message}`);
+    }
+  }
+
+  /**
+   * Build the awareness frame that removes a disconnected socket's cursors, and
+   * forget its clientIDs. Returns a base64 frame to broadcast to the room, or
+   * null when the socket owned no cursors. Removing the states bumps each
+   * client's clock so the tombstone supersedes the last cursor on every peer.
+   */
+  static buildSocketAwarenessRemoval(
+    docId: string,
+    socketId: string,
+  ): string | null {
+    const s = this.sessions.get(docId);
+    if (!s) return null;
+    const clients: number[] = [];
+    for (const [clientId, sid] of s.awarenessClients) {
+      if (sid === socketId) clients.push(clientId);
+    }
+    if (!clients.length) return null;
+    try {
+      removeAwarenessStates(s.awareness, clients, 'disconnect');
+      return Buffer.from(encodeAwarenessUpdate(s.awareness, clients)).toString(
+        'base64',
+      );
+    } catch (e: any) {
+      this.logger.debug(`awareness removal failed for ${docId}: ${e.message}`);
+      return null;
+    }
+  }
+
   static markDirty(docId: string, userId?: string) {
     const s = this.sessions.get(docId);
     if (!s) return;
@@ -274,13 +357,17 @@ export class DocumentCollabManager {
     s.dirty = false;
     s.collaborators.clear();
     try {
-      await documentCollabPersist({
+      const { persistedTitle } = await documentCollabPersist({
         context: s.context,
         docId,
         ydoc: s.ydoc,
         collaborators,
         isLast,
+        lastPersistedTitle: s.lastPersistedTitle,
       });
+      // Advance the watermark to the title we just persisted so the next persist
+      // only writes the title again if it was actually edited in the editor.
+      s.lastPersistedTitle = persistedTitle;
       return true;
     } catch (e: any) {
       this.logger.error(`persist failed for ${docId}: ${e.message}`, e.stack);

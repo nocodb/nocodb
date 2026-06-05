@@ -462,23 +462,27 @@ export default class FileReference {
   }
 
   /**
-   * Like {@link listIdsForDoc} but also returns `created_at`, so the collab
-   * prune can spare just-created (out-of-band / REST) refs.
+   * Like {@link listIdsForDoc} but also returns `created_at`. When `createdBefore`
+   * is given, the rows are filtered to those created strictly before it in SQL —
+   * the collab prune uses this to spare just-created (out-of-band / REST) refs
+   * without parsing the driver-returned timestamp in JS.
    */
   public static async listIdRecordsForDoc(
     context: NcContext,
     docId: string,
     ncMeta = Noco.ncMeta,
+    createdBefore?: Date,
   ): Promise<{ id: string; created_at: Date }[]> {
-    return ncMeta
+    const qb = ncMeta
       .knexConnection(MetaTable.FILE_REFERENCES)
       .where({
         base_id: context.base_id,
         fk_doc_id: docId,
         deleted: false,
       })
-      .whereNull('fk_revision_id')
-      .select('id', 'created_at');
+      .whereNull('fk_revision_id');
+    if (createdBefore) qb.where('created_at', '<', createdBefore);
+    return qb.select('id', 'created_at');
   }
 
   /**

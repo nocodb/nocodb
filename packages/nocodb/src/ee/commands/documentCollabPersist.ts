@@ -58,17 +58,20 @@ async function pruneRemovedFileRefs(
     | undefined;
   const coverRefId = meta?.cover_image_file_ref_id;
   // Spare recently-created refs: an eager REST ref row exists before its id
-  // lands in the Yjs content, so a persist in that gap must not reap it.
+  // lands in the Yjs content, so a persist in that gap must not reap it. The
+  // grace window is filtered in SQL (against the DB's own stored timestamp) so
+  // it never depends on how the driver serializes `created_at` back to JS — a
+  // naive (tz-less) string would otherwise shift the cutoff by the conn offset.
   const REF_PRUNE_GRACE_MS = 30_000;
-  const graceCutoff = Date.now() - REF_PRUNE_GRACE_MS;
-  const existing = await FileReference.listIdRecordsForDoc(context, docId);
+  const graceCutoff = new Date(Date.now() - REF_PRUNE_GRACE_MS);
+  const existing = await FileReference.listIdRecordsForDoc(
+    context,
+    docId,
+    undefined,
+    graceCutoff,
+  );
   const removedIds = existing
-    .filter(
-      (r) =>
-        !contentIds.has(r.id) &&
-        r.id !== coverRefId &&
-        new Date(r.created_at).getTime() < graceCutoff,
-    )
+    .filter((r) => !contentIds.has(r.id) && r.id !== coverRefId)
     .map((r) => r.id);
   if (removedIds.length) {
     await FileReference.delete(context, removedIds);
@@ -81,8 +84,14 @@ export async function documentCollabPersist(params: {
   ydoc: Y.Doc;
   collaborators: string[];
   isLast: boolean;
-}) {
-  const { context, docId, ydoc, collaborators } = params;
+  /**
+   * The collaborative title as of the previous persist (the session watermark).
+   * Lets us tell a real in-editor title edit apart from an unchanged title; see
+   * `titleEditedInCollab` below.
+   */
+  lastPersistedTitle: string;
+}): Promise<{ persistedTitle: string }> {
+  const { context, docId, ydoc, collaborators, lastPersistedTitle } = params;
 
   // The title shares the document's Y.Doc as a `Y.Text` (see useCollabTitle), so
   // its authoritative value lives here alongside the body. The first client to
@@ -92,7 +101,16 @@ export async function documentCollabPersist(params: {
   const rawTitle = ydoc.getText('title').toString();
   const normalizedTitle = rawTitle || 'Untitled';
   const existingDoc = await Document.getMeta(context, docId);
-  const titleChanged = !!existingDoc && normalizedTitle !== existingDoc.title;
+
+  // Only treat the title as changed when it was actually edited in the editor
+  // since our last persist. Without this, an external REST/sidebar rename (which
+  // updates `nc_docs.title` but not the shared Y.Text) would be silently
+  // clobbered here by re-writing the unchanged Y.Text value back over it.
+  const titleEditedInCollab = normalizedTitle !== lastPersistedTitle;
+  const titleChanged =
+    titleEditedInCollab &&
+    !!existingDoc &&
+    normalizedTitle !== existingDoc.title;
 
   // Hoisted so the post-commit FileReference prune can read the derived body.
   let contentJson: any;
@@ -123,7 +141,8 @@ export async function documentCollabPersist(params: {
 
     if (contentUnchanged && !titleChanged) {
       await trxMeta.commit();
-      return; // neither body nor title changed — skip write + revision
+      // neither body nor an in-editor title edit — skip write + revision
+      return { persistedTitle: normalizedTitle };
     }
 
     // `yjs_state` encodes both the body and the title, so it always advances when
@@ -163,7 +182,9 @@ export async function documentCollabPersist(params: {
     docId,
     lastEditor,
     undefined,
-    normalizedTitle,
+    // Only push the collaborative title when it was edited in the editor — never
+    // overwrite an external rename with the unchanged Y.Text value.
+    titleChanged ? normalizedTitle : undefined,
   );
 
   // Push the new title to every base client. Editors with the doc open already
@@ -214,4 +235,6 @@ export async function documentCollabPersist(params: {
   } catch (e: any) {
     logger.error(`file-ref cleanup failed for ${docId}: ${e.message}`, e.stack);
   }
+
+  return { persistedTitle: normalizedTitle };
 }

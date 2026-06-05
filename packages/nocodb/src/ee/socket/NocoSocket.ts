@@ -170,6 +170,27 @@ export default class NocoSocket {
         }
       }
 
+      // Collaborative docs: handled before the default join so a socket denied
+      // per-document visibility never joins the sync room (and therefore never
+      // receives the live update/awareness frames broadcast to it). The room
+      // join lives inside subscribeDocSync, after the visibility check.
+      if (eventType === EventType.DOCUMENT_SYNC_EVENT) {
+        if (baseId && isDocsRealtimeEnabled()) {
+          const docId = eventHelper[3];
+          if (docId) {
+            await this.subscribeDocSync(
+              socket,
+              { workspace_id: workspaceId, base_id: baseId },
+              docId,
+              userWithRole,
+              event,
+            );
+          }
+        }
+        // Never fall through to the unconditional default join below.
+        return;
+      }
+
       // Use native Socket.IO rooms (default — no RLS)
       socket.join(event);
       this.logger.debug(`Socket ${socket.id} joined room ${event}`);
@@ -183,26 +204,6 @@ export default class NocoSocket {
 
         // Store as the active presence room (base-level — one at a time)
         socket.data.presenceRoom = event;
-      }
-
-      // Collaborative docs: bind this socket to the server-authoritative Y.Doc.
-      // Kill-switch defense-in-depth — refuse here too even though the frontend
-      // won't open a session when realtime is disabled.
-      if (
-        eventType === EventType.DOCUMENT_SYNC_EVENT &&
-        baseId &&
-        isDocsRealtimeEnabled()
-      ) {
-        const docId = eventHelper[3];
-        if (docId) {
-          await this.subscribeDocSync(
-            socket,
-            { workspace_id: workspaceId, base_id: baseId },
-            docId,
-            userWithRole,
-            event,
-          );
-        }
       }
     } catch (error) {
       this.logger.error(`Error subscribing to event ${event}:`, error);
@@ -256,6 +257,13 @@ export default class NocoSocket {
       );
       return;
     }
+
+    // Authorized reader — join the sync room NOW, after the per-document
+    // visibility check. Joining earlier (e.g. via the default join in
+    // subscribeEvent) would leak the live update/awareness frames broadcast to
+    // this room to a member who is denied this specific page.
+    socket.join(event);
+    this.logger.debug(`Socket ${socket.id} joined doc sync room ${event}`);
 
     const session = await DocumentCollabManager.ensure(context, docId);
     DocumentCollabManager.addSocket(docId, socket.id);
@@ -756,7 +764,22 @@ export default class NocoSocket {
       // + teardown happens inside DocumentCollabManager.release on last socket).
       for (const room of socket.data.docRooms ?? []) {
         const docId = (room as string).split(':')[3];
-        if (docId) void DocumentCollabManager.release(docId, socket.id);
+        if (!docId) continue;
+        // Drop this socket's cursors from peers immediately. An abrupt
+        // disconnect can't send its own awareness(null), so without this the
+        // ghost cursor lingers until the client-side awareness timeout reaps it.
+        const removal = DocumentCollabManager.buildSocketAwarenessRemoval(
+          docId,
+          socket.id,
+        );
+        if (removal) {
+          this.ioServer?.to(room as string).emit(room as string, {
+            kind: 'awareness',
+            docId,
+            update: removal,
+          });
+        }
+        void DocumentCollabManager.release(docId, socket.id);
       }
 
       this.clients.delete(socket.id);
@@ -868,14 +891,18 @@ export default class NocoSocket {
     socket.on(DocCollabClientEvents.AWARENESS, (msg) => {
       const session = socket.data.docSessions?.get(msg?.docId);
       if (!session || typeof msg?.update !== 'string') return;
+      const update = Buffer.from(msg.update, 'base64');
       // Cap awareness frames too (the SYNC/UPDATE handlers already do): a
       // malformed/hostile client must not fan out a giant payload to every peer.
-      if (Buffer.from(msg.update, 'base64').length > this.MAX_DOC_FRAME_BYTES) {
+      if (update.length > this.MAX_DOC_FRAME_BYTES) {
         this.logger.warn(
           `Rejecting oversized awareness frame for ${msg.docId} from ${socket.id}`,
         );
         return;
       }
+      // Record which awareness clientIDs this socket owns so a disconnect can
+      // drop exactly its cursors (it can't send awareness(null) itself).
+      DocumentCollabManager.trackAwareness(msg.docId, socket.id, update);
       const room = this.docRoomFor(session, msg.docId);
       socket.to(room).emit(room, {
         kind: 'awareness',

@@ -18,8 +18,13 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { height: windowHeight } = useWindowSize()
+
 // Marker dash width per heading level (px). H1 widest → H3 narrowest.
-const LEVEL_WIDTH: Record<number, number> = { 1: 16, 2: 12, 3: 8 }
+const LEVEL_WIDTH: Record<number, number> = { 1: 12, 2: 9, 3: 6 }
+
+// Vertical pitch of one dash row: button height (4px) + flex gap (8px).
+const DASH_PITCH = 12
 
 const isOpen = ref(false)
 
@@ -27,6 +32,39 @@ const railRef = ref<HTMLElement | null>(null)
 
 // The rail is meaningful only when there's something to navigate between.
 const isVisible = computed(() => headings.value.length > 1)
+
+// Cap the dash stack to ~60vh (matching the outline panel) so it never runs
+// past the viewport on long docs. `max(1, …)` guards tiny viewports.
+const maxDashes = computed(() => Math.max(1, Math.floor((windowHeight.value * 0.6 + 8) / DASH_PITCH)))
+
+// Progressive level-of-detail: show every heading if it fits; otherwise drop
+// H3 (H1+H2 only); if still too many, drop H2 too and show only H1s.
+const dashHeadings = computed(() => {
+  const all = headings.value
+  if (all.length <= maxDashes.value) return all
+
+  const h1h2 = all.filter((h) => h.level <= 2)
+  if (h1h2.length <= maxDashes.value) return h1h2
+
+  return all.filter((h) => h.level === 1)
+})
+
+// The active heading may have been dropped from the dashes (e.g. an H3 while
+// only H1/H2 are shown) — fall back to the nearest shown heading above it so a
+// marker is always highlighted.
+const activeDashId = computed(() => {
+  if (!activeId.value) return null
+
+  const shown = new Set(dashHeadings.value.map((h) => h.id))
+  if (shown.has(activeId.value)) return activeId.value
+
+  const activeIdx = headings.value.findIndex((h) => h.id === activeId.value)
+  for (let i = activeIdx; i >= 0; i--) {
+    const id = headings.value[i]?.id
+    if (id && shown.has(id)) return id
+  }
+  return null
+})
 
 const { start: scheduleClose, stop: cancelClose } = useTimeoutFn(
   () => {
@@ -72,10 +110,10 @@ onClickOutside(railRef, () => {
     @mouseenter="open"
     @mouseleave="onLeave"
   >
-    <!-- Collapsed marker dashes -->
+    <!-- Collapsed marker dashes — height-capped, drops H3 then H2 on long docs -->
     <div class="nc-doc-toc-dashes" :class="{ 'opacity-0': isOpen }">
       <button
-        v-for="heading in headings"
+        v-for="heading in dashHeadings"
         :key="heading.id"
         type="button"
         class="nc-doc-toc-dash-btn"
@@ -85,7 +123,7 @@ onClickOutside(railRef, () => {
       >
         <span
           class="nc-doc-toc-dash"
-          :class="{ 'nc-doc-toc-dash-active': heading.id === activeId }"
+          :class="{ 'nc-doc-toc-dash-active': heading.id === activeDashId }"
           :style="{ width: dashWidth(heading.level) }"
         />
       </button>

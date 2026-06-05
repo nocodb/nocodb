@@ -34,7 +34,7 @@ const emit = defineEmits<{ 'update:modelValue': [string | null] }>()
 
 const { appInfo } = useGlobal()
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -93,6 +93,7 @@ async function uploadAsset(file: File) {
     }
     // Local storage returns `dltemp/...` without a leading slash; force absolute.
     emit('update:modelValue', /^(https?:\/\/|\/)/.test(raw) ? raw : `/${raw}`)
+    $e(`c:white-label:${props.pathKey.replace(/Url$/, '')}:upload`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -121,6 +122,7 @@ function pickFile() {
 
 function remove() {
   emit('update:modelValue', null)
+  $e(`c:white-label:${props.pathKey.replace(/Url$/, '')}:remove`)
 }
 </script>
 

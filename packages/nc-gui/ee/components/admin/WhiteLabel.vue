@@ -8,6 +8,8 @@ const { appInfo } = useGlobal()
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 interface FormState {
   enabled: boolean
   productName: string | null
@@ -90,10 +92,12 @@ function onFormBannerUploaded(attachment: any) {
   const raw = attachment?.signedPath ?? attachment?.path ?? attachment?.url
   if (!raw) return
   form.value.formBannerUrl = /^(https?:\/\/|\/)/.test(raw) ? raw : `/${raw}`
+  $e('c:white-label:banner:upload')
 }
 
 function removeFormBanner() {
   form.value.formBannerUrl = null
+  $e('c:white-label:banner:remove')
 }
 
 // In dev the frontend (:3000) and backend (:8080) differ; a bare `/dltemp/...`
@@ -141,6 +145,7 @@ function normalizeBrandColor(color: string | null | undefined): string | null {
 
 function onPickBrandColor(color: string | null) {
   form.value.brandColor = normalizeBrandColor(color)
+  $e('c:white-label:brand-color')
 }
 
 function syncFromConfig() {
@@ -169,6 +174,8 @@ function trim(value: string | null): string | null {
 }
 
 async function onSave() {
+  $e('a:white-label:save')
+
   const payload: Partial<WhiteLabelConfig> = {
     enabled: form.value.enabled,
     productName: trim(form.value.productName),
@@ -195,6 +202,7 @@ async function onSave() {
 }
 
 function onReset() {
+  $e('c:white-label:reset')
   if (!initial.value) return
   form.value = { ...initial.value }
   // Drop any in-flight cropper selection (and its blob) the user hadn't saved.
@@ -319,7 +327,7 @@ watch(config, syncFromConfig)
                   {{ $t('labels.whiteLabel.enableDescription') }}
                 </span>
               </div>
-              <NcSwitch v-model:checked="form.enabled" size="default" />
+              <NcSwitch v-model:checked="form.enabled" v-e="['c:white-label:enable:toggle']" size="default" />
             </div>
           </div>
 

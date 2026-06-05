@@ -386,6 +386,7 @@ watch(
             <NcMenuItem
               v-if="showEEFeatures"
               key="white-label"
+              v-e="['c:white-label:open']"
               :class="{ active: activeTab === 'white-label' }"
               class="item"
               data-testid="nc-admin-white-label-nav"

@@ -442,7 +442,7 @@ export class BasesService extends BasesServiceCE {
         await ManagedApp.softDelete(managedApp.id, transaction);
       }
 
-      await Base.delete(context, param.baseId, transaction);
+      await Base.softDelete(context, param.baseId, transaction);
 
       await transaction.commit();
     } catch (e) {

@@ -13,6 +13,7 @@ import { CellSelection } from '@tiptap/pm/tables'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
+import type { DocHeadingEntry } from '../../composables/useDocHeadingAnchors'
 import { DocHighlightExtension } from './DocHighlightExtension'
 import { DocTextColorExtension } from './DocTextColorExtension'
 import { DocCommentMarkExtension } from './DocCommentMarkExtension'
@@ -306,8 +307,16 @@ const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
   },
 })
 
-const { scrollToHeading } = props.embedded
-  ? { scrollToHeading: (_id: string) => false }
+const {
+  scrollToHeading,
+  headings: docHeadings,
+  activeHeadingId,
+} = props.embedded
+  ? {
+      scrollToHeading: (_id: string) => false,
+      headings: ref<DocHeadingEntry[]>([]),
+      activeHeadingId: ref<string | null>(null),
+    }
   : useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
@@ -2271,6 +2280,15 @@ defineExpose({ editor })
 
         <DocBreadcrumb v-if="isLoaded" :doc-id="docId" :current-title="title" />
       </div>
+
+      <!-- Heading marker rail — gutter minimap TOC. Works in edit + read-only
+         (same component); auto-hidden when embedded/cell mode (no anchors). -->
+      <DocHeadingRail
+        v-if="!embedded && !isCellMode && isLoaded"
+        :headings="docHeadings"
+        :active-id="activeHeadingId"
+        @jump="scrollToHeading"
+      />
 
       <!-- Page actions — always visible at top-right -->
       <div v-if="!embedded" class="nc-doc-page-menu">

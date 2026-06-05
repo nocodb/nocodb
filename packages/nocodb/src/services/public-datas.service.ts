@@ -405,17 +405,31 @@ export class PublicDatasService {
       delete listArgs.where;
     }
 
+    // Group-by columns are accessible to public callers: their values are
+    // already exposed as group headers, and the frontend scopes each group's
+    // leaf rows with a `(column,gb_eq,key)` filter. `buildRestrictedAliasColObjMap`
+    // (used to parse `where` above) already includes them, so the filter/sort
+    // strip must too — otherwise a gb_eq filter on a hidden group-by column
+    // (e.g. a lookup used only for grouping) is parsed and then dropped here, and
+    // the leaf query returns unfiltered rows under the wrong group (nocodb#13984).
+    // Note: the `fields`/`f` strip below intentionally stays visible-only so a
+    // hidden group-by column's per-row VALUE is never returned in the payload.
+    const accessibleColumnIds = new Set<string>([
+      ...visibleInfo.visibleColumnIds,
+      ...visibleInfo.groupByColumnIds,
+    ]);
+
     if (ncIsArray(listArgs.filterArr)) {
       listArgs.filterArr = this.stripHiddenColumnsFromFilters(
         listArgs.filterArr,
-        visibleInfo.visibleColumnIds,
+        accessibleColumnIds,
       );
     }
 
     if (ncIsArray(listArgs.sortArr)) {
       listArgs.sortArr = this.stripHiddenColumnsFromSorts(
         listArgs.sortArr,
-        visibleInfo.visibleColumnIds,
+        accessibleColumnIds,
       );
     }
 

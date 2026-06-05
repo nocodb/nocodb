@@ -38,8 +38,7 @@ const BOOTSTRAP_TTL_SECS = 60;
 /** Bounded retries for the final (last-socket) persist before giving up. */
 const FINAL_FLUSH_RETRIES = 3;
 const FINAL_FLUSH_BACKOFF_MS = 500;
-/** TTL on the per-doc persist lock — held only for the duration of a write, so
- *  this only needs to exceed a slow persist; it self-expires if the writer dies. */
+/** TTL on the per-doc persist lock; need only exceed a slow persist (self-expires if the writer dies). */
 const PERSIST_LOCK_TTL_SECS = 15;
 
 /** Per-doc Redis key for the multi-node "doc is live" holder (see isLive). */
@@ -256,16 +255,13 @@ export class DocumentCollabManager {
     const s = this.sessions.get(docId);
     if (!s || (!s.dirty && !isLast)) return true;
 
-    // Single-writer optimization (Hocuspocus-style): only one node persists a
-    // given doc per write. Perf dedup only — correctness is still guaranteed by
-    // documentCollabPersist's FOR UPDATE row lock + content-unchanged guard. The
-    // lock is held only across the write, so contention windows are sub-second.
+    // Single-writer dedup (Hocuspocus-style): one node persists per write. Perf
+    // only — the FOR UPDATE row lock + content-unchanged guard stay correctness.
     const gotLock = await this.acquirePersistLock(s.context, docId);
     if (!gotLock) {
-      // A peer holds this cycle's write. It has our edits (converged via
-      // DocCollabPubSub) and will persist them, so skipping is lossless. The
-      // final flush must still land the converged state, so signal the caller's
-      // bounded retry loop (release) to re-attempt once the peer releases.
+      // A peer holds this write and has our edits (converged via pub/sub), so
+      // skipping is lossless. The final flush must land — signal release()'s
+      // retry loop instead.
       if (isLast) return false;
       this.schedulePersist(docId);
       return true;

@@ -164,9 +164,8 @@ export function useCollabTitle(opts: {
   function setTitle(next: string) {
     const val = next || ''
     pushDiff(val)
-    // Mirror into the local title ref so the input reflects the restored
-    // value immediately, bypassing the watch guard that would otherwise echo
-    // this write back into pushDiff.
+    // Mirror to the local ref so the input updates; applyingRemote stops the
+    // watch from echoing this back into pushDiff.
     applyingRemote = true
     title.value = val
     applyingRemote = false

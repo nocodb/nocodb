@@ -462,9 +462,8 @@ export default class FileReference {
   }
 
   /**
-   * Like {@link listIdsForDoc} but returns each ref's `created_at` too, so the
-   * collab prune can spare refs created out-of-band (REST) whose id hasn't yet
-   * propagated into the Yjs content (avoids reaping a just-created ref).
+   * Like {@link listIdsForDoc} but also returns `created_at`, so the collab
+   * prune can spare just-created (out-of-band / REST) refs.
    */
   public static async listIdRecordsForDoc(
     context: NcContext,

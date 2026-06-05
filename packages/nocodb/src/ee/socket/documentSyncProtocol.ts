@@ -16,13 +16,8 @@ export function encodeSyncStep1(doc: Y.Doc): Uint8Array {
 
 /**
  * Apply an inbound sync frame to `doc`. Returns a reply frame, or null.
- *
- * Gates write-bearing sub-messages for read-only connections at the decode
- * boundary (mirrors Hocuspocus `MessageReceiver.readSyncMessage`): a read-only
- * client may only run SyncStep1 (which just produces the server's state reply).
- * SyncStep2 / Update carry client mutations and are dropped — otherwise a
- * viewer could mutate the shared doc via this channel (the `UPDATE` socket
- * handler already enforces this; this closes the same hole on `SYNC`).
+ * Read-only connections may only run SyncStep1; SyncStep2/Update carry client
+ * mutations and are dropped (mirrors Hocuspocus MessageReceiver).
  */
 export function handleSyncMessage(
   doc: Y.Doc,
@@ -39,8 +34,6 @@ export function handleSyncMessage(
   const syncMessageType = decoding.readVarUint(dec);
   switch (syncMessageType) {
     case syncProtocol.messageYjsSyncStep1:
-      // Read-only safe: only reads the client's state vector and writes the
-      // server's missing-updates reply into `enc`.
       syncProtocol.readSyncStep1(dec, enc, doc);
       break;
     case syncProtocol.messageYjsSyncStep2:

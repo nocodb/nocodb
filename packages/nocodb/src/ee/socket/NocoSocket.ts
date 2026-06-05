@@ -57,9 +57,8 @@ export default class NocoSocket {
     Number(process.env.NC_DOCS_MAX_UPDATE_SIZE) || 5 * 1024 * 1024;
 
   /**
-   * Optional soft cap on concurrent live doc sessions per node. 0 = unlimited
-   * (default). Past the cap, new docs are declined and stay on REST (realtime is
-   * additive). Off by default until the no-sync client fallback is verified.
+   * Optional per-node cap on concurrent live doc sessions; 0 = unlimited
+   * (default). Past the cap, new docs stay on REST (realtime is additive).
    */
   private static readonly MAX_LOCAL_DOC_SESSIONS =
     Number(process.env.NC_DOCS_MAX_LOCAL_SESSIONS) || 0;

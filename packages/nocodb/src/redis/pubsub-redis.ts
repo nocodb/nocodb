@@ -13,11 +13,9 @@ export class PubSubRedis {
   public static redisSubscriber: Redis;
 
   /**
-   * channel -> set of handlers. A single 'message' listener (registered once via
-   * ensureMessageListener) demuxes by channel and fans out to that channel's
-   * handler set — O(1) dispatch with a constant listener count, instead of one
-   * 'message' listener per subscribe() (which delivered every message to every
-   * channel's listener and tripped MaxListenersExceededWarning past ~10).
+   * channel -> handler set. One shared 'message' listener (ensureMessageListener)
+   * demuxes by channel, instead of one listener per subscribe() (O(N) dispatch +
+   * MaxListenersExceededWarning past ~10 channels).
    */
   private static handlers = new Map<string, Set<(message: any) => void>>();
   private static messageListenerBound = false;
@@ -38,7 +36,7 @@ export class PubSubRedis {
     PubSubRedis.messageListenerBound = true;
     PubSubRedis.redisSubscriber.on('message', (messageChannel, message) => {
       const set = PubSubRedis.handlers.get(messageChannel);
-      if (!set || set.size === 0) return;
+      if (!set) return;
       let parsed: any = message;
       try {
         parsed = JSON.parse(message);
@@ -99,8 +97,7 @@ export class PubSubRedis {
 
     PubSubRedis.ensureMessageListener();
 
-    // Function declarations (hoisted) so wrapped <-> unsubscribe can reference
-    // each other without TDZ / no-use-before-define issues.
+    // Hoisted fn declarations so wrapped <-> unsubscribe can reference each other.
     function wrapped(message: any) {
       void callback(message, unsubscribe);
     }

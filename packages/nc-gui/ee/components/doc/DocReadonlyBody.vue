@@ -23,9 +23,8 @@ import { UserMention } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
 
 const props = defineProps<{ content?: Record<string, any> | null }>()
 
-// Read-only render of legacy content for non-seeder viewers of an un-migrated
-// doc (see Editor.vue showLegacyFallback). NOT collaborative — never writes to
-// the shared Y.Doc, so it can't diverge or duplicate the real seed.
+// Read-only render of legacy content for non-seeder viewers (see Editor.vue
+// showLegacyFallback). Never writes to the shared Y.Doc.
 const editor = useEditor({
   editable: false,
   content: parseDocContent(props.content),
@@ -44,9 +43,8 @@ const editor = useEditor({
     TableRow,
     DocTableCell,
     DocTableHeader,
-    // Node schema for `mention` nodes — required so legacy @mentions render
-    // instead of being silently dropped. The suggestion popup never fires in
-    // an editable:false instance, so bare config (safe defaults) is sufficient.
+    // Node schema so legacy @mentions render (suggestion popup is inert in
+    // editable:false, so bare config is fine).
     UserMention,
     CalloutExtension,
     DocColumnsExtension,

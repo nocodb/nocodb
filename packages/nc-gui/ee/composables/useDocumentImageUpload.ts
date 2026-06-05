@@ -130,11 +130,9 @@ export function useDocumentImageUpload(opts?: DocAttachmentUploadOpts) {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          // Retry transient ref-creation failures (offline blip / 5xx). A null ref
-          // leaves the node with only `path`, which can't render once the blob URL
-          // is revoked — and the REST reconcile that used to backfill the id is
-          // blocked while the doc is live. Surface a clear error on persistent
-          // failure instead of silently producing a broken image.
+          // Retry transient ref-creation failures: a null ref leaves a path-only
+          // node that can't render (no REST backfill while live). Surface an error
+          // on persistent failure instead of a silent broken image.
           let fileRefId = await maybeCreateRef(storedRef, file.size)
           for (let attempt = 1; !fileRefId && attempt <= 2; attempt++) {
             await new Promise((r) => setTimeout(r, 300 * attempt))

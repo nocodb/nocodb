@@ -1926,9 +1926,8 @@ if (collabEnabled && collab) {
   })
 }
 
-// Reactive "does the shared Y.Doc body have content" — drives the legacy
-// read-only fallback (F1). The Yjs fragment length isn't reactive, so track it
-// via the doc's update event.
+// Reactive flag: does the shared Y.Doc body have content (drives the F1
+// fallback). Fragment length isn't reactive, so track it via 'update'.
 const collabBodyHasContent = ref(false)
 if (collabEnabled && collab) {
   const frag = collab.ydoc.getXmlFragment('default')
@@ -1947,10 +1946,8 @@ if (collabEnabled && collab) {
 
 const legacyFallbackContent = computed(() => parseDocContent(doc.value?.content))
 
-// F1: a non-seeder viewing a legacy doc whose server Y.Doc is still empty would
-// otherwise see a blank body (loadAndSetDoc skips setContent in collab, and only
-// the seeder migrates `doc.content` into the CRDT). Render the stored content
-// read-only until an editor seeds the doc, then swap to the live editor.
+// F1: a non-seeder viewing a legacy doc (empty server Y.Doc) would see a blank
+// body. Show stored content read-only until an editor seeds the CRDT.
 const showLegacyFallback = computed(() => {
   if (!collabEnabled || !collab) return false
   if (!collabSynced.value) return false // wait for sync before deciding

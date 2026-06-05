@@ -146,11 +146,9 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
     $ncSocket.emit(DocCollabClientEvents.UPDATE, { docId, room, update: toBase64(update) })
   }
 
-  // Throttle high-frequency cursor (awareness) broadcasts. Cursor moves fire on
-  // every caret/selection change; at ~20fps they stay visually smooth while
-  // cutting the redis-adapter fan-out by an order of magnitude. Removals (a peer
-  // leaving, or our own teardown via setLocalState(null)) bypass the throttle —
-  // a dropped removal leaves a ghost cursor that never disappears.
+  // Throttle cursor (awareness) broadcasts to ~20fps to cut redis-adapter
+  // fan-out. Removals bypass the throttle — a dropped removal leaves a ghost
+  // cursor that never disappears.
   const AWARENESS_THROTTLE_MS = 50
   let awarenessThrottleTimer: ReturnType<typeof setTimeout> | null = null
   let awarenessTrailingPending = false

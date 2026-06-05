@@ -91,9 +91,9 @@ export const useDocRevisions = createSharedComposable(() => {
   // collaborative Editor registers a handler here; `restoreRevision` then applies
   // the snapshot through the editor (setContent → Yjs ops) instead of calling the
   // REST restore endpoint. Null when no collab editor is mounted (legacy path).
-  const collabRestoreHandler = ref<((content: Record<string, any>) => void | Promise<void>) | null>(null)
+  const collabRestoreHandler = ref<((content: Record<string, any>, title?: string) => void | Promise<void>) | null>(null)
 
-  function registerCollabRestore(fn: (content: Record<string, any>) => void | Promise<void>) {
+  function registerCollabRestore(fn: (content: Record<string, any>, title?: string) => void | Promise<void>) {
     collabRestoreHandler.value = fn
     return () => {
       if (collabRestoreHandler.value === fn) collabRestoreHandler.value = null
@@ -283,7 +283,7 @@ export const useDocRevisions = createSharedComposable(() => {
         isRestoring.value = true
         const rev = await fetchRevisionContent(revisionId)
         if (!rev?.content) return false
-        await collabRestoreHandler.value(rev.content)
+        await collabRestoreHandler.value(rev.content, rev.title)
         selectedRevisionId.value = null
         selectedRevisionContent.value = null
         return true

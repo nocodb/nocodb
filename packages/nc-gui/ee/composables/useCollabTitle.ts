@@ -156,6 +156,23 @@ export function useCollabTitle(opts: {
     if (seed) pushDiff(seed) // origin ORIGIN → propagates to server + peers
   }
 
+  /**
+   * Overwrite the shared title (e.g. a revision restore). Unlike seedIfEmpty
+   * this applies even when the shared title is non-empty. Must run after
+   * activate(); propagates to the server + peers via the ORIGIN transaction.
+   */
+  function setTitle(next: string) {
+    const val = next || ''
+    pushDiff(val)
+    // Mirror into the local title ref so the input reflects the restored
+    // value immediately, bypassing the watch guard that would otherwise echo
+    // this write back into pushDiff.
+    applyingRemote = true
+    title.value = val
+    applyingRemote = false
+    onTitle?.(normalize(val))
+  }
+
   function destroy() {
     stopWatch()
     ytitle.unobserve(observer)
@@ -163,5 +180,5 @@ export function useCollabTitle(opts: {
 
   onScopeDispose(destroy)
 
-  return { ytitle, activate, seedIfEmpty, destroy }
+  return { ytitle, activate, seedIfEmpty, setTitle, destroy }
 }

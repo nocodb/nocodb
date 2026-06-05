@@ -325,8 +325,11 @@ onBeforeUnmount(() => restoredSub.off())
 // `onRestored` → reloadDocument path above only fires for non-collab REST
 // restores, which don't trigger this branch.)
 if (collabEnabled) {
-  const stopCollabRestore = registerCollabRestore((content) => {
+  const stopCollabRestore = registerCollabRestore((content, restoredTitle) => {
     editor.value?.commands.setContent(content)
+    if (collabTitle && typeof restoredTitle === 'string') {
+      collabTitle.setTitle(restoredTitle === 'Untitled' ? '' : restoredTitle)
+    }
   })
   onBeforeUnmount(stopCollabRestore)
 }

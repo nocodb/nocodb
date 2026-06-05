@@ -405,17 +405,34 @@ export class PublicDatasService {
       delete listArgs.where;
     }
 
+    // Group-by columns are accessible to public callers: their values are
+    // already exposed as group headers, and the frontend scopes each group's
+    // leaf rows with a `(column,gb_eq,key)` filter. `buildRestrictedAliasColObjMap`
+    // (used to parse `where` above) already includes them, so the filter/sort
+    // strip must too — otherwise a gb_eq filter on a hidden group-by column
+    // (e.g. a lookup used only for grouping) is parsed and then dropped here, and
+    // the leaf query returns unfiltered rows under the wrong group (nocodb#13984).
+    // Note: the `fields`/`f` strip below intentionally stays visible-only — a
+    // public caller must not be able to pull arbitrary hidden columns into the
+    // payload via `fields`. (Group-by column values are still emitted by the
+    // default AST so the client can bucket rows, but that value is already
+    // exposed as the group header, so it is not an additional leak.)
+    const accessibleColumnIds = new Set<string>([
+      ...visibleInfo.visibleColumnIds,
+      ...visibleInfo.groupByColumnIds,
+    ]);
+
     if (ncIsArray(listArgs.filterArr)) {
       listArgs.filterArr = this.stripHiddenColumnsFromFilters(
         listArgs.filterArr,
-        visibleInfo.visibleColumnIds,
+        accessibleColumnIds,
       );
     }
 
     if (ncIsArray(listArgs.sortArr)) {
       listArgs.sortArr = this.stripHiddenColumnsFromSorts(
         listArgs.sortArr,
-        visibleInfo.visibleColumnIds,
+        accessibleColumnIds,
       );
     }
 
@@ -1508,7 +1525,31 @@ export class PublicDatasService {
         const acc = await accPromise;
 
         const sanitizedDf = { ...sanitizePublicQuery(dF) };
+
+        // Parse the per-entry filter/sort JSON up front so the visibility strip
+        // applies to them. `sanitizeListArgsForPublicView` only inspects
+        // `where`/`filterArr`/`sortArr`; getDataList re-parses `filterArrJson`/
+        // `sortArrJson` downstream, so leaving them as raw strings here would
+        // bypass sanitization entirely and let a public caller filter or sort
+        // on hidden columns (CWE-200 value oracle). nocodb#13984
+        try {
+          sanitizedDf.filterArr = JSON.parse(sanitizedDf.filterArrJson);
+        } catch (e) {}
+        try {
+          sanitizedDf.sortArr = JSON.parse(sanitizedDf.sortArrJson);
+        } catch (e) {}
+
         this.sanitizeListArgsForPublicView(context, sanitizedDf, visibleInfo);
+
+        // Re-serialize the sanitized arrays back into `filterArrJson`/`sortArrJson`
+        // — getDataList re-parses those, and would otherwise overwrite the
+        // sanitized `filterArr`/`sortArr` with the original unsanitized strings.
+        sanitizedDf.filterArrJson = JSON.stringify(
+          ncIsArray(sanitizedDf.filterArr) ? sanitizedDf.filterArr : [],
+        );
+        sanitizedDf.sortArrJson = JSON.stringify(
+          ncIsArray(sanitizedDf.sortArr) ? sanitizedDf.sortArr : [],
+        );
 
         const result = await this.datasService.dataList(context, {
           query: sanitizedDf,
@@ -1580,10 +1621,21 @@ export class PublicDatasService {
       );
     }
 
-    // Sanitize where from each bulk filter entry
+    // Sanitize each bulk aggregation bucket. Parse `filterArrJson` up front so
+    // the visibility strip applies to it — the downstream bulk-aggregate handler
+    // applies each bucket's `filterArrJson` directly to the query, so leaving it
+    // as a raw string would bypass sanitization and let a public caller run
+    // aggregations (count/sum/…) filtered on hidden columns (CWE-200 oracle).
+    // Re-serialize the sanitized result back so the handler honors it. nocodb#13984
     if (ncIsArray(bulkFilterList)) {
       for (const entry of bulkFilterList) {
+        try {
+          entry.filterArr = JSON.parse(entry.filterArrJson);
+        } catch (e) {}
         this.sanitizeListArgsForPublicView(context, entry, visibleInfo);
+        entry.filterArrJson = JSON.stringify(
+          ncIsArray(entry.filterArr) ? entry.filterArr : [],
+        );
       }
     }
 

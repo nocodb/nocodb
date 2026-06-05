@@ -474,6 +474,76 @@ export function publicDatasSanitizeTest() {
       expect(listArgs.sortArr[0].fk_column_id).to.equal('col_a');
     });
 
+    it('should preserve filterArr entries on hidden group-by columns (nocodb#13984)', () => {
+      // A lookup used only for grouping is hidden (show=false) but present in
+      // groupByColumnIds. Its group-scoping (col,gb_eq,key) filter must survive
+      // the strip — otherwise shared-view grouped leaf rows are unfiltered and
+      // land under the wrong group. A genuinely hidden column must still strip.
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumnIds: new Set(['col_c']),
+        groupByColumnTitles: new Set(['SSN']),
+        groupByColumnNames: new Set(['ssn']),
+        groupByColumns: [hiddenColC],
+      };
+      const listArgs = {
+        filterArr: [
+          { fk_column_id: 'col_a', comparison_op: 'eq', value: 'Alice' }, // visible → kept
+          { fk_column_id: 'col_c', comparison_op: 'gb_eq', value: 'Red' }, // hidden group-by → kept
+          { fk_column_id: 'col_d', comparison_op: 'eq', value: '100000' }, // hidden non-group-by → stripped
+        ],
+      };
+      service.testSanitizeListArgsForPublicView(
+        mockContext,
+        listArgs,
+        infoWithGroupBy,
+      );
+      const ids = listArgs.filterArr.map((f: any) => f.fk_column_id);
+      expect(ids).to.include('col_a');
+      expect(ids).to.include('col_c');
+      expect(ids).to.not.include('col_d');
+      expect(listArgs.filterArr).to.have.length(2);
+    });
+
+    it('should preserve sortArr entries on hidden group-by columns', () => {
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumnIds: new Set(['col_c']),
+      };
+      const listArgs = {
+        sortArr: [
+          { fk_column_id: 'col_c', direction: 'asc' }, // hidden group-by → kept
+          { fk_column_id: 'col_d', direction: 'desc' }, // hidden non-group-by → stripped
+        ],
+      };
+      service.testSanitizeListArgsForPublicView(
+        mockContext,
+        listArgs,
+        infoWithGroupBy,
+      );
+      expect(listArgs.sortArr).to.have.length(1);
+      expect(listArgs.sortArr[0].fk_column_id).to.equal('col_c');
+    });
+
+    it('should still strip hidden group-by column VALUES from fields output (nocodb#13984)', () => {
+      // Filtering by a hidden group-by column is allowed (values are exposed as
+      // group headers), but its per-row value must NOT be returned in the payload.
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumnIds: new Set(['col_c']),
+        groupByColumnTitles: new Set(['SSN']),
+        groupByColumnNames: new Set(['ssn']),
+        groupByColumns: [hiddenColC],
+      };
+      const listArgs: any = { fields: 'Name,SSN,Email' };
+      service.testSanitizeListArgsForPublicView(
+        mockContext,
+        listArgs,
+        infoWithGroupBy,
+      );
+      expect(listArgs.fields).to.equal('Name,Email');
+    });
+
     it('should delete where after parsing and merge into filterArr', () => {
       const listArgs = {
         where: '(Name,eq,Alice)',

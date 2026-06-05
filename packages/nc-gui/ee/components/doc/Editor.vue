@@ -1923,6 +1923,43 @@ if (collabEnabled && collab) {
   })
 }
 
+// Reactive "does the shared Y.Doc body have content" — drives the legacy
+// read-only fallback (F1). The Yjs fragment length isn't reactive, so track it
+// via the doc's update event.
+const collabBodyHasContent = ref(false)
+if (collabEnabled && collab) {
+  const frag = collab.ydoc.getXmlFragment('default')
+  const refreshBodyHasContent = () => {
+    if (frag.length > 0) {
+      collabBodyHasContent.value = true
+      // One-way latch: once the CRDT has content we never revert to the
+      // fallback, so stop observing.
+      collab.ydoc.off('update', refreshBodyHasContent)
+    }
+  }
+  collab.ydoc.on('update', refreshBodyHasContent)
+  onBeforeUnmount(() => collab.ydoc.off('update', refreshBodyHasContent))
+  refreshBodyHasContent()
+}
+
+const legacyFallbackContent = computed(() => parseDocContent(doc.value?.content))
+
+// F1: a non-seeder viewing a legacy doc whose server Y.Doc is still empty would
+// otherwise see a blank body (loadAndSetDoc skips setContent in collab, and only
+// the seeder migrates `doc.content` into the CRDT). Render the stored content
+// read-only until an editor seeds the doc, then swap to the live editor.
+const showLegacyFallback = computed(() => {
+  if (!collabEnabled || !collab) return false
+  if (!collabSynced.value) return false // wait for sync before deciding
+  if (collabBodyHasContent.value) return false // CRDT already has content
+  if (collab.mayBootstrap.value) return false // we're the seeder — bootstrap fills it
+  const parsed = legacyFallbackContent.value
+  const isEmpty =
+    !parsed?.content?.length ||
+    (parsed.content.length === 1 && parsed.content[0]?.type === 'paragraph' && !parsed.content[0]?.content)
+  return !isEmpty // legacy content exists to show
+})
+
 const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 
 type DocDir = 'ltr' | 'rtl' | 'auto'
@@ -3050,7 +3087,7 @@ defineExpose({ editor })
                 </div>
               </BubbleMenu>
 
-              <div ref="editorContentRef" class="relative">
+              <div ref="editorContentRef" v-show="!showLegacyFallback" class="relative">
                 <EditorContent :editor="editor" @click="onEditorClick" />
 
                 <!-- Link hover preview -->
@@ -3207,6 +3244,8 @@ defineExpose({ editor })
                   @stop="onAiSuggestionStop"
                 />
               </div>
+
+              <DocReadonlyBody v-if="showLegacyFallback" :content="legacyFallbackContent" />
 
               <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
               <DocTableMenu v-if="isEditable" :editor="editor" />

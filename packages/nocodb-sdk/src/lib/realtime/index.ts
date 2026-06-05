@@ -82,6 +82,9 @@ export interface DocumentCommentPayload extends BaseSocketPayload {
   id: string; // docId
   action: 'add' | 'update' | 'delete' | 'resolve';
   payload: Record<string, any>;
+  /** Absolute, post-mutation comment count for the doc. Self-correcting on the
+   *  client (delta is the fallback when absent). Set on add/delete. */
+  count?: number;
 }
 
 export interface SmartTextPayload extends BaseSocketPayload {

@@ -1426,8 +1426,14 @@ export const useRealtime = createSharedComposable(() => {
               const baseDocs = documents.value.get(activeBaseId.value) || []
               const target = baseDocs.find((d) => d.id === _payload.id)
               if (target) {
-                const delta = _payload.action === 'add' ? 1 : -1
-                target.comment_count = Math.max(0, (target.comment_count || 0) + delta)
+                if (typeof _payload.count === 'number') {
+                  // Absolute count from the server — self-correcting against any
+                  // missed / duplicated / self-echoed event.
+                  target.comment_count = Math.max(0, _payload.count)
+                } else {
+                  const delta = _payload.action === 'add' ? 1 : -1
+                  target.comment_count = Math.max(0, (target.comment_count || 0) + delta)
+                }
               }
             }
           },

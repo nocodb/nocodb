@@ -48,6 +48,11 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
       docId: param.body.fk_doc_id,
     });
 
+    const docCounts = await Comment.docCommentsCount(context, [
+      param.body.fk_doc_id,
+    ]);
+    const count = Number(docCounts?.[0]?.count ?? 0);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -56,6 +61,7 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
           action: 'add',
           payload: res,
           id: param.body.fk_doc_id,
+          count,
         },
       },
       context.socket_id,
@@ -147,6 +153,11 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
       docId: comment.fk_doc_id,
     });
 
+    const docCountsAfterDelete = await Comment.docCommentsCount(context, [
+      comment.fk_doc_id,
+    ]);
+    const countAfterDelete = Number(docCountsAfterDelete?.[0]?.count ?? 0);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -155,6 +166,7 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
           action: 'delete',
           payload: comment,
           id: comment.fk_doc_id,
+          count: countAfterDelete,
         },
       },
       context.socket_id,

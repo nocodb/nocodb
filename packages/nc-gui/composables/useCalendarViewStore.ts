@@ -289,14 +289,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       writeStoredCalendarMode(value)
     })
 
-    // 3-day mode anchors on the selected day (not week-aligned). The
-    // activeCalendarView watcher only fires on later changes, so when the
+    // The visible date range for the current mode, anchored on `date`.
+    // 3-day is day-anchored ([date, date+2]); week/2week/6week are week-aligned.
+    // Used everywhere selectedDateRange is (re)seeded so the range span always
+    // matches the active mode — otherwise the WeekView renders the wrong number
+    // of columns (e.g. a week-aligned 7-day span while in 3-day mode).
+    const rangeForActiveMode = (date: dayjs.Dayjs) => {
+      if (activeCalendarView.value === '3day') {
+        return { start: date.startOf('day'), end: date.add(2, 'day').endOf('day') }
+      }
+      return { start: date.startOf('week'), end: date.endOf('week') }
+    }
+
+    // The activeCalendarView watcher only fires on later changes, so when the
     // persisted mode is already '3day' on a cold load we seed the range here.
     if (activeCalendarView.value === '3day') {
-      selectedDateRange.value = {
-        start: selectedDate.value.startOf('day'),
-        end: selectedDate.value.add(2, 'day').endOf('day'),
-      }
+      selectedDateRange.value = rangeForActiveMode(selectedDate.value)
     }
 
     // Number of consecutive weeks rendered by the multi-week grid (week / 2week / 6week).
@@ -1124,12 +1132,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     watch(activeCalendarView, async (value, oldValue) => {
       if (oldValue === '3day') {
-        // Leaving 3-day: anchor every cursor on the first visible day of the window.
+        // Leaving 3-day: anchor every cursor on the first visible day of the window,
+        // and restore a week-aligned range so a week-based target mode renders the
+        // full 7 columns (the entering-3day block below re-narrows it if needed).
         const anchor = selectedDateRange.value.start
         pageDate.value = anchor
         selectedMonth.value = anchor
         selectedDate.value = anchor
         selectedTime.value = anchor
+        selectedDateRange.value = {
+          start: anchor.startOf('week'),
+          end: anchor.endOf('week'),
+        }
       } else if (oldValue === 'week' || oldValue === '2week' || oldValue === '6week') {
         pageDate.value = selectedDate.value
         selectedMonth.value = selectedDate.value ?? selectedDateRange.value.start
@@ -1161,10 +1175,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
       // Entering 3-day: anchor the day-window on the currently selected day.
       if (value === '3day') {
-        selectedDateRange.value = {
-          start: selectedDate.value.startOf('day'),
-          end: selectedDate.value.add(2, 'day').endOf('day'),
-        }
+        selectedDateRange.value = rangeForActiveMode(selectedDate.value)
       }
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
       if (activeCalendarView.value === 'year') {
@@ -1204,10 +1215,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedDate.value = timezoneDayjs.timezonize(selectedDate.value)!
       selectedTime.value = timezoneDayjs.timezonize(selectedTime.value)!
       selectedMonth.value = timezoneDayjs.timezonize(selectedMonth.value)!
-      selectedDateRange.value = {
-        start: selectedDate.value.startOf('week'),
-        end: selectedDate.value.endOf('week'),
-      }
+      selectedDateRange.value = rangeForActiveMode(selectedDate.value)
     })
 
     watch(

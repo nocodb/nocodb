@@ -4,9 +4,11 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
+  NOCO_SERVICE_USERS,
   serializeDecimalValue,
   serializeDurationValue,
   serializeIntValue,
+  ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
 import type { Job } from 'bull';
@@ -169,7 +171,11 @@ export class DataImportProcessor {
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     const req: NcRequest = {
-      user: { id: user?.id, email: user?.email },
+      // Fall back to the system service user when the job was enqueued without
+      // a resolvable user, so import audits keep a non-NULL actor.
+      user: user?.id
+        ? { id: user.id, email: user.email }
+        : NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER],
       clientIp: data.req?.clientIp,
       ncBaseId: data.baseId,
       ncSourceId: data.sourceId,

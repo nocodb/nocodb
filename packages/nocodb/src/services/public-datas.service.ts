@@ -3,6 +3,8 @@ import {
   extractFilterFromXwhere,
   NcBaseError,
   ncIsArray,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -1015,6 +1017,18 @@ export class PublicDatasService {
 
     // Check if form has started / expired
     await FormView.validateFormScheduling(context, view.id);
+
+    // Public form submissions are unauthenticated by design (the public
+    // controller runs no GlobalGuard), so req.user is empty and the resulting
+    // DATA_INSERT / nested DATA_LINK audits would have a NULL actor. Attribute
+    // them to the anonymous service user and stamp the shared view/form id so
+    // the submission stays traceable.
+    if (!param.req.user?.id) {
+      param.req.user = NOCO_SERVICE_USERS[
+        ServiceUserType.ANONYMOUS_USER
+      ] as NcRequest['user'];
+    }
+    param.req.ncSharedViewId = view.id;
 
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,

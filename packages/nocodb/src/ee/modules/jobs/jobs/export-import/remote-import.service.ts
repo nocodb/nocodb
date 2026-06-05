@@ -3,7 +3,13 @@ import { streamValues } from 'stream-json/streamers/StreamValues';
 import { Injectable, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
-import { NcApiVersion, parseProp, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  NcApiVersion,
+  NOCO_SERVICE_USERS,
+  parseProp,
+  ServiceUserType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { BasesService } from '~/services/bases.service';
@@ -245,7 +251,11 @@ export class RemoteImportService {
 
     const user = await User.get(job.fk_user_id);
 
-    const req = { user } as any;
+    // The original importer may have been deleted (User.get → null); fall back
+    // to the system service user so import audits keep a non-NULL actor.
+    const req = {
+      user: user || NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER],
+    } as any;
 
     await this.jobsService.setJobResult(job.id, {
       secret: secretCheck,

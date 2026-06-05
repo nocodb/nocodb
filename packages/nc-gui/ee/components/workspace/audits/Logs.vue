@@ -176,7 +176,7 @@ watch(
                 </NcTooltip>
               </div>
             </div>
-            <template v-else>{{ audit.user }} </template>
+            <template v-else>{{ getUserName(audit.user) || audit.user }} </template>
           </div>
 
           <div v-if="column.key === 'created_at'" class="w-full flex">

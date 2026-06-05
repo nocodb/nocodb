@@ -85,7 +85,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
               </div>
             </div>
 
-            <div v-else class="text-small leading-[18px] text-nc-content-gray-subtle2">{{ selectedAudit?.user }}</div>
+            <div v-else class="text-small leading-[18px] text-nc-content-gray-subtle2">
+              {{ selectedAuditUsername || selectedAudit?.user }}
+            </div>
           </div>
 
           <div class="w-1/2">

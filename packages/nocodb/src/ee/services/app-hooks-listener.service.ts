@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditV1OperationTypes,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
   UITypes,
   viewTypeAlias,
 } from 'nocodb-sdk';
@@ -408,7 +410,13 @@ export class AppHooksListenerService
     event: AppEvents;
     data: any;
   }) {
-    const { clientId, req = { user: {} } } = data;
+    // Fallback for events emitted without a req (programmatic/internal
+    // triggers): attribute to the system service user so the audit actor is
+    // never NULL.
+    const {
+      clientId,
+      req = { user: NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER] },
+    } = data;
 
     // skip audit if explicitly set, this is to bypass events for snapshot and any similar audits
     if ((<NcRequest>req)?.skipAudit) {

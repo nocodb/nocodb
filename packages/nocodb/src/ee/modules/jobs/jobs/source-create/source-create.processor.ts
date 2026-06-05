@@ -1,5 +1,5 @@
 import debug from 'debug';
-import { WorkspacePlan } from 'nocodb-sdk';
+import { NOCO_SERVICE_USERS, ServiceUserType, WorkspacePlan } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import type { Job } from 'bull';
 import { SourcesService } from '~/services/sources.service';
@@ -48,13 +48,13 @@ export class SourceCreateProcessor {
         baseId,
         source,
         logger: logBasic,
-        req: { user: user || {} },
+        req: { user: user || NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER] },
       });
 
     if (error) {
       await this.sourcesService.baseDelete(context, {
         sourceId: createdSource.id,
-        req: { user: {} },
+        req: { user: user || NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER] },
       });
       throw error;
     }

@@ -67,6 +67,12 @@ export interface NcRequest extends Partial<Request> {
   ncBaseId?: string;
   ncSourceId?: string;
   ncParentAuditId?: string;
+  /**
+   * Shared view / form UUID-resolved id for unauthenticated public requests.
+   * Captured into `nc_audit.fk_ref_id` so anonymous (ANONYMOUS_USER) submissions
+   * remain traceable to the form/view they came through.
+   */
+  ncSharedViewId?: string;
   ncModel?: TableType;
   user: UserType & {
     base_roles?: Record<string, boolean>;

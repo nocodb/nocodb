@@ -5,6 +5,8 @@ import {
   EventType,
   NcApiVersion,
   NcBaseError,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
   TableSyncMappingRole,
   TableSyncOnDeleteAction,
   TableSyncStatus,
@@ -66,7 +68,18 @@ export class TableSyncProcessor {
       affectedIdsBySource,
     } = job.data;
 
-    if (req) req.query = { ...(req.query ?? {}), typecast: 'true' };
+    if (req) {
+      req.query = { ...(req.query ?? {}), typecast: 'true' };
+
+      // Scheduled / incremental re-syncs reuse the req serialized into the
+      // original job data, which may have no authenticated user. Attribute the
+      // sync's audits to the system service user instead of a NULL actor.
+      if (!req.user?.id) {
+        req.user = NOCO_SERVICE_USERS[
+          ServiceUserType.SYSTEM_USER
+        ] as typeof req.user;
+      }
+    }
 
     const logBasic = (message: string) =>
       this.nocoJobsService.jobsLogService.sendLog(job, { message });

@@ -30,7 +30,7 @@ export function setExternalDbSsrfEnforcement(force: boolean): void {
   forceEnforce = force;
 }
 
-function isSsrfProtectionEnabled(): boolean {
+function isDbSsrfProtectionEnabled(): boolean {
   // Cloud forces enforcement — env bypasses are ignored.
   if (forceEnforce) return true;
 
@@ -70,12 +70,12 @@ export class SsrfBlockedHostError extends Error {
 
 /**
  * Throws `SsrfBlockedHostError` if `host` resolves to a non-routable range.
- * No-op when SSRF protection is disabled (see `isSsrfProtectionEnabled`).
+ * No-op when SSRF protection is disabled (see `isDbSsrfProtectionEnabled`).
  */
 export async function assertExternalDbHostAllowed(
   host: unknown,
 ): Promise<void> {
-  if (!isSsrfProtectionEnabled()) return;
+  if (!isDbSsrfProtectionEnabled()) return;
   if (typeof host !== 'string' || host.length === 0) return;
 
   const trimmed = host.trim();

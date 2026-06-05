@@ -35,7 +35,6 @@ import Integrations from '~/integrations';
 
 const logger = new Logger('Integration');
 
-setExternalDbSsrfEnforcement(isCloud);
 export default class Integration implements IntegrationType {
   public static availableIntegrations: IntegrationEntry[] = Integrations;
 
@@ -59,7 +58,13 @@ export default class Integration implements IntegrationType {
     Object.assign(this, integration);
   }
 
-  public static async init() {}
+  public static async init() {
+    // Force SSRF enforcement on cloud regardless of env-var bypasses. Done here
+    // at bootstrap rather than at module load: `isCloud` comes from a barrel
+    // (`~/utils`) that sits in a circular import with this model, so reading it
+    // at module-evaluation time throws a temporal-dead-zone ReferenceError.
+    setExternalDbSsrfEnforcement(isCloud);
+  }
 
   protected static castType(integration: Integration): Integration {
     return integration && new Integration(integration);

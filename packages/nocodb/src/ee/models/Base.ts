@@ -570,8 +570,19 @@ export default class Base extends BaseCE {
     await Document.deleteByBaseId(context, baseId, ncMeta);
 
     // Satellite DB (separate connection, NC_OP_LOG_DB) — best-effort, not part
-    // of the meta transaction. Operation logs also expire via OperationCleanup.
-    await OperationLog.deleteByBaseId(context, baseId);
+    // of the meta transaction. It is the one cleanup on a connection that can
+    // fail independently of the meta DB, so a satellite outage must never abort
+    // the meta delete: swallow + log. Operation logs also expire via
+    // OperationCleanup.
+    try {
+      await OperationLog.deleteByBaseId(context, baseId);
+    } catch (e) {
+      logger.warn(
+        `Best-effort operation-log cleanup failed for base ${baseId}: ${
+          (e as Error)?.message
+        }`,
+      );
+    }
 
     const sources = await Source.list(
       context,

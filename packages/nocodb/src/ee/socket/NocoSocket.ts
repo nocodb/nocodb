@@ -849,7 +849,15 @@ export default class NocoSocket {
     // Presence cursors: relay awareness to other clients (state is client-side).
     socket.on(DocCollabClientEvents.AWARENESS, (msg) => {
       const session = socket.data.docSessions?.get(msg?.docId);
-      if (!session) return;
+      if (!session || typeof msg?.update !== 'string') return;
+      // Cap awareness frames too (the SYNC/UPDATE handlers already do): a
+      // malformed/hostile client must not fan out a giant payload to every peer.
+      if (Buffer.from(msg.update, 'base64').length > this.MAX_DOC_FRAME_BYTES) {
+        this.logger.warn(
+          `Rejecting oversized awareness frame for ${msg.docId} from ${socket.id}`,
+        );
+        return;
+      }
       const room = this.docRoomFor(session, msg.docId);
       socket.to(room).emit(room, {
         kind: 'awareness',

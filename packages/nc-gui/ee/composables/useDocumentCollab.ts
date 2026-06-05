@@ -146,11 +146,48 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
     $ncSocket.emit(DocCollabClientEvents.UPDATE, { docId, room, update: toBase64(update) })
   }
 
-  function onLocalAwareness({ added, updated, removed }: any, origin: any) {
-    if (origin === 'remote') return
-    const changed = [...added, ...updated, ...removed]
+  // Throttle high-frequency cursor (awareness) broadcasts. Cursor moves fire on
+  // every caret/selection change; at ~20fps they stay visually smooth while
+  // cutting the redis-adapter fan-out by an order of magnitude. Removals (a peer
+  // leaving, or our own teardown via setLocalState(null)) bypass the throttle —
+  // a dropped removal leaves a ghost cursor that never disappears.
+  const AWARENESS_THROTTLE_MS = 50
+  let awarenessThrottleTimer: ReturnType<typeof setTimeout> | null = null
+  let awarenessTrailingPending = false
+
+  function sendAwareness(changed: number[]) {
     const payload = encodeAwarenessUpdate(awareness, changed)
     $ncSocket.emit(DocCollabClientEvents.AWARENESS, { docId, room, update: toBase64(payload) })
+  }
+
+  function onLocalAwareness({ added, updated, removed }: any, origin: any) {
+    if (origin === 'remote') return
+
+    // Removals must go out immediately (see note above).
+    if (removed.length) {
+      if (awarenessThrottleTimer) {
+        clearTimeout(awarenessThrottleTimer)
+        awarenessThrottleTimer = null
+        awarenessTrailingPending = false
+      }
+      sendAwareness([...added, ...updated, ...removed])
+      return
+    }
+
+    // Cursor moves: send the leading edge, then coalesce the trailing edge.
+    if (awarenessThrottleTimer) {
+      awarenessTrailingPending = true
+      return
+    }
+    sendAwareness([...added, ...updated])
+    awarenessThrottleTimer = setTimeout(() => {
+      awarenessThrottleTimer = null
+      if (awarenessTrailingPending) {
+        awarenessTrailingPending = false
+        // Re-encode current local state so the trailing send is the latest cursor.
+        sendAwareness([awareness.clientID])
+      }
+    }, AWARENESS_THROTTLE_MS)
   }
 
   function destroy() {
@@ -165,6 +202,10 @@ export function useDocumentCollab(params: UseDocumentCollabParams) {
     awareness.setLocalState(null)
     ydoc.off('update', onLocalUpdate)
     awareness.off('update', onLocalAwareness)
+    if (awarenessThrottleTimer) {
+      clearTimeout(awarenessThrottleTimer)
+      awarenessThrottleTimer = null
+    }
     if (listenerId) $ncSocket.offMessage(listenerId)
     offReconnect?.()
     awareness.destroy()

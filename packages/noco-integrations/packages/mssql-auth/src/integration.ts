@@ -1,5 +1,8 @@
 import { knex } from 'knex';
-import { AuthIntegration } from '@noco-integrations/core';
+import {
+  assertExternalDbHostAllowed,
+  AuthIntegration,
+} from '@noco-integrations/core';
 import type { MssqlAuthConfig } from './types';
 import type { Knex } from 'knex';
 import type { TestConnectionResponse } from '@noco-integrations/core';
@@ -14,7 +17,10 @@ const toBool = (
 
 // The form sends `port` as a string, but tedious requires a number for
 // `config.options.port` and rejects strings outright.
-const toPort = (value: string | number | undefined, fallback: number): number => {
+const toPort = (
+  value: string | number | undefined,
+  fallback: number,
+): number => {
   const port = Number(value);
   return Number.isFinite(port) && port > 0 ? port : fallback;
 };
@@ -24,6 +30,8 @@ export class MssqlAuthIntegration extends AuthIntegration<
   Knex
 > {
   public async authenticate(): Promise<Knex> {
+    await assertExternalDbHostAllowed(this.config.host);
+
     const knexConfig: Knex.Config = {
       client: 'mssql',
       // knex's mssql dialect maps to the `tedious` driver, which expects

@@ -101,9 +101,13 @@ class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
     void (async () => {
       try {
-        // Ensure we have schema information
-        const schema =
-          this.config.custom_schema || (await this.getDestinationSchema(auth));
+        const schema = this.config.custom_schema;
+        if (!schema) {
+          throw new Error(
+            'SQL Server sync is missing its schema mapping (custom_schema). ' +
+              'Re-open the sync configuration to map the source schema before syncing.',
+          );
+        }
 
         const targetTables = args.targetTables || [];
         const incrementalValues = args.targetTableIncrementalValues || {};

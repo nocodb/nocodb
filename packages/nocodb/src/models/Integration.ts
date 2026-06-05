@@ -8,6 +8,7 @@ import {
 import { Logger } from '@nestjs/common';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { setExternalDbSsrfEnforcement } from '@noco-local-integrations/core';
 import type {
   IntegrationEntry,
   IntegrationWrapper,
@@ -24,6 +25,7 @@ import {
 import {
   decryptPropIfRequired,
   encryptPropIfRequired,
+  isCloud,
   isEncryptionRequired,
   partialExtract,
 } from '~/utils';
@@ -32,6 +34,8 @@ import { IntegrationStore, Source } from '~/models';
 import Integrations from '~/integrations';
 
 const logger = new Logger('Integration');
+
+setExternalDbSsrfEnforcement(isCloud);
 export default class Integration implements IntegrationType {
   public static availableIntegrations: IntegrationEntry[] = Integrations;
 
@@ -605,6 +609,12 @@ export default class Integration implements IntegrationType {
     }
 
     return new integrationWrapper.wrapper(config.config, {}) as T;
+  }
+
+  static getManifestForConfig(config: Partial<IntegrationType>) {
+    return Integration.availableIntegrations.find(
+      (el) => el.type === config.type && el.sub_type === config.sub_type,
+    )?.manifest;
   }
 
   public wrapper: IntegrationWrapper;

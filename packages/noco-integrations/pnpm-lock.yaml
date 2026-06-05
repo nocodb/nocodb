@@ -75,6 +75,9 @@ importers:
       ai:
         specifier: ^6.0.3
         version: 6.0.3(zod@3.25.76)
+      ipaddr.js:
+        specifier: ^2.3.0
+        version: 2.3.0
       nocodb-sdk:
         specifier: file:../../nocodb-sdk
         version: file:../nocodb-sdk(vue@3.5.24(typescript@5.8.3))

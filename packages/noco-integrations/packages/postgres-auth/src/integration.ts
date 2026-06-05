@@ -1,5 +1,8 @@
 import { knex } from 'knex';
-import { AuthIntegration } from '@noco-integrations/core';
+import {
+  assertExternalDbHostAllowed,
+  AuthIntegration,
+} from '@noco-integrations/core';
 import type { PostgresAuthConfig } from './types';
 import type { Knex } from 'knex';
 import type { TestConnectionResponse } from '@noco-integrations/core';
@@ -9,6 +12,9 @@ export class PostgresAuthIntegration extends AuthIntegration<
   Knex
 > {
   public async authenticate(): Promise<Knex> {
+    // SSRF guard — reject hosts that resolve to internal/non-routable ranges.
+    await assertExternalDbHostAllowed(this.config.host);
+
     const knexConfig: Knex.Config = {
       client: 'pg',
       connection: {

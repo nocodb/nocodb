@@ -3,6 +3,7 @@ export * from './types';
 export * from './registry';
 export * from './utils/manifest';
 export * from './utils/axios';
+export * from './utils/ssrf';
 export * from './nocodb';
 export * from './sync';
 export * from './auth';

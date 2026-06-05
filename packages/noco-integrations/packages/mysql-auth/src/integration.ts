@@ -1,5 +1,8 @@
 import { knex } from 'knex';
-import { AuthIntegration } from '@noco-integrations/core';
+import {
+  assertExternalDbHostAllowed,
+  AuthIntegration,
+} from '@noco-integrations/core';
 import type { MySQLAuthConfig } from './types';
 import type { Knex } from 'knex';
 import type { TestConnectionResponse } from '@noco-integrations/core';
@@ -9,6 +12,8 @@ export class MySQLAuthIntegration extends AuthIntegration<
   Knex
 > {
   public async authenticate(): Promise<Knex> {
+    await assertExternalDbHostAllowed(this.config.host);
+
     const knexConfig: Knex.Config = {
       client: 'mysql2',
       connection: {

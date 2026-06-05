@@ -42,6 +42,11 @@ export class WhiteLabelPublicController {
       if (info.contentType) {
         res.setHeader('Content-Type', info.contentType);
       }
+      // Content-Type is resolved from a fixed image allowlist in
+      // WhiteLabelService.getAssetServeInfo; nosniff stops a browser from
+      // re-interpreting the bytes as anything else (defence-in-depth against a
+      // non-image file slipping through and rendering inline as active content).
+      res.setHeader('X-Content-Type-Options', 'nosniff');
       return res.sendFile(info.filePath);
     } catch (e) {
       return res.status(404).send('Not found');

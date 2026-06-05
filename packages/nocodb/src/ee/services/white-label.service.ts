@@ -7,7 +7,6 @@ import {
   PlanFeatureTypes,
   type WhiteLabelConfig,
 } from 'nocodb-sdk';
-import mime from 'mime/lite';
 import type { NcRequest } from '~/interface/config';
 import Store from '~/models/Store';
 import Noco from '~/Noco';
@@ -31,14 +30,36 @@ const MAX_FOOTER_TEXT_LEN = 240;
 //     (re-signed at read time in `getPublicConfig`)
 // Anything else is rejected to block javascript:, data: URIs, etc.
 const URL_RE = /^(https?:\/\/[^\s]+|\/[^\s]*|download\/[^\s]+)$/;
-// SVG can embed scripts; since white-label assets are served same-origin and
-// rendered inline, an uploaded SVG would be a stored-XSS vector. Reject it (and
-// the gzipped .svgz variant) regardless of the front-end `accept` filter, which
-// drag-and-drop / "All files" can bypass. The negative lookahead matches a
-// `.svg`/`.svgz` segment anywhere — including double extensions like
-// `logo.svg.png` and query/fragment suffixes — so it can't be sneaked past by
-// appending another extension. Raster formats (PNG/JPG/ICO) only.
-const DISALLOWED_ASSET_EXT_RE = /\.svgz?(?![a-z0-9])/i;
+// White-label assets are brand IMAGES served same-origin and rendered inline,
+// so ANY non-image upload (.svg/.html/.xhtml/.xml/.js …) is a stored-XSS
+// vector. Enforce a POSITIVE raster-image extension allowlist — the previous
+// denylist matched only `.svg`/`.svgz`, leaving `.html`/`.xhtml` (served as
+// text/html) wide open. We allowlist by EXTENSION, not MIME, on purpose:
+// `.ico` has no reliable MIME (mime/lite returns null and it's excluded from
+// `imageMimeTypes` / `isPreviewAllowed`), so a MIME-based allowlist would
+// wrongly reject favicons.
+const ALLOWED_ASSET_EXT_RE = /\.(png|jpe?g|ico|gif|webp|avif|apng|bmp)$/i;
+// Fixed extension → image content-type map. Used at serve time so the response
+// content-type is NEVER derived from the value's real type (e.g. a legacy
+// `.html` row must not be served as text/html).
+const ASSET_CONTENT_TYPE: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  ico: 'image/x-icon',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  avif: 'image/avif',
+  apng: 'image/apng',
+  bmp: 'image/bmp',
+};
+// Lowercased trailing extension of an asset value (query/fragment stripped),
+// or '' when there is none.
+function assetExt(value: string): string {
+  const clean = value.split(/[?#]/)[0];
+  const dot = clean.lastIndexOf('.');
+  return dot === -1 ? '' : clean.slice(dot + 1).toLowerCase();
+}
 // Email footer URL must be absolute http(s) — these links are resolved from
 // inboxes, not the app, so same-origin paths don't apply.
 const ABSOLUTE_URL_RE = /^https?:\/\/[^\s]+$/;
@@ -345,7 +366,12 @@ export class WhiteLabelService {
     }
 
     const relPath = value.replace(/^download[/\\]/i, '');
-    const contentType = mime.getType(value) || 'image/png';
+    // Resolve a SAFE image content-type from the extension allowlist — never
+    // from the value's real type. A value whose extension isn't an allowed
+    // image (e.g. a legacy `.html` row saved before this guard) falls back to
+    // the default asset instead of being served as text/html.
+    const contentType = ASSET_CONTENT_TYPE[assetExt(value)];
+    if (!contentType) return { redirectUrl: this.defaultAssetUrl(type) };
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
     // Cloud (S3/GCS): mint a fresh signed URL and redirect to it. The 7-day cap
@@ -529,9 +555,13 @@ export class WhiteLabelService {
             `\`${key}\` must be an http(s) URL or a same-origin path starting with /`,
           );
         }
-        if (DISALLOWED_ASSET_EXT_RE.test(v)) {
+        // Require an image extension for any value that has one. Extension-less
+        // external URLs (some CDNs) are allowed here and re-gated at serve time
+        // by the same allowlist + fixed content-type + nosniff.
+        const ext = assetExt(v);
+        if (ext && !ALLOWED_ASSET_EXT_RE.test(`.${ext}`)) {
           NcError.badRequest(
-            `\`${key}\` must be a PNG, JPG, or ICO image — SVG is not allowed`,
+            `\`${key}\` must be an image (PNG, JPG, ICO, GIF, WEBP, AVIF, BMP)`,
           );
         }
       }

@@ -462,6 +462,27 @@ export default class FileReference {
   }
 
   /**
+   * Like {@link listIdsForDoc} but returns each ref's `created_at` too, so the
+   * collab prune can spare refs created out-of-band (REST) whose id hasn't yet
+   * propagated into the Yjs content (avoids reaping a just-created ref).
+   */
+  public static async listIdRecordsForDoc(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ id: string; created_at: Date }[]> {
+    return ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_doc_id: docId,
+        deleted: false,
+      })
+      .whereNull('fk_revision_id')
+      .select('id', 'created_at');
+  }
+
+  /**
    * Sync the snapshot rows for a revision to match the attachments embedded
    * in its content. Snapshot rows are keyed by (revision_id, file_url) and
    * carry file_size=0 — the cleanup job groups by file_url and only purges

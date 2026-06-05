@@ -57,10 +57,17 @@ async function pruneRemovedFileRefs(
     | Record<string, any>
     | undefined;
   const coverRefId = meta?.cover_image_file_ref_id;
-  const existingIds = await FileReference.listIdsForDoc(context, docId);
-  const removedIds = existingIds.filter(
-    (id) => !contentIds.has(id) && id !== coverRefId,
-  );
+  // Spare refs created in the last grace window: an eager (REST) ref row exists
+  // before its id lands in the Yjs content, so a persist firing in that gap
+  // must not reap it (it would look "removed" purely because the id hasn't
+  // propagated yet).
+  const REF_PRUNE_GRACE_MS = 30_000;
+  const graceCutoff = Date.now() - REF_PRUNE_GRACE_MS;
+  const existing = await FileReference.listIdRecordsForDoc(context, docId);
+  const removedIds = existing
+    .filter((r) => !contentIds.has(r.id) && r.id !== coverRefId)
+    .filter((r) => new Date(r.created_at).getTime() < graceCutoff)
+    .map((r) => r.id);
   if (removedIds.length) {
     await FileReference.delete(context, removedIds);
   }

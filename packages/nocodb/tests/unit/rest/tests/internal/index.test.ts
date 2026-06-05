@@ -8,7 +8,7 @@ export const internalTests = runOnSet(2, function () {
     internalUiViewTests();
     internalDocumentTests();
 
-    if(isEE()) {
+    if (isEE()) {
       try {
         require('./ee/base-trash.test').baseTrashTests();
         require('./ee/base-trash-field.test').baseTrashFieldTests();
@@ -26,6 +26,7 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/undo-redo/index.test').undoRedoFullCoverageTests();
         require('./ee/docs-collab-protocol.test').docsCollabProtocolTests();
         require('./ee/docs-collab-persist.test').docsCollabPersistTests();
+        require('./pubsub-redis-demux.test').pubSubRedisDemuxTests();
       } catch (e) {
         // EE test files not available in CE
       }

@@ -189,26 +189,38 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
 
     const widgetConfig = widget.config as PieChartConfig | DonutChartConfig;
 
+    const data = widgetConfig.data;
+
     return {
       ...initSerialized,
       config: {
         ...widgetConfig,
-        data: {
-          ...widgetConfig.data,
-          category: {
-            ...widgetConfig.data.category,
-            column_id: widgetConfig.data.category.column_id
-              ? idMap.get(widgetConfig.data.category.column_id)
-              : null,
-          },
-          value: {
-            ...widgetConfig.data.value,
-            column_id:
-              widgetConfig.data.value && 'column_id' in widgetConfig.data.value
-                ? idMap.get(widgetConfig.data.value.column_id)
-                : null,
-          },
-        },
+        data: data
+          ? {
+              ...data,
+              ...(data.category
+                ? {
+                    category: {
+                      ...data.category,
+                      column_id: data.category.column_id
+                        ? idMap.get(data.category.column_id)
+                        : null,
+                    },
+                  }
+                : {}),
+              ...(data.value
+                ? {
+                    value: {
+                      ...data.value,
+                      column_id:
+                        'column_id' in data.value
+                          ? idMap.get(data.value.column_id)
+                          : null,
+                    },
+                  }
+                : {}),
+            }
+          : data,
       },
     } as any;
   }
@@ -225,7 +237,7 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
       });
     }
 
-    if (widgetConfig.data.value.type === 'summary') {
+    if (widgetConfig.data?.value?.type === 'summary') {
       if (widgetConfig.data?.value?.column_id) {
         dependencies.columns.push({
           id: widgetConfig.data.value.column_id,

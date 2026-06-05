@@ -499,33 +499,44 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
       | ScatterPlotConfig
       | LineChartConfig;
 
+    const data = widgetConfig.data;
+
     return {
       ...initSerialized,
       config: {
         ...widgetConfig,
-        data: {
-          ...widgetConfig.data,
-          xAxis: {
-            ...widgetConfig.data.xAxis,
-            column_id: widgetConfig.data.xAxis.column_id
-              ? idMap.get(widgetConfig.data.xAxis.column_id) ||
-                widgetConfig.data.xAxis.column_id
-              : null,
-          },
-          yAxis: {
-            ...widgetConfig.data.yAxis,
-            fields: widgetConfig.data.yAxis.fields.map((field) => ({
-              ...field,
-              column_id: field.column_id
-                ? idMap.get(field.column_id) || field.column_id
-                : null,
-            })),
-            groupBy: widgetConfig.data.yAxis.groupBy
-              ? idMap.get(widgetConfig.data.yAxis.groupBy) ||
-                widgetConfig.data.yAxis.groupBy
-              : null,
-          },
-        },
+        data: data
+          ? {
+              ...data,
+              ...(data.xAxis
+                ? {
+                    xAxis: {
+                      ...data.xAxis,
+                      column_id: data.xAxis.column_id
+                        ? idMap.get(data.xAxis.column_id) ||
+                          data.xAxis.column_id
+                        : null,
+                    },
+                  }
+                : {}),
+              ...(data.yAxis
+                ? {
+                    yAxis: {
+                      ...data.yAxis,
+                      fields: (data.yAxis.fields ?? []).map((field) => ({
+                        ...field,
+                        column_id: field.column_id
+                          ? idMap.get(field.column_id) || field.column_id
+                          : null,
+                      })),
+                      groupBy: data.yAxis.groupBy
+                        ? idMap.get(data.yAxis.groupBy) || data.yAxis.groupBy
+                        : null,
+                    },
+                  }
+                : {}),
+            }
+          : data,
       },
     } as any;
   }

@@ -194,12 +194,16 @@ export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
       ...initSerialized,
       config: {
         ...widget.config,
-        metric: {
-          ...widget.config.metric,
-          column_id: widget.config.metric.column_id
-            ? idMap.get(widget.config.metric.column_id)
-            : null,
-        },
+        ...(widget.config.metric
+          ? {
+              metric: {
+                ...widget.config.metric,
+                column_id: widget.config.metric.column_id
+                  ? idMap.get(widget.config.metric.column_id)
+                  : null,
+              },
+            }
+          : {}),
       },
     };
   }

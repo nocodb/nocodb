@@ -20,6 +20,26 @@ export function mergeYjsState(ydoc: Y.Doc, dbState?: Buffer | null) {
   return { state, contentJson };
 }
 
+/**
+ * Decide whether a collab persist should write the title back to `nc_docs.title`.
+ *
+ * Only true when the title was actually edited in the editor since our last
+ * persist (`currentTitle !== lastPersistedTitle`) AND the doc exists AND the new
+ * value differs from what's in the DB. The watermark check is what stops an
+ * external REST/sidebar rename — which moves `nc_docs.title` but not the shared
+ * Y.Text — from being silently clobbered by re-writing the unchanged Y.Text.
+ */
+export function shouldWriteCollabTitle(params: {
+  currentTitle: string;
+  lastPersistedTitle: string;
+  docExists: boolean;
+  dbTitle?: string;
+}): boolean {
+  const { currentTitle, lastPersistedTitle, docExists, dbTitle } = params;
+  const editedInCollab = currentTitle !== lastPersistedTitle;
+  return editedInCollab && docExists && currentTitle !== dbTitle;
+}
+
 /** Collect FileReference ids referenced by image/fileAttachment nodes in PM JSON. */
 function collectDocFileRefIds(content: any): Set<string> {
   const ids = new Set<string>();
@@ -106,11 +126,12 @@ export async function documentCollabPersist(params: {
   // since our last persist. Without this, an external REST/sidebar rename (which
   // updates `nc_docs.title` but not the shared Y.Text) would be silently
   // clobbered here by re-writing the unchanged Y.Text value back over it.
-  const titleEditedInCollab = normalizedTitle !== lastPersistedTitle;
-  const titleChanged =
-    titleEditedInCollab &&
-    !!existingDoc &&
-    normalizedTitle !== existingDoc.title;
+  const titleChanged = shouldWriteCollabTitle({
+    currentTitle: normalizedTitle,
+    lastPersistedTitle,
+    docExists: !!existingDoc,
+    dbTitle: existingDoc?.title,
+  });
 
   // Hoisted so the post-commit FileReference prune can read the derived body.
   let contentJson: any;

@@ -107,6 +107,56 @@ export class DocumentCollabManager {
     }
   }
 
+  /**
+   * Build a fully-wired in-memory session (no DB / holder side effects) and
+   * register it. Split out from {@link ensure} so the awareness-ownership
+   * bookkeeping can be exercised in isolation. The awareness 'update' listener
+   * maps each clientID to the socket that last updated it (origin === socketId,
+   * set by {@link trackAwareness}) so {@link buildSocketAwarenessRemoval} can
+   * reap exactly that socket's cursors on disconnect. The server never sets
+   * local awareness state, so the only entries come from relayed client frames.
+   */
+  private static openSession(
+    docId: string,
+    ydoc: Y.Doc,
+    context: NcContext,
+    wasEmpty: boolean,
+  ): DocSession {
+    const session: DocSession = {
+      ydoc,
+      awareness: new Awareness(ydoc),
+      context,
+      localSockets: new Set(),
+      dirty: false,
+      collaborators: new Set(),
+      awarenessClients: new Map(),
+      // The Y.Text title currently in the loaded Y.Doc (the persisted title; ''
+      // → 'Untitled' for an empty/legacy doc). See DocSession.lastPersistedTitle.
+      lastPersistedTitle: ydoc.getText('title').toString() || 'Untitled',
+      wasEmpty,
+      bootstrapClaimed: false,
+    };
+
+    session.awareness.on(
+      'update',
+      (
+        changes: { added: number[]; updated: number[]; removed: number[] },
+        origin: any,
+      ) => {
+        if (typeof origin === 'string') {
+          for (const id of changes.added)
+            session.awarenessClients.set(id, origin);
+          for (const id of changes.updated)
+            session.awarenessClients.set(id, origin);
+        }
+        for (const id of changes.removed) session.awarenessClients.delete(id);
+      },
+    );
+
+    this.sessions.set(docId, session);
+    return session;
+  }
+
   /** First local connection: load state, mark holder, return the session. */
   static async ensure(context: NcContext, docId: string): Promise<DocSession> {
     let session = this.sessions.get(docId);
@@ -121,43 +171,7 @@ export class DocumentCollabManager {
       Y.applyUpdate(ydoc, new Uint8Array(stateRow.yjs_state));
     }
 
-    const tracked: DocSession = {
-      ydoc,
-      awareness: new Awareness(ydoc),
-      context,
-      localSockets: new Set(),
-      dirty: false,
-      collaborators: new Set(),
-      awarenessClients: new Map(),
-      // The Y.Text title currently in the loaded Y.Doc (the persisted title; '' →
-      // 'Untitled' for an empty/legacy doc). See DocSession.lastPersistedTitle.
-      lastPersistedTitle: ydoc.getText('title').toString() || 'Untitled',
-      wasEmpty: !stateRow?.yjs_state,
-      bootstrapClaimed: false,
-    };
-    session = tracked;
-
-    // Map each awareness clientID to the socket that last updated it (origin is
-    // the socketId we pass in trackAwareness), so a disconnect can reap exactly
-    // that socket's cursors. The server never sets local awareness state, so the
-    // only entries here come from relayed client frames.
-    tracked.awareness.on(
-      'update',
-      (
-        changes: { added: number[]; updated: number[]; removed: number[] },
-        origin: any,
-      ) => {
-        if (typeof origin === 'string') {
-          for (const id of changes.added)
-            tracked.awarenessClients.set(id, origin);
-          for (const id of changes.updated)
-            tracked.awarenessClients.set(id, origin);
-        }
-        for (const id of changes.removed) tracked.awarenessClients.delete(id);
-      },
-    );
-
-    this.sessions.set(docId, session);
+    session = this.openSession(docId, ydoc, context, !stateRow?.yjs_state);
     this.logger.debug(
       `doc session opened ${docId} (live local sessions: ${this.sessions.size})`,
     );

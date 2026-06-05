@@ -4,7 +4,11 @@ import { useSyncFormOrThrow } from '../useSyncForm'
 
 const { integrationConfigs, integrationFetchDestinationSchema } = useSyncFormOrThrow()
 
+const { t } = useI18n()
+
 const mainIntegration = computed(() => integrationConfigs.value[0])
+
+const isLoadingSchema = ref(false)
 
 if (mainIntegration.value) {
   if (!mainIntegration.value.config) {
@@ -21,7 +25,7 @@ const selectedTable = ref('')
 
 const tableNames = computed(() => Object.keys(destinationSchema.value))
 
-const abstractTypeToUITypes = {
+const abstractTypeToUITypes: Record<string, UITypes[]> = {
   string: [
     UITypes.SingleLineText,
     UITypes.LongText,
@@ -31,16 +35,17 @@ const abstractTypeToUITypes = {
     UITypes.SingleSelect,
     UITypes.MultiSelect,
   ],
-  number: [UITypes.Number, UITypes.Decimal, UITypes.Rating, UITypes.Percent],
-  boolean: [UITypes.Checkbox],
-  date: [UITypes.Date],
-  datetime: [UITypes.DateTime],
-  json: [UITypes.JSON],
-  jsonb: [UITypes.JSON],
-  decimal: [UITypes.Decimal, UITypes.Number],
+  number: [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Rating, UITypes.Duration, UITypes.Year],
+  decimal: [UITypes.Decimal, UITypes.Number, UITypes.Currency, UITypes.Percent],
+  boolean: [UITypes.Checkbox, UITypes.SingleLineText, UITypes.Number],
+  date: [UITypes.Date, UITypes.DateTime],
+  datetime: [UITypes.DateTime, UITypes.Date],
+  time: [UITypes.Time, UITypes.SingleLineText],
+  json: [UITypes.JSON, UITypes.LongText],
+  jsonb: [UITypes.JSON, UITypes.LongText],
 }
 
-type AbstractTypeKey = keyof typeof abstractTypeToUITypes
+const fallbackUITypes = [UITypes.SingleLineText, UITypes.LongText]
 
 const tableSelectedAll = computed(() => {
   const table = destinationSchema.value[selectedTable.value]
@@ -50,37 +55,37 @@ const tableSelectedAll = computed(() => {
 // Table columns for NcTable
 const tableColumns = computed(() => [
   {
-    name: 'Include',
+    name: t('labels.syncSchemaColInclude'),
     key: 'include',
     width: 80,
   },
   {
-    name: 'Column Name',
+    name: t('labels.syncSchemaColName'),
     key: 'columnName',
     width: 200,
   },
   {
-    name: 'Original Type',
+    name: t('labels.syncSchemaColOriginalType'),
     key: 'originalType',
     width: 150,
   },
   {
-    name: 'Target Type',
+    name: t('labels.syncSchemaColTargetType'),
     key: 'targetType',
     width: 200,
   },
   {
-    name: 'Unique ID',
+    name: t('labels.syncSchemaColUniqueId'),
     key: 'uniqueId',
     width: 150,
   },
   {
-    name: 'Created At',
+    name: t('labels.syncSchemaColCreatedAt'),
     key: 'createdAt',
     width: 150,
   },
   {
-    name: 'Updated At',
+    name: t('labels.syncSchemaColUpdatedAt'),
     key: 'updatedAt',
     width: 150,
   },
@@ -109,18 +114,34 @@ const countPrimaryKeys = (): number => {
   return currentTable.systemFields.primaryKey.length
 }
 
-const getAllowedUITypes = (abstractType?: string | null) => {
-  if (!abstractType) return [UITypes.SingleLineText, UITypes.LongText]
-  const typeKey = Object.keys(abstractTypeToUITypes).find((key) => abstractType.includes(key)) as AbstractTypeKey | undefined
-  if (typeKey && abstractTypeToUITypes[typeKey]) {
-    return abstractTypeToUITypes[typeKey]
+// Resolve the compatible target types for a column. The abstract type is matched exactly —
+// the previous substring match collapsed `datetime` into `date`, so timestamp columns could
+// only be mapped to Date. When the abstract type is missing/unknown we derive the family from
+// the already-detected `uidt`, and the detected `uidt` is always kept selectable so a column
+// never silently degrades to SingleLineText.
+const getAllowedUITypes = (column: { abstractType?: string | null; uidt?: string }) => {
+  const abstractType = column.abstractType?.toLowerCase()
+  // `uidt` comes from the stored schema as a plain string; it always holds a UIType value.
+  const currentUidt = column.uidt as UITypes | undefined
+
+  let allowed = abstractType ? abstractTypeToUITypes[abstractType] : undefined
+
+  if (!allowed && currentUidt) {
+    const uidt = currentUidt
+    allowed = Object.values(abstractTypeToUITypes).find((types) => types.includes(uidt))
   }
-  return [UITypes.SingleLineText, UITypes.LongText]
+
+  allowed = allowed ?? fallbackUITypes
+
+  if (currentUidt && !allowed.includes(currentUidt)) {
+    return [currentUidt, ...allowed]
+  }
+
+  return allowed
 }
 
-const getUITypeOptions = (column: { abstractType?: string | null }) => {
-  const allowedTypes = getAllowedUITypes(column.abstractType)
-  return allowedTypes.map((type) => ({
+const getUITypeOptions = (column: { abstractType?: string | null; uidt?: string }) => {
+  return getAllowedUITypes(column).map((type) => ({
     label: type,
     value: type,
   }))
@@ -234,209 +255,249 @@ const currentUpdatedAtColumn = computed(() => {
   return currentTable?.systemFields?.updatedAt
 })
 
-// Initialize selected table
+// Apply the sensible defaults for a freshly-fetched table (system fields, primary key,
+// exclude flags). Only used for tables we haven't configured yet.
+function buildTableDefaults(table?: CustomSyncSchema[string] | null) {
+  if (!table?.columns) return
+
+  if (!table.relations) {
+    table.relations = []
+  }
+
+  if (!table.systemFields) {
+    table.systemFields = { primaryKey: [] }
+  }
+
+  table.columns.forEach((column) => {
+    column.exclude = !!column.exclude
+  })
+
+  if (table.systemFields.primaryKey.length === 0 && table.columns.length > 0) {
+    const firstColumn = table.columns[0]
+    if (firstColumn) {
+      table.systemFields.primaryKey = [firstColumn.title]
+    }
+  }
+
+  table.systemFields.primaryKey.forEach((pkColumn) => {
+    const column = table.columns!.find((col) => col.title === pkColumn)
+    if (column) {
+      column.exclude = false
+    }
+  })
+}
+
+// Fetch the destination schema for the currently-selected source tables. We re-fetch
+// whenever the cached schema no longer matches the selected tables (e.g. the user went
+// back and (de)selected tables), but preserve any mapping already configured for tables
+// that are still selected — only newly-added tables get fresh defaults.
+async function loadDestinationSchema() {
+  if (!mainIntegration.value) return
+
+  if (!mainIntegration.value.config) {
+    mainIntegration.value.config = {}
+  }
+
+  const existingSchema: CustomSyncSchema = mainIntegration.value.config.custom_schema || {}
+  const existingKeys = Object.keys(existingSchema)
+
+  // SQL sources expose an explicit table selection via `config.tables`. When present, the
+  // cached schema is only valid if it covers exactly that selection.
+  const hasTableSelection = Array.isArray(mainIntegration.value.config.tables)
+  const selectedTables: string[] = hasTableSelection ? mainIntegration.value.config.tables : []
+  const schemaMatchesSelection =
+    selectedTables.length === existingKeys.length && existingKeys.every((key) => selectedTables.includes(key))
+
+  if (hasTableSelection ? schemaMatchesSelection && existingKeys.length > 0 : existingKeys.length > 0) {
+    return
+  }
+
+  isLoadingSchema.value = true
+  try {
+    const fetchedSchema: CustomSyncSchema = (await integrationFetchDestinationSchema(mainIntegration.value)) || {}
+
+    const mergedSchema: CustomSyncSchema = {}
+    for (const tableName of Object.keys(fetchedSchema)) {
+      if (existingSchema[tableName]) {
+        mergedSchema[tableName] = existingSchema[tableName]
+      } else {
+        buildTableDefaults(fetchedSchema[tableName])
+        mergedSchema[tableName] = fetchedSchema[tableName]
+      }
+    }
+
+    mainIntegration.value.config.custom_schema = mergedSchema
+  } catch (error) {
+    message.error(await extractSdkResponseErrorMsgv2(error as any))
+  } finally {
+    isLoadingSchema.value = false
+  }
+}
+
+// Keep the active tab valid: select the first table initially, and reset when the
+// currently-selected table is no longer part of the schema.
 watch(
   tableNames,
   (names) => {
-    if (names.length > 0 && !selectedTable.value) {
+    if (names.length === 0) {
+      selectedTable.value = ''
+    } else if (!selectedTable.value || !names.includes(selectedTable.value)) {
       selectedTable.value = names[0]
     }
   },
   { immediate: true },
 )
 
-onMounted(async () => {
-  if (!mainIntegration.value) return
-
-  if (!mainIntegration.value.config?.custom_schema || Object.keys(mainIntegration.value.config.custom_schema).length === 0) {
-    try {
-      const schema = await integrationFetchDestinationSchema(mainIntegration.value)
-
-      if (!mainIntegration.value.config) {
-        mainIntegration.value.config = {}
-      }
-      mainIntegration.value.config.custom_schema = schema
-
-      Object.keys(schema).forEach((tableName) => {
-        const table = schema[tableName]
-        if (table && table.columns) {
-          if (!table.relations) {
-            table.relations = []
-          }
-
-          if (!table.systemFields) {
-            table.systemFields = { primaryKey: [] }
-          }
-
-          table.columns.forEach((column) => {
-            column.exclude = !!column.exclude
-          })
-
-          if (table.systemFields.primaryKey.length === 0 && table.columns.length > 0) {
-            const firstColumn = table.columns[0]
-            if (firstColumn) {
-              table.systemFields.primaryKey = [firstColumn.title]
-            }
-          }
-
-          table.systemFields.primaryKey.forEach((pkColumn) => {
-            const column = table.columns.find((col) => col.title === pkColumn)
-            if (column) {
-              column.exclude = false
-            }
-          })
-        }
-      })
-    } catch (error) {
-      console.error('Failed to fetch destination schema:', error)
-    }
-  }
-})
+onMounted(loadDestinationSchema)
 </script>
 
 <template>
   <div class="flex flex-col gap-6">
     <div>
-      <div class="text-bodyLgBold text-nc-content-gray mb-1">Map Table Columns</div>
-      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">Review and configure the columns for each selected table</div>
+      <div class="text-bodyLgBold text-nc-content-gray mb-1">{{ $t('labels.syncSchemaMapTitle') }}</div>
+      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">{{ $t('labels.syncSchemaMapSubtitle') }}</div>
     </div>
 
-    <div v-if="tableNames.length > 0">
-      <NcTabs v-model:active-key="selectedTable" class="nc-sync-schema-tabs">
-        <a-tab-pane v-for="tableName in tableNames" :key="tableName" :tab="tableName" />
-      </NcTabs>
+    <div v-if="isLoadingSchema" class="flex items-center justify-center py-12">
+      <GeneralLoader size="xlarge" />
     </div>
 
-    <div v-if="selectedTable && destinationSchema[selectedTable]" class="flex flex-col gap-4">
-      <!-- Table Header with Select All -->
-      <div class="flex items-center justify-between">
-        <div class="text-bodyDefaultSmBold text-nc-content-gray">Table: {{ selectedTable }}</div>
-        <NcCheckbox :checked="tableSelectedAll" @update:checked="toggleSelectAll">
-          <span class="text-bodyDefaultSm text-nc-content-gray-subtle2">Select All Columns</span>
-        </NcCheckbox>
+    <template v-else>
+      <div v-if="tableNames.length > 0">
+        <NcTabs v-model:active-key="selectedTable" class="nc-sync-schema-tabs">
+          <a-tab-pane v-for="tableName in tableNames" :key="tableName" :tab="tableName" />
+        </NcTabs>
       </div>
 
-      <!-- Columns Table -->
-      <NcTable :columns="tableColumns" :data="tableData" :bordered="false" :sticky-header="true" class="nc-sync-schema-table">
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'include'">
-            <div class="flex items-center justify-center">
-              <NcCheckbox
-                :checked="!record.exclude || isPrimaryKeyColumn(record.title)"
-                :disabled="isPrimaryKeyColumn(record.title)"
-                @update:checked="(checked) => updateColumn(record._index, 'exclude', !checked)"
-              />
-            </div>
-          </template>
+      <div v-if="selectedTable && destinationSchema[selectedTable]" class="flex flex-col gap-4">
+        <!-- Table Header with Select All -->
+        <div class="flex items-center justify-between">
+          <div class="text-bodyDefaultSmBold text-nc-content-gray">
+            {{ $t('labels.syncSchemaTableLabel', { table: selectedTable }) }}
+          </div>
+          <NcCheckbox :checked="tableSelectedAll" @update:checked="toggleSelectAll">
+            <span class="text-bodyDefaultSm text-nc-content-gray-subtle2">{{ $t('labels.syncSchemaSelectAllColumns') }}</span>
+          </NcCheckbox>
+        </div>
 
-          <template v-else-if="column.key === 'columnName'">
-            <div class="text-bodyDefaultSm text-nc-content-gray font-medium">
-              {{ record.title }}
-            </div>
-          </template>
+        <!-- Columns Table -->
+        <NcTable :columns="tableColumns" :data="tableData" :bordered="false" :sticky-header="true" class="nc-sync-schema-table">
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'include'">
+              <div class="flex items-center justify-center">
+                <NcCheckbox
+                  :checked="!record.exclude || isPrimaryKeyColumn(record.title)"
+                  :disabled="isPrimaryKeyColumn(record.title)"
+                  @update:checked="(checked) => updateColumn(record._index, 'exclude', !checked)"
+                />
+              </div>
+            </template>
 
-          <template v-else-if="column.key === 'originalType'">
-            <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">
-              {{ record.abstractType }}
-            </div>
-          </template>
+            <template v-else-if="column.key === 'columnName'">
+              <div class="text-bodyDefaultSm text-nc-content-gray font-medium">
+                {{ record.title }}
+              </div>
+            </template>
 
-          <template v-else-if="column.key === 'targetType'">
-            <a-select
-              :value="record.uidt"
-              class="nc-select-shadow nc-select w-full"
-              @update:value="(value) => updateColumn(record._index, 'uidt', value)"
-            >
-              <template #suffixIcon>
-                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-              </template>
+            <template v-else-if="column.key === 'originalType'">
+              <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">
+                {{ record.abstractType }}
+              </div>
+            </template>
 
-              <a-select-option v-for="option in getUITypeOptions(record)" :key="option.value" :value="option.value">
-                <div class="flex items-center">
-                  <NcTooltip class="w-full" show-on-truncate-only>
-                    {{ option.label }}
-                    <template #title>
+            <template v-else-if="column.key === 'targetType'">
+              <NcSelect :value="record.uidt" class="w-full" @change="(value) => updateColumn(record._index, 'uidt', value)">
+                <a-select-option v-for="option in getUITypeOptions(record)" :key="option.value" :value="option.value">
+                  <div class="flex items-center justify-between gap-2">
+                    <NcTooltip class="truncate" show-on-truncate-only>
                       {{ option.label }}
-                    </template>
-                  </NcTooltip>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                    </NcTooltip>
 
-                  <GeneralIcon
-                    v-if="option.value === record.uidt"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                    icon="check"
-                  />
-                </div>
-              </a-select-option>
-            </a-select>
-          </template>
+                    <GeneralIcon
+                      v-if="option.value === record.uidt"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-nc-content-brand w-4 h-4"
+                      icon="check"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </template>
 
-          <template v-else-if="column.key === 'uniqueId'">
-            <div class="flex items-center justify-center">
-              <NcCheckbox
-                :checked="isPrimaryKeyColumn(record.title)"
-                @update:checked="(checked) => togglePrimaryKey(record.title, checked)"
-              />
-            </div>
-          </template>
+            <template v-else-if="column.key === 'uniqueId'">
+              <div class="flex items-center justify-center">
+                <NcCheckbox
+                  :checked="isPrimaryKeyColumn(record.title)"
+                  @update:checked="(checked) => togglePrimaryKey(record.title, checked)"
+                />
+              </div>
+            </template>
 
-          <template v-else-if="column.key === 'createdAt'">
-            <div class="flex items-center justify-center">
-              <NcButton
-                type="text"
-                size="xxsmall"
-                class="!w-5 !h-5 !p-0"
-                @click="toggleTimestampColumn(record.title, 'createdAt')"
-              >
-                <div
-                  class="w-4 h-4 rounded-full border-2 transition-all"
-                  :class="
-                    currentCreatedAtColumn === record.title
-                      ? 'border-nc-border-brand bg-nc-bg-default relative'
-                      : 'border-nc-border-gray-dark bg-nc-bg-default'
-                  "
+            <template v-else-if="column.key === 'createdAt'">
+              <div class="flex items-center justify-center">
+                <NcButton
+                  type="text"
+                  size="xxsmall"
+                  class="!w-5 !h-5 !p-0"
+                  @click="toggleTimestampColumn(record.title, 'createdAt')"
                 >
                   <div
-                    v-if="currentCreatedAtColumn === record.title"
-                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-nc-brand-500"
-                  />
-                </div>
-              </NcButton>
-            </div>
-          </template>
+                    class="w-4 h-4 rounded-full border-2 transition-all"
+                    :class="
+                      currentCreatedAtColumn === record.title
+                        ? 'border-nc-border-brand bg-nc-bg-default relative'
+                        : 'border-nc-border-gray-dark bg-nc-bg-default'
+                    "
+                  >
+                    <div
+                      v-if="currentCreatedAtColumn === record.title"
+                      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-nc-brand-500"
+                    />
+                  </div>
+                </NcButton>
+              </div>
+            </template>
 
-          <template v-else-if="column.key === 'updatedAt'">
-            <div class="flex items-center justify-center">
-              <NcButton
-                type="text"
-                size="xxsmall"
-                class="!w-5 !h-5 !p-0"
-                @click="toggleTimestampColumn(record.title, 'updatedAt')"
-              >
-                <div
-                  class="w-4 h-4 rounded-full border-2 transition-all"
-                  :class="
-                    currentUpdatedAtColumn === record.title
-                      ? 'border-nc-border-brand bg-nc-bg-default relative'
-                      : 'border-nc-border-gray-dark bg-nc-bg-default'
-                  "
+            <template v-else-if="column.key === 'updatedAt'">
+              <div class="flex items-center justify-center">
+                <NcButton
+                  type="text"
+                  size="xxsmall"
+                  class="!w-5 !h-5 !p-0"
+                  @click="toggleTimestampColumn(record.title, 'updatedAt')"
                 >
                   <div
-                    v-if="currentUpdatedAtColumn === record.title"
-                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-nc-brand-500"
-                  />
-                </div>
-              </NcButton>
-            </div>
+                    class="w-4 h-4 rounded-full border-2 transition-all"
+                    :class="
+                      currentUpdatedAtColumn === record.title
+                        ? 'border-nc-border-brand bg-nc-bg-default relative'
+                        : 'border-nc-border-gray-dark bg-nc-bg-default'
+                    "
+                  >
+                    <div
+                      v-if="currentUpdatedAtColumn === record.title"
+                      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-nc-brand-500"
+                    />
+                  </div>
+                </NcButton>
+              </div>
+            </template>
           </template>
+        </NcTable>
+      </div>
+      <NcEmptyPlaceholder
+        v-else
+        :title="$t('labels.syncSchemaNoTablesTitle')"
+        :subtitle="$t('labels.syncSchemaNoTablesSubtitle')"
+      >
+        <template #icon>
+          <GeneralIcon icon="ncZap" class="w-12 h-12 text-nc-content-gray-subtle2" />
         </template>
-      </NcTable>
-    </div>
-    <div v-else class="flex flex-col items-center justify-center py-12 px-4 bg-nc-bg-gray-extralight rounded-lg">
-      <GeneralIcon icon="ncZap" class="w-12 h-12 text-nc-content-gray-subtle2 mb-5" />
-      <div class="text-bodyDefaultSmBold text-nc-content-gray mb-1">No tables available</div>
-      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">Please select at least one table in your sync source</div>
-    </div>
+      </NcEmptyPlaceholder>
+    </template>
   </div>
 </template>
 

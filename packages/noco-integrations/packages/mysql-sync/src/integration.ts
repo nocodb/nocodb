@@ -320,50 +320,83 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     uidt: UITypes;
     abstractType: SyncAbstractType;
   } {
-    if (type) {
-      type = type.toLowerCase();
+    // `INFORMATION_SCHEMA.COLUMNS.DATA_TYPE` is matched here — it is the
+    // unqualified type (e.g. `int`, `varchar`, `datetime`), the length/precision
+    // lives in `COLUMN_TYPE`.
+    const t = (type || '').toLowerCase();
 
-      // MySQL integer types
-      if (
-        type.includes('int') ||
-        type === 'bigint' ||
-        type === 'smallint' ||
-        type === 'tinyint' ||
-        type === 'mediumint'
-      ) {
+    switch (t) {
+      case 'tinyint':
+      case 'smallint':
+      case 'mediumint':
+      case 'int':
+      case 'integer':
+      case 'bigint':
+      case 'year':
         return { uidt: UITypes.Number, abstractType: 'number' };
-      }
 
-      // MySQL text types
-      if (type === 'text' || type === 'longtext' || type === 'mediumtext') {
-        return { uidt: UITypes.LongText, abstractType: 'string' };
-      }
-
-      // MySQL string types
-      if (
-        type.includes('varchar') ||
-        type.includes('char') ||
-        type === 'tinytext'
-      ) {
-        return { uidt: UITypes.SingleLineText, abstractType: 'string' };
-      }
-
-      // MySQL boolean types
-      if (type === 'boolean' || type === 'bool' || type === 'tinyint(1)') {
-        return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
-      }
-
-      // MySQL decimal/numeric types
-      if (
-        type.includes('decimal') ||
-        type.includes('numeric') ||
-        type.includes('float') ||
-        type.includes('double')
-      ) {
+      case 'decimal':
+      case 'numeric':
+      case 'dec':
+      case 'fixed':
+      case 'float':
+      case 'double':
+      case 'real':
         return { uidt: UITypes.Decimal, abstractType: 'decimal' };
-      }
+
+      // MySQL has no real boolean — `BOOL`/`BOOLEAN` are aliases for tinyint(1),
+      // which reports as `tinyint` above. `bit` is the closest true flag type.
+      case 'bit':
+      case 'bool':
+      case 'boolean':
+        return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
+
+      case 'json':
+        return { uidt: UITypes.JSON, abstractType: 'json' };
+
+      case 'date':
+        return { uidt: UITypes.Date, abstractType: 'date' };
+
+      case 'datetime':
+      case 'timestamp':
+        return { uidt: UITypes.DateTime, abstractType: 'datetime' };
+
+      case 'time':
+        return { uidt: UITypes.Time, abstractType: 'time' };
+
+      case 'char':
+      case 'varchar':
+      case 'tinytext':
+      case 'enum':
+      case 'set':
+        return { uidt: UITypes.SingleLineText, abstractType: 'string' };
+
+      case 'text':
+      case 'mediumtext':
+      case 'longtext':
+        return { uidt: UITypes.LongText, abstractType: 'string' };
     }
 
+    // Fallbacks for length-qualified names.
+    if (t.startsWith('int') || t.includes('int(')) {
+      return { uidt: UITypes.Number, abstractType: 'number' };
+    }
+    if (t.includes('char')) {
+      return { uidt: UITypes.SingleLineText, abstractType: 'string' };
+    }
+    if (t.includes('text')) {
+      return { uidt: UITypes.LongText, abstractType: 'string' };
+    }
+    if (
+      t.includes('decimal') ||
+      t.includes('numeric') ||
+      t.includes('double') ||
+      t.includes('float')
+    ) {
+      return { uidt: UITypes.Decimal, abstractType: 'decimal' };
+    }
+
+    // binary, blob, geometry, etc.
     return { uidt: UITypes.SingleLineText, abstractType: 'string' };
   }
 }

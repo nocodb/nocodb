@@ -53,6 +53,11 @@ export default class Integration extends IntegrationCE {
   }
 
   public static async init() {
+    // Chain to CE init so the external-DB SSRF enforcement (forced on for cloud)
+    // is applied — EE is what runs on cloud/on-prem, so skipping super would
+    // silently disable the guard exactly where it matters most.
+    await super.init();
+
     for (const tp of Object.values(IntegrationsType)) {
       if (!integrationCategoryNeedDefault(tp as IntegrationsType)) continue;
 

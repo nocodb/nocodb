@@ -10,6 +10,7 @@
   "dependencies": {
     "@ai-sdk/provider": "^3.0.0",
     "ai": "^6.0.3",
+    "ipaddr.js": "^2.3.0",
     "nocodb-sdk": "file:../../nocodb-sdk",
     "zod": "^3.25.76"
   },

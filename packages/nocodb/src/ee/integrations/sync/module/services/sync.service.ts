@@ -8,7 +8,9 @@ import {
   type NcContext,
   type NcRequest,
   parseProp,
+  PlanFeatureTypes,
   RelationTypes,
+  SyncCategory,
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
@@ -18,7 +20,7 @@ import {
   syncSystemFieldsMap,
 } from '@noco-local-integrations/core';
 import type { OnModuleInit } from '@nestjs/common';
-import type { OnDeleteAction, SyncCategory, SyncType } from 'nocodb-sdk';
+import type { OnDeleteAction, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
   CustomSyncSchema,
@@ -45,6 +47,7 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { getMMColumnNames } from '~/helpers/columnHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class SyncModuleService implements OnModuleInit {
@@ -142,6 +145,23 @@ export class SyncModuleService implements OnModuleInit {
 
     const mainConfig = configs.shift();
 
+    if (!mainConfig) {
+      NcError.badRequest('Invalid sync config');
+    }
+
+    // Derive the sync category from the integration manifest — the source of
+    // truth — instead of trusting the client-supplied `sync_category`. Without
+    // this, the Enterprise custom-sync gate can be bypassed by sending a
+    // non-CUSTOM `sync_category` for a custom (e.g. mssql) sync integration.
+    const resolvedSyncCategory =
+      Integration.getManifestForConfig(mainConfig)?.sync_category ??
+      sync_category;
+
+    // Custom sync is an Enterprise-only feature
+    if (resolvedSyncCategory === SyncCategory.CUSTOM) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_CUSTOM_SYNC);
+    }
+
     const workspaceId = context.workspace_id;
     const baseId = context.base_id;
 
@@ -225,7 +245,7 @@ export class SyncModuleService implements OnModuleInit {
         sync_type,
         sync_trigger,
         sync_trigger_cron,
-        sync_category,
+        sync_category: resolvedSyncCategory,
         on_delete_action,
         created_by: req.user.id,
         updated_by: req.user.id,
@@ -1069,7 +1089,16 @@ export class SyncModuleService implements OnModuleInit {
           }
         }
       } else {
-        // Create new child sync config
+        // Create new child sync config — gate on the integration manifest's
+        // category (source of truth) so a custom (e.g. mssql) integration can't
+        // be added to an existing sync without the Enterprise entitlement.
+        if (
+          Integration.getManifestForConfig(integrationPayload)
+            ?.sync_category === SyncCategory.CUSTOM
+        ) {
+          await checkForFeature(context, PlanFeatureTypes.FEATURE_CUSTOM_SYNC);
+        }
+
         const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
           integrationPayload,
         ) as SyncIntegration;

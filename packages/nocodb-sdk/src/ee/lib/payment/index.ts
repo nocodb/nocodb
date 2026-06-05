@@ -126,6 +126,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_SYNC]: false,
       [PlanFeatureTypes.FEATURE_TABLE_SYNC]: false,
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
+      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
       [PlanFeatureTypes.FEATURE_LIST_VIEW]: false,
@@ -202,8 +203,10 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_SSO]: false,
       // Sync (app sync + manual table sync) is available from the first paid
-      // plan; only the automatic/real-time table-sync trigger is Business+.
+      // plan; the automatic/real-time table-sync trigger is Business+ and custom
+      // sync is Enterprise-only.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
+      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
       [PlanFeatureTypes.FEATURE_LIST_VIEW]: false,
@@ -258,6 +261,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
+      // Custom sync is Enterprise-only
+      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -555,6 +560,8 @@ export const OnPremPlanDefinitions: Record<
       // Table sync (manual) is available on the first paid plan; automatic
       // real-time sync is gated to Scale+.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
+      // Custom sync is Enterprise-only
+      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
@@ -571,6 +578,7 @@ export const OnPremPlanDefinitions: Record<
     features: {
       // Enterprise-only
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },

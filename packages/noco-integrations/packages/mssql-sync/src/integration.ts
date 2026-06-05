@@ -10,11 +10,11 @@ import type {
   SyncAbstractType,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type { PostgresAuthIntegration } from '@noco-integrations/postgres-auth';
+import type { MssqlAuthIntegration } from '@noco-integrations/mssql-auth';
 
-class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
+class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   public async getDestinationSchema(
-    auth: PostgresAuthIntegration,
+    auth: MssqlAuthIntegration,
   ): Promise<CustomSyncSchema> {
     if (
       this.config.custom_schema &&
@@ -27,6 +27,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     ) {
       return this.config.custom_schema;
     }
+
     const schema: CustomSyncSchema = {};
 
     for (const table of this.config.tables) {
@@ -36,46 +37,41 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         abstractType: SyncAbstractType;
       }[] = [];
 
+      // SQL Server uses INFORMATION_SCHEMA.COLUMNS
       const tableSchema = await auth.use(async (knex) => {
         return knex
-          .select('a.attname as column_name', 't.typname as data_type')
-          .from('pg_attribute as a')
-          .join('pg_class as c', 'a.attrelid', 'c.oid')
-          .join('pg_namespace as n', 'c.relnamespace', 'n.oid')
-          .join('pg_type as t', 'a.atttypid', 't.oid')
+          .select('COLUMN_NAME', 'DATA_TYPE')
+          .from('INFORMATION_SCHEMA.COLUMNS')
           .where({
-            'c.relname': table,
-            'n.nspname': this.config.schema,
-          })
-          .andWhere('a.attnum', '>', 0) // exclude system columns
-          .andWhere('a.attisdropped', false); // exclude dropped columns
+            TABLE_NAME: table,
+            TABLE_SCHEMA: this.config.schema,
+          });
       });
 
       for (const column of tableSchema) {
-        const { uidt, abstractType } = this.autoDetectType(column.data_type);
+        const { uidt, abstractType } = this.autoDetectType(column.DATA_TYPE);
 
         columns.push({
-          title: column.column_name,
+          title: column.COLUMN_NAME,
           uidt,
           abstractType,
         });
       }
 
+      // Get primary keys. SQL Server PK constraint names are arbitrary, so join
+      // KEY_COLUMN_USAGE to TABLE_CONSTRAINTS and filter on CONSTRAINT_TYPE.
       const primaryKeys = await auth.use(async (knex) => {
         return knex
-          .select('kcu.column_name')
-          .from('information_schema.key_column_usage as kcu')
-          .join('information_schema.table_constraints as tc', function () {
-            this.on('kcu.constraint_name', '=', 'tc.constraint_name').andOn(
-              'kcu.table_name',
-              '=',
-              'tc.table_name',
-            );
+          .select('kcu.COLUMN_NAME as COLUMN_NAME')
+          .from('INFORMATION_SCHEMA.KEY_COLUMN_USAGE as kcu')
+          .join('INFORMATION_SCHEMA.TABLE_CONSTRAINTS as tc', function () {
+            this.on('kcu.CONSTRAINT_NAME', '=', 'tc.CONSTRAINT_NAME')
+              .andOn('kcu.TABLE_NAME', '=', 'tc.TABLE_NAME')
+              .andOn('kcu.TABLE_SCHEMA', '=', 'tc.TABLE_SCHEMA');
           })
-          .where({
-            'kcu.table_name': table,
-            'tc.constraint_type': 'PRIMARY KEY',
-          });
+          .where('tc.CONSTRAINT_TYPE', 'PRIMARY KEY')
+          .andWhere('kcu.TABLE_NAME', table)
+          .andWhere('kcu.TABLE_SCHEMA', this.config.schema);
       });
 
       schema[table] = {
@@ -83,7 +79,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         columns,
         relations: [],
         systemFields: {
-          primaryKey: primaryKeys.map((pk) => pk.column_name),
+          primaryKey: primaryKeys.map((pk) => pk.COLUMN_NAME),
         },
       };
     }
@@ -92,7 +88,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   public async fetchData(
-    auth: PostgresAuthIntegration,
+    auth: MssqlAuthIntegration,
     args: {
       targetTables?: (TARGET_TABLES | string)[];
       targetTableIncrementalValues?: Record<
@@ -105,15 +101,17 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
     void (async () => {
       try {
-        // Ensure we have schema information
-        const schema =
-          this.config.custom_schema || (await this.getDestinationSchema(auth));
+        const schema = this.config.custom_schema;
+        if (!schema) {
+          throw new Error(
+            'SQL Server sync is missing its schema mapping (custom_schema). ' +
+              'Re-open the sync configuration to map the source schema before syncing.',
+          );
+        }
 
-        // Get tables to sync
         const targetTables = args.targetTables || [];
         const incrementalValues = args.targetTableIncrementalValues || {};
 
-        // Process each table
         for (const tableName of targetTables) {
           const tableSchema = schema[tableName as string];
           if (!tableSchema) {
@@ -121,7 +119,6 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
             continue;
           }
 
-          // Get column information from schema
           const columnNames = tableSchema.columns.map((col) => col.title);
 
           // Pagination settings
@@ -130,7 +127,6 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
           let hasMore = true;
 
           while (hasMore) {
-            // Build query with pagination
             const rows = await auth.use(async (knex) => {
               let query = knex
                 .select(columnNames)
@@ -148,29 +144,21 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
                 query = query.where(incrementalKey, '>', incrementalValue);
               }
 
-              // Add ordering to ensure consistent pagination
+              // SQL Server OFFSET/FETCH requires a deterministic ORDER BY.
               const primaryKeys = tableSchema.systemFields?.primaryKey;
               if (primaryKeys && primaryKeys.length > 0) {
-                // Order by primary key(s) for consistent pagination
                 primaryKeys.forEach((pk) => {
                   query = query.orderBy(pk, 'asc');
                 });
-              } else {
-                // Fallback: order by first column if no primary key
-                if (columnNames.length > 0) {
-                  query = query.orderBy(columnNames[0], 'asc');
-                }
+              } else if (columnNames.length > 0) {
+                query = query.orderBy(columnNames[0], 'asc');
               }
 
-              // Execute query
               return query;
             });
 
-            // Process rows
             for (const row of rows) {
               const recordId = this.generateRecordId(tableName as string, row);
-
-              // Format data according to schema
               const { data, links } = this.formatData(tableName as string, row);
 
               stream.push({
@@ -181,24 +169,22 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
               });
             }
 
-            // Check if we have more data
             hasMore = rows.length === pageSize;
             offset += pageSize;
 
-            // Log progress for large tables
             if (offset % 1000 === 0) {
               this.log(
-                `[PostgreSQL Sync] Processed ${offset} records from table ${tableName}`,
+                `[SQL Server Sync] Processed ${offset} records from table ${tableName}`,
               );
             }
           }
 
           this.log(
-            `[PostgreSQL Sync] Completed syncing table ${tableName}, total records processed: ${offset}`,
+            `[SQL Server Sync] Completed syncing table ${tableName}, total records processed: ${offset}`,
           );
         }
       } catch (error) {
-        console.error('Error fetching data from PostgreSQL:', error);
+        console.error('Error fetching data from SQL Server:', error);
         stream.emit('error', error);
       } finally {
         stream.push(null); // End the stream
@@ -209,24 +195,35 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   /**
-   * Generate a unique record ID based on primary keys or fallback
+   * Generate a unique record ID based on primary keys.
    */
   private generateRecordId(tableName: string, row: any): string {
     const primaryKeys =
       this.config.custom_schema?.[tableName]?.systemFields?.primaryKey;
 
-    if (primaryKeys && primaryKeys.length > 0) {
-      return primaryKeys
-        .sort()
-        .map((pk) => `${row[pk]}`)
-        .join('_');
+    if (!primaryKeys || primaryKeys.length === 0) {
+      throw new Error('No primary keys found for table: ' + tableName);
     }
 
-    throw new Error('No primary keys found for table: ' + tableName);
+    // Single PK: use the raw value.
+    if (primaryKeys.length === 1) {
+      return `${row[primaryKeys[0]]}`;
+    }
+
+    // Composite PK: mirror NocoDB's own composite-key encoding
+    // (extractPkFromPkColumns) — join with `___` and escape `_` inside each
+    // value so two distinct tuples can never collapse to the same id
+    // (e.g. (`a_b`,`c`) vs (`a`,`b_c`)). Sort a COPY so the id is stable
+    // regardless of column order AND so we don't mutate the shared schema
+    // array that `fetchData` reuses to build the paginated ORDER BY.
+    return [...primaryKeys]
+      .sort()
+      .map((pk) => `${row[pk]}`.replace(/_/g, '\\_'))
+      .join('___');
   }
 
   /**
-   * Format data from PostgreSQL to NocoDB format
+   * Format data from SQL Server to NocoDB format.
    */
   public formatData(
     targetTable: TARGET_TABLES | string,
@@ -235,7 +232,6 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     data: CustomSyncRecord;
     links?: Record<string, string[] | null>;
   } {
-    // Format the record with required SyncRecord fields
     const formattedData: CustomSyncRecord = {
       // Avoid raw data for custom schemas
       RemoteRaw: null,
@@ -243,9 +239,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
     const tableSchema = this.config.custom_schema?.[targetTable];
 
-    // Use schema to determine date fields if available
     if (tableSchema) {
-      // If the table has system fields defined, use them
       const systemFields = tableSchema.systemFields;
       if (systemFields) {
         if (systemFields.createdAt && data[systemFields.createdAt]) {
@@ -256,7 +250,6 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         }
       }
 
-      // map the columns to the SyncRecord fields
       for (const column of tableSchema.columns) {
         if (column.exclude) {
           continue;
@@ -273,12 +266,10 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
   public getIncrementalKey(targetTable: TARGET_TABLES | string): string | null {
     const schema = this.config.custom_schema;
-    // If the schema has a specific incremental key for this table, use it
-    if (schema && schema[targetTable]) {
-      const tableSchema = schema[targetTable];
-      const systemFields = tableSchema.systemFields;
 
-      // If systemFields defines an updatedAt field, use it for incremental sync
+    if (schema && schema[targetTable]) {
+      const systemFields = schema[targetTable].systemFields;
+
       if (systemFields && systemFields.updatedAt) {
         return systemFields.updatedAt;
       }
@@ -287,30 +278,32 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     return null;
   }
 
-  public async fetchOptions(auth: PostgresAuthIntegration, key: string) {
+  public async fetchOptions(auth: MssqlAuthIntegration, key: string) {
     if (key === 'schemas') {
       const schemas = await auth.use(async (knex) => {
-        return knex.select('schema_name').from('information_schema.schemata');
+        return knex.select('SCHEMA_NAME').from('INFORMATION_SCHEMA.SCHEMATA');
       });
 
-      return schemas.map((schema: { schema_name: string }) => ({
-        label: schema.schema_name,
-        value: schema.schema_name,
+      return schemas.map((schema: { SCHEMA_NAME: string }) => ({
+        label: schema.SCHEMA_NAME,
+        value: schema.SCHEMA_NAME,
       }));
     }
 
     if (key === 'tables') {
       const tables = await auth.use(async (knex) => {
-        return knex
-          .select('table_name')
-          .from('information_schema.tables')
-          .where({ table_schema: this.config.schema })
-          .andWhere('table_type', 'BASE TABLE');
+        return (
+          knex
+            .select('TABLE_NAME')
+            .from('INFORMATION_SCHEMA.TABLES')
+            .where({ TABLE_SCHEMA: this.config.schema })
+            .andWhere('TABLE_TYPE', 'BASE TABLE')
+        );
       });
 
-      return tables.map((table: { table_name: string }) => ({
-        label: table.table_name,
-        value: table.table_name,
+      return tables.map((table: { TABLE_NAME: string }) => ({
+        label: table.TABLE_NAME,
+        value: table.TABLE_NAME,
       }));
     }
 
@@ -321,73 +314,75 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     uidt: UITypes;
     abstractType: SyncAbstractType;
   } {
-    // `pg_type.typname` is matched here (e.g. `int4`, `bool`, `timestamptz`),
-    // not the friendly SQL name — keep the cases in terms of typnames.
+    // `INFORMATION_SCHEMA.COLUMNS.DATA_TYPE` is matched here (e.g. `int`,
+    // `nvarchar`, `datetime2`, `bit`).
     const t = (type || '').toLowerCase();
 
     switch (t) {
-      case 'int2':
-      case 'int4':
-      case 'int8':
+      case 'tinyint':
       case 'smallint':
-      case 'integer':
+      case 'int':
       case 'bigint':
-      case 'serial':
-      case 'smallserial':
-      case 'bigserial':
         return { uidt: UITypes.Number, abstractType: 'number' };
 
-      case 'numeric':
       case 'decimal':
-      case 'float4':
-      case 'float8':
-      case 'real':
-      case 'double precision':
+      case 'numeric':
       case 'money':
+      case 'smallmoney':
+      case 'float':
+      case 'real':
         return { uidt: UITypes.Decimal, abstractType: 'decimal' };
 
-      case 'bool':
-      case 'boolean':
+      case 'bit':
         return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
-
-      case 'json':
-      case 'jsonb':
-        return { uidt: UITypes.JSON, abstractType: 'json' };
 
       case 'date':
         return { uidt: UITypes.Date, abstractType: 'date' };
 
-      case 'timestamp':
-      case 'timestamptz':
+      case 'datetime':
+      case 'datetime2':
+      case 'smalldatetime':
+      case 'datetimeoffset':
         return { uidt: UITypes.DateTime, abstractType: 'datetime' };
 
       case 'time':
-      case 'timetz':
         return { uidt: UITypes.Time, abstractType: 'time' };
 
+      case 'char':
+      case 'varchar':
+      case 'nchar':
+      case 'nvarchar':
+      case 'uniqueidentifier':
+        return { uidt: UITypes.SingleLineText, abstractType: 'string' };
+
       case 'text':
+      case 'ntext':
+      case 'xml':
         return { uidt: UITypes.LongText, abstractType: 'string' };
     }
 
-    // Fallbacks for aliased / length-qualified names some drivers report.
-    if (t.includes('timestamp')) {
-      return { uidt: UITypes.DateTime, abstractType: 'datetime' };
-    }
-    if (t.startsWith('int') || t === 'serial') {
+    // Fallbacks for length-qualified names.
+    if (t.includes('int')) {
       return { uidt: UITypes.Number, abstractType: 'number' };
+    }
+    if (t.includes('char')) {
+      return { uidt: UITypes.SingleLineText, abstractType: 'string' };
     }
     if (
       t.includes('numeric') ||
       t.includes('decimal') ||
-      t.includes('double') ||
+      t.includes('money') ||
       t.includes('float')
     ) {
       return { uidt: UITypes.Decimal, abstractType: 'decimal' };
     }
+    if (t.includes('datetime')) {
+      return { uidt: UITypes.DateTime, abstractType: 'datetime' };
+    }
 
-    // varchar, bpchar, char, name, uuid, bytea, etc.
+    // binary, varbinary, image, geography, etc.
     return { uidt: UITypes.SingleLineText, abstractType: 'string' };
   }
 }
 
-export default PostgresSyncIntegration;
+export default MssqlSyncIntegration;

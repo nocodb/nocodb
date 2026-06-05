@@ -3,40 +3,58 @@ import {
   assertExternalDbHostAllowed,
   AuthIntegration,
 } from '@noco-integrations/core';
-import type { PostgresAuthConfig } from './types';
+import type { MssqlAuthConfig } from './types';
 import type { Knex } from 'knex';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class PostgresAuthIntegration extends AuthIntegration<
-  PostgresAuthConfig,
+const toBool = (
+  value: string | boolean | undefined,
+  fallback: boolean,
+): boolean => {
+  if (value === undefined || value === null || value === '') return fallback;
+  return value === true || value === 'true';
+};
+
+// The form sends `port` as a string, but tedious requires a number for
+// `config.options.port` and rejects strings outright.
+const toPort = (
+  value: string | number | undefined,
+  fallback: number,
+): number => {
+  const port = Number(value);
+  return Number.isFinite(port) && port > 0 ? port : fallback;
+};
+
+export class MssqlAuthIntegration extends AuthIntegration<
+  MssqlAuthConfig,
   Knex
 > {
   public async authenticate(): Promise<Knex> {
-    // SSRF guard — reject hosts that resolve to internal/non-routable ranges.
     await assertExternalDbHostAllowed(this.config.host);
 
     const knexConfig: Knex.Config = {
-      client: 'pg',
+      client: 'mssql',
+      // knex's mssql dialect maps to the `tedious` driver, which expects
+      // `server` (not `host`) and TLS settings under `options`.
       connection: {
-        host: this.config.host,
-        port: this.config.port || 5432,
+        server: this.config.host,
+        port: toPort(this.config.port, 1433),
         user: this.config.username,
         password: this.config.password,
         database: this.config.database,
-      },
+        options: {
+          encrypt: toBool(this.config.encrypt, true),
+          trustServerCertificate: toBool(
+            this.config.trustServerCertificate,
+            true,
+          ),
+        },
+      } as any,
       pool: {
         min: 1,
         max: 1,
       },
     };
-
-    // Handle SSL configuration
-    if (this.config.ssl) {
-      (knexConfig.connection as any).ssl =
-        this.config.ssl === 'true' || this.config.ssl === true
-          ? true
-          : { rejectUnauthorized: false };
-    }
 
     this.client = knex(knexConfig);
 
@@ -53,27 +71,11 @@ export class PostgresAuthIntegration extends AuthIntegration<
         success: true,
       };
     } catch (error: any) {
-      // Handle specific PostgreSQL errors
-      // Error codes: https://www.postgresql.org/docs/current/errcodes-appendix.html
-
-      if (error?.code === '28P01') {
+      // tedious surfaces connection/login failures via `code`.
+      if (error?.code === 'ELOGIN') {
         return {
           success: false,
           message: 'Authentication failed - invalid username or password',
-        };
-      }
-
-      if (error?.code === '3D000') {
-        return {
-          success: false,
-          message: 'Database not found - check database name',
-        };
-      }
-
-      if (error?.code === '28000') {
-        return {
-          success: false,
-          message: 'Authorization failed - check user permissions',
         };
       }
 
@@ -91,32 +93,18 @@ export class PostgresAuthIntegration extends AuthIntegration<
         };
       }
 
-      if (error?.code === 'ETIMEDOUT') {
+      if (error?.code === 'ETIMEOUT' || error?.code === 'ETIMEDOUT') {
         return {
           success: false,
           message: 'Connection timeout - check network connectivity',
         };
       }
 
-      if (error?.code === 'ECONNRESET') {
-        return {
-          success: false,
-          message: 'Connection reset - check firewall and network',
-        };
-      }
-
-      if (error?.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+      if (error?.code === 'ESOCKET') {
         return {
           success: false,
           message:
-            'Self-signed certificate - set ssl to false or provide valid certificate',
-        };
-      }
-
-      if (error?.code === 'CERT_HAS_EXPIRED') {
-        return {
-          success: false,
-          message: 'SSL certificate has expired',
+            'Connection failed - check host, port and that the server is reachable',
         };
       }
 
@@ -133,7 +121,7 @@ export class PostgresAuthIntegration extends AuthIntegration<
         await this.client.destroy();
         this.client = null;
       } catch (error) {
-        console.warn('Error while destroying PostgreSQL connection:', error);
+        console.warn('Error while destroying SQL Server connection:', error);
       }
     }
   }

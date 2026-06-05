@@ -418,7 +418,9 @@ export type SyncAbstractType =
   | 'decimal'   // Floating point values
   | 'boolean'   // True/false values
   | 'date'      // Date only (no time)
-  | 'datetime'; // Date and time
+  | 'datetime'  // Date and time
+  | 'time'      // Time of day (no date)
+  | 'json';     // Structured / JSON data
 
 /**
  * Defines a single column in a sync table.

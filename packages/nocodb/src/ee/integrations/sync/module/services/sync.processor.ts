@@ -76,6 +76,7 @@ export class SyncModuleSyncDataProcessor {
     const dataMap = new Map<string, any>();
     const existingMap = new Map<string, any>();
     const toInsertMap = new Map<string, boolean>();
+    const toUpdateMap = new Map<string, boolean>();
 
     for (const record of data) {
       dataMap.set(record.RemoteId, record);
@@ -97,11 +98,16 @@ export class SyncModuleSyncDataProcessor {
         toInsert.push(dataRecord);
         toInsertMap.set(record.RemoteId, true);
       } else {
+        if (toUpdateMap.has(record.RemoteId)) {
+          continue;
+        }
+
         toUpdate.push(
           Object.assign(dataRecord, {
             Id: existingRecord.Id,
           }),
         );
+        toUpdateMap.set(record.RemoteId, true);
       }
     }
 

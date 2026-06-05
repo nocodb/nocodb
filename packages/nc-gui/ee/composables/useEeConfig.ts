@@ -361,6 +361,10 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO)
   })
 
+  const blockCustomSync = computed(() => {
+    return !getFeature(PlanFeatureTypes.FEATURE_CUSTOM_SYNC)
+  })
+
   const blockRls = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_RLS)
   })
@@ -2022,6 +2026,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseCustomSync = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockCustomSync.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseCustomSync'),
+      content: t('upgrade.upgradeToUseCustomSyncSubtitle', {
+        plan: PlanTitles.ENTERPRISE,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_CUSTOM_SYNC,
+      requiredPlan: PlanTitles.ENTERPRISE,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseRecordTemplates = ({
     callback,
     successCallback,
@@ -2518,6 +2545,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockSync,
     blockTableSync,
     blockTableSyncAuto,
+    blockCustomSync,
     blockRls,
     blockUnique,
     blockUuidField,
@@ -2525,6 +2553,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseUnique,
     showUpgradeToUseSync,
     showUpgradeToUseTableSync,
+    showUpgradeToUseCustomSync,
     showUpgradeToUseRls,
     showUpgradeToUseUuidField,
     showUpgradeToUseAutoNumberField,

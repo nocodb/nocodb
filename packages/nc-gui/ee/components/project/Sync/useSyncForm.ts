@@ -28,9 +28,14 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         }
       }
 
-      const isSyncCategoryAlreadySelected = activeBaseSyncs.value.some(
-        (sync) => syncConfigForm.value.sync_category && sync.sync_category === syncConfigForm.value.sync_category,
-      )
+      // Custom syncs build their own (collision-resolved) tables, so multiple are allowed per base.
+      const isCustomCategory = syncConfigForm.value.sync_category === SyncCategory.CUSTOM
+
+      const isSyncCategoryAlreadySelected =
+        !isCustomCategory &&
+        activeBaseSyncs.value.some(
+          (sync) => syncConfigForm.value.sync_category && sync.sync_category === syncConfigForm.value.sync_category,
+        )
       return {
         value: !syncConfigForm.value.sync_category || isSyncCategoryAlreadySelected,
         tooltip: isSyncCategoryAlreadySelected ? t('tooltip.syncForThisCategoryAlreadyAdded') : t('tooltip.selectSyncCategory'),

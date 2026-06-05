@@ -124,6 +124,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTableSyncAuto = computed(() => true)
 
+  const blockCustomSync = computed(() => true)
+
   const blockUnique = computed(() => true)
 
   // UUID field is EE-only — always blocked in CE
@@ -271,6 +273,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseSync = (..._args: any[]) => {}
 
   const showUpgradeToUseTableSync = (..._args: any[]) => {}
+
+  const showUpgradeToUseCustomSync = (..._args: any[]) => {}
 
   const showUpgradeToUseUnique = (..._args: any[]) => {}
 
@@ -489,12 +493,14 @@ export const useEeConfig = createSharedComposable(() => {
     blockSync,
     blockTableSync,
     blockTableSyncAuto,
+    blockCustomSync,
     blockRls,
     blockUnique,
     blockUuidField,
     blockAutoNumberField,
     showUpgradeToUseSync,
     showUpgradeToUseTableSync,
+    showUpgradeToUseCustomSync,
     showUpgradeToUseRls,
     showUpgradeToUseUnique,
     showUpgradeToUseUuidField,

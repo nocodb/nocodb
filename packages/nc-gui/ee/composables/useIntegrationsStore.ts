@@ -96,7 +96,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const basesStore = useBases()
   const { basesList, activeProjectId } = storeToRefs(basesStore)
 
-  const { isSyncFeatureEnabled, isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
+  const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
   const integrations = ref<IntegrationType[]>([])
 
@@ -162,8 +162,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         (i) =>
           i.type === IntegrationCategoryType.SYNC &&
           SyncCategoryMeta[i.sync_category!] &&
-          !SyncCategoryMeta[i.sync_category!].comingSoon &&
-          (SyncCategoryMeta[i.sync_category!].beta ? isSyncAdvancedFeaturesEnabled.value : true),
+          !SyncCategoryMeta[i.sync_category!].comingSoon,
       )
       .map((i) => i.sub_type)
 

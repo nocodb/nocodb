@@ -336,10 +336,12 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 
   if (!fromCol) return { updatedProperty: [], newRow: null }
 
-  // Calculate the day index based on the percentage of the width
-  const day = Math.floor(
-    percentX * maxVisibleDays.value - dragRecord.value.rowMeta.spanningDays - Math.max(0, Math.min(1, relativeX / width)),
-  )
+  // Column under the cursor (clamped to the visible range), then shifted back by
+  // the record's leading span so a multi-day record's start lands correctly.
+  // Using the cursor's own column — rather than subtracting the whole-grid
+  // fraction — keeps the last column reachable for any column count (3-day / week).
+  const cursorDay = Math.max(0, Math.min(maxVisibleDays.value - 1, Math.floor(percentX * maxVisibleDays.value)))
+  const day = cursorDay - dragRecord.value.rowMeta.spanningDays
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')

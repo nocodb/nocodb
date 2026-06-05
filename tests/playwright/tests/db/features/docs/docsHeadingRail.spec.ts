@@ -42,6 +42,17 @@ test.describe('Docs — Heading marker rail', () => {
       await tiptap.addNewNode({ type: types[i % 3], index: i });
       await page.keyboard.type(`Section ${i + 1}`);
     }
+
+    // Trailing filler so the document is taller than the viewport. The scroll-spy
+    // test clicks the second-to-last heading and expects it to become the active
+    // (scroll-focused) heading — that only happens if there is enough content
+    // below it to scroll it up to the scroll-spy trigger line near the top. Without
+    // this the few short headings fit on one screen, the document never scrolls,
+    // and the active heading stays stuck on the first one.
+    for (let i = 0; i < 60; i++) {
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('Filler line to extend the document height.');
+    }
   }
 
   test('renders one dash per heading once there are multiple headings', async ({ page }) => {

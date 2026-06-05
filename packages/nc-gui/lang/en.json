@@ -2691,6 +2691,7 @@
     "textColor": "Text color",
     "recentlyUsed": "Recently used",
     "hideNocodbBranding": "Hide NocoDB Branding",
+    "hideBranding": "Hide Branding",
     "showOnConditions": "Show on conditions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit options",

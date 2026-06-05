@@ -56,6 +56,8 @@ const { getMeta, getMetaByKey } = useMetas()
 
 const { isDark } = useTheme()
 
+const { isWhiteLabelled } = useBranding()
+
 const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -2439,7 +2441,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 <!-- Hide NocoDB Branding -->
 
                                 <span class="flex items-center gap-3">
-                                  {{ $t('labels.hideNocodbBranding') }}
+                                  {{ isWhiteLabelled ? $t('labels.hideBranding') : $t('labels.hideNocodbBranding') }}
 
                                   <LazyPaymentUpgradeBadge
                                     v-if="showEEFeatures"

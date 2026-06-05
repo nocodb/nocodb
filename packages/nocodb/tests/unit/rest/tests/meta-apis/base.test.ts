@@ -7,6 +7,8 @@ import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 
 import init from '../../../init';
 import { BaseUser } from '~/models';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import type { Base, Source, User } from '~/models';
 
@@ -127,6 +129,17 @@ export default function (API_VERSION: 'v3' | 'v2') {
         .set('xc-auth', context.token)
         .send()
         .expect(404);
+
+      // Deleting a base is a SOFT delete: the row must still exist in the meta
+      // table with deleted=true. It is only hard-deleted later by the clean-up
+      // job. Regression guard — EE baseSoftDelete previously called Base.delete()
+      // (hard delete) instead of Base.softDelete().
+      const row = await Noco.ncMeta
+        .knex(MetaTable.PROJECT)
+        .where({ id: base.id })
+        .first();
+      expect(row, 'base row should be soft-deleted, not hard-deleted').to.exist;
+      expect(!!row.deleted).to.eq(true);
     });
 
     it(`List Base Users ${API_VERSION}`, async () => {

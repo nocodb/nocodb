@@ -32,11 +32,9 @@ const resolvedSrc = computed(() => {
   return ''
 })
 
-// A collaborator's local blob preview (`src = blob:…`) propagates over the CRDT
-// before the durable FileReference `id` does, and a blob URL only loads in the
-// client that created it — so on a peer it fails to load. Track that failure and
-// fall back to the skeleton until the `id` arrives and resolvedSrc switches to the
-// proxy URL (@error flips this; the watcher resets it when the source changes).
+// A peer receives the uploader's local blob preview over the CRDT before the
+// durable id; blob: URLs only load in their origin client, so it errors on peers.
+// Track that to fall back to the skeleton until the id arrives (watcher resets it).
 const imgError = ref(false)
 
 watch(resolvedSrc, () => {
@@ -47,10 +45,8 @@ const isLoading = computed(() => {
   const { path, src, id } = props.node.attrs
   // Uploading: no durable ref and no preview yet.
   if (!path && !src) return true
-  // A peer can't load the uploader's local blob preview (`blob:` URLs resolve only
-  // in the client that created them); show the skeleton until the durable id
-  // propagates. Scoped to blob: so a genuinely broken external image still surfaces
-  // its error state instead of spinning forever.
+  // Peer awaiting the durable id: its blob: preview can't load — show the skeleton.
+  // Scoped to blob: so a genuinely broken external image still surfaces its error.
   return imgError.value && !id && typeof src === 'string' && src.startsWith('blob:')
 })
 

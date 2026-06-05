@@ -8,11 +8,12 @@
  *   then swaps to permanent path once uploaded
  */
 import type { Editor } from '@tiptap/core'
+import type { DocAttachmentUploadOpts } from './useDocCollabFileRef'
 
-export function useDocumentFileUpload() {
+export function useDocumentFileUpload(opts?: DocAttachmentUploadOpts) {
   const { batchUploadFiles } = useAttachment()
 
-  const maybeCreateRef = useDocCollabFileRef()
+  const maybeCreateRef = useDocCollabFileRef(opts)
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)

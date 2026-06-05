@@ -8,8 +8,9 @@
  *   then swaps the src for the permanent path once uploaded
  */
 import type { Editor } from '@tiptap/core'
+import type { DocAttachmentUploadOpts } from './useDocCollabFileRef'
 
-export function useDocumentImageUpload() {
+export function useDocumentImageUpload(opts?: DocAttachmentUploadOpts) {
   const { batchUploadFiles } = useAttachment()
   const { appInfo, token } = useGlobal()
 
@@ -18,7 +19,7 @@ export function useDocumentImageUpload() {
   const smartTextCell = inject(SmartTextCellAttachmentInj, ref(null))
   const publicShare = inject(PublicDocShareInj, ref(null))
 
-  const maybeCreateRef = useDocCollabFileRef()
+  const maybeCreateRef = useDocCollabFileRef(opts)
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)

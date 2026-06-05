@@ -132,10 +132,13 @@ const collab = collabEnabled
 
 const collabSynced = collab?.synced ?? ref(false)
 
-// Tell attachment-upload composables whether Yjs owns the body. In collab mode
-// the lazy REST reconcile that creates FileReferences is skipped, so uploads
-// must create the ref eagerly and embed its id (which then propagates via Yjs).
-provide(DocCollabActiveInj, ref(collabEnabled))
+// Whether Yjs owns the body. Provided for descendant node views and passed to
+// this component's own upload composables explicitly (a component can't inject a
+// key it provides itself); in collab mode they create the FileReference eagerly,
+// since the REST reconcile that normally does it on save is skipped.
+const collabActive = ref(collabEnabled)
+
+provide(DocCollabActiveInj, collabActive)
 
 // Track whether we've already seeded a legacy doc's PM JSON into the Y.Doc this
 // session, so the bootstrap watch runs at most once.
@@ -163,9 +166,12 @@ const docColorVars = computed(() => buildColorCssVars(isDark.value))
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 const { isAllowed: isPermissionAllowed } = usePermissions()
-const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
+const { openFilePicker, uploadAndInsert } = useDocumentImageUpload({ collabActive, docId })
 const { batchUploadFiles } = useAttachment()
-const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
+const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload({
+  collabActive,
+  docId,
+})
 
 const { activeDocuments } = storeToRefs(documentsStore)
 
@@ -276,7 +282,7 @@ const {
         activeDocument: ref<any>(null),
       }
     })()
-  : useDocumentAutoSave({ editor, activeProjectId, isEditable, collabActive: ref(collabEnabled) })
+  : useDocumentAutoSave({ editor, activeProjectId, isEditable, collabActive })
 
 // Unsaved-changes safety net — mirrors the SmartTextPanel/Modal pattern.
 // `flushOnUnmount` already runs on component unmount (covers SPA navigation),

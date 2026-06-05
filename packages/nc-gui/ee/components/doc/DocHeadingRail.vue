@@ -137,7 +137,6 @@ onClickOutside(railRef, () => {
           <button
             v-for="heading in headings"
             :key="heading.id"
-            v-e="['c:doc:toc:jump']"
             type="button"
             class="nc-doc-toc-row"
             :class="{ 'nc-doc-toc-row-active': heading.id === activeId }"

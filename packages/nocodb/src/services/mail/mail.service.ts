@@ -115,16 +115,26 @@ export class MailService {
   }
 
   /**
-   * Build the subject line, substituting the product name when white-labelled.
-   * Templates can pass either a plain string or `(productName) => string`.
+   * Resolve the subject line. Pass a `(productName) => string` builder for any
+   * subject that references the product name — it receives the white-label name
+   * when branding is enabled, else "NocoDB". Pass a plain string for subjects
+   * that don't reference the product name; it is used VERBATIM.
+   *
+   * We intentionally do NOT string-replace "NocoDB" in plain strings: that
+   * blunt substitution would rebrand unintended occurrences and silently miss
+   * any subject that doesn't hardcode the literal. Product-name subjects must
+   * use the builder form instead.
    */
   protected resolveSubject(
     subject: string | ((productName: string) => string),
     branding: WhiteLabelConfig | null,
   ): string {
-    const productName = (branding?.enabled && branding.productName) || 'NocoDB';
-    if (typeof subject === 'function') return subject(productName);
-    return subject.replace(/NocoDB/g, productName);
+    if (typeof subject === 'function') {
+      const productName =
+        (branding?.enabled && branding.productName) || 'NocoDB';
+      return subject(productName);
+    }
+    return subject;
   }
 
   protected async renderMail<K extends keyof typeof MailTemplates>(
@@ -445,7 +455,10 @@ export class MailService {
             event: mailEvent,
             fk_user_id: user.id,
             to: user.email,
-            subject: this.resolveSubject('Welcome to NocoDB!', branding),
+            subject: this.resolveSubject(
+              (productName) => `Welcome to ${productName}!`,
+              branding,
+            ),
             html: await this.renderMail(
               'Welcome',
               {
@@ -465,7 +478,7 @@ export class MailService {
             fk_user_id: user.id,
             to: user.email,
             subject: this.resolveSubject(
-              'You have been invited to join NocoDB',
+              (productName) => `You have been invited to join ${productName}`,
               branding,
             ),
             html: await this.renderMail(
@@ -492,7 +505,10 @@ export class MailService {
             event: mailEvent,
             fk_user_id: user.id,
             to: user.email,
-            subject: this.resolveSubject('Role updated in NocoDB', branding),
+            subject: this.resolveSubject(
+              (productName) => `Role updated in ${productName}`,
+              branding,
+            ),
             html: await this.renderMail(
               'OrganizationRoleUpdate',
               {

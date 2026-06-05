@@ -100,5 +100,52 @@ export function cleanUpProcessorTests() {
         'recently deleted base should be preserved',
       ).to.eq(true);
     });
+
+    it('isolates failures: one base erroring does not block the others', async () => {
+      const goodBase = await createProject(context, { title: 'GoodOldBase' });
+      const badBase = await createProject(context, { title: 'BadOldBase' });
+
+      await Base.softDelete(
+        { workspace_id: goodBase.fk_workspace_id, base_id: goodBase.id },
+        goodBase.id,
+      );
+      await Base.softDelete(
+        { workspace_id: badBase.fk_workspace_id, base_id: badBase.id },
+        badBase.id,
+      );
+
+      // Both past the retention window so both are picked up by the sweep.
+      await Noco.ncMeta
+        .knex(MetaTable.PROJECT)
+        .whereIn('id', [goodBase.id, badBase.id])
+        .update({ updated_at: new Date(Date.now() - SIXTY_ONE_DAYS_MS) });
+
+      // Force the bad base to throw mid-delete; every other id delegates to the
+      // real implementation. This mutates the same class the processor calls.
+      const originalDelete = Base.delete;
+      Base.delete = (async (...args: any[]) => {
+        if (args[1] === badBase.id) {
+          throw new Error('forced failure for isolation test');
+        }
+        return (originalDelete as any).apply(Base, args);
+      }) as typeof Base.delete;
+
+      try {
+        await new CleanUpProcessor().job({} as any);
+      } finally {
+        Base.delete = originalDelete;
+      }
+
+      // Good base committed in its own transaction; bad base's transaction
+      // rolled back — proving failures are isolated per base.
+      expect(
+        await projectRowExists(goodBase.id),
+        'good base should be deleted despite the other failing',
+      ).to.eq(false);
+      expect(
+        await projectRowExists(badBase.id),
+        'failed base should be rolled back and preserved',
+      ).to.eq(true);
+    });
   });
 }

@@ -34,21 +34,28 @@ export class CleanUpProcessor {
       );
     });
 
-    const deleteWsTransaction = await ncMeta.startTransaction();
+    // Per-entity transaction: each workspace/base is committed independently so
+    // one failure can't roll back the whole batch (and a workspace failure no
+    // longer skips base cleanup). Satellite cleanups inside the deletes run
+    // out-of-transaction best-effort, so a rollback here only reverts meta rows.
+    let deletedWorkspaceCount = 0;
+    for (const [i, ws] of Object.entries(cleanUpWorkspaces)) {
+      logger.log(
+        `Deleting workspace ${ws.id} ${+i + 1} of ${cleanUpWorkspaces.length}`,
+      );
 
-    try {
-      for (const [i, ws] of Object.entries(cleanUpWorkspaces)) {
-        logger.log(
-          `Deleting workspace ${ws.id} ${+i + 1} of ${
-            cleanUpWorkspaces.length
-          }`,
+      const trx = await ncMeta.startTransaction();
+      try {
+        await Workspace.delete(ws.id, trx);
+        await trx.commit();
+        deletedWorkspaceCount++;
+      } catch (e) {
+        await trx.rollback();
+        logger.error(
+          `Failed to clean up workspace ${ws.id}: ${e.message}`,
+          e.stack,
         );
-        await Workspace.delete(ws.id, deleteWsTransaction);
       }
-      await deleteWsTransaction.commit();
-    } catch (e) {
-      await deleteWsTransaction.rollback();
-      return logger.error(e);
     }
 
     const deletedBases = await ncMeta.metaList2(
@@ -69,38 +76,42 @@ export class CleanUpProcessor {
       );
     });
 
-    const deleteBaseTransaction = await ncMeta.startTransaction();
+    let deletedBaseCount = 0;
+    for (const [i, base] of Object.entries(cleanUpBases)) {
+      logger.log(
+        `Deleting base ${base.id} ${+i + 1} of ${cleanUpBases.length}`,
+      );
 
-    try {
-      for (const [i, base] of Object.entries(cleanUpBases)) {
+      if (!base.fk_workspace_id) {
         logger.log(
-          `Deleting base ${base.id} ${+i + 1} of ${cleanUpBases.length}`,
+          `Base ${base.id} does not have workspace. Skipping deletion.`,
         );
+        continue;
+      }
 
-        if (!base.fk_workspace_id) {
-          logger.log(
-            `Base ${base.id} does not have workspace. Skipping deletion.`,
-          );
-          continue;
-        }
-
+      const trx = await ncMeta.startTransaction();
+      try {
         await Base.delete(
           {
             workspace_id: base.fk_workspace_id,
             base_id: base.id,
           },
           base.id,
-          deleteBaseTransaction,
+          trx,
+        );
+        await trx.commit();
+        deletedBaseCount++;
+      } catch (e) {
+        await trx.rollback();
+        logger.error(
+          `Failed to clean up base ${base.id}: ${e.message}`,
+          e.stack,
         );
       }
-      await deleteBaseTransaction.commit();
-    } catch (e) {
-      await deleteBaseTransaction.rollback();
-      return logger.error(e);
     }
 
     logger.log(
-      `Clean up completed. Deleted ${cleanUpWorkspaces.length} workspaces and ${cleanUpBases.length} bases.`,
+      `Clean up completed. Deleted ${deletedWorkspaceCount}/${cleanUpWorkspaces.length} workspaces and ${deletedBaseCount}/${cleanUpBases.length} bases.`,
     );
   }
 }

@@ -2833,6 +2833,13 @@ defineExpose({ editor })
               />
             </div>
             <div class="nc-doc-subtitle flex items-center mt-2 text-sm">
+              <span
+                v-if="collabEnabled && !collabSynced"
+                class="nc-doc-connecting flex items-center gap-1 text-nc-content-gray-muted"
+              >
+                <GeneralLoader size="small" />
+                {{ $t('general.connecting') }}
+              </span>
               <span v-if="updatedByLabel && updatedAgo">
                 {{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}
               </span>

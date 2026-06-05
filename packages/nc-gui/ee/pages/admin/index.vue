@@ -17,12 +17,11 @@ const {
   showUpgradeToUseTeams,
   blockScim,
   showUpgradeToUseScim,
+  blockWhiteLabel,
+  showUpgradeToUseWhiteLabel,
   isWsAuditEnabled,
   showUpgradeToUseAudit,
-  getFeature,
 } = useEeConfig()
-
-const blockWhiteLabel = computed(() => !getFeature(PlanFeatureTypes.FEATURE_WHITE_LABEL))
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -127,6 +126,20 @@ watch(
       activeTab.value = tab as AdminTab
     }
   },
+)
+
+// Block entitlement-gated tabs reached directly by URL (e.g. pasting
+// ?tab=white-label in a new tab on a plan without the feature): redirect to the
+// dashboard. `immediate` runs during setup so a direct load is corrected before
+// the gated tab content mounts (no flash, no leave-guard registration).
+watch(
+  [activeTab, blockWhiteLabel],
+  () => {
+    if (activeTab.value === 'white-label' && blockWhiteLabel.value) {
+      activeTab.value = 'dashboard'
+    }
+  },
+  { immediate: true },
 )
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
@@ -376,7 +389,7 @@ watch(
               :class="{ active: activeTab === 'white-label' }"
               class="item"
               data-testid="nc-admin-white-label-nav"
-              @click="activeTab = 'white-label'"
+              @click="blockWhiteLabel ? showUpgradeToUseWhiteLabel() : (activeTab = 'white-label')"
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="ncImage" class="!h-4 !w-4" />

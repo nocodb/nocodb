@@ -15,6 +15,9 @@ import { stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { ModelStat } from '~/models';
 import { getWorkspaceDbServer } from '~/utils/cloudDb';
+import { Logger } from '@nestjs/common';
+
+const logger = new Logger('Source');
 
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
@@ -123,13 +126,31 @@ export default class Source extends SourceCE implements SourceType {
   }
 
   async sourceCleanup(ncMeta = Noco.ncMeta) {
-    // remove schema if NC_MINIMAL_DBS enabled
+    // drop the per-base schema when data reflection is enabled
     if (
       process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true' &&
       this.isMeta(true, 1)
     ) {
-      const schema = this.getConfig().schema;
-      await ncMeta.knex.raw(`DROP SCHEMA IF EXISTS ?? CASCADE`, [schema]);
+      const schema = this.getConfig()?.schema;
+      // Guard: only drop a real per-base schema, never `public`.
+      if (schema && schema !== 'public') {
+        try {
+          // The base schema lives in the workspace DB on the assigned
+          // db_server (falls back to NC_DATA_DB / meta when none is set).
+          // NcConnectionMgrv2.get resolves that connection for the is_local
+          // source; dropping via ncMeta.knex would hit the meta DB and leave
+          // the workspace schema orphaned.
+          const knex = await NcConnectionMgrv2.get(this);
+          await knex.raw(`DROP SCHEMA IF EXISTS ?? CASCADE`, [schema]);
+        } catch (e) {
+          // Best-effort: a db_server outage must not abort the meta delete.
+          logger.warn(
+            `Best-effort schema drop failed for base ${
+              this.base_id
+            } (schema ${schema}): ${(e as Error)?.message}`,
+          );
+        }
+      }
     }
 
     return super.sourceCleanup(ncMeta);

@@ -1389,6 +1389,7 @@
     "manyToOne": "Wiele do jednego"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Synchronizowanie",
     "paused": "Zatrzymano",
     "tableSync": "Synchronizacja tabeli",

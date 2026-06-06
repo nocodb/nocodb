@@ -1389,6 +1389,7 @@
     "manyToOne": "العديد إلى واحد"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "مزامنة",
     "paused": "متوقف",
     "tableSync": "مزامنة الجدول",

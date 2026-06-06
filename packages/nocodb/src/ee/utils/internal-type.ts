@@ -33,6 +33,7 @@ import type {
   TeamV3ResponseType,
 } from '~/services/v3/teams-v3.types';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import type { WebBookmarkMetadata } from '~/services/web-bookmark.service';
 import type { UndoRedoResult } from '~/services/undo-redo.service';
 import type { BaseMetaDiff } from '~/helpers/baseMetaHelpers';
 import type RlsPolicy from '~/models/RlsPolicy';
@@ -229,6 +230,7 @@ export type InternalPOSTResponseType = Promise<
   | { pm: ProseMirrorDoc | null; markdown: string | null }
   | UndoRedoResult
   | { uuid: string | null; include_subtree: boolean }
+  | WebBookmarkMetadata
 >;
 
 export interface InternalApiModule<

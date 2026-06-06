@@ -1016,6 +1016,15 @@ export class DocumentsService extends DocumentsServiceCE {
           id: node.attrs.id || undefined,
           path: node.attrs.path,
         });
+      } else if (node.type === 'webBookmark' && node.attrs?.imagePath) {
+        // Web bookmark images live under the same FileReference lifecycle as
+        // uploaded images. The path key on the node is `imagePath` (not
+        // `path`) to keep the semantics distinct from user-uploaded files.
+        fileNodes.push({
+          node,
+          id: node.attrs.id || undefined,
+          path: node.attrs.imagePath,
+        });
       }
       if (Array.isArray(node.content)) {
         for (const child of node.content) walk(child);
@@ -1087,7 +1096,9 @@ export class DocumentsService extends DocumentsServiceCE {
 
     const walk = (node: Record<string, any>) => {
       if (
-        (node.type === 'image' || node.type === 'fileAttachment') &&
+        (node.type === 'image' ||
+          node.type === 'fileAttachment' ||
+          node.type === 'webBookmark') &&
         node.attrs?.id
       ) {
         nodesToClone.push({ node, oldId: node.attrs.id });

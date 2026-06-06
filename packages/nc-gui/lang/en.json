@@ -3488,6 +3488,7 @@
     "failedToCreateDocument": "Failed to create document",
     "deleteDocumentConfirm": "Delete document \"{title}\"?",
     "embedUrlNotSupported": "URL not supported for embedding. Try a YouTube, Vimeo, or Loom link.",
+    "invalidBookmarkUrl": "Please enter a valid http:// or https:// URL",
     "replaceVersionAndGoLive": "Replace {version} and go live",
     "discardDraftConfirmation": "This will discard all changes made in the current draft and rollback to the latest published version. This action cannot be undone.",
     "draftDiscardedSuccessfully": "Draft discarded successfully",

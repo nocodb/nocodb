@@ -396,6 +396,9 @@ const permissionScopes = {
     'dataImportPreview',
     'dataImportFile',
 
+    // Web Bookmark (doc editor)
+    'webBookmarkFetch',
+
     // Base API Tokens
     'baseApiTokenList',
     'baseApiTokenCreate',
@@ -1057,6 +1060,9 @@ const rolePermissions:
       // SmartText — editors can update cell content
       smartTextUpdateContent: true,
 
+      // Web Bookmark (doc editor)
+      webBookmarkFetch: true,
+
       // Extensions
       extensionUpdate: true,
 
@@ -1653,6 +1659,8 @@ const permissionDescriptions: Record<string, string> = {
   tableCreate: 'create a new table',
   dataImportPreview: 'preview file for import',
   dataImportFile: 'import file into a table',
+
+  webBookmarkFetch: 'fetch link metadata for a doc bookmark block',
   tableUpdate: 'update a table',
   viewColumnList: 'view list of view columns',
   triggerList: 'view list of triggers',

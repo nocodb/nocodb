@@ -20,6 +20,8 @@ import { DocCommentMarkExtension } from './DocCommentMarkExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
+import { DocWebBookmarkExtension } from './DocWebBookmarkExtension'
+import type { WebBookmarkMetadata } from './DocWebBookmarkExtension'
 import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
@@ -96,7 +98,7 @@ const { activeProjectId, basesUser } = storeToRefs(basesStore)
 const documentsStore = useDocumentsStore()
 const { createDocument, deleteDocument, loadDocument, updateDocument } = documentsStore
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 
 const { showShareModal } = storeToRefs(useShare())
@@ -1244,6 +1246,7 @@ const _tiptapEditor = useEditor({
     DocMathExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
+    DocWebBookmarkExtension,
     DocActiveBlockExtension,
     DocBlockDirExtension,
     DocHeadingCollapseExtension,
@@ -1728,6 +1731,62 @@ watch(editor, (ed) => {
       }
 
       editor.chain().focus().insertEmbed({ src: embedUrl, url: url.trim(), platform }).run()
+    }
+  }
+  if (ed?.storage?.webBookmark) {
+    ed.storage.webBookmark.insertFromUrl = async (editor: any, rawUrl: string) => {
+      const url = rawUrl.trim()
+      if (!/^https?:\/\//i.test(url)) {
+        ncMessage.warning(t('msg.invalidBookmarkUrl'))
+        return
+      }
+
+      // Insert placeholder card immediately so user gets feedback
+      editor.chain().focus().insertWebBookmark({ url, isLoading: true }).run()
+
+      const settleNode = (patch: Record<string, any>) => {
+        editor
+          .chain()
+          .command(({ tr, state }: { tr: any; state: any }) => {
+            let updated = false
+            state.doc.descendants((node: any, pos: number) => {
+              if (updated) return false
+              if (node.type.name === 'webBookmark' && node.attrs.url === url && node.attrs.isLoading) {
+                tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...patch, url, isLoading: false })
+                updated = true
+                return false
+              }
+              return true
+            })
+            return updated
+          })
+          .run()
+      }
+
+      const base = basesStore.bases.get(activeProjectId.value!)
+      if (!base?.fk_workspace_id || !base?.id) {
+        // Without base context the backend can't ACL-check; fall back to URL-only card
+        settleNode({ status: 'fetch_failed' })
+        return
+      }
+
+      try {
+        const metadata = (await $api.internal.postOperation(
+          base.fk_workspace_id,
+          base.id,
+          { operation: 'webBookmarkFetch' },
+          { url },
+        )) as WebBookmarkMetadata
+
+        settleNode(metadata)
+        $e('a:doc:web-bookmark:create', {
+          hasImage: !!metadata?.imageUrl,
+          status: metadata?.status ?? 'fetched',
+        })
+      } catch (e: any) {
+        settleNode({ status: 'fetch_failed' })
+        ncMessage.error(await extractSdkResponseErrorMsg(e))
+      }
     }
   }
 })

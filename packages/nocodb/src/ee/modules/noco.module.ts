@@ -128,6 +128,7 @@ import { WorkflowWebhookController } from '~/controllers/workflow-webhook.contro
 import { DocumentsService } from '~/services/documents.service';
 import { DocumentCommentsService } from '~/services/document-comments.service';
 import { SmartTextService } from '~/services/smart-text.service';
+import { WebBookmarkService } from '~/services/web-bookmark.service';
 
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
@@ -284,6 +285,7 @@ export const nocoModuleEeMetadata = {
     /* Documents */
     DocumentsService,
     DocumentCommentsService,
+    WebBookmarkService,
     DocumentsV3Service,
     DocumentRevisionsV3Service,
     SmartTextService,

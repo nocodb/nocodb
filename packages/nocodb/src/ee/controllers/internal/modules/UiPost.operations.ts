@@ -36,6 +36,7 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
 import { DataImportService } from '~/services/data-import.service';
+import { WebBookmarkService } from '~/services/web-bookmark.service';
 
 @Injectable()
 export class UiPostOperations
@@ -73,6 +74,7 @@ export class UiPostOperations
     protected extensionsService: ExtensionsService,
     protected dateDependencyService: DateDependencyService,
     protected dataImportService: DataImportService,
+    protected webBookmarkService: WebBookmarkService,
   ) {
     super(
       dataTableService,
@@ -102,6 +104,7 @@ export class UiPostOperations
 
     (this.operations as string[]) = [
       ...this.operations,
+      'webBookmarkFetch',
       'updateDateDependency',
       'deleteTableDateDependency',
     ];
@@ -235,6 +238,11 @@ export class UiPostOperations
           ganttViewId: (req.query.fk_gantt_view_id || req.query.ganttViewId) as
             | string
             | undefined,
+          req,
+        });
+      case 'webBookmarkFetch':
+        return await this.webBookmarkService.fetchMetadata(context, {
+          url: payload?.url,
           req,
         });
     }

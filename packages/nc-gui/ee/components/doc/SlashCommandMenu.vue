@@ -107,6 +107,10 @@ const submitInput = () => {
         if (editor.storage.docAi) {
           editor.storage.docAi._pendingInstruction = url
         }
+      } else if (original.title === 'Web bookmark') {
+        if (editor.storage.webBookmark) {
+          editor.storage.webBookmark._pendingUrl = url
+        }
       } else if (editor.storage.embed) {
         editor.storage.embed._pendingUrl = url
       }

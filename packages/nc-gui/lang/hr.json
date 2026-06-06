@@ -1389,6 +1389,7 @@
     "manyToOne": "Mnogi prema Jednom"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Sinkronizacija",
     "paused": "Pauzirano",
     "tableSync": "Sinhronizacija tablice",

@@ -2465,21 +2465,26 @@ let rafId: number | null = null
 
 // Persist the last scroll position per view so the user returns to where they
 // left off when they navigate back to the view. Debounced to avoid hammering
-// localStorage on every scroll frame; the viewId is captured at call time so a
-// pending save can't be misattributed after a view switch.
-const persistScrollPosition = useDebounceFn((viewId: string | undefined, top: number, left: number) => {
-  viewScrollPositionManager.set(viewId, { scrollTop: top, scrollLeft: left })
-}, 250)
+// localStorage on every scroll frame; baseId + viewId are captured at call time
+// so a pending save can't be misattributed after a view switch. The key is
+// scoped by baseId because view ids are only unique within a base (base
+// duplication / managed-app installs reuse source view ids across bases).
+const persistScrollPosition = useDebounceFn(
+  (baseId: string | undefined, viewId: string | undefined, top: number, left: number) => {
+    viewScrollPositionManager.set(baseId, viewId, { scrollTop: top, scrollLeft: left })
+  },
+  250,
+)
 
 // True only while restoreScrollPosition() is driving the scroller, so the
 // resulting scroll event doesn't re-persist (it's already the saved value).
 const isRestoringScrollPosition = ref(false)
 
-// Last user-driven scroll state, tagged with the view it belongs to. Used to
-// flush on unmount WITHOUT reading the global `view` ref — which has already
-// advanced to the next view by unmount time, so reading it live would write
-// this view's scroll under the next view's key (a cross-view leak).
-const lastScrollState = ref<{ viewId?: string; scrollTop: number; scrollLeft: number } | null>(null)
+// Last user-driven scroll state, tagged with the base + view it belongs to. Used
+// to flush on unmount WITHOUT reading the global `view`/`meta` refs — which have
+// already advanced to the next view by unmount time, so reading them live would
+// write this view's scroll under the next view's key (a cross-view leak).
+const lastScrollState = ref<{ baseId?: string; viewId?: string; scrollTop: number; scrollLeft: number } | null>(null)
 
 const handleScroll = (e: { left: number; top: number }) => {
   hideDescriptionPopoverImmediate()
@@ -2500,9 +2505,10 @@ const handleScroll = (e: { left: number; top: number }) => {
     renderCanvasDirect()
 
     if (!isRestoringScrollPosition.value && !isPublicView.value && !isGroupBy.value) {
+      const baseId = meta.value?.base_id
       const viewId = view.value?.id
-      lastScrollState.value = { viewId, scrollTop: scrollTop.value, scrollLeft: scrollLeft.value }
-      persistScrollPosition(viewId, scrollTop.value, scrollLeft.value)
+      lastScrollState.value = { baseId, viewId, scrollTop: scrollTop.value, scrollLeft: scrollLeft.value }
+      persistScrollPosition(baseId, viewId, scrollTop.value, scrollLeft.value)
     }
   })
 }
@@ -2537,7 +2543,7 @@ function applyScrollPosition(top: number, left: number) {
 function restoreScrollPosition() {
   if (isPublicView.value || isGroupBy.value) return
 
-  const saved = viewScrollPositionManager.get(view.value?.id)
+  const saved = viewScrollPositionManager.get(meta.value?.base_id, view.value?.id)
   applyScrollPosition(saved?.scrollTop ?? 0, saved?.scrollLeft ?? 0)
 }
 
@@ -3040,11 +3046,11 @@ onBeforeUnmount(() => {
 
   // Flush the latest scroll position synchronously in case the user navigated
   // away within the debounce window of the last scroll. Use the captured
-  // lastScrollState (NOT the live `view` ref, which has already advanced to the
-  // next view by now) so we don't write this view's scroll under another's key.
+  // lastScrollState (NOT the live `view`/`meta` refs, which have already advanced
+  // to the next view by now) so we don't write this view's scroll under another's key.
   if (lastScrollState.value && !isPublicView.value) {
-    const { viewId, scrollTop: top, scrollLeft: left } = lastScrollState.value
-    viewScrollPositionManager.set(viewId, { scrollTop: top, scrollLeft: left })
+    const { baseId, viewId, scrollTop: top, scrollLeft: left } = lastScrollState.value
+    viewScrollPositionManager.set(baseId, viewId, { scrollTop: top, scrollLeft: left })
   }
 })
 

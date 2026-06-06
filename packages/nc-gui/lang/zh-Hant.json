@@ -1389,6 +1389,7 @@
     "manyToOne": "多對一"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "同步",
     "paused": "已暫停",
     "tableSync": "表同步",

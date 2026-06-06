@@ -1389,6 +1389,7 @@
     "manyToOne": "Mnohé na jednu"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Synchronizace",
     "paused": "Pozastaveno",
     "tableSync": "Synchronizace tabulek",

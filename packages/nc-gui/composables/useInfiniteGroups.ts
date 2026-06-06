@@ -299,7 +299,7 @@ export const useInfiniteGroups = (
 
         const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
-        group.isExpanded = groupKeysManager.hasKey(view.value.id!, nestedKey) || isExpanded
+        group.isExpanded = groupKeysManager.hasKey(base.value?.id, view.value.id!, nestedKey) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
@@ -732,7 +732,7 @@ export const useInfiniteGroups = (
     const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
     if (!view.value?.id) return
-    groupKeysManager.toggleKey(view.value.id, nestedKey, group.isExpanded)
+    groupKeysManager.toggleKey(base.value?.id, view.value.id, nestedKey, group.isExpanded)
   }
 
   const toggleExpandAll = async (path: number[], expand: boolean) => {
@@ -760,7 +760,7 @@ export const useInfiniteGroups = (
     targetGroups.forEach((group) => {
       const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
       group.isExpanded = expand
-      groupKeysManager.toggleKey(view.value.id!, nestedKey, expand)
+      groupKeysManager.toggleKey(base.value?.id, view.value.id!, nestedKey, expand)
     })
 
     callbacks?.syncVisibleData()

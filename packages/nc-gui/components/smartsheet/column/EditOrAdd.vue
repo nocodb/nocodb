@@ -266,8 +266,7 @@ const uiFilters = (t: UiTypesType) => {
   const showUUID = t.name !== UITypes.UUID || (isUuidCompatibleSource && isEeUI && showEEFeatures.value && !isEdit.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber =
-    t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&

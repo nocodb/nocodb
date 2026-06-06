@@ -66,7 +66,6 @@ function formatTimestampFull(iso: string): string {
   })
 }
 
-
 function userTile(rev: DocRevisionListItem) {
   return {
     id: rev.created_by,

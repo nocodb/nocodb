@@ -210,8 +210,7 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   return {
     client,
     connection: sampleConnectionData[client],
-    searchPath:
-      client === ClientType.PG ? ['public'] : client === ClientType.MSSQL ? ['dbo'] : undefined,
+    searchPath: client === ClientType.PG ? ['public'] : client === ClientType.MSSQL ? ['dbo'] : undefined,
   }
 }
 

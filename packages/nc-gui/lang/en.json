@@ -4130,6 +4130,7 @@
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
+      "unableToCreateRecordInThisView": "Unable to create a record in this view",
       "noUsersAvailable": "No users available",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
       "fieldToParseImageData": "Field to parse image data",

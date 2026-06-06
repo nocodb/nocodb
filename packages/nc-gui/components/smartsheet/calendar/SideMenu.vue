@@ -334,14 +334,24 @@ const newRecord = () => {
     fromDate = selectedDate.value
   } else if (
     activeCalendarView.value === 'week' ||
+    activeCalendarView.value === '3day' ||
     activeCalendarView.value === '2week' ||
     activeCalendarView.value === '6week'
   ) {
+    // 3-day is day-anchored, so selectedDateRange.start is its first visible day
+    // (same source the header/today/store use) — week-family modes use it too.
     fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
     fromDate = selectedDate.value ?? selectedMonth.value
   } else if (activeCalendarView.value === 'year') {
     fromDate = selectedDate.value
+  }
+
+  if (!fromDate) {
+    // Unhandled calendar view (e.g. a future mode not wired up here) — surface a toast and
+    // bail instead of throwing on fromDate.format() below.
+    message.error(t('msg.error.unableToCreateRecordInThisView'))
+    return
   }
 
   // Set the from date

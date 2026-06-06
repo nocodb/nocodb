@@ -9,10 +9,17 @@ const goToToday = () => {
   selectedDate.value = timezoneDayjs.dayjsTz()
   pageDate.value = timezoneDayjs.dayjsTz()
   selectedMonth.value = timezoneDayjs.dayjsTz()
-  selectedDateRange.value = {
-    start: timezoneDayjs.dayjsTz().startOf('week'),
-    end: timezoneDayjs.dayjsTz().endOf('week'),
-  }
+  selectedDateRange.value =
+    activeCalendarView.value === '3day'
+      ? {
+          // 3-day mode anchors on today (not week-aligned).
+          start: timezoneDayjs.dayjsTz().startOf('day'),
+          end: timezoneDayjs.dayjsTz().add(2, 'day').endOf('day'),
+        }
+      : {
+          start: timezoneDayjs.dayjsTz().startOf('week'),
+          end: timezoneDayjs.dayjsTz().endOf('week'),
+        }
 
   document?.querySelector('.nc-calendar-today')?.scrollIntoView({
     behavior: 'smooth',

@@ -19,6 +19,7 @@ const {
   updateFormat,
   timezoneDayjs,
   isSyncedFromColumn,
+  activeCalendarView,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -53,14 +54,16 @@ const fieldStyles = computed(() => {
 })
 
 const getDayIndex = (date: dayjs.Dayjs) => {
-  let dayIndex = date.day() - 1
-  if (dayIndex === -1) {
-    dayIndex = 6
-  }
-  return dayIndex
+  // Column index relative to the first visible day. Equivalent to `date.day() - 1`
+  // for the Monday-aligned week modes, but also correct for the day-anchored 3-day
+  // window (which can start on any weekday).
+  const start = timezoneDayjs.timezonize(selectedDateRange.value.start).startOf('day')
+  return timezoneDayjs.timezonize(date).startOf('day').diff(start, 'day')
 }
 
 const maxVisibleDays = computed(() => {
+  // 3-day mode always renders exactly 3 day columns (weekends included).
+  if (activeCalendarView.value === '3day') return 3
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
@@ -781,7 +784,7 @@ const calculateNewRow = (
 
   if (!fromCol) return { newRow: null, updatedProperty: [] }
 
-  const day = Math.max(0, Math.min(6, Math.floor(percentX * maxVisibleDays.value)))
+  const day = Math.max(0, Math.min(maxVisibleDays.value - 1, Math.floor(percentX * maxVisibleDays.value)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
   const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
@@ -1062,6 +1065,7 @@ watch(
         :key="date[0].toISOString()"
         :class="{
           'text-nc-content-brand': date[0].isSame(timezoneDayjs.dayjsTz(), 'date'),
+          'w-1/3': maxVisibleDays === 3,
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
@@ -1109,6 +1113,7 @@ watch(
         v-for="(date, index) in datesHours"
         :key="index"
         :class="{
+          'w-1/3': maxVisibleDays === 3,
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
@@ -1205,6 +1210,7 @@ watch(
                   : 0.3,
             }"
             :class="{
+              'w-1/3': maxVisibleDays === 3,
               'w-1/5': maxVisibleDays === 5,
               'w-1/7': maxVisibleDays === 7,
             }"

@@ -167,13 +167,13 @@ watch(
             />
 
             <LazySmartsheetCalendarWeekViewDateField
-              v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
+              v-else-if="(activeCalendarView === 'week' || activeCalendarView === '3day') && calDataType === UITypes.Date"
               @expand-record="expandRecord"
               @new-record="newRecord"
             />
             <LazySmartsheetCalendarWeekViewDateTimeField
               v-else-if="
-                activeCalendarView === 'week' &&
+                (activeCalendarView === 'week' || activeCalendarView === '3day') &&
                 [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
               "
               @expand-record="expandRecord"

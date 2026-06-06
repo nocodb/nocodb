@@ -46,7 +46,7 @@ const isRowInCurrentDateRange = (
     id: string
     is_readonly: boolean
   }>,
-  activeCalendarView: 'month' | 'year' | 'day' | 'week' | '2week' | '6week',
+  activeCalendarView: 'month' | 'year' | 'day' | '3day' | 'week' | '2week' | '6week',
   selectedDate: dayjs.Dayjs,
   selectedDateRange: { start: dayjs.Dayjs; end: dayjs.Dayjs },
   selectedMonth: dayjs.Dayjs,
@@ -76,6 +76,10 @@ const isRowInCurrentDateRange = (
       case 'day':
         viewStartDate = selectedDate.startOf('day')
         viewEndDate = selectedDate.endOf('day')
+        break
+      case '3day':
+        viewStartDate = selectedDateRange.start.startOf('day')
+        viewEndDate = selectedDateRange.start.add(2, 'day').endOf('day')
         break
       case 'week':
         viewStartDate = selectedDateRange.start.startOf('week')
@@ -162,6 +166,15 @@ const isRowMatchingSidebarFilter = (
     case 'day':
     case 'selectedDate':
       return isRowInDateRange(rowData, selectedDate.startOf('day'), selectedDate.endOf('day'), calendarRange, timezoneDayjs)
+
+    case '3day':
+      return isRowInDateRange(
+        rowData,
+        selectedDateRange.start.startOf('day'),
+        selectedDateRange.start.add(2, 'day').endOf('day'),
+        calendarRange,
+        timezoneDayjs,
+      )
 
     case 'week':
       return isRowInDateRange(

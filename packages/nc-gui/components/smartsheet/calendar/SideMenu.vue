@@ -109,6 +109,7 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === 'selectedDate' ||
           sideBarFilterOption.value === 'selectedHours' ||
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '3day' ||
           sideBarFilterOption.value === '2week' ||
           sideBarFilterOption.value === '6week' ||
           sideBarFilterOption.value === 'day'
@@ -120,6 +121,10 @@ const renderData = computed<Array<Row>>(() => {
             case 'month':
               fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
               toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
+              break
+            case '3day':
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
               break
             case 'year':
               fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
@@ -179,6 +184,7 @@ const renderData = computed<Array<Row>>(() => {
           }
         } else if (
           sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === '3day' ||
           sideBarFilterOption.value === '2week' ||
           sideBarFilterOption.value === '6week' ||
           sideBarFilterOption.value === 'month' ||
@@ -188,6 +194,10 @@ const renderData = computed<Array<Row>>(() => {
           let toDate: dayjs.Dayjs
 
           switch (sideBarFilterOption.value) {
+            case '3day':
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
+              break
             case 'week':
             case '2week':
             case '6week': {
@@ -225,62 +235,79 @@ const options = computed(() => {
     case 'day' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In this day', value: 'day' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inThisDay'), value: 'day' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In this day', value: 'day' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inThisDay'), value: 'day' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
+        ]
+      }
+    case '3day' as const:
+      if (calDataType.value === UITypes.Date) {
+        return [
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedRange'), value: '3day' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
+        ]
+      } else {
+        return [
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedRange'), value: '3day' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
     case 'week' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedWeek'), value: 'week' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedWeek'), value: 'week' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
     case '2week' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In selected range', value: '2week' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: '2week' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case '6week' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In selected range', value: '6week' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: '6week' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case 'month' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In this month', value: 'month' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inThisMonth'), value: 'month' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case 'year' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In this year', value: 'year' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inThisYear'), value: 'year' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
   }
 })
@@ -307,14 +334,24 @@ const newRecord = () => {
     fromDate = selectedDate.value
   } else if (
     activeCalendarView.value === 'week' ||
+    activeCalendarView.value === '3day' ||
     activeCalendarView.value === '2week' ||
     activeCalendarView.value === '6week'
   ) {
+    // 3-day is day-anchored, so selectedDateRange.start is its first visible day
+    // (same source the header/today/store use) — week-family modes use it too.
     fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
     fromDate = selectedDate.value ?? selectedMonth.value
   } else if (activeCalendarView.value === 'year') {
     fromDate = selectedDate.value
+  }
+
+  if (!fromDate) {
+    // Unhandled calendar view (e.g. a future mode not wired up here) — surface a toast and
+    // bail instead of throwing on fromDate.format() below.
+    message.error(t('msg.error.unableToCreateRecordInThisView'))
+    return
   }
 
   // Set the from date
@@ -500,7 +537,7 @@ const selectOption = (option) => {
           }"
           class="!rounded-lg !h-8 !placeholder:text-nc-content-gray-muted !px-4"
           data-testid="nc-calendar-sidebar-search"
-          placeholder="Search records"
+          :placeholder="$t('placeholder.searchRecords')"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
@@ -539,7 +576,7 @@ const selectOption = (option) => {
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncPlus" />
-              Record
+              {{ $t('general.record') }}
             </div>
           </NcButton>
         </PermissionsTooltip>

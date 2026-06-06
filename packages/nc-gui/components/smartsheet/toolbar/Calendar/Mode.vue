@@ -9,7 +9,7 @@ const isTab = computed(() => props.tab)
 
 const highlightStyle = ref({ left: '0px' })
 
-const setActiveCalendarMode = (mode: 'day' | 'week' | '2week' | 'month' | '6week' | 'year', event: MouseEvent) => {
+const setActiveCalendarMode = (mode: 'day' | '3day' | 'week' | '2week' | 'month' | '6week' | 'year', event: MouseEvent) => {
   changeCalendarView(mode)
   const tabElement = event.target as HTMLElement
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
@@ -17,12 +17,21 @@ const setActiveCalendarMode = (mode: 'day' | 'week' | '2week' | 'month' | '6week
 }
 
 const modeI18nKey = (mode: string) => {
+  if (mode === '3day') return 'objects.threeDay'
   if (mode === '2week') return 'objects.twoWeek'
   if (mode === '6week') return 'objects.sixWeek'
   return `objects.${mode}`
 }
 
-const modes: Array<'day' | 'week' | '2week' | 'month' | '6week' | 'year'> = ['day', 'week', '2week', 'month', '6week', 'year']
+const modes: Array<'day' | '3day' | 'week' | '2week' | 'month' | '6week' | 'year'> = [
+  'day',
+  '3day',
+  'week',
+  '2week',
+  'month',
+  '6week',
+  'year',
+]
 
 const updateHighlightPosition = () => {
   nextTick(() => {

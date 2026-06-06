@@ -2411,6 +2411,17 @@
     "createMapViewPlural": "Create Map View(s)",
     "createCalendarView": "Create Calendar View",
     "createCalendarViewPlural": "Create Calendar View(s)",
+    "calendarFilter": {
+      "allRecords": "All records",
+      "inThisDay": "In this day",
+      "inSelectedHours": "In selected hours",
+      "withoutDates": "Without dates",
+      "inSelectedRange": "In selected range",
+      "inSelectedDate": "In selected date",
+      "inSelectedWeek": "In selected week",
+      "inThisMonth": "In this month",
+      "inThisYear": "In this year"
+    },
     "createTimelineView": "Create Timeline View",
     "createTimelineViewPlural": "Create Timeline View(s)",
     "createGanttView": "Create Gantt View",
@@ -3411,6 +3422,7 @@
     "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations",
     "enterTeamName": "Enter team name",
     "enterTeamDescription": "Enter team description",
+    "searchRecords": "Search records",
     "searchRecordTemplates": "Search record templates"
   },
   "msg": {

@@ -235,79 +235,79 @@ const options = computed(() => {
     case 'day' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In this day', value: 'day' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inThisDay'), value: 'day' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In this day', value: 'day' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inThisDay'), value: 'day' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
     case '3day' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected range', value: '3day' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedRange'), value: '3day' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected range', value: '3day' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedRange'), value: '3day' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
     case 'week' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedWeek'), value: 'week' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       } else {
         return [
-          { label: 'All records', value: 'allRecords' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'In selected date', value: 'selectedDate' },
-          { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'Without dates', value: 'withoutDates' },
+          { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+          { label: t('labels.calendarFilter.inSelectedWeek'), value: 'week' },
+          { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+          { label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' },
+          { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
         ]
       }
     case '2week' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In selected range', value: '2week' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: '2week' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case '6week' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In selected range', value: '6week' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: '6week' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case 'month' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In this month', value: 'month' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inThisMonth'), value: 'month' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
     case 'year' as const:
       return [
-        { label: 'All records', value: 'allRecords' },
-        { label: 'In this year', value: 'year' },
-        { label: 'In selected date', value: 'selectedDate' },
-        { label: 'Without dates', value: 'withoutDates' },
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inThisYear'), value: 'year' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+        { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
   }
 })
@@ -537,7 +537,7 @@ const selectOption = (option) => {
           }"
           class="!rounded-lg !h-8 !placeholder:text-nc-content-gray-muted !px-4"
           data-testid="nc-calendar-sidebar-search"
-          placeholder="Search records"
+          :placeholder="$t('placeholder.searchRecords')"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
@@ -576,7 +576,7 @@ const selectOption = (option) => {
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncPlus" />
-              Record
+              {{ $t('general.record') }}
             </div>
           </NcButton>
         </PermissionsTooltip>

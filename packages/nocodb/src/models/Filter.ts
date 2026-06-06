@@ -421,10 +421,6 @@ export default class Filter implements FilterType {
       'enabled',
     ]);
 
-    if (typeof updateObj.value === 'string') {
-      updateObj.value = updateObj.value.slice(0, 255);
-    }
-
     if (!updateObj.meta) {
       updateObj.meta = {};
     }

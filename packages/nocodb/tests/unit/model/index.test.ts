@@ -3,6 +3,7 @@ import { runOnSet } from '../utils/runOnSet';
 import baseModelSqlTest from './tests/baseModelSql.test';
 import execAndParseTest from './tests/execAndParse.test';
 import stableSortTieBreakerTest from './tests/stableSortTieBreaker.test';
+import filterTest from './tests/filter.test';
 import { tableHelpersTest } from './tableHelpers/tableHelpers.test';
 import { isEE } from '../utils/helpers';
 
@@ -10,6 +11,7 @@ function modelTests() {
   baseModelSqlTest();
   execAndParseTest();
   stableSortTieBreakerTest();
+  filterTest();
 
   if (isEE()) {
     // Document model + service tests require EE model implementations

@@ -1389,6 +1389,7 @@
     "manyToOne": "Mulți la unu"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Sincronizare",
     "paused": "Pauză",
     "tableSync": "Sincronizare tabel",

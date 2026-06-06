@@ -1389,6 +1389,7 @@
     "manyToOne": "कई से एक"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "सिंक करना",
     "paused": "ठहरा हुआ",
     "tableSync": "तालिका सिंक",

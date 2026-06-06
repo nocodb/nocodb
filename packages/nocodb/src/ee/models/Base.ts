@@ -51,6 +51,7 @@ import {
   SyncLogs,
   TableSync,
   User,
+  View,
   Workflow,
   Workspace,
 } from '~/models';
@@ -601,6 +602,10 @@ export default class Base extends BaseCE {
       );
     }
 
+    // Remove cross-base link columns in OTHER bases that point into this base
+    // before its own sources are torn down, so no dangling link is left behind.
+    await this.cleanupCrossBaseLinksInto(context, baseId, ncMeta);
+
     const sources = await Source.list(
       context,
       { baseId, includeDeleted: true },
@@ -686,6 +691,149 @@ export default class Base extends BaseCE {
     await ApiTokenScope.deleteByResourceId(baseId, ncMeta);
 
     return res;
+  }
+
+  /**
+   * Tear down cross-base link columns that live in OTHER bases but point INTO
+   * the base being hard-deleted. Their relation rows are owned by the other
+   * base (`base_id` != this base) yet reference this base via
+   * `fk_related_base_id` / `fk_mm_base_id`. Without this, hard-deleting a base
+   * leaves a dangling link column behind — a broken link if still active, and
+   * a restorable one if it was moved to field trash (restoring it would
+   * resurrect a link to a base that no longer exists).
+   *
+   * Works at the meta level so it handles soft-deleted (trashed) link columns
+   * too, and drops their field-trash entry so they cannot be restored.
+   * Best-effort: a cleanup failure must never abort the base delete.
+   */
+  private static async cleanupCrossBaseLinksInto(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    try {
+      // Relation rows span bases, so query the workspace directly rather than
+      // through the base-scoped meta helpers.
+      const inboundLinks = await ncMeta
+        .knex(MetaTable.COL_RELATIONS)
+        .where('fk_workspace_id', context.workspace_id)
+        .whereNot('base_id', baseId)
+        .where((qb) => {
+          qb.where('fk_related_base_id', baseId).orWhere(
+            'fk_mm_base_id',
+            baseId,
+          );
+        });
+
+      const viewColumnTables = [
+        MetaTable.GRID_VIEW_COLUMNS,
+        MetaTable.FORM_VIEW_COLUMNS,
+        MetaTable.KANBAN_VIEW_COLUMNS,
+        MetaTable.GALLERY_VIEW_COLUMNS,
+        MetaTable.CALENDAR_VIEW_COLUMNS,
+      ];
+      const viewColumnScopes = [
+        CacheScope.GRID_VIEW_COLUMN,
+        CacheScope.FORM_VIEW_COLUMN,
+        CacheScope.KANBAN_VIEW_COLUMN,
+        CacheScope.GALLERY_VIEW_COLUMN,
+        CacheScope.CALENDAR_VIEW_COLUMN,
+      ];
+
+      for (const link of inboundLinks) {
+        const linkBaseId = link.base_id;
+        const columnId = link.fk_column_id;
+        if (!linkBaseId || !columnId) continue;
+
+        const linkContext = {
+          workspace_id: context.workspace_id,
+          base_id: linkBaseId,
+        };
+
+        // Capture the owning model before the column row is dropped so its
+        // single-query cache can be cleared afterwards.
+        const colRow = await ncMeta.metaGet2(
+          context.workspace_id,
+          linkBaseId,
+          MetaTable.COLUMNS,
+          columnId,
+        );
+
+        // Relation row + cache.
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          linkBaseId,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: columnId },
+        );
+        await NocoCache.deepDel(
+          linkContext,
+          `${CacheScope.COL_RELATION}:${columnId}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+
+        // View-column rows that referenced the link + their caches.
+        for (let i = 0; i < viewColumnTables.length; i++) {
+          const viewColumns = await ncMeta.metaList2(
+            context.workspace_id,
+            linkBaseId,
+            viewColumnTables[i],
+            { condition: { fk_column_id: columnId } },
+          );
+          if (!viewColumns.length) continue;
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            linkBaseId,
+            viewColumnTables[i],
+            { fk_column_id: columnId },
+          );
+          for (const viewColumn of viewColumns) {
+            await NocoCache.deepDel(
+              linkContext,
+              `${viewColumnScopes[i]}:${viewColumn.id}`,
+              CacheDelDirection.CHILD_TO_PARENT,
+            );
+          }
+        }
+
+        // The column row + cache.
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          linkBaseId,
+          MetaTable.COLUMNS,
+          columnId,
+        );
+        await NocoCache.deepDel(
+          linkContext,
+          `${CacheScope.COLUMN}:${columnId}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+
+        // Drop any field-trash entry so the now-targetless link can't be
+        // restored from the owning base's trash.
+        await BaseTrash.deleteByResourceId(
+          linkContext,
+          'field',
+          columnId,
+          ncMeta,
+        );
+
+        if (colRow?.fk_model_id) {
+          await View.clearSingleQueryCache(
+            linkContext,
+            colRow.fk_model_id,
+            null,
+            ncMeta,
+          );
+        }
+      }
+    } catch (e) {
+      logger.warn(
+        `Best-effort cross-base link cleanup failed for base ${baseId}: ${
+          (e as Error)?.message
+        }`,
+      );
+    }
   }
 
   // @ts-ignore

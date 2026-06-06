@@ -1389,6 +1389,7 @@
     "manyToOne": "多対1"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "同期中",
     "paused": "一時停止",
     "tableSync": "テーブル同期",

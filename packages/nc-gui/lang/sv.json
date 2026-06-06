@@ -1389,6 +1389,7 @@
     "manyToOne": "Många till En"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Synkroniserar",
     "paused": "Pausad",
     "tableSync": "Tabell synkronisering",

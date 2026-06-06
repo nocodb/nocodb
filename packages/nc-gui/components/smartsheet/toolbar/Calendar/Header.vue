@@ -21,9 +21,14 @@ const calendarRangeDropdown = ref(false)
 const threeDayDate = computed<dayjs.Dayjs>({
   get: () => timezoneDayjs.timezonize(selectedDateRange.value.start),
   set: (date: dayjs.Dayjs) => {
+    const start = date.startOf('day')
+    // Keep the canonical cursors aligned with the visible window so the
+    // active-date dots and any later mode switch don't read a stale day.
+    selectedDate.value = start
+    if (pageDate.value.month() !== start.month()) pageDate.value = start
     selectedDateRange.value = {
-      start: date.startOf('day'),
-      end: date.add(2, 'day').endOf('day'),
+      start,
+      end: start.add(2, 'day').endOf('day'),
     }
   },
 })

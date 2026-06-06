@@ -780,16 +780,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       const title = startCol.title
 
-      return [...rows].sort((a, b) => {
-        const aVal = a.row[title]
-        const bVal = b.row[title]
-
-        if (!aVal && !bVal) return 0
-        if (!aVal) return 1
-        if (!bVal) return -1
-
-        return timezoneDayjs.timezonize(aVal).valueOf() - timezoneDayjs.timezonize(bVal).valueOf()
-      })
+      // Decorate-sort: timezonize each row's start once (not twice per comparison).
+      // JS sort is stable, so equal/absent start times keep their original order.
+      return rows
+        .map((row) => {
+          const val = row.row[title]
+          return { row, ts: val ? timezoneDayjs.timezonize(val).valueOf() : null }
+        })
+        .sort((a, b) => {
+          if (a.ts === null && b.ts === null) return 0
+          if (a.ts === null) return 1
+          if (b.ts === null) return -1
+          return a.ts - b.ts
+        })
+        .map((d) => d.row)
     }
 
     async function loadCalendarData(showLoading = true) {

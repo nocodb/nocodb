@@ -1389,6 +1389,7 @@
     "manyToOne": "Çoktan-Bire"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Senkronize ediliyor",
     "paused": "Duraklatıldı",
     "tableSync": "Tablo senkronizasyonu",

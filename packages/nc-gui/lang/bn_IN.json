@@ -1389,6 +1389,7 @@
     "manyToOne": "মেনি টু ওয়ান"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "সিঙ্ক হচ্ছে",
     "paused": "স্থগিত",
     "tableSync": "টেবিল সিঙ্ক",

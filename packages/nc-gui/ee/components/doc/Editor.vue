@@ -13,6 +13,7 @@ import { CellSelection } from '@tiptap/pm/tables'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
+import type { DocHeadingEntry } from '../../composables/useDocHeadingAnchors'
 import { DocHighlightExtension } from './DocHighlightExtension'
 import { DocTextColorExtension } from './DocTextColorExtension'
 import { DocCommentMarkExtension } from './DocCommentMarkExtension'
@@ -61,8 +62,22 @@ const props = withDefaults(
     initialContent?: Record<string, any> | null
     /** Force editor non-editable regardless of role / doc permissions (e.g. locked / shared views). */
     readOnly?: boolean
+    /**
+     * Opt into the heading marker rail while `embedded`. Non-embedded docs
+     * always get it; embedded consumers (SmartText) don't — except the public
+     * share reader, which sets this to render anchors + surface the heading
+     * model so it can mount the rail against its own external scroller.
+     */
+    headingRail?: boolean
+    /**
+     * External scroll viewport for scroll-spy / scroll-to-heading. Used with
+     * `headingRail` when the editor's internal scroller is flattened and the
+     * page owns the scroll container (public share reader). Defaults to the
+     * editor's own internal scroll area.
+     */
+    scrollContainer?: HTMLElement | null
   }>(),
-  { docId: '', embedded: false, mode: 'doc', initialContent: null, readOnly: false },
+  { docId: '', embedded: false, mode: 'doc', initialContent: null, readOnly: false, headingRail: false, scrollContainer: null },
 )
 
 const emit = defineEmits<{
@@ -306,9 +321,26 @@ const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
   },
 })
 
-const { scrollToHeading } = props.embedded
-  ? { scrollToHeading: (_id: string) => false }
-  : useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
+// Non-embedded docs always get the heading rail; embedded consumers (SmartText)
+// don't, except the public share reader which opts in via `headingRail`.
+const isHeadingRailEnabled = !props.embedded || props.headingRail
+
+// When the page supplies an external scroll viewport (public share, where the
+// editor's own scroller is flattened) spy/scroll target it; otherwise the
+// editor's internal scroll area.
+const effectiveScrollRef = computed(() => props.scrollContainer ?? scrollContainerRef.value)
+
+const {
+  scrollToHeading,
+  headings: docHeadings,
+  activeHeadingId,
+} = isHeadingRailEnabled
+  ? useDocHeadingAnchors(editor, effectiveScrollRef, isLoaded)
+  : {
+      scrollToHeading: (_id: string) => false,
+      headings: ref<DocHeadingEntry[]>([]),
+      activeHeadingId: ref<string | null>(null),
+    }
 
 const { copy } = useCopy()
 
@@ -1215,7 +1247,10 @@ const _tiptapEditor = useEditor({
     DocActiveBlockExtension,
     DocBlockDirExtension,
     DocHeadingCollapseExtension,
-    ...(props.embedded ? [] : [DocHeadingAnchorExtension]),
+    // Anchors are decoration-only (no doc mutation) — safe to render in
+    // read-only embedded mode. Excluded only for embedded consumers that don't
+    // opt into the rail (SmartText cells), keeping their PM output untouched.
+    ...(props.embedded && !props.headingRail ? [] : [DocHeadingAnchorExtension]),
     DocDragHandleExtension,
     DocSearchExtension,
     DocAiExtension,
@@ -2228,7 +2263,9 @@ onBeforeUnmount(() => {
 
 // Expose the Tiptap editor instance so parents (e.g. SmartTextPanel) can run
 // the same export pipeline (markdown / html / pdf) used in the docs surface.
-defineExpose({ editor })
+// Also surface the heading model + scroll-to-heading so the public share reader
+// can mount the marker rail against its own external scroller.
+defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading })
 </script>
 
 <template>
@@ -2271,6 +2308,15 @@ defineExpose({ editor })
 
         <DocBreadcrumb v-if="isLoaded" :doc-id="docId" :current-title="title" />
       </div>
+
+      <!-- Heading marker rail — gutter minimap TOC. Works in edit + read-only
+         (same component); auto-hidden when embedded/cell mode (no anchors). -->
+      <DocHeadingRail
+        v-if="!embedded && !isCellMode && isLoaded"
+        :headings="docHeadings"
+        :active-id="activeHeadingId"
+        @jump="scrollToHeading"
+      />
 
       <!-- Page actions — always visible at top-right -->
       <div v-if="!embedded" class="nc-doc-page-menu">

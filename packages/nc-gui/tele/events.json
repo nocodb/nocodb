@@ -229,6 +229,8 @@
     "c:doc:share:visibility:reset": "Click the reset-visibility-to-default link in the share modal",
     "c:doc:share:download:markdown": "Click download-as-markdown on the public shared doc reader",
     "c:doc:share:sub-document:open": "Open a sub-document from the sub-documents panel on the public shared doc reader",
+    "c:doc:toc:open": "Open the on-this-page heading rail outline panel",
+    "c:doc:toc:jump": "Jump to a heading via the heading rail dash or outline panel row",
     "a:doc:share:enable": "Public share enabled (after API succeeded)",
     "a:doc:share:disable": "Public share disabled (after API succeeded)",
     "a:doc:share:subtree:toggle": "Include-sub-pages toggled (after API succeeded)",

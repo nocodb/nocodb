@@ -1389,6 +1389,7 @@
     "manyToOne": "Sokan egynek"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Szinkronizálás",
     "paused": "Paused",
     "tableSync": "Asztali szinkronizálás",

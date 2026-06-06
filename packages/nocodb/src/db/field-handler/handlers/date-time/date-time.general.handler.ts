@@ -63,6 +63,20 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         ],
       } as FilterVerificationResult;
     }
+    // `is`/`isnot` with a blank/null keyword maps to a NULL check, not a date
+    // comparison — accept it as-is instead of trying to parse the keyword
+    // (e.g. 'null') as a date value.
+    if (
+      ['is', 'isnot'].includes(filter.comparison_op) &&
+      ['blank', 'notblank', 'null', 'notnull', 'empty', 'notempty'].includes(
+        filter.value,
+      )
+    ) {
+      return {
+        isValid: true,
+      } as FilterVerificationResult;
+    }
+
     if (filter.comparison_sub_op === 'exactDate' || !filter.comparison_sub_op) {
       // check if value is not null or empty
       if (
@@ -304,6 +318,22 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // `in` uses raw values (e.g. BelongsTo DataLoader batch) — skip date parsing
     if (filter.comparison_op === 'in') {
+      return await this.handleFilter(
+        { val: filter.value, sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
+
+    // `is`/`isnot` with a blank/null keyword is a NULL check — route straight to
+    // the generic handler so the keyword (e.g. 'null') is not parsed as a date,
+    // which previously yielded an empty clause and silently returned all rows.
+    if (
+      ['is', 'isnot'].includes(filter.comparison_op) &&
+      ['blank', 'notblank', 'null', 'notnull', 'empty', 'notempty'].includes(
+        filter.value,
+      )
+    ) {
       return await this.handleFilter(
         { val: filter.value, sourceField: field },
         { knex, filter, column },

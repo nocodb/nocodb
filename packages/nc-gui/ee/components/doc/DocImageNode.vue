@@ -238,6 +238,95 @@ const onWrapperClick = (e: MouseEvent) => {
   props.editor.commands.setTextSelection(pos)
 }
 
+// --- Fullscreen ---
+interface FullscreenImage {
+  src: string
+  caption: string
+  alt: string
+  title: string
+}
+
+const isFullscreenOpen = ref(false)
+const fullscreenImages = ref<FullscreenImage[]>([])
+const fullscreenStartIndex = ref(0)
+
+/**
+ * Resolve a displayable src for one image node.
+ *
+ * - Saved images (have a FileReference `id`) → the auth proxy URL.
+ * - Just-uploaded images (no `id` yet — the id is only assigned by the backend
+ *   on save and isn't written back into the editor until reload) only exist as a
+ *   blob whose object URL is revoked right after upload. A fresh <img> with that
+ *   dead blob fails, so we capture the still-painted inline <img> to a data URL.
+ */
+const resolveImageSrc = (attrs: Record<string, any>, inlineImgs: Map<string, HTMLImageElement>): string => {
+  if (attrs.id) return buildProxyUrl(attrs.id)
+  if (!attrs.src) return ''
+
+  const el = inlineImgs.get(attrs.src)
+  if (el?.naturalWidth) {
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = el.naturalWidth
+      canvas.height = el.naturalHeight
+      canvas.getContext('2d')?.drawImage(el, 0, 0)
+      return canvas.toDataURL()
+    } catch {
+      // Tainted canvas (cross-origin) — fall through to the raw src
+    }
+  }
+  return attrs.src
+}
+
+/** Collect every image in the document (in order) and open the carousel at this image. */
+const openFullscreen = () => {
+  if (!resolvedSrc.value) return
+
+  // Index live inline <img> elements by their current src so just-uploaded
+  // (blob) images can be captured from the painted element.
+  const editorDom = props.editor.view.dom as HTMLElement
+  const inlineImgs = new Map<string, HTMLImageElement>()
+  for (const el of Array.from(editorDom.querySelectorAll('img.nc-doc-image')) as HTMLImageElement[]) {
+    inlineImgs.set(el.getAttribute('src') || '', el)
+  }
+
+  let myPos = -1
+  try {
+    myPos = props.getPos()
+  } catch {
+    // getPos() may throw if the node position can't be resolved
+  }
+
+  const images: FullscreenImage[] = []
+  let startIndex = 0
+
+  props.editor.state.doc.descendants((n: any, pos: number) => {
+    if (n.type.name !== 'image') return
+
+    const { caption, alt, title } = n.attrs
+    const url = resolveImageSrc(n.attrs, inlineImgs)
+    if (!url) return
+
+    if (pos === myPos) startIndex = images.length
+    images.push({ src: url, caption: caption || '', alt: alt || '', title: title || '' })
+  })
+
+  // Fallback to just this image if traversal found nothing
+  if (!images.length) {
+    images.push({
+      src: resolveImageSrc(props.node.attrs, inlineImgs) || resolvedSrc.value,
+      caption: props.node.attrs.caption || '',
+      alt: props.node.attrs.alt || '',
+      title: props.node.attrs.title || '',
+    })
+    startIndex = 0
+  }
+
+  fullscreenImages.value = images
+  fullscreenStartIndex.value = startIndex
+  isFullscreenOpen.value = true
+}
+
 // --- Toolbar visibility ---
 const isEditable = computed(() => props.editor?.isEditable)
 const showToolbar = computed(() => props.selected && !isResizing.value && isEditable.value)
@@ -292,6 +381,19 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         </svg>
       </button>
       <div class="nc-doc-image-toolbar-divider" />
+      <button
+        class="nc-doc-image-toolbar-btn"
+        :title="t('labels.expandImage')"
+        data-testid="nc-doc-image-expand"
+        @click="openFullscreen"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 3 21 3 21 9" />
+          <polyline points="9 21 3 21 3 15" />
+          <line x1="21" y1="3" x2="14" y2="10" />
+          <line x1="3" y1="21" x2="10" y2="14" />
+        </svg>
+      </button>
       <button class="nc-doc-image-toolbar-btn" :title="t('labels.downloadImage')" @click="downloadImage">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -325,6 +427,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         draggable="false"
         @error="imgError = true"
         @load="imgError = false"
+        @dblclick.stop.prevent="openFullscreen"
       />
 
       <!-- Resize handles (visible when selected + editable) -->
@@ -350,6 +453,14 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         {{ node.attrs.caption }}
       </div>
     </div>
+
+    <!-- Fullscreen carousel (lazy-mounted only while open) -->
+    <DocImageFullscreen
+      v-if="isFullscreenOpen"
+      v-model="isFullscreenOpen"
+      :images="fullscreenImages"
+      :start-index="fullscreenStartIndex"
+    />
   </NodeViewWrapper>
 </template>
 

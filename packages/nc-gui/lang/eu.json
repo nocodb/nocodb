@@ -1389,6 +1389,7 @@
     "manyToOne": "Askotatik batera"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Sinkronizatzea",
     "paused": "Etenda",
     "tableSync": "Taularen sinkronizazioa",

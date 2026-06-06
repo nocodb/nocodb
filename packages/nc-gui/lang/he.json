@@ -1389,6 +1389,7 @@
     "manyToOne": "רבים לאחד"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "סנכרון",
     "paused": "מושהה",
     "tableSync": "סנכרון טבלאות",

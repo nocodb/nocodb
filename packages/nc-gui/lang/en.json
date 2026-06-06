@@ -1389,6 +1389,7 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Syncing",
     "paused": "Paused",
     "tableSync": "NocoDB Sync",

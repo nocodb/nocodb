@@ -1389,6 +1389,7 @@
     "manyToOne": "Monia yhdelle"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Synkronoidaan",
     "paused": "Keskeytetty",
     "tableSync": "Taulukon synkronointi",

@@ -1389,6 +1389,7 @@
     "manyToOne": "Banyak ke Satu"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Sinkronisasi",
     "paused": "Berhenti sejenak",
     "tableSync": "Sinkronisasi tabel",

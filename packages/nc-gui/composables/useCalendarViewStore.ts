@@ -917,6 +917,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           }
           return
         }
+        if (activeCalendarView.value === '3day') {
+          // Shift the 3-day window by exactly 1 week, keeping its 3-day span.
+          const newStart = selectedDateRange.value.start.add(dayShift, 'day')
+          selectedDateRange.value = {
+            start: newStart.startOf('day'),
+            end: newStart.add(2, 'day').endOf('day'),
+          }
+          if (pageDate.value.month() !== newStart.month()) {
+            pageDate.value = newStart
+          }
+          return
+        }
         if (activeCalendarView.value === '2week' || activeCalendarView.value === '6week') {
           // Shift the multi-week window by exactly 1 week instead of the
           // natural 2/6-week step — useful when nudging a 6-week planning grid.

@@ -1389,6 +1389,7 @@
     "manyToOne": "Багато до одного"
   },
   "labels": {
+    "onThisPage": "On this page",
     "syncing": "Синхронізація",
     "paused": "Призупинено",
     "tableSync": "Синхронізація таблиць",

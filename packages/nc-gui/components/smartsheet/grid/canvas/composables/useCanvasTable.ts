@@ -1141,7 +1141,7 @@ export function useCanvasTable({
     return {
       x: xPos,
       y: startY,
-      size: isAiFillMode.value ? 10 : 8,
+      size: isAiFillMode.value ? 10 : 6,
       fixedCol: selection.value.end.col < fixedCols.length,
     }
   }

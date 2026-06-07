@@ -1354,7 +1354,7 @@
     "tableVisibility": "Table Visibility",
     "recordOperations": "Record Operations",
     "fieldPermissions": "Field permissions",
-    "pagePermissions": "Document permissions",
+    "pagePermissions": "Permissions",
     "resetAllDocPermissions": "Reset all document permissions?",
     "resetDocPermissions": "Reset permissions for \"{title}\"?",
     "pageVisibility": "Document Visibility",

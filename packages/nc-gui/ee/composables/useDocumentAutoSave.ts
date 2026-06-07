@@ -118,6 +118,51 @@ export function useDocumentAutoSave({
     return activeDocument.value?.updated_by
   })
 
+  /**
+   * After a save, the backend's reconcileFileReferences injects FileReference
+   * `id`s into image / fileAttachment nodes (keyed by `path`). Write those ids
+   * back into the live editor so just-uploaded media switches to the (reliable,
+   * header-authed) proxy source immediately, instead of staying on its local
+   * upload blob — whose object URL is revoked right after upload — until reload.
+   */
+  const applyReconciledFileRefIds = (savedContent: any) => {
+    if (!editor.value || savedContent == null) return
+
+    const idByPath = new Map<string, string>()
+    const collect = (node: any) => {
+      if (!node || typeof node !== 'object') return
+      if ((node.type === 'image' || node.type === 'fileAttachment') && node.attrs?.path && node.attrs?.id) {
+        idByPath.set(node.attrs.path, node.attrs.id)
+      }
+      if (Array.isArray(node.content)) node.content.forEach(collect)
+    }
+    collect(parseDocContent(savedContent))
+    if (!idByPath.size) return
+
+    const { view } = editor.value
+    const tr = view.state.tr
+    let changed = false
+    view.state.doc.descendants((node, pos) => {
+      if ((node.type.name === 'image' || node.type.name === 'fileAttachment') && node.attrs.path && !node.attrs.id) {
+        const id = idByPath.get(node.attrs.path)
+        if (id) {
+          tr.setNodeMarkup(pos, undefined, { ...node.attrs, id })
+          changed = true
+        }
+      }
+    })
+    if (!changed) return
+
+    // Keep out of undo history; suppress the onUpdate → debouncedSave this
+    // dispatch would otherwise trigger (it's our own write-back, not a user edit).
+    tr.setMeta('addToHistory', false)
+    isSettingContent.value = true
+    view.dispatch(tr)
+    nextTick(() => {
+      isSettingContent.value = false
+    })
+  }
+
   /** Persist current editor state + title to the backend. */
   const save = async () => {
     if (isStale.value) return
@@ -176,6 +221,10 @@ export function useDocumentAutoSave({
         doc.value.updated_by = updated.updated_by
         lastSavedTitle.value = effectiveTitle
         hasUserEdited.value = false
+
+        // Pull backend-assigned FileReference ids into the editor so newly
+        // uploaded media keeps rendering (via header-auth proxy) without a reload.
+        applyReconciledFileRefIds(updated.content)
       }
     } catch (_e) {
       // Error already surfaced by store's updateDocument via message.error

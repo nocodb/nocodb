@@ -19,18 +19,41 @@ const props = defineProps<{
   getPos: () => number
 }>()
 
-const { buildProxyUrl } = useDocumentImageUpload()
+const { fetchDocAttachment } = useDocumentImageUpload()
 const { t } = useI18n()
 
 // --- Resolved image source ---
-// With cookie auth, images with an `id` (FileReference) use the proxy URL directly as <img src>.
-// The browser sends the nc_token cookie automatically — no fetch+blob needed.
-const resolvedSrc = computed(() => {
+// Saved images (have a FileReference `id`) load through the auth proxy using
+// HEADER auth (xc-auth) — the same mechanism the rest of the app uses — and are
+// served as a same-origin blob URL. This is reliable regardless of cross-origin
+// cookie state (an <img> tag can't send the header itself, so we fetch + blob).
+// Just-uploaded images (no `id` yet) show their local blob preview.
+//
+// `ownedBlobUrl` tracks the object URL we created so we can revoke it on change
+// / unmount. We never revoke the upload-preview blob (owned by the upload flow).
+let ownedBlobUrl: string | null = null
+
+const releaseOwnedBlob = () => {
+  if (ownedBlobUrl) {
+    URL.revokeObjectURL(ownedBlobUrl)
+    ownedBlobUrl = null
+  }
+}
+
+const resolvedSrc = computedAsync(async () => {
   const { id, src } = props.node.attrs
-  if (id) return buildProxyUrl(id)
-  if (src) return src // blob preview during upload or external URL
-  return ''
-})
+  if (id) {
+    const blobUrl = await fetchDocAttachment(id)
+    if (blobUrl) {
+      if (ownedBlobUrl !== blobUrl) releaseOwnedBlob()
+      ownedBlobUrl = blobUrl
+      return blobUrl
+    }
+  }
+  // Fall back to the upload-preview blob / external URL
+  releaseOwnedBlob()
+  return src || ''
+}, '')
 
 // A peer receives the uploader's local blob preview over the CRDT before the
 // durable id; blob: URLs only load in their origin client, so it errors on peers.
@@ -42,9 +65,11 @@ watch(resolvedSrc, () => {
 })
 
 const isLoading = computed(() => {
-  const { path, src, id } = props.node.attrs
-  // Uploading: no durable ref and no preview yet.
-  if (!path && !src) return true
+  const { id, path, src } = props.node.attrs
+  // Uploading: no durable ref, no id, and no preview yet.
+  if (!path && !src && !id) return true
+  // Saved image whose proxy blob is still being fetched (header-auth fetch in flight).
+  if (id && !resolvedSrc.value) return true
   // Peer awaiting the durable id: its blob: preview can't load — show the skeleton.
   // Scoped to blob: so a genuinely broken external image still surfaces its error.
   return imgError.value && !id && typeof src === 'string' && src.startsWith('blob:')
@@ -148,6 +173,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('mouseup', onResizeEnd)
   if (swMoveHandler) document.removeEventListener('mousemove', swMoveHandler)
   if (swUpHandler) document.removeEventListener('mouseup', swUpHandler)
+  releaseOwnedBlob()
 })
 
 // --- Caption ---
@@ -205,26 +231,19 @@ watch(
 )
 
 // --- Download ---
-const downloadImage = async () => {
-  const { id } = props.node.attrs
-  if (!id && !resolvedSrc.value) return
+const downloadImage = () => {
+  // resolvedSrc is already a same-origin blob URL (header-auth fetched) or the
+  // upload-preview blob — <a download> works directly, no cross-origin fetch.
+  if (!resolvedSrc.value) return
 
   try {
-    // Fetch via proxy URL with credentials (cookie) — needed for download
-    // because <a download> doesn't work cross-origin
-    const url = id ? buildProxyUrl(id) : resolvedSrc.value
-    const response = await fetch(url, { credentials: 'include' })
-    const blob = await response.blob()
-    const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = blobUrl
+    link.href = resolvedSrc.value
     link.download = props.node.attrs.alt || 'image'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    URL.revokeObjectURL(blobUrl)
   } catch {
-    // Fallback: open in new tab
     window.open(resolvedSrc.value, '_blank')
   }
 }
@@ -250,20 +269,27 @@ const isFullscreenOpen = ref(false)
 const fullscreenImages = ref<FullscreenImage[]>([])
 const fullscreenStartIndex = ref(0)
 
+/** Stable key linking an image node to its rendered inline <img> element. */
+const fileRefKey = (attrs: Record<string, any>): string => attrs.id || attrs.path || attrs.src || ''
+
 /**
- * Resolve a displayable src for one image node.
+ * Resolve a displayable src for one image node, reusing what the inline
+ * DocImageNode already rendered (so we never re-fetch or duplicate auth).
  *
- * - Saved images (have a FileReference `id`) → the auth proxy URL.
- * - Just-uploaded images (no `id` yet — the id is only assigned by the backend
- *   on save and isn't written back into the editor until reload) only exist as a
- *   blob whose object URL is revoked right after upload. A fresh <img> with that
- *   dead blob fails, so we capture the still-painted inline <img> to a data URL.
+ * - Saved images (have an `id`) → the inline element already resolved them to a
+ *   live, same-origin blob URL via header auth; reuse it (a fresh <img> loads it
+ *   from memory). Valid as long as the inline node stays mounted — which it does
+ *   while the carousel is open.
+ * - Just-uploaded images (no `id`) only exist as an upload blob whose object URL
+ *   is revoked right after upload, so a fresh <img> would fail. Capture the
+ *   still-painted inline <img> to a data URL instead.
  */
-const resolveImageSrc = (attrs: Record<string, any>, inlineImgs: Map<string, HTMLImageElement>): string => {
-  if (attrs.id) return buildProxyUrl(attrs.id)
+const resolveImageSrc = (attrs: Record<string, any>, imgByKey: Map<string, HTMLImageElement>): string => {
+  const el = imgByKey.get(fileRefKey(attrs))
+
+  if (attrs.id) return el?.getAttribute('src') || ''
   if (!attrs.src) return ''
 
-  const el = inlineImgs.get(attrs.src)
   if (el?.naturalWidth) {
     try {
       const canvas = document.createElement('canvas')
@@ -282,12 +308,11 @@ const resolveImageSrc = (attrs: Record<string, any>, inlineImgs: Map<string, HTM
 const openFullscreen = () => {
   if (!resolvedSrc.value) return
 
-  // Index live inline <img> elements by their current src so just-uploaded
-  // (blob) images can be captured from the painted element.
+  // Index live inline <img> elements by their stable file-reference key.
   const editorDom = props.editor.view.dom as HTMLElement
-  const inlineImgs = new Map<string, HTMLImageElement>()
+  const imgByKey = new Map<string, HTMLImageElement>()
   for (const el of Array.from(editorDom.querySelectorAll('img.nc-doc-image')) as HTMLImageElement[]) {
-    inlineImgs.set(el.getAttribute('src') || '', el)
+    imgByKey.set(el.getAttribute('data-nc-fileref-key') || '', el)
   }
 
   let myPos = -1
@@ -304,7 +329,7 @@ const openFullscreen = () => {
     if (n.type.name !== 'image') return
 
     const { caption, alt, title } = n.attrs
-    const url = resolveImageSrc(n.attrs, inlineImgs)
+    const url = resolveImageSrc(n.attrs, imgByKey)
     if (!url) return
 
     if (pos === myPos) startIndex = images.length
@@ -314,7 +339,7 @@ const openFullscreen = () => {
   // Fallback to just this image if traversal found nothing
   if (!images.length) {
     images.push({
-      src: resolveImageSrc(props.node.attrs, inlineImgs) || resolvedSrc.value,
+      src: resolveImageSrc(props.node.attrs, imgByKey) || resolvedSrc.value,
       caption: props.node.attrs.caption || '',
       alt: props.node.attrs.alt || '',
       title: props.node.attrs.title || '',
@@ -424,6 +449,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         :title="node.attrs.title || ''"
         class="nc-doc-image"
         data-testid="nc-doc-image"
+        :data-nc-fileref-key="node.attrs.id || node.attrs.path || node.attrs.src || ''"
         draggable="false"
         @error="imgError = true"
         @load="imgError = false"

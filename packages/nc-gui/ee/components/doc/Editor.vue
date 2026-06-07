@@ -2395,6 +2395,93 @@ const onRemoveCover = async () => {
   }
 }
 
+// --- Cover reposition (vertical focal point) ---
+// Lets the user pick which vertical slice of the cover image shows in the
+// fixed-height banner. Stored as `meta.cover_image_position` (0–100 %, default
+// 50 = center) and applied via the image's object-position Y.
+const coverImageEl = ref<HTMLImageElement | null>(null)
+
+const isRepositioningCover = ref(false)
+
+const isDraggingCover = ref(false)
+
+const repositionY = ref(50)
+
+let coverDragStartY = 0
+let coverDragStartPos = 50
+let coverOverflow = 0
+
+const coverPosition = computed<number>(() => {
+  const p = docMeta.value.cover_image_position
+  return typeof p === 'number' ? p : 50
+})
+
+const coverObjectPosition = computed(() => `center ${isRepositioningCover.value ? repositionY.value : coverPosition.value}%`)
+
+const startRepositionCover = () => {
+  repositionY.value = coverPosition.value
+  isRepositioningCover.value = true
+}
+
+const cancelRepositionCover = () => {
+  isRepositioningCover.value = false
+  isDraggingCover.value = false
+}
+
+function onCoverDragMove(e: MouseEvent) {
+  if (!isDraggingCover.value || coverOverflow <= 0) return
+  const dPercent = ((e.clientY - coverDragStartY) / coverOverflow) * 100
+  // Drag down → reveal the top of the image (object-position Y decreases).
+  repositionY.value = Math.min(100, Math.max(0, coverDragStartPos - dPercent))
+}
+
+function onCoverDragEnd() {
+  isDraggingCover.value = false
+  document.removeEventListener('mousemove', onCoverDragMove)
+  document.removeEventListener('mouseup', onCoverDragEnd)
+}
+
+const onCoverDragStart = (e: MouseEvent) => {
+  if (!isRepositioningCover.value || !coverImageEl.value) return
+  e.preventDefault()
+
+  const el = coverImageEl.value
+  // Vertical overflow of the cover-scaled (object-fit: cover, width-driven) image.
+  coverOverflow = el.naturalWidth > 0 ? el.naturalHeight * (el.clientWidth / el.naturalWidth) - el.clientHeight : 0
+
+  isDraggingCover.value = true
+  coverDragStartY = e.clientY
+  coverDragStartPos = repositionY.value
+
+  document.addEventListener('mousemove', onCoverDragMove)
+  document.addEventListener('mouseup', onCoverDragEnd)
+}
+
+const saveRepositionCover = async () => {
+  const newPos = Math.round(repositionY.value)
+  isRepositioningCover.value = false
+
+  if (!doc.value?.id || !base.value?.id || newPos === coverPosition.value) return
+
+  try {
+    doc.value.meta = { ...docMeta.value, cover_image_position: newPos }
+
+    const updated = await updateDocument(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+
+    if (updated && doc.value) {
+      doc.value.version = updated.version
+      if (updated.meta) doc.value.meta = parseProp(updated.meta)
+    }
+
+    $e('a:doc:cover:reposition')
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const isFullWidth = computed(() => docMeta.value.full_width === true)
 
 const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
@@ -2877,15 +2964,51 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
         </div>
 
         <!-- Cover image banner — doc mode only; cells have no cover. -->
-        <div v-if="!isCellMode && coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
-          <img :src="coverImageSrc" class="nc-doc-cover-image" />
+        <div
+          v-if="!isCellMode && coverImageSrc"
+          class="nc-doc-cover group relative w-full"
+          :class="{ 'nc-doc-cover-repositioning': isRepositioningCover }"
+          data-testid="nc-doc-cover"
+        >
+          <img
+            ref="coverImageEl"
+            :src="coverImageSrc"
+            class="nc-doc-cover-image"
+            :class="{ 'cursor-grab': isRepositioningCover && !isDraggingCover, 'cursor-grabbing': isDraggingCover }"
+            :style="{ objectPosition: coverObjectPosition }"
+            draggable="false"
+            @mousedown="onCoverDragStart"
+          />
+
+          <div v-if="isRepositioningCover" class="nc-doc-cover-hint" data-testid="nc-doc-cover-hint">
+            {{ $t('msg.info.dragToReposition') }}
+          </div>
+
           <div v-if="isEditable" class="nc-doc-cover-controls">
-            <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
-              {{ $t('labels.changeCover') }}
-            </NcButton>
-            <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-remove" @click="onRemoveCover">
-              {{ $t('labels.removeCover') }}
-            </NcButton>
+            <template v-if="isRepositioningCover">
+              <NcButton
+                size="xsmall"
+                type="secondary"
+                data-testid="nc-doc-cover-reposition-cancel"
+                @click="cancelRepositionCover"
+              >
+                {{ $t('general.cancel') }}
+              </NcButton>
+              <NcButton size="xsmall" type="primary" data-testid="nc-doc-cover-reposition-save" @click="saveRepositionCover">
+                {{ $t('labels.savePosition') }}
+              </NcButton>
+            </template>
+            <template v-else>
+              <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-reposition" @click="startRepositionCover">
+                {{ $t('labels.reposition') }}
+              </NcButton>
+              <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
+                {{ $t('labels.changeCover') }}
+              </NcButton>
+              <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-remove" @click="onRemoveCover">
+                {{ $t('labels.removeCover') }}
+              </NcButton>
+            </template>
           </div>
         </div>
 
@@ -4206,7 +4329,8 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
   width: 100%;
   height: 240px;
   object-fit: cover;
-  object-position: center;
+  // object-position set inline (vertical focal point); defaults to center 50%
+  user-select: none;
 }
 
 .nc-doc-cover-controls {
@@ -4218,7 +4342,8 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
   opacity: 0;
   transition: opacity 0.15s;
 
-  .group:hover & {
+  .group:hover &,
+  .nc-doc-cover-repositioning & {
     opacity: 1;
   }
 
@@ -4229,6 +4354,28 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
     min-height: 22px !important;
     min-width: unset !important;
   }
+}
+
+// Reposition mode: hint pill + subtle dim so the drag affordance is clear
+.nc-doc-cover-repositioning {
+  .nc-doc-cover-image {
+    filter: brightness(0.92);
+  }
+}
+
+.nc-doc-cover-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .nc-doc-add-cover {

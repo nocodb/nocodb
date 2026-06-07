@@ -155,11 +155,16 @@ async function copyToClipboard() {
   if (!tableMeta.value || !rowObjects.value.length) return
   $e('c:chat:grid:copy')
 
-  const { html, text } = serializeRange(rowObjects.value, allColumns.value, {
-    isPg: () => false,
-    isMysql: () => false,
-    meta: tableMeta.value!,
-  })
+  const { html, text } = serializeRange(
+    rowObjects.value,
+    allColumns.value,
+    {
+      isPg: () => false,
+      isMysql: () => false,
+      meta: tableMeta.value!,
+    },
+    { enrichClipboard: true },
+  )
 
   try {
     await navigator.clipboard.write([

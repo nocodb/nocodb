@@ -73,7 +73,7 @@ export function useMultiSelect(
 
   const { t } = useI18n()
 
-  const { copy } = useCopy()
+  const { copy, copyMimes } = useCopy()
 
   const { getMeta, metas } = useMetas()
 
@@ -169,12 +169,17 @@ export function useMultiSelect(
       html: copyHTML,
       text: copyPlainText,
       clipboardItemConfig,
-    } = serializeRange(rows, cols, {
-      isPg,
-      isMysql,
-      meta: meta.value,
-      metas: metas.value,
-    })
+    } = serializeRange(
+      rows,
+      cols,
+      {
+        isPg,
+        isMysql,
+        meta: meta.value,
+        metas: metas.value,
+      },
+      { enrichClipboard: true },
+    )
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
@@ -232,21 +237,27 @@ export function useMultiSelect(
           if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
-          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
-            meta: meta.value,
-            metas: metas.value,
-            isPg,
-            isMysql,
-          })
+          const { textToCopy, cellValue, clipboardColumn, rowId, clipboardContent } = valueToCopy(
+            rowObj,
+            columnObj,
+            {
+              meta: meta.value,
+              metas: metas.value,
+              isPg,
+              isMysql,
+            },
+            { enrichClipboard: true, includeHtml: true },
+          )
 
           const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
 
-          await copy(plainTextValue)
+          await copyMimes({ 'text/plain': plainTextValue, ...clipboardContent })
 
           const clipboardItem: NcClipboardDataItemType = {
             dbCellValueArr: [[cellValue]],
             columns: [clipboardColumn],
             copiedPlainText: plainTextValue,
+            copiedHtml: clipboardContent['text/html'],
             rowIds: [rowId],
             tableId: meta.value?.id,
             id: getClipboardItemId(),

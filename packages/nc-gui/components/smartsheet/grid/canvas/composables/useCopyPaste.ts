@@ -142,7 +142,7 @@ export function useCopyPaste({
   const { appInfo } = useGlobal()
   const { t } = useI18n()
   const { isUIAllowed } = useRoles()
-  const { copy } = useCopy()
+  const { copy, copyMimes } = useCopy()
   const { cleaMMCell, clearLTARCell } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const { isAllowed } = usePermissions()
@@ -1126,12 +1126,17 @@ export function useCopyPaste({
       html: copyHTML,
       text: copyPlainText,
       clipboardItemConfig,
-    } = serializeRange(rows, cols, {
-      meta: meta.value,
-      metas: metas.value,
-      isPg,
-      isMysql,
-    })
+    } = serializeRange(
+      rows,
+      cols,
+      {
+        meta: meta.value,
+        metas: metas.value,
+        isPg,
+        isMysql,
+      },
+      { enrichClipboard: true },
+    )
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
@@ -1254,21 +1259,27 @@ export function useCopyPaste({
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
 
-          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
-            meta: meta.value,
-            metas: metas.value,
-            isPg,
-            isMysql,
-          })
+          const { textToCopy, cellValue, clipboardColumn, rowId, clipboardContent } = valueToCopy(
+            rowObj,
+            columnObj,
+            {
+              meta: meta.value,
+              metas: metas.value,
+              isPg,
+              isMysql,
+            },
+            { enrichClipboard: true, includeHtml: true },
+          )
 
           const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
 
-          await copy(plainTextValue)
+          await copyMimes({ 'text/plain': plainTextValue, ...clipboardContent })
 
           const clipboardItem: NcClipboardDataItemType = {
             dbCellValueArr: [[cellValue]],
             columns: [clipboardColumn],
             copiedPlainText: plainTextValue,
+            copiedHtml: clipboardContent['text/html'],
             rowIds: [rowId],
             tableId: meta.value?.id,
             id: getClipboardItemId(),

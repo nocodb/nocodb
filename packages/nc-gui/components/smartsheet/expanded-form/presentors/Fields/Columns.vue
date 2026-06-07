@@ -42,7 +42,7 @@ const passesBaseVisible = (col: ColumnType, showColCallback?: (col: ColumnType) 
 const passesActiveFilters = (col: ColumnType, showColCallback?: (col: ColumnType) => boolean) => {
   if (!passesBaseVisible(col, showColCallback)) return false
   if (!fieldMatchesSearch(col, normalizedSearch.value, _row.value?.row)) return false
-  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title])) return false
+  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title], col)) return false
   return true
 }
 

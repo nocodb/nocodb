@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isLinksOrLTAR } from 'nocodb-sdk'
 
 const stringifyValue = (value: unknown): string => {
   if (value == null) return ''
@@ -40,8 +40,20 @@ export const fieldMatchesSearch = (col: ColumnType, query: string, row: Record<s
   return stringifyValue(raw).toLowerCase().includes(normalizedQuery)
 }
 
-export const isBlankFieldValue = (value: unknown): boolean => {
+export const isBlankFieldValue = (value: unknown, col?: ColumnType): boolean => {
   if (value == null) return true
+
+  // Links/LTAR fields render a count (e.g. Links uidt stores `0` when empty,
+  // showing "No records linked"). A numeric `0` is otherwise treated as a
+  // valid value, so handle link columns explicitly: blank when there are no
+  // linked records (count 0, empty array, or empty object).
+  if (col && isLinksOrLTAR(col)) {
+    if (typeof value === 'number') return value === 0
+    if (Array.isArray(value)) return value.length === 0
+    if (typeof value === 'object') return Object.keys(value as Record<string, unknown>).length === 0
+    return false
+  }
+
   if (typeof value === 'string') return value.trim() === ''
   if (Array.isArray(value)) return value.length === 0
   if (typeof value === 'object') return Object.keys(value as Record<string, unknown>).length === 0

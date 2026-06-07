@@ -672,6 +672,15 @@ watch(rowId, async (nRow) => {
 const preventModalStatus = computed({
   get: () => isCloseModalOpen.value || isPreventChangeModalOpen.value,
   set: (v) => {
+    // Dismiss (X / Escape / overlay) — cancel whichever action triggered the
+    // prompt and stay on the current dirty row. Reset both sources and the
+    // pending navigation direction so a later prompt doesn't reuse stale state.
+    if (!v) {
+      isCloseModalOpen.value = false
+      isPreventChangeModalOpen.value = false
+      interruptedDirectionToGo.value = undefined
+      return
+    }
     isCloseModalOpen.value = v
   },
 })

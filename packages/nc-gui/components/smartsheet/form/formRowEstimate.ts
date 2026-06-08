@@ -9,7 +9,7 @@ const INLINE_LIST_BASE_PX = 84 // label + container chrome
 const INLINE_LIST_PER_OPTION_PX = 30 // each radio/checkbox option row
 const INLINE_LIST_OPTIONS_CAP_PX = 252 // cap on the options-area height (matches the option container's max-height)
 
-type FormFieldLike = {
+interface FormFieldLike {
   uidt?: string
   meta?: Record<string, any> | null
   colOptions?: { options?: unknown[] } | null

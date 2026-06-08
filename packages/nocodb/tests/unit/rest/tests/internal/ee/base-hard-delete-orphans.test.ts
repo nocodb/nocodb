@@ -16,6 +16,7 @@ const SATELLITE_CONN: Partial<Record<MetaTable, () => any>> = {
   [MetaTable.DOC_CONTENT]: () => Noco.ncDocsContent,
   [MetaTable.DOC_REVISIONS]: () => Noco.ncDocsContent,
   [MetaTable.OPERATION_LOGS]: () => Noco.ncOperationLogs,
+  [MetaTable.CHAT_MESSAGES]: () => Noco.ncChatMessages,
 };
 
 const connFor = (table: MetaTable) => SATELLITE_CONN[table]?.() ?? Noco.ncMeta;
@@ -88,6 +89,10 @@ export function baseHardDeleteOrphansTests() {
           created_by: 'usr_orphan',
         },
         [MetaTable.OPERATION_LOGS]: { seq: 1 },
+        [MetaTable.CHAT_MESSAGES]: {
+          fk_session_id: 'cs_orphan_test',
+          role: 'user',
+        },
       };
 
       const seedTargets: MetaTable[] = [
@@ -106,6 +111,8 @@ export function baseHardDeleteOrphansTests() {
         MetaTable.SANDBOX_CHANGELOG,
         MetaTable.OPERATION_LOGS,
         MetaTable.DOC_CONTENT,
+        MetaTable.CHAT_SESSIONS,
+        MetaTable.CHAT_MESSAGES,
       ];
 
       const seeded: MetaTable[] = [];

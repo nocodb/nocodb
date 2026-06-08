@@ -55,6 +55,8 @@ import {
   Workspace,
 } from '~/models';
 import CommentReaction from '~/models/CommentReaction';
+import ChatMessage from '~/models/ChatMessage';
+import ChatSession from '~/models/ChatSession';
 import { isOnPrem } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -568,17 +570,32 @@ export default class Base extends BaseCE {
     await RlsPolicy.deleteByBaseId(context, baseId, ncMeta);
     await Permission.deleteByBaseId(context, baseId, ncMeta);
     await Document.deleteByBaseId(context, baseId, ncMeta);
+    // Chat session rows live in the meta DB (cached) — delete in-transaction.
+    // Their messages live on the NC_CHAT_DB satellite and are cleaned below.
+    await ChatSession.deleteByBaseId(context, baseId, ncMeta);
 
-    // Satellite DB (separate connection, NC_OP_LOG_DB) — best-effort, not part
-    // of the meta transaction. It is the one cleanup on a connection that can
-    // fail independently of the meta DB, so a satellite outage must never abort
-    // the meta delete: swallow + log. Operation logs also expire via
-    // OperationCleanup.
+    // Satellite DBs (separate connections) — best-effort, NOT part of the meta
+    // transaction. These are the cleanups on connections that can fail
+    // independently of the meta DB, so a satellite outage must never abort the
+    // meta delete: swallow + log. Never forward `ncMeta` (the meta trx) to a
+    // satellite — it cannot share the transaction (see MetaService guard).
     try {
+      // NC_OP_LOG_DB — operation logs also expire via OperationCleanup.
       await OperationLog.deleteByBaseId(context, baseId);
     } catch (e) {
       logger.warn(
         `Best-effort operation-log cleanup failed for base ${baseId}: ${
+          (e as Error)?.message
+        }`,
+      );
+    }
+
+    try {
+      // NC_CHAT_DB — messages keyed by base_id (session rows already removed).
+      await ChatMessage.deleteByBaseId(context, baseId);
+    } catch (e) {
+      logger.warn(
+        `Best-effort chat-message cleanup failed for base ${baseId}: ${
           (e as Error)?.message
         }`,
       );

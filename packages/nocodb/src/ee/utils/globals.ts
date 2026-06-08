@@ -214,6 +214,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
   MetaTable.DOC_REVISIONS,
+  MetaTable.CHAT_SESSIONS,
+  MetaTable.CHAT_MESSAGES,
   MetaTable.TRASH,
 ];
 

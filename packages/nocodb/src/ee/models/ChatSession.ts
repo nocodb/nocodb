@@ -248,4 +248,39 @@ export default class ChatSession
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
+
+  // Sessions are base-scoped rows in the meta DB (cached). On base hard-delete,
+  // remove every session row + evict cache via ncMeta so the work joins the
+  // base-delete transaction. Their messages live on the NC_CHAT_DB satellite
+  // and are cleaned separately (ChatMessage.deleteByBaseId) — never forward
+  // ncMeta to that satellite connection.
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const sessions = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_SESSIONS,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+
+    for (const session of sessions) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.CHAT_SESSIONS,
+        { id: session.id },
+      );
+
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.CHAT_SESSION}:${session.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+  }
 }

@@ -4,6 +4,50 @@ import { OperationSource } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 import { isBlockedIp } from '~/helpers/dbSsrfLookup';
+import { isCloud } from '~/utils';
+
+/** SSL config keys that point at a server-side file rather than inline contents. */
+const SSL_FILE_PATH_KEYS = [
+  'caFilePath',
+  'keyFilePath',
+  'certFilePath',
+] as const;
+
+/**
+ * True if the SSL config asks the server to read a certificate from a local
+ * file path (vs. inline `ca`/`key`/`cert` contents).
+ */
+export function hasSslFilePath(ssl: unknown): boolean {
+  if (!ssl || typeof ssl !== 'object') return false;
+  const s = ssl as Record<string, unknown>;
+  return SSL_FILE_PATH_KEYS.some((k) => !!s[k]);
+}
+
+/**
+ * Reject user-supplied SSL file-path references where reading arbitrary
+ * server files is an untrusted-input risk.
+ *
+ * Reading `ssl.{ca,key,cert}FilePath` turns the connection-test endpoint into
+ * a file-existence oracle (a missing path fails differently/faster than an
+ * existing one). On multi-tenant Cloud the caller is NOT the host operator, so
+ * this is always blocked. Self-hosted allows it by default — the operator can
+ * already read host files (accepted risk, commit a565978837) — and can opt in
+ * to blocking it by setting `NC_DISABLE_DB_SSL_FILE_PATHS=true`.
+ *
+ * Runs before any filesystem access, so a blocked request never touches disk
+ * (no timing/error signal to leak).
+ */
+export function validateDbConnectionSslPaths(ssl: unknown): void {
+  // Cloud always enforces; env bypass is ignored (a tenant must not be able
+  // to probe shared-host files).
+  if (!isCloud && process.env.NC_DISABLE_DB_SSL_FILE_PATHS !== 'true') return;
+
+  if (hasSslFilePath(ssl)) {
+    NcError.badRequest(
+      'SSL certificate file paths are not allowed; provide the certificate contents instead',
+    );
+  }
+}
 
 /**
  * Reject database hosts that resolve to non-routable ranges (private,

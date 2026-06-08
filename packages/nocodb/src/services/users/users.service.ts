@@ -18,7 +18,7 @@ import {
   verifyDefaultWorkspace,
 } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
-import { isEE, isOnPrem, T } from '~/utils';
+import { isEE, isOnPrem, sanitiseUserObj, T } from '~/utils';
 import {
   clearAuthCookie,
   genJwt,
@@ -128,7 +128,15 @@ export class UsersService {
 
     await PresignedUrl.signMetaIconImage(user);
 
-    return user;
+    // Strip secrets before returning this user as the API response.
+    // sanitiseUserObj drops password/salt/tokens/totp; also drop token_version
+    // here (the JWT-invalidation counter), which the shared sanitiser
+    // intentionally keeps because the auth/token-issuance paths read it. The
+    // audit hook above gets the full object but already excludes secrets and
+    // only diffs changed fields.
+    const safeUser = sanitiseUserObj(user);
+    delete safeUser.token_version;
+    return safeUser;
   }
 
   async registerNewUserIfAllowed(

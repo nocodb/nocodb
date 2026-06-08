@@ -17,7 +17,14 @@ import {
   IntegrationsType,
   OrgUserRoles,
 } from 'nocodb-sdk';
-import { validateDbConnectionHost } from '~/helpers/validateDbConnectionHost';
+import {
+  hasSslFilePath,
+  validateDbConnectionHost,
+} from '~/helpers/validateDbConnectionHost';
+import {
+  SSL_FILE_PATH_TEST_MIN_RESPONSE_MS,
+  withMinResponseTime,
+} from '~/helpers/withMinResponseTime';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -145,7 +152,14 @@ export class UtilsController {
       );
     }
 
-    return await this.utilsService.testConnection({ body: config });
+    const runTest = () => this.utilsService.testConnection({ body: config });
+
+    // Flatten the SSL file-path timing oracle: when the request reads a cert
+    // from disk, pad the response to a common floor so file-existence can't be
+    // inferred from response time. Plain connections are not penalised.
+    return hasSslFilePath(config.connection?.ssl)
+      ? await withMinResponseTime(SSL_FILE_PATH_TEST_MIN_RESPONSE_MS, runTest)
+      : await runTest();
   }
 
   @UseGuards(PublicApiLimiterGuard)

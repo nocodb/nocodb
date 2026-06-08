@@ -29,7 +29,14 @@ import { Integration, WorkspaceUser } from '~/models';
 import { deepMerge } from '~/utils';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { validateDbConnectionHost } from '~/helpers/validateDbConnectionHost';
+import {
+  hasSslFilePath,
+  validateDbConnectionHost,
+} from '~/helpers/validateDbConnectionHost';
+import {
+  SSL_FILE_PATH_TEST_MIN_RESPONSE_MS,
+  withMinResponseTime,
+} from '~/helpers/withMinResponseTime';
 
 @Controller()
 export class UtilsController extends UtilsControllerCE {
@@ -165,9 +172,14 @@ export class UtilsController extends UtilsControllerCE {
       max: 1,
     };
 
-    const result = await this.utilsService.testConnection({
-      body: config,
-    });
+    const runTest = () => this.utilsService.testConnection({ body: config });
+
+    // Flatten the SSL file-path timing oracle: when the request reads a cert
+    // from disk, pad the response to a common floor so file-existence can't be
+    // inferred from response time. Plain connections are not penalised.
+    const result = hasSslFilePath(config.connection?.ssl)
+      ? await withMinResponseTime(SSL_FILE_PATH_TEST_MIN_RESPONSE_MS, runTest)
+      : await runTest();
 
     if (result.code !== -1) {
       return result;

@@ -20,7 +20,7 @@ describe('formRowEstimate', () => {
     ).toBe(84)
     expect(
       estimateFieldHeightPx({ uidt: UITypes.MultiSelect, meta: { isList: true }, colOptions: { options: new Array(3) } }),
-    ).toBe(84 + 90)
+    ).toBe(84 + 90) // 84 + 3*30
     expect(
       estimateFieldHeightPx({ uidt: UITypes.SingleSelect, meta: { isList: true }, colOptions: { options: new Array(50) } }),
     ).toBe(84 + 252) // capped

@@ -129,6 +129,8 @@ interface SheetResult {
   linksCreated: number;
   /** Display values that matched no related record (skipped). */
   valuesUnmatched: number;
+  /** Links that matched a record but failed to attach (addLinks threw). */
+  linksFailed: number;
   errors: Array<{ row: number; error: string }>;
 }
 
@@ -230,6 +232,7 @@ export class DataImportProcessor {
         (s, r) => s + r.valuesUnmatched,
         0,
       );
+      const linksFailed = results.reduce((s, r) => s + r.linksFailed, 0);
       const errorsCount = results.reduce((s, r) => s + r.errors.length, 0);
       const sampleError = results
         .flatMap((r) => r.errors)
@@ -249,6 +252,7 @@ export class DataImportProcessor {
           rowsFailed,
           linksCreated,
           valuesUnmatched,
+          linksFailed,
           errorsCount,
           ...(sampleError ? { sampleError } : {}),
         }),
@@ -256,8 +260,9 @@ export class DataImportProcessor {
       );
       log(
         `Import completed: ${rowsInserted} rows inserted, ${rowsFailed} failed` +
-          (linksCreated || valuesUnmatched
-            ? `, ${linksCreated} links created, ${valuesUnmatched} unmatched.`
+          (linksCreated || valuesUnmatched || linksFailed
+            ? `, ${linksCreated} links created, ${valuesUnmatched} unmatched` +
+              (linksFailed ? `, ${linksFailed} failed to link.` : '.')
             : '.'),
         true,
       );
@@ -267,6 +272,7 @@ export class DataImportProcessor {
         rowsFailed,
         linksCreated,
         valuesUnmatched,
+        linksFailed,
         sheets: results,
       };
     } catch (e) {
@@ -432,6 +438,7 @@ export class DataImportProcessor {
         rowsFailed: 0,
         linksCreated: 0,
         valuesUnmatched: 0,
+        linksFailed: 0,
         errors: [],
       };
     }
@@ -462,8 +469,9 @@ export class DataImportProcessor {
 
     log(
       `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed` +
-        (stats.linksCreated || stats.valuesUnmatched
-          ? `, ${stats.linksCreated} links created, ${stats.valuesUnmatched} unmatched.`
+        (stats.linksCreated || stats.valuesUnmatched || stats.linksFailed
+          ? `, ${stats.linksCreated} links created, ${stats.valuesUnmatched} unmatched` +
+            (stats.linksFailed ? `, ${stats.linksFailed} failed to link.` : '.')
           : '.'),
       true,
     );
@@ -476,6 +484,7 @@ export class DataImportProcessor {
       rowsFailed: stats.rowsFailed,
       linksCreated: stats.linksCreated,
       valuesUnmatched: stats.valuesUnmatched,
+      linksFailed: stats.linksFailed,
       errors: stats.errors.slice(0, 100),
     };
   }
@@ -530,6 +539,7 @@ export class DataImportProcessor {
       rowsFailed: 0,
       linksCreated: 0,
       valuesUnmatched: 0,
+      linksFailed: 0,
       errors: [] as Array<{ row: number; error: string }>,
     };
     let batch: Record<string, any>[] = [];
@@ -706,6 +716,7 @@ export class DataImportProcessor {
       });
       stats.linksCreated = linkStats.linksCreated;
       stats.valuesUnmatched = linkStats.valuesUnmatched;
+      stats.linksFailed = linkStats.linksFailed;
     }
 
     return stats;
@@ -724,7 +735,11 @@ export class DataImportProcessor {
     linkAccum: Map<string, LinkAccumEntry[]>;
     req: NcRequest;
     log: (msg: string, verbose?: boolean) => void;
-  }): Promise<{ linksCreated: number; valuesUnmatched: number }> {
+  }): Promise<{
+    linksCreated: number;
+    valuesUnmatched: number;
+    linksFailed: number;
+  }> {
     const { context, model, linkAccum, req, log } = params;
 
     const source = await Source.get(context, model.source_id);
@@ -735,6 +750,7 @@ export class DataImportProcessor {
 
     let linksCreated = 0;
     let valuesUnmatched = 0;
+    let linksFailed = 0;
 
     for (const [colId, rows] of linkAccum) {
       const column = (model.columns as any[]).find((c) => c.id === colId);
@@ -744,6 +760,7 @@ export class DataImportProcessor {
       // reports this column's own deltas, not every prior column's totals.
       const linksCreatedBefore = linksCreated;
       const valuesUnmatchedBefore = valuesUnmatched;
+      const linksFailedBefore = linksFailed;
 
       let groupCtx;
       try {
@@ -800,6 +817,11 @@ export class DataImportProcessor {
             });
             linksCreated += finalChildIds.length;
           } catch (e) {
+            // Matched a record but the link write failed (FK violation, related
+            // row deleted mid-import, etc.). Count it so the import summary
+            // doesn't silently overstate completeness — distinct from
+            // "unmatched" (no related record found at all).
+            linksFailed += finalChildIds.length;
             this.logger.warn(
               `Failed to link row ${r.pk} on "${column.title}": ${e.message}`,
             );
@@ -810,13 +832,15 @@ export class DataImportProcessor {
 
       const colLinksCreated = linksCreated - linksCreatedBefore;
       const colValuesUnmatched = valuesUnmatched - valuesUnmatchedBefore;
+      const colLinksFailed = linksFailed - linksFailedBefore;
       log(
         `Column "${column.title}": ${colLinksCreated} links created` +
-          (colValuesUnmatched ? `, ${colValuesUnmatched} unmatched.` : '.'),
+          (colValuesUnmatched ? `, ${colValuesUnmatched} unmatched` : '') +
+          (colLinksFailed ? `, ${colLinksFailed} failed to link.` : '.'),
         true,
       );
     }
 
-    return { linksCreated, valuesUnmatched };
+    return { linksCreated, valuesUnmatched, linksFailed };
   }
 }

@@ -3679,6 +3679,7 @@
     "privateBaseViewShareRestrictedMsg": "Views within a Private base cannot be shared publicly.",
     "warning": {
       "tableDataImportedLinksUnmatched": "Imported successfully. {links} record links created, {unmatched} value(s) matched no record and were skipped.",
+      "tableDataImportedLinksFailed": "{failed} record link(s) matched a record but could not be created. See the import log for details.",
       "importLinkReassignField": "“{field}” is a has-many / one-to-one link — importing values here can move records away from other records they're currently linked to.",
       "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",

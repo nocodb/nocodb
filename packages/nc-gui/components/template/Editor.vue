@@ -547,6 +547,7 @@ interface ImportFinalStats {
   rowsFailed: number
   linksCreated?: number
   valuesUnmatched?: number
+  linksFailed?: number
   sampleError?: string
 }
 
@@ -556,22 +557,33 @@ interface ImportFinalStats {
 // numeric / CHAR-width constraint errors etc.) because the poller treated
 // every 'completed' event as a success regardless of failed-row counts.
 function surfaceImportResult(stats: ImportFinalStats | undefined) {
-  // Some link display values matched no record — surface a soft warning so the
-  // user knows links were only partially created, but the import still ran.
-  const warnUnmatchedLinks = () => {
-    if (!stats?.valuesUnmatched) return
-    message.warning({
-      content: t('msg.warning.tableDataImportedLinksUnmatched', {
-        links: stats.linksCreated ?? 0,
-        unmatched: stats.valuesUnmatched,
-      }),
-      duration: 10,
-    })
+  // Links can come up short two ways: a display value matched no record
+  // (unmatched, skipped) or it matched but the link write failed (failed).
+  // Surface each as a soft warning so the user knows links were only partially
+  // created, but the import still ran.
+  const warnLinkIssues = () => {
+    if (stats?.valuesUnmatched) {
+      message.warning({
+        content: t('msg.warning.tableDataImportedLinksUnmatched', {
+          links: stats.linksCreated ?? 0,
+          unmatched: stats.valuesUnmatched,
+        }),
+        duration: 10,
+      })
+    }
+    if (stats?.linksFailed) {
+      message.warning({
+        content: t('msg.warning.tableDataImportedLinksFailed', {
+          failed: stats.linksFailed,
+        }),
+        duration: 10,
+      })
+    }
   }
 
   if (!stats || stats.rowsFailed === 0) {
-    if (stats?.valuesUnmatched) {
-      warnUnmatchedLinks()
+    if (stats?.valuesUnmatched || stats?.linksFailed) {
+      warnLinkIssues()
       return
     }
     message.success(t('msg.success.tableDataImported'))
@@ -599,9 +611,9 @@ function surfaceImportResult(stats: ImportFinalStats | undefined) {
     })
   }
 
-  // Row failures and unmatched links can co-occur; the partial-failure toast
-  // above only reports rows, so surface skipped links as a separate warning.
-  warnUnmatchedLinks()
+  // Row failures and link issues can co-occur; the partial-failure toast
+  // above only reports rows, so surface skipped/failed links separately.
+  warnLinkIssues()
 }
 
 // One import job per uploaded file. Each job carries all the sheets that
@@ -721,6 +733,7 @@ async function importViaJob() {
                   rowsFailed: Number(progress.rowsFailed) || 0,
                   linksCreated: Number(progress.linksCreated) || 0,
                   valuesUnmatched: Number(progress.valuesUnmatched) || 0,
+                  linksFailed: Number(progress.linksFailed) || 0,
                   sampleError: typeof progress.sampleError === 'string' ? progress.sampleError : undefined,
                 }
               }

@@ -55,8 +55,13 @@ const LINK_CONCURRENCY = 25;
  * holding the whole sheet's `{pk, values}` map in memory until the end. Keeps
  * import memory bounded regardless of file size (a resolved-value cache carries
  * across flushes so repeated display values aren't re-resolved each time).
+ *
+ * Read at runtime (not module load) and env-overridable so tests can force the
+ * multi-flush path.
  */
-const LINK_FLUSH_THRESHOLD = 50_000;
+const LINK_FLUSH_THRESHOLD_DEFAULT = 50_000;
+const getLinkFlushThreshold = () =>
+  +process.env.NC_DATA_IMPORT_LINK_FLUSH_THRESHOLD || LINK_FLUSH_THRESHOLD_DEFAULT;
 /** Default delimiter for multiple display values in one LTAR cell. */
 const DEFAULT_LINK_DELIMITER = ',';
 
@@ -552,6 +557,7 @@ export class DataImportProcessor {
     let batch: Record<string, any>[] = [];
     let processedRows = 0;
     let systemErrorCount = 0;
+    const linkFlushThreshold = getLinkFlushThreshold();
 
     // Link phase bookkeeping: per LTAR column id → inserted rows' pk + the
     // display values to link. Only rows with at least one link value are kept.
@@ -763,7 +769,7 @@ export class DataImportProcessor {
         // Keep link bookkeeping bounded: drain it once enough has piled up.
         // Skipped when a self-referential link is present (see hasSelfRefLink) —
         // those must resolve against the fully-inserted table at the end.
-        if (!hasSelfRefLink && pendingLinkRows >= LINK_FLUSH_THRESHOLD) {
+        if (!hasSelfRefLink && pendingLinkRows >= linkFlushThreshold) {
           await flushLinks();
         }
       }

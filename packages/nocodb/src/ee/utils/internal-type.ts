@@ -238,6 +238,12 @@ export interface InternalApiModule<
 > {
   operations: (keyof typeof OPERATION_SCOPES)[];
   httpMethod: 'GET' | 'POST';
+  /**
+   * Operations this module denies to public shared-base sessions. Mirrors the
+   * CE `InternalApiModule` (the EE interface is a full override, so a new CE
+   * field must be added here too); consumed by `internal.controller`.
+   */
+  publicBaseBlockedOperations?: (keyof typeof OPERATION_SCOPES)[];
   handle(
     context: NcContext,
     param: {

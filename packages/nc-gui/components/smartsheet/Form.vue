@@ -100,6 +100,11 @@ const {
   checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
+// Recompute conditional field visibility once per change (debounced). Previously
+// this ran once-per-field as a validation side-effect, which triggered an O(n²)
+// validators/rules rebuild storm on every keystroke.
+const checkFieldVisibilityDebounced = useDebounceFn(() => checkFieldVisibility(), 100)
+
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -358,6 +363,12 @@ async function submitForm() {
   if (disableFormSubmit.value) return
 
   isFormSubmitting.value = true
+
+  // Ensure conditional visibility reflects the latest form values before we strip
+  // hidden-field data and run required-field validation — both are gated on
+  // `col.visible`. The live recompute is debounced, so force a fresh awaited pass
+  // here to keep submit deterministic regardless of debounce timing.
+  await checkFieldVisibility()
 
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
@@ -1104,19 +1115,21 @@ watch(view, (nextView, oldView) => {
 
 watch(
   [formState, state],
-  async () => {
+  () => {
     for (const virtualField in state.value) {
       formState.value[virtualField] = state.value[virtualField]
     }
     updatePreFillFormSearchParams()
 
-    try {
-      await validate(
-        Object.keys(formState.value)
-          .map((title) => fieldMappings.value[title])
-          .filter((v) => v !== undefined),
-      )
-    } catch {}
+    // Conditional field visibility recomputes once (debounced) per value change.
+    checkFieldVisibilityDebounced()
+
+    // Validation is handled sectionally by ant-design-vue's built-in model
+    // watcher (debounced via the useForm `debounce` option) — it diffs the model
+    // and validates only the changed field. We intentionally don't validate the
+    // whole form here: that was redundant with ant's auto-validation and
+    // re-rendered every touched field's error state on each keystroke, forcing a
+    // full-form reflow. Submit still runs an explicit awaited validate().
   },
   {
     deep: true,

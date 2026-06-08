@@ -133,14 +133,6 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
               })
             },
           },
-          {
-            validator: (_rule: RuleObject) => {
-              return new Promise((resolve) => {
-                checkFieldVisibility()
-                return resolve()
-              })
-            },
-          },
         ]
 
         const additionalRules = extractFieldValidator(
@@ -167,8 +159,17 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       }, {} as Record<string, any>)
     })
 
-    // Form field validation
-    const { validate, validateInfos, clearValidate } = useForm(fieldMappingFormState, validators)
+    // Form field validation.
+    // Debounce ant-design-vue's built-in (sectional) model-watch validation. On
+    // this large form each validation toggles a field's error state, and the
+    // resulting validating→error re-render forces the browser to reflow the whole
+    // form (~150-270ms per render). Debouncing collapses that to a single pass
+    // after the user stops typing, so active typing stays reflow-free.
+    // NOTE: this only debounces the auto-validation on model change — the
+    // returned validate() (used by submit) is immediate and unaffected.
+    const { validate, validateInfos, clearValidate } = useForm(fieldMappingFormState, validators, {
+      debounce: { wait: 300 },
+    })
 
     // Initialize form data object with nested objects for each item
     const visibleColumnsMap = computed(() =>

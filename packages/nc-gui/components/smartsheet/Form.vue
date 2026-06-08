@@ -24,6 +24,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
+import { estimateFieldHeightPx, estimateRowHeightPx } from './form/formRowEstimate'
 import type { ImageCropperConfig } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -1745,7 +1746,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                               <div />
                             </template>
                           </Draggable>
-                          <div class="nc-form-row flex items-stretch gap-1 min-w-0">
+                          <div
+                            class="nc-form-row flex items-stretch gap-1 min-w-0"
+                            :class="{ 'nc-form-cv': !formRow.fields.some((f) => f.id === activeRow) }"
+                            :style="{ '--nc-cv-h': `${estimateRowHeightPx(formRow.fields)}px` }"
+                          >
                             <Draggable
                               :model-value="formRow.fields"
                               item-key="id"
@@ -1937,7 +1942,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                               {
                                 '!hover:bg-nc-bg-default !ring-0 !cursor-auto': isLocked,
                               },
+                              {
+                                'nc-form-cv': activeRow !== element.id,
+                              },
                             ]"
+                            :style="{ '--nc-cv-h': `${estimateFieldHeightPx(element)}px` }"
                             :data-title="element.title"
                             data-testid="nc-form-fields"
                             @click.stop="onFormItemClick(element)"
@@ -2999,5 +3008,15 @@ const { message: templatedMessage } = useTemplatedMessage(
   .nc-form-field-bubble-menu-wrapper {
     @apply -bottom-12;
   }
+}
+
+// Skip layout/style/paint for off-screen form rows while keeping them in the DOM
+// (so reorder, validation, find-in-page, focus all keep working). `--nc-cv-h` is a
+// first-paint size estimate; `auto` makes the browser cache the real height after
+// first render. NOT applied to the active row (on-screen anyway, and paint
+// containment would clip its absolute edit affordances).
+.nc-form-cv {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--nc-cv-h, 96px);
 }
 </style>

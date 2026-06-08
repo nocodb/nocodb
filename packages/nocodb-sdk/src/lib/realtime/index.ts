@@ -26,7 +26,20 @@ export enum EventType {
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
+  DOCUMENT_SYNC_EVENT = 'event-document-sync',
   SMART_TEXT_EVENT = 'event-smart-text',
+}
+
+/** Client→server socket events for collaborative doc editing (binary Yjs frames). */
+export const DocCollabClientEvents = {
+  SYNC: 'document:sync',
+  UPDATE: 'document:update',
+  AWARENESS: 'document:awareness',
+} as const;
+
+/** Room key for a doc's collaborative sync channel. */
+export function getDocSyncRoom(workspaceId: string, baseId: string, docId: string): string {
+  return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
 }
 
 export interface BaseSocketPayload {
@@ -69,6 +82,9 @@ export interface DocumentCommentPayload extends BaseSocketPayload {
   id: string; // docId
   action: 'add' | 'update' | 'delete' | 'resolve';
   payload: Record<string, any>;
+  /** Absolute, post-mutation comment count for the doc. Self-correcting on the
+   *  client (delta is the fallback when absent). Set on add/delete. */
+  count?: number;
 }
 
 export interface SmartTextPayload extends BaseSocketPayload {

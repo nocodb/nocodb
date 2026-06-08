@@ -27,6 +27,8 @@ import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { DocRevision, Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
+import { DocumentCollabManager } from '~/socket/DocumentCollabManager';
+import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
 
@@ -105,6 +107,82 @@ export class DocumentsService extends DocumentsServiceCE {
       id: user.id,
       role,
     });
+  }
+
+  /**
+   * Public, non-throwing wrapper around the document-level permission check.
+   *
+   * Exposed so non-controller call-sites that bypass the REST guards — notably
+   * the collaborative-editing socket gateway — can enforce the SAME
+   * DOCUMENT_VISIBILITY / DOCUMENT_EDIT rules the REST endpoints apply. `user`
+   * must carry `id` and `base_roles` (e.g. the result of `User.getWithRoles`).
+   */
+  async hasDocPermission(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    user: { id: string; [key: string]: any },
+  ): Promise<boolean> {
+    return this.checkDocPermission(context, docId, permissionKey, user);
+  }
+
+  /**
+   * Create (or reuse) a FileReference for an attachment inserted into a doc's
+   * body, returning its id.
+   *
+   * Used by the collaborative editor: while a Yjs session owns the body, REST
+   * `content` writes are skipped, so the lazy reconcile in `update()` never
+   * runs. The client therefore creates the ref eagerly at upload time and
+   * embeds the returned id in the editor node (which propagates via Yjs and
+   * persists). Idempotent on (doc, file_url) so retries / re-uploads of the
+   * same physical file don't leak duplicate refs.
+   */
+  async createDocFileReference(
+    context: NcContext,
+    docId: string,
+    params: { path: string; fileSize?: number; req: NcRequest },
+  ): Promise<{ id: string }> {
+    const { path, fileSize, req } = params;
+
+    const doc = await Document.getMeta(context, docId);
+    if (!doc) {
+      NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to edit this document',
+        );
+      }
+    }
+
+    // Idempotent — reuse an existing active ref for the same physical file.
+    const existingId = await FileReference.getActiveIdByFileUrlInDoc(
+      context,
+      docId,
+      path,
+    );
+    if (existingId) {
+      return { id: existingId };
+    }
+
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+    const id = await FileReference.insert(context, {
+      storage: storageAdapter.name,
+      file_url: path,
+      file_size: fileSize || 0,
+      fk_user_id: req.user?.id ?? 'anonymous',
+      fk_doc_id: docId,
+    });
+
+    return { id };
   }
 
   /**
@@ -604,17 +682,29 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // Optimistic concurrency: reject stale writes.
-    // Version is mandatory to prevent silent overwrites by API consumers
-    // that omit it.
-    if (payload.version === undefined || payload.version === null) {
-      NcError.unprocessableEntity('version is required for document updates');
-    }
+    // Optimistic concurrency: reject stale writes — but only for writes that can
+    // suffer a lost update, i.e. `content` or `title`. Other fields (`meta`:
+    // icon / cover / font / full_width / dir) are independent, last-write-wins
+    // metadata; `Document.update` is a partial update so a meta-only write can't
+    // clobber content/title and never needs the version gate. Exempting it also
+    // fixes a collab-mode conflict: the server bumps `version` on every Yjs
+    // body/title persist (see documentCollabPersist → bumpVersion), so a meta
+    // write issued shortly after — or concurrently with — a collaborative edit
+    // would otherwise 422 on a version the client never had a chance to observe.
+    const writesBody =
+      payload.content !== undefined || payload.title !== undefined;
+    if (writesBody) {
+      // Version is mandatory to prevent silent overwrites by API consumers
+      // that omit it.
+      if (payload.version === undefined || payload.version === null) {
+        NcError.unprocessableEntity('version is required for document updates');
+      }
 
-    if (payload.version !== existing.version) {
-      NcError.unprocessableEntity(
-        'Document has been modified by another user. Please reload and try again.',
-      );
+      if (payload.version !== existing.version) {
+        NcError.unprocessableEntity(
+          'Document has been modified by another user. Please reload and try again.',
+        );
+      }
     }
 
     // Guard against oversized documents (plan-aware)
@@ -633,6 +723,21 @@ export class DocumentsService extends DocumentsServiceCE {
           })`,
         );
       }
+    }
+
+    // Collaborative-editing coherence (spec §6): while a live Yjs session holds
+    // the doc, `yjs_state` is the body's source of truth — reject REST body
+    // writes. With no live session, allow the write but invalidate `yjs_state`
+    // so the next editor re-bootstraps its Y.Doc from this content (schema-free).
+    let invalidateYjsStateAfterUpdate = false;
+    if (payload.content !== undefined && isDocsRealtimeEnabled()) {
+      const live = await DocumentCollabManager.isLive(context, docId);
+      if (live) {
+        NcError.unprocessableEntity(
+          'This document is being edited live. Reload and edit in the editor, or retry shortly.',
+        );
+      }
+      invalidateYjsStateAfterUpdate = true;
     }
 
     payload.updated_by = req.user.id;
@@ -681,6 +786,10 @@ export class DocumentsService extends DocumentsServiceCE {
     }
 
     const doc = await Document.update(context, docId, payload);
+
+    if (invalidateYjsStateAfterUpdate) {
+      await Document.nullYjsState(context, docId);
+    }
 
     // Record a revision when content or title actually changed.
     // Coalescing (same author + within window) is handled inside DocRevision.record().

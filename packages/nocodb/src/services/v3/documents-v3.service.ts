@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, getDocShareMeta } from 'nocodb-sdk';
+import { AppEvents, EventType, getDocShareMeta } from 'nocodb-sdk';
+import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DocumentCreateV3Type,
@@ -15,6 +16,7 @@ import {
 import { DocumentsService } from '~/services/documents.service';
 import { Document } from '~/models';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
@@ -168,6 +170,19 @@ export class DocumentsV3Service {
   // Docs aren't available in sandboxes; assertNotSandbox enforces it on
   // the share toggles too.
 
+  /** Broadcast a sidebar 'update' so peers reflect share-state (uuid / meta) changes. */
+  private broadcastDocUpdate(context: NcContext, doc: DocumentType) {
+    const { content: _content, ...liteDoc } = doc;
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DOCUMENT_EVENT,
+        payload: { id: doc.id, action: 'update', payload: liteDoc },
+      },
+      context.socket_id,
+    );
+  }
+
   async docShare(
     context: NcContext,
     param: { docId: string; req: NcRequest },
@@ -187,6 +202,8 @@ export class DocumentsV3Service {
       uuid: doc.uuid!,
       includeSubtree,
     });
+
+    this.broadcastDocUpdate(context, doc);
 
     return { uuid: doc.uuid!, include_subtree: includeSubtree };
   }
@@ -210,6 +227,10 @@ export class DocumentsV3Service {
       docTitle: pre?.title ?? 'Untitled',
       uuid: pre?.uuid ?? null,
     });
+
+    // Re-fetch so peers get the cleared uuid + share meta.
+    const fresh = await Document.getMeta(context, param.docId);
+    if (fresh) this.broadcastDocUpdate(context, fresh);
 
     return true;
   }
@@ -239,6 +260,8 @@ export class DocumentsV3Service {
         includeSubtree,
       });
     }
+
+    this.broadcastDocUpdate(context, doc);
 
     return { uuid: doc.uuid ?? null, include_subtree: includeSubtree };
   }

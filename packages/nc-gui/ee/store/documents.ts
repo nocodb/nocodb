@@ -729,6 +729,37 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     return response || []
   }
 
+  /**
+   * Create (or reuse) a FileReference for a doc attachment and return its id.
+   *
+   * Used by the editor's upload composables in collaborative mode, where the
+   * lazy reconcile on REST save is skipped — the id is embedded into the editor
+   * node so it propagates over Yjs and persists. Non-fatal on error (the editor
+   * keeps the blob preview; the image just won't render for peers until a ref
+   * exists), so the upload flow never throws here.
+   */
+  const createFileRef = async (
+    baseId: string,
+    docId: string,
+    path: string,
+    fileSize?: number,
+  ): Promise<string | null> => {
+    if (!activeWorkspaceId.value) return null
+
+    try {
+      const res = (await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        { operation: 'documentCreateFileRef' },
+        { docId, path, fileSize },
+      )) as { id?: string }
+
+      return res?.id ?? null
+    } catch {
+      return null
+    }
+  }
+
   return {
     documents,
     activeDocumentId,
@@ -757,6 +788,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     getDocumentAncestors,
     refreshDocPermissions,
     applyDocPatch,
+    createFileRef,
   }
 })
 

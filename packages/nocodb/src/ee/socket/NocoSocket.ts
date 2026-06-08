@@ -1,9 +1,12 @@
 import { Logger } from '@nestjs/common';
 import {
+  DocCollabClientEvents,
   EventType,
   extractRolesObj,
+  getDocSyncRoom,
   hasMinimumRoleAccess,
   type PayloadForEvent,
+  PermissionKey,
   ProjectRoles,
   validateRowFilters,
   WorkspaceRolesToProjectRoles,
@@ -16,6 +19,15 @@ import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
 import NocoPresence from '~/socket/NocoPresence';
+import * as Y from 'yjs';
+import { DocumentCollabManager } from '~/socket/DocumentCollabManager';
+import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
+import {
+  encodeSyncStep1,
+  handleSyncMessage,
+} from '~/socket/documentSyncProtocol';
+import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
+import { DocumentsService } from '~/services/documents.service';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
@@ -34,6 +46,22 @@ export default class NocoSocket {
   private static logger: Logger = new Logger(NocoSocket.name);
   private static clients: Map<string, NcSocket> = new Map();
   public static ioServer: Server | undefined;
+
+  /**
+   * Hard cap on a single inbound Yjs frame (decoded bytes). A normal edit is a
+   * few bytes; even a large paste rarely exceeds a few hundred KB. Anything
+   * above this is rejected so a malformed or hostile client can't OOM the node
+   * or fan out a giant payload to every peer. Override via NC_DOCS_MAX_UPDATE_SIZE.
+   */
+  private static readonly MAX_DOC_FRAME_BYTES =
+    Number(process.env.NC_DOCS_MAX_UPDATE_SIZE) || 5 * 1024 * 1024;
+
+  /**
+   * Optional per-node cap on concurrent live doc sessions; 0 = unlimited
+   * (default). Past the cap, new docs stay on REST (realtime is additive).
+   */
+  private static readonly MAX_LOCAL_DOC_SESSIONS =
+    Number(process.env.NC_DOCS_MAX_LOCAL_SESSIONS) || 0;
 
   public static handleConnection(socket: NcSocket) {
     this.clients.set(socket.id, socket);
@@ -112,6 +140,7 @@ export default class NocoSocket {
           EventType.SCRIPT_EVENT,
           EventType.PRESENCE_EVENT,
           EventType.SMART_TEXT_EVENT,
+          EventType.DOCUMENT_SYNC_EVENT,
         ].includes(eventType as EventType) &&
         userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
       ) {
@@ -141,6 +170,27 @@ export default class NocoSocket {
         }
       }
 
+      // Collaborative docs: handled before the default join so a socket denied
+      // per-document visibility never joins the sync room (and therefore never
+      // receives the live update/awareness frames broadcast to it). The room
+      // join lives inside subscribeDocSync, after the visibility check.
+      if (eventType === EventType.DOCUMENT_SYNC_EVENT) {
+        if (baseId && isDocsRealtimeEnabled()) {
+          const docId = eventHelper[3];
+          if (docId) {
+            await this.subscribeDocSync(
+              socket,
+              { workspace_id: workspaceId, base_id: baseId },
+              docId,
+              userWithRole,
+              event,
+            );
+          }
+        }
+        // Never fall through to the unconditional default join below.
+        return;
+      }
+
       // Use native Socket.IO rooms (default — no RLS)
       socket.join(event);
       this.logger.debug(`Socket ${socket.id} joined room ${event}`);
@@ -159,6 +209,101 @@ export default class NocoSocket {
       this.logger.error(`Error subscribing to event ${event}:`, error);
       sendConnectionError(socket, error, 'SUBSCRIBE_ERROR');
     }
+  }
+
+  /**
+   * Bind a socket to a doc's server-authoritative Y.Doc. Enforces the same
+   * per-document DOCUMENT_VISIBILITY/DOCUMENT_EDIT permissions the REST docs
+   * endpoints apply (the base-level NO_ACCESS check in subscribeEvent isn't
+   * enough — a member can be restricted from a specific private page), then
+   * registers the session and runs the server-initiated Yjs handshake.
+   */
+  private static async subscribeDocSync(
+    socket: NcSocket,
+    context: { workspace_id: string; base_id: string },
+    docId: string,
+    userWithRole: any,
+    event: string,
+  ) {
+    const docsService = Noco.nestApp?.get(DocumentsService);
+    if (!docsService) {
+      this.logger.error(
+        'DocumentsService unavailable — refusing doc sync subscription',
+      );
+      return;
+    }
+    const docUser = { id: socket.user.id, base_roles: userWithRole.base_roles };
+
+    const canRead = await docsService.hasDocPermission(
+      context,
+      docId,
+      PermissionKey.DOCUMENT_VISIBILITY,
+      docUser,
+    );
+    if (!canRead) {
+      this.logger.debug(
+        `Socket ${socket.id} denied doc sync (visibility) for ${docId}`,
+      );
+      return;
+    }
+
+    if (
+      this.MAX_LOCAL_DOC_SESSIONS > 0 &&
+      !DocumentCollabManager.isLiveLocal(docId) &&
+      DocumentCollabManager.sessionCount() >= this.MAX_LOCAL_DOC_SESSIONS
+    ) {
+      this.logger.warn(
+        `Doc session cap reached (${this.MAX_LOCAL_DOC_SESSIONS}); ${docId} stays on REST`,
+      );
+      return;
+    }
+
+    // Authorized reader — join the sync room NOW, after the per-document
+    // visibility check. Joining earlier (e.g. via the default join in
+    // subscribeEvent) would leak the live update/awareness frames broadcast to
+    // this room to a member who is denied this specific page.
+    socket.join(event);
+    this.logger.debug(`Socket ${socket.id} joined doc sync room ${event}`);
+
+    const session = await DocumentCollabManager.ensure(context, docId);
+    DocumentCollabManager.addSocket(docId, socket.id);
+    await DocCollabPubSub.ensureSubscribed(docId);
+
+    if (!socket.data.docSessions) socket.data.docSessions = new Map();
+    socket.data.docSessions.set(docId, session);
+    if (!socket.data.docRooms) socket.data.docRooms = new Set();
+    socket.data.docRooms.add(event);
+
+    // Read-only unless the user has base editor access AND doc-level edit
+    // permission. Updates from a read-only socket are ignored.
+    const canEdit =
+      hasMinimumRoleAccess(userWithRole, ProjectRoles.EDITOR) &&
+      (await docsService.hasDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        docUser,
+      ));
+    if (!canEdit) {
+      if (!socket.data.docReadOnly) socket.data.docReadOnly = new Set();
+      socket.data.docReadOnly.add(docId);
+    }
+
+    // Single-seeder grant for an empty (legacy) doc — only an editor may claim,
+    // since a read-only client's seed would be rejected and never persist (see
+    // claimBootstrap).
+    const mayBootstrap =
+      canEdit && (await DocumentCollabManager.claimBootstrap(context, docId));
+
+    // Server-initiated Yjs handshake (race-free — the session exists now). The
+    // client replies with its own step1 and both sides converge. No socketId, so
+    // the client's own-echo filter delivers it.
+    socket.emit(event, {
+      kind: 'sync',
+      docId,
+      frame: Buffer.from(encodeSyncStep1(session.ydoc)).toString('base64'),
+      mayBootstrap,
+    });
   }
 
   /**
@@ -589,6 +734,15 @@ export default class NocoSocket {
     // ── Presence ──────────────────────────────────────────────────────────────
     NocoPresence.setupHandlers(socket);
 
+    // ── Collaborative docs ──────────────────────────────────────────────────────
+    // Isolated: doc-collab is optional, so a setup failure here must never break
+    // core realtime (presence, live data) for the whole connection.
+    try {
+      this.setupDocCollabHandlers(socket);
+    } catch (e) {
+      this.logger.error(`Failed to set up doc collab handlers: ${e}`);
+    }
+
     // Error handling
     socket.on('error', (error: Error) => {
       this.logger.error(`Socket error from ${socket.id}: ${error}`);
@@ -606,6 +760,28 @@ export default class NocoSocket {
       // condition where socket.rooms is cleared before the disconnect handler fires.
       NocoPresence.handleDisconnect(socket, this.ioServer);
 
+      // Release collaborative-doc sessions held by this socket (final persist
+      // + teardown happens inside DocumentCollabManager.release on last socket).
+      for (const room of socket.data.docRooms ?? []) {
+        const docId = (room as string).split(':')[3];
+        if (!docId) continue;
+        // Drop this socket's cursors from peers immediately. An abrupt
+        // disconnect can't send its own awareness(null), so without this the
+        // ghost cursor lingers until the client-side awareness timeout reaps it.
+        const removal = DocumentCollabManager.buildSocketAwarenessRemoval(
+          docId,
+          socket.id,
+        );
+        if (removal) {
+          this.ioServer?.to(room as string).emit(room as string, {
+            kind: 'awareness',
+            docId,
+            update: removal,
+          });
+        }
+        void DocumentCollabManager.release(docId, socket.id);
+      }
+
       this.clients.delete(socket.id);
 
       if (reason === 'io server disconnect') {
@@ -615,6 +791,124 @@ export default class NocoSocket {
           'SERVER_DISCONNECT',
         );
       }
+    });
+  }
+
+  /**
+   * Collaborative-docs (Yjs) socket handlers. The socket must have subscribed
+   * to the doc's sync room first (see subscribeEvent → DOCUMENT_SYNC_EVENT),
+   * which populates socket.data.docSessions.
+   */
+  /** A doc's sync room, derived from the validated session — never client-supplied. */
+  private static docRoomFor(
+    session: { context: { workspace_id: string; base_id: string } },
+    docId: string,
+  ) {
+    return getDocSyncRoom(
+      session.context.workspace_id,
+      session.context.base_id,
+      docId,
+    );
+  }
+
+  private static setupDocCollabHandlers(socket: NcSocket) {
+    // Yjs sync handshake: client sends SyncStep1, server replies SyncStep2.
+    socket.on(DocCollabClientEvents.SYNC, (msg) => {
+      const session = socket.data.docSessions?.get(msg?.docId);
+      if (!session || typeof msg?.frame !== 'string') return;
+      const frame = Buffer.from(msg.frame, 'base64');
+      if (frame.length > this.MAX_DOC_FRAME_BYTES) {
+        this.logger.warn(
+          `Rejecting oversized doc sync frame (${frame.length}B) for ${msg.docId} from ${socket.id}`,
+        );
+        return;
+      }
+      let reply: Uint8Array | null;
+      try {
+        // A malformed/incompatible frame (e.g. surrogate-pair edge cases) can
+        // throw inside the Yjs decoder. Isolate it so one bad frame can't crash
+        // the gateway or wedge the shared session.
+        const readOnly = socket.data.docReadOnly?.has(msg.docId) ?? false;
+        reply = handleSyncMessage(session.ydoc, frame, socket.id, readOnly);
+      } catch (e: any) {
+        this.logger.error(
+          `Doc sync apply failed for ${msg.docId}: ${e.message}`,
+          e.stack,
+        );
+        return;
+      }
+      if (reply) {
+        // Reply targets the requesting socket itself; no socketId so the
+        // client's own-echo filter delivers it.
+        const room = this.docRoomFor(session, msg.docId);
+        socket.emit(room, {
+          kind: 'sync',
+          docId: msg.docId,
+          frame: Buffer.from(reply).toString('base64'),
+        });
+      }
+    });
+
+    // Live edit: apply to the server Y.Doc, fan out to other clients (cluster-
+    // wide via the redis-adapter, sender excluded) and to peer nodes' Y.Docs
+    // (via PubSubRedis). Ignored when the socket is read-only for this doc.
+    socket.on(DocCollabClientEvents.UPDATE, async (msg) => {
+      const session = socket.data.docSessions?.get(msg?.docId);
+      if (!session || socket.data.docReadOnly?.has(msg.docId)) return;
+      if (typeof msg?.update !== 'string') return;
+      const update = Buffer.from(msg.update, 'base64');
+      if (update.length > this.MAX_DOC_FRAME_BYTES) {
+        this.logger.warn(
+          `Rejecting oversized doc update (${update.length}B) for ${msg.docId} from ${socket.id}`,
+        );
+        return;
+      }
+      try {
+        // Guard the decode/apply (malformed or schema-incompatible bytes throw):
+        // bail before broadcasting so peers never receive an update the server
+        // itself couldn't apply.
+        Y.applyUpdate(session.ydoc, update, socket.id);
+      } catch (e: any) {
+        this.logger.error(
+          `Doc update apply failed for ${msg.docId}: ${e.message}`,
+          e.stack,
+        );
+        return;
+      }
+      DocumentCollabManager.markDirty(msg.docId, socket.user?.id);
+      // Fan out to OTHER clients (sender excluded by socket.to; cluster-wide via
+      // the redis-adapter). The base64 string passes straight through.
+      const room = this.docRoomFor(session, msg.docId);
+      socket.to(room).emit(room, {
+        kind: 'update',
+        docId: msg.docId,
+        update: msg.update,
+      });
+      await DocCollabPubSub.publishUpdate(msg.docId, update);
+    });
+
+    // Presence cursors: relay awareness to other clients (state is client-side).
+    socket.on(DocCollabClientEvents.AWARENESS, (msg) => {
+      const session = socket.data.docSessions?.get(msg?.docId);
+      if (!session || typeof msg?.update !== 'string') return;
+      const update = Buffer.from(msg.update, 'base64');
+      // Cap awareness frames too (the SYNC/UPDATE handlers already do): a
+      // malformed/hostile client must not fan out a giant payload to every peer.
+      if (update.length > this.MAX_DOC_FRAME_BYTES) {
+        this.logger.warn(
+          `Rejecting oversized awareness frame for ${msg.docId} from ${socket.id}`,
+        );
+        return;
+      }
+      // Record which awareness clientIDs this socket owns so a disconnect can
+      // drop exactly its cursors (it can't send awareness(null) itself).
+      DocumentCollabManager.trackAwareness(msg.docId, socket.id, update);
+      const room = this.docRoomFor(session, msg.docId);
+      socket.to(room).emit(room, {
+        kind: 'awareness',
+        docId: msg.docId,
+        update: msg.update,
+      });
     });
   }
 }

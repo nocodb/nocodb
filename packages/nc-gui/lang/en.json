@@ -500,6 +500,7 @@
     "preferred": "Preferred",
     "mandatory": "Mandatory",
     "loading": "Loading ...",
+    "connecting": "Connecting ...",
     "title": "Title",
     "upload": "Upload",
     "download": "Download",
@@ -4193,7 +4194,8 @@
       "failedToLoadTemplateDetails": "Failed to load template details",
       "rlsPolicyCreateFailed": "Failed to create record-level security policy",
       "rlsPolicyDeleteFailed": "Failed to delete record-level security policy",
-      "rlsPolicyUpdateFailed": "Failed to update record-level security policy"
+      "rlsPolicyUpdateFailed": "Failed to update record-level security policy",
+      "docAttachmentRefFailed": "Couldn't save the attachment reference. Please try uploading it again."
     },
     "toast": {
       "expandedFormModeSidePanel": "Records will now open in the side panel",

@@ -8,9 +8,14 @@
  *   then swaps to permanent path once uploaded
  */
 import type { Editor } from '@tiptap/core'
+import type { DocAttachmentUploadOpts } from './useDocCollabFileRef'
 
-export function useDocumentFileUpload() {
+export function useDocumentFileUpload(opts?: DocAttachmentUploadOpts) {
   const { batchUploadFiles } = useAttachment()
+
+  const maybeCreateRef = useDocCollabFileRef(opts)
+
+  const { t } = useI18n()
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
@@ -67,8 +72,18 @@ export function useDocumentFileUpload() {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          // Keep blob URL in src as reference until save injects FileReference id.
-          updateFileNode(editor, blobUrl, { path: storedRef })
+          // Retry transient ref-creation failures: a null ref leaves a path-only
+          // node that can't render (no REST backfill while live). Surface an error
+          // on persistent failure instead of a silent broken attachment.
+          let fileRefId = await maybeCreateRef(storedRef, file.size)
+          for (let attempt = 1; !fileRefId && attempt <= 2; attempt++) {
+            await new Promise((r) => setTimeout(r, 300 * attempt))
+            fileRefId = await maybeCreateRef(storedRef, file.size)
+          }
+          if (!fileRefId) {
+            message.error(t('msg.error.docAttachmentRefFailed'))
+          }
+          updateFileNode(editor, blobUrl, fileRefId ? { path: storedRef, id: fileRefId } : { path: storedRef })
         } else {
           removeFileNode(editor, blobUrl)
         }

@@ -6,6 +6,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+import * as Y from 'yjs'
+import { prosemirrorJSONToYDoc } from 'y-prosemirror'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
 import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
@@ -105,6 +109,58 @@ const { showShareModal } = storeToRefs(useShare())
 
 const { blockDocShare, showUpgradeToShareDoc, showUpgradeToUseDocumentPermissions } = useEeConfig()
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+// --- Yjs collaborative editing ---
+// Single source of truth for whether real-time collab is active. OFF for: CE
+// (isEeUI false), cell mode (SmartText / public reader), the NC_DOCS_REALTIME
+// kill-switch (appInfo.docsRealtimeEnabled), and any mount where the
+// doc/workspace/base ids aren't resolvable synchronously at setup. When false
+// the editor behaves exactly as before (legacy debounced REST save).
+const collabEnabled =
+  isEeUI &&
+  props.mode === 'doc' &&
+  appInfo.value.docsRealtimeEnabled !== false &&
+  !!docId.value &&
+  !!activeProjectId.value &&
+  !!activeWorkspaceId.value &&
+  !!user.value?.id
+
+const collabUser = collabEnabled
+  ? {
+      id: user.value!.id,
+      name: user.value?.display_name || 'Anonymous',
+      // Same per-user color as the presence avatars (see usePresence).
+      color: getConsistentColor(user.value!.id),
+    }
+  : null
+
+// Owns the Y.Doc + Awareness lifecycle and the socket sync handshake. Created
+// once at setup (the ids are resolved synchronously above). Teardown is handled
+// by the composable's own onScopeDispose.
+const collab = collabEnabled
+  ? useDocumentCollab({
+      docId: docId.value,
+      workspaceId: activeWorkspaceId.value!,
+      baseId: activeProjectId.value!,
+      user: collabUser!,
+    })
+  : null
+
+const collabSynced = collab?.synced ?? ref(false)
+
+// Whether Yjs owns the body. Provided for descendant node views and passed to
+// this component's own upload composables explicitly (a component can't inject a
+// key it provides itself); in collab mode they create the FileReference eagerly,
+// since the REST reconcile that normally does it on save is skipped.
+const collabActive = ref(collabEnabled)
+
+provide(DocCollabActiveInj, collabActive)
+
+// Track whether we've already seeded a legacy doc's PM JSON into the Y.Doc this
+// session, so the bootstrap watch runs at most once.
+let hasBootstrapped = false
+
 // Page context menu (3-dot) open state
 const isPageMenuOpen = ref(false)
 
@@ -127,9 +183,12 @@ const docColorVars = computed(() => buildColorCssVars(isDark.value))
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 const { isAllowed: isPermissionAllowed } = usePermissions()
-const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
+const { openFilePicker, uploadAndInsert } = useDocumentImageUpload({ collabActive, docId })
 const { batchUploadFiles } = useAttachment()
-const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
+const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload({
+  collabActive,
+  docId,
+})
 
 const { activeDocuments } = storeToRefs(documentsStore)
 
@@ -161,6 +220,14 @@ const isDocEditAllowed = computed(() => {
 
 /** Whether the current user can edit document content (base role + doc-level permission). */
 const isEditable = computed(() => !props.readOnly && isUIAllowed('documentUpdate') && isDocEditAllowed.value)
+
+/**
+ * Title input read-only gate. Mirrors the body editor: in collab mode the title
+ * stays read-only until the shared Y.Doc has synced, so a keystroke can't land in
+ * the local Y.Text before the binding adopts the server's title (which would
+ * otherwise merge into a duplicated title once sync arrives).
+ */
+const isTitleReadonly = computed(() => !isEditable.value || (collabEnabled && !collabSynced.value))
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {
@@ -232,7 +299,7 @@ const {
         activeDocument: ref<any>(null),
       }
     })()
-  : useDocumentAutoSave({ editor, activeProjectId, isEditable })
+  : useDocumentAutoSave({ editor, activeProjectId, isEditable, collabActive })
 
 // Unsaved-changes safety net — mirrors the SmartTextPanel/Modal pattern.
 // `flushOnUnmount` already runs on component unmount (covers SPA navigation),
@@ -260,13 +327,52 @@ if (!isCellMode.value) {
 // lives for the lifetime of the singleton composable, so dropping the
 // handle would leak a listener on every doc navigation (Editor.vue
 // remounts via <NuxtPage>).
-const { onRestored } = useDocRevisions()
+const { onRestored, registerCollabRestore } = useDocRevisions()
 const restoredSub = onRestored(({ docId }) => {
   if (docId === doc.value?.id) {
     reloadDocument()
   }
 })
 onBeforeUnmount(() => restoredSub.off())
+
+// In collab mode REST restores are rejected by the live-doc coherence gate, so
+// the revision panel delegates the restore to us: applying the snapshot through
+// the editor lets the Collaboration extension convert it into Yjs ops that
+// propagate to peers and persist via the server-authoritative path. (The
+// `onRestored` → reloadDocument path above only fires for non-collab REST
+// restores, which don't trigger this branch.)
+if (collabEnabled) {
+  const stopCollabRestore = registerCollabRestore((content, restoredTitle) => {
+    editor.value?.commands.setContent(content)
+    if (collabTitle && typeof restoredTitle === 'string') {
+      collabTitle.setTitle(restoredTitle === 'Untitled' ? '' : restoredTitle)
+    }
+  })
+  onBeforeUnmount(stopCollabRestore)
+}
+
+// Live collaborative title. In collab mode the title lives in the shared Y.Doc
+// (a Y.Text), so it co-edits in real time like the body. `patchStoreTitle` keeps
+// the documents store (sidebar / breadcrumb / URL slug) in sync as the title
+// changes locally or remotely — replacing the REST-save-driven sync that runs in
+// non-collab mode (disabled below while collab is active).
+function patchStoreTitle(normalized: string) {
+  if (!doc.value) return
+  if (normalized !== doc.value.title) doc.value.title = normalized
+  if (activeDocument.value?.id === doc.value.id && normalized !== activeDocument.value?.title) {
+    activeDocument.value!.title = normalized
+  }
+}
+
+const collabTitle =
+  collabEnabled && collab
+    ? useCollabTitle({
+        ydoc: collab.ydoc,
+        title,
+        getInputEl: () => titleInput.value as HTMLInputElement | null,
+        onTitle: patchStoreTitle,
+      })
+    : undefined
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
@@ -1135,7 +1241,10 @@ const {
 // comments, which would show a stale count.
 const commentCount = computed(() => {
   if (commentsDocId.value === docId.value && docComments.value.length) return docComments.value.length
-  return doc.value?.comment_count ?? 0
+  // Prefer the store doc — its `comment_count` is kept live by the realtime comment
+  // handler (useRealtime), so the count updates even with the panel closed. Fall back
+  // to the loaded doc for the brief window before the store row resolves.
+  return activeDocument.value?.comment_count ?? doc.value?.comment_count ?? 0
 })
 
 watch(isDocCommentsLoading, (loading, wasLoading) => {
@@ -1194,12 +1303,28 @@ const looksLikeMarkdown = (text: string): boolean => {
 }
 
 const _tiptapEditor = useEditor({
-  editable: isEditable.value,
+  // When collab is active the editor stays non-editable until the Y.Doc has
+  // synced (so the user can't type into an unsynced doc and lose/duplicate
+  // content); editability still ultimately tracks `isEditable` (read-only
+  // viewers join collab to see live edits but can't write).
+  editable: isEditable.value && (!collabEnabled || collabSynced.value),
   extensions: [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
       codeBlock: false, // replaced by DocCodeBlockExtension (lowlight + language selector)
+      // Collaboration brings its own Yjs-backed undo manager — the StarterKit
+      // history plugin must be disabled to avoid conflicting with it.
+      ...(collabEnabled ? { history: false } : {}),
     }),
+    ...(collabEnabled && collab
+      ? [
+          Collaboration.configure({ document: collab.ydoc, field: 'default' }),
+          CollaborationCursor.configure({
+            provider: { awareness: collab.awareness } as any,
+            user: { name: collabUser!.name, color: collabUser!.color },
+          }),
+        ]
+      : []),
     DocCodeBlockExtension,
     Underline,
     DocHighlightExtension,
@@ -1598,7 +1723,10 @@ const _tiptapEditor = useEditor({
       // Cell mode: parent owns persistence; emit JSON on every edit.
       // No debounce here — SmartTextPanel batches via session-end triggers.
       emit('update:content', e.getJSON() as Record<string, any>)
-    } else {
+    } else if (!collabEnabled) {
+      // Collab mode: the server owns body persistence via Yjs, so skip the REST
+      // debounced save. Title saves are persisted separately (onTitleBlur /
+      // debouncedTitleSync).
       debouncedSave()
     }
     countTasks()
@@ -1610,10 +1738,28 @@ const _tiptapEditor = useEditor({
 
 // Sync the Tiptap-managed editor ref into our manually created ref
 // so composables (declared above) can access the editor instance reactively.
+//
+// Single-live-editor invariant: under Nuxt's <Suspense>/async-page mount path
+// `useEditor`'s creation can run more than once on the same component instance,
+// producing a second Editor while the first is never torn down. The orphan keeps
+// a live ProseMirror view in the DOM (duplicate body) and — in collab mode — a
+// second CollaborationCursor bound to the shared awareness, which floods peers
+// and corrupts their editable state. `useEditor` only destroys on unmount, so it
+// can't guard against in-place recreation. Destroy the prior instance whenever it
+// is replaced so exactly one editor is ever live.
 watch(
   _tiptapEditor,
-  (e) => {
+  (e, prev) => {
+    if (prev && prev !== e) prev.destroy()
     editor.value = e
+    // Apply the current editable state to the freshly-adopted instance. The
+    // editor is created asynchronously, so the `editable` option captured when
+    // `useEditor()` ran may be stale by now — in collab mode `collabSynced` can
+    // flip true (sync converged) before the instance exists, and the editable
+    // watch above skips while `editor.value` is null. Without re-applying here,
+    // the editor is born read-only and nothing ever flips it (no further
+    // `collabSynced`/`isEditable` change to trigger the watch).
+    if (e) e.setEditable(isEditable.value && (!collabEnabled || collabSynced.value))
     wireDocAiStorage()
   },
   { immediate: true },
@@ -1793,10 +1939,128 @@ watch(editor, (ed) => {
 
 // Keep editor editable state in sync with the user's role.
 // Roles may resolve asynchronously (e.g. after workspace/base data loads).
-watch(isEditable, (val) => {
+// When collab is active, also gate on `collabSynced` so the editor stays
+// read-only until the Y.Doc has converged with the server (prevents typing
+// into an unsynced doc). `collabSynced` is a static `ref(false)` when collab
+// is off, so the expression collapses to plain `isEditable` in that case.
+watch([isEditable, collabSynced], ([val, synced]) => {
   if (editor.value) {
-    editor.value.setEditable(val)
+    editor.value.setEditable(val && (!collabEnabled || synced))
   }
+})
+
+// Mirror remote document meta (icon / cover / font) into the local doc in collab
+// mode. The body and title live in the Y.Doc, but meta stays on the REST path:
+// a peer's icon change arrives via DOCUMENT_EVENT → the store's activeDocument,
+// and the version-reload watch that used to sync store → local doc is disabled
+// for collab. Without this, a peer's icon/cover wouldn't reflect in the editor
+// chrome (which renders from `doc.value.meta` via `docMeta`).
+if (collabEnabled) {
+  watch(
+    () => activeDocument.value?.meta,
+    (storeMeta) => {
+      if (storeMeta === undefined || !doc.value || !isLoaded.value) return
+      if (activeDocument.value?.id !== doc.value.id) return
+      doc.value.meta = storeMeta
+    },
+  )
+}
+
+// Bootstrap legacy docs into the CRDT. The first client to open a doc whose
+// server-side Y.Doc is still empty seeds it from the doc's stored PM JSON, so
+// existing (pre-collab) documents migrate into Yjs. After the first persist the
+// server's Yjs state is non-empty, so subsequent clients see content via the
+// sync handshake and skip seeding — `hasBootstrapped` additionally guards
+// against re-seeding within this session. Gated on `isLoaded` too so the stored
+// `content` is available before we decide whether to seed (synced and the doc
+// load resolve independently).
+if (collabEnabled && collab) {
+  // `editor` is a watch source too: if sync + load + grant all resolve before
+  // the (async) editor instance exists, the seed must re-run once it does —
+  // otherwise the doc would be marked bootstrapped without ever migrating its
+  // legacy content (and a later persist could overwrite the stored content with
+  // the empty Y.Doc).
+  watch([collabSynced, isLoaded, collab.mayBootstrap, editor], ([synced, loaded]) => {
+    if (!synced || !loaded || hasBootstrapped) return
+
+    // Title: enable the live binding (adopt the shared Y.Text title) and, if this
+    // client is the granted seeder, seed it from the loaded title. Independent of
+    // body content, so it runs even when the body needs no migration.
+    // `loaded` gates on isLoaded, which flips true only after loadAndSetDoc has set
+    // title.value — so the seed reads the real title (untitled → '' → no-op).
+    collabTitle?.activate()
+    if (collab.mayBootstrap.value) collabTitle?.seedIfEmpty(title.value)
+
+    const fragment = collab.ydoc.getXmlFragment('default')
+    if (fragment.length > 0) {
+      // Server already has content — nothing to migrate.
+      hasBootstrapped = true
+      return
+    }
+
+    // Only the server-designated seeder migrates legacy content into the CRDT.
+    // Two clients seeding concurrently would merge into duplicated body content,
+    // so a non-granted client waits for the content to arrive over live sync.
+    // Not marked bootstrapped: if the grant arrives after this fires, the watch
+    // re-runs on `mayBootstrap` and re-checks.
+    if (!collab.mayBootstrap.value) return
+
+    // Editor not materialized yet — wait. Do NOT mark bootstrapped here, or the
+    // legacy doc would never be seeded. The watch re-runs when `editor` resolves.
+    const schema = editor.value?.schema
+    if (!schema) return
+
+    const legacyContent = parseDocContent(doc.value?.content)
+    const isEmptyLegacy =
+      !legacyContent?.content?.length ||
+      (legacyContent.content.length === 1 && legacyContent.content[0]?.type === 'paragraph' && !legacyContent.content[0]?.content)
+
+    if (isEmptyLegacy) {
+      // Nothing meaningful to seed; mark bootstrapped so we don't re-check.
+      hasBootstrapped = true
+      return
+    }
+
+    // Seed via a normal Yjs update (origin is NOT 'remote') so it propagates to
+    // the server and other clients.
+    const seededDoc = prosemirrorJSONToYDoc(schema, legacyContent, 'default')
+    Y.applyUpdate(collab.ydoc, Y.encodeStateAsUpdate(seededDoc))
+    hasBootstrapped = true
+  })
+}
+
+// Reactive flag: does the shared Y.Doc body have content (drives the F1
+// fallback). Fragment length isn't reactive, so track it via 'update'.
+const collabBodyHasContent = ref(false)
+if (collabEnabled && collab) {
+  const frag = collab.ydoc.getXmlFragment('default')
+  const refreshBodyHasContent = () => {
+    if (frag.length > 0) {
+      collabBodyHasContent.value = true
+      // One-way latch: once the CRDT has content we never revert to the
+      // fallback, so stop observing.
+      collab.ydoc.off('update', refreshBodyHasContent)
+    }
+  }
+  collab.ydoc.on('update', refreshBodyHasContent)
+  onBeforeUnmount(() => collab.ydoc.off('update', refreshBodyHasContent))
+  refreshBodyHasContent()
+}
+
+const legacyFallbackContent = computed(() => parseDocContent(doc.value?.content))
+
+// F1: a non-seeder viewing a legacy doc (empty server Y.Doc) would see a blank
+// body. Show stored content read-only until an editor seeds the CRDT.
+const showLegacyFallback = computed(() => {
+  if (!collabEnabled || !collab) return false
+  if (!collabSynced.value) return false // wait for sync before deciding
+  if (collabBodyHasContent.value) return false // CRDT already has content
+  if (collab.mayBootstrap.value) return false // we're the seeder — bootstrap fills it
+  const parsed = legacyFallbackContent.value
+  const isEmpty =
+    !parsed?.content?.length ||
+    (parsed.content.length === 1 && parsed.content[0]?.type === 'paragraph' && !parsed.content[0]?.content)
+  return !isEmpty // legacy content exists to show
 })
 
 const activeFont = ref<'default' | 'serif' | 'mono'>('default')
@@ -1885,25 +2149,38 @@ if (isCellMode.value) {
 // Guard: only sync when activeDocument still matches the editor's local doc — during
 // navigation activeDocument switches to the new page before loadAndSetDoc flushes
 // the pending save, which would corrupt title.value with the wrong page's title.
-watch(
-  () => activeDocument.value?.title,
-  (storeTitle) => {
-    if (!storeTitle || isSaving.value || !isLoaded.value) return
-    if (!doc.value || activeDocument.value?.id !== doc.value.id) return
+//
+// Collab mode owns the title through the shared Y.Text (useCollabTitle): local edits
+// push to the Y.Text and a peer's edits arrive via its observer. The store
+// (`activeDocument.title`) is a *downstream* consumer there — fed by `patchStoreTitle`
+// and by `DOCUMENT_EVENT`s for the sidebar. Letting the store drive `title.value` back
+// into the editor would close a feedback loop: a debounced collab persist broadcasts a
+// `DOCUMENT_EVENT`, and if that lands just after a local rename, this watch would push
+// the stale title back into the Y.Text — corrupting the open doc's title. So this REST
+// reflection is disabled while collab is active.
+if (!collabEnabled) {
+  watch(
+    () => activeDocument.value?.title,
+    (storeTitle) => {
+      if (!storeTitle || isSaving.value || !isLoaded.value) return
+      if (!doc.value || activeDocument.value?.id !== doc.value.id) return
 
-    // Map the server default "Untitled" to empty (editor convention)
-    const normalized = storeTitle === 'Untitled' ? '' : storeTitle
+      // Map the server default "Untitled" to empty (editor convention)
+      const normalized = storeTitle === 'Untitled' ? '' : storeTitle
 
-    if (normalized !== title.value) {
-      title.value = normalized
-      // Also sync the local doc ref so version/title stay consistent
-      doc.value.title = storeTitle
-    }
-  },
-)
+      if (normalized !== title.value) {
+        title.value = normalized
+        // Also sync the local doc ref so version/title stay consistent
+        doc.value.title = storeTitle
+      }
+    },
+  )
+}
 
 const onTitleBlur = () => {
-  if (!isEditable.value || !doc.value) return
+  // Collab mode persists the title via the shared Y.Doc, and the store stays in
+  // sync live through `patchStoreTitle` — nothing to flush on blur.
+  if (!isEditable.value || !doc.value || collabEnabled) return
 
   const effectiveTitle = title.value || 'Untitled'
 
@@ -1946,7 +2223,10 @@ const debouncedTitleSync = useDebounceFn(() => {
 }, 500)
 
 watch(title, () => {
-  if (isLoaded.value) {
+  // In collab mode the title lives in the shared Y.Doc: `useCollabTitle` pushes
+  // edits to the Y.Text and `patchStoreTitle` keeps the sidebar/URL in sync, while
+  // the server persists from the Y.Doc. The REST-save path must stay out of it.
+  if (isLoaded.value && !collabEnabled) {
     debouncedTitleSync()
   }
 })
@@ -2654,7 +2934,7 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
               <input
                 ref="titleInput"
                 v-model="title"
-                :readonly="!isEditable"
+                :readonly="isTitleReadonly"
                 class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
                 data-testid="docs-page-title"
                 :placeholder="$t('general.untitled')"
@@ -2664,6 +2944,13 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
               />
             </div>
             <div class="nc-doc-subtitle flex items-center mt-2 text-sm">
+              <span
+                v-if="collabEnabled && !collabSynced"
+                class="nc-doc-connecting flex items-center gap-1 text-nc-content-gray-muted"
+              >
+                <GeneralLoader size="small" />
+                {{ $t('general.connecting') }}
+              </span>
               <span v-if="updatedByLabel && updatedAgo">
                 {{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}
               </span>
@@ -2921,7 +3208,7 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
                 </div>
               </BubbleMenu>
 
-              <div ref="editorContentRef" class="relative">
+              <div ref="editorContentRef" v-show="!showLegacyFallback" class="relative">
                 <EditorContent :editor="editor" @click="onEditorClick" />
 
                 <!-- Link hover preview -->
@@ -3078,6 +3365,8 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
                   @stop="onAiSuggestionStop"
                 />
               </div>
+
+              <DocReadonlyBody v-if="showLegacyFallback" :content="legacyFallbackContent" />
 
               <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
               <DocTableMenu v-if="isEditable" :editor="editor" />
@@ -3237,6 +3526,39 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
   --nc-code-block-toolbar-bg-hover: rgba(255, 255, 255, 0.15);
   --nc-code-block-toolbar-fg: rgba(255, 255, 255, 0.6);
   --nc-code-block-toolbar-fg-hover: rgba(255, 255, 255, 0.9);
+}
+
+// Real-time collaboration cursors (TipTap's CollaborationCursor ships no CSS).
+// The caret is absolutely positioned so it takes up no inline space: an in-flow
+// caret splits the text node it sits in, which both adds a visible gap and breaks
+// native double-click word selection across a peer's cursor. `pointer-events: none`
+// keeps it purely decorative so it can never steal a click from the local editor.
+.nc-doc-editor-content {
+  .collaboration-cursor__caret {
+    position: absolute;
+    width: 0;
+    border-left: 2px solid;
+    height: 1.2em; // explicit height so the zero-width caret renders a visible bar
+    word-break: normal;
+    pointer-events: none;
+  }
+
+  .collaboration-cursor__label {
+    position: absolute;
+    top: -1.8em;
+    left: -1px;
+    z-index: 20;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    font-style: normal;
+    line-height: normal;
+    white-space: nowrap;
+    color: #fff;
+    user-select: none;
+    pointer-events: none;
+  }
 }
 
 // Cell mode (SmartText panel): zero out the first child's top margin so a

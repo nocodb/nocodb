@@ -26,7 +26,9 @@ const PRESENCE_COLORS = [
   '#f43f5e',
 ]
 
-function getConsistentColor(userId: string): string {
+// Exported so the doc collab cursors derive the same per-user color as the
+// presence avatars (single source of truth).
+export function getConsistentColor(userId: string): string {
   let hash = 0
   for (let i = 0; i < userId.length; i++) {
     hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0

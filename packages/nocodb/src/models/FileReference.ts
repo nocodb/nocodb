@@ -462,6 +462,30 @@ export default class FileReference {
   }
 
   /**
+   * Like {@link listIdsForDoc} but also returns `created_at`. When `createdBefore`
+   * is given, the rows are filtered to those created strictly before it in SQL —
+   * the collab prune uses this to spare just-created (out-of-band / REST) refs
+   * without parsing the driver-returned timestamp in JS.
+   */
+  public static async listIdRecordsForDoc(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+    createdBefore?: Date,
+  ): Promise<{ id: string; created_at: Date }[]> {
+    const qb = ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_doc_id: docId,
+        deleted: false,
+      })
+      .whereNull('fk_revision_id');
+    if (createdBefore) qb.where('created_at', '<', createdBefore);
+    return qb.select('id', 'created_at');
+  }
+
+  /**
    * Sync the snapshot rows for a revision to match the attachments embedded
    * in its content. Snapshot rows are keyed by (revision_id, file_url) and
    * carry file_size=0 — the cleanup job groups by file_url and only purges
@@ -561,6 +585,32 @@ export default class FileReference {
       .select(ncMeta.knexConnection.raw('1'))
       .first();
     return !!row;
+  }
+
+  /**
+   * Return the id of an active (non-deleted, non-revision) FileReference for a
+   * doc + file_url, or null. Used to make eager attachment-ref creation
+   * idempotent in collaborative mode — re-uploading the same physical file or
+   * a retried request must not create duplicate refs for the same node.
+   */
+  public static async getActiveIdByFileUrlInDoc(
+    context: NcContext,
+    docId: string,
+    fileUrl: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string | null> {
+    const row = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_doc_id: docId,
+        file_url: fileUrl,
+        deleted: false,
+      })
+      .whereNull('fk_revision_id')
+      .select('id')
+      .first();
+    return row?.id ?? null;
   }
 
   /**

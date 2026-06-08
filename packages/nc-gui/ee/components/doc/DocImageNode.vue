@@ -32,11 +32,22 @@ const resolvedSrc = computed(() => {
   return ''
 })
 
+// A peer receives the uploader's local blob preview over the CRDT before the
+// durable id; blob: URLs only load in their origin client, so it errors on peers.
+// Track that to fall back to the skeleton until the id arrives (watcher resets it).
+const imgError = ref(false)
+
+watch(resolvedSrc, () => {
+  imgError.value = false
+})
+
 const isLoading = computed(() => {
-  // Only show loading during upload (no path yet, no src yet).
-  // path is set when upload completes; id is set later when doc is saved.
-  const { path, src } = props.node.attrs
-  return !path && !src
+  const { path, src, id } = props.node.attrs
+  // Uploading: no durable ref and no preview yet.
+  if (!path && !src) return true
+  // Peer awaiting the durable id: its blob: preview can't load — show the skeleton.
+  // Scoped to blob: so a genuinely broken external image still surfaces its error.
+  return imgError.value && !id && typeof src === 'string' && src.startsWith('blob:')
 })
 
 // --- Alignment ---
@@ -312,6 +323,8 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         class="nc-doc-image"
         data-testid="nc-doc-image"
         draggable="false"
+        @error="imgError = true"
+        @load="imgError = false"
       />
 
       <!-- Resize handles (visible when selected + editable) -->

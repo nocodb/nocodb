@@ -8,8 +8,9 @@
  *   then swaps the src for the permanent path once uploaded
  */
 import type { Editor } from '@tiptap/core'
+import type { DocAttachmentUploadOpts } from './useDocCollabFileRef'
 
-export function useDocumentImageUpload() {
+export function useDocumentImageUpload(opts?: DocAttachmentUploadOpts) {
   const { batchUploadFiles } = useAttachment()
   const { appInfo, token } = useGlobal()
 
@@ -17,6 +18,10 @@ export function useDocumentImageUpload() {
   const docId = inject(DocIdInj, ref(''))
   const smartTextCell = inject(SmartTextCellAttachmentInj, ref(null))
   const publicShare = inject(PublicDocShareInj, ref(null))
+
+  const maybeCreateRef = useDocCollabFileRef(opts)
+
+  const { t } = useI18n()
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
@@ -125,10 +130,18 @@ export function useDocumentImageUpload() {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          // Keep blob URL in src as preview until save injects FileReference id.
-          // The id is created by reconcileFileReferences on the next save;
-          // until then, resolvedSrc falls back to the blob src.
-          updateImageNode(editor, blobUrl, { path: storedRef })
+          // Retry transient ref-creation failures: a null ref leaves a path-only
+          // node that can't render (no REST backfill while live). Surface an error
+          // on persistent failure instead of a silent broken image.
+          let fileRefId = await maybeCreateRef(storedRef, file.size)
+          for (let attempt = 1; !fileRefId && attempt <= 2; attempt++) {
+            await new Promise((r) => setTimeout(r, 300 * attempt))
+            fileRefId = await maybeCreateRef(storedRef, file.size)
+          }
+          if (!fileRefId) {
+            message.error(t('msg.error.docAttachmentRefFailed'))
+          }
+          updateImageNode(editor, blobUrl, fileRefId ? { path: storedRef, id: fileRefId } : { path: storedRef })
         } else {
           removeImageNode(editor, blobUrl)
         }

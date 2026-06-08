@@ -485,6 +485,7 @@ const permissionScopes = {
     'documentShare',
     'documentUnshare',
     'documentShareUpdate',
+    'documentCreateFileRef',
     'documentRevisionList',
     'documentRevisionGet',
     'documentRevisionRestore',
@@ -1055,6 +1056,7 @@ const rolePermissions:
       // so that document lifecycle is controlled by project admins.
       documentUpdate: true,
       documentReorder: true,
+      documentCreateFileRef: true,
       documentRevisionRestore: true,
 
       // SmartText — editors can update cell content
@@ -1746,6 +1748,8 @@ const permissionDescriptions: Record<string, string> = {
   documentShare: 'publish a document as a public read-only link',
   documentUnshare: 'unpublish a previously shared document',
   documentShareUpdate: 'update share settings (subtree) on a shared document',
+  documentCreateFileRef:
+    'create a file reference for a document attachment (collaborative editing)',
   documentRevisionList: 'view list of document revisions',
   documentRevisionGet: 'view a specific document revision',
   documentRevisionRestore: 'restore a document to a prior revision',

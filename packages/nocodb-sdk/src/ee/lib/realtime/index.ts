@@ -9,6 +9,8 @@ import {
 } from '~/lib/teams/teams-v3';
 import {
   EventType,
+  DocCollabClientEvents,
+  getDocSyncRoom,
   BaseSocketPayload,
   ConnectionWelcomePayload,
   ConnectionErrorPayload,
@@ -32,6 +34,8 @@ import {
 // export common types
 export {
   EventType,
+  DocCollabClientEvents,
+  getDocSyncRoom,
   BaseSocketPayload,
   ConnectionWelcomePayload,
   ConnectionErrorPayload,

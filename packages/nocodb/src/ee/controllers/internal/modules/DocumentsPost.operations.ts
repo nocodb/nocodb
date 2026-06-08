@@ -30,6 +30,7 @@ export class DocumentsPostOperations
     'documentShare' as const,
     'documentUnshare' as const,
     'documentShareUpdate' as const,
+    'documentCreateFileRef' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -111,6 +112,19 @@ export class DocumentsPostOperations
               include_subtree: payload.include_subtree,
             }),
           },
+        );
+      }
+      case 'documentCreateFileRef': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
+        if (!payload?.path) {
+          NcError.badRequest('Missing required parameter: path');
+        }
+        return await this.documentsService.createDocFileReference(
+          context,
+          payload.docId,
+          { path: payload.path, fileSize: payload.fileSize, req },
         );
       }
     }

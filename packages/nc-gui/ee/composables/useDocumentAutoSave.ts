@@ -12,10 +12,19 @@ export function useDocumentAutoSave({
   editor,
   activeProjectId,
   isEditable,
+  collabActive,
 }: {
   editor: Ref<Editor | undefined>
   activeProjectId: Ref<string | undefined>
   isEditable: Ref<boolean>
+  /**
+   * When true, real-time Yjs collaboration owns the document body — the
+   * backend persists the Y.Doc server-side, so the REST `content` write here
+   * must be skipped (it would be rejected while the doc is live). Title/meta
+   * saves are unaffected. Optional + defaults to inactive so other callers
+   * (cell mode never calls this composable) are unchanged.
+   */
+  collabActive?: Ref<boolean>
 }) {
   const documentsStore = useDocumentsStore()
   const { loadDocument, updateDocument } = documentsStore
@@ -53,6 +62,9 @@ export function useDocumentAutoSave({
   watch(
     () => [activeDocument.value?.version, isSaving.value] as const,
     ([storeVersion]) => {
+      // In collab mode the server's version bumps are advisory; reloading content
+      // on them would fight the live CRDT state (see `collabActive`).
+      if (collabActive?.value) return
       if (!doc.value || !activeDocument.value || !isLoaded.value || isSaving.value) return
       // Guard: only sync if activeDocument matches the editor's local doc
       if (activeDocument.value.id !== doc.value.id) return
@@ -84,6 +96,9 @@ export function useDocumentAutoSave({
 
   /** Whether the document is stale (another user saved a newer version). */
   const isStale = computed(() => {
+    // Never stale in collab mode — the advisory version bump would otherwise read
+    // as "another user saved" and wrongly block editing (see `collabActive`).
+    if (collabActive?.value) return false
     if (!doc.value || !activeDocument.value) return false
     if (!isLoaded.value || isSaving.value) return false
 
@@ -117,7 +132,18 @@ export function useDocumentAutoSave({
 
     isSaving.value = true
     try {
+      // Nothing to write over REST in collab mode (see `collabActive`). The
+      // Editor.vue triggers are already gated on `!collabEnabled`; this is a
+      // defensive backstop.
+      if (collabActive?.value) {
+        isSaving.value = false
+        return
+      }
+
       const content = editor.value.getJSON()
+
+      const effectiveTitle = title.value || 'Untitled'
+      const titleChanged = effectiveTitle !== lastSavedTitle.value
 
       // Guard: skip saving if editor state is empty AND the title hasn't changed
       // AND no user edit has occurred. This prevents data loss from transient editor
@@ -126,8 +152,6 @@ export function useDocumentAutoSave({
       const nodeCount = content?.content?.length ?? 0
       const firstType = content?.content?.[0]?.type
       const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
-      const effectiveTitle = title.value || 'Untitled'
-      const titleChanged = effectiveTitle !== lastSavedTitle.value
       if (isEmptyDoc && !titleChanged && !hasUserEdited.value) {
         isSaving.value = false
         return
@@ -244,14 +268,21 @@ export function useDocumentAutoSave({
       // Discard if navigated away during editor wait
       if (thisLoad !== loadSequence) return
 
-      // Suppress onUpdate → debouncedSave while loading content programmatically
-      isSettingContent.value = true
-      editor.value!.commands.setContent(parsed)
+      // When collab is active the Y.Doc (via the Collaboration extension) is the
+      // single source of truth for the body — pushing `setContent` here would
+      // conflict with / duplicate the CRDT state. The loaded `content` is still
+      // used by Editor.vue's one-time bootstrap to seed legacy docs into the
+      // Y.Doc. Title/meta loading above is unaffected.
+      if (!collabActive?.value) {
+        // Suppress onUpdate → debouncedSave while loading content programmatically
+        isSettingContent.value = true
+        editor.value!.commands.setContent(parsed)
 
-      // Wait a tick for ProseMirror to finish its transaction cycle
-      // before re-enabling user-edit saves
-      await nextTick()
-      isSettingContent.value = false
+        // Wait a tick for ProseMirror to finish its transaction cycle
+        // before re-enabling user-edit saves
+        await nextTick()
+        isSettingContent.value = false
+      }
     }
     isLoaded.value = true
   }
@@ -280,6 +311,10 @@ export function useDocumentAutoSave({
    * captured snapshot.
    */
   const flushOnUnmount = () => {
+    // Nothing to flush over REST in collab mode (see `collabActive`); no
+    // debounced save is ever queued there either, so `saveTimeout` is empty.
+    if (collabActive?.value) return
+
     if (saveTimeout.value) {
       clearTimeout(saveTimeout.value)
       // Skip if stale (another user saved a newer version — our version will be
@@ -291,11 +326,12 @@ export function useDocumentAutoSave({
         const docTitle = title.value || 'Untitled'
         const baseId = activeProjectId.value
 
+        const titleChanged = docTitle !== lastSavedTitle.value
+
         // Guard: skip saving empty doc on unmount unless title changed or user edited
         const nodeCount = content?.content?.length ?? 0
         const firstType = content?.content?.[0]?.type
         const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
-        const titleChanged = docTitle !== lastSavedTitle.value
         if (!(isEmptyDoc && !titleChanged && !hasUserEdited.value)) {
           // Fire-and-forget is acceptable here — content is already captured
           updateDocument(baseId, docId, { title: docTitle, content, version })

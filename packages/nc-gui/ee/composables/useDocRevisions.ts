@@ -86,6 +86,20 @@ export const useDocRevisions = createSharedComposable(() => {
   // otherwise be silently overwritten by the next autosave).
   const restoredHook = createEventHook<{ docId: string }>()
 
+  // When a live Yjs collaboration session owns the doc body, the REST coherence
+  // gate rejects content writes — so a REST restore would 422. The active
+  // collaborative Editor registers a handler here; `restoreRevision` then applies
+  // the snapshot through the editor (setContent → Yjs ops) instead of calling the
+  // REST restore endpoint. Null when no collab editor is mounted (legacy path).
+  const collabRestoreHandler = ref<((content: Record<string, any>, title?: string) => void | Promise<void>) | null>(null)
+
+  function registerCollabRestore(fn: (content: Record<string, any>, title?: string) => void | Promise<void>) {
+    collabRestoreHandler.value = fn
+    return () => {
+      if (collabRestoreHandler.value === fn) collabRestoreHandler.value = null
+    }
+  }
+
   // Step-through nav state. `diffChangeCount` is written by the Viewer
   // whenever the diff is recomputed; `currentChangeIndex` is driven by
   // the modal's ↑/↓ buttons. The Viewer watches the index and scrolls
@@ -259,6 +273,28 @@ export const useDocRevisions = createSharedComposable(() => {
       return false
     }
 
+    // Live collaborative session: the coherence gate rejects REST body writes
+    // while a Y.Doc holds the doc, so apply the restore through the editor's
+    // CRDT instead. `setContent` becomes Yjs ops that propagate to every peer
+    // and persist via the server-authoritative path (recorded as a normal
+    // collaborative edit by the restoring user, not a RESTORE-tagged revision).
+    if (collabRestoreHandler.value) {
+      try {
+        isRestoring.value = true
+        const rev = await fetchRevisionContent(revisionId)
+        if (!rev?.content) return false
+        await collabRestoreHandler.value(rev.content, rev.title)
+        selectedRevisionId.value = null
+        selectedRevisionContent.value = null
+        return true
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+        return false
+      } finally {
+        isRestoring.value = false
+      }
+    }
+
     try {
       isRestoring.value = true
       const updated = (await $api.internal.postOperation(
@@ -352,6 +388,7 @@ export const useDocRevisions = createSharedComposable(() => {
     loadMore,
     selectRevision,
     restoreRevision,
+    registerCollabRestore,
     onRestored: restoredHook.on,
     nextChange,
     prevChange,

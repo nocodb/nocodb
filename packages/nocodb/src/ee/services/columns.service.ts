@@ -76,8 +76,10 @@ import ListViewColumn from '~/models/ListViewColumn';
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
   constructor(
-    protected readonly metaService: MetaService,
-    protected readonly appHooksService: AppHooksService,
+    // public to match the widened CE base — required by the
+    // `ltarColumnConversion` host interface (IColumnConversionHost).
+    public readonly metaService: MetaService,
+    public readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
@@ -87,7 +89,7 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly linkPlaceholderService: LinkPlaceholderService,
     @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
-    protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
+    public readonly columnDataBackupHandler: ColumnDataBackupHandler,
     protected readonly viewColumnsService: ViewColumnsService,
   ) {
     super(

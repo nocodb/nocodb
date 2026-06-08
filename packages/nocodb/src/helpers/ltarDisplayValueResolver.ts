@@ -5,6 +5,7 @@ import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import { FieldHandler } from '~/db/field-handler';
 
 /**
  * Shared context + display-value → pk resolution for link (LTAR) columns.
@@ -127,65 +128,78 @@ export async function resolveLtarDisplayValuesToPks(
 
   if (allUniqueValues.size === 0) return valueToPk;
 
-  // Step 1: case-sensitive exact match (eq)
-  const eqFilterArr = [...allUniqueValues].map(
-    (v) =>
-      new Filter({
+  // The display value column may be typed (Number, Decimal, Date, …). A
+  // submitted value that isn't valid for that type — e.g. matching text "A"
+  // against a Number display column — would make `FieldHandler.verifyFilters`
+  // throw `filterVerificationFailed` and abort the whole resolution. Such a
+  // value can never equal a typed display value anyway, so drop it up front
+  // (it simply stays unmatched) and keep only the values worth querying.
+  const fieldHandler = FieldHandler.fromBaseModel(relatedBaseModel);
+  const buildVerifiedFilters = async (values: string[], op: 'eq' | 'like') => {
+    const filters: Filter[] = [];
+    for (const v of values) {
+      const filter = new Filter({
         fk_column_id: displayValueColumn.id,
-        comparison_op: 'eq',
+        comparison_op: op,
         value: v,
         logical_op: 'or',
-      }),
-  );
+      });
+      const verification = await fieldHandler.verifyFiltersSafe([filter]);
+      if (verification.isValid) filters.push(filter);
+    }
+    return filters;
+  };
 
-  const exactRows = await relatedBaseModel.list(
-    { ...listOpts, filterArr: eqFilterArr, apiVersion: NcApiVersion.V3 },
-    listFlags,
-  );
+  // Step 1: case-sensitive exact match (eq)
+  const eqFilterArr = await buildVerifiedFilters([...allUniqueValues], 'eq');
 
-  for (const row of exactRows) {
-    const dv = row[dvTitle];
-    if (dv == null) continue;
-    const dvStr = String(dv);
-    if (allUniqueValues.has(dvStr) && !valueToPk.has(dvStr)) {
-      valueToPk.set(dvStr, dataWrapper(row).extractPksValue(relatedModel, true));
+  if (eqFilterArr.length > 0) {
+    const exactRows = await relatedBaseModel.list(
+      { ...listOpts, filterArr: eqFilterArr, apiVersion: NcApiVersion.V3 },
+      listFlags,
+    );
+
+    for (const row of exactRows) {
+      const dv = row[dvTitle];
+      if (dv == null) continue;
+      const dvStr = String(dv);
+      if (allUniqueValues.has(dvStr) && !valueToPk.has(dvStr)) {
+        valueToPk.set(
+          dvStr,
+          dataWrapper(row).extractPksValue(relatedModel, true),
+        );
+      }
     }
   }
 
   // Step 2: case-insensitive fallback for the values eq didn't match
   const unmatchedValues = [...allUniqueValues].filter((v) => !valueToPk.has(v));
   if (unmatchedValues.length > 0) {
-    const likeFilterArr = unmatchedValues.map(
-      (v) =>
-        new Filter({
-          fk_column_id: displayValueColumn.id,
-          comparison_op: 'like',
-          value: v,
-          logical_op: 'or',
-        }),
-    );
+    const likeFilterArr = await buildVerifiedFilters(unmatchedValues, 'like');
 
-    const candidateRows = await relatedBaseModel.list(
-      { ...listOpts, filterArr: likeFilterArr, apiVersion: NcApiVersion.V3 },
-      listFlags,
-    );
+    if (likeFilterArr.length > 0) {
+      const candidateRows = await relatedBaseModel.list(
+        { ...listOpts, filterArr: likeFilterArr, apiVersion: NcApiVersion.V3 },
+        listFlags,
+      );
 
-    const lowerToOriginal = new Map<string, string>();
-    for (const v of unmatchedValues) {
-      const lower = v.toLowerCase();
-      if (!lowerToOriginal.has(lower)) lowerToOriginal.set(lower, v);
-    }
+      const lowerToOriginal = new Map<string, string>();
+      for (const v of unmatchedValues) {
+        const lower = v.toLowerCase();
+        if (!lowerToOriginal.has(lower)) lowerToOriginal.set(lower, v);
+      }
 
-    for (const row of candidateRows) {
-      const dv = row[dvTitle];
-      if (dv == null) continue;
-      const dvLower = String(dv).toLowerCase();
-      const originalValue = lowerToOriginal.get(dvLower);
-      if (originalValue && !valueToPk.has(originalValue)) {
-        valueToPk.set(
-          originalValue,
-          dataWrapper(row).extractPksValue(relatedModel, true),
-        );
+      for (const row of candidateRows) {
+        const dv = row[dvTitle];
+        if (dv == null) continue;
+        const dvLower = String(dv).toLowerCase();
+        const originalValue = lowerToOriginal.get(dvLower);
+        if (originalValue && !valueToPk.has(originalValue)) {
+          valueToPk.set(
+            originalValue,
+            dataWrapper(row).extractPksValue(relatedModel, true),
+          );
+        }
       }
     }
   }

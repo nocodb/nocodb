@@ -24,8 +24,7 @@ const visible = useVModel(props, 'visible', emit)
       >
         <div class="flex item-center gap-2">
           <GeneralIcon id="nc-selected-item-icon" icon="alertTriangle" class="h-10 w-10 text-nc-content-yellow-medium" />
-          This action cannot be undone. Converting data types may result in data loss; any incompatible filters will be removed.
-          Proceed with caution!
+          Converting data types may result in data loss; any incompatible filters will be removed.
         </div>
       </div>
 

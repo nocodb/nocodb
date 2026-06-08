@@ -167,8 +167,16 @@ const onMouseOverUniqueValuesInfoIcon = ref(false)
 
 const columnUidt = computed({
   get: () => {
-    // Show legacy LTAR v1 columns as "Links" in the type dropdown
-    if (isEdit.value && formState.value.uidt === UITypes.LinkToAnotherRecord && formState.value.colOptions?.version !== 2) {
+    // Show legacy LTAR v1 columns as "Links" in the type dropdown — but only
+    // when editing an existing link column. When converting another type
+    // (e.g. SingleLineText) into a link, the new field has no version yet, so
+    // this would wrongly relabel the freshly chosen "Link to another record".
+    if (
+      isEdit.value &&
+      column?.value?.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.colOptions?.version !== 2
+    ) {
       return UITypes.Links
     }
     return formState.value.uidt
@@ -235,12 +243,23 @@ const uiFilters = (t: UiTypesType) => {
   if (t.name === column?.value?.uidt) {
     return true
   }
+  // A link (LTAR/Links) column can only be converted to SingleLineText (its
+  // linked display values are joined into text) — hide all other targets.
+  if (isEdit.value && column?.value && isLinksOrLTAR(column.value)) {
+    return t.name === UITypes.SingleLineText
+  }
   // M2M junction tables have no source rows for system audit fields — values would always be null
   const isMmTable = !!meta.value?.mm
   if (isMmTable && isSystemField(t)) return false
 
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
-  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt
+
+  // Converting an existing SingleLineText column into a link (LTAR) is
+  // supported — cell text is resolved to related records on save. Allow LTAR
+  // through the edit-mode virtual/LTAR guards for that one source type.
+  const isTextToLtar = isEdit.value && column?.value?.uidt === UITypes.SingleLineText && t.name === UITypes.LinkToAnotherRecord
+
+  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt || isTextToLtar
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
@@ -250,7 +269,7 @@ const uiFilters = (t: UiTypesType) => {
   const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
-  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value : true
+  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value || isTextToLtar : true
 
   let formulaColumnTypeValid = true
   if (column?.value?.uidt === UITypes.Formula) {
@@ -282,6 +301,17 @@ const uiFilters = (t: UiTypesType) => {
     showAutoNumber
   )
 }
+
+// Converting an existing SingleLineText column into a link: the field is
+// edited, but the LTAR options sub-component must behave like create mode so
+// it surfaces the related-table / relation-type pickers and validation.
+const isTextToLtarConversion = computed(
+  () => isEdit.value && column?.value?.uidt === UITypes.SingleLineText && formState.value.uidt === UITypes.LinkToAnotherRecord,
+)
+
+// Editing a link (LTAR/Links) column — the type dropdown is normally locked
+// for links, but we allow converting them to SingleLineText.
+const canConvertLtarToText = computed(() => isEdit.value && !!column?.value && isLinksOrLTAR(column.value))
 
 const extraIcons = ref<Record<string, string>>({})
 
@@ -841,7 +871,7 @@ const unique = computed({
     :class="{
       'bg-nc-bg-default max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
-      '!w-[600px]': isLinksOrLTAR(formState.uidt),
+      '!w-[500px]': isLinksOrLTAR(formState.uidt),
       '!min-w-[560px]': lookupRollupFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 dark:shadow-black/40 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
@@ -1260,7 +1290,7 @@ const unique = computed({
                 (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
                 isKanban ||
                 readOnly ||
-                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
+                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt) && !canConvertLtarToText) ||
                 (isEdit && !isFullUpdateAllowed) ||
                 isSystem ||
                 isSyncedField
@@ -1419,7 +1449,8 @@ const unique = computed({
           v-if="isLinksOrLTAR(formState.uidt)"
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
-          :is-edit="isEdit"
+          :is-edit="isEdit && !isTextToLtarConversion"
+          :hide-advanced-options="isTextToLtarConversion"
           @upgrade="isConvertLinkV2ModalOpen = true"
         />
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
@@ -1699,7 +1730,7 @@ const unique = computed({
                   type="primary"
                   :theme="isAiMode ? 'ai' : 'default'"
                   :loading="saving"
-                  :disabled="!formState.uidt || disableSubmitBtn || saving"
+                  :disabled="!formState.uidt || disableSubmitBtn || saving || (isTextToLtarConversion && !formState.childId)"
                   size="small"
                   :label="submitBtnLabel.label"
                   :loading-label="submitBtnLabel.loadingLabel"

@@ -434,12 +434,26 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
             // if LTARv2 column update and relation type changed
             // then reload the reference table meta
-            if (isMMOrMMLike(column.value))
+            if (isMMOrMMLike(column.value)) {
               getMeta(
                 (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id ?? column.value?.base_id,
                 (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
                 true,
               )
+            } else if (
+              // text → link conversion: the backend creates the opposite link
+              // column on the related (child) table. The check above keys off the
+              // *old* column, which is still SingleLineText here, so force-reload
+              // the related table's (now stale) cached meta — mirrors the columnAdd
+              // branch below. Without this the opposite field never shows up on the
+              // target table until a hard refresh.
+              isLinksOrLTAR(formState.value) &&
+              !isLinksOrLTAR(column.value) &&
+              formState.value.childId &&
+              meta.value?.id !== formState.value.childId
+            ) {
+              getMeta(formState.value.ref_base_id ?? meta.value!.base_id!, formState.value.childId, true)
+            }
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
               viewsStore.loadViews({

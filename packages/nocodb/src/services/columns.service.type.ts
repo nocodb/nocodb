@@ -12,6 +12,9 @@ import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { MetaService } from '~/meta/meta.service';
 import type { Base, Column, Model, Source } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
+import type { Logger } from '@nestjs/common';
+import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 
 export interface ReusableParams {
   table?: Model;
@@ -99,4 +102,34 @@ export interface IColumnsService {
     },
     ncMeta?: MetaService,
   ): Promise<Model>;
+}
+
+/**
+ * Host surface the LTAR text↔link conversion factory
+ * (`helpers/ltarColumnConversion.ts`) needs from `ColumnsService`. Mirrors the
+ * `IBaseModelSqlV2`-style host interface consumed by `baseModelInsert`
+ * (`db/BaseModelSqlv2/insert.ts`): the factory receives the service as `svc`
+ * and reaches these members through it.
+ */
+export interface IColumnConversionHost extends IColumnsService {
+  createLTARColumn(
+    context: NcContext,
+    param: {
+      tableId: string;
+      column: ColumnReqType;
+      source: Source;
+      base: Base;
+      reuse?: ReusableParams;
+      colExtra?: any;
+      user: UserType;
+      req: NcRequest;
+      columnWebhookManager?: ColumnWebhookManager;
+      _ltarCapture?: LtarSideEffectIds;
+    },
+  ): Promise<Column>;
+
+  readonly metaService: MetaService;
+  readonly appHooksService: AppHooksService;
+  readonly columnDataBackupHandler: ColumnDataBackupHandler;
+  readonly logger: Logger;
 }

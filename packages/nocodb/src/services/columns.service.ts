@@ -126,6 +126,7 @@ import { FiltersService } from '~/services/filters.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { ltarColumnConversion } from '~/helpers/ltarColumnConversion';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import {
   convertAIRecordTypeToValue,
@@ -429,11 +430,15 @@ function validateLongTextMetaExclusivity(
 
 @Injectable()
 export class ColumnsService implements IColumnsService {
-  protected logger = new Logger(ColumnsService.name);
+  // public so the `ltarColumnConversion` helper (factory pattern, see
+  // helpers/ltarColumnConversion.ts) can reach it via its host (`svc`).
+  public logger = new Logger(ColumnsService.name);
 
   constructor(
-    protected readonly metaService: MetaService,
-    protected readonly appHooksService: AppHooksService,
+    // metaService / appHooksService / columnDataBackupHandler are public so the
+    // `ltarColumnConversion` host interface (IColumnConversionHost) is satisfied.
+    public readonly metaService: MetaService,
+    public readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
@@ -441,7 +446,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
-    protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
+    public readonly columnDataBackupHandler: ColumnDataBackupHandler,
     protected readonly viewColumnsService: ViewColumnsService,
   ) {}
 
@@ -1634,11 +1639,145 @@ export class ColumnsService implements IColumnsService {
             reuse: param.reuse,
           },
         );
+      } else if (
+        isLinksOrLTAR(column) &&
+        colBody.uidt === UITypes.SingleLineText
+      ) {
+        // Link (LTAR) → SingleLineText: join each row's linked display values
+        // into a new text column, drop the link. Replaces the column outright,
+        // so return early instead of falling through to the in-place tail.
+        const textColumnId = await this.convertLtarToSingleLineText(context, {
+          column,
+          colBody,
+          table,
+          source,
+          user: param.user,
+          req,
+        });
+
+        const freshTable = await Model.get(context, table.id);
+        await freshTable.getColumns(context);
+        const textColumn = await Column.get(context, { colId: textColumnId });
+
+        const seen = new WeakSet();
+        const safeTable = JSON.parse(
+          JSON.stringify(freshTable, (_k, v) => {
+            if (v && typeof v === 'object') {
+              if (seen.has(v)) return undefined;
+              seen.add(v);
+            }
+            return v;
+          }),
+        );
+
+        try {
+          this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+            table: freshTable,
+            oldColumn: column,
+            column: textColumn,
+            columnId: textColumnId,
+            req: param.req,
+            context,
+            columns: safeTable.columns,
+          });
+          NocoSocket.broadcastEvent(
+            context,
+            {
+              event: EventType.META_EVENT,
+              payload: {
+                action: 'column_update',
+                payload: { table: safeTable, column: textColumn },
+              },
+            },
+            context.socket_id,
+          );
+        } catch (e) {
+          this.logger.warn(
+            `link→text post-update notification failed: ${e.message}`,
+          );
+        }
+
+        return safeTable;
       } else {
         NcError.get(context).notImplemented(
           `Updating ${column.uidt} => ${colBody.uidt}`,
         );
       }
+    } else if (
+      isLinksOrLTAR(colBody.uidt) &&
+      column.uidt === UITypes.SingleLineText
+    ) {
+      // Convert a plain text column into a link (LTAR) field: create the
+      // relationship, then backfill links by resolving each row's cell text
+      // to related records (display-value match, append-only). This replaces
+      // the source column outright, so it returns early instead of falling
+      // through to the in-place-update tail (which targets the now-deleted
+      // source column id).
+      const ltarColumnId = await this.convertSingleLineTextToLtar(context, {
+        column,
+        colBody,
+        table,
+        source,
+        user: param.user,
+        req,
+        reuse: param.reuse,
+      });
+
+      const freshTable = await Model.get(context, table.id);
+      await freshTable.getColumns(context);
+      const ltarColumn = await Column.get(context, { colId: ltarColumnId });
+
+      // Creating the mm relation makes the loaded column graph circular
+      // (LTAR → relatedTable → columns → … → back-link → relatedTable),
+      // which JSON.stringify (HTTP response / socket broadcast) can't handle.
+      // Build a serialization-safe clone for the wire payloads.
+      const jsonSafe = <T>(value: T): T => {
+        const seen = new WeakSet();
+        return JSON.parse(
+          JSON.stringify(value, (_k, v) => {
+            if (v && typeof v === 'object') {
+              if (seen.has(v)) return undefined;
+              seen.add(v);
+            }
+            return v;
+          }),
+        );
+      };
+      const safeTable = jsonSafe(freshTable);
+
+      // Best-effort notification — the conversion is already committed.
+      try {
+        this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+          table: freshTable,
+          oldColumn: column,
+          column: ltarColumn,
+          columnId: ltarColumnId,
+          req: param.req,
+          context,
+          columns: safeTable.columns,
+        });
+
+        NocoSocket.broadcastEvent(
+          context,
+          {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_update',
+              payload: {
+                table: safeTable,
+                column: jsonSafe(ltarColumn),
+              },
+            },
+          },
+          context.socket_id,
+        );
+      } catch (e) {
+        this.logger.warn(
+          `text→link post-update notification failed: ${e.message}`,
+        );
+      }
+
+      return safeTable;
     } else if (
       [
         UITypes.Lookup,
@@ -5813,6 +5952,92 @@ export class ColumnsService implements IColumnsService {
     }
   };
 
+  /**
+   * SingleLineText → link (LTAR) conversion and its undo/redo inverses. The
+   * implementation lives in `helpers/ltarColumnConversion.ts` (factory pattern,
+   * mirroring `baseModelInsert`); these are thin delegating wrappers so callers
+   * — `columnUpdate` and the undo/redo command handlers — keep a stable surface.
+   */
+  async convertSingleLineTextToLtar(
+    context: NcContext,
+    param: {
+      column: Column;
+      colBody: Column & { meta?: Record<string, any> };
+      table: Model;
+      source: Source;
+      user: UserType;
+      req: NcRequest;
+      reuse?: ReusableParams;
+      reverseRestore?: {
+        reverseColumnId: string;
+        savedColumnTitle: string;
+        reverseColumnTitle: string;
+      };
+    },
+  ) {
+    return ltarColumnConversion(this).convertSingleLineTextToLtar(
+      context,
+      param,
+    );
+  }
+
+  /** Inverse of {@link convertSingleLineTextToLtar} — see helper for details. */
+  async revertLinkColumnToText(
+    context: NcContext,
+    param: {
+      linkColumnId: string;
+      textColumn: Record<string, any>;
+      backupRef?: ColumnBackupRef;
+      req: NcRequest;
+    },
+  ) {
+    return ltarColumnConversion(this).revertLinkColumnToText(context, param);
+  }
+
+  /** Convert a link (LTAR) column into a SingleLineText column — see helper. */
+  async convertLtarToSingleLineText(
+    context: NcContext,
+    param: {
+      column: Column;
+      colBody: Column & { meta?: Record<string, any> };
+      table: Model;
+      source: Source;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    return ltarColumnConversion(this).convertLtarToSingleLineText(
+      context,
+      param,
+    );
+  }
+
+  /** Inverse of {@link convertLtarToSingleLineText} — see helper for details. */
+  async revertTextColumnToLink(
+    context: NcContext,
+    param: {
+      textColumnId: string;
+      link: {
+        id: string;
+        fk_model_id: string;
+        title?: string;
+        uidt?: string;
+        type?: string;
+        parentId?: string;
+        childId?: string;
+        ref_base_id?: string | null;
+        fk_target_view_id?: string | null;
+        fk_display_value_column_id?: string | null;
+        meta?: Record<string, any> | string | null;
+        pairedColumnId?: string;
+        pairedColumnTitle?: string;
+      };
+      req: NcRequest;
+    },
+  ) {
+    return ltarColumnConversion(this).revertTextColumnToLink(context, param);
+  }
+
   async createLTARColumn(
     context: NcContext,
     param: {
@@ -8182,7 +8407,6 @@ export class ColumnsService implements IColumnsService {
             { fk_relation_column_id: column.id },
           );
         }
-
       }
 
       await ncMeta.commit();

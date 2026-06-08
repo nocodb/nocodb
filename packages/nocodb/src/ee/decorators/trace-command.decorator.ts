@@ -14,6 +14,7 @@ import {
   recordCommand,
   resolveField,
 } from '~/command-registry/record';
+import { isReplay } from '~/helpers/replayScope';
 
 const logger = new Logger('TraceCommand');
 
@@ -410,7 +411,16 @@ export function TraceCommand(
             );
           }
 
-          if (!persisted) {
+          // `persisted:false` is the EXPECTED outcome under replay (redo /
+          // sandbox merge) — `recordCommand` deliberately skips the op log to
+          // avoid the inverse-as-forward stack-fight. In that mode the captures
+          // are NOT orphaned forward-path side-effects: the replay handler owns
+          // their lifecycle (e.g. columnUpdate rotates the fresh backup column
+          // into `meta.backup` via `metaUpdate` so the next undo can restore
+          // from it). Running the cleanup here would drop that very backup,
+          // breaking text↔link conversion undo after a redo. Only clean up when
+          // we're on the real forward path.
+          if (!persisted && !isReplay()) {
             await runFailureCleanup();
           }
 

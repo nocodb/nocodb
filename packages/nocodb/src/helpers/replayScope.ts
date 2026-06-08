@@ -5,6 +5,8 @@ export interface ReplayBag {
   sandboxColumnIds: Record<string, string>;
   sandboxDefaultViewId: string;
   ltarReplayIds: LtarSideEffectIds;
+  convertedLinkId: string;
+  convertedTextId: string;
   replayBackup: ColumnBackupRef;
   replayDuplicateId: string;
   columnBackupOut: ColumnBackupRef;

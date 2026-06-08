@@ -548,6 +548,7 @@ export const relationDataFetcher = (param: {
         linksAsLtar?: boolean;
       },
       args: { limit?; offset?; fieldSet?: Set<string> } = {},
+      selectAllRecords = false,
     ) {
       try {
         const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -601,8 +602,13 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(parentTable.primaryKeys, id)),
         );
         // todo: sanitize
-        qb.limit(+rest?.limit || 25);
-        qb.offset(+rest?.offset || 0);
+        // `selectAllRecords` (set by the text↔link conversion's link read) skips
+        // the limit so every linked child is returned — without it a row with
+        // >25 children would be silently truncated. Mirrors `mmList`.
+        if (!selectAllRecords) {
+          qb.limit(+rest?.limit || 25);
+        }
+        qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
         const hasLimitedAccess = !(await hasTableVisibilityAccess(
           baseModel.context,

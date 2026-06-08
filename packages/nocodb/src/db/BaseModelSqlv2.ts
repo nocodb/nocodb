@@ -1312,8 +1312,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
+    selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).hmList(param, args);
+    return relationDataFetcher({ baseModel: this, logger }).hmList(
+      param,
+      args,
+      selectAllRecords,
+    );
   }
 
   async hmListCount({ colId, id }, args) {
@@ -7089,6 +7094,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             ltarMap[col.id] = false;
             continue;
           }
+        } else if (!col.colOptions) {
+          // An LTAR/Links column whose colOptions (nc_col_relations) row is
+          // missing. This can surface transiently while the relation is being
+          // dropped concurrently — most notably a self-referencing link, whose
+          // column and its inverse both live on the table being listed, so a
+          // list read racing the drop can momentarily see the column without
+          // its relation. There's nothing to substitute without a relation, so
+          // skip it instead of dereferencing null below (which would 500 the
+          // whole list). Mirrors getAst, which already skips such columns.
         } else if (
           (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id !==
           this.model.base_id

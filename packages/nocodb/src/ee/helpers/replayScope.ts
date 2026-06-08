@@ -19,6 +19,10 @@ export interface ReplayBag {
   sandboxDefaultViewId: string;
   /** `columnAdd` LTAR replay: junction model + FK + back-link + reverse LTAR ids. */
   ltarReplayIds: LtarSideEffectIds;
+  /** text→link conversion replay: the original link column id to reuse. */
+  convertedLinkId: string;
+  /** link→text conversion replay: the original text column id to reuse. */
+  convertedTextId: string;
   /** Undo of destructive `columnUpdate`: backup ref to restore cell data from. */
   replayBackup: ColumnBackupRef;
   /** Replay of duplicate ops (widget/workflow): id to inject on the destination insert. */

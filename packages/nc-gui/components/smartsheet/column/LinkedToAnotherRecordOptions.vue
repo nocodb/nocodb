@@ -19,6 +19,9 @@ import {
 const props = defineProps<{
   value: any
   isEdit: boolean
+  /** Hide advanced link options (custom display field, limit-by-view, limit-by-filter)
+   *  — used during text→link conversion to keep the dialog minimal. */
+  hideAdvancedOptions?: boolean
 }>()
 
 const emit = defineEmits(['update:value', 'upgrade'])
@@ -825,7 +828,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </template>
 
-    <div v-if="isEeUI" class="flex flex-col gap-2">
+    <div v-if="isEeUI && !hideAdvancedOptions" class="flex flex-col gap-2">
       <div class="flex gap-2 items-center">
         <a-switch
           v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
@@ -868,7 +871,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <div class="flex flex-col gap-2">
+    <div v-if="!hideAdvancedOptions" class="flex flex-col gap-2">
       <NcTooltip :disabled="!isSyncedField && !isLinkedViewPrivate" placement="right">
         <div class="flex gap-2 items-center">
           <a-switch
@@ -956,7 +959,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <template v-if="isEeUI && showEEFeatures">
+    <template v-if="isEeUI && showEEFeatures && !hideAdvancedOptions">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">

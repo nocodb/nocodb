@@ -20,8 +20,9 @@ const selectedFeatures = ref<Record<string, boolean>>({})
 // Add search functionality
 const searchQuery = ref('')
 
-const isEnabledOnPremFeature = (feature: BetaFeatureType) => {
+const isEnabledForPlatform = (feature: BetaFeatureType) => {
   if (appInfo.value.isOnPrem && feature.isOnPrem === false) return false
+  if (appInfo.value.isCloud && feature.isCloud === false) return false
 
   return true
 }
@@ -31,7 +32,7 @@ const isFeatureVisible = (feature: BetaFeatureType) => {
     (!feature?.isEE || (isEeUI && showEEFeatures.value)) &&
     (!feature?.isEngineering || isEngineeringModeOn.value) &&
     (!feature?.isAdvanced || isAdvancedModeOn.value) &&
-    isEnabledOnPremFeature(feature)
+    isEnabledForPlatform(feature)
   )
 }
 

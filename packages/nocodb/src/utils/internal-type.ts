@@ -138,6 +138,17 @@ export interface InternalApiModule<
 > {
   operations: (keyof typeof OPERATION_SCOPES)[];
   httpMethod: 'GET' | 'POST';
+  /**
+   * Operations owned by this module that must be denied to public shared-base
+   * sessions (anonymous UUID holders that are granted viewer roles). The
+   * dispatcher aggregates these across all modules and passes
+   * `blockPublicBaseAccess` to the ACL gate — mirroring the per-endpoint
+   * `@Acl(..., { blockPublicBaseAccess: true })` the REST controllers use.
+   *
+   * Each module owns this decision for its own operations; omit for modules
+   * whose operations are safe for shared bases.
+   */
+  publicBaseBlockedOperations?: (keyof typeof OPERATION_SCOPES)[];
   handle(
     context: NcContext,
     param: {

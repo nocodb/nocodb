@@ -52,6 +52,10 @@ export class InternalController {
       for (const operation of each.operations) {
         this.internalApiModuleMap[each.httpMethod][operation] = each;
       }
+      // Aggregate each module's self-declared public-base-blocked operations.
+      for (const operation of each.publicBaseBlockedOperations ?? []) {
+        this.publicBaseBlockedOperations.add(operation);
+      }
     }
   }
 
@@ -59,6 +63,15 @@ export class InternalController {
     string,
     Record<string, InternalApiModule<any>>
   > = {};
+
+  /**
+   * Operations that must be denied to public shared-base sessions, aggregated
+   * from each module's `publicBaseBlockedOperations`. Consulted in `checkAcl`
+   * to set `blockPublicBaseAccess` on the ACL gate — see `InternalApiModule`.
+   */
+  protected publicBaseBlockedOperations = new Set<
+    keyof typeof OPERATION_SCOPES
+  >();
 
   protected async checkAcl(
     operation: keyof typeof OPERATION_SCOPES,
@@ -173,6 +186,7 @@ export class InternalController {
       operation,
       {
         scope,
+        blockPublicBaseAccess: this.publicBaseBlockedOperations.has(operation),
       },
       null,
       req,

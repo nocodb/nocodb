@@ -13,6 +13,7 @@ import { jobsProcessorTest } from './jobsProcessor.test';
 import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
 import { describeRowErrorTests } from './dataImportProcessor.test';
 import { isTokenExpiredTest } from './isTokenExpired.test';
+import { isSafeRedirectUrlTests } from './isSafeRedirectUrl.test';
 import { pkPreservationTests } from './pkPreservation.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
@@ -57,6 +58,7 @@ if (process.env.EE === 'true') {
 function _helperTests() {
   stringHelperTest();
   isTokenExpiredTest();
+  isSafeRedirectUrlTests();
   NcConcurrentTest();
   attachmentHelpersTest();
   emailUtilsTest();

@@ -8,9 +8,11 @@ import {
   Preview,
   Text,
 } from '@react-email/components';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
+  resolveProductName,
   RootWrapper,
 } from '~/services/mail/templates/components';
 
@@ -21,6 +23,7 @@ interface TeamAssignedToBaseTemplateProps {
   inviterEmail: string;
   roleLabel: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const TeamAssignedToBase = ({
@@ -30,30 +33,34 @@ export const TeamAssignedToBase = ({
   inviterEmail,
   roleLabel,
   link,
+  branding,
 }: TeamAssignedToBaseTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your team was added to a base</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your team was added to a base
           </Heading>
           <Text className="text-gray-600 text-center !my-6 text-sm">
-            <span className="font-bold text-gray-800">{inviterName}</span> ({inviterEmail})
-            has added your team <span className="font-bold text-gray-800">{teamTitle}</span> to base{' '}
-            <span className="font-bold text-gray-800">{baseTitle}</span> with role{' '}
-            <span className="font-bold text-gray-800">{roleLabel}</span>.
+            <span className="font-bold text-gray-800">{inviterName}</span> (
+            {inviterEmail}) has added your team{' '}
+            <span className="font-bold text-gray-800">{teamTitle}</span> to base{' '}
+            <span className="font-bold text-gray-800">{baseTitle}</span> with
+            role <span className="font-bold text-gray-800">{roleLabel}</span>.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Open NocoDB</Text>
+            <Text className="!my-[8px]">
+              Open {resolveProductName(branding)}
+            </Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>
@@ -69,5 +76,3 @@ TeamAssignedToBase.PreviewProps = {
 };
 
 export default TeamAssignedToBase;
-
-

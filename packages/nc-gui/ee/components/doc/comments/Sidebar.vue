@@ -860,7 +860,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
   &.nc-doc-reply-box-focused,
   &.nc-doc-comment-box-focused {
     @apply border-nc-border-brand;
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+    box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
 }
 

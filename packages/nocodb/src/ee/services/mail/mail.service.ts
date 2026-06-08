@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import type {
   HookErrorDigestPayload,
   WorkflowDraftReminderPayload,
@@ -11,10 +12,23 @@ import { MailEvent, MailParams } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
 import { extractDisplayNameFromEmail } from '~/utils';
+import { WhiteLabelService } from '~/services/white-label.service';
 import Noco from '~/Noco';
 
 @Injectable()
 export class MailService extends MailServiceCE {
+  constructor(protected readonly whiteLabelService: WhiteLabelService) {
+    super();
+  }
+
+  protected async getBranding(): Promise<WhiteLabelConfig | null> {
+    return this.whiteLabelService.getPublicConfig();
+  }
+
+  protected async getEmailSenderName(): Promise<string | null> {
+    return this.whiteLabelService.getEmailSenderName();
+  }
+
   @EEOnly()
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
@@ -26,6 +40,8 @@ export class MailService extends MailServiceCE {
     if (params.mailEvent !== MailEvent.FORM_SUBMISSION) {
       if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
+
+    const branding = await this.getBranding();
 
     try {
       switch (params.mailEvent) {
@@ -60,21 +76,25 @@ export class MailService extends MailServiceCE {
                 fk_user_id: mentionedUser.id,
                 to: mentionedUser.email,
                 subject: 'You have been mentioned',
-                html: await this.renderMail('Mention', {
-                  name: extractDisplayNameFromEmail(
-                    user.email,
-                    user.display_name,
-                  ),
-                  email: user.email,
-                  link: this.buildUrl(req, {
-                    workspaceId: workspace.id,
-                    baseId: base.id,
-                    tableId: table.id,
-                    rowId,
-                    commentId: comment.id,
-                  }),
-                  baseTitle: base.title,
-                }),
+                html: await this.renderMail(
+                  'Mention',
+                  {
+                    name: extractDisplayNameFromEmail(
+                      user.email,
+                      user.display_name,
+                    ),
+                    email: user.email,
+                    link: this.buildUrl(req, {
+                      workspaceId: workspace.id,
+                      baseId: base.id,
+                      tableId: table.id,
+                      rowId,
+                      commentId: comment.id,
+                    }),
+                    baseTitle: base.title,
+                  },
+                  branding,
+                ),
               });
             }
           }
@@ -109,21 +129,25 @@ export class MailService extends MailServiceCE {
               fk_user_id: mentionedUser.id,
               to: mentionedUser.email,
               subject: 'You have been mentioned',
-              html: await this.renderMail('MentionRow', {
-                name: extractDisplayNameFromEmail(
-                  user.email,
-                  user.display_name,
-                ),
-                email: user.email,
-                baseTitle: base.title,
-                link: this.buildUrl(req, {
-                  workspaceId: workspace.id,
-                  baseId: base.id,
-                  tableId: table.id,
-                  rowId,
-                  columnId: column.id,
-                }),
-              }),
+              html: await this.renderMail(
+                'MentionRow',
+                {
+                  name: extractDisplayNameFromEmail(
+                    user.email,
+                    user.display_name,
+                  ),
+                  email: user.email,
+                  baseTitle: base.title,
+                  link: this.buildUrl(req, {
+                    workspaceId: workspace.id,
+                    baseId: base.id,
+                    tableId: table.id,
+                    rowId,
+                    columnId: column.id,
+                  }),
+                },
+                branding,
+              ),
             });
           }
           break;
@@ -140,18 +164,22 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been invited to a Workspace',
-            html: await this.renderMail('WorkspaceInvite', {
-              workspaceTitle: workspace.title,
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              link: this.buildUrl(req, {
-                workspaceId: workspace.id,
-                token,
-              }),
-            }),
+            html: await this.renderMail(
+              'WorkspaceInvite',
+              {
+                workspaceTitle: workspace.title,
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  workspaceId: workspace.id,
+                  token,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -167,19 +195,23 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: 'Your Workspace role has been updated',
-            html: await this.renderMail('WorkspaceRoleUpdate', {
-              workspaceTitle: workspace.title,
-              newRole: RoleLabels[newRole],
-              oldRole: RoleLabels[oldRole],
-              name: extractDisplayNameFromEmail(
-                invitee.email,
-                invitee.display_name,
-              ),
-              email: invitee.email,
-              link: this.buildUrl(req, {
-                workspaceId: workspace.id,
-              }),
-            }),
+            html: await this.renderMail(
+              'WorkspaceRoleUpdate',
+              {
+                workspaceTitle: workspace.title,
+                newRole: RoleLabels[newRole],
+                oldRole: RoleLabels[oldRole],
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  workspaceId: workspace.id,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -194,18 +226,22 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: 'Workspace Upgrade Request',
-            html: await this.renderMail('WorkspaceRequestUpgrade', {
-              workspaceTitle: workspace.title,
-              name: extractDisplayNameFromEmail(
-                requester.email,
-                requester.display_name,
-              ),
-              email: requester.email,
-              link: `${this.buildUrl(req, {
-                workspaceId: workspace.id,
-              })}/settings?tab=billing`,
-              limitOrFeature,
-            }),
+            html: await this.renderMail(
+              'WorkspaceRequestUpgrade',
+              {
+                workspaceTitle: workspace.title,
+                name: extractDisplayNameFromEmail(
+                  requester.email,
+                  requester.display_name,
+                ),
+                email: requester.email,
+                link: `${this.buildUrl(req, {
+                  workspaceId: workspace.id,
+                })}/settings?tab=billing`,
+                limitOrFeature,
+              },
+              branding,
+            ),
           });
 
           break;
@@ -220,17 +256,21 @@ export class MailService extends MailServiceCE {
             fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was added to a Workspace',
-            html: await this.renderMail('TeamAssignedToWorkspace', {
-              teamTitle: team.title,
-              workspaceTitle: workspace.title,
-              inviterName: extractDisplayNameFromEmail(
-                inviter.email,
-                inviter.display_name,
-              ),
-              inviterEmail: inviter.email,
-              roleLabel: RoleLabels[workspaceRole] || workspaceRole,
-              link: this.buildUrl(req, { workspaceId: workspace.id }),
-            }),
+            html: await this.renderMail(
+              'TeamAssignedToWorkspace',
+              {
+                teamTitle: team.title,
+                workspaceTitle: workspace.title,
+                inviterName: extractDisplayNameFromEmail(
+                  inviter.email,
+                  inviter.display_name,
+                ),
+                inviterEmail: inviter.email,
+                roleLabel: RoleLabels[workspaceRole] || workspaceRole,
+                link: this.buildUrl(req, { workspaceId: workspace.id }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -242,20 +282,24 @@ export class MailService extends MailServiceCE {
             fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was added to a Base',
-            html: await this.renderMail('TeamAssignedToBase', {
-              teamTitle: team.title,
-              baseTitle: base.title,
-              inviterName: extractDisplayNameFromEmail(
-                inviter.email,
-                inviter.display_name,
-              ),
-              inviterEmail: inviter.email,
-              roleLabel: RoleLabels[baseRole] || baseRole,
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-              }),
-            }),
+            html: await this.renderMail(
+              'TeamAssignedToBase',
+              {
+                teamTitle: team.title,
+                baseTitle: base.title,
+                inviterName: extractDisplayNameFromEmail(
+                  inviter.email,
+                  inviter.display_name,
+                ),
+                inviterEmail: inviter.email,
+                roleLabel: RoleLabels[baseRole] || baseRole,
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -268,17 +312,21 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been added to a Team',
-            html: await this.renderMail('TeamMemberInvite', {
-              teamTitle: team.title,
-              workspaceTitle: workspace?.title,
-              inviterName: extractDisplayNameFromEmail(
-                inviter.email,
-                inviter.display_name,
-              ),
-              inviterEmail: inviter.email,
-              roleLabel: RoleLabels[teamRole] || teamRole,
-              link: this.buildUrl(req, { workspaceId: workspace?.id }),
-            }),
+            html: await this.renderMail(
+              'TeamMemberInvite',
+              {
+                teamTitle: team.title,
+                workspaceTitle: workspace?.title,
+                inviterName: extractDisplayNameFromEmail(
+                  inviter.email,
+                  inviter.display_name,
+                ),
+                inviterEmail: inviter.email,
+                roleLabel: RoleLabels[teamRole] || teamRole,
+                link: this.buildUrl(req, { workspaceId: workspace?.id }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -291,18 +339,22 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: 'Your Team role has been updated',
-            html: await this.renderMail('TeamMemberRoleUpdate', {
-              teamTitle: team.title,
-              workspaceTitle: workspace?.title,
-              updaterName: extractDisplayNameFromEmail(
-                updater.email,
-                updater.display_name,
-              ),
-              updaterEmail: updater.email,
-              oldRoleLabel: RoleLabels[oldTeamRole] || oldTeamRole,
-              newRoleLabel: RoleLabels[teamRole] || teamRole,
-              link: this.buildUrl(req, { workspaceId: workspace?.id }),
-            }),
+            html: await this.renderMail(
+              'TeamMemberRoleUpdate',
+              {
+                teamTitle: team.title,
+                workspaceTitle: workspace?.title,
+                updaterName: extractDisplayNameFromEmail(
+                  updater.email,
+                  updater.display_name,
+                ),
+                updaterEmail: updater.email,
+                oldRoleLabel: RoleLabels[oldTeamRole] || oldTeamRole,
+                newRoleLabel: RoleLabels[teamRole] || teamRole,
+                link: this.buildUrl(req, { workspaceId: workspace?.id }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -315,17 +367,21 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: "You've been removed from a Team",
-            html: await this.renderMail('TeamMemberRemoved', {
-              teamTitle: team.title,
-              workspaceTitle: workspace?.title,
-              removerName: extractDisplayNameFromEmail(
-                remover.email,
-                remover.display_name,
-              ),
-              removerEmail: remover.email,
-              roleLabel: RoleLabels[teamRole] || teamRole,
-              link: this.buildUrl(req, { workspaceId: workspace?.id }),
-            }),
+            html: await this.renderMail(
+              'TeamMemberRemoved',
+              {
+                teamTitle: team.title,
+                workspaceTitle: workspace?.title,
+                removerName: extractDisplayNameFromEmail(
+                  remover.email,
+                  remover.display_name,
+                ),
+                removerEmail: remover.email,
+                roleLabel: RoleLabels[teamRole] || teamRole,
+                link: this.buildUrl(req, { workspaceId: workspace?.id }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -338,17 +394,21 @@ export class MailService extends MailServiceCE {
             fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was removed from a Workspace',
-            html: await this.renderMail('WorkspaceTeamRemoved', {
-              teamTitle: team.title,
-              workspaceTitle: workspace.title,
-              removerName: extractDisplayNameFromEmail(
-                remover.email,
-                remover.display_name,
-              ),
-              removerEmail: remover.email,
-              roleLabel: RoleLabels[workspaceRole] || workspaceRole,
-              link: this.buildUrl(req, { workspaceId: workspace.id }),
-            }),
+            html: await this.renderMail(
+              'WorkspaceTeamRemoved',
+              {
+                teamTitle: team.title,
+                workspaceTitle: workspace.title,
+                removerName: extractDisplayNameFromEmail(
+                  remover.email,
+                  remover.display_name,
+                ),
+                removerEmail: remover.email,
+                roleLabel: RoleLabels[workspaceRole] || workspaceRole,
+                link: this.buildUrl(req, { workspaceId: workspace.id }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -367,18 +427,22 @@ export class MailService extends MailServiceCE {
             fk_user_id: owner.id,
             to: owner.email,
             subject: "Your Team's workspace role has been updated",
-            html: await this.renderMail('WorkspaceTeamRoleUpdate', {
-              teamTitle: team.title,
-              workspaceTitle: workspace.title,
-              updaterName: extractDisplayNameFromEmail(
-                updater.email,
-                updater.display_name,
-              ),
-              updaterEmail: updater.email,
-              oldRoleLabel: RoleLabels[oldWorkspaceRole] || oldWorkspaceRole,
-              newRoleLabel: RoleLabels[workspaceRole] || workspaceRole,
-              link: this.buildUrl(req, { workspaceId: workspace.id }),
-            }),
+            html: await this.renderMail(
+              'WorkspaceTeamRoleUpdate',
+              {
+                teamTitle: team.title,
+                workspaceTitle: workspace.title,
+                updaterName: extractDisplayNameFromEmail(
+                  updater.email,
+                  updater.display_name,
+                ),
+                updaterEmail: updater.email,
+                oldRoleLabel: RoleLabels[oldWorkspaceRole] || oldWorkspaceRole,
+                newRoleLabel: RoleLabels[workspaceRole] || workspaceRole,
+                link: this.buildUrl(req, { workspaceId: workspace.id }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -390,20 +454,24 @@ export class MailService extends MailServiceCE {
             fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was removed from a Base',
-            html: await this.renderMail('BaseTeamRemoved', {
-              teamTitle: team.title,
-              baseTitle: base.title,
-              removerName: extractDisplayNameFromEmail(
-                remover.email,
-                remover.display_name,
-              ),
-              removerEmail: remover.email,
-              roleLabel: RoleLabels[baseRole] || baseRole,
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-              }),
-            }),
+            html: await this.renderMail(
+              'BaseTeamRemoved',
+              {
+                teamTitle: team.title,
+                baseTitle: base.title,
+                removerName: extractDisplayNameFromEmail(
+                  remover.email,
+                  remover.display_name,
+                ),
+                removerEmail: remover.email,
+                roleLabel: RoleLabels[baseRole] || baseRole,
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -416,21 +484,25 @@ export class MailService extends MailServiceCE {
             fk_user_id: owner.id,
             to: owner.email,
             subject: "Your Team's base role has been updated",
-            html: await this.renderMail('BaseTeamRoleUpdate', {
-              teamTitle: team.title,
-              baseTitle: base.title,
-              updaterName: extractDisplayNameFromEmail(
-                updater.email,
-                updater.display_name,
-              ),
-              updaterEmail: updater.email,
-              oldRoleLabel: RoleLabels[oldBaseRole] || oldBaseRole,
-              newRoleLabel: RoleLabels[baseRole] || baseRole,
-              link: this.buildUrl(req, {
-                workspaceId: base.fk_workspace_id,
-                baseId: base.id,
-              }),
-            }),
+            html: await this.renderMail(
+              'BaseTeamRoleUpdate',
+              {
+                teamTitle: team.title,
+                baseTitle: base.title,
+                updaterName: extractDisplayNameFromEmail(
+                  updater.email,
+                  updater.display_name,
+                ),
+                updaterEmail: updater.email,
+                oldRoleLabel: RoleLabels[oldBaseRole] || oldBaseRole,
+                newRoleLabel: RoleLabels[baseRole] || baseRole,
+                link: this.buildUrl(req, {
+                  workspaceId: base.fk_workspace_id,
+                  baseId: base.id,
+                }),
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -460,14 +532,18 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: `Something went wrong with an automation: ${workflow.title}`,
-            html: await this.renderMail('WorkflowErrorDigest', {
-              workflowTitle: workflow.title,
-              baseTitle: base.title,
-              failureCount,
-              firstFailureTime,
-              lastFailureTime,
-              link,
-            }),
+            html: await this.renderMail(
+              'WorkflowErrorDigest',
+              {
+                workflowTitle: workflow.title,
+                baseTitle: base.title,
+                failureCount,
+                firstFailureTime,
+                lastFailureTime,
+                link,
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -486,12 +562,16 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: `Reminder: "${workflow.title}" has unpublished changes`,
-            html: await this.renderMail('WorkflowDraftReminder', {
-              workflowTitle: workflow.title,
-              baseTitle: base.title,
-              draftAgeDays,
-              link,
-            }),
+            html: await this.renderMail(
+              'WorkflowDraftReminder',
+              {
+                workflowTitle: workflow.title,
+                baseTitle: base.title,
+                draftAgeDays,
+                link,
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -521,15 +601,19 @@ export class MailService extends MailServiceCE {
             fk_user_id: user.id,
             to: user.email,
             subject: `Something went wrong with a webhook: ${hook.title}`,
-            html: await this.renderMail('HookErrorDigest', {
-              hookTitle: hook.title,
-              tableName: table.title,
-              baseTitle: base.title,
-              failureCount,
-              firstFailureTime,
-              lastFailureTime,
-              link,
-            }),
+            html: await this.renderMail(
+              'HookErrorDigest',
+              {
+                hookTitle: hook.title,
+                tableName: table.title,
+                baseTitle: base.title,
+                failureCount,
+                firstFailureTime,
+                lastFailureTime,
+                link,
+              },
+              branding,
+            ),
           });
           break;
         }
@@ -562,15 +646,19 @@ export class MailService extends MailServiceCE {
             event: params.mailEvent,
             to: emails.join(','),
             subject: emailSubject,
-            html: await this.renderMail('SendRecord', {
-              senderName,
-              senderEmail,
-              tableTitle: model.title,
-              baseTitle: base.title,
-              message,
-              recordData,
-              recordUrl,
-            }),
+            html: await this.renderMail(
+              'SendRecord',
+              {
+                senderName,
+                senderEmail,
+                tableTitle: model.title,
+                baseTitle: base.title,
+                message,
+                recordData,
+                recordUrl,
+              },
+              branding,
+            ),
           });
           break;
         }

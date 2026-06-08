@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -20,6 +21,7 @@ interface MentionCommentTemplateProps {
   email: string;
   link: string;
   baseTitle: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const MentionComment = ({
@@ -27,13 +29,14 @@ export const MentionComment = ({
   email,
   link,
   baseTitle,
+  branding,
 }: MentionCommentTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>You have been mentioned</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             You have been mentioned
           </Heading>
@@ -55,7 +58,7 @@ export const MentionComment = ({
             <Text className="!my-[8px]">View Comment</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

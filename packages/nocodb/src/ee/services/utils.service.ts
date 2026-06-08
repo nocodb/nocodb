@@ -10,6 +10,7 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import SSOClient from '~/models/SSOClient';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { WhiteLabelService } from '~/services/white-label.service';
 
 interface ViewCount {
   formCount: number | null;
@@ -49,7 +50,10 @@ export interface AllMeta {
 
 @Injectable()
 export class UtilsService extends UtilsServiceCE {
-  constructor(protected readonly configService: ConfigService<AppConfig>) {
+  constructor(
+    protected readonly configService: ConfigService<AppConfig>,
+    protected readonly whiteLabelService: WhiteLabelService,
+  ) {
     super(configService);
   }
 
@@ -188,6 +192,10 @@ export class UtilsService extends UtilsServiceCE {
     // Yjs realtime co-editing of docs. Off → the frontend falls back to the
     // legacy debounced REST save (NC_DOCS_REALTIME=false kill-switch).
     result.docsRealtimeEnabled = isDocsRealtimeEnabled();
+
+    // White-label config — sanitized (null when disabled, unconfigured, or the
+    // plan lacks the feature); email sender/footer copy stripped to footerUrl.
+    result.whiteLabel = await this.whiteLabelService.getAppInfoConfig();
 
     return result;
   }

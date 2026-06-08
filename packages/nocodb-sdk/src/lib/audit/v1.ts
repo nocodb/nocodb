@@ -36,6 +36,8 @@ enum AuditV1OperationTypes {
   ORG_DOMAIN_DELETE = 'ORG_DOMAIN_DELETE',
   ORG_DOMAIN_VERIFY = 'ORG_DOMAIN_VERIFY',
 
+  WHITE_LABEL_UPDATE = 'WHITE_LABEL_UPDATE',
+
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
@@ -1652,6 +1654,10 @@ const descriptionTemplates = {
     `Domain '${audit.details?.domain_name}' removed from organization`,
   [AuditV1OperationTypes.ORG_DOMAIN_VERIFY]: (audit: AuditV1<any>) =>
     `Domain '${audit.details?.domain_name}' verification initiated`,
+  [AuditV1OperationTypes.WHITE_LABEL_UPDATE]: (audit: AuditV1<any>) =>
+    `White-label settings updated (${
+      audit.details?.enabled ? 'enabled' : 'disabled'
+    })`,
   [AuditV1OperationTypes.DATA_INSERT]: (audit: AuditV1<DataInsertPayload>) =>
     `Record with ID [${audit.row_id}] has been inserted`,
   [AuditV1OperationTypes.DATA_UPDATE]: (audit: AuditV1<DataUpdatePayload>) =>

@@ -876,6 +876,17 @@
 
 :root,
 [theme='dark'] {
+  /* Mode-independent brand accent: backs hand-written #3366ff literals (checkbox
+     fill, focus rings, box-shadows, text selection) that aren't part of the
+     --color-brand-* ramp. Same value in light & dark, mirroring those literals.
+     White-labelling overrides this one var to recolour them all. */
+  --nc-brand-accent: #3366ff;
+  --nc-brand-accent-rgb: 51, 102, 255;
+  /* Darker hover shade of the accent — also mode-independent (constant in light
+     & dark), mirroring the hand-written #2952cc hover literals. Do NOT use
+     --color-brand-600 for these: that ramp stop inverts in dark mode. */
+  --nc-brand-accent-hover: #2952cc;
+
   --nc-content-gray-extreme: var(--color-base-black);
   --nc-content-gray-emphasis: var(--color-gray-900);
   --nc-content-gray: var(--color-gray-800);

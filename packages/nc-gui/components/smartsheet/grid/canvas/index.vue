@@ -254,6 +254,7 @@ const { height, width } = useElementSize(wrapperRef)
 const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
+const { getColor } = useTheme()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
 const { selectedTemplate } = useRecordTemplate()
 const { base } = storeToRefs(useBase())
@@ -1064,7 +1065,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
       fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Inter`,
       textAlign: 'center',
       isTagLabel: true,
-      fillStyle: '#3366FF',
+      fillStyle: getColor('var(--nc-brand-accent)'),
     })
 
     regions.push({

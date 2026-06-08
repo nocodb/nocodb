@@ -82,7 +82,7 @@ watch([() => selectedWidget.value?.config.content], () => {
   &:focus,
   &:focus-within {
     @apply min-h-26 !bg-nc-bg-default border-nc-border-brand;
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+    box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
   &::placeholder {
     @apply !text-nc-content-gray-disabled;

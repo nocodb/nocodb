@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -20,6 +21,7 @@ interface WorkflowDraftReminderTemplateProps {
   baseTitle: string;
   draftAgeDays: number;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const WorkflowDraftReminder = ({
@@ -27,15 +29,16 @@ export const WorkflowDraftReminder = ({
   baseTitle,
   draftAgeDays,
   link,
+  branding,
 }: WorkflowDraftReminderTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>
         Your automation "{workflowTitle}" has unpublished changes
       </Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Unpublished draft changes
           </Heading>
@@ -58,7 +61,7 @@ export const WorkflowDraftReminder = ({
             <Text className="!my-[8px]">Review & Publish</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

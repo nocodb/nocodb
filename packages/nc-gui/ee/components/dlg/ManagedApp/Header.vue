@@ -55,6 +55,6 @@ const vVisible = useVModel(props, 'visible', emits)
 .nc-dlg-managed-app-icon {
   @apply w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm;
   background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
-  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(var(--nc-brand-accent-rgb), 0.15);
 }
 </style>

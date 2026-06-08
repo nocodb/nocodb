@@ -8,8 +8,48 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
-export const Footer = () => {
+
+export interface FooterProps {
+  branding?: WhiteLabelConfig | null;
+}
+
+export const Footer = ({ branding }: FooterProps = {}) => {
+  // Whitelabelled emails get a stripped-down footer — no social/legal links
+  // pointing at nocodb.com, just the customer's own brand line.
+  if (branding?.enabled) {
+    const productName = branding.productName || '';
+    const footerText = branding.email?.footerText || null;
+    const footerUrl = branding.email?.footerUrl || null;
+    return (
+      <Container className="px-3">
+        {footerText ? (
+          <Text className="text-gray-500 m-auto text-sm max-w-[400px] text-center">
+            {footerText}
+          </Text>
+        ) : null}
+        <Section className="mt-6">
+          <Row>
+            <Column>
+              <Text className="text-center !my-0 text-gray-500 text-[13px]">
+                {footerUrl ? (
+                  <Link href={footerUrl} className="text-gray-500">
+                    {new Date().getFullYear()} — © {productName || 'All rights reserved'}
+                  </Link>
+                ) : (
+                  <>
+                    {new Date().getFullYear()}
+                    {productName ? ` — © ${productName}` : ''}
+                  </>
+                )}
+              </Text>
+            </Column>
+          </Row>
+        </Section>
+      </Container>
+    );
+  }
   return (
     <Container className="px-3">
       <Text className="text-gray-500 m-auto text-sm max-w-[400px] text-center">

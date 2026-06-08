@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -23,6 +24,7 @@ interface HookErrorDigestTemplateProps {
   firstFailureTime: string;
   lastFailureTime: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const HookErrorDigest = ({
@@ -33,24 +35,32 @@ export const HookErrorDigest = ({
   firstFailureTime,
   lastFailureTime,
   link,
+  branding,
 }: HookErrorDigestTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Something went wrong with a webhook: {hookTitle}</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             {hookTitle}
           </Heading>
           <Section className="py-4 mx-auto text-center">
             <Text className="text-gray-600 text-sm !mt-0 !mb-4">
-              Your webhook <span className="font-bold text-gray-800">{hookTitle}</span> on
-              table <span className="font-bold text-gray-800">{tableName}</span> has
-              failed <span className="font-bold text-red-600">{failureCount} {failureCount === 1 ? 'time' : 'times'}</span> in{' '}
-              <span className="font-bold text-gray-800">{baseTitle}</span>
+              Your webhook{' '}
+              <span className="font-bold text-gray-800">{hookTitle}</span> on
+              table <span className="font-bold text-gray-800">{tableName}</span>{' '}
+              has failed{' '}
+              <span className="font-bold text-red-600">
+                {failureCount} {failureCount === 1 ? 'time' : 'times'}
+              </span>{' '}
+              in <span className="font-bold text-gray-800">{baseTitle}</span>
               {failureCount > 1 ? (
-                <> between {firstFailureTime} and {lastFailureTime}.</>
+                <>
+                  {' '}
+                  between {firstFailureTime} and {lastFailureTime}.
+                </>
               ) : (
                 <> at {lastFailureTime}.</>
               )}
@@ -63,7 +73,7 @@ export const HookErrorDigest = ({
             <Text className="!my-[8px]">View webhook logs</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

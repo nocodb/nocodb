@@ -31,6 +31,11 @@ interface XcEmailAttachment {
 
 interface XcEmail {
   // from?:string;
+  /**
+   * Optional From display-name override (the email address stays the adapter's
+   * configured sender). Used by white-labelling to brand the sender name.
+   */
+  fromName?: string;
   to: string;
   subject: string;
   html?: string;

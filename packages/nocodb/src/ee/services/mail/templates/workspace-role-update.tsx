@@ -12,6 +12,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -27,6 +28,7 @@ interface WorkspaceRoleUpdateTemplateProps {
   name: string;
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const WorkspaceRoleUpdate = ({
@@ -36,13 +38,14 @@ export const WorkspaceRoleUpdate = ({
   name,
   email,
   link,
+  branding,
 }: WorkspaceRoleUpdateTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>Your Workspace role has been updated</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your workspace role has been updated
           </Heading>
@@ -80,7 +83,7 @@ export const WorkspaceRoleUpdate = ({
             <Text className="!my-[8px]">Go to Workspace</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

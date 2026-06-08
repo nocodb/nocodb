@@ -321,7 +321,7 @@ watch(
 
   &:hover {
     @apply border-nc-border-brand transform translate-x-0.5;
-    box-shadow: 0 4px 12px rgba(51, 102, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(var(--nc-brand-accent-rgb), 0.08);
 
     &::before {
       @apply opacity-100;
@@ -329,7 +329,7 @@ watch(
 
     .nc-deployment-icon {
       @apply transform scale-105;
-      box-shadow: 0 4px 8px rgba(51, 102, 255, 0.15);
+      box-shadow: 0 4px 8px rgba(var(--nc-brand-accent-rgb), 0.15);
     }
   }
 }

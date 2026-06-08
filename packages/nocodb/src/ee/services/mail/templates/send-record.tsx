@@ -12,12 +12,14 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
+import type { RelationTypes, WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
-  RootWrapper,
   getFieldIconUrl,
+  resolveProductName,
+  RootWrapper,
 } from '~/services/mail/templates/components';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 
@@ -34,6 +36,7 @@ interface SendRecordTemplateProps {
     relationType?: RelationTypes;
   }>;
   recordUrl?: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 const SendRecord = ({
@@ -44,15 +47,16 @@ const SendRecord = ({
   message,
   recordData,
   recordUrl,
+  branding,
 }: SendRecordTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
       <Preview>
         {senderName} shared a record from {tableTitle}
       </Preview>
       <Body className="bg-white">
-        <ContentWrapper disableContainerPadding>
+        <ContentWrapper branding={branding} disableContainerPadding>
           <Section className="p-6 mx-auto">
             <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
               {senderName} shared a record with you
@@ -161,13 +165,13 @@ const SendRecord = ({
                     textDecoration: 'none',
                   }}
                 >
-                  View Record in NocoDB
+                  View Record in {resolveProductName(branding)}
                 </a>
               </Section>
             )}
           </Section>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

@@ -23,6 +23,7 @@ import type {
   TrialEndedPayload,
   TrialEndingPayload,
 } from '~/interface/Mail';
+import { WhiteLabelService } from '~/services/white-label.service';
 import * as CloudMailTemplates from '~/mail/templates/transactional';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MailEvent } from '~/interface/Mail';
@@ -56,6 +57,7 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
 @Injectable()
 export class MailService extends MailServiceEE {
   constructor(
+    whiteLabelService: WhiteLabelService,
     // Optional — playwright / no-Redis builds don't register a Bull queue.
     // We still want the cloud MailService to load so non-deferred events
     // (Welcome, CE-fallback events) keep working; deferred events become
@@ -64,7 +66,7 @@ export class MailService extends MailServiceEE {
     @InjectQueue(JOBS_QUEUE)
     protected readonly jobsQueue: Queue | null = null,
   ) {
-    super();
+    super(whiteLabelService);
   }
 
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {

@@ -1843,6 +1843,24 @@ export class AppHooksListenerService
         }
         break;
 
+      case AppEvents.WHITE_LABEL_UPDATE:
+        {
+          const param = data as any;
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.WHITE_LABEL_UPDATE,
+              {
+                details: {
+                  enabled: !!param.enabled,
+                },
+                fk_org_id: param.orgId,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
       case AppEvents.SCIM_CONFIG_CREATE:
       case AppEvents.SCIM_CONFIG_UPDATE:
       case AppEvents.SCIM_CONFIG_DISABLE:

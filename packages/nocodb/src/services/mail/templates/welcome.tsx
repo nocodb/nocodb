@@ -9,26 +9,29 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
+  resolveProductName,
   RootWrapper,
 } from '~/services/mail/templates/components';
 
 interface WelcomeTemplateProps {
   email: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
-export const Welcome = ({ email, link }: WelcomeTemplateProps) => (
+export const Welcome = ({ email, link, branding }: WelcomeTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
-      <Preview>Welcome to NocoDB!</Preview>
+      <Preview>Welcome to {resolveProductName(branding)}!</Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            Welcome to NocoDB!
+            Welcome to {resolveProductName(branding)}!
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
             {email}
@@ -55,7 +58,7 @@ export const Welcome = ({ email, link }: WelcomeTemplateProps) => (
             <Text className="!my-[8px]">Go to your Workspace</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

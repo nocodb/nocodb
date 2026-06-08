@@ -104,6 +104,8 @@ export enum AppEvents {
   ORG_DOMAIN_DELETE = 'org.domain.delete',
   ORG_DOMAIN_VERIFY = 'org.domain.verify',
 
+  WHITE_LABEL_UPDATE = 'white.label.update',
+
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
   USER_SIGNIN_FAILED = 'user.signin.failed',
@@ -686,6 +688,7 @@ export enum PublicAttachmentScope {
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
   OAUTHCLIENTS = 'oauthClients',
+  WHITELABEL = 'whiteLabel',
 }
 
 export enum IconType {

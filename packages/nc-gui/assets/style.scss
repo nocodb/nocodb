@@ -73,12 +73,12 @@ body {
 ::-moz-selection {
   /* Code for Firefox */
   color: inherit;
-  background-color: #3366ff20;
+  background-color: rgba(var(--nc-brand-accent-rgb), 0.125);
 }
 
 ::selection {
   color: inherit;
-  background-color: #3366ff20;
+  background-color: rgba(var(--nc-brand-accent-rgb), 0.125);
 }
 
 .ant-layout-content {
@@ -1184,7 +1184,7 @@ svg.nc-virtual-cell-icon {
     box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px #7d26cd;
   }
   &:not(.nc-ai-input) {
-    box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px #3366ff;
+    box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px var(--nc-brand-accent);
   }
 }
 
@@ -1554,8 +1554,8 @@ svg.nc-virtual-cell-icon {
 }
 
 .ant-checkbox-wrapper:not(.theme-ai) .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {
-  background-color: #3366ff !important;
-  border-color: #3366ff !important;
+  background-color: var(--nc-brand-accent) !important;
+  border-color: var(--nc-brand-accent) !important;
 }
 
 .nc-settings-item-card-wrapper {

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UtilsService as UtilsServiceEE } from 'src/ee/services/utils.service';
 import type { AppConfig } from '~/interface/config';
+import { WhiteLabelService } from '~/services/white-label.service';
 import { getOnPremPlan } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
@@ -46,8 +47,11 @@ function resolveLicenseServerUrl(): string {
 
 @Injectable()
 export class UtilsService extends UtilsServiceEE {
-  constructor(protected readonly configService: ConfigService<AppConfig>) {
-    super(configService);
+  constructor(
+    protected readonly configService: ConfigService<AppConfig>,
+    protected readonly whiteLabelService: WhiteLabelService,
+  ) {
+    super(configService, whiteLabelService);
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {

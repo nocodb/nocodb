@@ -148,6 +148,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      // On-prem-only features (always disabled on cloud)
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
     limits: {
       // Seat limits
@@ -227,6 +229,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      // On-prem-only features (always disabled on cloud)
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -263,6 +267,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       // Custom sync is Enterprise-only
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
+      // On-prem-only features (always disabled on cloud)
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -297,6 +303,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
+      // On-prem-only features (always disabled on cloud)
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -322,7 +330,10 @@ export const CloudPlanDefinitions: Record<
   // ENTERPRISE — no features disabled; all unlimited or set high
   // -------------------------------------------------------------------------
   [PlanTitles.ENTERPRISE]: {
-    features: {},
+    features: {
+      // On-prem-only features (always disabled on cloud)
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
+    },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
@@ -552,6 +563,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
       [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
       [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]: false,
@@ -579,6 +591,7 @@ export const OnPremPlanDefinitions: Record<
       // Enterprise-only
       [PlanFeatureTypes.FEATURE_SCIM]: false,
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },

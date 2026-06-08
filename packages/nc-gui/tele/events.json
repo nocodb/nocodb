@@ -771,6 +771,21 @@
     "c:webhook:log": "View webhook log",
     "c:webhook:settings": "Open webhook settings"
   },
+  "whiteLabel": {
+    "a:white-label:save": "Save white-label configuration",
+    "c:white-label:banner:remove": "Remove form banner image",
+    "c:white-label:banner:upload": "Upload form banner image",
+    "c:white-label:brand-color": "Pick brand color",
+    "c:white-label:enable:toggle": "Toggle white-label enabled",
+    "c:white-label:favicon:remove": "Remove favicon asset",
+    "c:white-label:favicon:upload": "Upload favicon asset",
+    "c:white-label:logo:remove": "Remove logo asset",
+    "c:white-label:logo:upload": "Upload logo asset",
+    "c:white-label:logoDark:remove": "Remove dark-mode logo asset",
+    "c:white-label:logoDark:upload": "Upload dark-mode logo asset",
+    "c:white-label:open": "Open white-label admin tab",
+    "c:white-label:reset": "Reset white-label form"
+  },
   "workflow": {
     "a:workflow:create": "Create workflow",
     "a:workflow:delete": "Delete workflow",

@@ -333,6 +333,7 @@ t('labels.signInWithProvider', { provider: 'Google' })
 - **Pluralisation** — vue-i18n supports `{count} item | {count} items` syntax if needed.
 - **`en.json` is the source of truth** — other locale files are translations of it; only edit `en.json` in PRs.
 - **Verify the full key path** — keys are nested under top-level groups (`labels`, `title`, `msg`, etc.). Always read enough surrounding context in `en.json` to confirm the full path (e.g. `labels.noResults`, not `title.noResults`). Don't guess the group from the key name alone.
+- **Escape `@` (and `{`, `}`, `|`) in message values** — vue-i18n reads `@` as its linked-message marker (`@:key`), so a literal `@` (e.g. an example email like `support@nocodb.com`) throws `Invalid linked format` and **blanks the whole page in production/Docker builds**. The Vite dev server's compiler is lenient and does **not** error, so this slips through local testing and only surfaces in the built app — always test i18n strings with special chars in a prod build, or just escape preemptively. Use vue-i18n's literal syntax `{'@'}`: write `"support{'@'}nocodb.com"` (still renders as `support@nocodb.com`). Same for a literal `{`, `}`, or `|`.
 
 ### Composable Patterns
 

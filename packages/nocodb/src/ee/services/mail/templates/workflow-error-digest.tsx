@@ -9,6 +9,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import type { WhiteLabelConfig } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -22,6 +23,7 @@ interface WorkflowErrorDigestTemplateProps {
   firstFailureTime: string;
   lastFailureTime: string;
   link: string;
+  branding?: WhiteLabelConfig | null;
 }
 
 export const WorkflowErrorDigest = ({
@@ -31,23 +33,33 @@ export const WorkflowErrorDigest = ({
   firstFailureTime,
   lastFailureTime,
   link,
+  branding,
 }: WorkflowErrorDigestTemplateProps) => (
   <Html>
-    <RootWrapper>
+    <RootWrapper branding={branding}>
       <Head />
-      <Preview>Something went wrong with an automation: {workflowTitle}</Preview>
+      <Preview>
+        Something went wrong with an automation: {workflowTitle}
+      </Preview>
       <Body className="bg-white">
-        <ContentWrapper>
+        <ContentWrapper branding={branding}>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             {workflowTitle}
           </Heading>
           <Section className="py-4 mx-auto text-center">
             <Text className="text-gray-600 text-sm !mt-0 !mb-4">
-              Your automation <span className="font-bold text-gray-800">{workflowTitle}</span> has
-              failed <span className="font-bold text-red-600">{failureCount} {failureCount === 1 ? 'time' : 'times'}</span> in{' '}
-              <span className="font-bold text-gray-800">{baseTitle}</span>
+              Your automation{' '}
+              <span className="font-bold text-gray-800">{workflowTitle}</span>{' '}
+              has failed{' '}
+              <span className="font-bold text-red-600">
+                {failureCount} {failureCount === 1 ? 'time' : 'times'}
+              </span>{' '}
+              in <span className="font-bold text-gray-800">{baseTitle}</span>
               {failureCount > 1 ? (
-                <> between {firstFailureTime} and {lastFailureTime}.</>
+                <>
+                  {' '}
+                  between {firstFailureTime} and {lastFailureTime}.
+                </>
               ) : (
                 <> at {lastFailureTime}.</>
               )}
@@ -60,7 +72,7 @@ export const WorkflowErrorDigest = ({
             <Text className="!my-[8px]">View last failure</Text>
           </Button>
         </ContentWrapper>
-        <Footer />
+        <Footer branding={branding} />
       </Body>
     </RootWrapper>
   </Html>

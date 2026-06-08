@@ -22,7 +22,8 @@ export default class Mailer implements IEmailAdapter {
 
     const emailParams = new EmailParams()
       .setFrom(this.input.from)
-      .setFromName(this.input.from_name)
+      // White-label sender-name override (falls back to the plugin's from_name).
+      .setFromName(mail.fromName || this.input.from_name)
       .setRecipients(recipients)
       .setSubject(mail.subject)
       .setHtml(mail.html)

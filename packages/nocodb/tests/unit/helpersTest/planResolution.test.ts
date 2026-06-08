@@ -25,6 +25,18 @@ const allPlans = [
 const allFeatures = Object.values(PlanFeatureTypes);
 const allLimits = Object.values(PlanLimitTypes);
 
+// Features that are intentionally unavailable on every cloud plan because they
+// only make sense for a single-instance on-prem deployment (e.g. instance-wide
+// white-labeling stored in nc_store). These are exempt from the cloud
+// plan-tier invariants below — "Enterprise has all features" and "every
+// feature maps to a cloud tier" apply only to cloud-applicable features. The
+// on-prem tiers for these are defined separately in OnPremPlanDefinitions.
+const onPremOnlyFeatures = new Set<PlanFeatureTypes>([
+  PlanFeatureTypes.FEATURE_WHITE_LABEL,
+]);
+
+const cloudFeatures = allFeatures.filter((f) => !onPremOnlyFeatures.has(f));
+
 function planResolutionTests() {
   describe('resolvePlanMeta', () => {
     for (const plan of allPlans) {
@@ -69,8 +81,8 @@ function planResolutionTests() {
   });
 
   describe('Feature tier gating', () => {
-    it('PlanFeatureTypesToPlanTitles should map every feature to a plan', () => {
-      for (const feature of allFeatures) {
+    it('PlanFeatureTypesToPlanTitles should map every cloud feature to a plan', () => {
+      for (const feature of cloudFeatures) {
         expect(PlanFeatureTypesToPlanTitles).to.have.property(feature);
         expect(allPlans).to.include(PlanFeatureTypesToPlanTitles[feature]);
       }
@@ -296,9 +308,9 @@ function planResolutionTests() {
       }
     });
 
-    it('Enterprise plan should have all features enabled', () => {
+    it('Enterprise plan should have all cloud features enabled', () => {
       const meta = resolvePlanMeta(PlanTitles.ENTERPRISE);
-      for (const feature of allFeatures) {
+      for (const feature of cloudFeatures) {
         expect(meta[feature]).to.eq(
           true,
           `Enterprise should have ${feature} enabled`,

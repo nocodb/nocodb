@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
 
+const { productName } = useBranding()
+
 const { api } = useApi()
 const { user } = useGlobal()
 
@@ -130,7 +132,7 @@ onMounted(() => {
       <GeneralIcon icon="alertTriangle" class="w-12 h-12 text-nc-content-red-medium mx-auto mb-4" />
       <h2 class="text-xl font-semibold text-nc-content-gray-extreme mb-2">Authorization Error</h2>
       <p class="text-nc-content-gray-subtle2 mb-6">{{ error }}</p>
-      <NcButton size="small" type="primary" @click="$router.push('/')"> Back to NocoDB </NcButton>
+      <NcButton size="small" type="primary" @click="$router.push('/')"> Back to {{ productName }} </NcButton>
     </div>
 
     <div v-else class="rounded-xl bg-nc-bg-default shadow-sm border-1 border-nc-border-gray-medium p-8 max-w-lg w-full">

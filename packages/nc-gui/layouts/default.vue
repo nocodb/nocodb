@@ -5,13 +5,17 @@ const route = useRoute()
 
 const { te, t } = useI18n()
 
+const { productName } = useBranding()
+
 const { hasSidebar } = useSidebar('nc-left-sidebar')
 
 const refreshSidebar = ref(false)
 
 const sidebarReady = ref(false)
 
-useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : 'NocoDB')
+// Reactive so the fallback title follows the product name (incl. live-apply on
+// a white-labelled instance); page-specific route titles still take precedence.
+useTitle(computed(() => (route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : productName.value)))
 
 watch(hasSidebar, (val) => {
   if (!val) {

@@ -704,7 +704,7 @@ defineExpose({
     outline: none;
     box-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
 
-    caret-color: #3366ff;
+    caret-color: var(--nc-brand-accent);
     color: rgb(60, 65, 73);
   }
 

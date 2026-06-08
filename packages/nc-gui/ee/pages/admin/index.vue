@@ -17,6 +17,8 @@ const {
   showUpgradeToUseTeams,
   blockScim,
   showUpgradeToUseScim,
+  blockWhiteLabel,
+  showUpgradeToUseWhiteLabel,
   isWsAuditEnabled,
   showUpgradeToUseAudit,
 } = useEeConfig()
@@ -46,6 +48,7 @@ type AdminTab =
   | 'license'
   | 'users-list'
   | 'settings'
+  | 'white-label'
 
 const validTabs: AdminTab[] = [
   'dashboard',
@@ -62,6 +65,7 @@ const validTabs: AdminTab[] = [
   'license',
   'users-list',
   'settings',
+  'white-label',
 ]
 
 const router = useRouter()
@@ -69,6 +73,46 @@ const router = useRouter()
 const initialTab = validTabs.includes(route.query.tab as AdminTab) ? (route.query.tab as AdminTab) : 'dashboard'
 
 const activeTab = ref<AdminTab>(initialTab)
+
+// A tab (e.g. White Label) may register an async confirm to run before the
+// panel switches away from it (tabs are an `activeTab` ref, not routes, so
+// onBeforeRouteLeave can't catch this).
+const { leaveGuard } = useAdminTabGuard()
+
+// Guards leaving a tab with unsaved edits. Since the change has already
+// happened by the time the watcher fires, revert synchronously to keep the
+// current tab mounted while we ask, then re-apply on confirm.
+let bypassTabGuard = false
+let guarding = false
+
+watch(
+  activeTab,
+  (tab, prevTab) => {
+    if (bypassTabGuard || !leaveGuard.value || tab === prevTab) return
+
+    const target = tab
+    const guard = leaveGuard.value
+
+    // Revert immediately so the current tab stays mounted during the prompt.
+    bypassTabGuard = true
+    activeTab.value = prevTab
+    bypassTabGuard = false
+
+    // A prompt is already open (e.g. a query-driven change re-triggered us) —
+    // stay reverted, don't stack a second dialog.
+    if (guarding) return
+
+    guarding = true
+    guard().then((proceed) => {
+      guarding = false
+      if (!proceed) return
+      bypassTabGuard = true
+      activeTab.value = target
+      bypassTabGuard = false
+    })
+  },
+  { flush: 'sync' },
+)
 
 watch(activeTab, (tab) => {
   router.replace({ query: { ...route.query, tab } })
@@ -82,6 +126,20 @@ watch(
       activeTab.value = tab as AdminTab
     }
   },
+)
+
+// Block entitlement-gated tabs reached directly by URL (e.g. pasting
+// ?tab=white-label in a new tab on a plan without the feature): redirect to the
+// dashboard. `immediate` runs during setup so a direct load is corrected before
+// the gated tab content mounts (no flash, no leave-guard registration).
+watch(
+  [activeTab, blockWhiteLabel],
+  () => {
+    if (activeTab.value === 'white-label' && blockWhiteLabel.value) {
+      activeTab.value = 'dashboard'
+    }
+  },
+  { immediate: true },
 )
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
@@ -325,6 +383,26 @@ watch(
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="showEEFeatures"
+              key="white-label"
+              v-e="['c:white-label:open']"
+              :class="{ active: activeTab === 'white-label' }"
+              class="item"
+              data-testid="nc-admin-white-label-nav"
+              @click="blockWhiteLabel ? showUpgradeToUseWhiteLabel() : (activeTab = 'white-label')"
+            >
+              <div class="w-full flex items-center space-x-2">
+                <GeneralIcon icon="ncImage" class="!h-4 !w-4" />
+                <div class="select-none flex-1">{{ $t('labels.whiteLabel.title') }}</div>
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_WHITE_LABEL"
+                  :feature-enabled-callback="() => !blockWhiteLabel"
+                  remove-click
+                />
+              </div>
+            </NcMenuItem>
+
             <!-- System -->
             <NcMenuItem key="license" :class="{ active: activeTab === 'license' }" class="item" @click="activeTab = 'license'">
               <div class="flex items-center space-x-2">
@@ -355,6 +433,7 @@ watch(
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />
+              <AdminWhiteLabel v-else-if="activeTab === 'white-label'" />
             </div>
           </div>
         </div>
@@ -401,9 +480,5 @@ watch(
 
 :deep(.ant-menu) {
   @apply !pt-0 !rounded-none !border-nc-border-gray-medium;
-}
-
-:deep(.nc-page-header) {
-  @apply !h-[calc(var(--topbar-height)+1px)];
 }
 </style>

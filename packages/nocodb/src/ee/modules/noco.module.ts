@@ -7,6 +7,9 @@ import { PaymentModule } from '~/modules/payment/payment.module';
 import { ActionsController } from '~/controllers/actions.controller';
 import { CustomUrlsController } from '~/controllers/custom-urls.controller';
 import { CustomUrlsService } from '~/services/custom-urls.service';
+import { WhiteLabelController } from '~/controllers/white-label.controller';
+import { WhiteLabelPublicController } from '~/controllers/white-label-public.controller';
+import { WhiteLabelService } from '~/services/white-label.service';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
@@ -217,6 +220,7 @@ export const nocoModuleEeMetadata = {
 
     /* Generic */
     CustomUrlsService,
+    WhiteLabelService,
 
     /* Datas */
     DataOptService,
@@ -372,6 +376,8 @@ export const nocoModuleEeMetadata = {
 
     /* Generic */
     CustomUrlsController,
+    WhiteLabelController,
+    WhiteLabelPublicController,
 
     /* Metas */
     TelemetryController,
@@ -473,6 +479,7 @@ export const nocoModuleEeMetadata = {
 
     /* Generic */
     CustomUrlsService,
+    WhiteLabelService,
 
     /* MFA */
     MfaService,

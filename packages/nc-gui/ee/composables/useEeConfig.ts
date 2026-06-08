@@ -424,6 +424,11 @@ export const useEeConfig = createSharedComposable(() => {
     if (isPaymentEnabled.value) return true
     return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
   })
+  const blockWhiteLabel = computed(() => {
+    // White Label is on-prem enterprise only — always blocked on cloud
+    if (isPaymentEnabled.value) return true
+    return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_WHITE_LABEL)
+  })
   const blockSnapshots = computed(() => isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0)
   const blockCustomUrls = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_CUSTOM_URL)
@@ -2306,6 +2311,16 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseWhiteLabel = () => {
+    if (!blockWhiteLabel.value) return
+
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_WHITE_LABEL,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseAudit = () => {
     if (isWsAuditEnabled.value) return
 
@@ -2578,6 +2593,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockSSO,
     blockScim,
     showUpgradeToUseScim,
+    blockWhiteLabel,
+    showUpgradeToUseWhiteLabel,
     showUpgradeToUseAudit,
     blockSnapshots,
     blockTrashSettings,

@@ -3292,7 +3292,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } else if (!ai && !ag && insertObj) {
       // handle if primary key is not ai or ag
       if (this.model.primaryKeys.length === 1) {
-        return insertObj[this.model.primaryKey.column_name] ?? null;
+        // Prefer the value supplied in the insert payload; fall back to the
+        // DB-returned `rowId` when the PK is database-generated but not flagged
+        // `ai`/`ag` in meta (e.g. a sqlite AUTOINCREMENT `id` whose meta lacks
+        // the `ai` flag) — otherwise the inserted PK is lost (returns null),
+        // which silently breaks `onInsertedPks` consumers like LTAR import.
+        return insertObj[this.model.primaryKey.column_name] ?? rowId ?? null;
       } else {
         return this.model.primaryKeys.reduce((acc, pk) => {
           acc[pk.title] = insertObj[pk.column_name] ?? null;

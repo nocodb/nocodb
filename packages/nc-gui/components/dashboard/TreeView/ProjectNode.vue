@@ -559,6 +559,18 @@ defineExpose({
               </div>
             </div>
 
+            <!-- Project header: base icon to the left of the base name -->
+            <GeneralProjectIcon
+              v-if="isProjectHeader"
+              :key="`${base.id}_${parseProp(base.meta).iconColor}`"
+              class="flex-none !w-4.5 !h-4.5"
+              :color="parseProp(base.meta).iconColor"
+              :managed-app="{
+                managed_app_master: base.managed_app_master,
+                managed_app_id: base.managed_app_id,
+              }"
+            />
+
             <a-input
               v-if="editMode"
               ref="input"

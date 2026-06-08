@@ -899,6 +899,9 @@ importers:
       fastify:
         specifier: '>=5.8.5'
         version: 5.8.5
+      ipaddr.js:
+        specifier: ^2.1.0
+        version: 2.1.0
       knex:
         specifier: ^3.1.0
         version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(tedious@16.7.1)

@@ -2,6 +2,7 @@ import { promisify } from 'util';
 import fs from 'fs';
 import axios from 'axios';
 import { default as NcConnectionMgrv2CE } from 'src/utils/common/NcConnectionMgrv2';
+import { OperationSource } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type Source from '~/models/Source';
 import {
@@ -21,6 +22,8 @@ import {
   getWorkspaceDbServer,
 } from '~/utils/cloudDb';
 import { isMuxEnabled } from '~/utils/envs';
+import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -86,7 +89,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     if (!isMuxEnabled) {
       const connectionConfig = await source.getConnectionConfig();
 
-      const knex = XKnex({
+      const knexConfig = {
         ...defaultConnectionOptions,
         ...connectionConfig,
         connection: {
@@ -115,7 +118,16 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
             return res;
           },
         },
-      } as any);
+      } as any;
+
+      // SSRF: direct external user-supplied source. Meta/cloud-data and the
+      // mux path (forwarded to the executor) are handled elsewhere.
+      applyDbSsrfProtection(
+        knexConfig,
+        isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
+      );
+
+      const knex = XKnex(knexConfig);
 
       this.stashDbMajorVersion(knex, source);
       this.connectionRefs.set(source.id, knex);

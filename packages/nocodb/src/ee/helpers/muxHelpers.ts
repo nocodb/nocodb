@@ -1,10 +1,12 @@
 import { createInterface } from 'readline';
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
+import { OperationSource } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 import type { ExtDbConfig } from '~/db/CustomKnex';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { NcError } from '~/helpers/catchError';
+import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 const logger = new Logger('MuxHelpers');
 
@@ -30,6 +32,8 @@ export async function runExternal(
       {
         query,
         config: rest,
+        // Authoritative SSRF decision — executor honors this over its own env.
+        ssrf: isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
         ...extraOptions,
       },
       {
@@ -122,6 +126,8 @@ export async function* runExternalStream(
       {
         query,
         config: rest,
+        // Authoritative SSRF decision — executor honors this over its own env.
+        ssrf: isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
       },
       {
         responseType: 'stream',

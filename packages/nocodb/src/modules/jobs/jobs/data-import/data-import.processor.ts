@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AuditV1OperationTypes,
+  isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
   serializeDecimalValue,
@@ -35,10 +36,34 @@ import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { generateAuditV1Payload } from '~/utils/audit';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { processConcurrently } from '~/utils';
+import {
+  getLtarDisplayValueContext,
+  resolveLtarDisplayValuesToPks,
+} from '~/helpers/ltarDisplayValueResolver';
 
 const BATCH_SIZE = 1000;
 const MAX_ERROR_SAMPLES = 1000;
 const MAX_SYSTEM_ERRORS = 20;
+/** Distinct display values resolved per related-table lookup query. */
+const LINK_RESOLVE_CHUNK = 200;
+/** Parent rows linked in parallel during the link phase. */
+const LINK_CONCURRENCY = 25;
+/**
+ * Flush accumulated link intents to the DB once this many pile up, instead of
+ * holding the whole sheet's `{pk, values}` map in memory until the end. Keeps
+ * import memory bounded regardless of file size (a resolved-value cache carries
+ * across flushes so repeated display values aren't re-resolved each time).
+ *
+ * Read at runtime (not module load) and env-overridable so tests can force the
+ * multi-flush path.
+ */
+const LINK_FLUSH_THRESHOLD_DEFAULT = 50_000;
+const getLinkFlushThreshold = () =>
+  +process.env.NC_DATA_IMPORT_LINK_FLUSH_THRESHOLD || LINK_FLUSH_THRESHOLD_DEFAULT;
+/** Default delimiter for multiple display values in one LTAR cell. */
+const DEFAULT_LINK_DELIMITER = ',';
 
 /** Row-level errors are retried one-by-one; everything else fails the batch. */
 const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
@@ -53,6 +78,27 @@ interface ColumnMapEntry {
   destCn: string;
   uidt: string;
   col: ColumnType;
+}
+
+/** A source column mapped to a link (LTAR) destination column. */
+interface LtarColMapEntry {
+  colId: string;
+  delimiter: string;
+}
+
+/** One inserted parent row's pk + the display values to link for a column. */
+interface LinkAccumEntry {
+  pk: string | number;
+  values: string[];
+}
+
+/** Split an LTAR cell into trimmed, non-empty display values. */
+function splitDisplayValues(raw: any, delimiter: string): string[] {
+  if (raw === null || raw === undefined) return [];
+  return String(raw)
+    .split(delimiter)
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
 }
 
 /** Coerce a raw imported value into the type expected by the destination column. */
@@ -91,6 +137,12 @@ interface SheetResult {
   tableName: string;
   rowsInserted: number;
   rowsFailed: number;
+  /** Record links created during the link phase. */
+  linksCreated: number;
+  /** Display values that matched no related record (skipped). */
+  valuesUnmatched: number;
+  /** Links that matched a record but failed to attach (addLinks threw). */
+  linksFailed: number;
   errors: Array<{ row: number; error: string }>;
 }
 
@@ -187,6 +239,12 @@ export class DataImportProcessor {
 
       const rowsInserted = results.reduce((s, r) => s + r.rowsInserted, 0);
       const rowsFailed = results.reduce((s, r) => s + r.rowsFailed, 0);
+      const linksCreated = results.reduce((s, r) => s + r.linksCreated, 0);
+      const valuesUnmatched = results.reduce(
+        (s, r) => s + r.valuesUnmatched,
+        0,
+      );
+      const linksFailed = results.reduce((s, r) => s + r.linksFailed, 0);
       const errorsCount = results.reduce((s, r) => s + r.errors.length, 0);
       const sampleError = results
         .flatMap((r) => r.errors)
@@ -204,17 +262,31 @@ export class DataImportProcessor {
           status: 'completed',
           rowsInserted,
           rowsFailed,
+          linksCreated,
+          valuesUnmatched,
+          linksFailed,
           errorsCount,
           ...(sampleError ? { sampleError } : {}),
         }),
         true,
       );
       log(
-        `Import completed: ${rowsInserted} rows inserted, ${rowsFailed} failed.`,
+        `Import completed: ${rowsInserted} rows inserted, ${rowsFailed} failed` +
+          (linksCreated || valuesUnmatched || linksFailed
+            ? `, ${linksCreated} links created, ${valuesUnmatched} unmatched` +
+              (linksFailed ? `, ${linksFailed} failed to link.` : '.')
+            : '.'),
         true,
       );
 
-      return { rowsInserted, rowsFailed, sheets: results };
+      return {
+        rowsInserted,
+        rowsFailed,
+        linksCreated,
+        valuesUnmatched,
+        linksFailed,
+        sheets: results,
+      };
     } catch (e) {
       this.logger.error(
         `${importType.toUpperCase()} import failed: ${e.message}`,
@@ -317,6 +389,28 @@ export class DataImportProcessor {
       tableColumns.find((c) => c.column_name === name || c.title === name);
 
     const colMap: Record<string, ColumnMapEntry> = {};
+    // Link (LTAR) destinations are handled in a separate post-insert phase —
+    // their cells hold display values to resolve, not scalar data to insert.
+    const ltarColMap: Record<string, LtarColMapEntry> = {};
+
+    const classifyDest = (
+      srcColName: string,
+      dest: any,
+      delimiter?: string,
+    ) => {
+      if (isLinksOrLTAR(dest)) {
+        ltarColMap[srcColName] = {
+          colId: dest.id,
+          delimiter: delimiter || DEFAULT_LINK_DELIMITER,
+        };
+      } else {
+        colMap[srcColName] = {
+          destCn: dest.column_name,
+          uidt: dest.uidt,
+          col: dest,
+        };
+      }
+    };
 
     if (options.importDataOnly && spec.columnMapping) {
       // Explicit user mapping wins — disabled/renamed entries are respected.
@@ -327,27 +421,20 @@ export class DataImportProcessor {
         );
         const dest = findDest(m.destCn);
         if (src && dest) {
-          colMap[src.column_name] = {
-            destCn: dest.column_name,
-            uidt: dest.uidt,
-            col: dest,
-          };
+          classifyDest(src.column_name, dest, m.linkConfig?.delimiter);
         }
       }
     } else {
       for (const col of spec.columns ?? []) {
         const dest = findDest(col.column_name) ?? findDest(col.title);
-        if (dest) {
-          colMap[col.column_name] = {
-            destCn: dest.column_name,
-            uidt: dest.uidt,
-            col: dest,
-          };
-        }
+        if (dest) classifyDest(col.column_name, dest);
       }
     }
 
-    if (Object.keys(colMap).length === 0) {
+    if (
+      Object.keys(colMap).length === 0 &&
+      Object.keys(ltarColMap).length === 0
+    ) {
       NcError.badRequest(
         'No valid column mappings found. Please check your column configuration.',
       );
@@ -361,6 +448,9 @@ export class DataImportProcessor {
         tableName: tableName as string,
         rowsInserted: 0,
         rowsFailed: 0,
+        linksCreated: 0,
+        valuesUnmatched: 0,
+        linksFailed: 0,
         errors: [],
       };
     }
@@ -382,13 +472,19 @@ export class DataImportProcessor {
       spec,
       tableId,
       tableName: tableName as string,
+      model,
       colMap,
+      ltarColMap,
       req,
       log,
     });
 
     log(
-      `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed.`,
+      `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed` +
+        (stats.linksCreated || stats.valuesUnmatched || stats.linksFailed
+          ? `, ${stats.linksCreated} links created, ${stats.valuesUnmatched} unmatched` +
+            (stats.linksFailed ? `, ${stats.linksFailed} failed to link.` : '.')
+          : '.'),
       true,
     );
 
@@ -398,6 +494,9 @@ export class DataImportProcessor {
       tableName: tableName as string,
       rowsInserted: stats.rowsInserted,
       rowsFailed: stats.rowsFailed,
+      linksCreated: stats.linksCreated,
+      valuesUnmatched: stats.valuesUnmatched,
+      linksFailed: stats.linksFailed,
       errors: stats.errors.slice(0, 100),
     };
   }
@@ -417,7 +516,9 @@ export class DataImportProcessor {
     spec: FileImportSheet;
     tableId: string;
     tableName: string;
+    model: Model;
     colMap: Record<string, ColumnMapEntry>;
+    ltarColMap: Record<string, LtarColMapEntry>;
     req: NcRequest;
     log: (msg: string, verbose?: boolean) => void;
   }) {
@@ -431,7 +532,9 @@ export class DataImportProcessor {
       spec,
       tableId,
       tableName,
+      model,
       colMap,
+      ltarColMap,
       req,
       log,
     } = params;
@@ -446,13 +549,77 @@ export class DataImportProcessor {
     const stats = {
       rowsInserted: 0,
       rowsFailed: 0,
+      linksCreated: 0,
+      valuesUnmatched: 0,
+      linksFailed: 0,
       errors: [] as Array<{ row: number; error: string }>,
     };
     let batch: Record<string, any>[] = [];
     let processedRows = 0;
     let systemErrorCount = 0;
+    const linkFlushThreshold = getLinkFlushThreshold();
 
-    const insert = (rows: Record<string, any>[]) =>
+    // Link phase bookkeeping: per LTAR column id → inserted rows' pk + the
+    // display values to link. Only rows with at least one link value are kept.
+    const ltarSrcCols = Object.keys(ltarColMap);
+    const hasLtar = ltarSrcCols.length > 0;
+    const linkAccum = new Map<string, LinkAccumEntry[]>();
+    // Parallel to `batch`: each entry is the row's [colId, values][] or null.
+    let batchLtar: Array<Array<[string, string[]]> | null> = [];
+    // Number of {pk, values} entries currently held in `linkAccum` — drives the
+    // periodic flush so memory stays bounded on large imports.
+    let pendingLinkRows = 0;
+    // Per-column display-value → pk (or null = resolved-but-unmatched) cache,
+    // shared across flushes so each distinct value is resolved at most once.
+    const resolvedLinkCache = new Map<
+      string,
+      Map<string, string | number | null>
+    >();
+
+    // Self-referential link columns (related table == the table being imported)
+    // may reference rows that appear LATER in the same file, so they can only be
+    // resolved correctly once every row is inserted. If any mapped link is
+    // self-referential, skip mid-stream flushing and resolve once at the end
+    // (the original behavior) so forward self-references aren't missed — memory
+    // in that rare case stays bounded by the import file-size cap. Cross-table
+    // links (target table not mutated by this import) still flush incrementally.
+    let hasSelfRefLink = false;
+    if (hasLtar) {
+      for (const srcCol of ltarSrcCols) {
+        const col = (model.columns as any[]).find(
+          (c) => c.id === ltarColMap[srcCol].colId,
+        );
+        if (!col) continue;
+        const colOpt = (await col.getColOptions(context)) as {
+          fk_related_model_id?: string;
+        } | null;
+        if (colOpt?.fk_related_model_id === model.id) {
+          hasSelfRefLink = true;
+          break;
+        }
+      }
+    }
+
+    const accumulateRow = (
+      pk: string | number,
+      rowLtar: Array<[string, string[]]> | null,
+    ) => {
+      if (!rowLtar || pk === undefined || pk === null) return;
+      for (const [colId, values] of rowLtar) {
+        let arr = linkAccum.get(colId);
+        if (!arr) {
+          arr = [];
+          linkAccum.set(colId, arr);
+        }
+        arr.push({ pk, values });
+        pendingLinkRows++;
+      }
+    };
+
+    const insert = (
+      rows: Record<string, any>[],
+      onInsertedPks?: (pks: (string | number)[]) => void,
+    ) =>
       this.bulkDataService.bulkDataInsert(context, {
         baseName: baseId,
         tableName: tableId,
@@ -461,6 +628,7 @@ export class DataImportProcessor {
         skip_hooks: true,
         raw: true,
         ...(options.typecast ? { typecast: 'true' } : {}),
+        ...(onInsertedPks ? { onInsertedPks } : {}),
       });
 
     const progressKey = spec.tableName || tableName;
@@ -481,11 +649,24 @@ export class DataImportProcessor {
     const flush = async () => {
       if (!batch.length) return;
       const pending = batch;
+      const pendingLtar = batchLtar;
       batch = [];
+      batchLtar = [];
 
       try {
-        await insert(pending);
+        let insertedPks: (string | number)[] = [];
+        await insert(
+          pending,
+          hasLtar ? (pks) => (insertedPks = pks) : undefined,
+        );
         stats.rowsInserted += pending.length;
+        if (hasLtar) {
+          // PG `returning` / mysql-sqlite one-by-one keep insertion order, so
+          // insertedPks[i] corresponds to pending[i].
+          for (let i = 0; i < pendingLtar.length; i++) {
+            accumulateRow(insertedPks[i], pendingLtar[i]);
+          }
+        }
       } catch (err: any) {
         this.logger.error(
           `Bulk insert failed for batch of ${pending.length} rows at row ~${processedRows}: ${err.message}`,
@@ -513,8 +694,15 @@ export class DataImportProcessor {
         // Retry one-by-one so well-formed rows in the batch still make it in.
         for (let i = 0; i < pending.length; i++) {
           try {
-            await insert([pending[i]]);
+            let rowPk: string | number | undefined;
+            await insert(
+              [pending[i]],
+              hasLtar ? (pks) => (rowPk = pks[0]) : undefined,
+            );
             stats.rowsInserted += 1;
+            if (hasLtar && rowPk !== undefined) {
+              accumulateRow(rowPk, pendingLtar[i]);
+            }
           } catch (rowErr) {
             stats.rowsFailed += 1;
             if (stats.errors.length < MAX_ERROR_SAMPLES) {
@@ -530,6 +718,26 @@ export class DataImportProcessor {
       }
     };
 
+    // Resolve + create links for everything accumulated so far, then clear the
+    // accumulator. Counters accumulate (+=) since this may run several times.
+    const flushLinks = async () => {
+      if (!hasLtar || !linkAccum.size) return;
+      log('Creating record links...', true);
+      const linkStats = await this.processLinks({
+        context,
+        model,
+        linkAccum,
+        req,
+        log,
+        resolvedCache: resolvedLinkCache,
+      });
+      stats.linksCreated += linkStats.linksCreated;
+      stats.valuesUnmatched += linkStats.valuesUnmatched;
+      stats.linksFailed += linkStats.linksFailed;
+      linkAccum.clear();
+      pendingLinkRows = 0;
+    };
+
     for await (const sourceRow of handler.streamRows(
       readStream,
       parserConfig,
@@ -542,17 +750,192 @@ export class DataImportProcessor {
         dbRow[mapping.destCn] = coerceValue(sourceRow[srcCol], mapping);
       }
 
+      // Extract link display values for the post-insert link phase.
+      let rowLtar: Array<[string, string[]]> | null = null;
+      if (hasLtar) {
+        for (const srcCol of ltarSrcCols) {
+          const { colId, delimiter } = ltarColMap[srcCol];
+          const values = splitDisplayValues(sourceRow[srcCol], delimiter);
+          if (values.length) (rowLtar ??= []).push([colId, values]);
+        }
+      }
+
       batch.push(dbRow);
+      batchLtar.push(rowLtar);
       processedRows++;
       if (batch.length >= BATCH_SIZE) {
         await flush();
         reportProgress();
+        // Keep link bookkeeping bounded: drain it once enough has piled up.
+        // Skipped when a self-referential link is present (see hasSelfRefLink) —
+        // those must resolve against the fully-inserted table at the end.
+        if (!hasSelfRefLink && pendingLinkRows >= linkFlushThreshold) {
+          await flushLinks();
+        }
       }
     }
 
     await flush();
     reportProgress();
 
+    // Process any links accumulated since the last flush.
+    await flushLinks();
+
     return stats;
+  }
+
+  /**
+   * Link phase: for each LTAR column, resolve the captured display values to
+   * related-record pks (case-insensitive, batched) and create the links via
+   * `addLinks` (append-only — import never unlinks). Unmatched values are
+   * skipped and counted; ambiguous values resolve to the first match;
+   * single-link relations take only the first matched value.
+   */
+  private async processLinks(params: {
+    context: NcContext;
+    model: Model;
+    linkAccum: Map<string, LinkAccumEntry[]>;
+    req: NcRequest;
+    log: (msg: string, verbose?: boolean) => void;
+    /**
+     * Optional cross-flush cache (colId → display value → pk, or null for
+     * resolved-but-unmatched). A value's match is stable for the whole import
+     * (the related table isn't mutated here), so this resolves each distinct
+     * value at most once across all flushes.
+     */
+    resolvedCache?: Map<string, Map<string, string | number | null>>;
+  }): Promise<{
+    linksCreated: number;
+    valuesUnmatched: number;
+    linksFailed: number;
+  }> {
+    const { context, model, linkAccum, req, log, resolvedCache } = params;
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    let linksCreated = 0;
+    let valuesUnmatched = 0;
+    let linksFailed = 0;
+
+    for (const [colId, rows] of linkAccum) {
+      const column = (model.columns as any[]).find((c) => c.id === colId);
+      if (!column) continue;
+
+      // Snapshot the cumulative counters so the per-column log line below
+      // reports this column's own deltas, not every prior column's totals.
+      const linksCreatedBefore = linksCreated;
+      const valuesUnmatchedBefore = valuesUnmatched;
+      const linksFailedBefore = linksFailed;
+
+      let groupCtx;
+      try {
+        groupCtx = await getLtarDisplayValueContext(context, column);
+      } catch (e) {
+        // No usable display value column etc. — skip, count intents as missed.
+        this.logger.warn(
+          `Skipping links for column "${column.title}": ${e.message}`,
+        );
+        for (const r of rows) valuesUnmatched += r.values.length;
+        continue;
+      }
+
+      // Collect distinct display values for this flush.
+      const distinct = new Set<string>();
+      for (const r of rows) for (const v of r.values) distinct.add(v);
+
+      // Reuse the cross-flush cache: serve cached matches, skip cached
+      // unmatched (null), and only resolve values seen for the first time.
+      let colCache = resolvedCache?.get(colId);
+      if (resolvedCache && !colCache) {
+        colCache = new Map();
+        resolvedCache.set(colId, colCache);
+      }
+
+      const valueToPk = new Map<string, string | number>();
+      const toResolve: string[] = [];
+      for (const v of distinct) {
+        const cached = colCache?.get(v);
+        if (cached === undefined) {
+          toResolve.push(v);
+        } else if (cached !== null) {
+          valueToPk.set(v, cached);
+        }
+      }
+
+      // Resolve the uncached values in bounded chunks so a huge import doesn't
+      // build one giant OR query; record both matches and unmatched in cache.
+      for (let i = 0; i < toResolve.length; i += LINK_RESOLVE_CHUNK) {
+        const chunk = toResolve.slice(i, i + LINK_RESOLVE_CHUNK);
+        const resolved = await resolveLtarDisplayValuesToPks(groupCtx, chunk);
+        for (const v of chunk) {
+          const pk = resolved.get(v);
+          if (pk !== undefined && pk !== null) {
+            valueToPk.set(v, pk);
+            colCache?.set(v, pk);
+          } else {
+            colCache?.set(v, null);
+          }
+        }
+      }
+
+      await processConcurrently(
+        rows,
+        async (r) => {
+          const seen = new Set<string>();
+          const childIds: (string | number)[] = [];
+          for (const v of r.values) {
+            const pk = valueToPk.get(v);
+            if (pk === undefined || pk === null) {
+              valuesUnmatched += 1;
+              continue;
+            }
+            const key = String(pk);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            childIds.push(pk);
+          }
+          if (!childIds.length) return;
+
+          const finalChildIds = groupCtx.isSingleLink
+            ? [childIds[0]]
+            : childIds;
+          try {
+            await baseModel.addLinks({
+              cookie: req,
+              colId,
+              rowId: String(r.pk),
+              childIds: finalChildIds,
+            });
+            linksCreated += finalChildIds.length;
+          } catch (e) {
+            // Matched a record but the link write failed (FK violation, related
+            // row deleted mid-import, etc.). Count it so the import summary
+            // doesn't silently overstate completeness — distinct from
+            // "unmatched" (no related record found at all).
+            linksFailed += finalChildIds.length;
+            this.logger.warn(
+              `Failed to link row ${r.pk} on "${column.title}": ${e.message}`,
+            );
+          }
+        },
+        LINK_CONCURRENCY,
+      );
+
+      const colLinksCreated = linksCreated - linksCreatedBefore;
+      const colValuesUnmatched = valuesUnmatched - valuesUnmatchedBefore;
+      const colLinksFailed = linksFailed - linksFailedBefore;
+      log(
+        `Column "${column.title}": ${colLinksCreated} links created` +
+          (colValuesUnmatched ? `, ${colValuesUnmatched} unmatched` : '') +
+          (colLinksFailed ? `, ${colLinksFailed} failed to link.` : '.'),
+        true,
+      );
+    }
+
+    return { linksCreated, valuesUnmatched, linksFailed };
   }
 }

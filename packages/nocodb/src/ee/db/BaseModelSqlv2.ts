@@ -2926,6 +2926,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       allowSystemColumn = false,
       undo = false,
       apiVersion = NcApiVersion.V2,
+      onInsertedPks,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -2938,8 +2939,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
       undo?: boolean;
+      /** See CE `BaseModelSqlv2/insert.ts` — inserted pks in insertion order. */
+      onInsertedPks?: (pks: (string | number)[]) => void;
     } = {},
   ) {
+    const capturePks = typeof onInsertedPks === 'function';
     const queries: string[] = [];
     const profiler = Profiler.start('base-model/bulkInsert');
     try {
@@ -3273,8 +3277,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      // insert one by one as fallback to get ids for sqlite and mysql
-      if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
+      // insert one by one as fallback to get ids for sqlite and mysql.
+      // also forced when the caller needs inserted pks (onInsertedPks).
+      if (
+        (insertOneByOneAsFallback || capturePks) &&
+        (this.isSqlite || this.isMySQL)
+      ) {
         // sqlite and mysql doesnt support returning, so insert one by one and return ids
         // response = [];
 
@@ -3377,7 +3385,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // be applied directly on the trx, and trimLeading/trimTrailing must be
       // skipped for that path.
       const usingInsertOneByOneTrxPath =
-        insertOneByOneAsFallback &&
+        (insertOneByOneAsFallback || capturePks) &&
         (this.clientMeta.isSqlite || this.clientMeta.isMySQL) &&
         !this.dbDriver.isExternal;
 
@@ -3487,6 +3495,40 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       if (trimTrailing && !usingInsertOneByOneTrxPath) {
         responses = responses.slice(0, -trimTrailing);
+      }
+
+      // External MySQL/SQLite INSERTs can't use `.returning()`, so runExternal
+      // hands back raw auto-increment ids (MySQL: `{ insertId }`, SQLite: a bare
+      // id) rather than pk-bearing rows. The `!raw && !skip_hooks` block below
+      // would normalize these, but the import path — the only capturePks caller —
+      // passes raw + skip_hooks and fires `onInsertedPks` here first. Without this
+      // every captured pk resolves to `undefined` and links silently vanish, so
+      // wrap them up front, mirroring the existing MySQL normalization.
+      if (
+        capturePks &&
+        this.dbDriver.isExternal &&
+        (this.isMySQL || this.isSqlite)
+      ) {
+        responses = responses.map((r, idx) => {
+          const id = r?.insertId ?? r;
+          const rowId = this.extractCompositePK({
+            rowId: id,
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: insertDatas[idx],
+          });
+          if (rowId && typeof rowId === 'object') return rowId;
+          return { [this.model.primaryKey.column_name]: rowId ?? id };
+        });
+      }
+
+      // Hand back inserted pks in insertion order. Internal PG uses
+      // `.returning()`, the internal one-by-one path (forced above when
+      // capturePks) wraps each row via extractCompositePK, and the external
+      // MySQL/SQLite branch is normalized just above — so `responses` are
+      // pk-bearing and ordered for every path. Mirrors CE `insert.ts`.
+      if (capturePks) {
+        onInsertedPks(responses.map((r) => this.extractPksValues(r, true)));
       }
 
       if (!raw && !skip_hooks) {

@@ -26,6 +26,9 @@ const NON_SERIALIZABLE_KEYS = new Set([
   'reuse',
   'viewWebhookManager',
   'columnWebhookManager',
+  // runtime-only callback used by file import to capture inserted PKs in
+  // insertion order — never persisted to the changelog
+  'onInsertedPks',
 ]);
 
 export function dotGet(obj: any, path: string): any {

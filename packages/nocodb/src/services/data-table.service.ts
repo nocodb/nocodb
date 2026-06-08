@@ -14,7 +14,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
-import { Column, Filter, Model, Source, View } from '~/models';
+import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
@@ -25,6 +25,11 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
+import {
+  getLtarDisplayValueContext,
+  resolveLtarDisplayValuesToPks,
+} from '~/helpers/ltarDisplayValueResolver';
+import type { LtarDisplayValueContext } from '~/helpers/ltarDisplayValueResolver';
 
 @Injectable()
 export class DataTableService {
@@ -1257,66 +1262,23 @@ export class DataTableService {
     context: NcContext,
     param: { viewId: string; modelId: string; query: any; user?: any },
     columnId: string,
-  ) {
+  ): Promise<LtarDisplayValueContext | null> {
     const column = await this.getColumn(context, {
       ...param,
       columnId,
     });
 
-    if (!isLinksOrLTAR(column)) {
-      NcError.get(context).invalidRequestBody(
-        `Column '${column.title ?? columnId}' is not a link column`,
-      );
-    }
+    const groupCtx = await getLtarDisplayValueContext(context, column);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
-
-    const { refContext } = await colOptions.getParentChildContext(context);
-    const relatedModel = await colOptions.getRelatedTable(refContext);
-    await relatedModel.getColumns(refContext);
-
-    // Prefer the LTAR's custom display value column when set — that's what
-    // the user sees in the cell chip / dropdown and would be copying. Fall
-    // back to the related table's PV when no override is configured or the
-    // override points to a stale / missing column.
-    const customDisplayColId = (colOptions as any).fk_display_value_column_id;
-    const customDisplayCol =
-      customDisplayColId &&
-      relatedModel.columns?.find((c) => c.id === customDisplayColId);
-    const displayValueColumn = customDisplayCol ?? relatedModel.displayValue;
-    if (!displayValueColumn) {
-      NcError.get(context).badRequest(
-        'Related table has no display value column',
-      );
-    }
-
-    const isSingleLink = [
-      RelationTypes.BELONGS_TO,
-      RelationTypes.ONE_TO_ONE,
-      RelationTypes.MANY_TO_ONE,
-    ].includes(colOptions.type as RelationTypes);
-
-    if (!colOptions.fk_mm_model_id) {
+    // Paste resolves links by replacing the junction set (`mmList` diff), so
+    // it only services junction-backed relations. A column with no junction
+    // model (e.g. a v1 belongs-to handled via the FK column elsewhere) has
+    // nothing to link here.
+    if (!groupCtx.colOptions.fk_mm_model_id) {
       return null;
     }
 
-    const relatedSource = await Source.get(refContext, relatedModel.source_id);
-    const relatedBaseModel = await Model.getBaseModelSQL(refContext, {
-      id: relatedModel.id,
-      dbDriver: await NcConnectionMgrv2.get(relatedSource),
-    });
-
-    return {
-      column,
-      colOptions,
-      refContext,
-      relatedModel,
-      relatedBaseModel,
-      displayValueColumn,
-      isSingleLink,
-    };
+    return groupCtx;
   }
 
   /**
@@ -1331,26 +1293,9 @@ export class DataTableService {
    * Returns a Map from submitted display value → matched primary key.
    */
   private async resolveDisplayValuesToPks(
-    groupCtx: NonNullable<
-      Awaited<ReturnType<DataTableService['resolveColumnGroupContext']>>
-    >,
+    groupCtx: LtarDisplayValueContext,
     entries: { index: number; entry: { displayValues: string[] } }[],
   ) {
-    const { relatedModel, relatedBaseModel, displayValueColumn } = groupCtx;
-    const dvTitle = displayValueColumn.title;
-
-    const pkFieldSet = new Set(
-      relatedModel.primaryKeys.map((pk) => pk.title || pk.column_name),
-    );
-    pkFieldSet.add(dvTitle);
-
-    const listOpts = { fieldsSet: pkFieldSet };
-    const listFlags = {
-      ignoreViewFilterAndSort: true,
-      ignorePagination: true,
-    };
-
-    // Collect every unique display value across all entries in this group
     const allUniqueValues = new Set<string>();
     for (const { entry } of entries) {
       for (const v of entry.displayValues) {
@@ -1358,81 +1303,7 @@ export class DataTableService {
       }
     }
 
-    const valueToPk = new Map<string, string | number>();
-
-    // Step 1: Case-sensitive exact match (eq operator)
-    if (allUniqueValues.size > 0) {
-      const eqFilterArr = [...allUniqueValues].map(
-        (v) =>
-          new Filter({
-            fk_column_id: displayValueColumn.id,
-            comparison_op: 'eq',
-            value: v,
-            logical_op: 'or',
-          }),
-      );
-
-      const exactRows = await relatedBaseModel.list(
-        { ...listOpts, filterArr: eqFilterArr, apiVersion: NcApiVersion.V3 },
-        listFlags,
-      );
-
-      for (const row of exactRows) {
-        const dv = row[dvTitle];
-        if (dv == null) continue;
-        const dvStr = String(dv);
-        if (allUniqueValues.has(dvStr) && !valueToPk.has(dvStr)) {
-          valueToPk.set(
-            dvStr,
-            dataWrapper(row).extractPksValue(relatedModel, true),
-          );
-        }
-      }
-    }
-
-    // Step 2: Case-insensitive fallback for values the eq step didn't match
-    const unmatchedValues = [...allUniqueValues].filter(
-      (v) => !valueToPk.has(v),
-    );
-    if (unmatchedValues.length > 0) {
-      const likeFilterArr = unmatchedValues.map(
-        (v) =>
-          new Filter({
-            fk_column_id: displayValueColumn.id,
-            comparison_op: 'like',
-            value: v,
-            logical_op: 'or',
-          }),
-      );
-
-      const candidateRows = await relatedBaseModel.list(
-        { ...listOpts, filterArr: likeFilterArr, apiVersion: NcApiVersion.V3 },
-        listFlags,
-      );
-
-      const lowerToOriginal = new Map<string, string>();
-      for (const v of unmatchedValues) {
-        const lower = v.toLowerCase();
-        if (!lowerToOriginal.has(lower)) {
-          lowerToOriginal.set(lower, v);
-        }
-      }
-
-      for (const row of candidateRows) {
-        const dv = row[dvTitle];
-        if (dv == null) continue;
-        const dvLower = String(dv).toLowerCase();
-        const originalValue = lowerToOriginal.get(dvLower);
-        if (originalValue && !valueToPk.has(originalValue)) {
-          valueToPk.set(
-            originalValue,
-            dataWrapper(row).extractPksValue(relatedModel, true),
-          );
-        }
-      }
-    }
-
-    return valueToPk;
+    return resolveLtarDisplayValuesToPks(groupCtx, allUniqueValues);
   }
 
   /** For each entry in the column group: verifies the parent row exists,
@@ -1445,9 +1316,7 @@ export class DataTableService {
   private async collectLinkDiffsForGroup(
     context: NcContext,
     baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
-    groupCtx: NonNullable<
-      Awaited<ReturnType<DataTableService['resolveColumnGroupContext']>>
-    >,
+    groupCtx: LtarDisplayValueContext,
     entries: {
       index: number;
       entry: { rowId: string; displayValues: string[] };

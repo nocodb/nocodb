@@ -22,6 +22,7 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
       allowSystemColumn?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
+      onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -40,6 +41,7 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
           typecast: (param.cookie?.query?.typecast ?? '') === 'true',
           undo: param.undo,
           apiVersion: param.apiVersion,
+          onInsertedPks: param.onInsertedPks,
         },
       ],
     });

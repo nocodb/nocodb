@@ -50,6 +50,13 @@ const MAX_SYSTEM_ERRORS = 20;
 const LINK_RESOLVE_CHUNK = 200;
 /** Parent rows linked in parallel during the link phase. */
 const LINK_CONCURRENCY = 25;
+/**
+ * Flush accumulated link intents to the DB once this many pile up, instead of
+ * holding the whole sheet's `{pk, values}` map in memory until the end. Keeps
+ * import memory bounded regardless of file size (a resolved-value cache carries
+ * across flushes so repeated display values aren't re-resolved each time).
+ */
+const LINK_FLUSH_THRESHOLD = 50_000;
 /** Default delimiter for multiple display values in one LTAR cell. */
 const DEFAULT_LINK_DELIMITER = ',';
 
@@ -553,6 +560,39 @@ export class DataImportProcessor {
     const linkAccum = new Map<string, LinkAccumEntry[]>();
     // Parallel to `batch`: each entry is the row's [colId, values][] or null.
     let batchLtar: Array<Array<[string, string[]]> | null> = [];
+    // Number of {pk, values} entries currently held in `linkAccum` — drives the
+    // periodic flush so memory stays bounded on large imports.
+    let pendingLinkRows = 0;
+    // Per-column display-value → pk (or null = resolved-but-unmatched) cache,
+    // shared across flushes so each distinct value is resolved at most once.
+    const resolvedLinkCache = new Map<
+      string,
+      Map<string, string | number | null>
+    >();
+
+    // Self-referential link columns (related table == the table being imported)
+    // may reference rows that appear LATER in the same file, so they can only be
+    // resolved correctly once every row is inserted. If any mapped link is
+    // self-referential, skip mid-stream flushing and resolve once at the end
+    // (the original behavior) so forward self-references aren't missed — memory
+    // in that rare case stays bounded by the import file-size cap. Cross-table
+    // links (target table not mutated by this import) still flush incrementally.
+    let hasSelfRefLink = false;
+    if (hasLtar) {
+      for (const srcCol of ltarSrcCols) {
+        const col = (model.columns as any[]).find(
+          (c) => c.id === ltarColMap[srcCol].colId,
+        );
+        if (!col) continue;
+        const colOpt = (await col.getColOptions(context)) as {
+          fk_related_model_id?: string;
+        } | null;
+        if (colOpt?.fk_related_model_id === model.id) {
+          hasSelfRefLink = true;
+          break;
+        }
+      }
+    }
 
     const accumulateRow = (
       pk: string | number,
@@ -566,6 +606,7 @@ export class DataImportProcessor {
           linkAccum.set(colId, arr);
         }
         arr.push({ pk, values });
+        pendingLinkRows++;
       }
     };
 
@@ -671,6 +712,26 @@ export class DataImportProcessor {
       }
     };
 
+    // Resolve + create links for everything accumulated so far, then clear the
+    // accumulator. Counters accumulate (+=) since this may run several times.
+    const flushLinks = async () => {
+      if (!hasLtar || !linkAccum.size) return;
+      log('Creating record links...', true);
+      const linkStats = await this.processLinks({
+        context,
+        model,
+        linkAccum,
+        req,
+        log,
+        resolvedCache: resolvedLinkCache,
+      });
+      stats.linksCreated += linkStats.linksCreated;
+      stats.valuesUnmatched += linkStats.valuesUnmatched;
+      stats.linksFailed += linkStats.linksFailed;
+      linkAccum.clear();
+      pendingLinkRows = 0;
+    };
+
     for await (const sourceRow of handler.streamRows(
       readStream,
       parserConfig,
@@ -699,25 +760,20 @@ export class DataImportProcessor {
       if (batch.length >= BATCH_SIZE) {
         await flush();
         reportProgress();
+        // Keep link bookkeeping bounded: drain it once enough has piled up.
+        // Skipped when a self-referential link is present (see hasSelfRefLink) —
+        // those must resolve against the fully-inserted table at the end.
+        if (!hasSelfRefLink && pendingLinkRows >= LINK_FLUSH_THRESHOLD) {
+          await flushLinks();
+        }
       }
     }
 
     await flush();
     reportProgress();
 
-    if (hasLtar && linkAccum.size) {
-      log('Creating record links...', true);
-      const linkStats = await this.processLinks({
-        context,
-        model,
-        linkAccum,
-        req,
-        log,
-      });
-      stats.linksCreated = linkStats.linksCreated;
-      stats.valuesUnmatched = linkStats.valuesUnmatched;
-      stats.linksFailed = linkStats.linksFailed;
-    }
+    // Process any links accumulated since the last flush.
+    await flushLinks();
 
     return stats;
   }
@@ -735,12 +791,19 @@ export class DataImportProcessor {
     linkAccum: Map<string, LinkAccumEntry[]>;
     req: NcRequest;
     log: (msg: string, verbose?: boolean) => void;
+    /**
+     * Optional cross-flush cache (colId → display value → pk, or null for
+     * resolved-but-unmatched). A value's match is stable for the whole import
+     * (the related table isn't mutated here), so this resolves each distinct
+     * value at most once across all flushes.
+     */
+    resolvedCache?: Map<string, Map<string, string | number | null>>;
   }): Promise<{
     linksCreated: number;
     valuesUnmatched: number;
     linksFailed: number;
   }> {
-    const { context, model, linkAccum, req, log } = params;
+    const { context, model, linkAccum, req, log, resolvedCache } = params;
 
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -774,17 +837,43 @@ export class DataImportProcessor {
         continue;
       }
 
-      // Collect distinct display values and resolve them in bounded chunks so
-      // a huge import doesn't build one giant OR query.
+      // Collect distinct display values for this flush.
       const distinct = new Set<string>();
       for (const r of rows) for (const v of r.values) distinct.add(v);
 
+      // Reuse the cross-flush cache: serve cached matches, skip cached
+      // unmatched (null), and only resolve values seen for the first time.
+      let colCache = resolvedCache?.get(colId);
+      if (resolvedCache && !colCache) {
+        colCache = new Map();
+        resolvedCache.set(colId, colCache);
+      }
+
       const valueToPk = new Map<string, string | number>();
-      const distinctArr = [...distinct];
-      for (let i = 0; i < distinctArr.length; i += LINK_RESOLVE_CHUNK) {
-        const chunk = distinctArr.slice(i, i + LINK_RESOLVE_CHUNK);
+      const toResolve: string[] = [];
+      for (const v of distinct) {
+        const cached = colCache?.get(v);
+        if (cached === undefined) {
+          toResolve.push(v);
+        } else if (cached !== null) {
+          valueToPk.set(v, cached);
+        }
+      }
+
+      // Resolve the uncached values in bounded chunks so a huge import doesn't
+      // build one giant OR query; record both matches and unmatched in cache.
+      for (let i = 0; i < toResolve.length; i += LINK_RESOLVE_CHUNK) {
+        const chunk = toResolve.slice(i, i + LINK_RESOLVE_CHUNK);
         const resolved = await resolveLtarDisplayValuesToPks(groupCtx, chunk);
-        for (const [k, v] of resolved) valueToPk.set(k, v);
+        for (const v of chunk) {
+          const pk = resolved.get(v);
+          if (pk !== undefined && pk !== null) {
+            valueToPk.set(v, pk);
+            colCache?.set(v, pk);
+          } else {
+            colCache?.set(v, null);
+          }
+        }
       }
 
       await processConcurrently(

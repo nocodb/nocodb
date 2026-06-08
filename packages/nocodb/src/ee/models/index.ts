@@ -78,3 +78,7 @@ export { default as OperationLog } from './OperationLog';
 export { default as TableSync } from './TableSync';
 export { default as TableSyncMapping } from './TableSyncMapping';
 export { default as TableSyncColumnMapping } from './TableSyncColumnMapping';
+
+// AI chat
+export { default as ChatSession } from './ChatSession';
+export { default as ChatMessage } from './ChatMessage';

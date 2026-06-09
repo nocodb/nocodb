@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import {
+  AddonDefinitions,
   AppEvents,
   CloudOrgUserRoles,
   EventType,
@@ -28,6 +29,7 @@ import {
   OrgUser,
   Plan,
   Subscription,
+  SubscriptionAddon,
   User,
   Workspace,
   WorkspaceUser,
@@ -361,6 +363,120 @@ export class PaymentService {
     }
 
     return await Addon.update(addon.id, { is_active: false });
+  }
+
+  /**
+   * Resolve the add-on's active Stripe price for the subscription's billing
+   * period. Amounts + flat/tiered structure live entirely in Stripe — we only
+   * pick the price matching the co-termed recurring interval.
+   */
+  private resolveAddonPriceId(addon: Addon, period: 'month' | 'year'): string {
+    const price = (addon.prices ?? []).find(
+      (p: Stripe.Price) => p.active && p.recurring?.interval === period,
+    );
+
+    if (!price) {
+      NcError.badRequest(
+        `No active ${period} price for addon ${addon.addon_key}`,
+      );
+    }
+
+    return price.id;
+  }
+
+  /**
+   * Propagate add-on changes to a linked on-prem installation's license config.
+   * No-op in base EE — overridden in ee-cloud (which injects
+   * OnPremLicenseService and calls syncInstallationAddons). The provider is
+   * absent in non-cloud builds, hence the protected-override pattern (mirrors
+   * handleOnPremSubscription*). Returns early for cloud subscriptions with no
+   * linked Installation.
+   */
+  protected async syncOnPremAddons(_subscriptionId: string): Promise<void> {}
+
+  async grantAddon(
+    workspaceOrOrgId: string,
+    payload: { addon_key: PlanAddonTypes; comped?: boolean },
+    req?: NcRequest,
+  ) {
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+    );
+    if (!subscription)
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+
+    const def = AddonDefinitions[payload.addon_key];
+    if (!def) NcError.badRequest('Unknown addon');
+
+    const plan = await Plan.get(subscription.fk_plan_id);
+    if (!plan) NcError.genericNotFound('Plan', subscription.fk_plan_id);
+
+    const minCloud = def.minPlan.cloud;
+    if (minCloud && PlanOrder[plan.title] < PlanOrder[minCloud]) {
+      NcError.badRequest(
+        `Addon ${payload.addon_key} requires at least the ${minCloud} plan`,
+      );
+    }
+
+    const addon = await Addon.getByKey(payload.addon_key);
+    if (!addon || !addon.is_active) {
+      NcError.badRequest('Addon not available in catalog');
+    }
+
+    const existing = await SubscriptionAddon.getActiveByKey(
+      subscription.id,
+      payload.addon_key,
+    );
+    if (existing) return existing; // idempotent
+
+    const isInternal =
+      subscription.stripe_subscription_id?.startsWith('internal_');
+    const seats = this.billableSeatCount(plan.title, subscription.seat_count);
+    const quantity = def.quantityBasis === 'per_seat' ? seats : 1;
+
+    let stripeItemId: string | null = null;
+    if (!isInternal && !payload.comped) {
+      const priceId = this.resolveAddonPriceId(
+        addon,
+        (subscription.period as 'month' | 'year') ?? 'month',
+      );
+      const updated = await stripe.subscriptions.update(
+        subscription.stripe_subscription_id,
+        {
+          items: [{ price: priceId, quantity }],
+          proration_behavior: 'always_invoice',
+        },
+      );
+      const item = updated.items.data.find((i) => i.price.id === priceId);
+      stripeItemId = item?.id ?? null;
+    }
+
+    const sa = await SubscriptionAddon.insert({
+      fk_subscription_id: subscription.id,
+      fk_addon_id: addon.id!,
+      addon_key: payload.addon_key,
+      stripe_subscription_item_id: stripeItemId,
+      seat_count: quantity,
+      status: 'active',
+    });
+
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+    if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
+
+    await this.syncOnPremAddons(subscription.id);
+
+    this.appHooksService.emit(AppEvents.ADDON_GRANTED, {
+      context: {
+        workspace_id: workspaceOrOrgId,
+        base_id: undefined,
+      },
+      req: req as NcRequest,
+      workspaceOrOrgId,
+      addonKey: payload.addon_key,
+      comped: !stripeItemId,
+    });
+
+    return sa;
   }
 
   async internalUpgrade(

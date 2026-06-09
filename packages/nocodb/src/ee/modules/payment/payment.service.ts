@@ -525,6 +525,31 @@ export class PaymentService {
     return { ok: true };
   }
 
+  /**
+   * Cancel every active add-on whose cloud min-plan is higher than `newPlanTitle`.
+   * Used on a downgrade so entitlements (and Stripe add-on items) don't outlive
+   * the plan that justified them. Add-ons still valid on the new plan are left intact.
+   */
+  private async cancelAddonsBelowPlan(
+    workspaceOrOrgId: string,
+    newPlanTitle: PlanTitles,
+    req: NcRequest,
+  ): Promise<void> {
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+    );
+    if (!subscription) return;
+    const addons = await SubscriptionAddon.listActive(subscription.id);
+    for (const sa of addons) {
+      const min = AddonDefinitions[sa.addon_key]?.minPlan.cloud;
+      // newPlanTitle is always a cloud PlanTitles here (updateSubscription drives
+      // cloud subscriptions), so PlanOrder[newPlanTitle] is a defined tier index.
+      if (min && PlanOrder[newPlanTitle] < PlanOrder[min]) {
+        await this.revokeAddon(workspaceOrOrgId, sa.addon_key, req);
+      }
+    }
+  }
+
   async internalUpgrade(
     workspaceOrOrgId: string,
     planTitle: string,
@@ -1494,6 +1519,10 @@ export class PaymentService {
         newPrice.recurring.interval === 'year' &&
         oldPrice.recurring.interval === 'month'
       ) {
+        // Revoke add-ons no longer valid on the new (same-or-lower) plan first,
+        // so their Stripe items are gone before the base price flips.
+        await this.cancelAddonsBelowPlan(workspaceOrOrgId, newPlan.title, req);
+
         updatedSubscription = await stripe.subscriptions.update(stripeSub.id, {
           items: [
             {
@@ -1630,6 +1659,10 @@ export class PaymentService {
         }
       } else {
         // Monthly plan: change immediately with proration (invoice now) + reset billing cycle
+        // Revoke add-ons no longer valid on the new plan first (no-op on an
+        // upgrade), so their Stripe items are gone before the base price flips.
+        await this.cancelAddonsBelowPlan(workspaceOrOrgId, newPlan.title, req);
+
         updatedSubscription = await stripe.subscriptions.update(stripeSub.id, {
           items: [
             {

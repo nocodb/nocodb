@@ -68,7 +68,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 Auto-upstall নিম্নলিখিত কাজগুলো করে: 🕊
 - 🐳 স্বয়ংক্রিয়ভাবে docker, docker-compose এর মতো সকল প্রয়োজনীয় জিনিসপত্র ইনস্টল করে
-- 🚀 স্বয়ংক্রিয়ভাবে Docker Compose ব্যবহার করে PostgreSQL, Redis, Minio, Traefik gateway সহ NocoDB ইনস্টল করে। 🐘 🗄️ 🌐
+- 🚀 স্বয়ংক্রিয়ভাবে Docker Compose ব্যবহার করে PostgreSQL, Redis, Traefik gateway সহ NocoDB ইনস্টল করে। 🐘 🗄️ 🌐
 - 🔄 আবার যখন আপনি কমান্ডটি চালাবেন তখন স্বয়ংক্রিয়ভাবে NocoDB এর সর্বশেষ ভার্সনে আপগ্রেড করে।
 - 🔒 স্বয়ংক্রিয়ভাবে SSL সেটআপ করে এবং এর নবায়নও করে। ইনস্টলেশনের সময় একটি ডোমেইন বা সাবডোমেইন ইনপুট হিসেবে প্রয়োজন।
 > install.nocodb.com/noco.sh স্ক্রিপ্টটি পাওয়া যাবে [আমাদের github এ](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)

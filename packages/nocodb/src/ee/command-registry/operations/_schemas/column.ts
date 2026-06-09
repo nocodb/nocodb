@@ -111,21 +111,23 @@ const ltarHmBtCallSchema = z
   .strict()
   .optional();
 
+const ltarSideEffectSchema = z
+  .object({
+    fkColumnId: z.string().optional(),
+    assocModelId: z.string().optional(),
+    assocDefaultViewId: z.string().optional(),
+    reverseColumnId: z.string().optional(),
+    assocChildColId: z.string().optional(),
+    assocParentColId: z.string().optional(),
+    hmBtCallRef: ltarHmBtCallSchema,
+    hmBtCallTable: ltarHmBtCallSchema,
+  })
+  .strict()
+  .optional();
+
 export const columnAddExtraSchema = z
   .object({
-    ltar: z
-      .object({
-        fkColumnId: z.string().optional(),
-        assocModelId: z.string().optional(),
-        assocDefaultViewId: z.string().optional(),
-        reverseColumnId: z.string().optional(),
-        assocChildColId: z.string().optional(),
-        assocParentColId: z.string().optional(),
-        hmBtCallRef: ltarHmBtCallSchema,
-        hmBtCallTable: ltarHmBtCallSchema,
-      })
-      .strict()
-      .optional(),
+    ltar: ltarSideEffectSchema,
     filters: z.array(z.record(z.unknown())).optional(),
   })
   .strict()
@@ -141,6 +143,85 @@ const columnBackupRefSchema = z
 
 export const columnUpdateExtraSchema = z
   .object({
+    backup: columnBackupRefSchema.optional(),
+    // Set only when a columnUpdate is a SingleLineText→link conversion: the
+    // created link column's id + its hidden side-effect ids, so undo can
+    // remove them and redo can recreate them with the same ids.
+    ltar: ltarSideEffectSchema,
+    convertedLink: z
+      .object({
+        linkColumnId: z.string(),
+        /** Snapshot of the replaced text column — rebuilt on undo. */
+        textColumn: z.record(z.unknown()),
+      })
+      .strict()
+      .optional(),
+    // Set only when a columnUpdate is a link→SingleLineText conversion: the
+    // created text column's id, so redo / sandbox replay recreates it with the
+    // same id (the link is rebuilt from this column's joined text on undo).
+    convertedText: z
+      .object({
+        textColumnId: z.string(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict()
+  .optional();
+
+/** Relationship config of the link column captured before a link→text
+ *  conversion, used to recreate the link on undo. */
+const linkConfigSchema = z
+  .object({
+    id: z.string(),
+    fk_model_id: z.string(),
+    title: z.string().optional(),
+    uidt: z.string().optional(),
+    type: z.string().optional(),
+    parentId: z.string().optional(),
+    childId: z.string().optional(),
+    ref_base_id: z.string().nullable().optional(),
+    fk_target_view_id: z.string().nullable().optional(),
+    fk_display_value_column_id: z.string().nullable().optional(),
+    meta: z.union([z.record(z.unknown()), z.string(), z.null()]).optional(),
+    // Junction-less `bt` only: the paired `hm` column (id + title) so undo can
+    // recreate the whole hm/bt pair with original ids.
+    pairedColumnId: z.string().optional(),
+    pairedColumnTitle: z.string().optional(),
+  })
+  .strict();
+
+export const columnRevertTextToLinkSchema = z
+  .object({
+    /** Text column created by the forward conversion — dropped + re-read for
+     *  the link backfill. */
+    textColumnId: z.string(),
+    /** Original link relationship config (incl. id) used to recreate it. */
+    link: linkConfigSchema,
+    tableId: z.string().optional(),
+  })
+  .strict();
+
+export const columnRevertLinkToTextSchema = z
+  .object({
+    linkColumnId: z.string(),
+    /** Original text column snapshot (incl. id) used to recreate it. */
+    textColumn: z.record(z.unknown()),
+    tableId: z.string().optional(),
+  })
+  .strict();
+
+export const columnRevertLinkToTextExtraSchema = z
+  .object({
+    /** Re-conversion (redo) needs the link side-effect ids to reuse. */
+    ltar: ltarSideEffectSchema,
+    convertedLink: z
+      .object({
+        linkColumnId: z.string(),
+        textColumn: z.record(z.unknown()),
+      })
+      .strict()
+      .optional(),
     backup: columnBackupRefSchema.optional(),
   })
   .strict()

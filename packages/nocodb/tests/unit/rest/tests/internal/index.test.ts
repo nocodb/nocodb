@@ -22,6 +22,7 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/sandbox-master-guard.test').sandboxMasterGuardTests();
         require('./ee/sandbox-base-variables.test').sandboxBaseVariablesTests();
         require('./ee/sandbox-id-preservation.test').sandboxIdPreservationTests();
+        require('./ee/ltar-conversion-readall.test').ltarConversionReadAllTests();
         require('./ee/undo-redo-roundtrip.test').undoRedoRoundtripTests();
         require('./ee/undo-redo/index.test').undoRedoFullCoverageTests();
         require('./ee/docs-collab-protocol.test').docsCollabProtocolTests();

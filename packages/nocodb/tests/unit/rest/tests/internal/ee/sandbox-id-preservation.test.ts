@@ -668,6 +668,94 @@ async function seedAllEntities(
     `linkFilterCreate: ${JSON.stringify(lfRes.body)}`,
   ).to.eq(200);
 
+  // SingleLineText → link (mm) conversion. Recorded as a `columnUpdate` that
+  // drops the text column and creates a NEW link column + junction + back-link
+  // columns — all of whose IDs must round-trip across replay (captured via the
+  // `ltar` + `convertedLink` capture keys).
+  const convTextAdd = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+    { title: 'IDP_ConvLink', type: 'SingleLineText' },
+  );
+  expect(
+    convTextAdd.status,
+    `conversion source columnAdd: ${JSON.stringify(convTextAdd.body)}`,
+  ).to.eq(200);
+  const convTextColId = convTextAdd.body.id;
+
+  const convRes = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'columnUpdate', columnId: convTextColId },
+    {
+      uidt: 'LinkToAnotherRecord',
+      title: 'IDP_ConvLink',
+      parentId: tableId,
+      childId: targetTableId,
+      type: 'mm',
+    },
+  );
+  expect(
+    convRes.status,
+    `text→link conversion columnUpdate: ${JSON.stringify(convRes.body)}`,
+  ).to.eq(200);
+
+  // link (mm) → SingleLineText conversion. Recorded as a `columnUpdate` that
+  // drops the link column and creates a NEW text column whose id must
+  // round-trip across replay (captured via the `convertedText` key, restored
+  // via `convertedTextId`). Build a fresh text col, convert it to a link, then
+  // convert that link back to text — the final text column's id is the one
+  // that has to survive the sandbox merge.
+  const revTextAdd = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+    { title: 'IDP_RevConv', type: 'SingleLineText' },
+  );
+  expect(
+    revTextAdd.status,
+    `reverse-conversion source columnAdd: ${JSON.stringify(revTextAdd.body)}`,
+  ).to.eq(200);
+  const revTextColId = revTextAdd.body.id;
+
+  const revToLink = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'columnUpdate', columnId: revTextColId },
+    {
+      uidt: 'LinkToAnotherRecord',
+      title: 'IDP_RevConv',
+      parentId: tableId,
+      childId: targetTableId,
+      type: 'mm',
+    },
+  );
+  expect(
+    revToLink.status,
+    `reverse: text→link: ${JSON.stringify(revToLink.body)}`,
+  ).to.eq(200);
+
+  // The conversion created a fresh link column under the same title.
+  const revCtx = { workspace_id: workspaceId, base_id: baseId };
+  const revTbl = (await Model.list(revCtx, { base_id: baseId })).find(
+    (t) => t.id === tableId,
+  )!;
+  const revLinkColId = (await revTbl.getColumns(revCtx)).find(
+    (c) => c.title === 'IDP_RevConv',
+  )!.id;
+
+  const revToText = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'columnUpdate', columnId: revLinkColId },
+    { uidt: 'SingleLineText', title: 'IDP_RevConv' },
+  );
+  expect(
+    revToText.status,
+    `reverse: link→text: ${JSON.stringify(revToText.body)}`,
+  ).to.eq(200);
 
   // Sync source — exercises `syncSourceCreate` route → `syncCreate` contract.
   const syncRes = await internalPost(

@@ -698,6 +698,15 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
       }
     }
-    qb.select(res);
+    // Only append the accumulated simple-column object when it has entries.
+    // Formula/rollup/button/lookup columns emit their own `qb.select(...)` and
+    // leave `res` empty; a trailing `qb.select({})` then compiles to a stray
+    // empty term (`select <expr>,  from ...`) — malformed SQL. This surfaces
+    // when a query selects ONLY such a column, e.g. a link read restricted to a
+    // formula display-value column (`fieldsSet` of size 1) during link→text
+    // column conversion.
+    if (Object.keys(res).length) {
+      qb.select(res);
+    }
   };
 };

@@ -25,12 +25,15 @@ import {
   columnAddExtraSchema,
   columnAddSchema,
   columnDeleteSchema,
+  columnRevertLinkToTextSchema,
+  columnRevertTextToLinkSchema,
   columnsBulkSchema,
   columnSetAsPrimarySchema,
   columnUpdateExtraSchema,
   columnUpdateSchema,
 } from '~/command-registry/operations/_schemas/column';
 import { pickFilterTreeFields } from '~/command-registry/operations/shared/filter-snapshot';
+import { getRelatedLinksColumn } from '~/helpers/dbHelpers';
 
 // V1 returns parent Model (column appended to `columns[]`); V3 returns the
 // Column row directly. Discriminate by `fk_model_id` to extract the new id.
@@ -173,12 +176,38 @@ interface FilterTreeNode extends Record<string, unknown> {
   children?: FilterTreeNode[];
 }
 
+/** Relationship config of a link column, captured before a link→text
+ *  conversion so undo can recreate the link with the same id. */
+interface LinkConfigSnapshot {
+  id: string;
+  fk_model_id: string;
+  title?: string;
+  uidt?: string;
+  type?: string;
+  parentId?: string;
+  childId?: string;
+  ref_base_id?: string | null;
+  fk_target_view_id?: string | null;
+  fk_display_value_column_id?: string | null;
+  meta?: Record<string, unknown> | string | null;
+  /**
+   * Only for a junction-less `bt` conversion: the converted `bt` column is the
+   * *reverse* of an `hm`/`bt` pair, and converting it drops BOTH columns. To
+   * faithfully recreate the pair on undo we also need the paired `hm` column's
+   * id + title (the `bt` column's own id/title are `id`/`title` above).
+   */
+  pairedColumnId?: string;
+  pairedColumnTitle?: string;
+}
+
 interface ColumnUpdateExtra {
   fkModelId?: string;
   oldTitle?: string;
   oldUidt?: string;
   prev?: ColumnSnapshot;
   prevFilters?: FilterTreeNode[];
+  /** Set only on a link→SingleLineText conversion. */
+  linkConfig?: LinkConfigSnapshot;
 }
 
 function snapshotColumnFields(
@@ -243,6 +272,50 @@ export const ColumnUpdateContract: OperationContract<
         willReplaceFilters && col
           ? await snapshotColumnFilterTree(context, col)
           : undefined;
+
+      // link → SingleLineText conversion deletes the link column outright;
+      // capture its relationship config (incl. id) so undo can recreate it.
+      let linkConfig: LinkConfigSnapshot | undefined;
+      const targetUidt = (params?.column as { uidt?: UITypes })?.uidt;
+      if (col && isLinksOrLTAR(col) && targetUidt === UITypes.SingleLineText) {
+        const co = await col.getColOptions<any>(context);
+        if (co) {
+          linkConfig = {
+            id: col.id,
+            fk_model_id: col.fk_model_id,
+            title: col.title,
+            uidt: col.uidt,
+            type: co.type,
+            parentId: col.fk_model_id,
+            childId: co.fk_related_model_id,
+            ref_base_id: co.fk_related_base_id,
+            fk_target_view_id: co.fk_target_view_id,
+            fk_display_value_column_id: co.fk_display_value_column_id,
+            meta: col.meta as Record<string, unknown> | string | null,
+          };
+
+          // A junction-less `bt` is the reverse half of an hm/bt pair, and
+          // converting it drops BOTH columns. Capture the paired `hm` column's
+          // id + title so undo can recreate the whole pair with original ids
+          // (the `bt` column itself is `id`/`title` above). Matched by the
+          // shared FK columns via `getRelatedLinksColumn`.
+          if (co.type === 'bt' && co.fk_related_model_id) {
+            const relatedModel = await Model.get(
+              context,
+              co.fk_related_model_id,
+            );
+            if (relatedModel) {
+              await relatedModel.getCachedColumns(context);
+              const pairedCol = getRelatedLinksColumn(col as any, relatedModel);
+              if (pairedCol) {
+                linkConfig.pairedColumnId = pairedCol.id;
+                linkConfig.pairedColumnTitle = pairedCol.title;
+              }
+            }
+          }
+        }
+      }
+
       return {
         parentEntityTitle: table?.title,
         extra: {
@@ -251,11 +324,12 @@ export const ColumnUpdateContract: OperationContract<
           oldUidt: col?.uidt,
           ...(col ? { prev: snapshotColumnFields(col) } : {}),
           ...(prevFilters ? { prevFilters } : {}),
+          ...(linkConfig ? { linkConfig } : {}),
         },
       };
     },
   },
-  capture: ['backup'],
+  capture: ['backup', 'ltar', 'convertedLink', 'convertedText'],
   capture_schema: columnUpdateExtraSchema,
   on_record_failure: async (context, capture) => {
     if (!capture.backup) return;
@@ -268,7 +342,79 @@ export const ColumnUpdateContract: OperationContract<
     dependencies: (_params, result) => deriveColumnDeps(result),
   },
   undo: {
-    inverse: (_context, params, _result, resolved) => {
+    inverse: (_context, params, result, resolved) => {
+      // SingleLineText→link conversion: the source column is replaced by a new
+      // link column, so the generic `prev`-revert can't apply. Invert via
+      // `columnRevertLinkToText` (drop the link, recreate the text column with
+      // its original id, restore data). The link column id is read from the
+      // forward result; its data backup rides on the row's `meta.backup`.
+      const convFromUidt = resolved?.extra?.oldUidt;
+      const convToUidt = (params.column as { uidt?: UITypes })?.uidt;
+      if (
+        convFromUidt === UITypes.SingleLineText &&
+        isLinksOrLTAR({ uidt: convToUidt })
+      ) {
+        // Match the new link column by `oldTitle` (the SOURCE column's title
+        // captured by `before`), NOT the request body title: the forward
+        // conversion renames the link to `originalTitle = column.title`
+        // (= `resolved.extra.oldTitle`) and ignores `colBody.title`. A PATCH
+        // that renames AND converts in one step (body title ≠ current title)
+        // would otherwise miss → inverse returns null → no undo row →
+        // `on_record_failure` drops the backup → original text unrecoverable.
+        // Mirrors the link→text branch below.
+        const linkTitle = resolved?.extra?.oldTitle;
+        const linkColumnId = ((result as { columns?: any[] })?.columns ?? []).find(
+          (c) => isLinksOrLTAR(c) && c?.title === linkTitle,
+        )?.id;
+        if (!linkColumnId) return null;
+        const prevSnap = resolved?.extra?.prev as Record<string, unknown>;
+        // The internal `columnUpdate` carries neither `fk_model_id` nor
+        // `tableId` in params — fall back to the owning table captured by
+        // `before` so the recreate target resolves.
+        const fkModelId =
+          (params.column as { fk_model_id?: string })?.fk_model_id ??
+          params.tableId ??
+          resolved?.extra?.fkModelId;
+        return {
+          name: OperationName.columnRevertLinkToText,
+          params: {
+            linkColumnId,
+            textColumn: {
+              ...(prevSnap ?? {}),
+              id: params.columnId,
+              fk_model_id: fkModelId,
+            },
+            ...(fkModelId ? { tableId: fkModelId } : {}),
+          },
+        };
+      }
+
+      // link→SingleLineText conversion: the link column is replaced by a new
+      // text column. Invert via `columnRevertTextToLink` (drop the text column,
+      // recreate the link with its original id, re-link rows from the joined
+      // text). Link config comes from the `before` snapshot; the new text
+      // column id is read from the forward result.
+      if (
+        isLinksOrLTAR({ uidt: convFromUidt }) &&
+        convToUidt === UITypes.SingleLineText
+      ) {
+        const linkConfig = resolved?.extra?.linkConfig;
+        if (!linkConfig) return null;
+        const oldTitle = resolved?.extra?.oldTitle;
+        const textColumnId = ((result as { columns?: any[] })?.columns ?? []).find(
+          (c) => c?.uidt === UITypes.SingleLineText && c?.title === oldTitle,
+        )?.id;
+        if (!textColumnId) return null;
+        return {
+          name: OperationName.columnRevertTextToLink,
+          params: {
+            textColumnId,
+            link: linkConfig,
+            ...(params.tableId ? { tableId: params.tableId } : {}),
+          },
+        };
+      }
+
       const prev = resolved?.extra?.prev;
       const prevFilters = resolved?.extra?.prevFilters;
       const oldUidt = resolved?.extra?.oldUidt;
@@ -433,6 +579,55 @@ export const ColumnsBulkContract: OperationContract<
   },
 };
 
+/**
+ * Inverse of a SingleLineText→link conversion. Only ever dispatched as the
+ * `inverse_op` of a `columnUpdate` conversion row (never recorded standalone),
+ * so it needs no `undo`/`sandbox` section — just a handler. Drops the link
+ * column, recreates the text column (original id), and restores its data from
+ * the backup carried on the originating row's `meta.backup`.
+ */
+export const ColumnRevertLinkToTextContract: OperationContract<
+  typeof columnRevertLinkToTextSchema,
+  Record<string, any>,
+  Column | undefined
+> = {
+  name: OperationName.columnRevertLinkToText,
+  entity: MetaTable.COLUMNS,
+  schema: columnRevertLinkToTextSchema,
+  entry: {
+    entity_id: (params) => (params.textColumn as { id?: string })?.id,
+    entity_title: (params) => (params.textColumn as { title?: string })?.title,
+    parent_id: (params) =>
+      params.tableId ??
+      (params.textColumn as { fk_model_id?: string })?.fk_model_id,
+    description: fieldActions.edit,
+  },
+};
+
+/**
+ * Inverse of a link→SingleLineText conversion. Only ever dispatched as the
+ * `inverse_op` of a `columnUpdate` conversion row (never recorded standalone),
+ * so it needs no `undo`/`sandbox` section — just a handler. Drops the text
+ * column, recreates the link column (original id) and re-links each row by
+ * resolving its joined display values back to related records.
+ */
+export const ColumnRevertTextToLinkContract: OperationContract<
+  typeof columnRevertTextToLinkSchema,
+  Record<string, any>,
+  Column | undefined
+> = {
+  name: OperationName.columnRevertTextToLink,
+  entity: MetaTable.COLUMNS,
+  schema: columnRevertTextToLinkSchema,
+  entry: {
+    entity_id: (params) => (params.link as { id?: string })?.id,
+    entity_title: (params) => (params.link as { title?: string })?.title,
+    parent_id: (params) =>
+      params.tableId ?? (params.link as { fk_model_id?: string })?.fk_model_id,
+    description: fieldActions.edit,
+  },
+};
+
 export function registerColumnHandlers(
   svc: ColumnsService,
   baseTrashSvc: BaseTrashService,
@@ -483,6 +678,18 @@ export function registerColumnHandlers(
         setReplay('replayBackup', replayBackup);
       }
 
+      // Redo of a text→link conversion: reuse the originally-created link ids
+      // so later ops referencing them stay valid. Redo of a link→text
+      // conversion: reuse the originally-created text column id.
+      if (isReplay()) {
+        const ltarIds = meta.extra?.ltar;
+        if (ltarIds) setReplay('ltarReplayIds', ltarIds);
+        const linkColumnId = meta.extra?.convertedLink?.linkColumnId;
+        if (linkColumnId) setReplay('convertedLinkId', linkColumnId);
+        const textColumnId = meta.extra?.convertedText?.textColumnId;
+        if (textColumnId) setReplay('convertedTextId', textColumnId);
+      }
+
       type ColumnUpdateSvcParams = Parameters<typeof svc.columnUpdate>[1] & {
         forceUpdateSystem?: boolean;
       };
@@ -504,6 +711,33 @@ export function registerColumnHandlers(
         }
       }
       return result;
+    },
+  );
+
+  OperationRegistry.register(
+    ColumnRevertLinkToTextContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.revertLinkColumnToText(context, {
+        linkColumnId: params.linkColumnId,
+        textColumn: params.textColumn as Record<string, any>,
+        backupRef: meta.extra?.backup,
+        req,
+      });
+    },
+  );
+
+  OperationRegistry.register(
+    ColumnRevertTextToLinkContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.revertTextColumnToLink(context, {
+        textColumnId: params.textColumnId,
+        link: params.link as Parameters<
+          typeof svc.revertTextColumnToLink
+        >[1]['link'],
+        req,
+      });
     },
   );
 

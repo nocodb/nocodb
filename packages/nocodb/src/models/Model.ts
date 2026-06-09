@@ -58,6 +58,28 @@ import {
 
 const logger = new Logger('Model');
 
+/**
+ * Build a JSON-/hash-safe clone: drop functions, replace promises with a
+ * placeholder, and break cycles. Used as a fallback when `object-hash` chokes
+ * on a transient lazily-loaded promise sitting on a cached column instance.
+ */
+function sanitizeForHash(value: any, seen = new WeakSet()): any {
+  if (value === null || typeof value !== 'object') {
+    return typeof value === 'function' ? undefined : value;
+  }
+  if (typeof (value as any).then === 'function') return '[promise]';
+  if (seen.has(value)) return '[circular]';
+  seen.add(value);
+  if (Array.isArray(value)) return value.map((v) => sanitizeForHash(v, seen));
+  if (value instanceof Map) {
+    return [...value.entries()].map(([k, v]) => [k, sanitizeForHash(v, seen)]);
+  }
+  if (value instanceof Set) return [...value].map((v) => sanitizeForHash(v, seen));
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(value)) out[k] = sanitizeForHash(v, seen);
+  return out;
+}
+
 export default class Model implements TableType {
   copy_enabled: BoolType;
   source_id: 'db' | string;
@@ -153,7 +175,15 @@ export default class Model implements TableType {
   ): Promise<string> {
     const columns = await this.getColumns(context, ncMeta, undefined, false);
 
-    return (this.columnsHash = hash(columns));
+    try {
+      return (this.columnsHash = hash(columns));
+    } catch {
+      // A column can transiently carry a lazily-loaded Promise (e.g. a relation
+      // mid-load on a shared cached instance); object-hash throws on promises.
+      // Hash a sanitized projection instead so meta operations never crash on a
+      // transient cache state.
+      return (this.columnsHash = hash(sanitizeForHash(columns)));
+    }
   }
 
   // get columns cached under the instance or fetch from db/redis cache

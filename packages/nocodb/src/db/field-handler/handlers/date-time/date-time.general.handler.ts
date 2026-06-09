@@ -341,6 +341,21 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       );
     }
 
+    // top-level NULL-check operators carry no date value — route straight to the
+    // generic handler. Otherwise they fall through to the date-parsing path below
+    // where the missing anchorDate short-circuits to an empty clause (all rows).
+    if (
+      ['blank', 'notblank', 'null', 'notnull', 'empty', 'notempty'].includes(
+        filter.comparison_op,
+      )
+    ) {
+      return await this.handleFilter(
+        { val: filter.value, sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
+
     const now = this.getNow(knex, filter, column, options);
     let anchorDate: dayjs.Dayjs;
     const emptyResult = { clause: () => {} } as FilterOperationResult;

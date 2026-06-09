@@ -182,6 +182,20 @@ const hasDuplicateOptionTitles = (
   );
 };
 
+// Select option titles must be strings — the SQL-building below relies on
+// el.title.replace()/trimEnd()/includes(). Clients can send numeric labels as
+// JSON numbers (e.g. { title: 2024 }), which would throw ".replace is not a
+// function". Coerce non-string titles to strings up front so every downstream
+// title access is safe.
+const normalizeSelectOptionTitles = (options?: { title?: any }[]): void => {
+  if (!Array.isArray(options)) return;
+  for (const op of options) {
+    if (op && op.title != null && typeof op.title !== 'string') {
+      op.title = String(op.title);
+    }
+  }
+};
+
 // True when this column is a SingleSelect backed by a native PostgreSQL enum
 // type (introspected from an external source, with the type name remembered
 // in internal_meta.pg_enum_type_name). For these columns option add/rename
@@ -1843,6 +1857,8 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
+        normalizeSelectOptionTitles(colBody.colOptions.options);
+
         const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'mssql'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
@@ -4250,6 +4266,8 @@ export class ColumnsService implements IColumnsService {
                 options: [],
               };
             }
+
+            normalizeSelectOptionTitles(colBody.colOptions.options);
 
             const dbDriver = await NcConnectionMgrv2.get(source);
             const driverType = dbDriver.clientType();

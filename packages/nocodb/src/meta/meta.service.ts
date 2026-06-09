@@ -13,6 +13,7 @@ import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
+import Noco from '~/Noco';
 import {
   BaseRelatedMetaTables,
   MetaTable,
@@ -82,6 +83,59 @@ export class MetaService {
 
   public get knex(): any {
     return this.knexConnection;
+  }
+
+  /**
+   * Guardrail against mixing a meta-DB transaction with a satellite table.
+   *
+   * A transaction started on the meta service is bound to the meta connection
+   * pool. Satellite tables (NC_AUDIT_DB / NC_CHAT_DB / NC_DOCS_DB /
+   * NC_OP_LOG_DB) live on a separate connection once their env var is set, so
+   * they can never take part in a meta-DB transaction. Forwarding the meta
+   * transaction to a satellite table silently "works" in single-DB deployments
+   * (where the satellite falls back to the meta DB) but writes to the wrong DB
+   * — or fails outright — once a satellite DB is configured. Fail loudly here
+   * rather than ship that latent, deployment-dependent bug.
+   *
+   * Only fires when (a) a transaction is active on this service, (b) the target
+   * is a satellite table, and (c) that satellite has its own connection whose
+   * pool differs from this service's pool. A satellite service operating on its
+   * own connection, and single-DB deployments (no separate satellite), are
+   * unaffected. Note: this only covers the metaXxx query path — raw
+   * `knexConnection(table)` access bypasses it.
+   */
+  protected assertSatelliteNotInMetaTrx(target: string) {
+    if (!this.trx) return;
+
+    const satelliteKnex = this.satelliteKnexForTable(target);
+    if (satelliteKnex && satelliteKnex !== this.knexInstance) {
+      NcError.metaError({
+        message: `Cannot access satellite table "${target}" inside a meta transaction: it lives on a separate connection (NC_AUDIT_DB / NC_CHAT_DB / NC_DOCS_DB / NC_OP_LOG_DB) and cannot share the meta-DB transaction. Use the dedicated satellite service (Noco.ncAudit / ncChatMessages / ncDocsContent / ncOperationLogs) without forwarding the transaction.`,
+        sql: '',
+      });
+    }
+  }
+
+  /**
+   * Returns the dedicated knex pool for a satellite table when that satellite
+   * runs on its own connection, else undefined. Canonical list of satellite
+   * tables — keep in sync with the satellite services wired in
+   * Noco.prepare*Service().
+   */
+  private satelliteKnexForTable(target: string): Knex | undefined {
+    switch (target) {
+      case MetaTable.AUDIT:
+        return Noco._ncAudit?.knexInstance;
+      case MetaTable.CHAT_MESSAGES:
+        return Noco._ncChatMessages?.knexInstance;
+      case MetaTable.DOC_CONTENT:
+      case MetaTable.DOC_REVISIONS:
+        return Noco._ncDocsContent?.knexInstance;
+      case MetaTable.OPERATION_LOGS:
+        return Noco._ncOperationLogs?.knexInstance;
+      default:
+        return undefined;
+    }
   }
 
   /***
@@ -279,6 +333,8 @@ export class MetaService {
     insertObj.created_at = at;
     insertObj.updated_at = at;
 
+    this.assertSatelliteNotInMetaTrx(target);
+
     const qb = this.knexConnection(target).insert(insertObj);
 
     this.logHelper(workspace_id, base_id, target, qb);
@@ -359,6 +415,8 @@ export class MetaService {
       insertObj.push(tempObj);
     }
 
+    this.assertSatelliteNotInMetaTrx(target);
+
     const BATCH_SIZE =
       this.knexConnection.client.config.client === 'sqlite3' ? 200 : 10000;
     for (let i = 0; i < insertObj.length; i += BATCH_SIZE) {
@@ -390,6 +448,8 @@ export class MetaService {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
+
+    this.assertSatelliteNotInMetaTrx(target);
 
     const query = this.knexConnection(target);
 
@@ -470,6 +530,8 @@ export class MetaService {
     xcCondition?: Condition,
     force = false,
   ): Promise<void> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -561,6 +623,8 @@ export class MetaService {
     fields?: string[],
     xcCondition?: Condition,
   ): Promise<any> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (xcCondition) {
@@ -664,6 +728,8 @@ export class MetaService {
       orderBy?: { [key: string]: 'asc' | 'desc' };
     },
   ): Promise<any[]> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -750,6 +816,8 @@ export class MetaService {
       aggField?: string;
     },
   ): Promise<number> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
@@ -823,6 +891,8 @@ export class MetaService {
     force = false,
     allowCreatedAt = false,
   ): Promise<any> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -898,6 +968,8 @@ export class MetaService {
     condition: { [key: string]: any },
     xcCondition?: Condition,
   ): Promise<number> {
+    this.assertSatelliteNotInMetaTrx(target);
+
     const query = this.knexConnection(target);
 
     if (condition) {

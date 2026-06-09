@@ -10,6 +10,6 @@ export class CleanUpController {
   @Post('/internal/clean-up')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async resumeWorkers() {
-    await this.jobsService.add(JobTypes.CleanUp);
+    await this.jobsService.add(JobTypes.CleanUp, {});
   }
 }

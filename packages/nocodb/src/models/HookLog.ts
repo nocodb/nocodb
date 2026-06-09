@@ -161,4 +161,19 @@ export default class HookLog implements HookLogType {
 
     return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
   }
+
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOK_LOGS,
+      {
+        base_id: baseId,
+      },
+    );
+  }
 }

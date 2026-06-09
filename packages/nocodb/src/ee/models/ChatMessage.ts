@@ -201,6 +201,22 @@ export default class ChatMessage
     );
   }
 
+  // Messages live on the NC_CHAT_DB satellite. Cleaned on base hard-delete via
+  // base_id (stamped by metaInsert2 at insert time). Defaults to the satellite
+  // connection — never forward a meta-DB transaction here (different DB).
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncChatMessages,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_MESSAGES,
+      { base_id: baseId },
+    );
+  }
+
   static async countByWorkspaceAndMonth(
     _context: NcContext,
     workspaceId: string,

@@ -54,4 +54,19 @@ export default class SyncLogs {
     );
     return new SyncLogs({ ...insertObj, id });
   }
+
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SYNC_LOGS,
+      {
+        base_id: baseId,
+      },
+    );
+  }
 }

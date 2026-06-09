@@ -11,6 +11,9 @@ export const internalTests = runOnSet(2, function () {
     if (isEE()) {
       try {
         require('./ee/base-trash.test').baseTrashTests();
+        require('./ee/base-hard-delete-orphans.test').baseHardDeleteOrphansTests();
+        require('./ee/meta-satellite-trx-guard.test').metaSatelliteTrxGuardTests();
+        require('./ee/clean-up-processor.test').cleanUpProcessorTests();
         require('./ee/base-trash-field.test').baseTrashFieldTests();
         require('./ee/base-trash-table.test').baseTrashTableTests();
         require('./ee/date-dependency.test').dateDependencyTests();

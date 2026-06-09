@@ -197,4 +197,24 @@ export default class TableSync implements TableSyncType {
     );
     return true;
   }
+
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const syncs = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.TABLE_SYNCS,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+
+    // reuse delete() so mapping + column-mapping rows and cache are cleaned
+    for (const sync of syncs) {
+      await this.delete(context, sync.id, ncMeta);
+    }
+  }
 }

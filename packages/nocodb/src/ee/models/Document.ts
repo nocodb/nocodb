@@ -624,6 +624,29 @@ export default class Document extends DocumentCE implements DocumentType {
     return true;
   }
 
+  // Documents are nc_models_v2 rows (type=document); Source.delete only cascades
+  // table/view models, so docs (+ their satellite DOC_CONTENT/DOC_REVISIONS) must
+  // be cleaned explicitly on base hard-delete. Includes soft-deleted docs.
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const docs = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        condition: { base_id: baseId, ...this.typeCondition },
+      },
+    );
+
+    // reuse delete() so satellite content, revisions and cache are cleaned
+    for (const doc of docs) {
+      await this.delete(context, doc.id, ncMeta);
+    }
+  }
+
   public static async softDelete(
     context: NcContext,
     docId: string,

@@ -48,13 +48,16 @@ export class FormConditionalFieldsPage extends BasePage {
     const field = this.parent.get().locator(`[data-testid="nc-form-fields"][data-title="${title}"]`);
     await field.scrollIntoViewIfNeeded();
 
-    // Wait for icon change transition complete
-    await this.rootPage.waitForTimeout(300);
+    // The visibility icon swaps via a fade transition, so the leaving + entering icons
+    // briefly coexist. Wait deterministically for the transition to settle to a single icon
+    // (a fixed sleep races it → strict-mode "resolved to 2 elements"), then assert its state.
+    const icon = field.locator('.nc-field-visibility-icon');
+    await expect(icon).toHaveCount(1);
 
     if (isVisible) {
-      await expect(field.locator('.nc-field-visibility-icon')).toHaveClass(/nc-field-visible/);
+      await expect(icon).toHaveClass(/nc-field-visible/);
     } else {
-      await expect(field.locator('.nc-field-visibility-icon')).not.toHaveClass(/nc-field-visible/);
+      await expect(icon).not.toHaveClass(/nc-field-visible/);
     }
   }
 }

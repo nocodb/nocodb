@@ -113,7 +113,9 @@ const lookupLeafColumn = computed<ColumnType | undefined>(() => {
     const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
     if (!relCol || !relOpt?.fk_related_model_id) return undefined
 
-    const baseId = getRelatedBaseId(relCol as ColumnType)
+    // Fall back to the current hop's own table base (NOT the root parent base),
+    // so multi-hop chains crossing into another base resolve correctly.
+    const baseId = ((relOpt as any)?.fk_related_base_id as string | undefined) || ownMeta?.base_id
     const relMeta = baseId ? getMetaByKey(baseId, relOpt.fk_related_model_id) : undefined
     if (!relMeta) return undefined
 
@@ -147,7 +149,9 @@ watch(
       const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
       if (!relCol || !relOpt?.fk_related_model_id) return
 
-      const baseId = getRelatedBaseId(relCol as ColumnType)
+      // Fall back to the current hop's own table base (NOT the root parent base),
+      // so multi-hop chains crossing into another base resolve correctly.
+      const baseId = ((relOpt as any)?.fk_related_base_id as string | undefined) || ownMeta?.base_id
       if (!baseId) return
 
       const relMeta = getMetaByKey(baseId, relOpt.fk_related_model_id)

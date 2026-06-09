@@ -40,7 +40,7 @@ services:
       - nocodb-network
 
   db:
-    image: postgres:16.6
+    image: postgres:17.10
     environment:
       POSTGRES_USER: nocodb
       POSTGRES_PASSWORD: __PASSWORD__

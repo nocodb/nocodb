@@ -11,12 +11,15 @@ setup() {
   command -v expect >/dev/null || skip "expect not installed"
 }
 
+teardown() { noco_scratch_cleanup; }
+
 @test "interactive wizard produces a valid local install" {
-  cd "$BATS_TEST_TMPDIR"
+  noco_scratch
+  cd "$NOCO_SCRATCH"
   "${BATS_TEST_DIRNAME}/../expects/install/interactive.sh"
 
-  [ -f "$BATS_TEST_TMPDIR/nocodb/docker-compose.yml" ]
-  grep -q "'8080:8080'" "$BATS_TEST_TMPDIR/nocodb/docker-compose.yml"
-  grep -q 'image: postgres' "$BATS_TEST_TMPDIR/nocodb/docker-compose.yml"
-  grep -q 'image: redis' "$BATS_TEST_TMPDIR/nocodb/docker-compose.yml"
+  [ -f "$NOCO_SCRATCH/nocodb/docker-compose.yml" ]
+  grep -q "'8080:8080'" "$NOCO_SCRATCH/nocodb/docker-compose.yml"
+  grep -q 'image: postgres' "$NOCO_SCRATCH/nocodb/docker-compose.yml"
+  grep -q 'image: redis' "$NOCO_SCRATCH/nocodb/docker-compose.yml"
 }

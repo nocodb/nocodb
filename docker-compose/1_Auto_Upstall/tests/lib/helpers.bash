@@ -8,11 +8,19 @@ noco_sh()      { echo "${BATS_TEST_DIRNAME}/../../noco.sh"; }
 golden_dir()   { echo "${BATS_TEST_DIRNAME}/../golden"; }
 examples_dir() { echo "${BATS_TEST_DIRNAME}/../../../examples"; }
 
-# fake_ca — write a throwaway CA file to the test tmpdir and echo its path.
+# Per-test scratch dir. Don't use $BATS_TEST_TMPDIR: it only exists since
+# bats 1.4.0, and ubuntu-22.04 (CI) ships bats 1.2.1 where it's empty.
+# noco_scratch must run in the test shell (not a $() subshell) so NOCO_SCRATCH
+# persists for reuse and for teardown() to clean up.
+noco_scratch()         { [ -n "${NOCO_SCRATCH:-}" ] || NOCO_SCRATCH="$(mktemp -d)"; }
+noco_scratch_cleanup() { [ -n "${NOCO_SCRATCH:-}" ] && rm -rf "$NOCO_SCRATCH"; return 0; }
+
+# fake_ca — write a throwaway CA file to the scratch dir and echo its path.
 # Generated at runtime rather than committed (repo .gitignore excludes *.pem).
 # Content only needs to be PEM-shaped text; the installer embeds it verbatim.
 fake_ca() {
-  local f="${BATS_TEST_TMPDIR}/fake-ca.pem"
+  noco_scratch
+  local f="$NOCO_SCRATCH/fake-ca.pem"
   cat > "$f" <<'PEM'
 -----BEGIN CERTIFICATE-----
 TEST0NLYnotARealCertificateForBatsFixturesXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -28,7 +36,8 @@ PEM
 #   $GEN_DIR/docker.env
 #   $GEN_DIR/nocodb/db.json
 generate() {
-  GEN_DIR="${BATS_TEST_TMPDIR}/run"
+  noco_scratch
+  GEN_DIR="$NOCO_SCRATCH/run"
   rm -rf "$GEN_DIR"
   mkdir -p "$GEN_DIR"
   ( cd "$GEN_DIR" && NOCO_SKIP_PREFLIGHT=1 bash "$(noco_sh)" "$@" ) >/dev/null 2>&1

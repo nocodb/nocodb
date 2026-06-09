@@ -6,6 +6,8 @@
 
 load ../lib/helpers
 
+teardown() { noco_scratch_cleanup; }
+
 # ── docker-compose.yml golden snapshots ─────────────────────────────────────────
 
 @test "local: bundled PG + bundled Redis compose matches golden" {

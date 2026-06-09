@@ -19,6 +19,8 @@ setup() {
   command -v jq >/dev/null || skip "jq not installed"
 }
 
+teardown() { noco_scratch_cleanup; }
+
 @test "external PG (managed SSL) matches the managed-postgres example" {
   generate --domain=localhost --pg=external --pg-host=h --pg-user=u --pg-password=p --pg-ssl=managed --redis=bundled
   assert_same_structure "$GEN_DIR/nocodb/db.json" "$(examples_dir)/managed-postgres/nocodb/db.json"

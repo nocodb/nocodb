@@ -26,6 +26,8 @@ export { default as SyncConfig } from './SyncConfig';
 export { default as SyncMapping } from './SyncMapping';
 export { default as Plan } from './Plan';
 export { default as Subscription } from './Subscription';
+export { default as Addon } from './Addon';
+export { default as SubscriptionAddon } from './SubscriptionAddon';
 export { default as ManagedApp } from './ManagedApp';
 export { default as ManagedAppVersion } from './ManagedAppVersion';
 export { default as ManagedAppDeploymentLog } from './ManagedAppDeploymentLog';

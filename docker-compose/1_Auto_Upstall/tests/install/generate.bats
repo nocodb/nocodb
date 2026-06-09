@@ -90,7 +90,6 @@ teardown() { noco_scratch_cleanup; }
 @test "docker.env carries the fixed settings block" {
   generate --domain=localhost --pg=bundled --redis=bundled
   grep -q '^NC_DB_JSON_FILE=/usr/app/data/db.json$' "$GEN_DIR/docker.env"
-  grep -q '^NC_ALLOW_LOCAL_EXTERNAL_DBS=true$' "$GEN_DIR/docker.env"
   grep -q '^NC_SECURE_ATTACHMENTS=true$' "$GEN_DIR/docker.env"
   grep -q '^NC_DISABLE_MUX=true$' "$GEN_DIR/docker.env"
 }

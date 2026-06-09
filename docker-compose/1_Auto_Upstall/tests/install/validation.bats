@@ -51,6 +51,30 @@ run_noco() {
   [[ "$output" == *"Unknown flag"* ]]
 }
 
+@test "production domain without --acme-email fails" {
+  run_noco --domain=demo.example.com --pg=bundled --redis=bundled
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"--acme-email is required"* ]]
+}
+
+@test "external PG with a CA path that does not exist fails" {
+  run_noco --domain=localhost --pg=external --pg-host=db.example.com --pg-user=nocodb --pg-password=secretpass --pg-ssl=/no/such/ca.pem --redis=bundled
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"CA file not found"* ]]
+}
+
+@test "misspelled --pg-ssl value fails instead of writing an empty CA" {
+  run_noco --domain=localhost --pg=external --pg-host=db.example.com --pg-user=nocodb --pg-password=secretpass --pg-ssl=mananged --redis=bundled
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"CA file not found"* ]]
+}
+
+@test "removed subcommands point to the new workflow" {
+  run_noco upgrade
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"no longer a subcommand"* ]]
+}
+
 @test "--help exits 0 and prints usage" {
   run_noco --help
   [ "$status" -eq 0 ]

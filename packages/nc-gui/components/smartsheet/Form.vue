@@ -24,7 +24,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
-import { estimateFieldHeightPx, estimateRowHeightPx } from './form/formRowEstimate'
+import { estimateRowHeightPx } from './form/formRowEstimate'
 import type { ImageCropperConfig } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -524,6 +524,15 @@ function isFullWidthField(col: Record<string, any>) {
   return col?.uidt != null && (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(col.uidt)
 }
 
+// True when an attachment cell currently holds files — drives a static
+// `nc-input-has-attachments` class that replaces a costly `:has()` CSS selector.
+function isAttachmentCellWithFiles(col: Record<string, any>) {
+  if (!isAttachment(col)) return false
+  const val = formState.value?.[col.title]
+  const arr = ncIsArray(val) ? val : ncIsString(val) ? parseProp(val) : []
+  return ncIsArray(arr) && arr.length > 0
+}
+
 const rowsWithKey = computed(() =>
   (rows.value as any[][]).map((fields: any[], idx: number) => ({
     _key: fields[0]?.row_id || `_solo_${fields[0]?.id || idx}`,
@@ -531,6 +540,49 @@ const rowsWithKey = computed(() =>
     fields,
   })),
 )
+
+// ── Lazy-render off-screen field rows (replaces `content-visibility`, which churned
+// add/remove-from-layout ~1100x on every activation). Each grid row keeps a lightweight,
+// sized placeholder until it scrolls near the viewport, so off-screen heavy cells aren't
+// mounted/restyled. The row WRAPPER stays in the DOM so drag-drop targets + ordering are
+// unaffected; during an active drag (`drag`) every row renders fully, and the active row
+// always renders so its editor never unmounts mid-edit.
+const renderedRowKeys = reactive(new Set<string>())
+
+let rowVisibilityObserver: IntersectionObserver | null = null
+
+function ensureRowObserver(el: HTMLElement) {
+  if (rowVisibilityObserver) return
+  const root = el.closest('.nc-form-preview-scroller') as HTMLElement | null
+  rowVisibilityObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const key = (entry.target as HTMLElement).dataset.rowKey
+        if (!key) continue
+        if (entry.isIntersecting) renderedRowKeys.add(key)
+        else renderedRowKeys.delete(key)
+      }
+    },
+    // Pre-render a generous margin above/below so fast scrolling never reveals blanks.
+    { root, rootMargin: '900px 0px', threshold: 0 },
+  )
+}
+
+const vObserveRow = {
+  mounted(el: HTMLElement) {
+    ensureRowObserver(el)
+    rowVisibilityObserver?.observe(el)
+  },
+  beforeUnmount(el: HTMLElement) {
+    rowVisibilityObserver?.unobserve(el)
+    const key = el.dataset.rowKey
+    if (key) renderedRowKeys.delete(key)
+  },
+}
+
+function isRowRendered(formRow: { _key: string; fields: any[] }) {
+  return drag.value || renderedRowKeys.has(formRow._key) || formRow.fields.some((f: any) => f.id === activeRow.value)
+}
 
 // Serializes drag-drop re-layouts: blocks new drags while a bulk update
 // is in flight so rapid consecutive moves can't race each other and
@@ -1053,7 +1105,18 @@ const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
 
   if (field) {
     setTimeout(() => {
-      field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (!field.isConnected) return
+
+      // Only scroll when the field is actually off-screen. A smooth scroll-to-center
+      // animates across many rows, and with `content-visibility:auto` each revealed
+      // row re-renders per frame — re-centering an already-visible field on every
+      // activation caused a ~350ms style-recalc storm (56 recalcs of ~2.5k elements).
+      const rect = field.getBoundingClientRect()
+      const viewportH = window.innerHeight || document.documentElement.clientHeight
+      const fullyVisible = rect.top >= 0 && rect.bottom <= viewportH
+      if (fullyVisible) return
+
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 50)
   }
 }
@@ -1347,7 +1410,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           <SmartsheetFormLayout :is-sidebar-visible="isSidebarVisible">
             <template #preview>
               <div
-                class="w-full h-full overflow-auto nc-scrollbar-thin p-6"
+                class="nc-form-preview-scroller w-full h-full overflow-auto nc-scrollbar-thin p-6"
                 :style="{
                   background: parseProp(formViewData?.meta)?.background_color
                     ? getDarkModeCompatibleBgColor({
@@ -1708,7 +1771,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   class="nc-input truncate"
                                   :class="[
                                     `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                    { 'layout-list': element.meta.isList },
+                                    {
+                                      'layout-list': element.meta.isList,
+                                      'nc-input-has-attachments': isAttachmentCellWithFiles(element),
+                                    },
                                   ]"
                                   :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                   :column="element"
@@ -1747,11 +1813,15 @@ const { message: templatedMessage } = useTemplatedMessage(
                             </template>
                           </Draggable>
                           <div
+                            v-observe-row
+                            :data-row-key="formRow._key"
                             class="nc-form-row flex items-stretch gap-1 min-w-0"
-                            :class="{ 'nc-form-cv': !formRow.fields.some((f) => f.id === activeRow) }"
-                            :style="{ '--nc-cv-h': `${estimateRowHeightPx(formRow.fields)}px` }"
+                            :style="
+                              isRowRendered(formRow) ? undefined : { minHeight: `${estimateRowHeightPx(formRow.fields)}px` }
+                            "
                           >
                             <Draggable
+                              v-if="isRowRendered(formRow)"
                               :model-value="formRow.fields"
                               item-key="id"
                               draggable=".item"
@@ -1761,6 +1831,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
                               :move="(ev: any) => onFieldMoveCallback(ev, formRow.fields)"
                               :disabled="isLocked || !isEditable || gridUpdatePending"
+                              @start="drag = true"
+                              @end="drag = false"
                               @change="onFieldMove($event, formRow._key)"
                             >
                               <template #item="{ element }">
@@ -1942,11 +2014,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               {
                                 '!hover:bg-nc-bg-default !ring-0 !cursor-auto': isLocked,
                               },
-                              {
-                                'nc-form-cv': activeRow !== element.id,
-                              },
                             ]"
-                            :style="{ '--nc-cv-h': `${estimateFieldHeightPx(element)}px` }"
                             :data-title="element.title"
                             data-testid="nc-form-fields"
                             @click.stop="onFormItemClick(element)"
@@ -2800,10 +2868,14 @@ const { message: templatedMessage } = useTemplatedMessage(
 
 .nc-input {
   @apply appearance-none w-full;
-  &:not(.layout-list) {
-    &:not(:has(.form-attachment-cell.nc-has-attachments)) {
-      @apply !bg-nc-bg-default rounded-lg border-solid border-1 border-nc-border-gray-medium !focus-within:border-nc-border-brand;
-    }
+  // Bordered-input style for all non-list cells except attachment cells that have
+  // files (their attachment display has its own chrome). Uses a static class
+  // (`nc-input-has-attachments`) instead of `:has(...)` — the relational selector
+  // forced Blink to re-scan every `.nc-input` subtree on ANY in-form style change
+  // (e.g. the activeRow class toggle), which was the dominant RecalcStyle cost on
+  // large forms. A direct class is O(1) invalidation.
+  &:not(.layout-list):not(.nc-input-has-attachments) {
+    @apply !bg-nc-bg-default rounded-lg border-solid border-1 border-nc-border-gray-medium !focus-within:border-nc-border-brand;
   }
   &.layout-list {
     @apply h-auto !p-0;
@@ -3008,15 +3080,5 @@ const { message: templatedMessage } = useTemplatedMessage(
   .nc-form-field-bubble-menu-wrapper {
     @apply -bottom-12;
   }
-}
-
-// Skip layout/style/paint for off-screen form rows while keeping them in the DOM
-// (so reorder, validation, find-in-page, focus all keep working). `--nc-cv-h` is a
-// first-paint size estimate; `auto` makes the browser cache the real height after
-// first render. NOT applied to the active row (on-screen anyway, and paint
-// containment would clip its absolute edit affordances).
-.nc-form-cv {
-  content-visibility: auto;
-  contain-intrinsic-size: auto var(--nc-cv-h, 96px);
 }
 </style>

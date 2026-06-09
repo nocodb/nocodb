@@ -984,7 +984,14 @@ export class FormPage extends BasePage {
 
   async verifyFieldConfigError({ title, hasError }: { title: string; hasError: boolean }) {
     const field = this.get().locator(`[data-testid="nc-form-fields"][data-title="${title}"]`);
-    await field.scrollIntoViewIfNeeded();
+
+    // Field rows are lazy-rendered (IntersectionObserver), so a row's cell can detach/remount
+    // a beat after a layout re-key (e.g. toggling a conditional-field condition). Wait for the
+    // cell to attach + render before reading it, and let it settle so the assertion doesn't
+    // race the row's mount re-render.
+    await field.scrollIntoViewIfNeeded().catch(() => {});
+    await field.waitFor({ state: 'visible', timeout: 30000 });
+    await this.rootPage.waitForTimeout(150);
 
     if (hasError) {
       await expect(field.locator('.nc-field-config-error')).toBeVisible();

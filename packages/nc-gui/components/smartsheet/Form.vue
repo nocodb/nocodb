@@ -588,10 +588,35 @@ function ensureRowObserver(el: HTMLElement) {
   )
 }
 
+// Synchronous first-paint check: is this row inside (or within the pre-render margin of)
+// the scroller's viewport right now? Forces a layout read, so it's reliable inside the
+// directive's `mounted` hook. Mirrors the observer's `rootMargin` so seeding and the
+// observer agree on what "near the viewport" means.
+const ROW_PRERENDER_MARGIN_PX = 900
+
+function isRowElementNearViewport(el: HTMLElement) {
+  const root = el.closest('.nc-form-preview-scroller') as HTMLElement | null
+  const rect = el.getBoundingClientRect()
+  const top = root ? root.getBoundingClientRect().top : 0
+  const bottom = root ? root.getBoundingClientRect().bottom : window.innerHeight || document.documentElement.clientHeight
+  return rect.bottom >= top - ROW_PRERENDER_MARGIN_PX && rect.top <= bottom + ROW_PRERENDER_MARGIN_PX
+}
+
 const vObserveRow = {
   mounted(el: HTMLElement) {
     ensureRowObserver(el)
     rowVisibilityObserver?.observe(el)
+
+    // Seed on-screen rows synchronously instead of waiting for the async IntersectionObserver
+    // callback. The observer fires on a later task and can be coalesced/delayed (notably in
+    // headless CI), which left freshly re-laid-out on-screen rows (e.g. right after
+    // removeAllFields or a layout re-key) stuck as placeholders — their heavy cells never
+    // mounted until a scroll nudged the observer. Off-screen rows fail this check and stay
+    // placeholders, so the perf win is preserved; the observer still handles later scrolling.
+    const key = el.dataset.rowKey
+    if (key && !renderedRowKeys.has(key) && isRowElementNearViewport(el)) {
+      renderedRowKeys.add(key)
+    }
   },
   beforeUnmount(el: HTMLElement) {
     rowVisibilityObserver?.unobserve(el)

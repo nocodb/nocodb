@@ -22,7 +22,6 @@ import {
   PermissionEntity,
   PermissionKey,
   PlanLimitTypes,
-  ProjectRoles,
   RelationTypes,
   resolveCurrentUserToken,
   UITypes,
@@ -5813,6 +5812,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
    * EE override: Returns RLS filter conditions for the current user.
    * Resolves applicable policies and returns filter conditions that
    * get AND'd with all other filters in the query.
+   *
+   * RLS is enforced for every role, including base owners — there is no
+   * role-based exemption. This matches the realtime socket layer
+   * (resolveRlsRoom), which also applies policies to all users.
    */
   public override async getRlsConditions(): Promise<Filter[]> {
     // Only apply RLS if user context is available
@@ -5821,17 +5824,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     const user = this.context.user;
-
-    // Base owners are exempt from RLS
-    if (user.base_roles) {
-      const roles =
-        typeof user.base_roles === 'string'
-          ? JSON.parse(user.base_roles)
-          : user.base_roles;
-      if (roles?.[ProjectRoles.OWNER]) {
-        return [];
-      }
-    }
 
     try {
       // Build user context for RLS resolution

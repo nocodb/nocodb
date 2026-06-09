@@ -23,6 +23,8 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
+const { isWhiteLabelled, productName, faviconUrl } = useBranding()
+
 const basesStore = useBases()
 
 const { basesList, resolvedProject } = storeToRefs(basesStore)
@@ -238,19 +240,13 @@ const handleOpenBookmarkPanel = () => {
           :data-workspace-title="activeWorkspace?.title"
           @click="navigateTo(`/${activeWorkspaceId}`)"
         >
-          <GeneralProjectIcon
-            class="!h-7 !w-7 nc-logo-icon"
-            :color="parseProp(resolvedProject?.meta).iconColor"
-            :type="resolvedProject?.type"
-            :managed-app="
-              resolvedProject
-                ? {
-                    managed_app_master: resolvedProject?.managed_app_master,
-                    managed_app_id: resolvedProject?.managed_app_id,
-                  }
-                : undefined
-            "
+          <img
+            v-if="isWhiteLabelled && faviconUrl"
+            :src="faviconUrl"
+            :alt="productName"
+            class="!h-7 !w-7 nc-logo-icon object-contain"
           />
+          <GeneralIcon v-else icon="nocodb1" class="!h-7 !w-7 nc-logo-icon" />
           <div class="nc-back-icon">
             <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
           </div>

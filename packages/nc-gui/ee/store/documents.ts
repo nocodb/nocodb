@@ -738,12 +738,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
    * keeps the blob preview; the image just won't render for peers until a ref
    * exists), so the upload flow never throws here.
    */
-  const createFileRef = async (
-    baseId: string,
-    docId: string,
-    path: string,
-    fileSize?: number,
-  ): Promise<string | null> => {
+  const createFileRef = async (baseId: string, docId: string, path: string, fileSize?: number): Promise<string | null> => {
     if (!activeWorkspaceId.value) return null
 
     try {

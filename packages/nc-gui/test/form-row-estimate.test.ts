@@ -15,9 +15,7 @@ describe('formRowEstimate', () => {
   })
 
   it('inline-list selects scale with option count and cap', () => {
-    expect(
-      estimateFieldHeightPx({ uidt: UITypes.SingleSelect, meta: { isList: true }, colOptions: { options: [] } }),
-    ).toBe(84)
+    expect(estimateFieldHeightPx({ uidt: UITypes.SingleSelect, meta: { isList: true }, colOptions: { options: [] } })).toBe(84)
     expect(
       estimateFieldHeightPx({ uidt: UITypes.MultiSelect, meta: { isList: true }, colOptions: { options: new Array(3) } }),
     ).toBe(84 + 90) // 84 + 3*30

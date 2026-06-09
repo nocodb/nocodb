@@ -26,6 +26,7 @@ import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
 import { NcError } from '~/helpers/catchError';
+import { escapeFormulaeInRows } from '~/helpers/csvFormulaEscape';
 import {
   getViewAndModelByAliasOrId,
   serializeCellValue,
@@ -1731,6 +1732,9 @@ export class ExportService {
             const formatterPromise = formatter(result.list);
             if (formatterPromise instanceof Promise) {
               formatterPromise.then(({ data }) => {
+                if (dataExportMode) {
+                  escapeFormulaeInRows(data, model.columns);
+                }
                 stream.push(unparse(data, { header, delimiter }));
                 if (result.pageInfo.isLastPage) {
                   stream.push(null);
@@ -1756,6 +1760,9 @@ export class ExportService {
                 }
               });
             } else {
+              if (dataExportMode) {
+                escapeFormulaeInRows(formatterPromise.data, model.columns);
+              }
               stream.push(unparse(formatterPromise.data, { header }));
               if (result.pageInfo.isLastPage) {
                 stream.push(null);

@@ -66,9 +66,14 @@ export class PGDBQueryClient
       )
       .join(' UNION ALL ');
 
+    // `WITH ORDINALITY` keeps each id's position in the delimited cell so the
+    // `string_agg` below can pin the concatenation order. Without it the
+    // aggregate order is whatever the hash join emits — non-deterministic, and
+    // it shifts whenever the `stack` (base-user list) changes size/order,
+    // silently corrupting User/CreatedBy sort & filter results.
     const needleAsRows = knex
       .raw(
-        `select ?? as nc_raw_needle, trim(unnest(string_to_array(??, '${delimiter}'))) as nc_p_needle`,
+        `select ?? as nc_raw_needle, trim(nc_t_arr.nc_p_needle) as nc_p_needle, nc_t_arr.nc_p_ord as nc_p_ord from unnest(string_to_array(??, '${delimiter}')) with ordinality as nc_t_arr(nc_p_needle, nc_p_ord)`,
         [params.needleColumn, params.needleColumn],
       )
       .toQuery();
@@ -77,7 +82,7 @@ export class PGDBQueryClient
       .raw(
         [
           `select nc_p_result from (`,
-          `  select nc_t_needle.nc_raw_needle, string_agg(coalesce(nc_t_stack.nc_p_value, nc_t_stack.nc_p_key), '${delimiter}') as nc_p_result`,
+          `  select nc_t_needle.nc_raw_needle, string_agg(coalesce(nc_t_stack.nc_p_value, nc_t_stack.nc_p_key), '${delimiter}' order by nc_t_needle.nc_p_ord) as nc_p_result`,
           `  from (${needleAsRows}) nc_t_needle`,
           `  left join (${mapUnion}) nc_t_stack`,
           `    on nc_t_needle.nc_p_needle = nc_t_stack.nc_p_key`,

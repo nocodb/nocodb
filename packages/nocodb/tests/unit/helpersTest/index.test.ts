@@ -17,6 +17,7 @@ import { isSafeRedirectUrlTests } from './isSafeRedirectUrl.test';
 import { pkPreservationTests } from './pkPreservation.test';
 import { csvFormulaEscapeTest } from './csvFormulaEscape.test';
 import { singleQueryCacheInvalidatorTest } from './singleQueryCacheInvalidator.test';
+import { replaceDelimitedWithKeyValueTest } from './replaceDelimitedWithKeyValue.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -74,6 +75,7 @@ function _helperTests() {
   mssqlLookupFlattenTest();
   describeRowErrorTests();
   pkPreservationTests();
+  replaceDelimitedWithKeyValueTest();
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();

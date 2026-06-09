@@ -198,7 +198,22 @@ export default class Team {
       await NocoCache.setList('root', CacheScope.TEAM, [cacheKey], teamList);
     }
 
-    return teamList.map((team) => this.castType(team));
+    // Defense-in-depth: the cache bucket is keyed by `context.workspace_id ?? context.org_id`,
+    // which is NOT guaranteed to match the requested `fk_workspace_id` / `fk_org_id` filter
+    // (e.g. an org-scoped query issued under a workspace context, or a bucket polluted by a
+    // caller whose context scope diverges from the filter). On a cache hit the `xcCondition`
+    // above is never applied, so without this guard a team belonging to another workspace/org
+    // can leak into the result — which then surfaces as a confusing ERR_TEAM_NOT_FOUND when a
+    // downstream scope check rejects it. Re-apply the scope filter on every path.
+    const scopedList = teamList.filter((team) => {
+      if (fk_workspace_id && team.fk_workspace_id !== fk_workspace_id)
+        return false;
+      if (fk_org_id && team.fk_org_id !== fk_org_id) return false;
+      if (!include_deleted && team.deleted) return false;
+      return true;
+    });
+
+    return scopedList.map((team) => this.castType(team));
   }
 
   public static async update(

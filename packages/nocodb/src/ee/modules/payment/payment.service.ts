@@ -11,6 +11,7 @@ import {
   LOYALTY_GRACE_PERIOD_END_DATE,
   LoyaltyPriceReverseLookupKeyMap,
   NcBaseError,
+  PlanAddonTypes,
   PlanOrder,
   ReturnToBillingPage,
   WorkspaceUserRoles,
@@ -20,6 +21,7 @@ import type { NcRequest } from '~/interface/config';
 import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { JobTypes } from '~/interface/Jobs';
 import {
+  Addon,
   DbServer,
   ModelStat,
   Org,
@@ -285,6 +287,80 @@ export class PaymentService {
     }
 
     return await Plan.update(plan.id, { is_active: false });
+  }
+
+  async getAddons() {
+    return await Addon.list();
+  }
+
+  async submitAddon(payload: {
+    stripe_product_id: string;
+    addon_key: PlanAddonTypes;
+    is_active?: boolean;
+  }) {
+    if (!Object.values(PlanAddonTypes).includes(payload.addon_key)) {
+      NcError.badRequest('Invalid addon_key');
+    }
+
+    const existing = await Addon.getByKey(payload.addon_key);
+
+    if (existing) {
+      NcError.badRequest('Addon already exists');
+    }
+
+    const { title, description, prices, meta } =
+      await this.fetchStripeProductDetails(payload.stripe_product_id);
+
+    return await Addon.insert({
+      addon_key: payload.addon_key,
+      title,
+      description,
+      stripe_product_id: payload.stripe_product_id,
+      prices,
+      is_active: payload.is_active ?? true,
+      meta,
+    });
+  }
+
+  async syncAddon(addonId: string, payload?: { is_active?: boolean }) {
+    const addon = await Addon.get(addonId);
+
+    if (!addon) {
+      NcError.genericNotFound('Addon', addonId);
+    }
+
+    const { title, description, prices, meta } =
+      await this.fetchStripeProductDetails(addon.stripe_product_id);
+
+    return await Addon.update(addon.id, {
+      title,
+      description,
+      prices,
+      meta,
+      ...(payload?.is_active !== undefined
+        ? { is_active: payload.is_active }
+        : {}),
+    });
+  }
+
+  async syncAllAddons() {
+    const addons = await Addon.listActive();
+
+    for (const addon of addons) {
+      await this.syncAddon(addon.id!);
+    }
+
+    return { message: 'All addons synced' };
+  }
+
+  async disableAddon(addonId: string) {
+    const addon = await Addon.get(addonId);
+
+    if (!addon) {
+      NcError.genericNotFound('Addon', addonId);
+    }
+
+    return await Addon.update(addon.id, { is_active: false });
   }
 
   async internalUpgrade(

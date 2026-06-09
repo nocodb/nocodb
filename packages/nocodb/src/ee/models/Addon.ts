@@ -125,4 +125,17 @@ export default class Addon {
 
     return addons.map((addon) => this.prepare(addon));
   }
+
+  public static async listActive(ncMeta = Noco.ncMeta): Promise<Addon[]> {
+    const addons = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.ADDONS,
+      {
+        condition: { is_active: true },
+      },
+    );
+
+    return addons.map((addon) => this.prepare(addon));
+  }
 }

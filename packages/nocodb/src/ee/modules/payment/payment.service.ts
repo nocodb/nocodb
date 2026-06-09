@@ -3505,6 +3505,19 @@ export class PaymentService {
             );
           }
 
+          // keep the add-on junction in sync with the live Stripe items
+          if (event.type === 'customer.subscription.deleted') {
+            // subscription gone — cancel every active add-on entitlement
+            await this.cancelAllSubscriptionAddons(subRec.id, Noco.ncMeta);
+          } else {
+            // reconcile against the live items (out-of-band drift, phase change…)
+            await this.reconcileSubscriptionAddons(
+              subRec.id,
+              stripeSub,
+              Noco.ncMeta,
+            );
+          }
+
           if (workspaceOrOrg.entity === 'workspace') {
             const workspace = await Workspace.get(workspaceOrOrg.id);
 
@@ -3691,6 +3704,118 @@ export class PaymentService {
       this.logger.error(`Error handling webhook ${event.type}`);
       console.error(err);
       throw err;
+    }
+  }
+
+  /**
+   * Reconcile the local add-on junction with the live Stripe subscription items.
+   * Syncs seat_count for items whose quantity changed. When the stored item id is
+   * gone, re-matches the add-on by its catalog price for the current period — a
+   * scheduled phase change defines items by {price, quantity} (no id), so Stripe
+   * mints NEW item ids even for carried-forward add-ons; we adopt the new id rather
+   * than wrongly cancelling. Only a genuinely missing add-on (no catalog/price match)
+   * is cancelled. Comped add-ons (stripe_subscription_item_id === null) are
+   * entitlement-only and left untouched.
+   */
+  private async reconcileSubscriptionAddons(
+    localSubscriptionId: string,
+    stripeSub: Stripe.Subscription,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const liveById = new Map<string, Stripe.SubscriptionItem>(
+      stripeSub.items.data.map((i) => [i.id, i]),
+    );
+    const addons = await SubscriptionAddon.listActive(
+      localSubscriptionId,
+      ncMeta,
+    );
+    for (const sa of addons) {
+      try {
+        if (!sa.stripe_subscription_item_id) continue; // comped → entitlement only
+
+        const live = liveById.get(sa.stripe_subscription_item_id);
+        if (live) {
+          const qty = live.quantity ?? sa.seat_count;
+          if (qty !== sa.seat_count) {
+            await SubscriptionAddon.update(sa.id!, { seat_count: qty }, ncMeta);
+          }
+          continue;
+        }
+
+        // Stored item id is gone — could be a schedule phase reassigning item ids
+        // (phase items are price+quantity, so a carried-forward add-on gets a NEW
+        // id), or a genuine removal (below-min drop / external delete). Re-match
+        // by price.
+        const addon = await Addon.getByKey(sa.addon_key, ncMeta);
+        let matched: Stripe.SubscriptionItem | undefined;
+        if (addon) {
+          const baseInterval =
+            stripeSub.items.data[0]?.price?.recurring?.interval;
+          const period = baseInterval === 'year' ? 'year' : 'month';
+          try {
+            const expectedPriceId = this.resolveAddonPriceId(addon, period);
+            matched = stripeSub.items.data.find(
+              (i) => i.price?.id === expectedPriceId,
+            );
+          } catch (e) {
+            // Catalog has no price for this period — don't guess; leave the
+            // junction as-is for a later reconcile rather than wrongly cancelling.
+            this.logger.warn(
+              `addon reconcile: no ${period} price for ${sa.addon_key}, leaving junction ${sa.id} unchanged`,
+            );
+            continue;
+          }
+        }
+
+        if (matched) {
+          await SubscriptionAddon.update(
+            sa.id!,
+            {
+              stripe_subscription_item_id: matched.id,
+              seat_count: matched.quantity ?? sa.seat_count,
+            },
+            ncMeta,
+          );
+        } else {
+          await SubscriptionAddon.update(
+            sa.id!,
+            { status: 'canceled' },
+            ncMeta,
+          );
+        }
+      } catch (e) {
+        this.logger.error(
+          `addon reconcile failed for junction ${
+            sa.id
+          } (sub ${localSubscriptionId}): ${(e as Error)?.message}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Cancel every active add-on of a local subscription. Used on
+   * customer.subscription.deleted — the Stripe subscription (and all its items)
+   * is gone, so all add-on entitlements end regardless of item presence.
+   */
+  private async cancelAllSubscriptionAddons(
+    localSubscriptionId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const addons = await SubscriptionAddon.listActive(
+      localSubscriptionId,
+      ncMeta,
+    );
+    for (const sa of addons) {
+      try {
+        await SubscriptionAddon.update(sa.id!, { status: 'canceled' }, ncMeta);
+      } catch (e) {
+        this.logger.error(
+          `addon cancel failed for junction ${
+            sa.id
+          } (sub ${localSubscriptionId}): ${(e as Error)?.message}`,
+        );
+      }
     }
   }
 

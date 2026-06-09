@@ -13,6 +13,16 @@ import {
 
 type FormViewColumn = ColumnType & Record<string, any>
 
+// Shallow-compare two visibility-error maps so validateVisibility can skip
+// reassigning `column.meta` when nothing changed (a no-op reassignment still
+// invalidates the validators/rules computeds and re-renders the cell).
+function isSameVisibilityErrors(a: Record<string, string>, b: Record<string, string>): boolean {
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  if (aKeys.length !== bKeys.length) return false
+  return aKeys.every((key) => a[key] === b[key])
+}
+
 export class FormFilters {
   allViewFilters: FilterType[]
   protected groupedFilters: Record<string, FilterType[]>
@@ -172,6 +182,7 @@ export class FormFilters {
     filters: FilterType[] = [],
     parentCol: FormViewColumn,
     errors: Record<string, string>,
+    visibilityState?: Record<string, boolean>,
   ): Promise<boolean | undefined> {
     if (!filters.length) {
       return true
@@ -183,7 +194,7 @@ export class FormFilters {
       let res
 
       if (filter.is_group) {
-        res = await this.validateCondition(filter.children, parentCol, errors)
+        res = await this.validateCondition(filter.children, parentCol, errors, visibilityState)
       } else if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
         if (filter.fk_column_id) {
           errors[filter.fk_column_id] = `Condition references a field that no longer exists in the form.`
@@ -211,7 +222,11 @@ export class FormFilters {
           res = true
         }
 
-        if (!column?.visible) {
+        // Read the freshly-computed visibility from the in-progress local map
+        // when available (so cascading conditions are correct), falling back to
+        // the reactive value outside a validateVisibility pass.
+        const isReferencedColVisible = visibilityState ? visibilityState[column.fk_column_id] ?? !!column.visible : column.visible
+        if (!isReferencedColVisible) {
           res = false
         }
 
@@ -471,25 +486,52 @@ export class FormFilters {
   async validateVisibility() {
     const res: Record<string, boolean> = {}
 
+    // Phase 1 (async, NO reactive writes): evaluate each column's conditions in
+    // form order, tracking the result in a local map so cascading conditions
+    // still observe the freshly-computed visibility of earlier fields. Writing to
+    // reactive `column.visible`/`column.meta` here — interleaved with the `await`s
+    // inside validateCondition — would flush Vue between every column and trigger
+    // an O(n²) validators/rules rebuild storm.
+    const localVisible: Record<string, boolean> = {}
+    for (const column of this.formViewColumns) {
+      localVisible[column.fk_column_id] = !!column.visible
+    }
+
+    const evaluated: Array<{ column: FormViewColumn; nextVisible: boolean; errors: Record<string, string> }> = []
     for (const column of this.formViewColumns) {
       const columnFilters = this.nestedGroupedFilters[column.fk_column_id] ?? []
 
       const errors: Record<string, string> = {}
 
-      const isValid = await this.validateCondition(columnFilters, column, errors)
+      const isValid = await this.validateCondition(columnFilters, column, errors, localVisible)
 
+      const nextVisible = !!isValid
+      localVisible[column.fk_column_id] = nextVisible
+      evaluated.push({ column, nextVisible, errors })
+    }
+
+    // Phase 2 (synchronous, batched): apply only the values that actually
+    // changed. Skipping no-op writes avoids re-rendering unaffected cells; doing
+    // it in one synchronous pass lets Vue batch the dependent computeds into a
+    // single rebuild instead of one rebuild per column.
+    for (const { column, nextVisible, errors } of evaluated) {
       if (this.isSharedForm) {
-        if (!column.meta?.preFilledHiddenField) {
-          column.visible = !!isValid
+        if (!column.meta?.preFilledHiddenField && column.visible !== nextVisible) {
+          column.visible = nextVisible
         }
       } else {
-        column.visible = !!isValid
+        if (column.visible !== nextVisible) {
+          column.visible = nextVisible
+        }
 
-        column.meta = {
-          ...parseProp(column.meta),
-          visibility: {
-            errors,
-          },
+        const prevErrors = parseProp(column.meta)?.visibility?.errors ?? {}
+        if (!isSameVisibilityErrors(prevErrors, errors)) {
+          column.meta = {
+            ...parseProp(column.meta),
+            visibility: {
+              errors,
+            },
+          }
         }
       }
     }

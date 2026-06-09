@@ -24,6 +24,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
+import { estimateRowHeightPx } from './form/formRowEstimate'
 import type { ImageCropperConfig } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -100,6 +101,11 @@ const {
   checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
+// Recompute conditional field visibility once per change (debounced). Previously
+// this ran once-per-field as a validation side-effect, which triggered an O(n²)
+// validators/rules rebuild storm on every keystroke.
+const checkFieldVisibilityDebounced = useDebounceFn(() => checkFieldVisibility(), 100)
+
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -115,6 +121,7 @@ const reloadEventHookHandler = withLoading(async (params) => {
   } else {
     await Promise.all([loadFormView(), loadReleatedMetas()])
     setFormData()
+    resetRowRenderCache()
   }
 })
 
@@ -359,6 +366,12 @@ async function submitForm() {
 
   isFormSubmitting.value = true
 
+  // Ensure conditional visibility reflects the latest form values before we strip
+  // hidden-field data and run required-field validation — both are gated on
+  // `col.visible`. The live recompute is debounced, so force a fresh awaited pass
+  // here to keep submit deterministic regardless of debounce timing.
+  await checkFieldVisibility()
+
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
       formState.value[col.title] = null
@@ -512,6 +525,15 @@ function isFullWidthField(col: Record<string, any>) {
   return col?.uidt != null && (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(col.uidt)
 }
 
+// True when an attachment cell currently holds files — drives a static
+// `nc-input-has-attachments` class that replaces a costly `:has()` CSS selector.
+function isAttachmentCellWithFiles(col: Record<string, any>) {
+  if (!isAttachment(col)) return false
+  const val = formState.value?.[col.title]
+  const arr = ncIsArray(val) ? val : ncIsString(val) ? parseProp(val) : []
+  return ncIsArray(arr) && arr.length > 0
+}
+
 const rowsWithKey = computed(() =>
   (rows.value as any[][]).map((fields: any[], idx: number) => ({
     _key: fields[0]?.row_id || `_solo_${fields[0]?.id || idx}`,
@@ -519,6 +541,120 @@ const rowsWithKey = computed(() =>
     fields,
   })),
 )
+
+// ── Lazy-render off-screen field rows (replaces `content-visibility`, which churned
+// add/remove-from-layout ~1100x on every activation). Each grid row keeps a lightweight,
+// sized placeholder until it scrolls near the viewport, so off-screen heavy cells aren't
+// mounted/restyled. The row WRAPPER stays in the DOM so drag-drop targets + ordering are
+// unaffected; during an active drag (`drag`) every row renders fully, and the active row
+// always renders so its editor never unmounts mid-edit.
+const renderedRowKeys = reactive(new Set<string>())
+
+// Real rendered height (px) per row, captured the moment a row scrolls out of view —
+// reused as the collapsed placeholder's min-height so re-collapsing a tall row (filled
+// long text, long option lists, error states) doesn't snap back to a rough estimate and
+// shift the scroll position. Falls back to `estimateRowHeightPx` until a row has been
+// measured once. Plain Map (not reactive): it's read only when `isRowRendered` flips to
+// false — which the reactive `renderedRowKeys` already triggers — and it's always written
+// just before that flip, so the placeholder binding sees the fresh value.
+const rowHeightCache = new Map<string, number>()
+
+let rowVisibilityObserver: IntersectionObserver | null = null
+
+function ensureRowObserver(el: HTMLElement) {
+  if (rowVisibilityObserver) return
+  const root = el.closest('.nc-form-preview-scroller') as HTMLElement | null
+  rowVisibilityObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const key = (entry.target as HTMLElement).dataset.rowKey
+        if (!key) continue
+        if (entry.isIntersecting) {
+          renderedRowKeys.add(key)
+        } else {
+          // Only cache on a genuine rendered→collapsed transition: the row's content is
+          // still mounted at this instant, so the rect is its real height. (The initial
+          // off-screen callback fires before the row was ever rendered, where the rect is
+          // just the placeholder estimate — skip those so we never cache an estimate.)
+          if (renderedRowKeys.has(key) && entry.boundingClientRect.height > 0) {
+            rowHeightCache.set(key, entry.boundingClientRect.height)
+          }
+          renderedRowKeys.delete(key)
+        }
+      }
+    },
+    // Pre-render a generous margin above/below so fast scrolling never reveals blanks.
+    { root, rootMargin: '900px 0px', threshold: 0 },
+  )
+}
+
+// Synchronous first-paint check: is this row inside (or within the pre-render margin of)
+// the scroller's viewport right now? Forces a layout read, so it's reliable inside the
+// directive's `mounted` hook. Mirrors the observer's `rootMargin` so seeding and the
+// observer agree on what "near the viewport" means.
+const ROW_PRERENDER_MARGIN_PX = 900
+
+function isRowElementNearViewport(el: HTMLElement) {
+  const root = el.closest('.nc-form-preview-scroller') as HTMLElement | null
+  const rect = el.getBoundingClientRect()
+  const top = root ? root.getBoundingClientRect().top : 0
+  const bottom = root ? root.getBoundingClientRect().bottom : window.innerHeight || document.documentElement.clientHeight
+  return rect.bottom >= top - ROW_PRERENDER_MARGIN_PX && rect.top <= bottom + ROW_PRERENDER_MARGIN_PX
+}
+
+const vObserveRow = {
+  mounted(el: HTMLElement) {
+    ensureRowObserver(el)
+    rowVisibilityObserver?.observe(el)
+
+    // Seed on-screen rows synchronously instead of waiting for the async IntersectionObserver
+    // callback. The observer fires on a later task and can be coalesced/delayed (notably in
+    // headless CI), which left freshly re-laid-out on-screen rows (e.g. right after
+    // removeAllFields or a layout re-key) stuck as placeholders — their heavy cells never
+    // mounted until a scroll nudged the observer. Off-screen rows fail this check and stay
+    // placeholders, so the perf win is preserved; the observer still handles later scrolling.
+    const key = el.dataset.rowKey
+    if (key && !renderedRowKeys.has(key) && isRowElementNearViewport(el)) {
+      renderedRowKeys.add(key)
+    }
+  },
+  beforeUnmount(el: HTMLElement) {
+    rowVisibilityObserver?.unobserve(el)
+    const key = el.dataset.rowKey
+    if (key) renderedRowKeys.delete(key)
+  },
+}
+
+// Disconnect the shared observer when the component scope is torn down — cleaner across
+// HMR and remounts than leaving it for GC.
+onScopeDispose(() => {
+  rowVisibilityObserver?.disconnect()
+  rowVisibilityObserver = null
+})
+
+function isRowRendered(formRow: { _key: string; fields: any[] }) {
+  return drag.value || renderedRowKeys.has(formRow._key) || formRow.fields.some((f: any) => f.id === activeRow.value)
+}
+
+// Collapsed-row placeholder height: the last real measured height when we have it, else a
+// rough type-based estimate (used the first time a row is rendered, before measurement).
+function rowPlaceholderHeightPx(formRow: { _key: string; fields: any[] }) {
+  return rowHeightCache.get(formRow._key) ?? estimateRowHeightPx(formRow.fields)
+}
+
+// Drop measured heights on a full reload: the layout can change while a `row_id` (= `_key`)
+// persists, so a cached height would otherwise be applied as a stale off-screen placeholder
+// until that row is next scrolled into view and re-measured.
+//
+// Do NOT clear `renderedRowKeys` here. A reused on-screen row node (same `_key`, e.g. the
+// lone required field left after hiding all others) does not re-fire the directive's
+// `mounted` hook, so it would never be re-seeded, and the IntersectionObserver does not
+// re-fire for a row whose intersection didn't change — leaving visible rows stuck as blank
+// placeholders. Stale keys for rows that went away are harmless (they match no row); newly
+// mounted rows are seeded by the directive; scroll in/out is handled by the observer.
+function resetRowRenderCache() {
+  rowHeightCache.clear()
+}
 
 // Serializes drag-drop re-layouts: blocks new drags while a bulk update
 // is in flight so rapid consecutive moves can't race each other and
@@ -1041,7 +1177,18 @@ const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
 
   if (field) {
     setTimeout(() => {
-      field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (!field.isConnected) return
+
+      // Only scroll when the field is actually off-screen. A smooth scroll-to-center
+      // animates across many rows, and each row the scroll reveals gets rendered/
+      // restyled per frame — re-centering an already-visible field on every activation
+      // caused a ~350ms style-recalc storm (56 recalcs of ~2.5k elements).
+      const rect = field.getBoundingClientRect()
+      const viewportH = window.innerHeight || document.documentElement.clientHeight
+      const fullyVisible = rect.top >= 0 && rect.bottom <= viewportH
+      if (fullyVisible) return
+
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 50)
   }
 }
@@ -1104,19 +1251,21 @@ watch(view, (nextView, oldView) => {
 
 watch(
   [formState, state],
-  async () => {
+  () => {
     for (const virtualField in state.value) {
       formState.value[virtualField] = state.value[virtualField]
     }
     updatePreFillFormSearchParams()
 
-    try {
-      await validate(
-        Object.keys(formState.value)
-          .map((title) => fieldMappings.value[title])
-          .filter((v) => v !== undefined),
-      )
-    } catch {}
+    // Conditional field visibility recomputes once (debounced) per value change.
+    checkFieldVisibilityDebounced()
+
+    // Validation is handled sectionally by ant-design-vue's built-in model
+    // watcher (debounced via the useForm `debounce` option) — it diffs the model
+    // and validates only the changed field. We intentionally don't validate the
+    // whole form here: that was redundant with ant's auto-validation and
+    // re-rendered every touched field's error state on each keystroke, forcing a
+    // full-form reflow. Submit still runs an explicit awaited validate().
   },
   {
     deep: true,
@@ -1333,7 +1482,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           <SmartsheetFormLayout :is-sidebar-visible="isSidebarVisible">
             <template #preview>
               <div
-                class="w-full h-full overflow-auto nc-scrollbar-thin p-6"
+                class="nc-form-preview-scroller w-full h-full overflow-auto nc-scrollbar-thin p-6"
                 :style="{
                   background: parseProp(formViewData?.meta)?.background_color
                     ? getDarkModeCompatibleBgColor({
@@ -1694,7 +1843,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   class="nc-input truncate"
                                   :class="[
                                     `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                    { 'layout-list': element.meta.isList },
+                                    {
+                                      'layout-list': element.meta.isList,
+                                      'nc-input-has-attachments': isAttachmentCellWithFiles(element),
+                                    },
                                   ]"
                                   :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                   :column="element"
@@ -1732,8 +1884,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                               <div />
                             </template>
                           </Draggable>
-                          <div class="nc-form-row flex items-stretch gap-1 min-w-0">
+                          <div
+                            v-observe-row
+                            :data-row-key="formRow._key"
+                            class="nc-form-row flex items-stretch gap-1 min-w-0"
+                            :style="isRowRendered(formRow) ? undefined : { minHeight: `${rowPlaceholderHeightPx(formRow)}px` }"
+                          >
                             <Draggable
+                              v-if="isRowRendered(formRow)"
                               :model-value="formRow.fields"
                               item-key="id"
                               draggable=".item"
@@ -1743,6 +1901,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
                               :move="(ev: any) => onFieldMoveCallback(ev, formRow.fields)"
                               :disabled="isLocked || !isEditable || gridUpdatePending"
+                              @start="drag = true"
+                              @end="drag = false"
                               @change="onFieldMove($event, formRow._key)"
                             >
                               <template #item="{ element }">
@@ -2778,10 +2938,14 @@ const { message: templatedMessage } = useTemplatedMessage(
 
 .nc-input {
   @apply appearance-none w-full;
-  &:not(.layout-list) {
-    &:not(:has(.form-attachment-cell.nc-has-attachments)) {
-      @apply !bg-nc-bg-default rounded-lg border-solid border-1 border-nc-border-gray-medium !focus-within:border-nc-border-brand;
-    }
+  // Bordered-input style for all non-list cells except attachment cells that have
+  // files (their attachment display has its own chrome). Uses a static class
+  // (`nc-input-has-attachments`) instead of `:has(...)` — the relational selector
+  // forced Blink to re-scan every `.nc-input` subtree on ANY in-form style change
+  // (e.g. the activeRow class toggle), which was the dominant RecalcStyle cost on
+  // large forms. A direct class is O(1) invalidation.
+  &:not(.layout-list):not(.nc-input-has-attachments) {
+    @apply !bg-nc-bg-default rounded-lg border-solid border-1 border-nc-border-gray-medium !focus-within:border-nc-border-brand;
   }
   &.layout-list {
     @apply h-auto !p-0;

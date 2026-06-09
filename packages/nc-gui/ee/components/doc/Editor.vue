@@ -3331,7 +3331,7 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
                 </div>
               </BubbleMenu>
 
-              <div ref="editorContentRef" v-show="!showLegacyFallback" class="relative">
+              <div v-show="!showLegacyFallback" ref="editorContentRef" class="relative">
                 <EditorContent :editor="editor" @click="onEditorClick" />
 
                 <!-- Link hover preview -->

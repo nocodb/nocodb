@@ -193,9 +193,17 @@ export class FormPage extends BasePage {
 
   async fillForm(param: { field: string; value: string; type?: UITypes }[]) {
     for (let i = 0; i < param.length; i++) {
-      await this.get()
-        .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`)
-        .click();
+      const fieldInput = this.get().locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`);
+
+      // Preview field rows are lazy-rendered (IntersectionObserver), so a field's cell can
+      // mount a beat after the form/layout settles (e.g. right after removeAllFields). Wait
+      // for it to attach + render before interacting, and let it settle so the click doesn't
+      // race the row's mount re-render.
+      await fieldInput.scrollIntoViewIfNeeded().catch(() => {});
+      await fieldInput.waitFor({ state: 'visible', timeout: 30000 });
+      await this.rootPage.waitForTimeout(150);
+
+      await fieldInput.click();
 
       switch (param[i].type) {
         case UITypes.LongText: {
@@ -976,7 +984,14 @@ export class FormPage extends BasePage {
 
   async verifyFieldConfigError({ title, hasError }: { title: string; hasError: boolean }) {
     const field = this.get().locator(`[data-testid="nc-form-fields"][data-title="${title}"]`);
-    await field.scrollIntoViewIfNeeded();
+
+    // Field rows are lazy-rendered (IntersectionObserver), so a row's cell can detach/remount
+    // a beat after a layout re-key (e.g. toggling a conditional-field condition). Wait for the
+    // cell to attach + render before reading it, and let it settle so the assertion doesn't
+    // race the row's mount re-render.
+    await field.scrollIntoViewIfNeeded().catch(() => {});
+    await field.waitFor({ state: 'visible', timeout: 30000 });
+    await this.rootPage.waitForTimeout(150);
 
     if (hasError) {
       await expect(field.locator('.nc-field-config-error')).toBeVisible();

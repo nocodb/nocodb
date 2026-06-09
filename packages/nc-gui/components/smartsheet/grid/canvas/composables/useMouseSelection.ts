@@ -1,8 +1,6 @@
 import { parseCellWidth } from '../utils/cell'
 import { type CanvasElement, ElementTypes } from '../utils/CanvasElement'
 
-const MAX_SELECTION_LIMIT = 100
-
 export function useMouseSelection({
   selection,
   activeCell,
@@ -13,6 +11,7 @@ export function useMouseSelection({
   scrollToCell,
   elementMap,
   getDataCache,
+  maxSelectionLimit,
 }: {
   selection: Ref<CellRange>
   activeCell: Ref<{
@@ -33,6 +32,7 @@ export function useMouseSelection({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  maxSelectionLimit: ComputedRef<number>
 }) {
   const isSelecting = ref(false)
 
@@ -111,9 +111,9 @@ export function useMouseSelection({
       const maxRow = Math.max(selection.value._start?.row ?? 0, cell.row)
       const minRow = Math.min(selection.value._start?.row ?? 0, cell.row)
 
-      if (maxRow - minRow >= MAX_SELECTION_LIMIT) {
+      if (maxRow - minRow >= maxSelectionLimit.value) {
         const direction = cell.row > (selection.value._start?.row ?? 0) ? 1 : -1
-        const newRow = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
+        const newRow = (selection.value._start?.row ?? 0) + (maxSelectionLimit.value - 1) * direction
         // Clamp the new row value between 0 and totalRows - 1
         cell.row = Math.max(0, Math.min(newRow, dataCache.totalRows.value - 1))
       }

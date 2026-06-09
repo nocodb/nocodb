@@ -182,6 +182,20 @@ const hasDuplicateOptionTitles = (
   );
 };
 
+// Select option titles must be strings — the SQL-building below relies on
+// el.title.replace()/trimEnd()/includes(). Clients can send numeric labels as
+// JSON numbers (e.g. { title: 2024 }), which would throw ".replace is not a
+// function". Coerce non-string titles to strings up front so every downstream
+// title access is safe.
+const normalizeSelectOptionTitles = (options?: { title?: any }[]): void => {
+  if (!Array.isArray(options)) return;
+  for (const op of options) {
+    if (op && op.title != null && typeof op.title !== 'string') {
+      op.title = String(op.title);
+    }
+  }
+};
+
 // True when this column is a SingleSelect backed by a native PostgreSQL enum
 // type (introspected from an external source, with the type name remembered
 // in internal_meta.pg_enum_type_name). For these columns option add/rename
@@ -1843,6 +1857,8 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
+        normalizeSelectOptionTitles(colBody.colOptions.options);
+
         const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'mssql'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
@@ -4250,6 +4266,8 @@ export class ColumnsService implements IColumnsService {
                 options: [],
               };
             }
+
+            normalizeSelectOptionTitles(colBody.colOptions.options);
 
             const dbDriver = await NcConnectionMgrv2.get(source);
             const driverType = dbDriver.clientType();
@@ -7238,10 +7256,33 @@ export class ColumnsService implements IColumnsService {
 
     if (colOptions.fk_mm_model_id === tableId) {
       table = await colOptions.getMMModel(mmContext);
+      // Column is already validated as Link/LTAR with loaded colOptions, so the
+      // referenced model should always exist. A null means orphaned link
+      // metadata (table deleted without cleaning up the link column) — an
+      // internal data-integrity violation. Throw 500 with enough context to
+      // trace the broken column rather than dereferencing null.
+      if (!table) {
+        NcError.get(context).internalServerError(
+          `Link column metadata references a missing many-to-many table: ` +
+            `mm_model_id=${colOptions.fk_mm_model_id}, ` +
+            `link_column_id=${columnId} (${column?.title}), ` +
+            `source_model_id=${column?.fk_model_id}, ` +
+            `relation=${colOptions.type}`,
+        );
+      }
       // load columns
       await table.getColumns(mmContext);
     } else if (colOptions.fk_related_model_id === tableId) {
       table = await colOptions.getRelatedTable(refContext);
+      if (!table) {
+        NcError.get(context).internalServerError(
+          `Link column metadata references a missing related table: ` +
+            `related_model_id=${colOptions.fk_related_model_id}, ` +
+            `link_column_id=${columnId} (${column?.title}), ` +
+            `source_model_id=${column?.fk_model_id}, ` +
+            `relation=${colOptions.type}`,
+        );
+      }
       // load columns
       await table.getColumns(refContext);
     } else {

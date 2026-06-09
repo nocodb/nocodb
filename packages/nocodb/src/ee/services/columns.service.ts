@@ -469,7 +469,7 @@ export class ColumnsService extends ColumnsServiceCE {
 
             const existingFilter = await Filter.get(context, filter.id);
 
-            if (existingFilter[fkField] !== colId) {
+            if (existingFilter?.[fkField] !== colId) {
               NcError.get(context).invalidRequestBody('Filter not found');
             }
             if (filter.status === 'update') {
@@ -495,7 +495,7 @@ export class ColumnsService extends ColumnsServiceCE {
           } else if (filter.id && filter.children) {
             const existingFilter = await Filter.get(context, filter.id);
 
-            if (existingFilter[fkField] !== colId) {
+            if (existingFilter?.[fkField] !== colId) {
               NcError.get(context).invalidRequestBody('Filter not found');
             }
 

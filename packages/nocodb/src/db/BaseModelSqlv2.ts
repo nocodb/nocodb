@@ -4467,6 +4467,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     const columns = await this.model.getColumns(this.context);
 
+    // Each record to delete must be an object carrying its primary key(s)
+    // (e.g. `{ Id: 123 }`). A bare primitive blows up in `mapAliasToColumn`'s
+    // `in` operator — reject it with a 400 rather than a 500 TypeError.
+    for (const d of ids ?? []) {
+      if (!d || typeof d !== 'object') {
+        NcError.get(this.context).invalidRequestBody(
+          'Each record to delete must be an object containing its primary key(s)',
+        );
+      }
+    }
+
     let transaction;
     try {
       const deleteIds = await Promise.all(

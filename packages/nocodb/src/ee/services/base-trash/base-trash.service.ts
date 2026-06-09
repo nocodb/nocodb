@@ -466,9 +466,25 @@ export class BaseTrashService implements OnModuleInit {
         if (!param.ncMeta) await ncMeta.rollback();
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error(e.message, e.stack);
-        NcError.get(context).internalServerError(
-          'Failed to permanently delete',
-        );
+        // Wrap raw (non-Nc) errors — e.g. a DB FK-constraint/deadlock from
+        // permanentDeleteByIds — in a sanitized user-facing error, but keep
+        // the original as a non-enumerable `cause` so background callers (the
+        // trash-cleanup cron) can surface the real failure in telemetry. The
+        // global-exception filter only serializes { error, message, details },
+        // so `cause` never leaks to API clients.
+        try {
+          NcError.get(context).internalServerError(
+            'Failed to permanently delete',
+          );
+        } catch (wrapped) {
+          Object.defineProperty(wrapped, 'cause', {
+            value: e,
+            enumerable: false,
+            configurable: true,
+            writable: true,
+          });
+          throw wrapped;
+        }
       }
 
       handler.invalidateCaches(

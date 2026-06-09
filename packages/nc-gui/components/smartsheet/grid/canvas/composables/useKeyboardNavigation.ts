@@ -6,7 +6,6 @@ import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } 
 // column types which support delete even when it's in edit state
 const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
 
-const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
 export function useKeyboardNavigation({
   activeCell,
@@ -30,6 +29,7 @@ export function useKeyboardNavigation({
   isGroupBy,
   getDataCache,
   removeInlineAddRecord,
+  maxSelectionLimit,
 }: {
   isGroupBy: ComputedRef<boolean>
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
@@ -79,6 +79,7 @@ export function useKeyboardNavigation({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
   removeInlineAddRecord: Ref<boolean>
+  maxSelectionLimit: ComputedRef<number>
 }) {
   const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
@@ -295,7 +296,7 @@ export function useKeyboardNavigation({
           const newRow = moveToExtreme ? 0 : currentEndRow - 1
           if (e.shiftKey) {
             const newEnd = {
-              row: Math.max((selection.value._start?.row ?? 0) - MAX_SELECTION_LIMIT - 1, newRow),
+              row: Math.max((selection.value._start?.row ?? 0) - maxSelectionLimit.value - 1, newRow),
               col: selection.value._end?.col ?? activeCell.value.column,
             }
             selection.value.endRange(newEnd)
@@ -317,7 +318,7 @@ export function useKeyboardNavigation({
           const newRow = moveToExtreme ? lastRow : currentEndRow + 1
           if (e.shiftKey) {
             const newEnd = {
-              row: Math.min((selection.value._start?.row ?? 0) + MAX_SELECTION_LIMIT - 1, newRow),
+              row: Math.min((selection.value._start?.row ?? 0) + maxSelectionLimit.value - 1, newRow),
               col: selection.value._end?.col ?? activeCell.value.column,
             }
             selection.value.endRange(newEnd)

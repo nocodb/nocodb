@@ -492,6 +492,8 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
+
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -592,6 +594,8 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
+
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -642,6 +646,8 @@ export class PublicDatasService {
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
+
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     const source = await Source.get(context, model.source_id);
 
@@ -704,6 +710,8 @@ export class PublicDatasService {
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
+
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     return await this.getGroupedDataList(context, {
       model,
@@ -829,6 +837,8 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
+
     return await this.getDataGroupByCount(context, {
       model,
       view,
@@ -867,6 +877,8 @@ export class PublicDatasService {
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
+
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     return await this.getDataGroupBy(context, {
       model,
@@ -1007,6 +1019,8 @@ export class PublicDatasService {
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
+
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1450,6 +1464,8 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
+
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -1495,6 +1511,8 @@ export class PublicDatasService {
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
+
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
 
@@ -1593,6 +1611,8 @@ export class PublicDatasService {
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
+
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
 

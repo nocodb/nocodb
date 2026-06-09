@@ -82,6 +82,8 @@ export class PublicDatasService extends PublicDatasServiceCE {
       id: view?.fk_model_id,
     });
 
+    if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
+
     const source = await Source.get(context, model.source_id);
 
     if (await canUseOptimisedQuery(context, { source, disableOptimization: false })) {

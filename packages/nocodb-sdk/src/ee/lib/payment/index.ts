@@ -1,5 +1,6 @@
 import {
   OnPremPlanTitles,
+  PlanAddonTypes,
   PlanFeatureTypes,
   PlanLimitTypes,
   PlanOrder,
@@ -331,6 +332,8 @@ export const CloudPlanDefinitions: Record<
   // -------------------------------------------------------------------------
   [PlanTitles.ENTERPRISE]: {
     features: {
+      // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
       // On-prem-only features (always disabled on cloud)
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
@@ -601,6 +604,8 @@ export const OnPremPlanDefinitions: Record<
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     features: {
+      // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },
@@ -801,3 +806,53 @@ export const InternalOpToOnPremPlanFeature: Record<
   workspaceAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
   baseAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
 };
+
+// ---------------------------------------------------------------------------
+// Add-on definitions — sellable SKUs distinct from the capability they grant
+// ---------------------------------------------------------------------------
+// An add-on (PlanAddonTypes) is a separately-purchasable SKU that unlocks one
+// or more PlanFeatureTypes when active. The capability stays disabled in the
+// plan definitions above; only the add-on grants it. `minPlan` enforces the
+// lowest tier a workspace/instance may hold the add-on on, per ladder.
+// ---------------------------------------------------------------------------
+
+export const AddonDefinitions: Record<
+  PlanAddonTypes,
+  {
+    /** Features unlocked when this add-on is active. */
+    grants: Partial<Record<PlanFeatureTypes, boolean>>;
+    /** Lowest plan that may hold the add-on, per ladder. null = not sold on that ladder. */
+    minPlan: { cloud: PlanTitles | null; onPrem: OnPremPlanTitles | null };
+    /** flat → Stripe quantity 1; per_seat → quantity = billable seats (forced-match). */
+    quantityBasis: 'flat' | 'per_seat';
+  }
+> = {
+  [PlanAddonTypes.ADDON_SCIM]: {
+    grants: { [PlanFeatureTypes.FEATURE_SCIM]: true },
+    minPlan: {
+      cloud: PlanTitles.SCALE,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_SCALE,
+    },
+    quantityBasis: 'per_seat',
+  },
+  [PlanAddonTypes.ADDON_WHITE_LABEL]: {
+    grants: { [PlanFeatureTypes.FEATURE_WHITE_LABEL]: true },
+    minPlan: {
+      cloud: null,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
+    },
+    quantityBasis: 'flat',
+  },
+};
+
+/** Merge each active add-on's granted features into a resolved plan-meta object (mutates `meta`). */
+export function applyAddons(
+  meta: Record<string, number | boolean>,
+  activeKeys: PlanAddonTypes[] | undefined | null
+): void {
+  if (!activeKeys?.length) return;
+  for (const key of activeKeys) {
+    const def = AddonDefinitions[key];
+    if (def) Object.assign(meta, def.grants);
+  }
+}

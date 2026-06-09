@@ -121,6 +121,7 @@ const reloadEventHookHandler = withLoading(async (params) => {
   } else {
     await Promise.all([loadFormView(), loadReleatedMetas()])
     setFormData()
+    resetRowRenderCache()
   }
 })
 
@@ -549,6 +550,15 @@ const rowsWithKey = computed(() =>
 // always renders so its editor never unmounts mid-edit.
 const renderedRowKeys = reactive(new Set<string>())
 
+// Real rendered height (px) per row, captured the moment a row scrolls out of view —
+// reused as the collapsed placeholder's min-height so re-collapsing a tall row (filled
+// long text, long option lists, error states) doesn't snap back to a rough estimate and
+// shift the scroll position. Falls back to `estimateRowHeightPx` until a row has been
+// measured once. Plain Map (not reactive): it's read only when `isRowRendered` flips to
+// false — which the reactive `renderedRowKeys` already triggers — and it's always written
+// just before that flip, so the placeholder binding sees the fresh value.
+const rowHeightCache = new Map<string, number>()
+
 let rowVisibilityObserver: IntersectionObserver | null = null
 
 function ensureRowObserver(el: HTMLElement) {
@@ -559,8 +569,18 @@ function ensureRowObserver(el: HTMLElement) {
       for (const entry of entries) {
         const key = (entry.target as HTMLElement).dataset.rowKey
         if (!key) continue
-        if (entry.isIntersecting) renderedRowKeys.add(key)
-        else renderedRowKeys.delete(key)
+        if (entry.isIntersecting) {
+          renderedRowKeys.add(key)
+        } else {
+          // Only cache on a genuine rendered→collapsed transition: the row's content is
+          // still mounted at this instant, so the rect is its real height. (The initial
+          // off-screen callback fires before the row was ever rendered, where the rect is
+          // just the placeholder estimate — skip those so we never cache an estimate.)
+          if (renderedRowKeys.has(key) && entry.boundingClientRect.height > 0) {
+            rowHeightCache.set(key, entry.boundingClientRect.height)
+          }
+          renderedRowKeys.delete(key)
+        }
       }
     },
     // Pre-render a generous margin above/below so fast scrolling never reveals blanks.
@@ -580,8 +600,29 @@ const vObserveRow = {
   },
 }
 
+// Disconnect the shared observer when the component scope is torn down — cleaner across
+// HMR and remounts than leaving it for GC.
+onScopeDispose(() => {
+  rowVisibilityObserver?.disconnect()
+  rowVisibilityObserver = null
+})
+
 function isRowRendered(formRow: { _key: string; fields: any[] }) {
   return drag.value || renderedRowKeys.has(formRow._key) || formRow.fields.some((f: any) => f.id === activeRow.value)
+}
+
+// Collapsed-row placeholder height: the last real measured height when we have it, else a
+// rough type-based estimate (used the first time a row is rendered, before measurement).
+function rowPlaceholderHeightPx(formRow: { _key: string; fields: any[] }) {
+  return rowHeightCache.get(formRow._key) ?? estimateRowHeightPx(formRow.fields)
+}
+
+// Drop measured heights + rendered-row tracking on a full reload: the layout can change
+// while a `row_id` (= `_key`) persists, so a cached height would otherwise be applied as a
+// stale off-screen placeholder until that row is next scrolled into view and re-measured.
+function resetRowRenderCache() {
+  rowHeightCache.clear()
+  renderedRowKeys.clear()
 }
 
 // Serializes drag-drop re-layouts: blocks new drags while a bulk update
@@ -1108,9 +1149,9 @@ const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
       if (!field.isConnected) return
 
       // Only scroll when the field is actually off-screen. A smooth scroll-to-center
-      // animates across many rows, and with `content-visibility:auto` each revealed
-      // row re-renders per frame — re-centering an already-visible field on every
-      // activation caused a ~350ms style-recalc storm (56 recalcs of ~2.5k elements).
+      // animates across many rows, and each row the scroll reveals gets rendered/
+      // restyled per frame — re-centering an already-visible field on every activation
+      // caused a ~350ms style-recalc storm (56 recalcs of ~2.5k elements).
       const rect = field.getBoundingClientRect()
       const viewportH = window.innerHeight || document.documentElement.clientHeight
       const fullyVisible = rect.top >= 0 && rect.bottom <= viewportH
@@ -1816,9 +1857,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             v-observe-row
                             :data-row-key="formRow._key"
                             class="nc-form-row flex items-stretch gap-1 min-w-0"
-                            :style="
-                              isRowRendered(formRow) ? undefined : { minHeight: `${estimateRowHeightPx(formRow.fields)}px` }
-                            "
+                            :style="isRowRendered(formRow) ? undefined : { minHeight: `${rowPlaceholderHeightPx(formRow)}px` }"
                           >
                             <Draggable
                               v-if="isRowRendered(formRow)"

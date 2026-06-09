@@ -1,8 +1,9 @@
 import { FORM_ROW_FULL_WIDTH_UI_TYPES, UITypes } from 'nocodb-sdk'
 
-// Rough first-paint height estimates (px). `contain-intrinsic-size: auto <est>`
-// means the browser caches each row's REAL size after first render, so these
-// only affect the initial scrollbar/scroll-anchor before a row is ever painted.
+// Rough height estimates (px) used as the collapsed placeholder's min-height for
+// off-screen rows in the JS lazy-render path (`Form.vue`). They only apply until a
+// row has been rendered once — after that its real measured height is cached and
+// reused — so a slightly-off estimate just affects the initial scrollbar/scroll-anchor.
 const COMPACT_PX = 96 // label + single input row
 const FULL_WIDTH_PX = 160 // LongText / Attachment / JSON
 const INLINE_LIST_BASE_PX = 84 // label + container chrome
@@ -16,7 +17,8 @@ interface FormFieldLike {
 }
 
 /**
- * Estimate a single form field's rendered height in px (for contain-intrinsic-size).
+ * Estimate a single form field's rendered height in px (used for the off-screen row
+ * placeholder min-height, as a fallback before the row's real height is measured).
  * NOTE: `col.meta` must be an already-parsed object — a raw JSON string (valid per
  * the SDK `MetaType` union) would make the `meta.isList` check silently fail and
  * return the compact estimate. Form columns are pre-parsed where this is called.

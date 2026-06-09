@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { customAlphabet } from 'nanoid';
 import { OnPremPlanTitles, ReturnToBillingPage } from 'nocodb-sdk';
+import type { PlanAddonTypes } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MailParams } from '~/interface/Mail';
-import { Plan, Subscription, User } from '~/models';
+import { Plan, Subscription, SubscriptionAddon, User } from '~/models';
 import Installation from '~/models/Installation';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -34,6 +35,7 @@ const PLAN_TO_LICENSE_TYPE: Record<string, LicenseType> = {
 function buildConfigFromPlan(
   plan: Plan,
   subscription?: { meta?: { plan_meta?: Record<string, any> } },
+  addonKeys?: PlanAddonTypes[],
 ): Record<string, any> {
   const config: Record<string, any> = {
     plan_title: plan.title,
@@ -46,6 +48,11 @@ function buildConfigFromPlan(
   // Per-subscription overrides (addons, custom limits)
   if (subscription?.meta?.plan_meta) {
     Object.assign(config, subscription.meta.plan_meta);
+  }
+
+  // Structured add-on entitlements — consumed on-prem by applyAddons(config.addons).
+  if (addonKeys?.length) {
+    config.addons = addonKeys;
   }
 
   return config;
@@ -353,6 +360,9 @@ export class OnPremLicenseService {
       return;
     }
 
+    // No add-ons at creation: the Subscription row (and thus any SubscriptionAddon
+    // rows keyed by it) doesn't exist yet — they're attached later via grantAddon,
+    // which calls syncInstallationAddons to refresh this config.
     const config = buildConfigFromPlan(plan);
     const price = stripeSub.items.data[0].price;
     const period = price.recurring.interval;
@@ -504,7 +514,15 @@ export class OnPremLicenseService {
         // Update Installation config with new plan metadata
         const inst = await Installation.getBySubscriptionId(subRec.id, ncMeta);
         if (inst) {
-          const newConfig = buildConfigFromPlan(newPlan);
+          const activeAddons = await SubscriptionAddon.listActive(
+            subRec.id,
+            ncMeta,
+          );
+          const newConfig = buildConfigFromPlan(
+            newPlan,
+            undefined,
+            activeAddons.map((a) => a.addon_key),
+          );
           const newLicenseType =
             PLAN_TO_LICENSE_TYPE[newPlan.title] || inst.license_type;
 
@@ -665,6 +683,49 @@ export class OnPremLicenseService {
         subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
       });
     }
+  }
+
+  /**
+   * Refresh an on-prem installation's license `config.addons` from the
+   * subscription's currently-active add-ons. No-op for cloud subscriptions
+   * (no linked Installation). The running instance picks up the change at its
+   * next heartbeat (≤6h) — no re-activation needed.
+   */
+  async syncInstallationAddons(
+    subscriptionId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const installation = await Installation.getBySubscriptionId(
+      subscriptionId,
+      ncMeta,
+    );
+    if (!installation) return;
+
+    const subscription = await Subscription.get(subscriptionId, ncMeta).catch(
+      () => null,
+    );
+    if (!subscription?.fk_plan_id) return;
+
+    const plan = await Plan.get(subscription.fk_plan_id, ncMeta).catch(
+      () => null,
+    );
+    if (!plan) return;
+
+    const activeAddons = await SubscriptionAddon.listActive(
+      subscriptionId,
+      ncMeta,
+    );
+    const config = buildConfigFromPlan(
+      plan,
+      undefined,
+      activeAddons.map((a) => a.addon_key),
+    );
+
+    await Installation.update(installation.id, { config }, ncMeta);
+
+    this.logger.log(
+      `Refreshed installation ${installation.id} config.addons (${activeAddons.length} active)`,
+    );
   }
 
   /**

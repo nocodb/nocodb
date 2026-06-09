@@ -474,6 +474,13 @@ export const useEeConfig = createSharedComposable(() => {
   const blockWorkspaceMembers = computed(() => false)
 
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
+    // Non-tiered prices (billing_scheme: 'per_unit') have no `tiers` array. Iterating it
+    // throws "tiers is not iterable" — which broke the invite dialog (showUserMayChargeAlert)
+    // for workspaces on a flat per-seat price. Fall back to the flat unit amount × seats.
+    if (!ncIsArray(priceObj?.tiers)) {
+      return ((priceObj?.unit_amount ?? 0) * seatCount) / 100 / (mode === 'year' ? 12 : 1)
+    }
+
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
     let total = 0

@@ -33,6 +33,20 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DataImportService } from '~/services/data-import.service';
 
+// `ignoreIds` comes from the query string as `ignoreIds[]=...`. Express's `qs` parser turns
+// an array with more than 20 entries into an OBJECT with numeric keys (its default
+// `arrayLimit`), and a single value into a bare string. Coerce back to a string[] at this
+// entry point so the command-trace validation (`z.array(z.string())`), the service, and
+// View.show/hideAllColumns all receive a real array regardless of field count.
+function normalizeIdQueryParam(value: unknown): string[] {
+  if (Array.isArray(value)) return value as string[];
+  if (value && typeof value === 'object') {
+    return Object.values(value as Record<string, string>);
+  }
+  if (typeof value === 'string') return [value];
+  return [];
+}
+
 @Injectable()
 export class UiPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
@@ -261,14 +275,14 @@ export class UiPostOperations
       case 'showAllColumns':
         return await this.viewsService.showAllColumns(context, {
           viewId: req.query.viewId,
-          ignoreIds: req.query.ignoreIds,
+          ignoreIds: normalizeIdQueryParam(req.query.ignoreIds),
           levelId: req.query.levelId,
           req,
         });
       case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
-          ignoreIds: req.query.ignoreIds,
+          ignoreIds: normalizeIdQueryParam(req.query.ignoreIds),
           levelId: req.query.levelId,
           req,
         });

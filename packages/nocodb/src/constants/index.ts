@@ -44,6 +44,12 @@ export const V3_DATA_PAYLOAD_LIMIT =
   +process.env['NC_DATA_PAYLOAD_LIMIT'] ||
   10;
 export const V3_META_REQUEST_LIMIT = 10;
+
+// Max number of rows a user can select as a range in the grid UI (drag / shift-arrow).
+// Bounds client-side copy/paste/fill range size; surfaced to the frontend via appInfo.
+// Not related to V1_V2_DATA_PAYLOAD_LIMIT, which guards programmatic (api-token) bulk requests.
+export const NC_GRID_MAX_SELECTION_LIMIT =
+  +process.env['NC_GRID_MAX_SELECTION_LIMIT'] || 1000;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;
 export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;

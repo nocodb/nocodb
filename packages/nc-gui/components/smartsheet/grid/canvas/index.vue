@@ -256,6 +256,9 @@ const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { getColor } = useTheme()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
+
+const maxSelectionLimit = computed(() => appInfo.value.ncGridMaxSelectionLimit || 1000)
+
 const { selectedTemplate } = useRecordTemplate()
 const { base } = storeToRefs(useBase())
 const route = useRoute()
@@ -412,6 +415,7 @@ const {
   groupByColumns,
   fetchMissingGroupChunks,
   getDataCache,
+  maxSelectionLimit,
 })
 
 // File drop to create records

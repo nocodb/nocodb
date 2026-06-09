@@ -80,6 +80,7 @@ export function useCanvasTable({
   groupByColumns,
   fetchMissingGroupChunks,
   getDataCache,
+  maxSelectionLimit,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -172,6 +173,7 @@ export function useCanvasTable({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  maxSelectionLimit: ComputedRef<number>
 }) {
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
@@ -1483,6 +1485,7 @@ export function useCanvasTable({
     addNewColumn,
     handleCellKeyDown,
     removeInlineAddRecord,
+    maxSelectionLimit,
   })
 
   const {
@@ -1499,6 +1502,7 @@ export function useCanvasTable({
     scrollToCell,
     elementMap,
     getDataCache,
+    maxSelectionLimit,
   })
 
   async function clearSelectedRangeOfCells(path?: Array<number>) {

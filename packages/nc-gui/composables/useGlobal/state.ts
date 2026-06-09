@@ -145,6 +145,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     ncMaxAttachmentsAllowed: 10,
     ncMaxTextLength: 100000,
     ncDataImportFileSize: 100 * 1024 * 1024,
+    ncGridMaxSelectionLimit: 1000,
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,

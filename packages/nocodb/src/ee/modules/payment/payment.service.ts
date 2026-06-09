@@ -1755,6 +1755,36 @@ export class PaymentService {
   }
 
   /**
+   * Build the Stripe `items` array for a reseat: the base subscription item plus
+   * every active, Stripe-backed, per-seat add-on item — all at `newSeatCount`
+   * (forced match). Flat add-ons and comped add-ons (no stripe item) are excluded.
+   */
+  private async buildSeatItems(
+    subscription: Subscription,
+    stripeSub: Stripe.Subscription,
+    newSeatCount: number,
+  ): Promise<{ id: string; price?: string; quantity: number }[]> {
+    const items: { id: string; price?: string; quantity: number }[] = [
+      {
+        id: stripeSub.items.data[0].id,
+        price: subscription.stripe_price_id,
+        quantity: newSeatCount,
+      },
+    ];
+    const addons = await SubscriptionAddon.listActive(subscription.id);
+    for (const sa of addons) {
+      if (!sa.stripe_subscription_item_id) continue; // comped → not billed
+      const def = AddonDefinitions[sa.addon_key];
+      if (def?.quantityBasis !== 'per_seat') continue; // flat → leave as-is
+      items.push({
+        id: sa.stripe_subscription_item_id,
+        quantity: newSeatCount,
+      });
+    }
+    return items;
+  }
+
+  /**
    * Consolidates unpaid proration invoices before a seat change.
    *
    * When proration invoices (from prior seat changes) go uncollectible or remain open,
@@ -1800,13 +1830,7 @@ export class PaymentService {
     if (problematicInvoices.length === 0) {
       // No unpaid invoices — proceed with normal subscription update
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: existingSub.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await this.buildSeatItems(existingSub, stripeSub, newSeatCount),
         ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
           ? { proration_behavior: 'always_invoice' }
           : {}),
@@ -1828,13 +1852,7 @@ export class PaymentService {
       // Only renewal invoices are unpaid — proceed with normal update
       // (don't void renewal invoices as that would erase legitimate charges)
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: existingSub.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await this.buildSeatItems(existingSub, stripeSub, newSeatCount),
         ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
           ? { proration_behavior: 'always_invoice' }
           : {}),
@@ -1864,13 +1882,11 @@ export class PaymentService {
     // Step 2: Reset subscription to last paid seat count (no proration)
     // This aligns Stripe's internal state with what was actually paid for
     await stripe.subscriptions.update(stripeSub.id, {
-      items: [
-        {
-          id: stripeSub.items.data[0].id,
-          price: existingSub.stripe_price_id,
-          quantity: Math.max(lastPaidSeatCount, minSeats),
-        },
-      ],
+      items: await this.buildSeatItems(
+        existingSub,
+        stripeSub,
+        Math.max(lastPaidSeatCount, minSeats),
+      ),
       proration_behavior: 'none',
     });
 
@@ -1878,13 +1894,7 @@ export class PaymentService {
     // Skip if the new count equals the last paid count — no proration needed
     if (newSeatCount !== lastPaidSeatCount) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: existingSub.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await this.buildSeatItems(existingSub, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
     }

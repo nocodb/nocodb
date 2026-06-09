@@ -52,14 +52,14 @@ export const getOnPremPlan = () => {
     const seatLimit = NocoLicense.getSeatLimit();
     if (NocoLicense.isEE) {
       if (seatLimit !== null && seatLimit > 0) {
-        const meta: Record<string, number | boolean> = {
+        const meta = {
           ...EnterprisePlan.meta,
           [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
         };
         applyAddons(meta, config?.addons);
         return { ...EnterprisePlan, meta };
       }
-      const meta: Record<string, number | boolean> = { ...EnterprisePlan.meta };
+      const meta = { ...EnterprisePlan.meta };
       applyAddons(meta, config?.addons);
       return { ...EnterprisePlan, meta };
     }

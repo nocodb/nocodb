@@ -17,7 +17,12 @@ import {
   ReturnToBillingPage,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
+import type {
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  PlanTitles,
+  OnPremPlanTitles,
+} from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { JobTypes } from '~/interface/Jobs';
@@ -532,7 +537,7 @@ export class PaymentService {
    */
   private async cancelAddonsBelowPlan(
     workspaceOrOrgId: string,
-    newPlanTitle: PlanTitles,
+    newPlanTitle: PlanTitles | OnPremPlanTitles,
     req: NcRequest,
   ): Promise<void> {
     const subscription = await Subscription.getByWorkspaceOrOrg(
@@ -1505,6 +1510,12 @@ export class PaymentService {
       NcError._.planNotAvailable();
     }
 
+    // New billing period for the base price. Captured before the branch logic
+    // narrows newPrice.recurring.interval, so it can re-point co-termed add-on
+    // items when the period flips on an immediate plan change.
+    const newPeriod: 'month' | 'year' =
+      newPrice.recurring.interval === 'year' ? 'year' : 'month';
+
     const item = stripeSub.items.data[0];
 
     let updatedSubscription;
@@ -1532,7 +1543,7 @@ export class PaymentService {
             },
             ...(await this.buildAddonRepointItems(
               existingSub,
-              newPrice.recurring.interval === 'year' ? 'year' : 'month',
+              newPeriod,
               this.billableSeatCount(newPlan.title, seatCount),
               ncMeta,
             )),
@@ -1615,7 +1626,7 @@ export class PaymentService {
                 },
                 ...(await this.buildAddonRepointItems(
                   existingSub,
-                  newPrice.recurring.interval === 'year' ? 'year' : 'month',
+                  newPeriod,
                   this.billableSeatCount(newPlan.title, seatCount),
                   ncMeta,
                 )),
@@ -1684,7 +1695,7 @@ export class PaymentService {
             },
             ...(await this.buildAddonRepointItems(
               existingSub,
-              newPrice.recurring.interval === 'year' ? 'year' : 'month',
+              newPeriod,
               this.billableSeatCount(newPlan.title, seatCount),
               ncMeta,
             )),

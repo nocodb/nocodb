@@ -849,7 +849,7 @@ export const AddonDefinitions: Record<
 
 /** Merge each active add-on's granted features into a resolved plan-meta object (mutates `meta`). */
 export function applyAddons(
-  meta: Record<string, number | boolean>,
+  meta: Record<string, unknown>,
   activeKeys: PlanAddonTypes[] | undefined | null
 ): void {
   if (!activeKeys?.length) return;

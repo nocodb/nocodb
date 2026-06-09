@@ -99,6 +99,8 @@ export enum MetaTable {
   TABLE_SYNC_COLUMN_MAPPINGS = 'nc_table_sync_column_mappings',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
+  ADDONS = 'nc_addons',
+  SUBSCRIPTION_ADDONS = 'nc_subscription_addons',
   ROW_COLOR_CONDITIONS = 'nc_row_color_conditions',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
@@ -370,7 +372,9 @@ export const orderedMetaTables = [
   MetaTable.AUTOMATIONS,
 
   // Payment
+  MetaTable.SUBSCRIPTION_ADDONS,
   MetaTable.SUBSCRIPTIONS,
+  MetaTable.ADDONS,
   MetaTable.PLANS,
 
   // Installations / Sandboxes / Apps
@@ -505,6 +509,8 @@ export enum CacheScope {
   PLANS = 'plans',
   SUBSCRIPTIONS = 'subscriptions',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
+  ADDONS = 'addons',
+  SUBSCRIPTION_ADDONS = 'subscriptionAddons',
   USAGE_STATS = 'usageStats',
   RESOURCE_STATS = 'resourceStats',
   STORAGE_STATS = 'storageStats',
@@ -568,6 +574,8 @@ export const RootScopeTables = {
     MetaTable.DATA_REFLECTION,
     MetaTable.PLANS,
     MetaTable.SUBSCRIPTIONS,
+    MetaTable.ADDONS,
+    MetaTable.SUBSCRIPTION_ADDONS,
     MetaTable.MANAGED_APPS,
     MetaTable.MANAGED_APP_VERSIONS,
     MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,

@@ -689,6 +689,7 @@
     "updated": "Updated"
   },
   "objects": {
+    "addons": "Add-ons",
     "script": "Script",
     "scripts": "Scripts",
     "automation": "Automation",

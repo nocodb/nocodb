@@ -214,6 +214,7 @@ watch(
               </NcAlert>
             </template>
           </PaymentPlanUsage>
+          <PaymentAddonsList v-if="!afterPayment || !!checkoutSession" />
         </template>
 
         <Payment v-if="paymentState && (!afterPayment || !!checkoutSession)" />

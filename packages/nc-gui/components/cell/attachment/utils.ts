@@ -49,6 +49,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const column = inject(ColumnInj, ref())
 
+    // When rendered under a Lookup cell, MetaInj points at the related table
+    // while the row store is still the parent row — so the cell's own
+    // (model, column, row) no longer address this attachment. Lookup.vue
+    // provides the parent row's lookup-column coordinates here; prefer them
+    // for download so the file is signed via the parent row's lookup column.
+    const lookupAttachmentDownloadCtx = inject(LookupAttachmentDownloadInj, ref(null))
+
     const editEnabled = inject(EditModeInj, ref(false))
 
     const isEditAllowed = computed(() => (!isPublic.value && !isReadonly.value && isUIAllowed('dataEdit')) || isSharedForm.value)
@@ -383,10 +390,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         return downloadAttachment(items[0]!)
       }
 
-      if (!meta.value || !column.value) return
-      const modelId = meta.value.id
-      const columnId = column.value.id
-      const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
+      const dlCtx = lookupAttachmentDownloadCtx.value
+      if (!dlCtx && (!meta.value || !column.value)) return
+      const modelId = dlCtx?.modelId ?? meta.value?.id
+      const columnId = dlCtx?.columnId ?? column.value?.id
+      const rowId = dlCtx?.rowId ?? extractPkFromRow(unref(row).row, meta.value!.columns!)
 
       if (!modelId || !columnId || !rowId) {
         console.error('Missing modelId, columnId or rowId')
@@ -409,7 +417,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           if (isPublic.value) {
             res = await fetchSharedViewAttachment(columnId!, rowId!, src)
           } else {
-            res = await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+            const workspaceId = dlCtx?.workspaceId ?? meta.value!.fk_workspace_id!
+            const baseId = dlCtx?.baseId ?? meta.value!.base_id!
+            res = await $api.internal.getOperation(workspaceId, baseId, {
               operation: 'attachmentDownload',
               modelId: modelId!,
               columnId: columnId!,
@@ -491,11 +501,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** download a file */
     async function downloadAttachment(item: AttachmentType) {
-      if (!meta.value || !column.value) return
+      const dlCtx = lookupAttachmentDownloadCtx.value
+      if (!dlCtx && (!meta.value || !column.value)) return
 
-      const modelId = meta.value.id
-      const columnId = column.value.id
-      const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
+      const modelId = dlCtx?.modelId ?? meta.value?.id
+      const columnId = dlCtx?.columnId ?? column.value?.id
+      const rowId = dlCtx?.rowId ?? extractPkFromRow(unref(row).row, meta.value!.columns!)
       const src = item.url || item.path
       if (modelId && columnId && rowId && src) {
         let res
@@ -503,7 +514,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (isPublic.value) {
           res = await fetchSharedViewAttachment(columnId, rowId, src)
         } else {
-          res = await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+          const workspaceId = dlCtx?.workspaceId ?? meta.value!.fk_workspace_id!
+          const baseId = dlCtx?.baseId ?? meta.value!.base_id!
+          res = await $api.internal.getOperation(workspaceId, baseId, {
             operation: 'attachmentDownload',
             modelId,
             columnId,

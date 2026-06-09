@@ -550,11 +550,27 @@ export class AttachmentsService {
 
     const attachment = record[column.title];
 
-    if (!attachment || !attachment.length) {
+    if (!attachment) {
       NcError.genericNotFound('Attachment', urlOrPath);
     }
 
-    const fileObject = attachment.find(
+    // The value can be a plain attachment array (direct Attachment column) or a
+    // nested structure when the column is a Lookup/Rollup over an attachment
+    // field — e.g. `[[{...}], [{...}]]` for HM/MM links, or deeper for nested
+    // lookups. Flatten recursively and collect the attachment objects so the
+    // file can be located regardless of nesting. (See lookup attachment
+    // download — the value reaching here is the parent row's lookup column.)
+    const attachmentObjects: any[] = [];
+    const collectAttachments = (val: any) => {
+      if (Array.isArray(val)) {
+        for (const item of val) collectAttachments(item);
+      } else if (val && typeof val === 'object') {
+        attachmentObjects.push(val);
+      }
+    };
+    collectAttachments(attachment);
+
+    const fileObject = attachmentObjects.find(
       (a) => a.url === urlOrPath || a.path === urlOrPath,
     );
 

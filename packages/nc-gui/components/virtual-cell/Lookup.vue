@@ -161,6 +161,31 @@ const arrValue = computed(() => {
 
 provide(MetaInj, lookupTableMeta)
 
+// Resolved download context for attachment lookups. MetaInj below is swapped to
+// the related table, so the nested attachment cell can no longer address the
+// attachment via its own (model, row). Expose the parent table's modelId, the
+// parent row's pk and the lookup columnId so the attachment cell downloads via
+// the parent row's lookup column (which the user is authorised to read).
+// See https://github.com/nocodb/nocodb/issues — lookup attachment download.
+const lookupAttachmentDownloadCtx = computed(() => {
+  const modelId = parentMeta.value?.id
+  const columnId = column.value?.id
+  if (!modelId || !columnId) return null
+
+  const rowId = extractPkFromRow(row?.value?.row, (parentMeta.value?.columns as ColumnType[]) || [])
+  if (rowId === null || rowId === undefined || rowId === '') return null
+
+  return {
+    workspaceId: parentMeta.value?.fk_workspace_id,
+    baseId: parentMeta.value?.base_id,
+    modelId,
+    columnId,
+    rowId: String(rowId),
+  }
+})
+
+provide(LookupAttachmentDownloadInj, lookupAttachmentDownloadCtx)
+
 provide(IsUnderLookupInj, ref(true))
 
 provide(CellUrlDisableOverlayInj, ref(true))

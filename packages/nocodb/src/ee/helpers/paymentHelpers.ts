@@ -3,6 +3,7 @@ import {
   NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
+  applyAddons,
   resolvePlanMeta,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
@@ -13,7 +14,13 @@ import type {
 } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
-import { Domain, Org, Subscription, Workspace } from '~/models';
+import {
+  Domain,
+  Org,
+  Subscription,
+  SubscriptionAddon,
+  Workspace,
+} from '~/models';
 import Noco from '~/Noco';
 import Plan, { CommonLimits, FreePlan, GraceLimits } from '~/models/Plan';
 import { isCloud, isOnPrem } from '~/utils';
@@ -364,7 +371,24 @@ async function getActivePlanAndSubscription(
     Object.assign(plan.meta, subscription.meta.plan_meta);
   }
 
-  return { plan, subscription };
+  // Add-on entitlements: expand active add-ons into plan meta (same expansion as on-prem).
+  const activeAddons = await SubscriptionAddon.listActive(
+    subscription.id,
+    ncMeta,
+  );
+  applyAddons(
+    plan.meta as Record<string, number | boolean>,
+    activeAddons.map((a) => a.addon_key),
+  );
+
+  return {
+    plan,
+    subscription,
+    addons: activeAddons.map((a) => ({
+      addon_key: a.addon_key,
+      status: a.status,
+    })),
+  };
 }
 
 // if Cloud, then check if sso is available for the workspace/org

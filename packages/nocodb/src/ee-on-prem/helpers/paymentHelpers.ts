@@ -4,6 +4,7 @@ import {
   OnPremPlanTitles,
   PlanFeatureTypes,
   PlanLimitTypes,
+  applyAddons,
 } from 'nocodb-sdk';
 import type {
   NcApiVersion,
@@ -30,16 +31,18 @@ export const getOnPremPlan = () => {
     // restrictions, then overlay JWT config for per-subscription overrides.
     if (planTitle && Object.values(OnPremPlanTitles).includes(planTitle)) {
       const planDef = OnPremPlanDefinitions[planTitle];
+      const meta: Record<string, number | boolean> = {
+        ...Plan.limitPairs(-1, false),
+        ...Plan.featurePairs(true),
+        ...(planDef?.features ?? {}),
+        ...(planDef?.limits ?? {}),
+        ...config,
+      };
+      applyAddons(meta, config?.addons);
       return Plan.prepare({
         title: planTitle,
         description: `On-premise ${planTitle} plan`,
-        meta: {
-          ...Plan.limitPairs(-1, false),
-          ...Plan.featurePairs(true),
-          ...(planDef?.features ?? {}),
-          ...(planDef?.limits ?? {}),
-          ...config,
-        },
+        meta,
         free: false,
       });
     }
@@ -49,15 +52,16 @@ export const getOnPremPlan = () => {
     const seatLimit = NocoLicense.getSeatLimit();
     if (NocoLicense.isEE) {
       if (seatLimit !== null && seatLimit > 0) {
-        return {
-          ...EnterprisePlan,
-          meta: {
-            ...EnterprisePlan.meta,
-            [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
-          },
+        const meta: Record<string, number | boolean> = {
+          ...EnterprisePlan.meta,
+          [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
         };
+        applyAddons(meta, config?.addons);
+        return { ...EnterprisePlan, meta };
       }
-      return EnterprisePlan;
+      const meta: Record<string, number | boolean> = { ...EnterprisePlan.meta };
+      applyAddons(meta, config?.addons);
+      return { ...EnterprisePlan, meta };
     }
 
     return FreePlan;

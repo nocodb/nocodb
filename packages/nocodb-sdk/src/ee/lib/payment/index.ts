@@ -606,6 +606,8 @@ export const OnPremPlanDefinitions: Record<
     features: {
       // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      // White-label is unbundled — only the white-label add-on grants it (see AddonDefinitions).
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },

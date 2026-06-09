@@ -2806,12 +2806,45 @@ export class PaymentService {
       ...iterationsObject,
     };
 
+    // Base seat quantity for the change phase — per-seat add-ons carried into the
+    // phase must match it (forced-match), mirroring buildSeatItems/grantAddon.
+    const changePhaseSeats = this.billableSeatCount(
+      newPlan.title,
+      existing.seat_count,
+    );
+
+    // Carry forward each still-valid Stripe-backed add-on as a phase item.
+    // Phase items are defined by price + quantity (not live item id), so we
+    // resolve the add-on's catalog price for the phase's billing period. Comped
+    // add-ons (no Stripe item) carry nothing; add-ons below the target plan's
+    // min are dropped (omitted) so they're removed when the phase activates.
+    const changePhasePeriod =
+      newPrice.recurring.interval === 'year' ? 'year' : 'month';
+    const changePhaseAddonItems: { price: string; quantity: number }[] = [];
+    const activeAddons = await SubscriptionAddon.listActive(existing.id);
+    for (const sa of activeAddons) {
+      if (!sa.stripe_subscription_item_id) continue; // comped → not a Stripe item
+      const def = AddonDefinitions[sa.addon_key];
+      if (!def) continue;
+      const minCloud = def.minPlan.cloud;
+      if (minCloud && PlanOrder[newPlan.title] < PlanOrder[minCloud]) {
+        continue; // below min on the new plan → drop, don't carry
+      }
+      const addon = await Addon.getByKey(sa.addon_key, ncMeta);
+      if (!addon) continue;
+      changePhaseAddonItems.push({
+        price: this.resolveAddonPriceId(addon, changePhasePeriod),
+        quantity: def.quantityBasis === 'per_seat' ? changePhaseSeats : 1,
+      });
+    }
+
     const changePhase = {
       items: [
         {
           price: newPrice.id,
-          quantity: this.billableSeatCount(newPlan.title, existing.seat_count),
+          quantity: changePhaseSeats,
         },
+        ...changePhaseAddonItems,
       ],
       metadata: {
         ...(stripeSub.metadata.fk_workspace_id && {

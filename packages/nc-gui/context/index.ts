@@ -196,3 +196,16 @@ export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; col
  */
 export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId: string } | null>> =
   Symbol('public-doc-share-injection')
+
+/**
+ * Resolved download context for an attachment rendered under a Lookup cell.
+ * A lookup swaps MetaInj to the related table while RowInj stays the parent
+ * row, so the attachment cell's own (model, row) no longer address the
+ * attachment. Lookup.vue provides the parent table's modelId + the parent
+ * row's pk + the lookup columnId here, and the attachment cell uses it to
+ * download/sign the file via the parent row's lookup column. Null when not
+ * under a lookup.
+ */
+export const LookupAttachmentDownloadInj: InjectionKey<
+  Ref<{ workspaceId?: string; baseId?: string; modelId: string; columnId: string; rowId: string } | null>
+> = Symbol('lookup-attachment-download-injection')

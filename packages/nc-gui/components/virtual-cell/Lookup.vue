@@ -96,10 +96,81 @@ const lookupColumn = computed(
       | undefined,
 )
 
+// Resolve the leaf of a nested lookup chain (Lookup -> Lookup -> ... -> X).
+// When the chain ends in an Attachment, the value is already a flat array of
+// attachment objects and must render as a single strip — not one nested cell
+// per file (which stacks them vertically).
+const lookupLeafColumn = computed<ColumnType | undefined>(() => {
+  if (!lookupColumn.value) return undefined
+  if (lookupColumn.value.uidt !== UITypes.Lookup) return lookupColumn.value
+
+  let nextCol: ColumnType | undefined = lookupColumn.value
+  let ownMeta: Record<string, any> | undefined = lookupTableMeta.value
+  let guard = 0
+  while (nextCol && nextCol.uidt === UITypes.Lookup && guard++ < 20) {
+    const lkOpt = nextCol.colOptions as LookupType
+    const relCol = ownMeta?.columns?.find((c: ColumnType) => c.id === lkOpt.fk_relation_column_id)
+    const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
+    if (!relCol || !relOpt?.fk_related_model_id) return undefined
+
+    // Fall back to the current hop's own table base (NOT the root parent base),
+    // so multi-hop chains crossing into another base resolve correctly.
+    const baseId = ((relOpt as any)?.fk_related_base_id as string | undefined) || ownMeta?.base_id
+    const relMeta = baseId ? getMetaByKey(baseId, relOpt.fk_related_model_id) : undefined
+    if (!relMeta) return undefined
+
+    ownMeta = relMeta
+    nextCol = relMeta.columns?.find((c: ColumnType) => c.id === lkOpt.fk_lookup_column_id)
+  }
+  return nextCol
+})
+
+const isAttachmentLeafLookup = computed(
+  () =>
+    !!lookupColumn.value &&
+    lookupColumn.value.uidt === UITypes.Lookup &&
+    !!lookupLeafColumn.value &&
+    isAttachment(lookupLeafColumn.value),
+)
+
+// Ensure every table meta in the lookup chain is loaded so lookupLeafColumn can
+// resolve; re-runs as metas arrive (getMetaByKey is reactive).
 watch(
-  [lookupColumn, rowHeight],
+  [lookupColumn, lookupTableMeta],
+  async () => {
+    if (!lookupColumn.value || lookupColumn.value.uidt !== UITypes.Lookup) return
+
+    let nextCol: ColumnType | undefined = lookupColumn.value
+    let ownMeta: Record<string, any> | undefined = lookupTableMeta.value
+    let guard = 0
+    while (nextCol && nextCol.uidt === UITypes.Lookup && guard++ < 20) {
+      const lkOpt = nextCol.colOptions as LookupType
+      const relCol = ownMeta?.columns?.find((c: ColumnType) => c.id === lkOpt.fk_relation_column_id)
+      const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
+      if (!relCol || !relOpt?.fk_related_model_id) return
+
+      // Fall back to the current hop's own table base (NOT the root parent base),
+      // so multi-hop chains crossing into another base resolve correctly.
+      const baseId = ((relOpt as any)?.fk_related_base_id as string | undefined) || ownMeta?.base_id
+      if (!baseId) return
+
+      const relMeta = getMetaByKey(baseId, relOpt.fk_related_model_id)
+      if (!relMeta) {
+        await getMeta(baseId, relOpt.fk_related_model_id)
+        return
+      }
+
+      ownMeta = relMeta
+      nextCol = relMeta.columns?.find((c: ColumnType) => c.id === lkOpt.fk_lookup_column_id)
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  [lookupColumn, rowHeight, isAttachmentLeafLookup],
   () => {
-    if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
+    if (lookupColumn.value && !isAttachment(lookupColumn.value) && !isAttachmentLeafLookup.value) {
       providedHeightRef.value = 1
     } else {
       providedHeightRef.value = rowHeight.value
@@ -126,7 +197,8 @@ const arrValue = computed(() => {
 
   // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array
   // since the attachment component expects an array or JSON string array
-  if (lookupColumn.value?.uidt === UITypes.Attachment) {
+  // (also handles nested lookups whose leaf is an Attachment)
+  if (lookupColumn.value?.uidt === UITypes.Attachment || isAttachmentLeafLookup.value) {
     if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)) {
       return ncIsArray(cellValue.value) ? cellValue.value : [cellValue.value]
     }
@@ -160,6 +232,31 @@ const arrValue = computed(() => {
 })
 
 provide(MetaInj, lookupTableMeta)
+
+// Resolved download context for attachment lookups. MetaInj below is swapped to
+// the related table, so the nested attachment cell can no longer address the
+// attachment via its own (model, row). Expose the parent table's modelId, the
+// parent row's pk and the lookup columnId so the attachment cell downloads via
+// the parent row's lookup column (which the user is authorised to read).
+// See https://github.com/nocodb/nocodb/issues — lookup attachment download.
+const lookupAttachmentDownloadCtx = computed(() => {
+  const modelId = parentMeta.value?.id
+  const columnId = column.value?.id
+  if (!modelId || !columnId) return null
+
+  const rowId = extractPkFromRow(row?.value?.row, (parentMeta.value?.columns as ColumnType[]) || [])
+  if (rowId === null || rowId === undefined || rowId === '') return null
+
+  return {
+    workspaceId: parentMeta.value?.fk_workspace_id,
+    baseId: parentMeta.value?.base_id,
+    modelId,
+    columnId,
+    rowId: String(rowId),
+  }
+})
+
+provide(LookupAttachmentDownloadInj, lookupAttachmentDownloadCtx)
 
 provide(IsUnderLookupInj, ref(true))
 
@@ -294,7 +391,7 @@ const smartsheetCellClass = computed(() => {
 })
 
 const cellHeight = computed(() =>
-  isGroupByLabel.value || (lookupColumn.value && isAttachment(lookupColumn.value))
+  isGroupByLabel.value || (lookupColumn.value && (isAttachment(lookupColumn.value) || isAttachmentLeafLookup.value))
     ? undefined
     : rowHeight.value
     ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
@@ -370,13 +467,22 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
         class="h-full w-full overflow-hidden"
         :class="{
           'nc-cell-lookup-scroll': rowHeight === 1,
-          'flex gap-1': !(lookupColumn && isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])),
+          'flex gap-1': !(
+            lookupColumn &&
+            (isAttachment(lookupColumn) || isAttachmentLeafLookup) &&
+            arrValue[0] &&
+            ncIsObject(arrValue[0])
+          ),
         }"
         @click="handleCloseDropdown"
       >
         <template v-if="lookupColumn">
+          <!-- Nested lookup whose leaf is an Attachment — render as a single strip -->
+          <div v-if="isAttachmentLeafLookup && arrValue[0] && ncIsObject(arrValue[0])">
+            <LazySmartsheetCell :model-value="arrValue" :column="lookupLeafColumn" :edit-enabled="false" :read-only="true" />
+          </div>
           <!-- Render virtual cell -->
-          <div v-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn" class="flex h-full virtual-lookup-cells">
+          <div v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn" class="flex h-full virtual-lookup-cells">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
@@ -503,6 +609,13 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             />
 
             {{ $t('title.noResultsMatchedYourSearch') }}
+          </div>
+          <div
+            v-else-if="isAttachmentLeafLookup && arrValue[0] && ncIsObject(arrValue[0])"
+            class="nc-lookup-attachment-wrapper"
+            @click="handleCloseDropdown"
+          >
+            <LazySmartsheetCell :model-value="arrValue" :column="lookupLeafColumn" :edit-enabled="false" :read-only="true" />
           </div>
           <template v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->

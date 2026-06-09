@@ -88,6 +88,44 @@ export const LookupCellRenderer: CellRenderer = {
       lookupColumn.extra = getUserColOptions(lookupColumn, props.baseUsers || [])
     }
 
+    // Resolve the leaf of a nested lookup chain (Lookup -> Lookup -> ... -> X).
+    // When the chain ultimately points to an Attachment, the value reaching
+    // here is already a flat array of attachment objects, so it must render as
+    // a single attachment strip rather than one stacked nested cell per file.
+    let attachmentLeafColumn: ColumnType | undefined
+    if (lookupColumn.uidt === UITypes.Lookup) {
+      let nextCol: ColumnType | undefined = lookupColumn
+      let ownMeta: TableType | undefined = relatedTableMeta
+      let guard = 0
+      while (nextCol && nextCol.uidt === UITypes.Lookup && guard++ < 20) {
+        const lkOpt = nextCol.colOptions as LookupType
+        const relCol = ownMeta?.columns?.find((c) => c.id === lkOpt.fk_relation_column_id)
+        const relOpt = relCol?.colOptions as LinkToAnotherRecordType | undefined
+        if (!relCol || !relOpt?.fk_related_model_id) {
+          nextCol = undefined
+          break
+        }
+
+        const leafBaseId = getRelatedBaseId(relCol, ownMeta?.base_id || '')
+        const leafMeta = getMetaWithCompositeKey(metas, leafBaseId, relOpt.fk_related_model_id)
+
+        // Leaf meta not loaded yet — request it and bail (before any clipping).
+        if (!leafMeta) {
+          if (tableMetaLoader && !tableMetaLoader.isLoading(relOpt.fk_related_model_id, leafBaseId)) {
+            tableMetaLoader.getTableMeta(relOpt.fk_related_model_id, leafBaseId)
+          }
+          return
+        }
+
+        ownMeta = leafMeta
+        nextCol = leafMeta.columns?.find((c) => c.id === lkOpt.fk_lookup_column_id)
+      }
+
+      if (nextCol && isAttachment(nextCol)) {
+        attachmentLeafColumn = nextCol
+      }
+    }
+
     const getArrValue = () => {
       const relatedColType = (relatedColObj.colOptions as LinkToAnotherRecordType)?.type
 
@@ -105,7 +143,7 @@ export const LookupCellRenderer: CellRenderer = {
 
       if (ncIsNullOrUndefined(value)) return []
 
-      if (lookupColumn.uidt === UITypes.Attachment) {
+      if (lookupColumn.uidt === UITypes.Attachment || attachmentLeafColumn) {
         if (relatedColType && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)) {
           return ncIsArray(value) ? value : [value]
         }
@@ -326,7 +364,18 @@ export const LookupCellRenderer: CellRenderer = {
       }
     }
 
-    if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
+    if (attachmentLeafColumn && ncIsObject(arrValue[0])) {
+      // Nested lookup whose leaf is an Attachment — render the flattened
+      // attachment array as a single strip instead of one cell per file.
+      renderCell(ctx, attachmentLeafColumn, {
+        ...renderProps,
+        column: attachmentLeafColumn,
+        value: arrValue,
+        height,
+        textAlign: 'center',
+        tag: { ...renderProps.tag, renderAsTag: false },
+      })
+    } else if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
       if (
         lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&

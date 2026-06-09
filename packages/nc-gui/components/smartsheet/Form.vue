@@ -642,12 +642,18 @@ function rowPlaceholderHeightPx(formRow: { _key: string; fields: any[] }) {
   return rowHeightCache.get(formRow._key) ?? estimateRowHeightPx(formRow.fields)
 }
 
-// Drop measured heights + rendered-row tracking on a full reload: the layout can change
-// while a `row_id` (= `_key`) persists, so a cached height would otherwise be applied as a
-// stale off-screen placeholder until that row is next scrolled into view and re-measured.
+// Drop measured heights on a full reload: the layout can change while a `row_id` (= `_key`)
+// persists, so a cached height would otherwise be applied as a stale off-screen placeholder
+// until that row is next scrolled into view and re-measured.
+//
+// Do NOT clear `renderedRowKeys` here. A reused on-screen row node (same `_key`, e.g. the
+// lone required field left after hiding all others) does not re-fire the directive's
+// `mounted` hook, so it would never be re-seeded, and the IntersectionObserver does not
+// re-fire for a row whose intersection didn't change — leaving visible rows stuck as blank
+// placeholders. Stale keys for rows that went away are harmless (they match no row); newly
+// mounted rows are seeded by the directive; scroll in/out is handled by the observer.
 function resetRowRenderCache() {
   rowHeightCache.clear()
-  renderedRowKeys.clear()
 }
 
 // Serializes drag-drop re-layouts: blocks new drags while a bulk update

@@ -187,7 +187,7 @@ const FEATURES = [
     id: 'white_label',
     title: 'White Label',
     description: 'Customize favicon, logo and branding for self-hosted instances.',
-    enabled: false,
+    enabled: true,
     version: 1,
     isEngineering: true,
     isEE: true,

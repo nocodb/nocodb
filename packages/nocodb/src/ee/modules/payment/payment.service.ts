@@ -479,6 +479,49 @@ export class PaymentService {
     return sa;
   }
 
+  async revokeAddon(
+    workspaceOrOrgId: string,
+    addonKey: PlanAddonTypes,
+    req?: NcRequest,
+  ) {
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+    );
+    if (!subscription)
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+
+    const sa = await SubscriptionAddon.getActiveByKey(
+      subscription.id,
+      addonKey,
+    );
+    if (!sa) return { ok: true }; // idempotent
+
+    if (sa.stripe_subscription_item_id) {
+      await stripe.subscriptionItems.del(sa.stripe_subscription_item_id, {
+        proration_behavior: 'always_invoice',
+      });
+    }
+
+    await SubscriptionAddon.update(sa.id!, { status: 'canceled' });
+
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+    if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
+
+    await this.syncOnPremAddons(subscription.id);
+
+    this.appHooksService.emit(AppEvents.ADDON_REVOKED, {
+      context: {
+        workspace_id: workspaceOrOrgId,
+        base_id: undefined,
+      },
+      req: req as NcRequest,
+      workspaceOrOrgId,
+      addonKey,
+    });
+
+    return { ok: true };
+  }
+
   async internalUpgrade(
     workspaceOrOrgId: string,
     planTitle: string,

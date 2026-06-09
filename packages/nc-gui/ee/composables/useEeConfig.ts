@@ -420,9 +420,10 @@ export const useEeConfig = createSharedComposable(() => {
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
   const blockSSO = computed(() => isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO))
   const blockScim = computed(() => {
-    // SCIM is on-prem enterprise only — always blocked on cloud
-    if (isPaymentEnabled.value) return true
-    return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
+    // SCIM is sold as an add-on on both cloud and on-prem. FEATURE_SCIM resolves
+    // true only when the SCIM add-on is active (the backend merges add-on grants
+    // into plan meta), so the same getFeature check gates both ladders.
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
   })
   const blockWhiteLabel = computed(() => {
     // White Label is on-prem enterprise only — always blocked on cloud

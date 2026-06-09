@@ -193,9 +193,17 @@ export class FormPage extends BasePage {
 
   async fillForm(param: { field: string; value: string; type?: UITypes }[]) {
     for (let i = 0; i < param.length; i++) {
-      await this.get()
-        .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`)
-        .click();
+      const fieldInput = this.get().locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`);
+
+      // Preview field rows are lazy-rendered (IntersectionObserver), so a field's cell can
+      // mount a beat after the form/layout settles (e.g. right after removeAllFields). Wait
+      // for it to attach + render before interacting, and let it settle so the click doesn't
+      // race the row's mount re-render.
+      await fieldInput.scrollIntoViewIfNeeded().catch(() => {});
+      await fieldInput.waitFor({ state: 'visible', timeout: 30000 });
+      await this.rootPage.waitForTimeout(150);
+
+      await fieldInput.click();
 
       switch (param[i].type) {
         case UITypes.LongText: {

@@ -1530,6 +1530,12 @@ export class PaymentService {
               price: newPrice.id,
               quantity: this.billableSeatCount(newPlan.title, seatCount),
             },
+            ...(await this.buildAddonRepointItems(
+              existingSub,
+              newPrice.recurring.interval === 'year' ? 'year' : 'month',
+              this.billableSeatCount(newPlan.title, seatCount),
+              ncMeta,
+            )),
           ],
           metadata: {
             ...(workspaceOrOrg.entity === 'workspace'
@@ -1607,6 +1613,12 @@ export class PaymentService {
                   price: newPrice.id,
                   quantity: this.billableSeatCount(newPlan.title, seatCount),
                 },
+                ...(await this.buildAddonRepointItems(
+                  existingSub,
+                  newPrice.recurring.interval === 'year' ? 'year' : 'month',
+                  this.billableSeatCount(newPlan.title, seatCount),
+                  ncMeta,
+                )),
               ],
               metadata: {
                 ...(workspaceOrOrg.entity === 'workspace'
@@ -1670,6 +1682,12 @@ export class PaymentService {
               price: newPrice.id,
               quantity: this.billableSeatCount(newPlan.title, seatCount),
             },
+            ...(await this.buildAddonRepointItems(
+              existingSub,
+              newPrice.recurring.interval === 'year' ? 'year' : 'month',
+              this.billableSeatCount(newPlan.title, seatCount),
+              ncMeta,
+            )),
           ],
           metadata: {
             ...(workspaceOrOrg.entity === 'workspace'
@@ -1812,6 +1830,37 @@ export class PaymentService {
       items.push({
         id: sa.stripe_subscription_item_id,
         quantity: newSeatCount,
+      });
+    }
+    return items;
+  }
+
+  /**
+   * Build Stripe item updates that re-point every surviving Stripe-backed add-on
+   * to its price for `period`, so add-ons stay co-termed with the base item when
+   * the base billing period flips on an immediate plan change. Updating an
+   * existing item with { id, price } keeps the same Stripe item id, so junction
+   * rows need no update. Comped add-ons (no Stripe item) carry nothing; per-seat
+   * add-ons forced-match `billableSeats`, flat add-ons stay quantity 1.
+   */
+  private async buildAddonRepointItems(
+    subscription: Subscription,
+    period: 'month' | 'year',
+    billableSeats: number,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ id: string; price: string; quantity: number }[]> {
+    const items: { id: string; price: string; quantity: number }[] = [];
+    const addons = await SubscriptionAddon.listActive(subscription.id);
+    for (const sa of addons) {
+      if (!sa.stripe_subscription_item_id) continue; // comped → not billed
+      const def = AddonDefinitions[sa.addon_key];
+      if (!def) continue;
+      const addon = await Addon.getByKey(sa.addon_key, ncMeta);
+      if (!addon) continue;
+      items.push({
+        id: sa.stripe_subscription_item_id,
+        price: this.resolveAddonPriceId(addon, period),
+        quantity: def.quantityBasis === 'per_seat' ? billableSeats : 1,
       });
     }
     return items;

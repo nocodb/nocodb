@@ -7238,10 +7238,33 @@ export class ColumnsService implements IColumnsService {
 
     if (colOptions.fk_mm_model_id === tableId) {
       table = await colOptions.getMMModel(mmContext);
+      // Column is already validated as Link/LTAR with loaded colOptions, so the
+      // referenced model should always exist. A null means orphaned link
+      // metadata (table deleted without cleaning up the link column) — an
+      // internal data-integrity violation. Throw 500 with enough context to
+      // trace the broken column rather than dereferencing null.
+      if (!table) {
+        NcError.get(context).internalServerError(
+          `Link column metadata references a missing many-to-many table: ` +
+            `mm_model_id=${colOptions.fk_mm_model_id}, ` +
+            `link_column_id=${columnId} (${column?.title}), ` +
+            `source_model_id=${column?.fk_model_id}, ` +
+            `relation=${colOptions.type}`,
+        );
+      }
       // load columns
       await table.getColumns(mmContext);
     } else if (colOptions.fk_related_model_id === tableId) {
       table = await colOptions.getRelatedTable(refContext);
+      if (!table) {
+        NcError.get(context).internalServerError(
+          `Link column metadata references a missing related table: ` +
+            `related_model_id=${colOptions.fk_related_model_id}, ` +
+            `link_column_id=${columnId} (${column?.title}), ` +
+            `source_model_id=${column?.fk_model_id}, ` +
+            `relation=${colOptions.type}`,
+        );
+      }
       // load columns
       await table.getColumns(refContext);
     } else {

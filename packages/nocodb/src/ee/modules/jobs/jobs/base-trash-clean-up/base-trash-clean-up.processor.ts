@@ -199,9 +199,18 @@ export class BaseTrashCleanUpProcessor {
             continue;
           }
 
+          // `permanentDelete` wraps raw (non-Nc) failures in a generic
+          // "Failed to permanently delete" error and stashes the real cause on
+          // `.cause` (e.g. a DB FK-constraint/deadlock). Surface that root
+          // cause in logs, retry meta, and telemetry — otherwise every alert
+          // just reads "Failed to permanently delete" and is undiagnosable.
+          const rootCause = (e as { cause?: Error })?.cause;
+          const rootMessage = rootCause?.message ?? e?.message ?? 'unknown';
+          const rootStack = rootCause?.stack ?? e?.stack;
+
           this.logger.error(
-            `Failed to clean trash entry ${entry.id}: ${e.message}`,
-            e.stack,
+            `Failed to clean trash entry ${entry.id}: ${rootMessage}`,
+            rootStack,
           );
 
           // Bump cleanup_due_at forward proportional to retry count so a
@@ -223,7 +232,7 @@ export class BaseTrashCleanUpProcessor {
 
             const retryCount = ((meta.cleanup_retry_count as number) ?? 0) + 1;
             meta.cleanup_retry_count = retryCount;
-            meta.last_cleanup_error = e?.message ?? 'unknown';
+            meta.last_cleanup_error = rootMessage;
 
             const nextDueAt = new Date(
               Date.now() + RETRY_BACKOFF_MS * retryCount,
@@ -240,9 +249,9 @@ export class BaseTrashCleanUpProcessor {
             ) {
               TelemetryHandlerService.sendPriorityError(context, {
                 trigger: 'base_trash_cleanup',
-                error_type: e?.name ?? 'Error',
-                message: `Trash entry ${entry.id} failed ${retryCount} cleanup attempts: ${e?.message}`,
-                error_details: e?.stack,
+                error_type: rootCause?.name ?? e?.name ?? 'Error',
+                message: `Trash entry ${entry.id} failed ${retryCount} cleanup attempts: ${rootMessage}`,
+                error_details: rootStack,
                 affected_resources: [
                   entry.id,
                   entry.resource_type,

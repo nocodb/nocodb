@@ -432,6 +432,9 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         return emptyResult;
       }
     }
+    if (!anchorDate) {
+      return emptyResult;
+    }
     if (filter.comparison_op === 'isWithin') {
       return await this.filterIsWithin(
         { val: anchorDate.valueOf(), sourceField: field },

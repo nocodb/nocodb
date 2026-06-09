@@ -363,7 +363,11 @@ export class FieldHandler implements IFieldHandler {
       logicalOps?: string;
     }[] = [];
     let index = 0;
-    for (const filter of filters) {
+    for (const filter of filters ?? []) {
+      // a null/undefined entry carries no condition — skip it
+      if (!filter) {
+        continue;
+      }
       if (filter.is_group) {
         qbHandlers.push({
           handler: await this.applyFilterGroup(filter, options),
@@ -534,7 +538,11 @@ export class FieldHandler implements IFieldHandler {
     handler: <T>(filter: Filter) => Promise<void | T>,
   ) {
     return Promise.all(
-      (filters ?? []).map(async (filter) => {
+      (Array.isArray(filters) ? filters : []).map(async (filter) => {
+        // a null/undefined entry carries no condition — skip it
+        if (!filter) {
+          return;
+        }
         // somehow filters is an array of array
         if (Array.isArray(filter)) {
           return this.traverseFilters(filter, handler);

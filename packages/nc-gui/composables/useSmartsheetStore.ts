@@ -1,6 +1,7 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { validateRowFilters } from '~/utils/dataUtils'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -30,6 +31,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const { activeView: view, activeNestedFilters, activeSorts, views } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
+
+    const { getBaseType } = baseStore
+
+    const { metas } = useMetas()
 
     const { sqlUis, base, isSharedBase } = storeToRefs(baseStore)
 
@@ -164,6 +169,40 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })
 
+    // The active ad-hoc narrowing (URL `where` + toolbar search) parsed into filters. Unlike
+    // saved view filters, the server can't know these (per-client), so realtime handlers AND
+    // `rowMatchesSearchAndUrl` in client-side on top of the server's matchedViewIds.
+    const xWhereFilters = computed<FilterType[]>(() => {
+      if (!xWhere.value || ncIsEmptyObject(aliasColObjMap.value)) return []
+      const { filters, errors } = extractFilterFromXwhere(
+        { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        xWhere.value,
+        aliasColObjMap.value,
+        false,
+      )
+      if (errors?.length) return []
+      return (filters ?? []).map((f) => ({
+        ...f,
+        value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value,
+      }))
+    })
+
+    const rowMatchesSearchAndUrl = (rowPayload: Record<string, any>) => {
+      if (!xWhereFilters.value.length) return true
+      return validateRowFilters(
+        xWhereFilters.value,
+        rowPayload,
+        (meta.value as TableType)?.columns as ColumnType[],
+        getBaseType((meta.value as TableType)?.source_id),
+        metas.value,
+        (meta.value as TableType)?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+    }
+
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
     const isSyncedTable = computed(() => !!(meta.value as TableType)?.synced)
@@ -266,6 +305,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       filtersFromUrlParamsReadableErrors,
       whereQueryFromUrl,
       validFiltersFromUrlParams,
+      rowMatchesSearchAndUrl,
       isSyncedTable,
       totalRowsWithSearchQuery,
       totalRowsWithoutSearchQuery,

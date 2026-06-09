@@ -1,4 +1,4 @@
-import { VariableDefinition } from '~/lib/workflow/interface'
+import { VariableDefinition } from '~/lib/workflow/interface';
 
 /**
  * Recursively adds port information to all variables in a schema
@@ -9,7 +9,7 @@ import { VariableDefinition } from '~/lib/workflow/interface'
  */
 export function addPortToSchema(
   variables: VariableDefinition[] | undefined,
-  port: string,
+  port: string
 ): VariableDefinition[] | undefined {
   if (!variables) return undefined;
 
@@ -38,13 +38,9 @@ export function addPortToSchema(
  * @returns New array with prefixed keys
  */
 
-
 export function prefixVariableKeys<
   T extends VariableDefinition | VariableDefinition[] | undefined
->(
-  variables: T,
-  prefix: string,
-): T {
+>(variables: T, prefix: string): T {
   if (!variables) return variables;
 
   const isArray = Array.isArray(variables);
@@ -66,7 +62,7 @@ export function prefixVariableKeys<
 
 export function findVariableByPath(
   path: string,
-  variables: VariableDefinition[],
+  variables: VariableDefinition[]
 ): VariableDefinition | undefined {
   for (const variable of variables) {
     if (variable.key === path || variable.key.endsWith(`.${path}`)) {

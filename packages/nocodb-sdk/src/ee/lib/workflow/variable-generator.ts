@@ -10,8 +10,7 @@ import { RelationTypes } from '~/lib/globals';
 import { ColumnType } from '~/lib/Api';
 import { LinkToAnotherRecordType, LookupType } from '~/lib/Api';
 import { FormulaDataTypes } from '~/lib/formula/enums';
-import { prefixVariableKeys } from '~/ee/lib'
-
+import { prefixVariableKeys } from '~/ee/lib/workflow/variable-schema-utils';
 
 /**
  * Map UIType to icon name (matching NocoDB's iconMap)
@@ -382,10 +381,7 @@ export async function getFieldVariable(
     }
   } else {
     // For other fields, use the standard type mapping
-    const typeInfo = uiTypeToVariableType(
-      effectiveUidt,
-      column.colOptions
-    );
+    const typeInfo = uiTypeToVariableType(effectiveUidt, column.colOptions);
     type = typeInfo.type;
     isArray = typeInfo.isArray;
   }
@@ -1014,7 +1010,7 @@ export function genGeneralVariables(
         name: prefix || 'value',
         type: typeof output as VariableType,
         groupKey: VariableGroupKey.Fields,
-        extra
+        extra,
       },
     ];
   }
@@ -1073,7 +1069,7 @@ export function genGeneralVariables(
         : (valueType as VariableType),
       groupKey: VariableGroupKey.Fields,
       isArray,
-      extra
+      extra,
     };
 
     // Handle arrays with itemSchema

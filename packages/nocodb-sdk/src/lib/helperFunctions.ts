@@ -169,18 +169,33 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
 const integerRollupFunctions: string[] = ['count', 'countDistinct'];
 
 /** Rollup functions that preserve the source column type (integer in → integer out) */
-const integerPreservingRollupFunctions: string[] = ['sum', 'min', 'max', 'sumDistinct'];
+const integerPreservingRollupFunctions: string[] = [
+  'sum',
+  'min',
+  'max',
+  'sumDistinct',
+];
 
 /** Check if a column UIType stores integer values */
 const isIntegerUiType = (column: ColumnType) =>
-  [UITypes.Number, UITypes.ID, UITypes.AutoNumber, UITypes.Rating, UITypes.Links].includes(column.uidt as UITypes);
+  [
+    UITypes.Number,
+    UITypes.ID,
+    UITypes.AutoNumber,
+    UITypes.Rating,
+    UITypes.Links,
+  ].includes(column.uidt as UITypes);
 
 /**
  * Returns parsed rollup column meta with `precision` stripped when the
  * source column type + rollup function combination doesn't support it.
  * Prevents stale precision from old column configs affecting rendering.
  */
-const getRollupColumnMeta = (rollupMeta: any, childUidt: UITypes, rollupFunction: string) => {
+const getRollupColumnMeta = (
+  rollupMeta: any,
+  childUidt: UITypes,
+  rollupFunction: string
+) => {
   const meta = parseProp(rollupMeta);
 
   if (meta.precision != null) {

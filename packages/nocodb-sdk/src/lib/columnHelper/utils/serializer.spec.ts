@@ -24,7 +24,13 @@ describe('serializeDecimalValue', () => {
     });
 
     it('returns null for pure non-numeric string', () => {
-      expect(serializeDecimalValue('abc', undefined, makeParams(SeparatorType.NonePeriod))).toBeNull();
+      expect(
+        serializeDecimalValue(
+          'abc',
+          undefined,
+          makeParams(SeparatorType.NonePeriod)
+        )
+      ).toBeNull();
     });
   });
 
@@ -36,7 +42,9 @@ describe('serializeDecimalValue', () => {
     });
 
     it('strips non-numeric characters', () => {
-      expect(serializeDecimalValue('$1234.56', undefined, params)).toBe(1234.56);
+      expect(serializeDecimalValue('$1234.56', undefined, params)).toBe(
+        1234.56
+      );
     });
 
     it('handles negative', () => {
@@ -46,13 +54,17 @@ describe('serializeDecimalValue', () => {
     it('truncates at second decimal separator and strips non-numeric', () => {
       // a1,234.5678,45 → no thousand sep removal → first "." at index 6
       // no second "." → stays a1,234.5678,45 → regex removes a and commas → 1234.567845
-      expect(serializeDecimalValue('a1,234.5678,45', undefined, params)).toBe(1234.567845);
+      expect(serializeDecimalValue('a1,234.5678,45', undefined, params)).toBe(
+        1234.567845
+      );
     });
 
     it('truncates at second dot', () => {
       // 123.456.789 → first "." at 3, second "." at 7 → truncate to 123.456
       // regex cleanup → 123.456
-      expect(serializeDecimalValue('123.456.789', undefined, params)).toBe(123.456);
+      expect(serializeDecimalValue('123.456.789', undefined, params)).toBe(
+        123.456
+      );
     });
 
     it('handles multiple dots by keeping only up to second', () => {
@@ -71,7 +83,9 @@ describe('serializeDecimalValue', () => {
       // a1,234.5678,45 → no thousand sep → first "," at 2, second "," at 12
       // truncate → a1,234.5678 → replace "," with "." → a1.234.5678
       // regex removes "a" → 1.234.5678 → remove duplicate dots → 1.2345678
-      expect(serializeDecimalValue('a1,234.5678,45', undefined, params)).toBe(1.2345678);
+      expect(serializeDecimalValue('a1,234.5678,45', undefined, params)).toBe(
+        1.2345678
+      );
     });
 
     it('handles simple value with non-numeric prefix', () => {
@@ -97,17 +111,23 @@ describe('serializeDecimalValue', () => {
     const params = makeParams(SeparatorType.CommaPeriod);
 
     it('strips thousand separator commas', () => {
-      expect(serializeDecimalValue('1,234,567.89', undefined, params)).toBe(1234567.89);
+      expect(serializeDecimalValue('1,234,567.89', undefined, params)).toBe(
+        1234567.89
+      );
     });
 
     it('handles value with non-numeric chars', () => {
       // a1,234.5678,45 → remove commas → a1234.567845 → no second "."
       // regex removes "a" → 1234.567845
-      expect(serializeDecimalValue('a1,234.5678,45', undefined, params)).toBe(1234.567845);
+      expect(serializeDecimalValue('a1,234.5678,45', undefined, params)).toBe(
+        1234.567845
+      );
     });
 
     it('handles negative with thousand separators', () => {
-      expect(serializeDecimalValue('-1,000,000.50', undefined, params)).toBe(-1000000.5);
+      expect(serializeDecimalValue('-1,000,000.50', undefined, params)).toBe(
+        -1000000.5
+      );
     });
   });
 
@@ -115,13 +135,17 @@ describe('serializeDecimalValue', () => {
     const params = makeParams(SeparatorType.PeriodComma);
 
     it('strips period thousand separators and uses comma as decimal', () => {
-      expect(serializeDecimalValue('1.234.567,89', undefined, params)).toBe(1234567.89);
+      expect(serializeDecimalValue('1.234.567,89', undefined, params)).toBe(
+        1234567.89
+      );
     });
 
     it('handles mixed input', () => {
       // a1.234,5678 → remove "." → a1234,5678 → replace "," with "." → a1234.5678
       // regex removes "a" → 1234.5678
-      expect(serializeDecimalValue('a1.234,5678', undefined, params)).toBe(1234.5678);
+      expect(serializeDecimalValue('a1.234,5678', undefined, params)).toBe(
+        1234.5678
+      );
     });
   });
 
@@ -129,7 +153,9 @@ describe('serializeDecimalValue', () => {
     const params = makeParams(SeparatorType.SpacePeriod);
 
     it('strips non-breaking space thousand separators', () => {
-      expect(serializeDecimalValue('1\u00A0234\u00A0567.89', undefined, params)).toBe(1234567.89);
+      expect(
+        serializeDecimalValue('1\u00A0234\u00A0567.89', undefined, params)
+      ).toBe(1234567.89);
     });
   });
 
@@ -137,7 +163,9 @@ describe('serializeDecimalValue', () => {
     const params = makeParams(SeparatorType.SpaceComma);
 
     it('strips non-breaking space and uses comma as decimal', () => {
-      expect(serializeDecimalValue('1\u00A0234\u00A0567,89', undefined, params)).toBe(1234567.89);
+      expect(
+        serializeDecimalValue('1\u00A0234\u00A0567,89', undefined, params)
+      ).toBe(1234567.89);
     });
   });
 
@@ -165,7 +193,9 @@ describe('serializeDecimalValue', () => {
         col: { meta: JSON.stringify({ separator: SeparatorType.NoneComma }) },
         clipboardItem: {
           dbCellValue: 1.23,
-          column: { meta: JSON.stringify({ separator: SeparatorType.NonePeriod }) },
+          column: {
+            meta: JSON.stringify({ separator: SeparatorType.NonePeriod }),
+          },
         },
       } as any;
       expect(serializeDecimalValue('1.23', undefined, params)).toBe(1.23);

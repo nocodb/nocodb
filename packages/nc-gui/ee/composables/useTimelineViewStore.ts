@@ -6,7 +6,6 @@ import { storeToRefs } from 'pinia'
 import { useDateAxisState } from './useDateAxisState'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
-import { validateRowFilters } from '~/utils/dataUtils'
 
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (
@@ -21,17 +20,13 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { $api, $ncSocket } = useNuxtApp()
 
-    const { user } = useGlobal()
-
     const baseStore = useBase()
-    const { isMysql, getBaseType } = baseStore
+    const { isMysql } = baseStore
     const { base } = storeToRefs(baseStore)
 
     const { sharedView } = useSharedView()
 
-    const { nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
-
-    const { metas } = useMetas()
+    const { nestedFilters, eventBus, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -385,19 +380,13 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       })
     }
 
-    const passesViewFilters = (rowPayload: Record<string, any>) => {
-      return validateRowFilters(
-        [...allFilters.value, ...validFiltersFromUrlParams.value],
-        rowPayload,
-        meta.value?.columns as ColumnType[],
-        getBaseType(viewMeta.value?.view?.source_id),
-        metas.value,
-        meta.value?.base_id,
-        {
-          currentUser: user.value,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-      )
+    // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
+    // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+    const recordPassesViewFilter = (data: DataPayload) => {
+      if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+        return false
+      }
+      return rowMatchesSearchAndUrl(data.payload)
     }
 
     // True when the row's bar overlaps the current buffer window — used to
@@ -424,9 +413,18 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const handleDataEvent = (data: DataPayload) => {
       const { id, action, payload } = data
 
+      // A bulk op arrives as one event carrying its rows — replay each through the per-row
+      // handler so it applies incrementally (no refetch).
+      if (action === 'bulk') {
+        if (Array.isArray(data.rows)) {
+          for (const row of data.rows) handleDataEvent(row)
+        }
+        return
+      }
+
       if (action === 'add') {
         try {
-          if (!payload || !passesViewFilters(payload) || !passesWindow(payload)) return
+          if (!payload || !recordPassesViewFilter(data) || !passesWindow(payload)) return
 
           const existingIndex = findRowIndexByPk(id)
           if (existingIndex !== -1) return
@@ -450,7 +448,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           if (!payload) return
 
           const existingIndex = findRowIndexByPk(id)
-          const matchesFilters = passesViewFilters(payload)
+          const matchesFilters = recordPassesViewFilter(data)
           const inWindow = passesWindow(payload)
 
           if (!matchesFilters || !inWindow) {

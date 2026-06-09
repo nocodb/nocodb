@@ -123,6 +123,7 @@ export function useInfiniteData(args: {
     isExternalSource,
     isAlreadyShownUpgradeModal,
     validFiltersFromUrlParams,
+    rowMatchesSearchAndUrl,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
@@ -135,6 +136,7 @@ export function useInfiniteData(args: {
         sorts: ref([]),
         isExternalSource: computed(() => false),
         isAlreadyShownUpgradeModal: ref(false),
+        rowMatchesSearchAndUrl: () => true,
         totalRowsWithSearchQuery: ref(0),
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
@@ -1944,8 +1946,24 @@ export function useInfiniteData(args: {
     return null
   }
 
+  // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
+  // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+  const recordPassesViewFilter = (data: DataPayload) => {
+    if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+      return false
+    }
+    return rowMatchesSearchAndUrl(data.payload)
+  }
+
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data
+
+    if (action === 'bulk') {
+      if (Array.isArray(data.rows)) {
+        for (const row of data.rows) handleDataEvent(row)
+      }
+      return
+    }
 
     if (action === 'add') {
       if (isGroupBy.value && groupBy.value.length) {
@@ -1976,18 +1994,7 @@ export function useInfiniteData(args: {
             return
           }
 
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...computedWhereFilter.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           if (isValidationFailed) {
             // Row exists server-side but is filtered out locally — still
@@ -2023,18 +2030,7 @@ export function useInfiniteData(args: {
       try {
         const dataCache = getDataCache()
 
-        const isValidationFailed = !validateRowFilters(
-          [...allFilters.value, ...computedWhereFilter.value],
-          payload,
-          meta.value?.columns as ColumnType[],
-          getBaseType(viewMeta.value?.view?.source_id),
-          metas.value,
-          meta.value?.base_id,
-          {
-            currentUser: user.value,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        )
+        const isValidationFailed = !recordPassesViewFilter(data)
 
         // find index to insert the new row
         if (before) {
@@ -2160,18 +2156,7 @@ export function useInfiniteData(args: {
         Object.assign(cachedRow.row, payload)
         Object.assign(cachedRow.oldRow, payload)
 
-        const isValidationFailed = !validateRowFilters(
-          [...allFilters.value, ...computedWhereFilter.value],
-          payload,
-          meta.value?.columns as ColumnType[],
-          getBaseType(viewMeta.value?.view?.source_id),
-          metas.value,
-          meta.value?.base_id,
-          {
-            currentUser: user.value,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        )
+        const isValidationFailed = !recordPassesViewFilter(data)
 
         cachedRow.rowMeta.isValidationFailed = isValidationFailed
         cachedRow.rowMeta.changed = false

@@ -68,8 +68,7 @@ describe('validateRowFilters', () => {
   });
 
   // Test cases for basic comparisons (eq, neq, like, nlike)
-  // FIXME: not reviewed
-  describe.skip('Basic comparisons', () => {
+  describe('Basic comparisons', () => {
     it('should correctly evaluate "eq" for string', () => {
       const filters: FilterType[] = [
         { fk_column_id: '1', comparison_op: 'eq', value: 'Alice' },
@@ -306,8 +305,7 @@ describe('validateRowFilters', () => {
   });
 
   // Test cases for empty/blank/null checks
-  // FIXME: not reviewed
-  describe.skip('Empty/Blank/Null checks', () => {
+  describe('Empty/Blank/Null checks', () => {
     it('should correctly evaluate "empty" for string', () => {
       const filters: FilterType[] = [
         { fk_column_id: '1', comparison_op: 'empty' },
@@ -726,8 +724,7 @@ describe('validateRowFilters', () => {
   });
 
   // Test cases for User/CreatedBy/LastModifiedBy filters
-  // FIXME: not reviewed
-  describe.skip('User/CreatedBy/LastModifiedBy filters', () => {
+  describe('User/CreatedBy/LastModifiedBy filters', () => {
     const currentUser = { id: 'user1', email: 'user1@example.com' };
 
     it('should correctly evaluate "anyof" for single user', () => {
@@ -889,8 +886,7 @@ describe('validateRowFilters', () => {
   });
 
   // Test cases for LinkToAnotherRecord filters
-  // FIXME: not reviewed
-  describe.skip('LinkToAnotherRecord filters', () => {
+  describe('LinkToAnotherRecord filters', () => {
     it('should correctly evaluate "eq" for linked record primary value', () => {
       const filters: FilterType[] = [
         { fk_column_id: '6', comparison_op: 'eq', value: 'RecordA' },
@@ -1003,8 +999,7 @@ describe('validateRowFilters', () => {
   });
 
   // Edge cases
-  // FIXME: not reviewed
-  describe.skip('Edge cases', () => {
+  describe('Edge cases', () => {
     it('should return null if a date sub-op value is missing', () => {
       const filters: FilterType[] = [
         {
@@ -1107,6 +1102,837 @@ describe('RowFilterValidator', () => {
           throw ex;
         }
       }
+    });
+  });
+});
+
+// Operators that previously fell through to an undefined result.
+describe('validateRowFilters — additional comparison operators', () => {
+  const run = (filters: FilterType[], data: any) =>
+    validateRowFilters({
+      filters,
+      data,
+      columns: mockColumns,
+      client: mockClient,
+      metas: mockMetas,
+      options: { timezone: 'Etc/UTC' },
+    });
+
+  describe('numeric btw / nbtw', () => {
+    const btw: FilterType[] = [
+      { fk_column_id: '2', comparison_op: 'btw', value: '20,40' },
+    ];
+    const nbtw: FilterType[] = [
+      { fk_column_id: '2', comparison_op: 'nbtw', value: '20,40' },
+    ];
+
+    it('btw matches a value inside the inclusive range', () => {
+      expect(run(btw, { Age: 30 })).toBe(true);
+      expect(run(btw, { Age: 20 })).toBe(true);
+      expect(run(btw, { Age: 40 })).toBe(true);
+    });
+
+    it('btw rejects a value outside the range', () => {
+      expect(run(btw, { Age: 41 })).toBe(false);
+      expect(run(btw, { Age: 10 })).toBe(false);
+    });
+
+    it('btw and nbtw both reject a missing value', () => {
+      expect(run(btw, { Age: null })).toBe(false);
+      expect(run(nbtw, { Age: null })).toBe(false);
+    });
+
+    it('nbtw matches a value outside the range', () => {
+      expect(run(nbtw, { Age: 41 })).toBe(true);
+      expect(run(nbtw, { Age: 30 })).toBe(false);
+    });
+  });
+
+  describe('not (alias of neq)', () => {
+    const filters: FilterType[] = [
+      { fk_column_id: '1', comparison_op: 'not', value: 'Alice' },
+    ];
+
+    it('matches a different value and rejects the same value', () => {
+      expect(run(filters, { Name: 'Bob' })).toBe(true);
+      expect(run(filters, { Name: 'Alice' })).toBe(false);
+    });
+  });
+
+  describe('in', () => {
+    const filters: FilterType[] = [
+      { fk_column_id: '1', comparison_op: 'in', value: 'Alice, Bob' },
+    ];
+
+    it('matches membership and rejects non-membership', () => {
+      expect(run(filters, { Name: 'Alice' })).toBe(true);
+      expect(run(filters, { Name: 'Bob' })).toBe(true);
+      expect(run(filters, { Name: 'Carol' })).toBe(false);
+    });
+  });
+
+  describe('is / isnot', () => {
+    it('is null / is notnull', () => {
+      expect(
+        run([{ fk_column_id: '1', comparison_op: 'is', value: 'null' }], {
+          Name: null,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: '1', comparison_op: 'is', value: 'notnull' }], {
+          Name: 'x',
+        })
+      ).toBe(true);
+    });
+
+    it('isnot null inverts is null', () => {
+      expect(
+        run([{ fk_column_id: '1', comparison_op: 'isnot', value: 'null' }], {
+          Name: 'x',
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: '1', comparison_op: 'isnot', value: 'null' }], {
+          Name: null,
+        })
+      ).toBe(false);
+    });
+  });
+
+  describe('date btw / nbtw (exact range)', () => {
+    const btw: FilterType[] = [
+      {
+        fk_column_id: '9',
+        comparison_op: 'btw',
+        value: '2026-03-01,2026-03-31',
+      },
+    ];
+
+    it('btw matches a date inside the range and rejects one outside', () => {
+      expect(run(btw, { DateData: '2026-03-15' })).toBe(true);
+      expect(run(btw, { DateData: '2026-03-01' })).toBe(true);
+      expect(run(btw, { DateData: '2026-04-15' })).toBe(false);
+    });
+
+    it('nbtw matches a date outside the range', () => {
+      const nbtw: FilterType[] = [
+        {
+          fk_column_id: '9',
+          comparison_op: 'nbtw',
+          value: '2026-03-01,2026-03-31',
+        },
+      ];
+      expect(run(nbtw, { DateData: '2026-04-15' })).toBe(true);
+      expect(run(nbtw, { DateData: '2026-03-15' })).toBe(false);
+    });
+  });
+
+  describe('date neq with a missing value', () => {
+    it('treats a cleared date as "not equal" to a concrete date', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '9', comparison_op: 'neq', value: '2026-03-15' },
+      ];
+      expect(run(filters, { DateData: null })).toBe(true);
+      expect(run(filters, { DateData: '2026-03-15' })).toBe(false);
+      expect(run(filters, { DateData: '2026-03-16' })).toBe(true);
+    });
+  });
+});
+
+// Computed / relational column types: Lookup (array), Formula (by dataType),
+// Rollup, Links/Count (numeric), Attachment (array), Time.
+describe('validateRowFilters — column type resolution', () => {
+  const relModelId = 'relModel';
+  const cols: ColumnType[] = [
+    {
+      id: 'rel',
+      title: 'Rel',
+      uidt: UITypes.LinkToAnotherRecord,
+      colOptions: { fk_related_model_id: relModelId } as any,
+    },
+    {
+      id: 'lkText',
+      title: 'LkText',
+      uidt: UITypes.Lookup,
+      colOptions: {
+        fk_relation_column_id: 'rel',
+        fk_lookup_column_id: 'c_text',
+      } as any,
+    },
+    {
+      id: 'lkNum',
+      title: 'LkNum',
+      uidt: UITypes.Lookup,
+      colOptions: {
+        fk_relation_column_id: 'rel',
+        fk_lookup_column_id: 'c_num',
+      } as any,
+    },
+    {
+      id: 'lkDate',
+      title: 'LkDate',
+      uidt: UITypes.Lookup,
+      colOptions: {
+        fk_relation_column_id: 'rel',
+        fk_lookup_column_id: 'c_date',
+      } as any,
+    },
+    {
+      id: 'fNum',
+      title: 'FNum',
+      uidt: UITypes.Formula,
+      colOptions: { parsed_tree: { dataType: 'numeric' } } as any,
+    },
+    {
+      id: 'fDate',
+      title: 'FDate',
+      uidt: UITypes.Formula,
+      colOptions: { parsed_tree: { dataType: 'date' } } as any,
+    },
+    {
+      id: 'fStr',
+      title: 'FStr',
+      uidt: UITypes.Formula,
+      colOptions: { parsed_tree: { dataType: 'string' } } as any,
+    },
+    {
+      id: 'lnk',
+      title: 'LinkCount',
+      uidt: UITypes.Links,
+      colOptions: {} as any,
+    },
+    {
+      id: 'rollSum',
+      title: 'RollSum',
+      uidt: UITypes.Rollup,
+      colOptions: {
+        rollup_function: 'sum',
+        fk_relation_column_id: 'rel',
+        fk_rollup_column_id: 'c_num',
+      } as any,
+    },
+    {
+      id: 'rollMax',
+      title: 'RollMax',
+      uidt: UITypes.Rollup,
+      colOptions: {
+        rollup_function: 'max',
+        fk_relation_column_id: 'rel',
+        fk_rollup_column_id: 'c_date',
+      } as any,
+    },
+    { id: 'att', title: 'Att', uidt: UITypes.Attachment },
+    { id: 'tm', title: 'Tm', uidt: UITypes.Time },
+  ];
+  const metas = {
+    [relModelId]: {
+      columns: [
+        {
+          id: 'c_text',
+          title: 'CText',
+          uidt: UITypes.SingleLineText,
+          pv: true,
+        },
+        { id: 'c_num', title: 'CNum', uidt: UITypes.Number },
+        { id: 'c_date', title: 'CDate', uidt: UITypes.Date },
+      ],
+    },
+  };
+  const run = (filters: FilterType[], data: any) =>
+    validateRowFilters({
+      filters,
+      data,
+      columns: cols,
+      client: mockClient,
+      metas,
+      options: { timezone: 'Etc/UTC' },
+    });
+
+  describe('Lookup (non-user) — array of looked-up values', () => {
+    it('text lookup matches via membership / like / anyof', () => {
+      expect(
+        run([{ fk_column_id: 'lkText', comparison_op: 'eq', value: 'b' }], {
+          LkText: ['a', 'b', 'c'],
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'lkText', comparison_op: 'eq', value: 'z' }], {
+          LkText: ['a', 'b'],
+        })
+      ).toBe(false);
+      expect(
+        run([{ fk_column_id: 'lkText', comparison_op: 'like', value: 'B' }], {
+          LkText: ['abc'],
+        })
+      ).toBe(true);
+      expect(
+        run(
+          [{ fk_column_id: 'lkText', comparison_op: 'anyof', value: 'x,b' }],
+          { LkText: ['a', 'b'] }
+        )
+      ).toBe(true);
+    });
+
+    it('empty / notempty count the resolved values', () => {
+      expect(
+        run([{ fk_column_id: 'lkText', comparison_op: 'empty' }], {
+          LkText: [],
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'lkText', comparison_op: 'empty' }], {
+          LkText: [null],
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'lkText', comparison_op: 'notempty' }], {
+          LkText: ['a'],
+        })
+      ).toBe(true);
+    });
+
+    it('numeric lookup compares element-wise (any value matches)', () => {
+      expect(
+        run([{ fk_column_id: 'lkNum', comparison_op: 'gt', value: 10 }], {
+          LkNum: [5, 20],
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'lkNum', comparison_op: 'gt', value: 100 }], {
+          LkNum: [5, 20],
+        })
+      ).toBe(false);
+      expect(
+        run([{ fk_column_id: 'lkNum', comparison_op: 'btw', value: '10,30' }], {
+          LkNum: [5, 20],
+        })
+      ).toBe(true);
+    });
+
+    it('date lookup compares element-wise', () => {
+      expect(
+        run(
+          [
+            {
+              fk_column_id: 'lkDate',
+              comparison_op: 'btw',
+              value: '2026-03-01,2026-03-31',
+            },
+          ],
+          { LkDate: ['2026-01-01', '2026-03-10'] }
+        )
+      ).toBe(true);
+      expect(
+        run(
+          [
+            {
+              fk_column_id: 'lkDate',
+              comparison_op: 'btw',
+              value: '2026-03-01,2026-03-31',
+            },
+          ],
+          { LkDate: ['2026-01-01'] }
+        )
+      ).toBe(false);
+    });
+  });
+
+  describe('Formula — routed by parsed_tree.dataType', () => {
+    it('numeric formula uses numeric comparison', () => {
+      expect(
+        run([{ fk_column_id: 'fNum', comparison_op: 'gt', value: 10 }], {
+          FNum: 20,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'fNum', comparison_op: 'btw', value: '10,30' }], {
+          FNum: 20,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'fNum', comparison_op: 'gt', value: 10 }], {
+          FNum: 5,
+        })
+      ).toBe(false);
+    });
+
+    it('date formula uses date comparison', () => {
+      expect(
+        run(
+          [
+            {
+              fk_column_id: 'fDate',
+              comparison_op: 'btw',
+              value: '2026-03-01,2026-03-31',
+            },
+          ],
+          { FDate: '2026-03-15' }
+        )
+      ).toBe(true);
+      expect(
+        run(
+          [{ fk_column_id: 'fDate', comparison_op: 'lt', value: '2026-03-10' }],
+          { FDate: '2026-03-05' }
+        )
+      ).toBe(true);
+    });
+
+    it('string formula uses string comparison', () => {
+      expect(
+        run([{ fk_column_id: 'fStr', comparison_op: 'like', value: 'ell' }], {
+          FStr: 'hello',
+        })
+      ).toBe(true);
+    });
+  });
+
+  describe('Links / Rollup — numeric, except min/max(date)', () => {
+    it('links count compares numerically', () => {
+      expect(
+        run([{ fk_column_id: 'lnk', comparison_op: 'gt', value: 0 }], {
+          LinkCount: 3,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'lnk', comparison_op: 'eq', value: 0 }], {
+          LinkCount: 0,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'lnk', comparison_op: 'btw', value: '1,5' }], {
+          LinkCount: 3,
+        })
+      ).toBe(true);
+    });
+
+    it('rollup sum is numeric; rollup max(date) is a date', () => {
+      expect(
+        run([{ fk_column_id: 'rollSum', comparison_op: 'gt', value: 100 }], {
+          RollSum: 150,
+        })
+      ).toBe(true);
+      expect(
+        run(
+          [
+            {
+              fk_column_id: 'rollMax',
+              comparison_op: 'btw',
+              value: '2026-03-01,2026-03-31',
+            },
+          ],
+          { RollMax: '2026-03-15' }
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('Attachment / Time', () => {
+    it('attachment empty / notempty use array length', () => {
+      expect(
+        run([{ fk_column_id: 'att', comparison_op: 'empty' }], { Att: [] })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'att', comparison_op: 'notempty' }], {
+          Att: [{ title: 'f.png' }],
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'att', comparison_op: 'empty' }], {
+          Att: [{ title: 'f.png' }],
+        })
+      ).toBe(false);
+    });
+
+    it('time supports ordered comparisons (not just eq)', () => {
+      expect(
+        run([{ fk_column_id: 'tm', comparison_op: 'gt', value: '09:00:00' }], {
+          Tm: '10:30:00',
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'tm', comparison_op: 'lt', value: '09:00:00' }], {
+          Tm: '10:30:00',
+        })
+      ).toBe(false);
+      expect(
+        run(
+          [
+            {
+              fk_column_id: 'tm',
+              comparison_op: 'btw',
+              value: '09:00:00,12:00:00',
+            },
+          ],
+          { Tm: '10:30:00' }
+        )
+      ).toBe(true);
+    });
+  });
+});
+
+// JSON gets full operator support; Deleted is treated as a boolean (Checkbox).
+describe('validateRowFilters — JSON (full support) & Deleted (boolean)', () => {
+  const cols: ColumnType[] = [
+    { id: 'j', title: 'J', uidt: UITypes.JSON },
+    { id: 'del', title: 'Del', uidt: UITypes.Deleted },
+  ];
+  const run = (filters: FilterType[], data: any) =>
+    validateRowFilters({
+      filters,
+      data,
+      columns: cols,
+      client: mockClient,
+      metas: {},
+    });
+
+  describe('JSON', () => {
+    it('eq / neq deep-compare (object or string cell)', () => {
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'eq', value: '{"a":1}' }], {
+          J: { a: 1 },
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'eq', value: '{"a":1}' }], {
+          J: '{"a":1}',
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'eq', value: '{"a":1}' }], {
+          J: { a: 2 },
+        })
+      ).toBe(false);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'neq', value: '{"a":1}' }], {
+          J: { a: 2 },
+        })
+      ).toBe(true);
+      // a null cell is "not equal" to a concrete value
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'neq', value: '{"a":1}' }], {
+          J: null,
+        })
+      ).toBe(true);
+    });
+
+    it('like / nlike substring-match the serialized JSON', () => {
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'like', value: 'hello' }], {
+          J: { name: 'hello world' },
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'like', value: 'xyz' }], {
+          J: { name: 'hello' },
+        })
+      ).toBe(false);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'nlike', value: 'xyz' }], {
+          J: { name: 'hello' },
+        })
+      ).toBe(true);
+    });
+
+    it('blank/empty treat null and {}/[] as blank', () => {
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'blank' }], { J: null })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'blank' }], { J: {} })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'blank' }], { J: [] })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'blank' }], { J: { a: 1 } })
+      ).toBe(false);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'notempty' }], { J: { a: 1 } })
+      ).toBe(true);
+    });
+
+    it('is / isnot null|notnull', () => {
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'is', value: 'null' }], {
+          J: {},
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'is', value: 'notnull' }], {
+          J: { a: 1 },
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'isnot', value: 'null' }], {
+          J: { a: 1 },
+        })
+      ).toBe(true);
+    });
+
+    it('ordered/membership ops are not meaningful → no match', () => {
+      expect(
+        run([{ fk_column_id: 'j', comparison_op: 'gt', value: 1 }], {
+          J: { a: 5 },
+        })
+      ).toBe(false);
+    });
+  });
+
+  describe('Deleted (boolean)', () => {
+    it('checked / notchecked / eq behave as a checkbox', () => {
+      expect(
+        run([{ fk_column_id: 'del', comparison_op: 'checked' }], { Del: true })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'del', comparison_op: 'checked' }], { Del: false })
+      ).toBe(false);
+      expect(
+        run([{ fk_column_id: 'del', comparison_op: 'notchecked' }], {
+          Del: false,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'del', comparison_op: 'notchecked' }], {
+          Del: null,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'del', comparison_op: 'eq', value: true }], {
+          Del: true,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'del', comparison_op: 'eq', value: true }], {
+          Del: false,
+        })
+      ).toBe(false);
+    });
+  });
+});
+
+// Active coverage for the branches kept through the refactor (previously only
+// exercised by the skipped legacy blocks): User, LTAR, Formula→boolean,
+// lookup→user, and nested-lookup type resolution.
+describe('validateRowFilters — User / LTAR / nested resolution', () => {
+  const currentUser = { id: 'user1', email: 'user1@example.com' };
+  const userRun = (filters: FilterType[], data: any) =>
+    validateRowFilters({
+      filters,
+      data,
+      columns: mockColumns,
+      client: mockClient,
+      metas: mockMetas,
+      options: { currentUser },
+    });
+
+  describe('User / CreatedBy / LastModifiedBy', () => {
+    it('anyof / allof / empty / CURRENT_USER_TOKEN', () => {
+      expect(
+        userRun(
+          [{ fk_column_id: '5', comparison_op: 'anyof', value: 'user1' }],
+          {
+            CreatedBy: { id: 'user1' },
+          }
+        )
+      ).toBe(true);
+      expect(
+        userRun(
+          [{ fk_column_id: '5', comparison_op: 'anyof', value: 'user1' }],
+          {
+            CreatedBy: { id: 'user2' },
+          }
+        )
+      ).toBe(false);
+      expect(
+        userRun(
+          [{ fk_column_id: '5', comparison_op: 'allof', value: 'user1,user2' }],
+          { CreatedBy: [{ id: 'user1' }, { id: 'user2' }, { id: 'user3' }] }
+        )
+      ).toBe(true);
+      expect(
+        userRun([{ fk_column_id: '5', comparison_op: 'empty' }], {
+          CreatedBy: [],
+        })
+      ).toBe(true);
+      expect(
+        userRun([{ fk_column_id: '5', comparison_op: 'notempty' }], {
+          CreatedBy: { id: 'user1' },
+        })
+      ).toBe(true);
+      // CURRENT_USER_TOKEN resolves to options.currentUser.id
+      expect(
+        userRun(
+          [
+            {
+              fk_column_id: '5',
+              comparison_op: 'anyof',
+              value: CURRENT_USER_TOKEN,
+            },
+          ],
+          { CreatedBy: { id: 'user1' } }
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('LinkToAnotherRecord (matches related pv value)', () => {
+    it('eq / like / anyof / empty', () => {
+      expect(
+        userRun(
+          [{ fk_column_id: '6', comparison_op: 'eq', value: 'RecordA' }],
+          { RelatedRecords: [{ Primary: 'RecordA' }] }
+        )
+      ).toBe(true);
+      expect(
+        userRun(
+          [{ fk_column_id: '6', comparison_op: 'eq', value: 'RecordA' }],
+          { RelatedRecords: [{ Primary: 'RecordB' }] }
+        )
+      ).toBe(false);
+      expect(
+        userRun([{ fk_column_id: '6', comparison_op: 'like', value: 'rec' }], {
+          RelatedRecords: [{ Primary: 'RecordA' }],
+        })
+      ).toBe(true);
+      expect(
+        userRun(
+          [
+            {
+              fk_column_id: '6',
+              comparison_op: 'anyof',
+              value: 'RecordA,RecordC',
+            },
+          ],
+          { RelatedRecords: [{ Primary: 'RecordA' }, { Primary: 'RecordB' }] }
+        )
+      ).toBe(true);
+      expect(
+        userRun([{ fk_column_id: '6', comparison_op: 'empty' }], {
+          RelatedRecords: [],
+        })
+      ).toBe(true);
+    });
+  });
+
+  describe('Formula→boolean, lookup→user, nested lookup', () => {
+    const cols: ColumnType[] = [
+      {
+        id: 'rel',
+        title: 'Rel',
+        uidt: UITypes.LinkToAnotherRecord,
+        colOptions: { fk_related_model_id: 'modelB' } as any,
+      },
+      {
+        id: 'fBool',
+        title: 'FBool',
+        uidt: UITypes.Formula,
+        colOptions: { parsed_tree: { dataType: 'boolean' } } as any,
+      },
+      {
+        id: 'lkUser',
+        title: 'LkUser',
+        uidt: UITypes.Lookup,
+        colOptions: {
+          fk_relation_column_id: 'rel',
+          fk_lookup_column_id: 'u1',
+        } as any,
+      },
+      {
+        id: 'lkNested',
+        title: 'LkNested',
+        uidt: UITypes.Lookup,
+        colOptions: {
+          fk_relation_column_id: 'rel',
+          fk_lookup_column_id: 'innerLookup',
+        } as any,
+      },
+    ];
+    const metas = {
+      modelB: {
+        columns: [
+          { id: 'u1', title: 'Owner', uidt: UITypes.User, pv: true },
+          {
+            id: 'innerLookup',
+            title: 'Inner',
+            uidt: UITypes.Lookup,
+            colOptions: {
+              fk_relation_column_id: 'relC',
+              fk_lookup_column_id: 't1',
+            },
+          },
+          {
+            id: 'relC',
+            title: 'RelC',
+            uidt: UITypes.LinkToAnotherRecord,
+            colOptions: { fk_related_model_id: 'modelC' },
+          },
+        ],
+      },
+      modelC: {
+        columns: [
+          { id: 't1', title: 'T', uidt: UITypes.SingleLineText, pv: true },
+        ],
+      },
+    };
+    const run = (filters: FilterType[], data: any) =>
+      validateRowFilters({
+        filters,
+        data,
+        columns: cols,
+        client: mockClient,
+        metas,
+        options: { currentUser },
+      });
+
+    it('boolean formula behaves like a checkbox', () => {
+      expect(
+        run([{ fk_column_id: 'fBool', comparison_op: 'checked' }], {
+          FBool: true,
+        })
+      ).toBe(true);
+      expect(
+        run([{ fk_column_id: 'fBool', comparison_op: 'notchecked' }], {
+          FBool: false,
+        })
+      ).toBe(true);
+    });
+
+    it('lookup→user routes to the user branch (anyof on resolved ids)', () => {
+      expect(
+        run(
+          [{ fk_column_id: 'lkUser', comparison_op: 'anyof', value: 'user1' }],
+          {
+            LkUser: [{ id: 'user1' }],
+          }
+        )
+      ).toBe(true);
+      expect(
+        run(
+          [{ fk_column_id: 'lkUser', comparison_op: 'anyof', value: 'user9' }],
+          {
+            LkUser: [{ id: 'user1' }],
+          }
+        )
+      ).toBe(false);
+    });
+
+    it('nested lookup resolves to the leaf (text) type', () => {
+      expect(
+        run(
+          [{ fk_column_id: 'lkNested', comparison_op: 'eq', value: 'hello' }],
+          {
+            LkNested: ['hello', 'world'],
+          }
+        )
+      ).toBe(true);
+      expect(
+        run(
+          [{ fk_column_id: 'lkNested', comparison_op: 'eq', value: 'nope' }],
+          {
+            LkNested: ['hello'],
+          }
+        )
+      ).toBe(false);
     });
   });
 });

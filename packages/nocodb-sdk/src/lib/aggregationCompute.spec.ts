@@ -268,12 +268,8 @@ describe('aggregationCompute', () => {
           column: numberCol,
         }) as number;
         expect(close(empty + filled, 100)).toBe(true);
-        expect(filled).toBeCloseTo(
-          (4 / 6) * 100
-        ); // 4 non-null out of 6
-        expect(unique).toBeCloseTo(
-          (3 / 6) * 100
-        ); // 1, 2, 3 distinct
+        expect(filled).toBeCloseTo((4 / 6) * 100); // 4 non-null out of 6
+        expect(unique).toBeCloseTo((3 / 6) * 100); // 1, 2, 3 distinct
       });
 
       it('returns 0 for empty selection (matches SQL COALESCE)', () => {
@@ -750,10 +746,7 @@ describe('aggregationCompute', () => {
       expect(
         computeAggregation({
           aggregation: DateAggregations.DateRange,
-          values: [
-            '2026-05-05T12:00:00Z',
-            '2026-05-04T00:00:00Z',
-          ],
+          values: ['2026-05-05T12:00:00Z', '2026-05-04T00:00:00Z'],
           column: dateTimeCol,
         })
       ).toBe(1); // 1.5 days → trunc to 1

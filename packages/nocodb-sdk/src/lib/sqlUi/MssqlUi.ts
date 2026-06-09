@@ -937,7 +937,7 @@ export class MssqlUi implements SqlUi {
   }
   adjustLengthAndScale(
     _newColumn: Partial<ColumnType>,
-    _oldColumn?: ColumnType,
+    _oldColumn?: ColumnType
   ) {}
   isParsedJsonReturnType(col: ColumnType): boolean {
     return ['json'].includes(col.dt?.toLowerCase());

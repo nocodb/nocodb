@@ -2147,25 +2147,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
 
-    for (const d of data) {
-      const id = this.extractPksValues(d);
-      // Strip __nc_rls_hidden from broadcast — other clients have different
-      // RLS policies and the flag would be incorrect for them
-      const { __nc_rls_hidden: _, ...broadcastPayload } = d || {};
-
-      NocoSocket.broadcastDataEvent(
-        this.context,
-        {
-          payload: {
-            id,
-            action: 'add',
-            payload: broadcastPayload,
-          },
-          tableId: this.model.id,
-        },
-        this.context.socket_id,
-      );
-    }
+    NocoSocket.broadcastBulkDataEvent(
+      this.context,
+      {
+        tableId: this.model.id,
+        rows: data.map((d) => {
+          const { __nc_rls_hidden: _, ...payload } = d || {};
+          return {
+            id: this.extractPksValues(d, true),
+            action: 'add' as const,
+            payload,
+          };
+        }),
+      },
+      this.context.socket_id,
+    );
 
     if (await this.isDataAuditEnabled()) {
       let parentAuditId;
@@ -2291,17 +2287,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<void> {
     await this.handleHooks('after.bulkDelete', null, data, req);
 
-    for (const d of data) {
-      const id = this.extractPksValues(d);
-      NocoSocket.broadcastDataEvent(
+    if (data?.length > 0) {
+      NocoSocket.broadcastBulkDataEvent(
         this.context,
         {
-          payload: {
-            id,
-            action: 'delete',
-            payload: null,
-          },
           tableId: this.model.id,
+          rows: data.map((d) => ({
+            id: this.extractPksValues(d, true),
+            action: 'delete' as const,
+            payload: null,
+          })),
         },
         this.context.socket_id,
       );
@@ -2366,19 +2361,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    const pks = data.map((d) => this.extractPksValues(d, true));
-    const rows = await this.chunkList({ pks, extractOrderColumn: true });
-
-    for (const row of rows) {
-      const id = this.extractPksValues(row, true);
-      NocoSocket.broadcastDataEvent(this.context, {
-        payload: {
-          id,
-          action: 'add',
-          payload: row,
-        },
-        tableId: this.model.id,
-      });
+    if (data?.length > 0) {
+      const pks = data.map((d) => this.extractPksValues(d, true));
+      const rows = await this.chunkList({ pks, extractOrderColumn: true });
+      if (rows?.length) {
+        NocoSocket.broadcastBulkDataEvent(
+          this.context,
+          {
+            tableId: this.model.id,
+            rows: rows.map((row) => ({
+              id: this.extractPksValues(row, true),
+              action: 'add' as const,
+              payload: row,
+            })),
+          },
+          this.context.socket_id,
+        );
+      }
     }
 
     await super.afterBulkRestore(data, req, isBulkAllOperation);
@@ -5380,24 +5379,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (!Array.isArray(newData)) return;
 
     if (newData.length > 0) {
-      for (const data of newData) {
-        // Strip __nc_rls_hidden from broadcast — other clients have different
-        // RLS policies and the flag would be incorrect for them
-        const { __nc_rls_hidden: _, ...broadcastPayload } = data || {};
-
-        NocoSocket.broadcastDataEvent(
-          this.context,
-          {
-            payload: {
-              id: this.extractPksValues(data),
-              action: 'update',
-              payload: broadcastPayload,
-            },
-            tableId: this.model.id,
-          },
-          this.context.socket_id,
-        );
-      }
+      // One batched `bulk` event carrying the updated rows so clients apply them incrementally.
+      // Strip __nc_rls_hidden — other clients have different RLS policies.
+      NocoSocket.broadcastBulkDataEvent(
+        this.context,
+        {
+          tableId: this.model.id,
+          rows: newData.map((d) => {
+            const { __nc_rls_hidden: _, ...payload } = d || {};
+            return {
+              id: this.extractPksValues(d, true),
+              action: 'update' as const,
+              payload,
+            };
+          }),
+        },
+        this.context.socket_id,
+      );
     }
 
     // disable external source audit in cloud

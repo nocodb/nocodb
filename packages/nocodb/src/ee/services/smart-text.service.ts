@@ -376,13 +376,23 @@ export class SmartTextService extends SmartTextServiceCE {
       mdHash,
     );
 
+    const fullRow = await baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    const { __nc_rls_hidden: _, ...broadcastPayload } = fullRow ?? {
+      [column.title]: markdown,
+    };
+
     NocoSocket.broadcastDataEvent(
       context,
       {
         payload: {
           id: param.rowId,
           action: 'update',
-          payload: { [column.title]: markdown },
+          payload: broadcastPayload,
         },
         tableId: param.tableId,
       },

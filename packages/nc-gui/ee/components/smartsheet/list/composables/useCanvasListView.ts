@@ -1535,6 +1535,47 @@ export function useCanvasListView({
     return doesUpdateAffectSort(payload, levelSorts as any, getColumnsByIdForDepth(depth))
   }
 
+  // Toolbar search (scoped to the level the user is searching in) — the server can't know it,
+  // so evaluate it client-side against that level's table meta.
+  const rowMatchesLevelSearch = (payload: Record<string, any>, depth: number): boolean => {
+    const searchQuery = search.value.query?.trim()
+    if (!searchQuery || !search.value.field) return true
+
+    const levelId = depthToLevelId.value[depth]
+    if (!levelId || levelId !== selectedLevelId.value) return true
+
+    const level = levels.value.find((l) => l.id === levelId)
+    const baseId = (meta.value as any)?.base_id
+    const levelMeta = level?.fk_model_id ? (metas.value?.[`${baseId}:${level.fk_model_id}`] as any) : null
+    const col = levelMeta?.columns?.find((c: ColumnType) => c.id === search.value.field)
+    if (!col) return true
+
+    const result = getValidSearchQueryForColumn(col, searchQuery, levelMeta, { getWhereQueryAs: 'object' })
+    if (!result || typeof result !== 'object' || !('fk_column_id' in result)) return true
+
+    return validateRowFilters(
+      [result as FilterType],
+      payload,
+      levelMeta.columns as ColumnType[],
+      getBaseType(view.value?.source_id),
+      metas.value,
+      baseId,
+      {
+        currentUser: user.value,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    )
+  }
+
+  // Saved level filters → trust the server's matchedViewIds (the list view is tagged when the row
+  // passes that level's filters). Toolbar search → AND in client-side.
+  const recordPassesLevel = (data: DataPayload, depth: number) => {
+    if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewId.value as string)) {
+      return false
+    }
+    return rowMatchesLevelSearch(data.payload, depth)
+  }
+
   /**
    * Handle incoming data events from any table in the list view hierarchy.
    */
@@ -1545,11 +1586,19 @@ export function useCanvasListView({
     if (depth === undefined) return
 
     const { id, action, payload } = data
+
+    if (action === 'bulk') {
+      if (Array.isArray(data.rows)) {
+        for (const row of data.rows) handleDataEvent(tableId, row)
+      }
+      return
+    }
+
     const levelId = depthToLevelId.value[depth]
 
     if (action === 'add') {
       try {
-        if (!validateRowForLevel(payload, depth)) return
+        if (!recordPassesLevel(data, depth)) return
 
         const leafDepth = displayLevels.value.length - 1
 
@@ -1692,7 +1741,7 @@ export function useCanvasListView({
             }
 
             // Re-validate against filters — remove if row no longer passes
-            if (!validateRowForLevel(cachedRow, depth)) {
+            if (!recordPassesLevel(data, depth)) {
               // If this is a parent, remove it and all its descendants
               const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
               removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
@@ -1748,7 +1797,7 @@ export function useCanvasListView({
         }
 
         if (!found && payload) {
-          if (!validateRowForLevel(payload, depth)) {
+          if (!recordPassesLevel(data, depth)) {
             triggerRefreshCanvas()
             return
           }

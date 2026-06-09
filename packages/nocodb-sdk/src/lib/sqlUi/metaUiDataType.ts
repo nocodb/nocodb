@@ -17,7 +17,7 @@ import UITypes from '../UITypes';
  */
 export function abstractTypeToMetaUIType(
   abstractType: string,
-  opts?: { jsonAsLongText?: boolean },
+  opts?: { jsonAsLongText?: boolean }
 ): UITypes {
   switch (abstractType) {
     case 'integer':

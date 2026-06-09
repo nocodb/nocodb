@@ -7,7 +7,6 @@ import type { TimelineZoomLevel } from '../utils/timelineUtils'
 import { useDateAxisState } from './useDateAxisState'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
-import { validateRowFilters } from '~/utils/dataUtils'
 
 // Gantt uses Timeline's scale model minus the day-level zoom. A single-day
 // viewport is too narrow once dependency arrows + milestones are rendered —
@@ -28,17 +27,13 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     const { $api, $ncSocket } = useNuxtApp()
 
-    const { user } = useGlobal()
-
     const baseStore = useBase()
-    const { isMysql, getBaseType } = baseStore
+    const { isMysql } = baseStore
     const { base } = storeToRefs(baseStore)
 
     const { sharedView } = useSharedView()
 
-    const { nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
-
-    const { metas } = useMetas()
+    const { nestedFilters, eventBus, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -704,19 +699,13 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       )
     }
 
-    const passesViewFilters = (rowPayload: Record<string, any>) => {
-      return validateRowFilters(
-        [...allFilters.value, ...validFiltersFromUrlParams.value],
-        rowPayload,
-        meta.value?.columns as ColumnType[],
-        getBaseType(viewMeta.value?.view?.source_id),
-        metas.value,
-        meta.value?.base_id,
-        {
-          currentUser: user.value,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-      )
+    // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
+    // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+    const recordPassesViewFilter = (data: DataPayload) => {
+      if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+        return false
+      }
+      return rowMatchesSearchAndUrl(data.payload)
     }
 
     // Row-index pagination semantic: _offset is "next index to request from
@@ -726,6 +715,15 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     // a row (offset too high) or returns a duplicate (offset too low).
     const handleDataEvent = (data: DataPayload) => {
       const { action, payload } = data as { action?: string; payload?: Record<string, any> }
+      // A bulk op arrives as one event carrying its rows — replay each through the per-row
+      // handler so it applies incrementally (no reload). Runs before the `!payload` guard.
+      if (action === 'bulk') {
+        if (Array.isArray(data.rows)) {
+          for (const row of data.rows) handleDataEvent(row)
+        }
+        return
+      }
+
       if (!payload) return
       const idx = findRowIndex(payload)
 
@@ -744,7 +742,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       }
 
       if (action === 'update') {
-        const matchesFilters = passesViewFilters(payload)
+        const matchesFilters = recordPassesViewFilter(data)
 
         if (!matchesFilters) {
           if (idx >= 0) {
@@ -784,7 +782,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       }
 
       if (action === 'add') {
-        if (!passesViewFilters(payload)) return
+        if (!recordPassesViewFilter(data)) return
         if (idx >= 0) return
 
         formattedData.value.push({

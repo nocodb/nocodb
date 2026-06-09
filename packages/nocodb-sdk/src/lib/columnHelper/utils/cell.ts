@@ -25,7 +25,6 @@ export const isSmartText = (column: ColumnType) =>
 export const isInt = (_column: ColumnType, abstractType: any) =>
   abstractType === 'integer';
 
-
 export const isFloat = (column: ColumnType, abstractType: any) =>
   abstractType === 'float' || column.uidt === UITypes.Number;
 

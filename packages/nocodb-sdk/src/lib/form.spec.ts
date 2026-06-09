@@ -19,7 +19,11 @@ describe('form helpers', () => {
       ];
       const rows = groupFormColumnsByRow(cols);
       expect(rows).toHaveLength(3);
-      expect(rows.map((r) => r.map((c) => c.id))).toEqual([['a'], ['b'], ['c']]);
+      expect(rows.map((r) => r.map((c) => c.id))).toEqual([
+        ['a'],
+        ['b'],
+        ['c'],
+      ]);
     });
 
     it('groups columns sharing a row_id into one row in input order', () => {
@@ -56,7 +60,11 @@ describe('form helpers', () => {
       ];
       const rows = groupFormColumnsByRow(cols);
       // LongText is always full-width, so it breaks the fr_x row into three.
-      expect(rows.map((r) => r.map((c) => c.id))).toEqual([['a'], ['b'], ['c']]);
+      expect(rows.map((r) => r.map((c) => c.id))).toEqual([
+        ['a'],
+        ['b'],
+        ['c'],
+      ]);
     });
 
     it('splits non-contiguous same-row_id chunks into separate rows (visual order wins)', () => {

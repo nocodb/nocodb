@@ -1,5 +1,5 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseIntValue, serializeIntValue, SeparatorType } from '..';
+import { parseIntValue, SeparatorType, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';

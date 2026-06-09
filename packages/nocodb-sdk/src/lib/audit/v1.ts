@@ -1586,7 +1586,10 @@ const descriptionTemplates = {
   ) => `User '${audit.user}' disabled two-factor authentication`,
   [AuditV1OperationTypes.USER_MFA_VERIFY]: (
     audit: AuditV1<UserMfaVerifyPayload>
-  ) => `User '${audit.user}' verified 2FA${audit.details?.method === 'backup_code' ? ' using backup code' : ''}`,
+  ) =>
+    `User '${audit.user}' verified 2FA${
+      audit.details?.method === 'backup_code' ? ' using backup code' : ''
+    }`,
   [AuditV1OperationTypes.USER_MFA_BACKUP_CODE_USED]: (
     audit: AuditV1<UserMfaBackupCodeUsedPayload>
   ) => `User '${audit.user}' used a backup code to sign in`,
@@ -1894,16 +1897,13 @@ const descriptionTemplates = {
     `Document '${audit.details.document_title}' restored to the version from ${audit.details.revision_created_at}`,
   [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_CREATE]: (
     audit: AuditV1<DocumentPublicShareCreatePayload>
-  ) =>
-    `Public share enabled for document '${audit.details.document_title}'`,
+  ) => `Public share enabled for document '${audit.details.document_title}'`,
   [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_UPDATE]: (
     audit: AuditV1<DocumentPublicShareUpdatePayload>
-  ) =>
-    `Public share updated for document '${audit.details.document_title}'`,
+  ) => `Public share updated for document '${audit.details.document_title}'`,
   [AuditV1OperationTypes.DOCUMENT_PUBLIC_SHARE_DELETE]: (
     audit: AuditV1<DocumentPublicShareDeletePayload>
-  ) =>
-    `Public share disabled for document '${audit.details.document_title}'`,
+  ) => `Public share disabled for document '${audit.details.document_title}'`,
   [AuditV1OperationTypes.DOCUMENT_COMMENT_CREATE]: (
     audit: AuditV1<DocumentCommentCreatePayload>
   ) => `Comment added to document '${audit.details.document_id}'`,

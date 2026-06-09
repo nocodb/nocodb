@@ -13,7 +13,15 @@ export interface BookmarkType {
   fk_user_id?: string;
   fk_group_id?: string;
   title?: string | null;
-  target_type: 'workspace' | 'base' | 'table' | 'view' | 'document' | 'workflow' | 'script' | 'dashboard';
+  target_type:
+    | 'workspace'
+    | 'base'
+    | 'table'
+    | 'view'
+    | 'document'
+    | 'workflow'
+    | 'script'
+    | 'dashboard';
   target_id: string;
   icon?: string | null;
   icon_color?: string | null;
@@ -33,7 +41,15 @@ export interface BookmarkGroupReqType {
 export interface BookmarkReqType {
   fk_group_id?: string;
   title?: string | null;
-  target_type: 'workspace' | 'base' | 'table' | 'view' | 'document' | 'workflow' | 'script' | 'dashboard';
+  target_type:
+    | 'workspace'
+    | 'base'
+    | 'table'
+    | 'view'
+    | 'document'
+    | 'workflow'
+    | 'script'
+    | 'dashboard';
   target_id: string;
   icon?: string | null;
   icon_color?: string | null;

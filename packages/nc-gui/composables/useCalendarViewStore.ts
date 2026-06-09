@@ -12,7 +12,6 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import type dayjs from 'dayjs'
-import { validateRowFilters } from '~/utils/dataUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -49,7 +48,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const { isMobileMode, user } = useGlobal()
+    const { isMobileMode } = useGlobal()
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
@@ -329,13 +328,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(baseStore)
 
-    const { getBaseType } = baseStore
-
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, isSyncedTable, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
-
-    const { metas } = useMetas()
+    const { sorts, nestedFilters, eventBus, isSyncedTable, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -1295,23 +1290,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDataListener = ref<string | null>(null)
 
+    // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar
+    // search → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+    const recordPassesViewFilter = (data: DataPayload) => {
+      if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+        return false
+      }
+      return rowMatchesSearchAndUrl(data.payload)
+    }
+
     const handleDataEvent = (data: DataPayload) => {
       const { id, action, payload } = data
 
+      if (action === 'bulk') {
+        if (Array.isArray(data.rows)) {
+          for (const row of data.rows) handleDataEvent(row)
+        }
+        return
+      }
+
       if (action === 'add') {
         try {
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...validFiltersFromUrlParams.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           if (isValidationFailed) {
             return
@@ -1381,18 +1381,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             return pk && `${pk}` === `${id}`
           })
 
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...validFiltersFromUrlParams.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           // If validation fails and row exists in either view, delete it
           if (isValidationFailed && (calendarRowIndex !== -1 || sidebarRowIndex !== -1)) {

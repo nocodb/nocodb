@@ -531,6 +531,24 @@ describe('extractDataTypeFromWorkflowNodeExpression', () => {
       expect(result).toBeUndefined();
     });
 
+    it('should return BOOLEAN for a bare boolean literal (no expression)', () => {
+      expect(
+        extractDataTypeFromWorkflowNodeExpression('true', flatVariables)
+      ).toBe(WorkflowNodeFilterDataType.BOOLEAN);
+      expect(
+        extractDataTypeFromWorkflowNodeExpression('false', flatVariables)
+      ).toBe(WorkflowNodeFilterDataType.BOOLEAN);
+    });
+
+    it('should return NUMBER for a bare numeric literal (no expression)', () => {
+      expect(
+        extractDataTypeFromWorkflowNodeExpression('42', flatVariables)
+      ).toBe(WorkflowNodeFilterDataType.NUMBER);
+      expect(
+        extractDataTypeFromWorkflowNodeExpression('3.14', flatVariables)
+      ).toBe(WorkflowNodeFilterDataType.NUMBER);
+    });
+
     it('should return TEXT for empty expression', () => {
       const result = extractDataTypeFromWorkflowNodeExpression(
         '{{  }}',

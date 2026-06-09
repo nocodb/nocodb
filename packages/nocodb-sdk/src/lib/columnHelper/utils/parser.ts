@@ -14,11 +14,14 @@ import {
 } from '~/lib/is';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { constructTimeFormat } from '~/lib/dateTimeHelper';
-import { checkboxTypeMap, SeparatorType } from '~/lib/columnHelper/utils/common';
 import {
-  resolveColumnSeparator,
-  getSeparatorChars,
+  checkboxTypeMap,
+  SeparatorType,
+} from '~/lib/columnHelper/utils/common';
+import {
   formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
 } from './separator';
 
 export const parseDefault = (value: any) => {
@@ -78,24 +81,23 @@ export const parseDecimalValue = (
   const precision = columnMeta.precision ?? 1;
 
   if (options?.skipThousandSeparator) {
-    const { decimalSeparator } = getSeparatorChars(separator, options?.locale || undefined);
+    const { decimalSeparator } = getSeparatorChars(
+      separator,
+      options?.locale || undefined
+    );
     const rounded = Number(roundUpToPrecision(Number(value), precision));
 
-    return formatNumberWithSeparator(
-      rounded,
-      '',
-      decimalSeparator,
-      precision
-    );
+    return formatNumberWithSeparator(rounded, '', decimalSeparator, precision);
   }
 
   if (separator === SeparatorType.Locale) {
-    return Number(
-      roundUpToPrecision(Number(value), precision)
-    ).toLocaleString(options?.locale || undefined, {
-      minimumFractionDigits: precision,
-      maximumFractionDigits: precision,
-    });
+    return Number(roundUpToPrecision(Number(value), precision)).toLocaleString(
+      options?.locale || undefined,
+      {
+        minimumFractionDigits: precision,
+        maximumFractionDigits: precision,
+      }
+    );
   }
 
   const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator);

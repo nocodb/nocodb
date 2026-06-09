@@ -113,7 +113,9 @@ describe('DecimalHelper', () => {
       const params = makeParams({
         clipboardItem: {
           dbCellValue: 99.99,
-          column: { meta: JSON.stringify({ separator: SeparatorType.NonePeriod }) },
+          column: {
+            meta: JSON.stringify({ separator: SeparatorType.NonePeriod }),
+          },
         },
       });
       expect(helper.serializeValue('ignored', params)).toBe(99.99);
@@ -126,10 +128,12 @@ describe('DecimalHelper', () => {
         {
           clipboardItem: {
             dbCellValue: 1.23,
-            column: { meta: JSON.stringify({ separator: SeparatorType.NonePeriod }) },
+            column: {
+              meta: JSON.stringify({ separator: SeparatorType.NonePeriod }),
+            },
           },
         },
-        { separator: SeparatorType.NoneComma },
+        { separator: SeparatorType.NoneComma }
       );
       expect(helper.serializeValue('1.23', params)).toBe(1.23);
     });
@@ -163,13 +167,19 @@ describe('DecimalHelper', () => {
     });
 
     it('formats with comma decimal separator', () => {
-      const params = makeParams({}, { separator: SeparatorType.NoneComma, precision: 2 });
+      const params = makeParams(
+        {},
+        { separator: SeparatorType.NoneComma, precision: 2 }
+      );
       const result = helper.parseValue(42.12, params);
       expect(result).toContain('42,12');
     });
 
     it('formats with thousand separator', () => {
-      const params = makeParams({}, { separator: SeparatorType.CommaPeriod, precision: 2 });
+      const params = makeParams(
+        {},
+        { separator: SeparatorType.CommaPeriod, precision: 2 }
+      );
       const result = helper.parseValue(1234567.89, params);
       expect(result).toBe('1,234,567.89');
     });
@@ -202,7 +212,10 @@ describe('DecimalHelper', () => {
     });
 
     it('formats with precision and separator', () => {
-      const params = makeParams({}, { separator: SeparatorType.CommaPeriod, precision: 2 });
+      const params = makeParams(
+        {},
+        { separator: SeparatorType.CommaPeriod, precision: 2 }
+      );
       const result = helper.parsePlainCellValue(1234567.89, params);
       expect(result).toBe('1,234,567.89');
     });

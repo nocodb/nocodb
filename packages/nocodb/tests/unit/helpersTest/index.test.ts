@@ -31,6 +31,7 @@ let tableSyncHelpersTests = () => {};
 let mssqlLookupFlattenTest = () => {};
 let dateTimeMssqlHandlerTest = () => {};
 let jsonMssqlHandlerTest = () => {};
+let addonTests = () => {};
 if (process.env.EE === 'true') {
   mssqlLookupFlattenTest =
     require('./mssqlLookupFlatten.test').mssqlLookupFlattenTest;
@@ -45,8 +46,7 @@ if (process.env.EE === 'true') {
   verifyDefaultOrgTests =
     require('./ee/verifyDefaultOrg.test').verifyDefaultOrgTests;
   mfaHelperTests = require('./mfa.test').mfaHelperTests;
-  cognitoTestShimTests =
-    require('./cognitoTestShim.test').cognitoTestShimTests;
+  cognitoTestShimTests = require('./cognitoTestShim.test').cognitoTestShimTests;
   patResourceFilterTest =
     require('./patResourceFilter.test').patResourceFilterTest;
   dynamicFieldFilterTests =
@@ -58,6 +58,7 @@ if (process.env.EE === 'true') {
     require('./ee/singleQueryCacheLinkage.test').singleQueryCacheLinkageTests;
   tableSyncHelpersTests =
     require('./ee/tableSyncHelpers.test').tableSyncHelpersTests;
+  addonTests = require('./ee/addons.test').addonTests;
 }
 
 function _helperTests() {
@@ -96,6 +97,7 @@ function _helperTests() {
   mailAuditTests();
   modelStatTests();
   singleQueryCacheLinkageTests();
+  addonTests();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

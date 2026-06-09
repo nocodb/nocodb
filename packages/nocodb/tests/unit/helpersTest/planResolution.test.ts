@@ -35,7 +35,17 @@ const onPremOnlyFeatures = new Set<PlanFeatureTypes>([
   PlanFeatureTypes.FEATURE_WHITE_LABEL,
 ]);
 
-const cloudFeatures = allFeatures.filter((f) => !onPremOnlyFeatures.has(f));
+// Features sold as add-ons (nc_addons) rather than bundled into a plan tier.
+// Entitlement comes from an active SubscriptionAddon merged into plan.meta at
+// runtime (see AddonDefinitions / applyAddons), so no cloud tier grants them —
+// they are likewise exempt from the cloud plan-tier invariants below.
+const addonOnlyFeatures = new Set<PlanFeatureTypes>([
+  PlanFeatureTypes.FEATURE_SCIM,
+]);
+
+const cloudFeatures = allFeatures.filter(
+  (f) => !onPremOnlyFeatures.has(f) && !addonOnlyFeatures.has(f),
+);
 
 function planResolutionTests() {
   describe('resolvePlanMeta', () => {
@@ -85,6 +95,21 @@ function planResolutionTests() {
       for (const feature of cloudFeatures) {
         expect(PlanFeatureTypesToPlanTitles).to.have.property(feature);
         expect(allPlans).to.include(PlanFeatureTypesToPlanTitles[feature]);
+      }
+    });
+
+    it('add-on-only features are granted by no cloud plan tier', () => {
+      // Unbundled from plan tiers (e.g. SCIM): absent from the tier→feature map
+      // and disabled on every cloud plan including Enterprise. Entitlement comes
+      // only from an active SubscriptionAddon merged into plan.meta (applyAddons).
+      for (const feature of addonOnlyFeatures) {
+        expect(PlanFeatureTypesToPlanTitles).to.not.have.property(feature);
+        for (const plan of allPlans) {
+          expect(resolvePlanMeta(plan)[feature]).to.eq(
+            false,
+            `${feature} must be add-on-only (disabled on ${plan})`,
+          );
+        }
       }
     });
 
@@ -356,8 +381,8 @@ function planResolutionTests() {
     ];
 
     // Per the pricing matrix these stay Enterprise-only — NOT on Scale.
+    // (FEATURE_SCIM was unbundled to an add-on — see addonOnlyFeatures above.)
     const enterpriseOnlyFeatures = [
-      PlanFeatureTypes.FEATURE_SCIM,
       PlanFeatureTypes.FEATURE_FORCE_2FA,
       PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
       PlanFeatureTypes.FEATURE_API_VIEW_V3,

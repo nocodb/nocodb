@@ -89,7 +89,7 @@ export class ToolbarFilterPage extends BasePage {
     await selectOperation.waitFor({ state: 'visible' });
     await selectOperation.click();
     const operationDropdown = this.rootPage
-      .locator('div.ant-select-dropdown.nc-dropdown-filter-comp-op')
+      .locator('div.ant-select-dropdown.nc-dropdown-filter-comp-op:not(.ant-select-dropdown-hidden)')
       .last()
       .locator(`.ant-select-item:has-text("${operation}")`);
     await operationDropdown.waitFor({ state: 'visible' });
@@ -172,7 +172,7 @@ export class ToolbarFilterPage extends BasePage {
       if (skipWaitingResponse || filterCount === 1) {
         await this.rootPage
           .locator('.nc-dropdown-filter-comp-op')
-          .locator(`.ant-select-item:has-text("${operation}")`)
+          .locator(`.ant-select-item:visible:has-text("${operation}")`)
           .first()
           .click()
           .then(() => {});
@@ -182,7 +182,7 @@ export class ToolbarFilterPage extends BasePage {
           uiAction: async () =>
             await this.rootPage
               .locator('.nc-dropdown-filter-comp-op')
-              .locator(`.ant-select-item:has-text("${operation}")`)
+              .locator(`.ant-select-item:visible:has-text("${operation}")`)
               .first()
               .click(),
           httpMethodsToMatch: ['GET'],
@@ -201,7 +201,7 @@ export class ToolbarFilterPage extends BasePage {
         if (skipWaitingResponse || filterCount === 1) {
           await this.rootPage
             .locator('.nc-dropdown-filter-comp-sub-op')
-            .locator(`.ant-select-item:has-text("${subOperation}")`)
+            .locator(`.ant-select-item:visible:has-text("${subOperation}")`)
             .first()
             .click();
           await this.rootPage.waitForTimeout(350);
@@ -210,7 +210,7 @@ export class ToolbarFilterPage extends BasePage {
             uiAction: async () =>
               await this.rootPage
                 .locator('.nc-dropdown-filter-comp-sub-op')
-                .locator(`.ant-select-item:has-text("${subOperation}")`)
+                .locator(`.ant-select-item:visible:has-text("${subOperation}")`)
                 .first()
                 .click(),
             httpMethodsToMatch: ['GET'],

@@ -397,7 +397,7 @@ export class PaymentService {
   async grantAddon(
     workspaceOrOrgId: string,
     payload: { addon_key: PlanAddonTypes; comped?: boolean },
-    req?: NcRequest,
+    req: NcRequest,
   ) {
     const subscription = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
@@ -434,12 +434,10 @@ export class PaymentService {
     const seats = this.billableSeatCount(plan.title, subscription.seat_count);
     const quantity = def.quantityBasis === 'per_seat' ? seats : 1;
 
+    const period = subscription.period === 'year' ? 'year' : 'month';
     let stripeItemId: string | null = null;
     if (!isInternal && !payload.comped) {
-      const priceId = this.resolveAddonPriceId(
-        addon,
-        (subscription.period as 'month' | 'year') ?? 'month',
-      );
+      const priceId = this.resolveAddonPriceId(addon, period);
       const updated = await stripe.subscriptions.update(
         subscription.stripe_subscription_id,
         {
@@ -449,6 +447,11 @@ export class PaymentService {
       );
       const item = updated.items.data.find((i) => i.price.id === priceId);
       stripeItemId = item?.id ?? null;
+      if (!stripeItemId) {
+        NcError.internalServerError(
+          `Stripe subscription item not found after adding addon ${payload.addon_key}`,
+        );
+      }
     }
 
     const sa = await SubscriptionAddon.insert({
@@ -470,10 +473,10 @@ export class PaymentService {
         workspace_id: workspaceOrOrgId,
         base_id: undefined,
       },
-      req: req as NcRequest,
+      req,
       workspaceOrOrgId,
       addonKey: payload.addon_key,
-      comped: !stripeItemId,
+      comped: !!payload.comped,
     });
 
     return sa;
@@ -482,7 +485,7 @@ export class PaymentService {
   async revokeAddon(
     workspaceOrOrgId: string,
     addonKey: PlanAddonTypes,
-    req?: NcRequest,
+    req: NcRequest,
   ) {
     const subscription = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
@@ -514,7 +517,7 @@ export class PaymentService {
         workspace_id: workspaceOrOrgId,
         base_id: undefined,
       },
-      req: req as NcRequest,
+      req,
       workspaceOrOrgId,
       addonKey,
     });

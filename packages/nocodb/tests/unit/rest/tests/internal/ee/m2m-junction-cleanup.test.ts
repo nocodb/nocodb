@@ -1,11 +1,15 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import init from '../../../../init';
 import { createProject } from '../../../../factory/base';
 import { createTable } from '../../../../factory/table';
-import { createLtarColumn2, customColumns } from '../../../../factory/column';
+import {
+  createColumn,
+  createLtarColumn2,
+  customColumns,
+} from '../../../../factory/column';
 import { Column, Model } from '~/models';
 import BaseTrash from '~/models/BaseTrash';
 
@@ -149,6 +153,81 @@ export function m2mJunctionCleanupTests() {
           true,
         );
       }
+    });
+
+    // #2 cross-base: the far-side system hm-link lives in another base. Trashing
+    // the link must soft-delete it there (was deterministically skipped), and
+    // restore must reactivate it.
+    // active SYSTEM hm-links to the junction (fk_related_model_id === junction) —
+    // the columns this fix is responsible for (the inverse *user* mm link, which
+    // has fk_mm_model_id === junction, is the reverseCol's domain, not this fix's).
+    const activeSystemLinksTo = async (
+      sideCtx: { workspace_id: string; base_id: string },
+      tableId: string,
+      junctionId: string,
+    ) => {
+      const m = await Model.get(sideCtx, tableId);
+      const refs: string[] = [];
+      for (const c of await m.getColumns(sideCtx)) {
+        if (!isLinksOrLTAR(c)) continue;
+        const co: any = await c.getColOptions(sideCtx).catch(() => null);
+        if (co?.fk_related_model_id === junctionId) {
+          refs.push(c.title as string);
+        }
+      }
+      return refs;
+    };
+
+    it('trashing a cross-base link soft-deletes the far-side junction system-link in its own base', async () => {
+      const base2 = await createProject(context);
+      const ctx2 = { workspace_id: base2.fk_workspace_id, base_id: base2.id };
+
+      const websites = await mkTable('Websites'); // base (base1)
+      const backlinks = await createTable(context, base2, {
+        title: 'Backlinks',
+        table_name: 'Backlinks',
+        columns: customColumns('custom', [
+          { title: 'pk', column_name: 'pk', uidt: UITypes.SingleLineText, pv: true },
+        ]),
+      });
+
+      // cross-base mm link Websites(base1) -> Backlinks(base2)
+      const link = await createColumn(context, websites, {
+        title: 'CrossLink',
+        column_name: 'CrossLink',
+        uidt: UITypes.LinkToAnotherRecord,
+        parentId: websites.id,
+        childId: backlinks.id,
+        ref_base_id: base2.id,
+        type: 'mm',
+      });
+
+      const linkCo: any = await (
+        await Column.get(ctx, { colId: link.id })
+      ).getColOptions(ctx);
+      const junctionId = linkCo.fk_mm_model_id;
+      expect(junctionId, 'cross-base mm link is junction-backed').to.exist;
+
+      await trashColumn(link.id).expect(200);
+
+      // far side (base2) must have no active reference to the junction
+      const sysLinks = await activeSystemLinksTo(ctx2, backlinks.id, junctionId);
+      expect(sysLinks).to.deep.equal([]);
+
+      // it was recorded under base2 so restore/purge can reach it
+      const entry = await BaseTrash.getByResourceId(ctx, 'field', link.id);
+      const links = entry!.getRelatedItems().junctionSystemLinks ?? [];
+      expect(
+        links.some((l) => l.base_id === base2.id),
+        'records a far-side (base2) system-link',
+      ).to.eq(true);
+
+      // restore reactivates it in base2
+      await internalPost('baseTrashRestore', { trashId: entry!.id }).expect(200);
+      expect(
+        (await activeSystemLinksTo(ctx2, backlinks.id, junctionId)).length,
+        'restore reactivates the far-side system-link',
+      ).to.be.greaterThan(0);
     });
 
     // #1 (critical guard): trashing a CUSTOM junction-backed link must NOT

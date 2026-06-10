@@ -417,6 +417,17 @@ const getAst = async (
           _depth: _depth + 1,
         })
       ).ast;
+    } else if (col.uidt === UITypes.Lookup) {
+      // Lookup whose target resolves to an LTAR with a custom display value
+      // column: build a nested ast (pk + pv + custom display) so the query
+      // builders include that column in the nested row object. Without it the
+      // ast value stays `1`, only pk + pv survive the field filters, and the
+      // looked-up link renders without its custom display value.
+      const lookupNestedAst = await getLookupOfLtarNestedAst(context, {
+        column: col,
+        _depth,
+      });
+      if (lookupNestedAst) value = lookupNestedAst;
     }
     let isRequested;
 
@@ -709,6 +720,61 @@ const extractRelationDependencies = async (
       }
       break;
   }
+};
+
+/**
+ * For a Lookup column, walk the lookup chain to its terminal column. If that
+ * column is an LTAR with a custom display value override
+ * (`fk_display_value_column_id`), return a nested ast for the LTAR's related
+ * table covering pk + pv + the custom display column. Returns null when the
+ * terminal column isn't an LTAR or has no override — callers keep the legacy
+ * scalar `1` in that case, which the query builders resolve as pk + pv.
+ */
+const getLookupOfLtarNestedAst = async (
+  context: NcContext,
+  { column, _depth }: { column: Column; _depth: number },
+): Promise<Ast | null> => {
+  let col = column;
+  let ctx = context;
+  const visited = new Set<string>();
+
+  // resolve chained lookups (lookup → lookup → … → LTAR)
+  while (col?.uidt === UITypes.Lookup) {
+    if (visited.has(col.id) || visited.size >= GET_AST_MAX_DEPTH) return null;
+    visited.add(col.id);
+
+    const lookupColOpt = await col.getColOptions<LookupColumn>(ctx);
+    if (!lookupColOpt || lookupColOpt.error) return null;
+
+    const relationCol = await lookupColOpt.getRelationColumn(ctx);
+    const relationColOpt =
+      await relationCol?.getColOptions<LinkToAnotherRecordColumn>(ctx);
+    if (!relationColOpt) return null;
+
+    const { refContext } = relationColOpt.getRelContext(ctx);
+    col = await lookupColOpt.getLookupColumn(refContext);
+    ctx = refContext;
+  }
+
+  if (!col || !isLinksOrLTAR(col)) return null;
+
+  const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(ctx);
+  if (!colOpt?.fk_display_value_column_id) return null;
+
+  const relatedModel = await colOpt.getRelatedTable(ctx);
+  if (!relatedModel) return null;
+
+  const { refContext } = colOpt.getRelContext(ctx);
+
+  return (
+    await getAst(refContext, {
+      model: relatedModel,
+      extractOnlyPrimaries: true,
+      fk_display_value_column_id: colOpt.fk_display_value_column_id,
+      dependencyFields: { nested: {}, fieldsSet: new Set() },
+      _depth: _depth + 1,
+    })
+  ).ast;
 };
 
 export type RequestQuery = {

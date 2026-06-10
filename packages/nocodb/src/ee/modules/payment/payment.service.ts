@@ -404,28 +404,36 @@ export class PaymentService {
     payload: { addon_key: PlanAddonTypes; comped?: boolean },
     req: NcRequest,
   ) {
+    const def = AddonDefinitions[payload.addon_key];
+    if (!def) NcError.badRequest(`Unknown add-on '${payload.addon_key}'`);
+
+    const minCloud = def.minPlan.cloud;
+
     const subscription = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
     );
-    if (!subscription)
-      NcError.genericNotFound('Subscription', workspaceOrOrgId);
-
-    const def = AddonDefinitions[payload.addon_key];
-    if (!def) NcError.badRequest('Unknown addon');
+    if (!subscription) {
+      NcError.badRequest(
+        minCloud
+          ? `Add-on '${payload.addon_key}' requires an active subscription on at least the ${minCloud} plan.`
+          : `Add-on '${payload.addon_key}' requires an active subscription.`,
+      );
+    }
 
     const plan = await Plan.get(subscription.fk_plan_id);
     if (!plan) NcError.genericNotFound('Plan', subscription.fk_plan_id);
 
-    const minCloud = def.minPlan.cloud;
     if (minCloud && PlanOrder[plan.title] < PlanOrder[minCloud]) {
       NcError.badRequest(
-        `Addon ${payload.addon_key} requires at least the ${minCloud} plan`,
+        `Add-on '${payload.addon_key}' requires at least the ${minCloud} plan (current plan: ${plan.title}).`,
       );
     }
 
     const addon = await Addon.getByKey(payload.addon_key);
     if (!addon || !addon.is_active) {
-      NcError.badRequest('Addon not available in catalog');
+      NcError.badRequest(
+        `Add-on '${payload.addon_key}' is not available in the catalog. Register it first via POST /api/internal/payment/addon.`,
+      );
     }
 
     const existing = await SubscriptionAddon.getActiveByKey(

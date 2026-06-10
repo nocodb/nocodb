@@ -11,6 +11,7 @@ import {
 import type { NcContext } from '~/interface/config';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import BaseTrash from '~/models/BaseTrash';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
@@ -29,7 +30,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { clearDependentErrorsIfResolved } from '~/services/base-trash/dependent-error-helpers';
-import { MetaCacheInvalidator } from '~/helpers/metaCacheInvalidator';
+import { invalidateSingleQueryCacheForModels } from '~/helpers/metaCacheInvalidator';
 import { CacheScope, MetaTable } from '~/utils/globals';
 
 interface CascadedColumn {
@@ -176,46 +177,73 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     // When the junction is later removed (e.g. retention purge, or a sibling
     // link op) the cached query references a missing table and fails with
     // Postgres 42P01 ("table does not exist"). Soft-delete them alongside the
-    // link; restore() reactivates them.
-    const junctionSystemLinkIds: string[] = [];
-    if (isLinksOrLTAR(col)) {
-      const colOpt: any = await col.getColOptions(ctx, ncMeta);
+    // link; restore()/permanentDelete() reactivate them.
+    //
+    // Custom links are excluded: their `fk_mm_model_id` points at a real user
+    // table (not an auto-junction), they have no auto-created system hm-links,
+    // and their junction is never auto-dropped — so the 42P01 rationale doesn't
+    // apply and scanning would wrongly soft-delete genuine user links to that
+    // table (mirrors the CE delete path's `if (!custom)` guard).
+    //
+    // Records {id, base_id, fk_workspace_id} so restore/purge can reactivate the
+    // far side in its own (possibly cross-base) context.
+    const junctionSystemLinks: Array<{
+      id: string;
+      base_id: string;
+      fk_workspace_id: string;
+    }> = [];
+    if (isLinksOrLTAR(col) && !col.meta?.custom) {
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+        ctx,
+        ncMeta,
+      );
       const junctionId = colOpt?.fk_mm_model_id;
       if (junctionId) {
-        const relatedTableIds = [
-          col.fk_model_id,
-          colOpt.fk_related_model_id,
-        ].filter((t, i, a) => t && a.indexOf(t) === i);
-        const affectedModelIds: string[] = [];
-        for (const tId of relatedTableIds) {
-          const relTable = await Model.get(ctx, tId, false, ncMeta);
-          if (!relTable) continue;
-          for (const c of await relTable.getColumns(ctx, ncMeta)) {
-            if (c.id === col.id || (c as any).deleted || !isLinksOrLTAR(c)) {
-              continue;
-            }
-            const co: any = await c.getColOptions(ctx, ncMeta);
+        // Each side resolved in its own context — the related table (and so its
+        // system hm-link) can live in a different base for a cross-base link.
+        const { refContext } = colOpt.getRelContext(ctx);
+        const sides: Array<{ table: Model | null; sideCtx: NcContext }> = [
+          {
+            table: await Model.get(ctx, col.fk_model_id, false, ncMeta),
+            sideCtx: ctx,
+          },
+          {
+            table: await colOpt.getRelatedTable(refContext, ncMeta),
+            sideCtx: refContext,
+          },
+        ];
+        for (const { table, sideCtx } of sides) {
+          if (!table) continue;
+          for (const c of await table.getColumns(sideCtx, ncMeta)) {
+            if (c.id === col.id || !isLinksOrLTAR(c)) continue;
+            const co = await c.getColOptions<LinkToAnotherRecordColumn>(
+              sideCtx,
+              ncMeta,
+            );
             if (co?.fk_related_model_id === junctionId) {
               await ncMeta.metaUpdate(
-                ctx.workspace_id,
-                ctx.base_id,
+                sideCtx.workspace_id,
+                sideCtx.base_id,
                 MetaTable.COLUMNS,
                 { deleted: true },
                 c.id,
               );
-              await NocoCache.update(ctx, `${CacheScope.COLUMN}:${c.id}`, {
+              await NocoCache.update(sideCtx, `${CacheScope.COLUMN}:${c.id}`, {
                 deleted: true,
               });
-              affectedModelIds.push(c.fk_model_id);
-              junctionSystemLinkIds.push(c.id);
+              await invalidateSingleQueryCacheForModels(
+                sideCtx,
+                [c.fk_model_id],
+                ncMeta,
+              );
+              junctionSystemLinks.push({
+                id: c.id,
+                base_id: sideCtx.base_id,
+                fk_workspace_id: sideCtx.workspace_id,
+              });
             }
           }
         }
-        await MetaCacheInvalidator.invalidateModels(
-          ctx,
-          affectedModelIds,
-          ncMeta,
-        );
       }
     }
 
@@ -255,8 +283,8 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     if (dependents.length) {
       relatedItems.dependents = dependents;
     }
-    if (junctionSystemLinkIds.length) {
-      relatedItems.junctionSystemLinkIds = junctionSystemLinkIds;
+    if (junctionSystemLinks.length) {
+      relatedItems.junctionSystemLinks = junctionSystemLinks;
     }
 
     // Socket broadcast
@@ -432,31 +460,9 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
 
     // #9209: reactivate the junction system hm-link(s) soft-deleted with this
     // link, so the restored link's junction is joined again.
-    const junctionSystemLinkIds: string[] =
-      (relatedItems as any)?.junctionSystemLinkIds ?? [];
-    const reactivatedModelIds: string[] = [];
-    for (const cid of junctionSystemLinkIds) {
-      await ncMeta.metaUpdate(
-        ctx.workspace_id,
-        ctx.base_id,
-        MetaTable.COLUMNS,
-        { deleted: false },
-        cid,
-      );
-      const fc = await ncMeta.metaGet2(
-        ctx.workspace_id,
-        ctx.base_id,
-        MetaTable.COLUMNS,
-        cid,
-      );
-      if (fc) {
-        await NocoCache.set(ctx, `${CacheScope.COLUMN}:${cid}`, fc);
-        reactivatedModelIds.push(fc.fk_model_id);
-      }
-    }
-    await MetaCacheInvalidator.invalidateModels(
+    await this.reactivateJunctionSystemLinks(
       ctx,
-      reactivatedModelIds,
+      relatedItems.junctionSystemLinks ?? [],
       ncMeta,
     );
 
@@ -617,6 +623,18 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       );
     }
 
+    // #9209: reactivate the junction system hm-link(s) before delegating to
+    // columnDelete. Its junction-cleanup loops iterate getColumns(), which
+    // filters soft-deleted rows — so links left soft-deleted here would be
+    // invisible to it and orphaned (their COLUMNS + COL_RELATIONS rows) once the
+    // junction model/table is dropped. Reactivating makes them live so the CE
+    // teardown removes them together with the junction.
+    await this.reactivateJunctionSystemLinks(
+      ctx,
+      trashEntry.getRelatedItems().junctionSystemLinks ?? [],
+      ncMeta,
+    );
+
     // Pass a silent webhook manager to suppress the DELETE webhook — it was
     // already emitted at trash time, so we don't want a duplicate at retention
     // cleanup. columnDelete only emits if no manager was passed in.
@@ -642,6 +660,48 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
   }
 
   // ── Restore Cascaded Links ─────────────────────────────────
+
+  /**
+   * Reactivate (un-soft-delete) the junction system hm-link(s) recorded at
+   * trash time, each in its own (possibly cross-base) context, and refresh the
+   * affected models' single-query cache. Used on restore, deferred-restore
+   * conversion, and permanent-delete (where the CE junction teardown must see
+   * them as live to clean them up with the junction).
+   */
+  private async reactivateJunctionSystemLinks(
+    ctx: NcContext,
+    links: Array<{ id: string; base_id: string; fk_workspace_id: string }>,
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<void> {
+    for (const ref of links) {
+      const sideCtx = {
+        ...ctx,
+        workspace_id: ref.fk_workspace_id,
+        base_id: ref.base_id,
+      };
+      await ncMeta.metaUpdate(
+        ref.fk_workspace_id,
+        ref.base_id,
+        MetaTable.COLUMNS,
+        { deleted: false },
+        ref.id,
+      );
+      const fc = await ncMeta.metaGet2(
+        ref.fk_workspace_id,
+        ref.base_id,
+        MetaTable.COLUMNS,
+        ref.id,
+      );
+      if (fc) {
+        await NocoCache.set(sideCtx, `${CacheScope.COLUMN}:${ref.id}`, fc);
+        await invalidateSingleQueryCacheForModels(
+          sideCtx,
+          [fc.fk_model_id],
+          ncMeta,
+        );
+      }
+    }
+  }
 
   private async restoreCascadedLinks(
     ctx: NcContext,
@@ -749,6 +809,16 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       ncMeta,
     );
     if (!col) return;
+
+    // #9209: this is the deferred-restore path — the field becomes a placeholder
+    // and its trash entry is dropped, so its junctionSystemLinks ids would be
+    // lost. Reactivate them now (the junction still exists) so they don't stay
+    // soft-deleted forever and get orphaned at the eventual purge.
+    await this.reactivateJunctionSystemLinks(
+      ctx,
+      trashEntry.getRelatedItems().junctionSystemLinks ?? [],
+      ncMeta,
+    );
 
     const parentTable = await Model.getWithInfo(
       ctx,

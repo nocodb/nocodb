@@ -108,13 +108,40 @@ export function m2mJunctionCleanupTests() {
 
       // the soft-deleted junction system-link(s) are recorded so restore can reactivate them
       const entry = await BaseTrash.getByResourceId(ctx, 'field', linkB.id);
-      const ri: any = entry?.getRelatedItems?.() ?? {};
+      const ri = entry?.getRelatedItems?.() ?? {};
       expect(
-        ri.junctionSystemLinkIds,
-        'records junction system-link ids for restore',
+        ri.junctionSystemLinks,
+        'records junction system-links for restore',
       )
         .to.be.an('array')
         .that.is.not.empty;
+
+      // ── restore round-trip ──────────────────────────────────────────
+      // restoring the link must reactivate its junction system-link(s), so the
+      // junction is joined again and the read still succeeds.
+      await request(context.app)
+        .post(`/api/v2/internal/${base.fk_workspace_id}/${base.id}`)
+        .query({ operation: 'baseTrashRestore' })
+        .set('xc-auth', context.token)
+        .send({ trashId: entry!.id })
+        .expect(200);
+
+      const refsAfterRestore = await activeRefsToJunction(
+        websites.id,
+        junctionId,
+      );
+      expect(
+        refsAfterRestore.length,
+        'restore reactivates the junction system-link(s)',
+      ).to.be.greaterThan(0);
+
+      const readAfterRestore = await request(context.app)
+        .get(`/api/v2/tables/${websites.id}/records?limit=5`)
+        .set('xc-auth', context.token);
+      expect(
+        readAfterRestore.status,
+        JSON.stringify(readAfterRestore.body),
+      ).to.be.within(200, 299);
     });
   });
 }

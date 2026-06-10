@@ -392,6 +392,15 @@ export default class BaseTrash implements BaseTrashType {
       appSyncMappingIds?: string[];
       /** Sync mappings suspended when a synced table is trashed (Table Sync). */
       tableSyncMappings?: Array<{ id: string; baseId: string }>;
+      /**
+       * System hm-links on the junction model, soft-deleted alongside a
+       * junction-backed link so restore/purge can reactivate them.
+       */
+      junctionSystemLinks?: Array<{
+        id: string;
+        base_id: string;
+        fk_workspace_id: string;
+      }>;
     },
   >(): T {
     return parseJson<T>(this.related_items);

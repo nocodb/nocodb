@@ -168,6 +168,55 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       });
     }
 
+    // #9209: a junction-backed link (mm / V2) has auto-created system "hm"
+    // link column(s) pointing at its junction model (one per related table).
+    // Soft-deleting only the user-facing column leaves those system links
+    // active, so the optimised single-query keeps JOINing the junction table.
+    // When the junction is later removed (e.g. retention purge, or a sibling
+    // link op) the cached query references a missing table and fails with
+    // Postgres 42P01 ("table does not exist"). Soft-delete them alongside the
+    // link; restore() reactivates them.
+    const junctionSystemLinkIds: string[] = [];
+    if (isLinksOrLTAR(col)) {
+      const colOpt: any = await col.getColOptions(ctx, ncMeta);
+      const junctionId = colOpt?.fk_mm_model_id;
+      if (junctionId) {
+        const relatedTableIds = [
+          col.fk_model_id,
+          colOpt.fk_related_model_id,
+        ].filter((t, i, a) => t && a.indexOf(t) === i);
+        for (const tId of relatedTableIds) {
+          const relTable = await Model.get(ctx, tId, false, ncMeta);
+          if (!relTable) continue;
+          for (const c of await relTable.getColumns(ctx, ncMeta)) {
+            if (c.id === col.id || (c as any).deleted || !isLinksOrLTAR(c)) {
+              continue;
+            }
+            const co: any = await c.getColOptions(ctx, ncMeta);
+            if (co?.fk_related_model_id === junctionId) {
+              await ncMeta.metaUpdate(
+                ctx.workspace_id,
+                ctx.base_id,
+                MetaTable.COLUMNS,
+                { deleted: true },
+                c.id,
+              );
+              await NocoCache.update(ctx, `${CacheScope.COLUMN}:${c.id}`, {
+                deleted: true,
+              });
+              await View.clearSingleQueryCache(
+                ctx,
+                c.fk_model_id,
+                null,
+                ncMeta,
+              );
+              junctionSystemLinkIds.push(c.id);
+            }
+          }
+        }
+      }
+    }
+
     // Mark formula/button dependents (same table, sync)
     const dependents: Array<{ id: string; type: string }> = [];
     await this.markFormulaErrors(ctx, col, dependents, ncMeta);
@@ -203,6 +252,9 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     }
     if (dependents.length) {
       relatedItems.dependents = dependents;
+    }
+    if (junctionSystemLinkIds.length) {
+      relatedItems.junctionSystemLinkIds = junctionSystemLinkIds;
     }
 
     // Socket broadcast
@@ -374,6 +426,30 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
         relatedItems.dependents,
         ncMeta,
       );
+    }
+
+    // #9209: reactivate the junction system hm-link(s) soft-deleted with this
+    // link, so the restored link's junction is joined again.
+    const junctionSystemLinkIds: string[] =
+      (relatedItems as any)?.junctionSystemLinkIds ?? [];
+    for (const cid of junctionSystemLinkIds) {
+      await ncMeta.metaUpdate(
+        ctx.workspace_id,
+        ctx.base_id,
+        MetaTable.COLUMNS,
+        { deleted: false },
+        cid,
+      );
+      const fc = await ncMeta.metaGet2(
+        ctx.workspace_id,
+        ctx.base_id,
+        MetaTable.COLUMNS,
+        cid,
+      );
+      if (fc) {
+        await NocoCache.set(ctx, `${CacheScope.COLUMN}:${cid}`, fc);
+        await View.clearSingleQueryCache(ctx, fc.fk_model_id, null, ncMeta);
+      }
     }
 
     // Socket broadcast — include the restored column so frontend can update

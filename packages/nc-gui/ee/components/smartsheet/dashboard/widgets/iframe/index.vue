@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
     class="nc-iframe-widget !rounded-xl h-full w-full flex flex-col group relative overflow-hidden bg-nc-bg-default"
   >
     <SmartsheetDashboardWidgetsCommonWidgetsError v-if="!isValidUrl" :error="widget.error">
-      Invalid URL
+      {{ $t('msg.error.invalidURL') }}
     </SmartsheetDashboardWidgetsCommonWidgetsError>
 
     <template v-else>
@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
         :title="scriptConfig?.url"
       >
         <GeneralIcon icon="externalLink" class="w-3 h-3" />
-        Open in new tab
+        {{ $t('labels.openInNewTab') }}
       </a>
 
       <div
@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
           rel="noopener noreferrer"
           class="flex-shrink-0 font-medium underline hover:no-underline"
         >
-          Open in new tab
+          {{ $t('labels.openInNewTab') }}
         </a>
       </div>
     </template>

@@ -70,7 +70,7 @@ async function onRegenerate() {
       </div>
 
       <div class="flex justify-end gap-2 mt-2">
-        <NcButton type="secondary" size="small" @click="vModel = false"> Cancel </NcButton>
+        <NcButton type="secondary" size="small" @click="vModel = false"> {{ $t('general.cancel') }} </NcButton>
         <NcButton type="danger" size="small" :loading="isRegenerating" @click="onRegenerate">
           {{ isRegenerating ? 'Regenerating...' : 'Regenerate Secret' }}
         </NcButton>

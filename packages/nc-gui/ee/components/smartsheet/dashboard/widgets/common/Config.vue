@@ -98,7 +98,7 @@ const handleTabChange = (key: string) => {
 
     <NcTabs class="!mt-3" @change="handleTabChange">
       <a-tab-pane key="data" tab="Data">
-        <template #tab>Data</template>
+        <template #tab>{{ $t('general.data') }}</template>
         <div
           :data-is-text="selectedWidget?.type === WidgetTypes.TEXT"
           :data-is-chart="selectedWidget?.type === WidgetTypes.CHART"
@@ -108,7 +108,7 @@ const handleTabChange = (key: string) => {
         </div>
       </a-tab-pane>
       <a-tab-pane v-if="!disableAppearance" key="appearance" tab="Appearance">
-        <template #tab>Appearance</template>
+        <template #tab>{{ $t('general.appearance') }}</template>
         <slot name="appearance"></slot>
       </a-tab-pane>
     </NcTabs>

@@ -337,7 +337,7 @@ const onMove = async (
     <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden h-full">
       <template v-if="starredProjectList?.length">
         <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-          <div class="text-nc-content-gray-muted font-medium">Starred</div>
+          <div class="text-nc-content-gray-muted font-medium">{{ $t('general.starred') }}</div>
         </div>
         <div>
           <Draggable

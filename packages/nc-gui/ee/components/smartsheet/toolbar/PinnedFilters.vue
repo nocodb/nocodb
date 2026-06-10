@@ -817,7 +817,7 @@ const unpinFilter = async (filter: FilterType) => {
                   v-if="!getFilteredSelectOptions(filter).length"
                   class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
                 >
-                  No options found
+                  {{ $t('title.noOptionsFound') }}
                 </div>
               </div>
 
@@ -878,7 +878,7 @@ const unpinFilter = async (filter: FilterType) => {
                   v-if="!filteredUserOptions.length && !showMeOption"
                   class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
                 >
-                  No users found
+                  {{ $t('labels.noUsersFound') }}
                 </div>
               </div>
 
@@ -968,7 +968,7 @@ const unpinFilter = async (filter: FilterType) => {
                     :class="isAllSelected(filter) ? 'text-nc-content-gray-muted' : 'text-nc-content-brand'"
                     @click.stop="selectAllOptions(filter)"
                   >
-                    Select all
+                    {{ $t('general.selectAll') }}
                   </span>
                   <span class="text-nc-content-gray-muted">·</span>
                   <span
@@ -976,7 +976,7 @@ const unpinFilter = async (filter: FilterType) => {
                     :class="!filter.value ? 'text-nc-content-gray-muted' : 'text-nc-content-brand'"
                     @click.stop="clearValue(filter)"
                   >
-                    Clear all
+                    {{ $t('labels.clearAll') }}
                   </span>
                 </div>
                 <!-- Single-value ops: Clear value -->

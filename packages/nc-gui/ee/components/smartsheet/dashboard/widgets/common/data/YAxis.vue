@@ -169,7 +169,7 @@ watch(
 <template>
   <GroupedSettings title="Y-axis">
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-subtle">Fields</label>
+      <label class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('objects.fields') }}</label>
       <div class="flex flex-col border-nc-border-gray-medium border-1 rounded-lg overflow-hidden">
         <div
           v-for="(field, index) in fieldConfigurations"

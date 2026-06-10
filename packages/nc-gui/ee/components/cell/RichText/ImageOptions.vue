@@ -263,8 +263,10 @@ watch(
 
       <!-- Action buttons -->
       <div class="flex items-center justify-end gap-x-2 pt-2 border-t border-nc-border-gray-light">
-        <NcButton :tabindex="tabIndex" size="small" type="text" @click="cancelImageEdit"> Cancel </NcButton>
-        <NcButton :tabindex="tabIndex" size="small" type="primary" @click="applyImageChanges"> Apply </NcButton>
+        <NcButton :tabindex="tabIndex" size="small" type="text" @click="cancelImageEdit"> {{ $t('general.cancel') }} </NcButton>
+        <NcButton :tabindex="tabIndex" size="small" type="primary" @click="applyImageChanges">
+          {{ $t('general.apply') }}
+        </NcButton>
       </div>
     </a-form>
   </div>

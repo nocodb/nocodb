@@ -136,7 +136,7 @@ const migrateToV3 = async () => {
         </div>
 
         <div class="flex flex-row gap-x-2 mt-2 pt-4 border-t border-nc-border-gray-medium justify-end">
-          <NcButton type="secondary" size="small" @click="isModalVisible = false"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" @click="isModalVisible = false"> {{ $t('general.cancel') }} </NcButton>
 
           <NcButton
             key="submit"

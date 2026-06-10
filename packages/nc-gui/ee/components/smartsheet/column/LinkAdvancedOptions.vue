@@ -300,7 +300,7 @@ onMounted(async () => {
     <div class="mb-2">Relation Settings</div>
     <div class="flex items-start gap-3">
       <div class="nc-relation-settings-table flex flex-col">
-        <div class="nc-relation-settings-table-header">Source</div>
+        <div class="nc-relation-settings-table-header">{{ $t('general.source') }}</div>
 
         <!--
        Disabled inter-base link at the moment

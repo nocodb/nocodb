@@ -295,7 +295,7 @@ watch(isDark, async () => {
     <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-nc-red-50">
       <div class="text-center">
         <div class="text-nc-content-red-dark mb-2">Failed to load Monaco Editor</div>
-        <NcButton @click="retryLoad"> Retry </NcButton>
+        <NcButton @click="retryLoad"> {{ $t('general.retry') }} </NcButton>
       </div>
     </div>
 

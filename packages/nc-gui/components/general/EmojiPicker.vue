@@ -124,7 +124,7 @@ watch(isOpen, (val) => {
             class="flex flex-row items-center h-[32px] -mt-[1px] bg-nc-bg-default border-1 border-nc-border-gray-light py-0.5 px-2.5 rounded hover:bg-nc-bg-gray-light cursor-pointer"
             @click="clearEmoji"
           >
-            Remove
+            {{ $t('general.remove') }}
           </div>
         </div>
       </div>

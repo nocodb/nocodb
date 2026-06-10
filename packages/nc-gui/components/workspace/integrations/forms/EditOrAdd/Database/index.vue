@@ -663,7 +663,7 @@ watch(
               class="flex flex-col gap-8"
             >
               <div class="nc-form-section">
-                <div class="nc-form-section-title">General</div>
+                <div class="nc-form-section-title">{{ $t('general.general') }}</div>
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
@@ -725,7 +725,7 @@ watch(
                           >
                             {{ $t('general.cancel') }}</NcButton
                           >
-                          <NcButton size="small" @click="handleImportURL"> Import</NcButton>
+                          <NcButton size="small" @click="handleImportURL"> {{ $t('general.import') }}</NcButton>
                         </div>
                       </div>
                     </template>

@@ -10,7 +10,7 @@ import type { GeneralLoaderProps } from '../general/Loader.vue'
  * @example
  * <NcButton type="primary" size="medium" :loading="loading" @click="onClick">
  *  Save
- *  <template #loading> Saving </template>
+ *  <template #loading> {{ $t('general.saving') }} </template>
  * </NcButton>
  */
 

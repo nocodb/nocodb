@@ -93,7 +93,7 @@ onMounted(async () => {
     <template #overlay>
       <div class="flex flex-col w-[320px] overflow-hidden">
         <div class="flex items-center justify-between w-full p-3 bg-nc-bg-purple-light">
-          <span class="text-sm font-bold text-nc-content-gray">Settings</span>
+          <span class="text-sm font-bold text-nc-content-gray">{{ $t('labels.settings') }}</span>
           <!-- Todo: add docs link  -->
           <a
             target="_blank"
@@ -105,7 +105,7 @@ onMounted(async () => {
         <div class="flex flex-col p-3 text-sm gap-3">
           <!-- Integration Select -->
           <div class="flex items-center gap-2">
-            <span class="text-nc-content-gray w-2/6">Integration</span>
+            <span class="text-nc-content-gray w-2/6">{{ $t('general.integration') }}</span>
             <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">
                 <template #title>

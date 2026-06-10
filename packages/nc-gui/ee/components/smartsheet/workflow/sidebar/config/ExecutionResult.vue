@@ -150,7 +150,7 @@ const outputData = computed(() => {
 
       <!-- Logs Section -->
       <div v-if="executionResult.logs && executionResult.logs.length > 0" class="space-y-2">
-        <div class="text-captionBold text-nc-content-gray-emphasis">Logs</div>
+        <div class="text-captionBold text-nc-content-gray-emphasis">{{ $t('general.logs') }}</div>
         <div class="bg-nc-bg-gray-extralight rounded-md p-2 space-y-1 max-h-60 overflow-auto">
           <div
             v-for="(log, index) in executionResult.logs"

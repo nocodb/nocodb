@@ -79,7 +79,7 @@ onMounted(async () => {
                   class="flex flex-col gap-5.5"
                 >
                   <div class="nc-form-section">
-                    <div class="nc-form-section-title">General</div>
+                    <div class="nc-form-section-title">{{ $t('general.general') }}</div>
                     <div class="nc-form-section-body">
                       <a-row :gutter="24">
                         <a-col :span="12">

@@ -113,7 +113,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                   rel="noopener noreferrer"
                   >here</a
                 >. <br />
-                <b> Note:</b> Use commas to separate MIME types
+                <b> {{ $t('labels.note') }}</b> Use commas to separate MIME types
               </template>
             </div>
 

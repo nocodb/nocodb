@@ -60,7 +60,7 @@ const onInputFocus = () => {
       </template>
       <div>
         <div class="flex flex-col w-1/2 pr-3">
-          <label class="!text-xs font-weight-normal pb-1">Title</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('general.title') }}</label>
           <a-input v-model:value="activeIntegration.payload.title" class="input-text" :maxlength="255" @focus="onInputFocus" />
         </div>
       </div>
@@ -76,11 +76,11 @@ const onInputFocus = () => {
           <a-input v-model:value="activeIntegration.payload.port" class="input-text" @focus="onInputFocus" />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">User</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('objects.user') }}</label>
           <a-input v-model:value="activeIntegration.payload.user" class="input-text" autocomplete="off" @focus="onInputFocus" />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">Password</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.password') }}</label>
           <a-input
             v-model:value="activeIntegration.payload.password"
             class="input-text"
@@ -90,11 +90,11 @@ const onInputFocus = () => {
           />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">Schema</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.schema') }}</label>
           <a-input v-model:value="activeIntegration.payload.schema" class="input-text" @focus="onInputFocus" />
         </div>
         <div class="input-item">
-          <label class="!text-xs font-weight-normal pb-1">Database</label>
+          <label class="!text-xs font-weight-normal pb-1">{{ $t('labels.database') }}</label>
           <a-input v-model:value="activeIntegration.payload.database" class="input-text" @focus="onInputFocus" />
         </div>
       </div>
@@ -104,7 +104,7 @@ const onInputFocus = () => {
         <div class="input-item">
           <label class="!text-xs font-weight-normal pb-1">SSL Mode</label>
           <a-select v-model:value="activeIntegration.payload.sslMode" class="input-text" @focus="onInputFocus">
-            <a-select-option value="disable">Disable</a-select-option>
+            <a-select-option value="disable">{{ $t('general.disable') }}</a-select-option>
             <a-select-option value="require">Require</a-select-option>
             <a-select-option value="verify-ca">Verify CA</a-select-option>
             <a-select-option value="verify-full">Verify Full</a-select-option>

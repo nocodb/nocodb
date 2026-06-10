@@ -2814,7 +2814,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   rel="noopener noreferrer"
                                   class="!no-underline !hover:underline"
                                 >
-                                  Learn more
+                                  {{ $t('msg.learnMore') }}
                                 </a>
                               </div>
                             </div>

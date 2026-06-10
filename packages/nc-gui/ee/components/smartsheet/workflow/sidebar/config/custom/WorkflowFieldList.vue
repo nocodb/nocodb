@@ -215,7 +215,7 @@ watch(
 <template>
   <div class="workflow-field-list flex flex-col gap-3">
     <div class="flex items-center justify-between">
-      <label class="text-sm font-semibold text-nc-content-gray-emphasis">Fields</label>
+      <label class="text-sm font-semibold text-nc-content-gray-emphasis">{{ $t('objects.fields') }}</label>
       <NcDropdown v-model:visible="isFieldSelectorOpen" :disabled="disabled">
         <NcButton size="xs" :disabled="disabled" type="secondary">
           <div class="flex items-center gap-1">

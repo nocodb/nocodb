@@ -15,7 +15,7 @@ const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[
         </div>
         <div>
           <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">
-            Colour records based on single select field
+            {{ $t('objects.coloring.usingSingleSelectFieldDescription') }}
           </span>
         </div>
       </div>

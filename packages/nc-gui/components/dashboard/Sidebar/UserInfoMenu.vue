@@ -184,7 +184,7 @@ const openKeyboardShortcutDialog = () => {
       <NcMenuItem v-if="isThemeEnabled" v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
         <GeneralIcon :icon="themeIcon" class="menu-icon" />
         <span class="menu-btn">{{ themeLabel }}</span>
-        <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+        <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
       </NcMenuItem>
 
       <!-- Account Settings -->
@@ -234,7 +234,7 @@ const openKeyboardShortcutDialog = () => {
         <NcMenuItem v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
           <GeneralIcon :icon="themeIcon" class="menu-icon" />
           <span class="menu-btn">{{ themeLabel }}</span>
-          <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+          <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
         </NcMenuItem>
       </template>
 

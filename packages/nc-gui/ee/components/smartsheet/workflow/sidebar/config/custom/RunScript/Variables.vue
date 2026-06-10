@@ -107,7 +107,7 @@ const addVariable = () => {
 
 <template>
   <div class="border-r-1 border-b-1 h-full overflow-y-auto nc-scrollbar-x-md">
-    <div class="text-nc-content-gray-emphasis px-3 border-b-1 text-captionBold py-2">Variables</div>
+    <div class="text-nc-content-gray-emphasis px-3 border-b-1 text-captionBold py-2">{{ $t('title.baseVariables') }}</div>
 
     <NcGroupedSettings class="!px-3" title="Inputs">
       <div class="text-nc-content-gray text-bodySm">
@@ -121,7 +121,7 @@ const addVariable = () => {
       >
         <div class="flex gap-2 flex-col">
           <div class="flex items-center justify-between">
-            <span class="text-nc-content-gray-subtle text-caption">Name</span>
+            <span class="text-nc-content-gray-subtle text-caption">{{ $t('general.name') }}</span>
             <NcButton size="xxsmall" class="!hover:bg-nc-bg-red-light" type="text" @click="removeVariable(entry.index)">
               <GeneralIcon icon="ncTrash" class="text-nc-content-red-medium w-3.5 h-3.5" />
             </NcButton>
@@ -133,7 +133,7 @@ const addVariable = () => {
           />
         </div>
         <div class="flex gap-2 flex-col">
-          <label class="text-nc-content-gray-subtle text-caption">Value</label>
+          <label class="text-nc-content-gray-subtle text-caption">{{ $t('placeholder.value') }}</label>
           <NcFormBuilderInputWorkflowInput
             :model-value="entry.value"
             :variables="flatVariables"

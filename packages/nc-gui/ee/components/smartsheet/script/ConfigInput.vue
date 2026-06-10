@@ -302,7 +302,7 @@ onMounted(() => {
           data-testid="nc-script-config-save-btn"
           @click="triggerUpdate"
         >
-          Save
+          {{ $t('general.save') }}
         </NcButton>
       </NcTooltip>
     </div>

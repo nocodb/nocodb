@@ -215,7 +215,7 @@ const showAdvanced = ref(false)
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between cursor-pointer py-1" @click="showHeaders = !showHeaders">
-        <label class="text-sm font-medium text-nc-content-gray-emphasis cursor-pointer">Headers</label>
+        <label class="text-sm font-medium text-nc-content-gray-emphasis cursor-pointer">{{ $t('title.headers') }}</label>
         <GeneralIcon :icon="showHeaders ? 'ncChevronDown' : 'ncChevronRight'" class="text-nc-content-gray-muted w-4 h-4" />
       </div>
       <div v-if="showHeaders" class="flex flex-col gap-2">

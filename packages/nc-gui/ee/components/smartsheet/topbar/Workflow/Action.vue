@@ -82,7 +82,7 @@ const handlePendingExecutionsContinue = async (cancelPending: boolean) => {
           <template #icon>
             <GeneralIcon icon="reload" />
           </template>
-          Discard
+          {{ $t('labels.discard') }}
         </NcButton>
         <template #title> Discard draft changes and restore published version </template>
       </NcTooltip>
@@ -98,7 +98,7 @@ const handlePendingExecutionsContinue = async (cancelPending: boolean) => {
           <template #icon>
             <GeneralIcon icon="ncUploadCloud" />
           </template>
-          Publish
+          {{ $t('general.publish') }}
         </NcButton>
         <template #title> Please test all nodes before publishing </template>
       </NcTooltip>

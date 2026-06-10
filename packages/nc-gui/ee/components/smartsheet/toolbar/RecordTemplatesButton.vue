@@ -546,7 +546,7 @@ const customRow = (record: Record<string, any>) => ({
               <div class="flex items-center gap-2">
                 <NcIconTable :table="{ title: '', table_name: '' }" class="text-nc-content-muted" />
 
-                All Tables
+                {{ $t('labels.allTables') }}
               </div>
             </template>
             <template #placeholderTooltip> {{ $t('labels.allTables') }} </template>

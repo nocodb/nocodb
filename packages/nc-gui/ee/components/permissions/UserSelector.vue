@@ -188,7 +188,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
             :disabled="isLoading || userSelectorListRef?.list?.length === 0"
             @click="userSelectorListRef?.selectAll()"
           >
-            Select all
+            {{ $t('general.selectAll') }}
           </NcButton>
           <NcButton
             type="text"
@@ -196,13 +196,17 @@ const selectedBelowMinimumRoleUsers = computed(() => {
             :disabled="isLoading || selectedUsers.size === 0"
             @click="userSelectorListRef?.clearAll()"
           >
-            Clear all
+            {{ $t('labels.clearAll') }}
           </NcButton>
         </div>
 
         <div class="flex gap-2">
-          <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false"> Cancel </NcButton>
-          <NcButton type="primary" size="small" :loading="isLoading" :disabled="isLoading" @click="onSave"> Save </NcButton>
+          <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton type="primary" size="small" :loading="isLoading" :disabled="isLoading" @click="onSave">
+            {{ $t('general.save') }}
+          </NcButton>
         </div>
       </div>
     </div>

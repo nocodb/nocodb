@@ -146,7 +146,7 @@ const detailsBody = computed(() => {
         </div>
         <div class="script-details-right">
           <div class="script-details-right-section">
-            <div class="script-details-right-title">Version</div>
+            <div class="script-details-right-title">{{ $t('general.version') }}</div>
             <div class="script-details-right-subtitle">{{ activeScript.version }}</div>
           </div>
 
@@ -192,7 +192,7 @@ const detailsBody = computed(() => {
           <template v-if="activeScript.links && activeScript.links.length">
             <NcDivider />
             <div class="script-details-right-section">
-              <div class="script-details-right-title">Links</div>
+              <div class="script-details-right-title">{{ $t('general.links') }}</div>
               <div>
                 <div v-for="(doc, idx) of activeScript.links" :key="idx" class="flex items-center gap-1">
                   <div class="h-7 w-7 flex items-center justify-center">

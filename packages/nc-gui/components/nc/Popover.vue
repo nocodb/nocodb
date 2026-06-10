@@ -191,7 +191,7 @@ watch(
         <slot name="content" :close="closePopover">
           <div class="p-4">
             <p>Default popover content</p>
-            <button @click="closePopover">Close</button>
+            <button @click="closePopover">{{ $t('general.close') }}</button>
           </div>
         </slot>
       </div>

@@ -122,7 +122,7 @@ onUnmounted(() => {
       <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/examples/find-and-replace">
         <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
           <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          Example Scripts
+          {{ $t('labels.exampleScript') }}
         </div>
       </NuxtLink>
     </div>

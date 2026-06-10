@@ -59,7 +59,7 @@ const handleChange = (type?: string, value?: any) => {
   <GroupedSettings :title="$t('general.style')">
     <div class="flex gap-2 flex-1 min-w-0">
       <div class="flex flex-col gap-2 flex-1 min-w-0">
-        <label>Appearance</label>
+        <label>{{ $t('general.appearance') }}</label>
         <a-select
           v-model:value="size"
           class="nc-select-shadow"

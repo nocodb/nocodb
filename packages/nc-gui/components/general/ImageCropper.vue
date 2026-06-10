@@ -151,7 +151,9 @@ watch(
     </div>
     <div class="flex justify-between items-center space-x-4 mt-4">
       <div class="flex items-center space-x-4">
-        <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
+        <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
       </div>
       <div class="flex items-center space-x-4">
         <NcButton type="secondary" size="small" :disabled="isLoading" @click="handleCropImage">
@@ -163,7 +165,7 @@ watch(
           <template #title> Cropped file size is greater than max file size </template>
 
           <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src || !isValidFileSize" @click="handleSaveImage">
-            Save
+            {{ $t('general.save') }}
           </NcButton>
         </NcTooltip>
       </div>

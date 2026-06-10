@@ -267,7 +267,7 @@ onMounted(() => {
                       <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                     </div>
                   </div>
-                  Default
+                  {{ $t('general.default') }}
                 </div>
                 <div
                   v-else
@@ -414,7 +414,7 @@ onMounted(() => {
                         <!-- ERD View -->
                         <NcMenuItem key="erd" @click="openErdView(source)">
                           <GeneralIcon icon="ncErd" />
-                          Relations
+                          {{ $t('title.relations') }}
                         </NcMenuItem>
 
                         <DashboardTreeViewBaseOptions

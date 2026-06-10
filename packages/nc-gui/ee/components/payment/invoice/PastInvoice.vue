@@ -156,7 +156,7 @@ onMounted(() => {
               :href="record.invoice_pdf"
               class="!no-underline !hover:underline font-700 text-small text-nc-content-brand"
             >
-              View invoice
+              {{ $t('labels.viewInvoice') }}
             </a>
           </template>
         </template>

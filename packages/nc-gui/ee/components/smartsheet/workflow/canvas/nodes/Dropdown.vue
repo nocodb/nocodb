@@ -170,7 +170,7 @@ onClickOutside(
           </NcMenuItem>
           <template v-if="Object.keys(data.packages).length">
             <NcDivider v-if="data.core.length" />
-            <NcMenuItemLabel class="!capitalize">Integrations</NcMenuItemLabel>
+            <NcMenuItemLabel class="!capitalize">{{ $t('general.integrations') }}</NcMenuItemLabel>
             <NcSubMenu
               v-for="(pkg, pkgName) in data.packages"
               :key="`${_category}-${pkgName}`"

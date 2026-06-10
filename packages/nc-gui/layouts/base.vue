@@ -111,7 +111,7 @@ hooks.hook('page:finish', () => {
                   >
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
-                      <div>Account</div>
+                      <div>{{ $t('labels.account') }}</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
                     </div>
                   </nuxt-link>

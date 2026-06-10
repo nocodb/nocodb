@@ -48,7 +48,7 @@ const updateArray = (array: string) => {
 <template>
   <div class="iterate-config flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">List</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('general.list') }}</label>
       <NcFormBuilderInputWorkflowInput
         :model-value="config.array"
         :variables="flatVariables"

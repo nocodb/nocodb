@@ -307,7 +307,7 @@ const toggleLoginForm = ref(false)
         </div>
 
         <div class="prose-sm mt-4 text-nc-content-gray-muted">
-          By signing up, you agree to the
+          {{ $t('msg.bySigningUp') }}
           <a
             class="prose-sm !text-nc-content-gray-muted underline"
             target="_blank"

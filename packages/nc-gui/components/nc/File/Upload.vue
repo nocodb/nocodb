@@ -275,7 +275,9 @@ onUnmounted(() => {
       </div>
       <div class="flex justify-between items-center mt-4 space-x-4">
         <div class="flex items-center space-x-4">
-          <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
         </div>
         <div class="flex items-center space-x-4">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="handleCropImage">
@@ -292,7 +294,7 @@ onUnmounted(() => {
               :disabled="!previewImage.src || !isValidFileSize"
               @click="handleSaveImage"
             >
-              Save
+              {{ $t('general.save') }}
             </NcButton>
           </NcTooltip>
         </div>

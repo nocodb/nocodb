@@ -237,7 +237,7 @@ function copyToClipboard(text: string, label: string) {
             <!-- Logo -->
             <a-form-item :label="$t('general.logo')" class="items-start !mb-0">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Logo</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('general.logo') }}</span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Image shown during authorization (square recommended)</span>

@@ -198,7 +198,7 @@ const onForgotPasswordClicked = (): void => {
             href="https://www.nocodb.com/terms-of-service"
             target="_blank"
           >
-            Terms of Service
+            {{ $t('title.termsOfService') }}
           </a>
           &
           <a
@@ -275,7 +275,7 @@ const onForgotPasswordClicked = (): void => {
       </div>
 
       <div class="flex justify-end gap-4 mt-4">
-        <NcButton type="secondary" @click="emailVerifyDlg = false"> Close</NcButton>
+        <NcButton type="secondary" @click="emailVerifyDlg = false"> {{ $t('general.close') }}</NcButton>
         <NcButton type="primary" :loading="loading" @click="emailVerify">
           {{ confirmCodeForm ? 'Verify' : 'Get Verification Code' }}
         </NcButton>

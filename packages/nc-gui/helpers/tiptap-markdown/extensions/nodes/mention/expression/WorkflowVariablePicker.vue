@@ -389,7 +389,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
 
@@ -421,7 +423,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
 
@@ -452,7 +456,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
 
@@ -483,7 +489,9 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                {{ $t('labels.select') }}
+              </NcButton>
             </div>
           </template>
         </template>

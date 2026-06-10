@@ -178,7 +178,7 @@ function copyToClipboard(text: string, label: string) {
           >
             {{ loading ? 'Creating...' : 'Create OAuth Client' }}
           </NcButton>
-          <NcButton v-if="showSuccessView" type="primary" size="small" @click="handleClose"> Done </NcButton>
+          <NcButton v-if="showSuccessView" type="primary" size="small" @click="handleClose"> {{ $t('general.done') }} </NcButton>
           <NcButton type="text" size="small" data-testid="nc-close-oauth-modal" @click.stop="handleClose">
             <GeneralIcon icon="close" />
           </NcButton>
@@ -271,7 +271,7 @@ function copyToClipboard(text: string, label: string) {
 
             <a-form-item class="items-start !mb-0" v-bind="validateInfos.logo_uri">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Logo</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('general.logo') }}</span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Image shown during authorization (square recommended)</span>

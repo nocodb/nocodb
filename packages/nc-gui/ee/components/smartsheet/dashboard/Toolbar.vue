@@ -95,7 +95,7 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
     <NcButton size="small" type="text" @click="addTextWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="cellText" class="w-4 h-4" />
-        Text
+        {{ $t('general.text') }}
       </div>
     </NcButton>
     <NcButton size="small" type="text" @click="addNumberWidget">

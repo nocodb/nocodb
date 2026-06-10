@@ -661,7 +661,7 @@ async function toggleForce2fa(enabled: boolean) {
             :disabled="form.modalInput !== currentWorkspace?.title"
             :loading="deletingWorkspace"
           >
-            Delete Workspace
+            {{ $t('title.deleteWs') }}
           </NcButton>
         </div>
       </a-form>

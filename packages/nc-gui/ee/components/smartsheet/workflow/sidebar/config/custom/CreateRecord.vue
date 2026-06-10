@@ -109,7 +109,7 @@ onMounted(() => {
 <template>
   <div class="create-record-config flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Table</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('objects.table') }}</label>
       <NcFormBuilderInputSelectTable
         :value="config.modelId"
         :base-id="base?.id"

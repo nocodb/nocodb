@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanLimitTypes, PlanMeta, PlanTitles } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanMeta, PlanTitles, getMinSeats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 const { $e } = useNuxtApp()
@@ -103,6 +103,13 @@ const nextInvoiceInfo = computed(() => {
 
 const currentPlanTitle = computed(() => {
   return (isOrgBilling.value ? org.value?.payment?.plan.title : activeWorkspace.value?.payment?.plan.title) ?? PlanTitles.FREE
+})
+
+// Paid plans are billed at least the plan's seat minimum (e.g. Scale = 3),
+// matching the Stripe-charged quantity. Free shows the raw billable-user count.
+const billedUserCount = computed(() => {
+  if (currentPlanTitle.value === PlanTitles.FREE) return workspaceOrOrgSeatCount.value
+  return Math.max(workspaceOrOrgSeatCount.value, getMinSeats(currentPlanTitle.value))
 })
 
 const showWarningStatusForSeatCount = computed(() => {
@@ -435,8 +442,8 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             }}
           </template>
           <template #value
-            >{{ workspaceOrOrgSeatCount }} {{ currentPlanTitle === PlanTitles.FREE ? 'Billable' : 'Paid' }}
-            {{ workspaceOrOrgSeatCount === 1 ? 'User' : 'Users' }}</template
+            >{{ billedUserCount }} {{ currentPlanTitle === PlanTitles.FREE ? 'Billable' : 'Paid' }}
+            {{ billedUserCount === 1 ? 'User' : 'Users' }}</template
           >
         </PaymentPlanUsageRow>
         <template v-if="!isOrgBilling">

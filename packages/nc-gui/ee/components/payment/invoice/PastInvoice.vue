@@ -14,35 +14,40 @@ const paginatedData = computed(() => {
   return invoices.value.slice(start, end)
 })
 
-const getPlanTitle = (record: Stripe.Invoice) => {
-  const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
-  const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
-
-  const invoiceLines = record?.lines?.data
-  // get last line quantity if it exists
-  const seatCount = invoiceLines?.length > 0 ? invoiceLines[invoiceLines.length - 1].quantity : 0
-
-  let returnPlan = ''
-
-  // if seats available
-  // Plan (N seats billed annually/monthly)
-  if (planTitle && planPeriod) {
-    if (seatCount > 0) {
-      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`} billed ${
-        planPeriod === 'month' ? 'monthly' : 'annually'
-      })`
-    } else {
-      returnPlan = `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})`
-    }
-  } else if (planTitle) {
-    if (seatCount > 0) {
-      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`})`
-    } else {
-      returnPlan = planTitle
-    }
+// Build the branded "Plan (N seats billed annually/monthly)" label.
+const brandedPlanLabel = (planTitle: string, planPeriod: string, seatCount: number) => {
+  if (!planTitle) return ''
+  if (seatCount > 0) {
+    const seats = seatCount === 1 ? '1 seat' : `${seatCount} seats`
+    return planPeriod
+      ? `${planTitle} (${seats} billed ${planPeriod === 'month' ? 'monthly' : 'annually'})`
+      : `${planTitle} (${seats})`
   }
+  return planPeriod ? `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})` : planTitle
+}
 
-  return returnPlan
+const getPlanTitle = (record: Stripe.Invoice) => {
+  const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
+  const lines = record?.lines?.data ?? []
+
+  // Label per line so add-on / proration invoices aren't mislabeled as the base
+  // plan. Plan lines carry `plan_title` in their own metadata → branded format;
+  // add-on / proration lines don't → fall back to Stripe's own line description
+  // (e.g. "Remaining time on 3 × SCIM Provisioning (Add-on) ..."), which names them.
+  const labels = lines
+    .map((line) => {
+      const linePlanTitle = (line?.metadata as Record<string, string> | undefined)?.plan_title
+      if (linePlanTitle) return brandedPlanLabel(linePlanTitle, planPeriod, line.quantity ?? 0)
+      return line.description || ''
+    })
+    .filter(Boolean)
+
+  if (labels.length) return [...new Set(labels)].join('; ')
+
+  // Fallback (no usable line data): reconstruct from subscription-level metadata.
+  const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
+  const seatCount = lines.length > 0 ? lines[lines.length - 1].quantity ?? 0 : 0
+  return brandedPlanLabel(planTitle, planPeriod, seatCount)
 }
 
 const columns: NcTableColumnProps<Stripe.Invoice>[] = [

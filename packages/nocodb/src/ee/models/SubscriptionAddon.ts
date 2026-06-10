@@ -120,6 +120,10 @@ export default class SubscriptionAddon {
     fk_subscription_id: string,
     ncMeta = Noco.ncMeta,
   ): Promise<SubscriptionAddon[]> {
+    // An unpersisted subscription (e.g. test plan overrides) has no id and thus
+    // no add-on rows — short-circuit before the metaList query binds undefined.
+    if (!fk_subscription_id) return [];
+
     const cachedList = await NocoCache.getList(
       'root',
       CacheScope.SUBSCRIPTION_ADDONS,

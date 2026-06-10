@@ -48,6 +48,7 @@ import {
 } from '~/utils/modelUtils';
 import { Source } from '~/models';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { clearSingleQueryCacheForReferencingModels } from '~/helpers/singleQueryCacheInvalidator';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { isEE } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
@@ -1027,25 +1028,12 @@ export default class Model implements TableType {
     // clear all the cached query under this model
     await View.clearSingleQueryCache(context, tableId, null, ncMeta);
 
-    // clear all the cached query under related models
-    for (const col of await this.get(context, tableId).then((t) =>
-      t.getColumns(context),
-    )) {
-      if (!isLinksOrLTAR(col)) continue;
-
-      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-        ncMeta,
-      );
-
-      if (colOptions.fk_related_model_id === tableId) continue;
-
-      await View.clearSingleQueryCache(
-        context,
-        colOptions.fk_related_model_id,
-        null,
-        ncMeta,
-      );
+    // A physical table rename invalidates the compiled single-query SQL of every
+    // model that embeds this table's name — directly via a Link/LTAR, OR via a
+    // transitive Lookup/Rollup chain. Only walk that graph when the physical
+    // name actually changed; a title-only rename leaves the SQL untouched.
+    if (oldModel.table_name !== table_name) {
+      await clearSingleQueryCacheForReferencingModels(context, tableId, ncMeta);
     }
 
     return res;

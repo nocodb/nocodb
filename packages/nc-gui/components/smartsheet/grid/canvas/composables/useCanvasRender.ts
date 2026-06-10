@@ -991,7 +991,7 @@ export function useCanvasRender({
     if (activeState.col.fixed || !isInFixedArea) {
       roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2, {
         borderColor,
-        borderWidth: 2,
+        borderWidth: 1,
       })
       ctx.lineWidth = 1
       return
@@ -1011,7 +1011,7 @@ export function useCanvasRender({
       // add extra 1px offset to x, since there is an additional border separating fixed and non-fixed columns
       roundedRect(ctx, adjustedState.x + 1, adjustedState.y, adjustedState.width, adjustedState.height, 2, {
         borderColor,
-        borderWidth: 2,
+        borderWidth: 1,
       })
       ctx.lineWidth = 1
     }
@@ -1084,9 +1084,10 @@ export function useCanvasRender({
     }
 
     ctx.fillStyle = isAiFillMode.value ? getColor(themeV4Colors.purple['400']) : getColor(themeV4Colors.red['500'])
-    ctx.beginPath()
-    ctx.arc(fillHandler.x + (fillHandler.fixedCol ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
-    ctx.fill()
+    const handleSize = fillHandler.size
+    const handleCenterX = fillHandler.x + (fillHandler.fixedCol ? 0 : 1)
+    const handleCenterY = fillHandler.y
+    ctx.fillRect(handleCenterX - handleSize / 2, handleCenterY - handleSize / 2, handleSize, handleSize)
 
     // check if the fill handle is hovered
     const isHovered =

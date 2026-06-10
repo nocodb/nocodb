@@ -14,30 +14,28 @@ const emits = defineEmits<{
   'save-and-continue': []
 }>()
 
-// Disable mask click + Escape when the side panel is open — a silent
-// dismiss there would leave the panel parked on the old (dirty) row while
-// the grid is on a new row. The legacy modal expanded form keeps defaults.
-const panelStore = useExpandedFormPanel()
-
-const allowDismiss = computed(() => !panelStore?.isOpen.value)
-
 const onVisibleChange = (v: boolean) => {
   emits('update:modelValue', v)
+}
+
+// Dismiss (X / Escape / overlay) closes the prompt without saving or discarding.
+// Both consumers reset their pending close/navigation state on dismiss, so this
+// just cancels the action that triggered the prompt and stays on the current row.
+const onCancel = () => {
+  emits('update:modelValue', false)
 }
 </script>
 
 <template>
-  <NcModal
-    :visible="modelValue"
-    size="xs"
-    height="auto"
-    :mask-closable="allowDismiss"
-    :keyboard="allowDismiss"
-    @update:visible="onVisibleChange"
-  >
+  <NcModal :visible="modelValue" size="xs" height="auto" @update:visible="onVisibleChange">
     <div>
-      <div class="flex flex-row items-center gap-x-2 text-base font-bold">
-        {{ $t('labels.saveChanges') }}
+      <div class="flex flex-row items-center justify-between gap-x-2">
+        <div class="text-base font-bold">
+          {{ $t('labels.saveChanges') }}
+        </div>
+        <NcButton type="text" size="xsmall" data-testid="nc-discard-changes-modal-close" @click="onCancel">
+          <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
+        </NcButton>
       </div>
       <div class="flex font-medium mt-2">
         {{ $t('activity.doYouWantToSaveTheChanges') }}

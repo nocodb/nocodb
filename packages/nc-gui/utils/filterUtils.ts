@@ -43,6 +43,35 @@ export {
   deleteFilterWithSub,
 }
 
+// Text-like fields default to the "is like" (substring match) operator since
+// partial matching is the most common intent when filtering free text. All other
+// field types fall back to the first allowed operator in the list.
+const TEXT_LIKE_FILTER_DEFAULT_TYPES = new Set<UITypes>([
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+])
+
+/**
+ * Pick the default comparison operator for a freshly created/retargeted filter.
+ * Filters `ops` through `isAllowed`, then prefers `like` for text-like fields and
+ * otherwise returns the first allowed operator (the historical behaviour).
+ */
+export const getDefaultComparisonOp = (
+  ops: ComparisonOpUiType[],
+  isAllowed: (compOp: ComparisonOpUiType) => boolean,
+  uidt?: UITypes,
+): string | undefined => {
+  const allowed = ops.filter(isAllowed)
+  if (uidt && TEXT_LIKE_FILTER_DEFAULT_TYPES.has(uidt)) {
+    const like = allowed.find((op) => op.value === 'like')
+    if (like) return like.value
+  }
+  return allowed[0]?.value
+}
+
 /**
  * Strip FE-only transient fields (`tmp_id`, `status`, `dynamic`) and DB
  * system fields (`source_id`, `base_id`, `fk_workspace_id`, `created_at`,
@@ -261,9 +290,11 @@ export const adjustFilterWhenColumnChange = ({
   } else {
     filter.fk_value_col_id = null
   }
-  filter.comparison_op = comparisonOpList(evalUidt, parseProp(column.meta)?.date_format).find((compOp) =>
-    isComparisonOpAllowed(filter, compOp, evalUidt as UITypes, showNullAndEmptyInFilter),
-  )?.value
+  filter.comparison_op = getDefaultComparisonOp(
+    comparisonOpList(evalUidt, parseProp(column.meta)?.date_format),
+    (compOp) => isComparisonOpAllowed(filter, compOp, evalUidt as UITypes, showNullAndEmptyInFilter),
+    evalUidt,
+  )
 
   if (isDateType(evalUidt) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {

@@ -284,9 +284,11 @@ export function useViewFilters(
 
     const filter: ColumnFilterType = {
       tmp_id: getDraftFilterId(),
-      comparison_op: comparisonOpList(options.value?.[0]?.uidt as UITypes).filter((compOp) =>
-        isComparisonOpAllowed({ fk_column_id: options.value?.[0]?.id }, compOp),
-      )?.[0]?.value as FilterType['comparison_op'],
+      comparison_op: getDefaultComparisonOp(
+        comparisonOpList(options.value?.[0]?.uidt as UITypes),
+        (compOp) => isComparisonOpAllowed({ fk_column_id: options.value?.[0]?.id }, compOp),
+        options.value?.[0]?.uidt as UITypes,
+      ) as FilterType['comparison_op'],
       value: null,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',

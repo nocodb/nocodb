@@ -151,7 +151,7 @@ const showCol = (col: ColumnType) => {
   const baseVisible = props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
   if (!baseVisible) return false
   if (!fieldMatchesSearch(col, props.searchQuery ?? '', _row.value?.row)) return false
-  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title])) return false
+  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title], col)) return false
   return true
 }
 

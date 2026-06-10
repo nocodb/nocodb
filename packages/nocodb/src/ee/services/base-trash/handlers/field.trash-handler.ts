@@ -29,6 +29,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { clearDependentErrorsIfResolved } from '~/services/base-trash/dependent-error-helpers';
+import { MetaCacheInvalidator } from '~/helpers/metaCacheInvalidator';
 import { CacheScope, MetaTable } from '~/utils/globals';
 
 interface CascadedColumn {
@@ -185,6 +186,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
           col.fk_model_id,
           colOpt.fk_related_model_id,
         ].filter((t, i, a) => t && a.indexOf(t) === i);
+        const affectedModelIds: string[] = [];
         for (const tId of relatedTableIds) {
           const relTable = await Model.get(ctx, tId, false, ncMeta);
           if (!relTable) continue;
@@ -204,16 +206,16 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
               await NocoCache.update(ctx, `${CacheScope.COLUMN}:${c.id}`, {
                 deleted: true,
               });
-              await View.clearSingleQueryCache(
-                ctx,
-                c.fk_model_id,
-                null,
-                ncMeta,
-              );
+              affectedModelIds.push(c.fk_model_id);
               junctionSystemLinkIds.push(c.id);
             }
           }
         }
+        await MetaCacheInvalidator.invalidateModels(
+          ctx,
+          affectedModelIds,
+          ncMeta,
+        );
       }
     }
 
@@ -432,6 +434,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     // link, so the restored link's junction is joined again.
     const junctionSystemLinkIds: string[] =
       (relatedItems as any)?.junctionSystemLinkIds ?? [];
+    const reactivatedModelIds: string[] = [];
     for (const cid of junctionSystemLinkIds) {
       await ncMeta.metaUpdate(
         ctx.workspace_id,
@@ -448,9 +451,14 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       );
       if (fc) {
         await NocoCache.set(ctx, `${CacheScope.COLUMN}:${cid}`, fc);
-        await View.clearSingleQueryCache(ctx, fc.fk_model_id, null, ncMeta);
+        reactivatedModelIds.push(fc.fk_model_id);
       }
     }
+    await MetaCacheInvalidator.invalidateModels(
+      ctx,
+      reactivatedModelIds,
+      ncMeta,
+    );
 
     // Socket broadcast — include the restored column so frontend can update
     const restoredTable = await Model.getWithInfo(

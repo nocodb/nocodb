@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import {
+  SyncMappingStatus,
   TableSyncOnDeleteAction,
   TableSyncStatus,
   TableSyncTrigger,
@@ -15,7 +16,7 @@ import { createProject } from '~test/factory/base';
 import { createTable } from '~test/factory/table';
 import { createView } from '~test/factory/view';
 import { createColumn, createLtarColumn2 } from '~test/factory/column';
-import { internalPost, untracedCtx } from '~test/factory/internal';
+import { internalGet, internalPost, untracedCtx } from '~test/factory/internal';
 import {
   tableSyncCreate,
   tableSyncDelete,
@@ -825,6 +826,85 @@ export function tableSyncUndoRedoTests() {
       expect(s!.on_delete_action, 'on_delete re-applied').to.equal(
         TableSyncOnDeleteAction.Delete,
       );
+    });
+
+    // Manual counterpart to the undo-based delete: the user trashes the synced
+    // dest table directly (Trash UI / tableDelete), not via a sync op. The
+    // table-trash handler must ADMIT it (not "Synced tables cannot be deleted"),
+    // SUSPEND its mapping while it sits in trash, and REACTIVATE on restore —
+    // bringing the table back with its mapping intact ("full mapping back").
+    it('trash synced dest table directly → mapping suspended → restore → mapping reactivated', async function () {
+      this.timeout(120000);
+      const created = await tableSyncCreate(
+        untracedCtx(context),
+        destEnv,
+        syncBody({ title: 'TrashRestoreMapping' }),
+      ).expect(200);
+      const syncId: string = created.body.id;
+      await waitForSyncSettled(destEnv, syncId);
+
+      const before = await getSync(syncId);
+      const mainBefore = (before!.mappings ?? []).find(
+        (m: any) => m.role === 'main',
+      );
+      expect(mainBefore, 'main mapping exists').to.exist;
+      expect(mainBefore!.status, 'mapping active before trash').to.equal(
+        SyncMappingStatus.Active,
+      );
+      const destTableId: string = mainBefore!.dest_table_id;
+      expect(
+        await destTableExists(destTableId),
+        'dest table live before trash',
+      ).to.eq(true);
+
+      // Delete the synced dest table directly via the tableDelete (trash) path.
+      await internalPost(untracedCtx(context), destEnv, {
+        operation: 'tableDelete',
+        tableId: destTableId,
+      }).expect(200);
+
+      expect(
+        await destTableExists(destTableId),
+        'dest table trashed',
+      ).to.eq(false);
+      const afterTrash = await getSync(syncId);
+      expect(
+        (afterTrash!.mappings ?? []).find((m: any) => m.role === 'main')!.status,
+        'mapping suspended while table in trash',
+      ).to.equal(SyncMappingStatus.Suspended);
+
+      // Restore the table from trash → mapping reactivated, table still synced.
+      const trashList = await internalGet(untracedCtx(context), destEnv, {
+        operation: 'baseTrashList',
+      }).expect(200);
+      const entry = (trashList.body.list ?? []).find(
+        (t: any) => t.resource_id === destTableId,
+      );
+      expect(entry, 'dest table has a trash entry').to.exist;
+
+      await internalPost(
+        untracedCtx(context),
+        destEnv,
+        { operation: 'baseTrashRestore' },
+        { trashId: entry.id },
+      ).expect(200);
+
+      expect(
+        await destTableExists(destTableId),
+        'dest table restored',
+      ).to.eq(true);
+      const afterRestore = await getSync(syncId);
+      expect(
+        (afterRestore!.mappings ?? []).find((m: any) => m.role === 'main')!
+          .status,
+        'mapping reactivated after restore',
+      ).to.equal(SyncMappingStatus.Active);
+
+      const destModel = await Model.get(
+        { workspace_id: workspaceId, base_id: destBase.id },
+        destTableId,
+      );
+      expect(destModel!.synced, 'restored dest table still synced').to.eq(true);
     });
   });
 }

@@ -1487,13 +1487,17 @@ export class TableSyncService {
             }: ${(e as Error).message}`,
           );
         }
-        if (skipTrash) {
-          await TableSyncColumnMapping.deleteByTableSyncMapping(
-            context,
-            junctionMapping.id,
-          );
-          await TableSyncMapping.deleteById(context, junctionMapping.id);
-        }
+        // Drop the sync's own junction mapping rows in BOTH paths — the
+        // forward state must reflect the removal (no stale junction mapping).
+        // On the soft path the table still goes to trash for macro undo, which
+        // rebuilds these rows from the prevMappings snapshot via
+        // `replaceMappingSet`; the table-trash handler's suspend recorded the
+        // (now-removed) id, and its restore reactivation is a tolerant no-op.
+        await TableSyncColumnMapping.deleteByTableSyncMapping(
+          context,
+          junctionMapping.id,
+        );
+        await TableSyncMapping.deleteById(context, junctionMapping.id);
       }
 
       if (shadowId && !stillReferencingShadow && !opts.keepShadow) {
@@ -1525,20 +1529,16 @@ export class TableSyncService {
               }: ${(e as Error).message}`,
             );
           }
-          // Hard path only — see the junction branch above. On the soft path
-          // the shadow's mapping stays Suspended (recorded in the table's
-          // trash entry) so a manual restore can reactivate it; deleting it
-          // would orphan the trash entry into an un-restorable zombie.
-          // Shadow has column-mappings for every linked-table column it
-          // mirrored — drop those before the parent mapping so their
-          // cache lists are clean.
-          if (skipTrash) {
-            await TableSyncColumnMapping.deleteByTableSyncMapping(
-              context,
-              shadowMapping.id,
-            );
-            await TableSyncMapping.deleteById(context, shadowMapping.id);
-          }
+          // Drop the shadow's mapping rows in BOTH paths (see the junction
+          // branch above). Shadow has column-mappings for every linked-table
+          // column it mirrored — drop those before the parent mapping so their
+          // cache lists are clean. On the soft path the table is in trash and
+          // macro undo rebuilds these rows from the prevMappings snapshot.
+          await TableSyncColumnMapping.deleteByTableSyncMapping(
+            context,
+            shadowMapping.id,
+          );
+          await TableSyncMapping.deleteById(context, shadowMapping.id);
         }
       }
       return;

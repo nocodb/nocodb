@@ -306,13 +306,19 @@ export class PaymentService {
     is_active?: boolean;
   }) {
     if (!Object.values(PlanAddonTypes).includes(payload.addon_key)) {
-      NcError.badRequest('Invalid addon_key');
+      NcError.badRequest(
+        `Invalid addon_key '${payload.addon_key}'. Valid keys: ${Object.values(
+          PlanAddonTypes,
+        ).join(', ')}.`,
+      );
     }
 
     const existing = await Addon.getByKey(payload.addon_key);
 
     if (existing) {
-      NcError.badRequest('Addon already exists');
+      NcError.badRequest(
+        `Add-on '${payload.addon_key}' is already registered in the catalog.`,
+      );
     }
 
     const { title, description, prices, meta } =
@@ -504,7 +510,9 @@ export class PaymentService {
       workspaceOrOrgId,
     );
     if (!subscription)
-      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+      NcError.badRequest(
+        `Cannot revoke add-on '${addonKey}': workspace/org '${workspaceOrOrgId}' has no active subscription.`,
+      );
 
     const sa = await SubscriptionAddon.getActiveByKey(
       subscription.id,

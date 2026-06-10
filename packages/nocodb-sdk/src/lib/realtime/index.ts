@@ -143,7 +143,10 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'record_template_delete'
     | 'table_sync_create'
     | 'table_sync_update'
-    | 'table_sync_delete';
+    | 'table_sync_delete'
+    | 'app_sync_create'
+    | 'app_sync_update'
+    | 'app_sync_delete';
   payload: T;
   baseId?: string;
 }

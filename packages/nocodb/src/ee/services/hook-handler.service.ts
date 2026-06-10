@@ -875,6 +875,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
       context.workspace_id,
       context.base_id,
       param.modelId,
+      true,
     );
 
     if (!mappings.length) return;
@@ -939,6 +940,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
       context.workspace_id,
       context.base_id,
       modelId,
+      true, // dispatch hot path — skip suspended (dest-table-in-trash) mappings
     );
     if (!mappings.length) return;
 

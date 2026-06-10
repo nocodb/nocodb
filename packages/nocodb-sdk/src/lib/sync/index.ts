@@ -70,6 +70,8 @@ export interface SyncConfig {
 
   on_delete_action: OnDeleteAction;
 
+  deleted?: boolean;
+
   fk_workspace_id: string;
   base_id: string;
 

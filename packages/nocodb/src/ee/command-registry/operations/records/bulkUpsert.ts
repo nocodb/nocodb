@@ -128,7 +128,7 @@ export function registerBulkUpsertHandlers(
           trashId,
           user: meta.originalReq?.user ?? { id: meta.createdBy },
           req: meta.originalReq,
-          force: true,
+          options: { force: true },
         });
 
         const captured = meta.extra?.upsertChanges ?? [];

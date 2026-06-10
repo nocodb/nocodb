@@ -1,7 +1,4 @@
-import {
-  META_DEPENDENCY_MODULE_PROVIDER_KEY,
-  type MetaEventHandler,
-} from 'src/services/meta-dependency/types';
+import { META_DEPENDENCY_MODULE_PROVIDER_KEY } from 'src/services/meta-dependency/types';
 import { MetaDependencyServices as MetaDependencyServicesCE } from 'src/services/meta-dependency/meta-dependency.provider';
 import { ColumnAddTableSyncHandler } from '~/services/meta-dependency/handler/column/column-add-table-sync.handler';
 import { ColumnChangeTableSyncHandler } from '~/services/meta-dependency/handler/column/column-change-table-sync.handler';
@@ -24,6 +21,5 @@ export const MetaDependencyServices = [
 
 export const MetaDependencyModuleProvider = {
   provide: META_DEPENDENCY_MODULE_PROVIDER_KEY,
-  useFactory: (...internalApiModules: MetaEventHandler[]) => internalApiModules,
-  inject: MetaDependencyServices,
+  useValue: MetaDependencyServices,
 };

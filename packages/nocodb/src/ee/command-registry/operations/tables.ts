@@ -36,11 +36,12 @@ export const TableCreateContract: OperationContract<
     id_field: 'table',
   },
   undo: {
-    inverse: (_context, _params, result) => {
-      if (!result?.id) return null;
+    inverse: (_context, _params, result, resolved) => {
+      const tableId = result?.id ?? resolved?.entityId;
+      if (!tableId) return null;
       return {
         name: OperationName.tableDelete,
-        params: { tableId: result.id },
+        params: { tableId, forceDeleteSyncs: true },
       };
     },
     scope: (_p, _r, _c, context) => scopeBase(context),
@@ -255,6 +256,14 @@ export function registerTableHandlers(
         forceDeleteSyncs: params.forceDeleteSyncs,
         skipLinkPlaceholder: params.skipLinkPlaceholder,
         skipTrash: params.skipTrash,
+        parent:
+          params.parent?.type && params.parent.id
+            ? {
+                type: params.parent.type,
+                id: params.parent.id,
+                name: params.parent.name,
+              }
+            : undefined,
         req,
       });
     },

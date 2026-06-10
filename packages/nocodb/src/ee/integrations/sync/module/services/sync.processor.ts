@@ -346,7 +346,7 @@ export class SyncModuleSyncDataProcessor {
     const mainSyncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!mainSyncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     if (
@@ -380,6 +380,7 @@ export class SyncModuleSyncDataProcessor {
 
     const syncMappings = await SyncMapping.list(context, {
       fk_sync_config_id: parentSyncConfig.id,
+      activeOnly: true,
     });
 
     let recordCounter = 0;
@@ -843,7 +844,7 @@ export class SyncModuleSyncDataProcessor {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     const integration = await Integration.get(
@@ -855,6 +856,7 @@ export class SyncModuleSyncDataProcessor {
     // Get sync mappings for non-mm tables
     const syncMappings = await SyncMapping.list(context, {
       fk_sync_config_id: syncConfig.id,
+      activeOnly: true,
     });
 
     for (const syncMapping of syncMappings) {
@@ -947,7 +949,7 @@ export class SyncModuleSyncDataProcessor {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     const integration = await Integration.get(
@@ -971,6 +973,7 @@ export class SyncModuleSyncDataProcessor {
     // Get sync mappings for non-mm tables
     const syncMappings = await SyncMapping.list(context, {
       fk_sync_config_id: syncConfig.id,
+      activeOnly: true,
     });
 
     for (const syncMapping of syncMappings) {

@@ -1,5 +1,5 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { Injectable } from '@nestjs/common';
+import { AppEvents, SyncMappingStatus } from 'nocodb-sdk';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { NcApiVersion, OperationSource } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
@@ -15,7 +15,7 @@ import {
 } from '~/decorators/trace-command.decorator';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
-import { Base, Model } from '~/models';
+import { Base, Model, SyncMapping, TableSyncMapping } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -33,9 +33,7 @@ export class TablesService extends TableServiceCE {
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly columnsServiceEE: ColumnsService,
     protected readonly linkPlaceholderServiceEE: LinkPlaceholderService,
-    @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
-    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandlerEE: MetaDependencyEventHandler,
   ) {
     super(
@@ -204,6 +202,12 @@ export class TablesService extends TableServiceCE {
       skipLinkPlaceholder?: boolean;
       skipTrash?: boolean;
       req: NcRequest;
+      /**
+       * When trashing (skipTrash falsy), record the table's trash entry as a
+       * child of this parent. Only the table-sync drop path passes this — plain
+       * table deletes leave the entry parentless as before.
+       */
+      parent?: { type: string; id: string; name?: string };
     },
     ncMeta?: MetaService,
   ) {
@@ -218,6 +222,47 @@ export class TablesService extends TableServiceCE {
     }
 
     if (param.skipTrash) {
+      if (table.synced && !param.forceDeleteSyncs) {
+        const appSyncMappings = await SyncMapping.listByModelId(
+          context,
+          table.id,
+          ncMeta,
+        );
+        if (appSyncMappings.length) {
+          for (const m of appSyncMappings) {
+            await SyncMapping.markStatus(
+              context,
+              m.id,
+              SyncMappingStatus.Suspended,
+              ncMeta,
+            );
+          }
+        } else {
+          const tableSyncMappings = await TableSyncMapping.listByDestTable(
+            context.base_id,
+            table.id,
+            ncMeta,
+          );
+          if (!tableSyncMappings.length) {
+            NcError.get(context).invalidRequestBody(
+              'Synced tables cannot be deleted',
+            );
+          }
+          for (const m of tableSyncMappings) {
+            await TableSyncMapping.markStatus(
+              { ...context, base_id: m.base_id },
+              m.id,
+              SyncMappingStatus.Suspended,
+              ncMeta,
+            );
+          }
+        }
+        return super.tableDelete(
+          context,
+          { ...param, forceDeleteSyncs: true },
+          ncMeta,
+        );
+      }
       return super.tableDelete(context, param, ncMeta);
     }
 
@@ -229,6 +274,7 @@ export class TablesService extends TableServiceCE {
       user,
       req: param.req,
       ncMeta,
+      parent: param.parent,
     });
 
     this.appHooksServiceEE.emit(AppEvents.TABLE_DELETE, {

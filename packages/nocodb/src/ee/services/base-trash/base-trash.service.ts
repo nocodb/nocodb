@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Type } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import {
   AppEvents,
   extractRolesObj,
@@ -35,14 +36,17 @@ export class BaseTrashService implements OnModuleInit {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly nocoJobsService: NocoJobsService,
-    @Inject(TRASH_HANDLER_TOKEN) handlers: TrashHandler[],
-  ) {
-    for (const handler of handlers) {
-      this.handlerMap.set(handler.resourceType, handler);
-    }
-  }
+    @Inject(TRASH_HANDLER_TOKEN)
+    protected readonly handlerClasses: Type<TrashHandler>[],
+    private readonly moduleRef: ModuleRef,
+  ) {}
 
   async onModuleInit() {
+    for (const cls of this.handlerClasses) {
+      const handler = this.moduleRef.get(cls, { strict: false });
+      this.handlerMap.set(handler.resourceType, handler);
+    }
+
     await this.nocoJobsService.jobsQueue.removeRepeatable({
       jobId: JobTypes.BaseTrashCleanUp,
       cron: '*/10 * * * *',
@@ -128,22 +132,22 @@ export class BaseTrashService implements OnModuleInit {
       resourceType: string;
       user: Partial<UserType>;
       ncMeta?: MetaService;
-      deletedAt?: string;
-      cleanupDueAt?: string;
       retentionDays: number;
+      parent?: { type: string; id: string; name?: string };
     },
     result: Awaited<ReturnType<TrashHandler['trash']>>,
   ) {
-    const deletedAt = param.deletedAt ? new Date(param.deletedAt) : new Date();
+    const deletedAt = new Date();
     // The PG type parser at db/CustomKnex.ts truncates fractional seconds when
     // reading timestamps, so cursor pagination on `deleted_at` reads back at
     // second precision. Insert at the same precision so cursor `<`/`=` checks
     // match the stored value exactly.
     deletedAt.setMilliseconds(0);
 
-    const cleanupDueAtIso = param.cleanupDueAt
-      ? new Date(param.cleanupDueAt).toISOString()
-      : computeCleanupDueAt(deletedAt.toISOString(), param.retentionDays);
+    const cleanupDueAtIso = computeCleanupDueAt(
+      deletedAt.toISOString(),
+      param.retentionDays,
+    );
 
     return BaseTrash.insert(
       context,
@@ -156,11 +160,11 @@ export class BaseTrashService implements OnModuleInit {
         deleted_by: param.user.id,
         deleted_at: deletedAt.toISOString(),
         cleanup_due_at: cleanupDueAtIso,
-        ...(result.parentType
+        ...(result.parentType ?? param.parent
           ? {
-              parent_type: result.parentType,
-              parent_id: result.parentId,
-              parent_name: result.parentName,
+              parent_type: result.parentType ?? param.parent?.type,
+              parent_id: result.parentId ?? param.parent?.id,
+              parent_name: result.parentName ?? param.parent?.name,
             }
           : {}),
         ...(result.relatedItems
@@ -180,8 +184,13 @@ export class BaseTrashService implements OnModuleInit {
       user: Partial<UserType>;
       req: NcRequest;
       ncMeta?: MetaService;
-      deletedAt?: string;
-      cleanupDueAt?: string;
+      /**
+       * Stamp the created trash entry as a child of this parent. Falls back
+       * into `parent_type/id/name` when the handler doesn't set its own.
+       */
+      parent?: { type: string; id: string; name?: string };
+      /** Entity-specific delete options forwarded verbatim to the handler. */
+      options?: unknown;
     },
   ) {
     if (context.schema_locked) {
@@ -205,7 +214,12 @@ export class BaseTrashService implements OnModuleInit {
       const result = await handler.trash(
         context,
         param.resourceId,
-        { user: param.user, req: param.req },
+        {
+          user: param.user,
+          req: param.req,
+          parent: param.parent,
+          options: param.options,
+        },
         ncMeta,
       );
       if (!result.skipTrashEntry) {
@@ -252,13 +266,12 @@ export class BaseTrashService implements OnModuleInit {
        */
       ncMeta?: MetaService;
       /**
-       * Conflict-resolution flag for `record` entries — pass-through to
-       * `RecordTrashHandler.restore`. Other resource types ignore it.
-       *   force:   auto-resolve every conflict by nulling offending columns
-       *   partial: skip conflicting rows; leave them in trash
+       * Entity-specific options, forwarded verbatim to the handler — generic,
+       * exactly like `trashResource`. Each handler narrows its own param type
+       * and reads its own keys (e.g. the record handler reads `force` /
+       * `partial` via `RecordTrashOptions`). The service never interprets them.
        */
-      force?: boolean;
-      partial?: boolean;
+      options?: unknown;
     },
   ) {
     if (context.schema_locked) {
@@ -308,8 +321,7 @@ export class BaseTrashService implements OnModuleInit {
         {
           user: param.user,
           req: param.req,
-          force: param.force,
-          partial: param.partial,
+          options: param.options,
         },
         ncMeta,
       );

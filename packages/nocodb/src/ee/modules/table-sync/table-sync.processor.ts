@@ -211,6 +211,12 @@ export class TableSyncProcessor {
         );
         if (!destModel) {
           this.logger.warn(`${tag} destModel missing`);
+          if (isMain) {
+            NcError.get(context).invalidRequestBody(
+              `The destination table for sync "${sync.title}" was permanently deleted. ` +
+                `Delete this sync and recreate it from the source to re-establish it.`,
+            );
+          }
           continue;
         }
         await destModel.getColumns(destWriteContext);

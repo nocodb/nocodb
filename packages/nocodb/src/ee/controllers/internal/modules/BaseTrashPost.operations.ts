@@ -48,8 +48,7 @@ export class BaseTrashPostOperations
           trashId: payload.trashId,
           user: req.user,
           req,
-          force: payload.force,
-          partial: payload.partial,
+          options: { force: payload.force, partial: payload.partial },
         });
       case 'baseTrashRestoreRows':
         return await this.recordTrashHandler.restoreRows(context, {

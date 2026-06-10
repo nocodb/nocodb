@@ -773,7 +773,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                         :data-testid="`sidebar-table-delete-${table.title}`"
                         class="nc-table-delete"
                         danger
-                        :disabled="!!table.synced || isMmTable"
+                        :disabled="isMmTable"
                         @click="deleteTable"
                       >
                         <div v-e="['c:table:delete']" class="flex gap-2 items-center">

@@ -65,6 +65,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Connection '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND]: {
+    message: (id: string) => `Sync '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_INTEGRATION_LINKED_WITH_BASES]: {
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,

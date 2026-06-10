@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
@@ -34,7 +34,6 @@ export class ViewsService extends ViewsServiceCE {
   constructor(
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly baseTrashService: BaseTrashService,
-    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {
     super(appHooksServiceEE, metaDependencyEventHandler);

@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   MetaEventType,
   TableSyncMappingRole,
@@ -57,9 +57,7 @@ export class ColumnChangeTableSyncHandler implements MetaEventHandler {
 
   constructor(
     protected readonly nocoJobsService: NocoJobsService,
-    @Inject(forwardRef(() => TableSyncService))
     protected readonly tableSyncService: TableSyncService,
-    @Inject(forwardRef(() => ColumnsService))
     protected readonly columnsService: ColumnsService,
   ) {}
 

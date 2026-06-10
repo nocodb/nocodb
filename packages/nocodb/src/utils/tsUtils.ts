@@ -1,3 +1,10 @@
+import {
+  ncIsArray,
+  ncIsNullOrUndefined,
+  ncIsObject,
+  ncIsString,
+} from 'nocodb-sdk';
+
 /**
  * Split array into chunks
  * @param array array to split
@@ -64,6 +71,42 @@ export function validateAndStringifyJson<T>(val: T): {
   }
 
   return { jsonVal, isValidJson };
+}
+
+/**
+ * Parse a JSON-backed value into a typed object. Handles the three shapes a
+ * JSON column can arrive in:
+ *   - already an object (e.g. after the meta layer's `prepareForResponse`
+ *     parses the column) → returned as-is,
+ *   - a JSON string (raw DB row) → `JSON.parse`d,
+ *   - null / undefined / non-string primitive / unparseable → `fallback`.
+ *
+ * @template T - The expected shape of the parsed value.
+ * @param {unknown} value - The value to parse (object, JSON string, or nullish).
+ * @param {T} [fallback={}] - Returned when `value` is absent or not valid JSON.
+ * @returns {T} The parsed value, or `fallback`.
+ * @example
+ * ```typescript
+ * parseJson<{ a: number }>('{"a":1}');          // { a: 1 }
+ * parseJson<{ a: number }>({ a: 1 });            // { a: 1 }
+ * parseJson<string[]>(undefined, []);            // []
+ * parseJson<{ a: number }>('not json');          // {}
+ * ```
+ */
+export function parseJson<T = Record<string, unknown>>(
+  value: unknown,
+  fallback: T = {} as T,
+): T {
+  if (ncIsNullOrUndefined(value)) return fallback;
+  // Already parsed (e.g. the meta layer's `prepareForResponse`) — object or array.
+  if (ncIsObject(value) || ncIsArray(value)) return value as T;
+  if (!ncIsString(value)) return fallback;
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 export { pickFields, pickFieldsIfPresent } from 'nocodb-sdk';

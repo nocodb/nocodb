@@ -11,6 +11,8 @@ const TRASH_RESOURCE_TYPES = [
   'view',
   'widget',
   'workflow',
+  'appSync',
+  'tableSync',
 ] as const;
 
 export const trashRestoreSchema = z

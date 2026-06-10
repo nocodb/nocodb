@@ -47,6 +47,18 @@ import {
 } from '~/services/base-trash/record-trash.helpers';
 import { toIsoString } from '~/ee/helpers/trashHelpers';
 
+/**
+ * Restore-conflict flags for `record` entries — passed verbatim through the
+ * generic `TrashCallParam.options` bag. Mutually exclusive:
+ *   - force:   auto-resolve every conflict by nulling offending columns /
+ *              dropping the junction rows that block restoration
+ *   - partial: skip conflicting rows, leaving them in trash
+ */
+export interface RecordTrashOptions {
+  force?: boolean;
+  partial?: boolean;
+}
+
 @Injectable()
 export class RecordTrashHandler extends BaseTrashHandler<{
   id: string;
@@ -194,7 +206,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
-    param: TrashCallParam,
+    param: TrashCallParam<RecordTrashOptions>,
     ncMeta?: MetaService,
   ): Promise<TrashLifecycleResult | void> {
     const parsed = parseRecordResourceId(trashEntry.resource_id);
@@ -205,7 +217,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       return;
     }
 
-    if (param.force && param.partial) {
+    if (param.options?.force && param.options?.partial) {
       NcError.get(ctx).badRequest(
         '`force` and `partial` are mutually exclusive',
       );
@@ -279,7 +291,11 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       }
     }
 
-    if (allConflicts.length && !param.force && !param.partial) {
+    if (
+      allConflicts.length &&
+      !param.options?.force &&
+      !param.options?.partial
+    ) {
       const counts = allConflicts.reduce(
         (acc, c) => ((acc[c.kind] = (acc[c.kind] ?? 0) + 1), acc),
         {} as Record<string, number>,
@@ -314,13 +330,13 @@ export class RecordTrashHandler extends BaseTrashHandler<{
         if (!batchIds.length) break;
 
         // Partial mode: drop conflicted rows from this batch
-        if (param.partial) {
+        if (param.options?.partial) {
           batchIds = batchIds.filter((id) => !conflictsByRowId.has(id));
           if (!batchIds.length) continue;
         }
 
         const batchConflicts: RestoreConflict[] = [];
-        if (param.force) {
+        if (param.options?.force) {
           for (const id of batchIds) {
             const rowConflicts = conflictsByRowId.get(id);
             if (rowConflicts?.length) batchConflicts.push(...rowConflicts);

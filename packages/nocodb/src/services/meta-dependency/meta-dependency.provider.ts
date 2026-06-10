@@ -1,7 +1,4 @@
-import {
-  META_DEPENDENCY_MODULE_PROVIDER_KEY,
-  type MetaEventHandler,
-} from './types';
+import { META_DEPENDENCY_MODULE_PROVIDER_KEY } from './types';
 import { ColumnTimezoneUpdateDependencyHandler } from '~/services/meta-dependency/handler/column/column-timezone-update.handler';
 import { ColumnDeleteFilterDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-filter-dependency.handler';
 import { ColumnDeleteCoverImageDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-cover-image-dependency.handler';
@@ -40,6 +37,5 @@ export const MetaDependencyServices = [
 
 export const MetaDependencyModuleProvider = {
   provide: META_DEPENDENCY_MODULE_PROVIDER_KEY,
-  useFactory: (...internalApiModules: MetaEventHandler[]) => internalApiModules,
-  inject: MetaDependencyServices,
+  useValue: MetaDependencyServices,
 };

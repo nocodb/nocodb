@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   EventType,
   MetaEventType,
@@ -51,10 +51,7 @@ export class TableDeleteTableSyncHandler implements MetaEventHandler {
 
   triggerMetaEvents: MetaEventType[] = [MetaEventType.TABLE_DELETED];
 
-  constructor(
-    @Inject(forwardRef(() => TableSyncService))
-    protected readonly tableSyncService: TableSyncService,
-  ) {}
+  constructor(protected readonly tableSyncService: TableSyncService) {}
 
   async getAffectedDependency(
     context: NcContext,
@@ -67,6 +64,7 @@ export class TableDeleteTableSyncHandler implements MetaEventHandler {
       context.workspace_id,
       context.base_id,
       table.id,
+      false, // see suspended mappings too — source delete must react even while the dest sits in trash
       ncMeta,
     );
     if (!mappings.length) return undefined;

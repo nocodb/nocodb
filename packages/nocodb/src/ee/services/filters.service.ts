@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import { AppEvents, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
@@ -32,7 +32,6 @@ import RowColorCondition from '~/models/RowColorCondition';
 export class FiltersService extends FiltersServiceCE {
   constructor(
     protected readonly appHooksService: AppHooksService,
-    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {
     super(appHooksService, metaDependencyEventHandler);

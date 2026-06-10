@@ -105,14 +105,14 @@ export const ColumnAddContract: OperationContract<
     dependencies: (_params, result) => deriveColumnDeps(result),
   },
   undo: {
-    inverse: (_context, params, result) => {
+    inverse: (_context, params, result, resolved) => {
       const title =
         params?.column?.title ?? params?.column?.column_name ?? undefined;
-      const newId = resolveAddedColumnId(result, title);
+      const newId = resolveAddedColumnId(result, title) ?? resolved?.entityId;
       if (!newId) return null;
       return {
         name: OperationName.columnDelete,
-        params: { columnId: newId },
+        params: { columnId: newId, forceDeleteSystem: true },
       };
     },
     scope: (params) => scopeTable(params.tableId),
@@ -692,10 +692,13 @@ export function registerColumnHandlers(
 
       type ColumnUpdateSvcParams = Parameters<typeof svc.columnUpdate>[1] & {
         forceUpdateSystem?: boolean;
+        bypassSyncedFieldGuard?: boolean;
       };
       const svcParams: ColumnUpdateSvcParams = {
         ...params,
-        ...(isReplay() ? { forceUpdateSystem: true } : {}),
+        ...(isReplay()
+          ? { forceUpdateSystem: true, bypassSyncedFieldGuard: true }
+          : {}),
         req,
       } as unknown as ColumnUpdateSvcParams;
 

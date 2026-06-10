@@ -63,22 +63,10 @@ export async function clearSingleQueryCacheForReferencingModels(
 
   // Seed: relation columns whose *related* (target) model is the renamed table.
   // The relation column (`fk_column_id`) lives on the referencing model, so its
-  // compiled SQL joins the renamed physical table directly.
-  const relationsToModel = await ncMeta.metaList2(
-    context.workspace_id,
-    context.base_id,
-    MetaTable.COL_RELATIONS,
-    {
-      xcCondition: {
-        _and: [{ fk_related_model_id: { eq: modelId } }],
-      },
-    },
-  );
-
-  // relation columns that point AT the renamed table (used both as seed
-  // embedding columns and to detect Lookups/Rollups that hop onto it)
+  // compiled SQL joins the renamed physical table directly. Used both as seed
+  // embedding columns and to detect Lookups/Rollups that hop onto it.
   const relationColsTargetingModel = new Set<string>(
-    relationsToModel.map((rel) => rel.fk_column_id).filter(Boolean),
+    await loadLinkColIdsTargetingModel(context, modelId, ncMeta),
   );
 
   // the running set of embedding column ids — columns whose SQL references the
@@ -127,56 +115,26 @@ export async function clearSingleQueryCacheForRenamedColumnReferences(
 ) {
   if (!Noco.isEE()) return;
 
-  const referencingModelIds = new Set<string>();
-
   // Far side of relations whose physical FK column is oldCol — their JOIN ON
   // clause embeds the column name. (FK-rename transitive propagation is out of
   // scope; only the direct far-side model is reached.)
-  const fkRelations = await ncMeta.metaList2(
-    context.workspace_id,
-    context.base_id,
-    MetaTable.COL_RELATIONS,
-    {
-      xcCondition: {
-        _and: [
-          {
-            _or: [
-              { fk_child_column_id: { eq: oldCol.id } },
-              { fk_parent_column_id: { eq: oldCol.id } },
-              { fk_mm_child_column_id: { eq: oldCol.id } },
-              { fk_mm_parent_column_id: { eq: oldCol.id } },
-            ],
-          },
-          {
-            fk_related_model_id: { neq: oldCol.fk_model_id },
-          },
-        ],
-      },
-    },
+  const referencingModelIds = await loadFarSideModelIdsForFkColumn(
+    context,
+    oldCol,
+    ncMeta,
   );
-  for (const rel of fkRelations) {
-    if ((rel as LinksColumn).fk_related_model_id) {
-      referencingModelIds.add((rel as LinksColumn).fk_related_model_id);
-    }
-  }
 
   // seed embedding columns with the renamed column itself
   const embeddingColumnIds = new Set<string>([oldCol.id]);
 
   // if it's the display value, Link columns pointing at its model surface it
   if (oldCol.pv) {
-    const linksToModel = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_RELATIONS,
-      {
-        xcCondition: {
-          _and: [{ fk_related_model_id: { eq: oldCol.fk_model_id } }],
-        },
-      },
-    );
-    for (const rel of linksToModel) {
-      if (rel.fk_column_id) embeddingColumnIds.add(rel.fk_column_id);
+    for (const colId of await loadLinkColIdsTargetingModel(
+      context,
+      oldCol.fk_model_id,
+      ncMeta,
+    )) {
+      embeddingColumnIds.add(colId);
     }
   }
 
@@ -212,107 +170,31 @@ export async function clearSingleQueryCacheForColumnReferences(
 ) {
   if (!Noco.isEE()) return;
 
-  const refTableIds = new Set<string>();
+  // Far side of relations whose physical FK column is oldCol — their JOIN
+  // embeds the column name.
+  const refTableIds = await loadFarSideModelIdsForFkColumn(
+    context,
+    oldCol,
+    ncMeta,
+  );
 
-  // clear any related table cache if updating a FK column
-  {
-    // Get LTAR columns in which current column is referenced as foreign key
-    const ltarColumns = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_RELATIONS,
-      {
-        xcCondition: {
-          _and: [
-            {
-              _or: [
-                { fk_child_column_id: { eq: oldCol.id } },
-                { fk_parent_column_id: { eq: oldCol.id } },
-                { fk_mm_child_column_id: { eq: oldCol.id } },
-                { fk_mm_parent_column_id: { eq: oldCol.id } },
-              ],
-            },
-            {
-              fk_related_model_id: { neq: oldCol.fk_model_id },
-            },
-          ],
-        },
-      },
-    );
+  // Relation columns whose compiled SQL surfaces oldCol: the relation column of
+  // any Lookup/Rollup that reads it directly (one hop — no physical name
+  // changed, so transitive referrers can't be stale), plus — when oldCol is the
+  // display value — the Links pointing at its model.
+  const relationColIds = await loadDependentRelationColIds(
+    context,
+    oldCol.id,
+    ncMeta,
+  );
 
-    for (const linkCol of ltarColumns) {
-      refTableIds.add((linkCol as LinksColumn).fk_related_model_id);
-    }
-  }
-
-  const relationColIds = new Set<string>();
-
-  // get LTAR relation columns
-  {
-    if (oldCol.pv) {
-      // Get LTAR columns in which current column is referenced as foreign key
-      const ltarColumns = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_RELATIONS,
-        {
-          xcCondition: {
-            _and: [
-              {
-                fk_related_model_id: { eq: oldCol.fk_model_id },
-              },
-            ],
-          },
-        },
-      );
-
-      for (const ltarCol of ltarColumns) {
-        relationColIds.add(ltarCol.fk_column_id);
-      }
-    }
-  }
-
-  // get LTAR/Links relation column id of Lookup
-  {
-    const lkColumns = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_LOOKUP,
-      {
-        xcCondition: {
-          _and: [
-            {
-              fk_lookup_column_id: { eq: oldCol.id },
-            },
-          ],
-        },
-      },
-    );
-
-    for (const lkCol of lkColumns) {
-      relationColIds.add((lkCol as LookupType).fk_relation_column_id);
-    }
-  }
-
-  // get LTAR/Links relation column id of Rollup
-  {
-    const rlColumns = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_ROLLUP,
-      {
-        xcCondition: {
-          _and: [
-            {
-              fk_rollup_column_id: { eq: oldCol.id },
-            },
-          ],
-        },
-      },
-    );
-
-    for (const rlCol of rlColumns) {
-      relationColIds.add((rlCol as LookupType).fk_relation_column_id);
+  if (oldCol.pv) {
+    for (const colId of await loadLinkColIdsTargetingModel(
+      context,
+      oldCol.fk_model_id,
+      ncMeta,
+    )) {
+      relationColIds.add(colId);
     }
   }
 
@@ -331,6 +213,108 @@ export async function clearSingleQueryCacheForColumnReferences(
   refTableIds.delete(oldCol.fk_model_id);
 
   await clearModelsSingleQueryCache(context, refTableIds, ncMeta);
+}
+
+/**
+ * Relation/Link column ids whose *target* (related) model is `modelId`. Their
+ * compiled SQL joins `modelId`'s physical table directly, so they embed it —
+ * used both as the table-rename seed and, in the column-rename `pv` case, as the
+ * Links that surface the renamed display value.
+ */
+async function loadLinkColIdsTargetingModel(
+  context: NcContext,
+  modelId: string,
+  ncMeta = Noco.ncMeta,
+): Promise<string[]> {
+  const relations = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.COL_RELATIONS,
+    {
+      xcCondition: {
+        _and: [{ fk_related_model_id: { eq: modelId } }],
+      },
+    },
+  );
+
+  return relations.map((rel) => rel.fk_column_id).filter(Boolean);
+}
+
+/**
+ * Far-side model ids of every relation whose physical FK column is `column` —
+ * their JOIN ON clause embeds the column name. The column's own model is
+ * excluded by the query. (FK-rename transitive propagation is out of scope;
+ * only the direct far-side model is reached.)
+ */
+async function loadFarSideModelIdsForFkColumn(
+  context: NcContext,
+  column: Column,
+  ncMeta = Noco.ncMeta,
+): Promise<Set<string>> {
+  const relations = await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.COL_RELATIONS,
+    {
+      xcCondition: {
+        _and: [
+          {
+            _or: [
+              { fk_child_column_id: { eq: column.id } },
+              { fk_parent_column_id: { eq: column.id } },
+              { fk_mm_child_column_id: { eq: column.id } },
+              { fk_mm_parent_column_id: { eq: column.id } },
+            ],
+          },
+          { fk_related_model_id: { neq: column.fk_model_id } },
+        ],
+      },
+    },
+  );
+
+  const modelIds = new Set<string>();
+  for (const rel of relations) {
+    const farSideModelId = (rel as LinksColumn).fk_related_model_id;
+    if (farSideModelId) modelIds.add(farSideModelId);
+  }
+  return modelIds;
+}
+
+/**
+ * One-hop scan: the relation column ids of every Lookup/Rollup that looks up or
+ * rolls up `columnId` directly. Used by the cheap non-rename path — transitive
+ * chains are handled by `expandEmbeddingColumns` instead.
+ */
+async function loadDependentRelationColIds(
+  context: NcContext,
+  columnId: string,
+  ncMeta = Noco.ncMeta,
+): Promise<Set<string>> {
+  const relationColIds = new Set<string>();
+
+  const targets = [
+    [MetaTable.COL_LOOKUP, 'fk_lookup_column_id'],
+    [MetaTable.COL_ROLLUP, 'fk_rollup_column_id'],
+  ] as const;
+
+  for (const [table, field] of targets) {
+    const rows = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      table,
+      {
+        xcCondition: {
+          _and: [{ [field]: { eq: columnId } }],
+        },
+      },
+    );
+
+    for (const row of rows) {
+      relationColIds.add((row as LookupType).fk_relation_column_id);
+    }
+  }
+
+  return relationColIds;
 }
 
 /**

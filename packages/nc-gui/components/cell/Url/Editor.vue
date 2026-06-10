@@ -29,7 +29,8 @@ const vModel = computed({
   set: (val) => {
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && isValidURL(trim(val))) || !val || isForm.value || isEditColumn.value) {
-      emit('update:modelValue', val)
+      // Store an empty URL value as null rather than '' to keep cleared cells null
+      emit('update:modelValue', val || null)
     }
   },
 })

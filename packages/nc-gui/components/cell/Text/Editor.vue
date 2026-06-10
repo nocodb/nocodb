@@ -33,7 +33,8 @@ const focus: VNodeRef = (el) => {
 
 const textareaValue = computed({
   get: () => vModel.value ?? '',
-  set: (val) => (vModel.value = val),
+  // Store an empty SingleLineText value as null rather than '' to keep cleared cells null
+  set: (val) => (vModel.value = val || null),
 })
 
 onMounted(() => {
@@ -48,7 +49,8 @@ const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 // which does not occur in vanilla v-model
 // See https://github.com/vuejs/vue/issues/9777
 function updateInput(e: any) {
-  vModel.value = (e.target as HTMLInputElement)?.value ?? ''
+  // Store an empty SingleLineText value as null rather than '' to keep cleared cells null
+  vModel.value = (e.target as HTMLInputElement)?.value || null
 }
 </script>
 

@@ -28,7 +28,8 @@ const vModel = computed({
   set: (val) => {
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value || isEditColumn.value) {
-      emit('update:modelValue', val)
+      // Store an empty Email value as null rather than '' to keep cleared cells null
+      emit('update:modelValue', val || null)
     }
   },
 })

@@ -50,7 +50,9 @@ const migrateToV3 = async () => {
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
       Upgrade this base to v3 to unlock the latest platform capabilities and future-ready APIs.
-      <a href="https://docs.nocodb.com/" target="_blank" rel="noopener noreferrer" class="text-nc-content-brand"> Learn more </a>
+      <a href="https://docs.nocodb.com/" target="_blank" rel="noopener noreferrer" class="text-nc-content-brand">
+        {{ $t('msg.learnMore') }}
+      </a>
     </div>
 
     <div class="mt-6">
@@ -105,7 +107,9 @@ const migrateToV3 = async () => {
 
     <GeneralModal v-model:visible="isModalVisible" size="small" centered>
       <div class="flex flex-col p-4 md:p-6">
-        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">Migrate to V3</div>
+        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">
+          {{ $t('labels.migrateToV3') }}
+        </div>
 
         <div class="mb-2 text-nc-content-gray-emphasis font-medium">Are you sure you want to migrate this base to v3?</div>
 

@@ -241,7 +241,7 @@ watch(
         v-model:value="searchQuery"
         type="text"
         class="nc-search-permissions-input nc-input-border-on-value !max-w-90 nc-input-sm"
-        placeholder="Search tables"
+        :placeholder="$t('placeholder.searchProjectTree')"
         allow-clear
       >
         <template #prefix>

@@ -509,7 +509,7 @@ onMounted(async () => {
             {{ $t('labels.twoFactorScopeBanner') }}
           </div>
           <div class="flex flex-col items-center gap-3">
-            <img :src="setupData.qrUrl" alt="QR Code" class="w-60 h-60" />
+            <img :src="setupData.qrUrl" :alt="$t('title.qrCode')" class="w-60 h-60" />
             <div class="bg-nc-bg-gray-light rounded-lg px-3 py-2 flex items-center justify-center gap-2">
               <code class="text-xs break-all text-nc-content-gray select-all">{{ setupData.secret }}</code>
               <NcTooltip :visible="recentlyCopied ? true : undefined">

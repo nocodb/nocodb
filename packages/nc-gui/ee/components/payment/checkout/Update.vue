@@ -267,7 +267,7 @@ const onCancelSubscription = async () => {
                 <div class="min-w-[100px] text-right">${{ priceInfo.price + priceInfo.discount }}</div>
               </div>
               <div class="flex justify-between text-nc-content-gray text-sm font-500">
-                <div>Annual Savings</div>
+                <div>{{ $t('labels.annualSavings') }}</div>
 
                 <NcBadge :border="false" color="green" class="!text-nc-content-green-dark !font-500">
                   -${{ priceInfo.discount }}
@@ -423,7 +423,7 @@ const onCancelSubscription = async () => {
               <div class="flex items-center justify-center p-2 bg-nc-bg-gray-light rounded-lg">
                 <GeneralIcon icon="sso" class="text-nc-content-gray-subtle" />
               </div>
-              <span>Single Sign-On (SSO)</span>
+              <span>{{ $t('title.sso') }}</span>
             </div>
             <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-maroon-light rounded-lg">

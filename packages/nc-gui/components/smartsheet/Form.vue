@@ -1755,7 +1755,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             <NcAutoSizeTextarea
                               v-model:model-value="formViewData.heading"
                               class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !bg-transparent !text-nc-content-gray-emphasis"
-                              placeholder="Form Title"
+                              :placeholder="$t('title.formTitle')"
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
@@ -1970,7 +1970,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       class="relative h-3.5 w-3.5 flex cursor-pointer"
                                       placement="topLeft"
                                     >
-                                      <template #title> Conditionally visible field </template>
+                                      <template #title> {{ $t('tooltip.conditionallyVisibleField') }} </template>
                                       <Transition name="icon-fade" :duration="500">
                                         <GeneralIcon
                                           v-if="element?.visible"
@@ -2137,7 +2137,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 class="relative h-3.5 w-3.5 flex cursor-pointer"
                                 placement="topLeft"
                               >
-                                <template #title> Conditionally visible field </template>
+                                <template #title> {{ $t('tooltip.conditionallyVisibleField') }} </template>
                                 <Transition name="icon-fade" :duration="500">
                                   <GeneralIcon
                                     v-if="element?.visible"

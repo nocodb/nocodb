@@ -231,7 +231,7 @@ async function copyComment(comment: CommentType) {
             >
               <GeneralIcon class="!w-3.5 !h-3.5" icon="checkCircle" />
             </NcButton>
-            <template #title>Click to resolve</template>
+            <template #title>{{ $t('activity.clickToResolve') }}</template>
           </NcTooltip>
           <NcTooltip v-else-if="props.comment.resolved_by">
             <template #title>{{ `Resolved by ${props.comment.resolved_display_name_short}` }}</template>

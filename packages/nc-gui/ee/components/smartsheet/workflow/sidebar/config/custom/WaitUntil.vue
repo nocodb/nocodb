@@ -433,7 +433,7 @@ watch(
             </div>
           </a-select-option>
         </a-select-opt-group>
-        <a-select-opt-group label="All">
+        <a-select-opt-group :label="$t('general.all')">
           <a-select-option v-for="tz of timezones" :key="tz.name" :value="tz.name" :data-abbreviation="tz.abbreviation">
             <div class="flex gap-2 w-full justify-between items-center">
               <span>{{ tz.name }}</span>

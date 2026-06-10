@@ -130,7 +130,7 @@ const renameScript = async (disableTitleDiffCheck?: boolean | undefined) => {
           type="primary"
           size="small"
           :disabled="validateInfos.title.validateStatus === 'error' || formState.title?.trim() === script.title"
-          label="Rename Script"
+          :label="$t('title.renameScript')"
           loading-label="Renaming Script"
           :loading="loading"
           @click="() => renameScript()"

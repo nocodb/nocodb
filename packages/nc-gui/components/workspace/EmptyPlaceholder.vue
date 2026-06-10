@@ -16,7 +16,7 @@ const openCreateProjectDlg = () => {
       <NcIconsInbox />
       <div class="font-weight-medium">No Projects</div>
       <template v-if="props.buttons">
-        <div class="text-xs">Create Base</div>
+        <div class="text-xs">{{ $t('title.createBase') }}</div>
         <div class="flex gap-2 justify mt-1">
           <a-button class="flex-1 nc-btn" @click="openCreateProjectDlg()">
             <div class="flex gap-2 items-center justify-center text-xs">

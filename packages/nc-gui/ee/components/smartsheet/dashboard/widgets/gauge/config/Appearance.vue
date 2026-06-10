@@ -104,7 +104,7 @@ const updateRange = (index: number, field: keyof GaugeRange, value: any) => {
             :min="0"
             :max="range.max - 1"
             class="flex-1"
-            placeholder="Min"
+            :placeholder="$t('general.min')"
             :disabled="index > 0"
             @update:model-value="updateRange(index, 'min', $event)"
           />
@@ -112,7 +112,7 @@ const updateRange = (index: number, field: keyof GaugeRange, value: any) => {
             :model-value="range.max"
             :min="range.min + 1"
             class="flex-1"
-            placeholder="Max"
+            :placeholder="$t('general.max')"
             :disabled="index < ranges.length - 1"
             @update:model-value="updateRange(index, 'max', $event)"
           />

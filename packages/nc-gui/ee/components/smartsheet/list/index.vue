@@ -461,7 +461,8 @@ function contextAddComment() {
       <GeneralIcon class="text-nc-content-orange-dark w-16 h-16" icon="alertTriangleSolid" />
       <div class="text-xl font-semibold text-nc-content-gray">Hierarchy Not Configured</div>
       <div class="text-sm text-nc-content-gray-muted">
-        Use <span class="font-medium text-nc-content-gray">Set Levels</span> in the toolbar to configure your list view hierarchy.
+        Use <span class="font-medium text-nc-content-gray">{{ $t('title.setLevels') }}</span> in the toolbar to configure your
+        list view hierarchy.
       </div>
     </div>
 

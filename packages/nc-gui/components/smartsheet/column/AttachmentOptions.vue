@@ -105,7 +105,7 @@ watch(searchValue, (value) => {
           Allow All Mime Types
         </a-checkbox>
         <div v-if="!allowAllMimeTypeCheckbox" class="mt-[5px]">
-          <a-input-search v-model:value="searchValue" class="mt-[5px] mb-[15px]" placeholder="Search" />
+          <a-input-search v-model:value="searchValue" class="mt-[5px] mb-[15px]" :placeholder="$t('general.search')" />
           <a-tree
             v-model:expanded-keys="expandedKeys"
             v-model:checked-keys="vModel.meta.supportedAttachmentMimeTypes"

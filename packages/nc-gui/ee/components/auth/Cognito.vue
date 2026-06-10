@@ -260,14 +260,14 @@ const onForgotPasswordClicked = (): void => {
         </div>
       </div>
       <div v-else class="amplify-flex amplify-field amplify-textfield">
-        <label class="amplify-label" for="amplify-confirm-code">Verification Code</label>
+        <label class="amplify-label" for="amplify-confirm-code">{{ $t('labels.verificationCode') }}</label>
         <div class="amplify-flex amplify-field-group">
           <div class="amplify-field-group__field-wrapper">
             <input
               id="amplify-confirm-code"
               v-model="confirmCode"
               class="amplify-input amplify-field-group__control"
-              placeholder="Verification Code"
+              :placeholder="$t('labels.verificationCode')"
               type="password"
             />
           </div>

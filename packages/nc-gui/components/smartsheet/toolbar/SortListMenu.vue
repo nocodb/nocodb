@@ -290,7 +290,7 @@ watch(
                   </a-select-option>
                 </NcSelect>
 
-                <NcTooltip placement="top" title="Remove" class="flex-none">
+                <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
                   <NcButton
                     v-e="['c:sort:delete']"
                     size="small"
@@ -350,7 +350,7 @@ watch(
                   </a-select-option>
                 </NcSelect>
 
-                <NcTooltip placement="top" title="Remove" class="flex-none">
+                <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
                   <NcButton
                     v-e="['c:sort:delete']"
                     size="small"

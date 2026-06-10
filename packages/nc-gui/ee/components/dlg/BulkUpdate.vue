@@ -400,7 +400,7 @@ onMounted(() => {
 
     <GeneralModal v-model:visible="isModalOpen" class="!w-100">
       <div class="p-4">
-        <div class="prose-xl font-bold self-center">Bulk Update</div>
+        <div class="prose-xl font-bold self-center">{{ $t('general.bulkUpdate') }}</div>
 
         <div class="mt-4">{{ modalQn }}</div>
       </div>

@@ -517,7 +517,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                     >
                       <component :is="iconMap.drag" />
                     </NcButton>
-                    <NcTooltip placement="top" title="Remove" class="flex-none">
+                    <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
                       <NcButton
                         v-e="['c:group-by:remove']"
                         class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none"

@@ -536,7 +536,7 @@ const customRow = (record: Record<string, any>) => ({
                 @click="selectedTableFilter = ''"
               >
                 <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
-                <span class="flex-1">All Tables</span>
+                <span class="flex-1">{{ $t('labels.allTables') }}</span>
                 <GeneralIcon v-if="!selectedTableFilter" icon="check" class="h-4 w-4 ml-auto text-nc-content-brand" />
               </div>
 
@@ -549,7 +549,7 @@ const customRow = (record: Record<string, any>) => ({
                 All Tables
               </div>
             </template>
-            <template #placeholderTooltip> All Tables </template>
+            <template #placeholderTooltip> {{ $t('labels.allTables') }} </template>
             <template #emptyState="{ length }">
               <NcSpanHidden v-if="!length" />
             </template>

@@ -235,7 +235,7 @@ function copyToClipboard(text: string, label: string) {
             </a-form-item>
 
             <!-- Logo -->
-            <a-form-item label="Logo" class="items-start !mb-0">
+            <a-form-item :label="$t('general.logo')" class="items-start !mb-0">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium">Logo</span>
               </template>

@@ -358,7 +358,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
           <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
             <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold !ml-1">
               <a-breadcrumb-item @click="activeSource = null">
-                <a class="!no-underline text-base">Data Sources</a>
+                <a class="!no-underline text-base">{{ $t('labels.dataSources') }}</a>
               </a-breadcrumb-item>
               <a-breadcrumb-item v-if="activeSource">
                 <span class="capitalize text-base">{{ activeSource.alias || 'Default Source' }}</span>

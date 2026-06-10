@@ -43,7 +43,7 @@ watch(
 </script>
 
 <template>
-  <GroupedSettings title="Formatting">
+  <GroupedSettings :title="$t('labels.formatting')">
     <div class="flex gap-2 formatting">
       <div v-if="textWidget?.config?.type === TextWidgetTypes.Text" class="flex">
         <NcButton

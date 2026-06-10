@@ -314,7 +314,7 @@ onMounted(() => {
                   :model-value="filter.value"
                   :grouped-variables="groupedVariables"
                   :variables="flatVariables"
-                  placeholder="Enter value"
+                  :placeholder="$t('placeholder.variableValue')"
                   @update:model-value="(value) => onUpdateFilterValue(value)"
                 />
               </template>

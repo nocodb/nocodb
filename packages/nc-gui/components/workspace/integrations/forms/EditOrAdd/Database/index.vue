@@ -828,7 +828,7 @@ watch(
                     <a-row :gutter="24">
                       <a-col :span="12">
                         <!-- Schema -->
-                        <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                        <a-form-item :label="$t('labels.schema')" v-bind="validateInfos['dataSource.connection.schema']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
                             class="nc-extdb-host-database"
@@ -841,7 +841,7 @@ watch(
                   <template v-else-if="formState.dataSource.client === ClientType.DATABRICKS">
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Token" v-bind="validateInfos['dataSource.connection.token']">
+                        <a-form-item :label="$t('labels.token')" v-bind="validateInfos['dataSource.connection.token']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).token"
                             class="nc-extdb-host-token"
@@ -867,7 +867,7 @@ watch(
                         </a-form-item>
                       </a-col>
                       <a-col :span="12">
-                        <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
+                        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
                             :placeholder="`${$t('labels.database')} ${$t('general.name').toLowerCase()}`"
@@ -878,7 +878,7 @@ watch(
                     </a-row>
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                        <a-form-item :label="$t('labels.schema')" v-bind="validateInfos['dataSource.connection.schema']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).schema"
                             class="nc-extdb-host-schema"
@@ -976,10 +976,12 @@ watch(
                           <div class="flex flex-col gap-3">
                             <div v-for="(item, index) of formState.extraParameters" :key="index">
                               <a-row :gutter="24">
-                                <a-col :span="12"><a-input v-model:value="item.key" placeholder="Key" /> </a-col>
+                                <a-col :span="12"
+                                  ><a-input v-model:value="item.key" :placeholder="$t('placeholder.key')" />
+                                </a-col>
                                 <a-col :span="12">
                                   <div class="flex gap-2">
-                                    <a-input v-model:value="item.value" placeholder="Value" />
+                                    <a-input v-model:value="item.value" :placeholder="$t('placeholder.value')" />
 
                                     <NcButton type="text" size="small" @click="removeParam(index)">
                                       <GeneralIcon icon="delete" class="flex-none text-gray-500" />

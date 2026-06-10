@@ -348,7 +348,7 @@ onMounted(() => {
               </template>
               Add condition
             </NcButton>
-            <div class="text-nc-content-gray-muted mt-2 ml-0.5">No conditions added</div>
+            <div class="text-nc-content-gray-muted mt-2 ml-0.5">{{ $t('title.noConditionsAdded') }}</div>
           </div>
 
           <!-- Conditions list -->
@@ -471,7 +471,7 @@ onMounted(() => {
                   >
                     <NcFormBuilderInputWorkflowInput
                       :model-value="condition.rightValue || ''"
-                      placeholder="Enter value"
+                      :placeholder="$t('placeholder.variableValue')"
                       :variables="workflowVariables"
                       :grouped-variables="groupedVariables"
                       :read-only="disabled"

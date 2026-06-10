@@ -156,7 +156,7 @@ const badgeConfig = computed(() => {
             <SmartsheetTopbarManagedAppStatusMenuItem
               v-if="isManagedAppOwner"
               clickable
-              label="Fork to Draft"
+              :label="$t('title.forkToDraft')"
               :subtext="`Create v${suggestManagedAppNextVersion(
                 managedAppVersionsInfo.published.version || '1.0.0',
               )} to make changes`"
@@ -276,7 +276,7 @@ const badgeConfig = computed(() => {
           <NcDivider class="!my-1" />
           <SmartsheetTopbarManagedAppStatusMenuItem
             clickable
-            label="View Changelog"
+            :label="$t('labels.viewChangelog')"
             subtext="See what's new in each version"
             icon-wrapper-class="bg-nc-bg-gray-light"
             @click="openModal('changelog')"

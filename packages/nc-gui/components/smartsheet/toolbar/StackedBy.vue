@@ -167,7 +167,7 @@ const handleChange = () => {
                 v-model:value="groupingFieldColumnId"
                 class="nc-select-shadow w-full nc-kanban-grouping-field-select !rounded-lg"
                 dropdown-class-name="!rounded-lg"
-                placeholder="Select a Grouping Field"
+                :placeholder="$t('placeholder.selectGroupField')"
                 :disabled="isLocked"
                 @change="handleChange"
                 @click.stop

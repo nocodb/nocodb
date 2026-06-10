@@ -42,7 +42,7 @@ const selectIcon = (icon?: string) => {
           v-model="search"
           data-testid="nc-emoji-filter"
           class="p-1 text-xs border-1 w-full overflow-y-auto"
-          placeholder="Search"
+          :placeholder="$t('general.search')"
           @input="toIndex = 60"
         />
       </div>

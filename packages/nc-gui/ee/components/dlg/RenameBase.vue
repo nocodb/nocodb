@@ -113,7 +113,7 @@ watch(form, async () => {
           key="submit"
           :disabled="isErrored || form.title === currentBase?.title"
           :loading="isTitleUpdating"
-          label="Rename Workspace"
+          :label="$t('title.renameWorkspace')"
           loading-label="Renaming workspace"
           type="primary"
           @click="() => titleChange()"

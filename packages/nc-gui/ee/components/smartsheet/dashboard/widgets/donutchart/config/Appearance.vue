@@ -34,7 +34,7 @@ const handleChange = () => {
 </script>
 
 <template>
-  <GroupedSettings title="Style">
+  <GroupedSettings :title="$t('general.style')">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Legend Orientation</label>
       <a-select

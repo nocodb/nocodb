@@ -184,15 +184,19 @@ onMounted(() => {
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
         <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
-        <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text" />
+        <input ref="cmdInputEl" v-model="search" class="cmdk-input" :placeholder="$t('general.search')" type="text" />
       </div>
       <div class="flex items-center bg-nc-bg-default w-full z-[50]">
-        <div class="text-sm px-4 py-2 text-nc-content-gray-muted">Recent Views</div>
+        <div class="text-sm px-4 py-2 text-nc-content-gray-muted">{{ $t('labels.recentViews') }}</div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md mb-10 relative mx-0 px-0 py-2">
           <div v-if="filteredViews.length < 1" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
-            <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[240px] flex-none" alt="No recent views" />
+            <img
+              src="~assets/img/placeholder/no-search-result-found.png"
+              class="!w-[240px] flex-none"
+              :alt="$t('labels.noRecentViews')"
+            />
             <div class="text-nc-content-gray-muted">{{ $t('labels.noRecentViews') }}</div>
           </div>
           <div v-else class="flex flex-col cmdOpt-list w-full">

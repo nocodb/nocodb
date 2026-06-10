@@ -44,7 +44,7 @@ watch(
 </script>
 
 <template>
-  <GroupedSettings title="Colour">
+  <GroupedSettings :title="$t('general.colour')">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <a-radio-group v-model:value="appearanceType" class="appearance-type w-full" @update:value="onAppearanceTypeChange">
         <a-radio value="default">Default</a-radio>

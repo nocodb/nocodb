@@ -73,7 +73,7 @@ const closeAndShowAgain = () => {
         <div class="mt-1 text-sm">Do you want to remind later on your next visit?</div>
         <div class="flex justify-end mt-7 gap-x-2">
           <NcButton type="secondary" size="small" @click="dontShowAgain"> Don’t show again </NcButton>
-          <NcButton type="primary" size="small" @click="closeAndShowAgain"> Yes </NcButton>
+          <NcButton type="primary" size="small" @click="closeAndShowAgain"> {{ $t('general.yes') }} </NcButton>
         </div>
       </div>
     </NcModal>

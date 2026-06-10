@@ -292,7 +292,7 @@ onUnmounted(() => {
         <a-collapse v-if="!listeningImport" v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <a-checkbox v-model:checked="syncOptions.newBase"> New Base </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.newBase"> {{ $t('title.newProj') }} </a-checkbox>
             </div>
 
             <div class="mt-2">

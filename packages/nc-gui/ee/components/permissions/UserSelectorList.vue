@@ -323,8 +323,12 @@ defineExpose({
       <NcDivider class="!my-0" />
 
       <div class="flex items-center p-2 gap-3">
-        <NcButton type="text" size="small" :disabled="listRef?.list?.length === 0" @click="selectAll()"> Select all </NcButton>
-        <NcButton type="text" size="small" :disabled="selectedUsers.size === 0" @click="clearAll()"> Clear all </NcButton>
+        <NcButton type="text" size="small" :disabled="listRef?.list?.length === 0" @click="selectAll()">
+          {{ $t('general.selectAll') }}
+        </NcButton>
+        <NcButton type="text" size="small" :disabled="selectedUsers.size === 0" @click="clearAll()">
+          {{ $t('labels.clearAll') }}
+        </NcButton>
       </div>
     </template>
   </NcList>

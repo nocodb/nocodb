@@ -103,7 +103,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <GroupedSettings title="Source">
+  <GroupedSettings :title="$t('general.source')">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Table</label>
       <NcListTableSelector

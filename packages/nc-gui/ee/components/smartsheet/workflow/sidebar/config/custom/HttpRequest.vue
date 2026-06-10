@@ -188,7 +188,7 @@ const showAdvanced = ref(false)
             :variables="flatVariables"
             :read-only="!isWorkflowEditAllowed"
             :grouped-variables="groupedVariables"
-            placeholder="Value"
+            :placeholder="$t('placeholder.value')"
             class="flex-1 max-w-32"
             @update:model-value="(val) => updateQueryParam(index, 'value', val)"
           />
@@ -232,7 +232,7 @@ const showAdvanced = ref(false)
             :variables="flatVariables"
             :read-only="!isWorkflowEditAllowed"
             :grouped-variables="groupedVariables"
-            placeholder="Value"
+            :placeholder="$t('placeholder.value')"
             class="flex-1 max-w-32"
             @update:model-value="(val) => updateHeader(index, 'value', val)"
           />

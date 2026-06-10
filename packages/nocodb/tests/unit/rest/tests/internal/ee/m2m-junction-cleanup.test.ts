@@ -151,6 +151,75 @@ export function m2mJunctionCleanupTests() {
       }
     });
 
+    // #1 (critical guard): trashing a CUSTOM junction-backed link must NOT
+    // soft-delete genuine user links pointing at its junction — because a custom
+    // link's junction is a real user table, not an auto-junction.
+    it('trashing a custom link does not soft-delete genuine user links to its junction table', async () => {
+      const numCol = (t: string) => ({
+        title: t,
+        column_name: t,
+        uidt: UITypes.SingleLineText,
+      });
+      // J is a real table used as the custom junction (has FK-style columns)
+      const actor = await mkTable('Actor');
+      const film = await mkTable('Film');
+      const junc = await createTable(context, base, {
+        title: 'ActorFilm',
+        table_name: 'ActorFilm',
+        columns: customColumns('custom', [
+          { title: 'pk', column_name: 'pk', uidt: UITypes.SingleLineText, pv: true },
+          numCol('ActorId'),
+          numCol('FilmId'),
+        ]),
+      });
+
+      const actorPk = (await actor.getColumns(ctx)).find((c) => c.pv);
+      const filmPk = (await film.getColumns(ctx)).find((c) => c.pv);
+      const juncCols = await junc.getColumns(ctx);
+      const juncActorFk = juncCols.find((c) => c.title === 'ActorId');
+      const juncFilmFk = juncCols.find((c) => c.title === 'FilmId');
+
+      // custom mm link Actor → Film via the real ActorFilm junction
+      await request(context.app)
+        .post(`/api/v1/db/meta/tables/${actor.id}/columns`)
+        .set('xc-auth', context.token)
+        .send({
+          title: 'Films',
+          uidt: UITypes.Links,
+          childId: film.id,
+          parentId: actor.id,
+          column_name: 'Films',
+          type: 'mm',
+          is_custom_link: true,
+          custom: {
+            base_id: base.id,
+            junc_base_id: base.id,
+            column_id: actorPk!.id,
+            junc_model_id: junc.id,
+            junc_column_id: juncActorFk!.id,
+            junc_ref_column_id: juncFilmFk!.id,
+            ref_model_id: film.id,
+            ref_column_id: filmPk!.id,
+          },
+        })
+        .expect(200);
+
+      const customLink = (await actor.getColumns(ctx)).find(
+        (c) => c.title === 'Films',
+      )!;
+
+      // a GENUINE user link on Actor pointing at the junction table (ActorFilm)
+      const userLink = await mkMmLink('ActorToJunction', actor, junc);
+
+      // trash the custom link
+      await trashColumn(customLink.id).expect(200);
+
+      // the genuine user link must NOT have been soft-deleted by the scan
+      const survivor: any = await getColOrNull(userLink.id);
+      expect(survivor, 'user link still exists').to.exist;
+      expect(survivor.deleted, 'user link not soft-deleted').to.not.equal(true);
+    });
+
     it('trashing one of several links to the same target leaves no active reference to its junction', async () => {
       const websites = await mkTable('Websites');
       const backlinks = await mkTable('Backlinks');

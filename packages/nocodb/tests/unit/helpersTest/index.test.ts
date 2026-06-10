@@ -15,6 +15,7 @@ import { describeRowErrorTests } from './dataImportProcessor.test';
 import { isTokenExpiredTest } from './isTokenExpired.test';
 import { isSafeRedirectUrlTests } from './isSafeRedirectUrl.test';
 import { pkPreservationTests } from './pkPreservation.test';
+import { csvFormulaEscapeTest } from './csvFormulaEscape.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -57,6 +58,7 @@ if (process.env.EE === 'true') {
 
 function _helperTests() {
   stringHelperTest();
+  csvFormulaEscapeTest();
   isTokenExpiredTest();
   isSafeRedirectUrlTests();
   NcConcurrentTest();

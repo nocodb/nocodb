@@ -62,6 +62,95 @@ export function m2mJunctionCleanupTests() {
       return refs;
     }
 
+    const internalPost = (op: string, body: any) =>
+      request(context.app)
+        .post(`/api/v2/internal/${base.fk_workspace_id}/${base.id}`)
+        .query({ operation: op })
+        .set('xc-auth', context.token)
+        .send(body);
+
+    const trashColumn = (colId: string) =>
+      request(context.app)
+        .delete(`/api/v2/meta/columns/${colId}`)
+        .set('xc-auth', context.token);
+
+    const mkMmLink = (title: string, parentTable: any, childTable: any) =>
+      createLtarColumn2(context, { title, parentTable, childTable, type: 'mm' });
+
+    const recordedSystemLinkIds = async (colId: string) => {
+      const e = await BaseTrash.getByResourceId(ctx, 'field', colId);
+      return {
+        entry: e!,
+        ids: (e!.getRelatedItems().junctionSystemLinks ?? []).map((l) => l.id),
+      };
+    };
+
+    const getColOrNull = (colId: string) =>
+      Column.get(ctx, { colId, includeDeleted: true }, undefined as any).catch(
+        () => null,
+      );
+
+    // #3 purge: trashing then permanently deleting a junction-backed link must
+    // hard-delete its system hm-link(s) too — not leave soft-deleted orphans.
+    it('permanent delete removes the junction system-links (no orphans)', async () => {
+      const websites = await mkTable('Websites');
+      const backlinks = await mkTable('Backlinks');
+      await mkMmLink('LinkA', websites, backlinks);
+      const linkB = await mkMmLink('LinkB', websites, backlinks);
+
+      const junctionId = ((await (
+        await Column.get(ctx, { colId: linkB.id })
+      ).getColOptions(ctx)) as any).fk_mm_model_id;
+
+      await trashColumn(linkB.id).expect(200);
+      const { entry, ids } = await recordedSystemLinkIds(linkB.id);
+      expect(ids.length, 'recorded system-links').to.be.greaterThan(0);
+
+      await internalPost('baseTrashPermanentDelete', {
+        trashId: entry.id,
+      }).expect(200);
+
+      for (const id of ids) {
+        expect(await getColOrNull(id), `system-link ${id} purged`).to.not.exist;
+      }
+      const j = await Model.get(ctx, junctionId, true).catch(() => null);
+      expect(j, 'junction model purged').to.not.exist;
+
+      const read = await request(context.app)
+        .get(`/api/v2/tables/${websites.id}/records?limit=5`)
+        .set('xc-auth', context.token);
+      expect(read.status, JSON.stringify(read.body)).to.be.within(200, 299);
+    });
+
+    // #4 deferred restore: trash the link, trash its related table, then restore
+    // the link (deferred → placeholder). The recorded system-links must be
+    // reactivated at conversion time, not orphaned.
+    it('deferred restore reactivates the junction system-links', async () => {
+      const websites = await mkTable('Websites');
+      const backlinks = await mkTable('Backlinks');
+      await mkMmLink('LinkA', websites, backlinks);
+      const linkB = await mkMmLink('LinkB', websites, backlinks);
+
+      await trashColumn(linkB.id).expect(200);
+      const { entry, ids } = await recordedSystemLinkIds(linkB.id);
+      expect(ids.length).to.be.greaterThan(0);
+
+      // trash the related table → restoring LinkB now defers
+      await request(context.app)
+        .delete(`/api/v2/meta/tables/${backlinks.id}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      await internalPost('baseTrashRestore', { trashId: entry.id }).expect(200);
+
+      for (const id of ids) {
+        const c: any = await getColOrNull(id);
+        expect(c && c.deleted !== true, `system-link ${id} reactivated`).to.eq(
+          true,
+        );
+      }
+    });
+
     it('trashing one of several links to the same target leaves no active reference to its junction', async () => {
       const websites = await mkTable('Websites');
       const backlinks = await mkTable('Backlinks');

@@ -24,6 +24,11 @@ export enum TableSyncInputMode {
   Paste = 'paste',
 }
 
+export enum SyncMappingStatus {
+  Active = 'active',
+  Suspended = 'suspended',
+}
+
 export enum TableSyncMappingRole {
   /** The main source table for the sync. Exactly one row per sync. */
   Main = 'main',
@@ -53,6 +58,9 @@ export interface TableSyncMappingType {
 
   role: TableSyncMappingRole;
 
+  /** Active by default; Suspended while its dest table sits in trash. */
+  status?: SyncMappingStatus;
+
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +85,9 @@ export interface TableSyncType {
   status: TableSyncStatus;
   last_error: string | null;
   last_synced_at: string | null;
+
+  /** Soft-delete flag. true = trashed (recoverable), null/false = active. */
+  deleted?: boolean;
 
   sync_job_id: string | null;
 

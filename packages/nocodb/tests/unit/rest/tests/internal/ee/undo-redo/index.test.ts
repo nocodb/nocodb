@@ -19,6 +19,7 @@ import { rlsSpecs } from './rls.specs';
 import { rowColorSpecs } from './row-color.specs';
 import { scriptSpecs } from './script.specs';
 import { sortSpecs } from './sort.specs';
+import { syncSpecs } from './sync.specs';
 import { tableSpecs } from './table.specs';
 import { viewSpecs } from './view.specs';
 import { viewColumnSpecs } from './view-column.specs';
@@ -55,6 +56,8 @@ export function undoRedoFullCoverageTests() {
           [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: true,
           [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
           [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: true,
+          [PlanFeatureTypes.FEATURE_TABLE_SYNC]: true,
+          [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: true,
         },
         limits: {
           [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: -1,
@@ -76,6 +79,7 @@ export function undoRedoFullCoverageTests() {
     runGroup('view-section', viewSectionSpecs, () => context, () => env);
     runGroup('view-column', viewColumnSpecs, () => context, () => env);
     runGroup('sort', sortSpecs, () => context, () => env);
+    runGroup('sync', syncSpecs, () => context, () => env);
     runGroup('filter', filterSpecs, () => context, () => env);
     runGroup('hook', hookSpecs, () => context, () => env);
     runGroup('extension', extensionSpecs, () => context, () => env);

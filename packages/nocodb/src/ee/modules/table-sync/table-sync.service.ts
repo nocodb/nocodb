@@ -11,6 +11,7 @@ import {
   OperationSource,
   PlanFeatureTypes,
   RelationTypes,
+  SyncMappingStatus,
   TableSyncInputMode,
   TableSyncMappingRole,
   TableSyncOnDeleteAction,
@@ -25,6 +26,7 @@ import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobTypes } from '~/interface/Jobs';
 import {
@@ -36,7 +38,9 @@ import {
   TableSyncMapping,
   View,
 } from '~/models';
-import { Untraced } from '~/decorators/trace-command.decorator';
+import { TraceCommand, Untraced } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
+import { isReplay } from '~/helpers/replayScope';
 import { NcError } from '~/helpers/ncError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers';
@@ -59,6 +63,34 @@ const SKIP_UIDTS: ReadonlySet<string> = new Set([
   UITypes.ID,
 ]);
 
+interface TableSyncMappingSnapshot {
+  tableMappings: Array<{
+    id: string;
+    fk_table_sync_id?: string;
+    source_workspace_id?: string | null;
+    source_base_id?: string | null;
+    source_table_id?: string | null;
+    source_view_id?: string | null;
+    source_uuid?: string | null;
+    source_password_hash?: string | null;
+    dest_base_id?: string | null;
+    dest_table_id?: string | null;
+    role?: string | null;
+    status?: string | null;
+  }>;
+  columnMappings: Array<{
+    fk_table_sync_id?: string | null;
+    fk_table_sync_mapping_id?: string | null;
+    source_workspace_id?: string | null;
+    source_base_id?: string | null;
+    source_table_id?: string | null;
+    source_column_id?: string | null;
+    dest_base_id?: string | null;
+    dest_table_id?: string | null;
+    dest_column_id?: string | null;
+  }>;
+}
+
 @Injectable()
 export class TableSyncService {
   private logger = new Logger(TableSyncService.name);
@@ -69,6 +101,7 @@ export class TableSyncService {
     protected readonly viewColumnsService: ViewColumnsService,
     protected readonly appHooksService: AppHooksService,
     protected readonly nocoJobsService: NocoJobsService,
+    protected readonly baseTrashService: BaseTrashService,
   ) {}
 
   async get(
@@ -171,7 +204,7 @@ export class TableSyncService {
     );
   }
 
-  @Untraced()
+  @TraceCommand(OperationName.tableSyncUpdate)
   async updateSync(
     context: NcContext,
     params: {
@@ -197,6 +230,8 @@ export class TableSyncService {
     let oldSync = await TableSync.get(context, id);
 
     if (!oldSync) NcError.get(context).tableSyncNotFound(id);
+
+    const oldMappingSet = await this.snapshotMappingSet(context, id);
 
     // Switching to real-time (automatic) sync requires the higher-tier feature.
     if (patch.sync_trigger === TableSyncTrigger.Realtime) {
@@ -303,6 +338,7 @@ export class TableSyncService {
             : oldSync.selected_fields ?? null,
         linkViewByColumn: patch.link_view_by_column ?? {},
         dropHiddenInView: sourceViewChanged,
+        undoable: true,
         req,
       });
     }
@@ -317,20 +353,32 @@ export class TableSyncService {
     const needsResync =
       fieldsChanged.added || fieldsChanged.removed || sourceViewChanged;
 
-    let sync = await TableSync.update(context, id, {
-      ...extractProps(patch, ['title', 'sync_trigger', 'on_delete_action']),
-      ...(patch.selected_fields !== undefined
-        ? { selected_fields: patch.selected_fields }
-        : {}),
-      ...(needsResync ? { status: TableSyncStatus.Syncing } : {}),
-      updated_by: req.user?.id,
+    await this.tableSyncConfigUpdate(context, {
+      syncId: id,
+      payload: {
+        ...extractProps(patch, ['title', 'sync_trigger', 'on_delete_action']),
+        ...(patch.selected_fields !== undefined
+          ? { selected_fields: patch.selected_fields }
+          : {}),
+        ...(needsResync
+          ? {
+              mappings: await this.snapshotMappingSet(context, id),
+              prevMappings: oldMappingSet,
+            }
+          : {}),
+      },
+      req,
     });
 
+    let sync: TableSync;
     if (needsResync) {
+      await TableSync.update(context, id, { status: TableSyncStatus.Syncing });
       sync = await this.enqueueJobOrRevert(context, id, {
         mode: 'full-resync',
         req,
       });
+    } else {
+      sync = (await TableSync.get(context, id))!;
     }
 
     this.appHooksService.emit(AppEvents.TABLE_SYNC_UPDATE, {
@@ -353,6 +401,177 @@ export class TableSyncService {
     );
 
     return sync;
+  }
+
+  // Glue child of the `tableSyncUpdate` macro. The original forward call (not a
+  // replay) just persists the scalar config fields — reconcileFields already
+  // built the correct mapping set, so it skips the rebuild. On undo/redo replay
+  // it ALSO rebuilds the sync's mapping rows from the supplied snapshot: the
+  // macro restores dropped columns/tables from trash with their ids intact, but
+  // TableSyncMapping / TableSyncColumnMapping rows aren't part of that trash
+  // cycle, so they must be re-materialised here.
+  @TraceCommand(OperationName.tableSyncConfigUpdate)
+  async tableSyncConfigUpdate(
+    context: NcContext,
+    param: {
+      syncId: string;
+      payload: {
+        title?: string;
+        sync_trigger?: TableSyncTrigger;
+        on_delete_action?: TableSyncOnDeleteAction;
+        selected_fields?: string[] | null;
+        mappings?: TableSyncMappingSnapshot;
+        prevMappings?: TableSyncMappingSnapshot;
+      };
+      req: NcRequest;
+    },
+  ): Promise<TableSync> {
+    const { syncId, payload, req } = param;
+    const sync = await TableSync.get(context, syncId);
+    if (!sync) NcError.get(context).tableSyncNotFound(syncId);
+
+    // Build the scalar patch explicitly — `extractProps(payload, ...)` widens to
+    // `Partial<payload>`, which would leak the `mappings`/`prevMappings` keys
+    // into the `TableSync.update` arg (they aren't TableSync columns).
+    const { title, sync_trigger, on_delete_action, selected_fields } = payload;
+    await TableSync.update(context, syncId, {
+      ...(title !== undefined ? { title } : {}),
+      ...(sync_trigger !== undefined ? { sync_trigger } : {}),
+      ...(on_delete_action !== undefined ? { on_delete_action } : {}),
+      ...(selected_fields !== undefined ? { selected_fields } : {}),
+      updated_by: req.user?.id,
+    });
+
+    // Only on replay — the original forward leaves the set reconcileFields
+    // already produced.
+    if (isReplay() && payload.mappings) {
+      await this.replaceMappingSet(context, syncId, payload.mappings);
+
+      await TableSync.update(context, syncId, {
+        status: TableSyncStatus.Syncing,
+      });
+
+      await this.enqueueJobOrRevert(context, syncId, {
+        mode: 'full-resync',
+        req,
+      });
+    }
+
+    const updated = (await TableSync.get(context, syncId))!;
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_sync_update',
+          payload: { ...updated, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return updated;
+  }
+
+  /** Capture the sync's full mapping set (table mappings + their column
+   *  mappings) so `tableSyncConfigUpdate` can rebuild it on undo/redo. */
+  private async snapshotMappingSet(
+    context: NcContext,
+    syncId: string,
+  ): Promise<TableSyncMappingSnapshot> {
+    const tableMappings = await TableSyncMapping.listBySyncId(context, syncId);
+    const columnMappings: TableSyncColumnMapping[] = [];
+    for (const tm of tableMappings) {
+      columnMappings.push(
+        ...(await TableSyncColumnMapping.listByTableSyncMapping(
+          context,
+          tm.id,
+        )),
+      );
+    }
+    return {
+      tableMappings: tableMappings.map((m) => ({
+        id: m.id,
+        fk_table_sync_id: m.fk_table_sync_id,
+        source_workspace_id: m.source_workspace_id,
+        source_base_id: m.source_base_id,
+        source_table_id: m.source_table_id,
+        source_view_id: m.source_view_id,
+        source_uuid: m.source_uuid,
+        source_password_hash: m.source_password_hash,
+        dest_base_id: m.dest_base_id,
+        dest_table_id: m.dest_table_id,
+        role: m.role,
+        status: m.status,
+      })),
+      columnMappings: columnMappings.map((c) => ({
+        fk_table_sync_id: c.fk_table_sync_id,
+        fk_table_sync_mapping_id: c.fk_table_sync_mapping_id,
+        source_workspace_id: c.source_workspace_id,
+        source_base_id: c.source_base_id,
+        source_table_id: c.source_table_id,
+        source_column_id: c.source_column_id,
+        dest_base_id: c.dest_base_id,
+        dest_table_id: c.dest_table_id,
+        dest_column_id: c.dest_column_id,
+      })),
+    };
+  }
+
+  /** Tear down the sync's current mapping rows and rebuild them from `snapshot`.
+   *  Column mappings drop first (they reference table mappings); table mappings
+   *  re-insert with fresh ids, and each column mapping's parent reference is
+   *  remapped onto the freshly-inserted table mapping. Replay-only. */
+  private async replaceMappingSet(
+    context: NcContext,
+    syncId: string,
+    snapshot: TableSyncMappingSnapshot,
+  ): Promise<void> {
+    await TableSyncColumnMapping.deleteBySyncId(context, syncId);
+    await TableSyncMapping.deleteBySyncId(context, syncId);
+
+    const idMap = new Map<string, string>();
+    for (const tm of snapshot.tableMappings) {
+      const inserted = await TableSyncMapping.insert(context, {
+        fk_table_sync_id: syncId,
+        source_workspace_id: tm.source_workspace_id ?? undefined,
+        source_base_id: tm.source_base_id ?? undefined,
+        source_table_id: tm.source_table_id ?? undefined,
+        source_view_id: tm.source_view_id ?? undefined,
+        source_uuid: tm.source_uuid ?? undefined,
+        source_password_hash: tm.source_password_hash ?? undefined,
+        dest_base_id: tm.dest_base_id ?? undefined,
+        dest_table_id: tm.dest_table_id ?? undefined,
+        role: (tm.role ?? undefined) as TableSyncMappingRole | undefined,
+      });
+      idMap.set(tm.id, inserted.id);
+      if (tm.status && tm.status !== SyncMappingStatus.Active) {
+        await TableSyncMapping.markStatus(
+          context,
+          inserted.id,
+          tm.status as SyncMappingStatus,
+        );
+      }
+    }
+
+    for (const cm of snapshot.columnMappings) {
+      const parentId = cm.fk_table_sync_mapping_id
+        ? idMap.get(cm.fk_table_sync_mapping_id)
+        : undefined;
+      if (!parentId) continue;
+      await TableSyncColumnMapping.insert(context, {
+        fk_table_sync_id: syncId,
+        fk_table_sync_mapping_id: parentId,
+        source_workspace_id: cm.source_workspace_id ?? undefined,
+        source_base_id: cm.source_base_id ?? undefined,
+        source_table_id: cm.source_table_id ?? undefined,
+        source_column_id: cm.source_column_id ?? undefined,
+        dest_base_id: cm.dest_base_id ?? undefined,
+        dest_table_id: cm.dest_table_id ?? undefined,
+        dest_column_id: cm.dest_column_id ?? undefined,
+      });
+    }
   }
 
   /** Reconcile the destination column set against the source view's
@@ -380,6 +599,11 @@ export class TableSyncService {
        *  to `show: false` in shared views, so without this override a new
        *  LTAR would never auto-mirror in sync-all mode. */
       includeColIds?: Set<string>;
+      /** Soft-delete dropped columns/tables to trash (undoable) instead of
+       *  hard-deleting. Forwarded to `removeSyncedField`. The macro update path
+       *  (`updateSync`) passes `true`; reactive source-side callers omit it and
+       *  get the default hard delete. */
+      undoable?: boolean;
       req: NcRequest;
     },
   ): Promise<{ added: boolean; removed: boolean }> {
@@ -416,7 +640,9 @@ export class TableSyncService {
 
     const mainDest = await Model.get(context, mainMapping.dest_table_id);
     if (!mainDest) {
-      NcError.get(context).tableNotFound(mainMapping.dest_table_id);
+      NcError.get(context).invalidRequestBody(
+        "This sync's destination table is missing. Restore it from the Trash to re-link the sync, or delete and recreate the sync.",
+      );
     }
     await mainDest.getColumns(context);
 
@@ -499,6 +725,7 @@ export class TableSyncService {
               mainDest as Model,
               existingDest,
               patch.req,
+              { undoable: patch.undoable },
             );
             if (existingDest.id) removedDestColIds.add(existingDest.id);
             await this.addSyncedField(
@@ -606,6 +833,7 @@ export class TableSyncService {
           mainDest as Model,
           destCol,
           patch.req,
+          { undoable: patch.undoable },
         );
         if (destCol.id) removedDestColIds.add(destCol.id);
         anyRemoved = true;
@@ -643,6 +871,7 @@ export class TableSyncService {
           mainDest as Model,
           destCol,
           patch.req,
+          { undoable: patch.undoable },
         );
         anyRemoved = true;
       }
@@ -1159,8 +1388,21 @@ export class TableSyncService {
        *  but the shadow KEPT as a regular (now-unsynced) table — the
        *  user's data still lives in it. */
       keepShadow?: boolean;
+      /** When `false` (the default), the dropped column / junction / shadow are
+       *  hard-deleted — no trash, not undoable. When `true`, they're
+       *  soft-deleted to trash so the macro can restore them id-stable via
+       *  `trashRestore` on undo. The update/macro path passes `true`; reactive
+       *  source-side handlers omit it and get the hard-delete default. */
+      undoable?: boolean;
     } = {},
   ): Promise<void> {
+    const skipTrash = !(opts.undoable ?? false);
+    // Soft path stamps dropped tables with the sync so the trash handler admits
+    // a junction (mm) into trash (its `isSyncDrop` allowance) and groups them.
+    const trashParent = skipTrash
+      ? undefined
+      : { type: 'tableSync', id: sync.id, name: sync.title };
+
     // Drop the column-mapping row first — failure later in the cascade
     // still leaves a usable state (mapping gone, dest col stuck readonly
     // which the user can address). Reverse order would risk an orphan
@@ -1197,7 +1439,7 @@ export class TableSyncService {
           columnId: destCol.id,
           req,
           forceDeleteSystem: true,
-          skipTrash: true,
+          skipTrash,
         },
       );
 
@@ -1234,7 +1476,8 @@ export class TableSyncService {
               req,
               forceDeleteSyncs: true,
               forceDeleteRelations: true,
-              skipTrash: true,
+              skipTrash,
+              parent: trashParent,
             },
           );
         } catch (e) {
@@ -1244,8 +1487,12 @@ export class TableSyncService {
             }: ${(e as Error).message}`,
           );
         }
-        // Junction has no column-mappings (junction cols never get one)
-        // but call cleanup defensively in case of stale rows.
+        // Drop the sync's own junction mapping rows in BOTH paths — the
+        // forward state must reflect the removal (no stale junction mapping).
+        // On the soft path the table still goes to trash for macro undo, which
+        // rebuilds these rows from the prevMappings snapshot via
+        // `replaceMappingSet`; the table-trash handler's suspend recorded the
+        // (now-removed) id, and its restore reactivation is a tolerant no-op.
         await TableSyncColumnMapping.deleteByTableSyncMapping(
           context,
           junctionMapping.id,
@@ -1271,7 +1518,8 @@ export class TableSyncService {
                 tableId: shadowMapping.dest_table_id,
                 req,
                 forceDeleteSyncs: true,
-                skipTrash: true,
+                skipTrash,
+                parent: trashParent,
               },
             );
           } catch (e) {
@@ -1281,9 +1529,11 @@ export class TableSyncService {
               }: ${(e as Error).message}`,
             );
           }
-          // Shadow has column-mappings for every linked-table column it
-          // mirrored — drop those before the parent mapping so their
-          // cache lists are clean.
+          // Drop the shadow's mapping rows in BOTH paths (see the junction
+          // branch above). Shadow has column-mappings for every linked-table
+          // column it mirrored — drop those before the parent mapping so their
+          // cache lists are clean. On the soft path the table is in trash and
+          // macro undo rebuilds these rows from the prevMappings snapshot.
           await TableSyncColumnMapping.deleteByTableSyncMapping(
             context,
             shadowMapping.id,
@@ -1300,7 +1550,7 @@ export class TableSyncService {
         columnId: destCol.id,
         req,
         forceDeleteSystem: true,
-        skipTrash: true,
+        skipTrash,
       },
     );
   }
@@ -1345,7 +1595,7 @@ export class TableSyncService {
     return updated;
   }
 
-  @Untraced()
+  @TraceCommand(OperationName.tableSyncFreeze)
   async freezeSync(
     context: NcContext,
     params: { syncId: string; req: NcRequest },
@@ -1381,7 +1631,7 @@ export class TableSyncService {
     return sync;
   }
 
-  @Untraced()
+  @TraceCommand(OperationName.tableSyncResume)
   async resumeSync(
     context: NcContext,
     params: { syncId: string; req: NcRequest },
@@ -1432,7 +1682,7 @@ export class TableSyncService {
     return sync;
   }
 
-  @Untraced()
+  @TraceCommand(OperationName.tableSyncCreate)
   async createSync(
     context: NcContext,
     params: { body: TableSyncCreateReqType; req: NcRequest },
@@ -2151,17 +2401,61 @@ export class TableSyncService {
     return created;
   }
 
-  @Untraced()
+  @TraceCommand(OperationName.tableSyncDelete)
   async delete(
     context: NcContext,
-    params: { syncId: string; req: NcRequest; dropTables?: boolean },
+    params: {
+      syncId: string;
+      req: NcRequest;
+      dropTables?: boolean;
+      skipTrash?: boolean;
+    },
   ): Promise<boolean> {
-    const { syncId: id, req, dropTables = false } = params;
+    const { syncId: id, req, dropTables = false, skipTrash = false } = params;
     const sync = await TableSync.get(context, id);
-    const mappings = sync?.mappings ?? [];
+    if (!sync) NcError.get(context).tableSyncNotFound(id);
+
+    if (!skipTrash) {
+      await this.baseTrashService.trashResource(context, {
+        resourceId: id,
+        resourceType: 'tableSync',
+        user: req.user,
+        req,
+        options: { dropTables },
+      });
+
+      this.appHooksService.emit(AppEvents.TABLE_SYNC_DELETE, {
+        context,
+        req,
+        sync,
+        droppedTables: dropTables,
+      });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_sync_delete',
+            payload: { id: sync.id, base_id: context.base_id },
+          },
+        },
+        context.socket_id,
+      );
+
+      return true;
+    }
+
+    const mappings = sync.mappings ?? [];
 
     if (dropTables) {
-      for (const m of mappings) {
+      const orderedMappings = [...mappings].sort(
+        (a, b) =>
+          (a.role === TableSyncMappingRole.Junction ? 1 : 0) -
+          (b.role === TableSyncMappingRole.Junction ? 1 : 0),
+      );
+
+      for (const m of orderedMappings) {
         const destCtx: NcContext = {
           ...context,
           base_id: m.dest_base_id,
@@ -2179,9 +2473,9 @@ export class TableSyncService {
           });
         } catch (e) {
           this.logger.warn(
-            `delete(dropTables): failed to drop dest table ${
-              m.dest_table_id
-            }: ${(e as Error).message}`,
+            `delete(skipTrash): failed to drop dest table ${m.dest_table_id}: ${
+              (e as Error).message
+            }`,
           );
         }
       }
@@ -2234,28 +2528,29 @@ export class TableSyncService {
         }
       }
     }
-    const deleted = await TableSync.delete(context, id);
-    if (sync && deleted) {
-      this.appHooksService.emit(AppEvents.TABLE_SYNC_DELETE, {
-        context,
-        req,
-        sync,
-        droppedTables: dropTables,
-      });
 
-      NocoSocket.broadcastEvent(
-        context,
-        {
-          event: EventType.META_EVENT,
-          payload: {
-            action: 'table_sync_delete',
-            payload: { id: sync.id, base_id: context.base_id },
-          },
+    await TableSync.delete(context, id);
+
+    this.appHooksService.emit(AppEvents.TABLE_SYNC_DELETE, {
+      context,
+      req,
+      sync,
+      droppedTables: dropTables,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_sync_delete',
+          payload: { id: sync.id, base_id: context.base_id },
         },
-        context.socket_id,
-      );
-    }
-    return deleted;
+      },
+      context.socket_id,
+    );
+
+    return true;
   }
 
   async resolveLink(

@@ -395,6 +395,7 @@ export interface ResolvedCtx<E = Record<string, any>> {
   entityTitle?: string;
   parentEntityTitle?: string;
   extra?: E;
+  entityId?: string;
 }
 
 export interface DescCtx {

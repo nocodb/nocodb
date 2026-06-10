@@ -85,6 +85,7 @@ export const columnUpdateSchema = z
     column: columnBodySchema,
     tableId: z.string().optional(),
     apiVersion: z.nativeEnum(NcApiVersion).optional(),
+    bypassSyncedFieldGuard: z.boolean().optional(),
   })
   .strict();
 

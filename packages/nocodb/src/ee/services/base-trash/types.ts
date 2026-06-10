@@ -8,17 +8,28 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
-export interface TrashCallParam {
+export interface TrashCallParam<TOptions = unknown> {
   user: Partial<UserType>;
   req: NcRequest;
   /**
-   * Conflict-resolution flags consumed by the record handler's restore
-   * path (force = auto-resolve by nulling offending columns / dropping
-   * junction rows; partial = skip conflicted rows). Other handlers
-   * ignore these — they're only meaningful for resource_type === 'record'.
+   * Caller-supplied parent for the trash entry being created. Lets an
+   * orchestrating flow (e.g. a table-sync / app-sync drop) record the trashed
+   * resource as a child of another trash entry without the generic handler
+   * having to know about the parent. The generic table handler also reads this
+   * to permit trashing junction (`mm`) tables when they belong to a `tableSync`
+   * or `appSync`. Cross-cutting orchestration metadata — NOT resource-specific.
    */
-  force?: boolean;
-  partial?: boolean;
+  parent?: { type: string; id: string; name?: string };
+  /**
+   * Entity-specific delete options, forwarded verbatim to the handler. Generic
+   * (`TOptions`) so each resource type defines and extends its OWN options shape
+   * — no resource-specific fields live on this shared param. Each handler
+   * narrows its method param to its own options type:
+   *   - record    → `TrashCallParam<RecordTrashOptions>`     (`{ force?, partial? }`)
+   *   - tableSync → `TrashCallParam<TableSyncTrashOptions>`  (`{ droppedTables? }`)
+   *   - appSync   → `TrashCallParam<AppSyncTrashOptions>`    (`{ dropTables?, skipTrash? }`)
+   */
+  options?: TOptions;
 }
 
 /**

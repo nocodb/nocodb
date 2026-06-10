@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import {
   META_DEPENDENCY_MODULE_PROVIDER_KEY,
   type MetaDependencyEventRequest,
@@ -9,12 +10,19 @@ import type { MetaService } from '~/meta/meta.service';
 import Noco from '~/Noco';
 
 @Injectable()
-export class MetaDependencyEventHandler {
+export class MetaDependencyEventHandler implements OnModuleInit {
   constructor(
     @Inject(META_DEPENDENCY_MODULE_PROVIDER_KEY)
-    protected readonly metaEventHandlers: MetaEventHandler[],
-  ) {
-    this.registerEvents(metaEventHandlers);
+    protected readonly metaEventHandlerClasses: Type<MetaEventHandler>[],
+    private readonly moduleRef: ModuleRef,
+  ) {}
+
+  onModuleInit() {
+    this.registerEvents(
+      this.metaEventHandlerClasses.map((cls) =>
+        this.moduleRef.get(cls, { strict: false }),
+      ),
+    );
   }
 
   metaEventHandlerMap: Record<MetaEventType, MetaEventHandler[]> = {
@@ -32,6 +40,14 @@ export class MetaDependencyEventHandler {
 
   registerEvents(metaEventHandler: MetaEventHandler[]) {
     for (const each of metaEventHandler) {
+      if (!each || !Array.isArray(each.triggerMetaEvents)) {
+        new Logger(MetaDependencyEventHandler.name).error(
+          `Skipping meta-dependency handler with invalid triggerMetaEvents: ${
+            (each as any)?.constructor?.name ?? String(each)
+          }`,
+        );
+        continue;
+      }
       for (const eachType of each.triggerMetaEvents) {
         this.metaEventHandlerMap[eachType] =
           this.metaEventHandlerMap[eachType] ?? [];

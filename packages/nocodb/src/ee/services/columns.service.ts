@@ -87,7 +87,6 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
-    @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
     public readonly columnDataBackupHandler: ColumnDataBackupHandler,
     protected readonly viewColumnsService: ViewColumnsService,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { TableSyncStatus, TableSyncTrigger } from 'nocodb-sdk'
-import type { TableSyncType } from 'nocodb-sdk'
+import type { SyncConfig, TableSyncType } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -22,8 +22,6 @@ const basesStore = useBases()
 const syncStore = useSyncStore()
 
 const tableSyncStore = useTableSyncStore()
-
-const { showInfoModal } = useNcConfirmModal()
 
 const { loadTables } = baseStore
 
@@ -56,7 +54,11 @@ const isTableSyncEditOpen = ref(false)
 
 const isTableSyncDeleteOpen = ref(false)
 
+const isIntegrationSyncDeleteOpen = ref(false)
+
 const activeTableSync = ref<TableSyncType | null>(null)
+
+const activeIntegrationSync = ref<SyncConfig | null>(null)
 
 const isActing = ref<Record<string, boolean>>({})
 
@@ -139,25 +141,11 @@ const handleEditIntegrationSync = (syncId: string) => {
   isEditSyncModalOpen.value = true
 }
 
-const handleDeleteIntegrationSync = (syncId: string) => {
+const handleDeleteIntegrationSync = (sync: SyncConfig) => {
   if (!currentBase.value?.id) return
-  showInfoModal({
-    title: t('title.deleteSyncConfirmTitle'),
-    content: t('title.deleteSyncConfirmSubtitle'),
-    showCancelBtn: true,
-    showIcon: false,
-    showOkLoading: true,
-    okProps: { type: 'danger' },
-    okText: t('general.delete'),
-    okCallback: async () => {
-      try {
-        await syncStore.deleteSync(currentBase.value!.id!, syncId)
-        loadTables()
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
+  $e('c:sync:delete:open')
+  activeIntegrationSync.value = sync
+  isIntegrationSyncDeleteOpen.value = true
 }
 
 const triggerIntegrationSync = async (syncId: string) => {
@@ -450,7 +438,7 @@ onMounted(async () => {
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
                       <NcDivider />
-                      <NcMenuItem danger @click="handleDeleteIntegrationSync(record.id)">
+                      <NcMenuItem danger @click="handleDeleteIntegrationSync(record.raw)">
                         <GeneralIcon icon="delete" />
                         <span>{{ $t('general.delete') }}</span>
                       </NcMenuItem>
@@ -581,6 +569,14 @@ onMounted(async () => {
       v-model:value="isTableSyncDeleteOpen"
       :base-id="currentBase?.id!"
       :sync="activeTableSync"
+    />
+
+    <ProjectSyncIntegrationDelete
+      v-if="isIntegrationSyncDeleteOpen && activeIntegrationSync"
+      v-model:value="isIntegrationSyncDeleteOpen"
+      :base-id="currentBase?.id!"
+      :sync="activeIntegrationSync"
+      @deleted="loadTables()"
     />
   </div>
 </template>

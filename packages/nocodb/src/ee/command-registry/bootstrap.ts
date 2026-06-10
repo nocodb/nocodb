@@ -27,6 +27,8 @@ import { registerWorkflowHandlers } from '~/command-registry/operations/workflow
 import { registerViewSectionHandlers } from '~/command-registry/operations/view-sections';
 import { registerRecordTemplateHandlers } from '~/command-registry/operations/record-templates';
 import { registerSyncHandlers } from '~/command-registry/operations/sync';
+import { registerTableSyncHandlers } from '~/command-registry/operations/table-sync';
+import { registerAppSyncHandlers } from '~/command-registry/operations/app-sync';
 import { registerDateDependencyHandlers } from '~/command-registry/operations/date-dependency';
 import { registerTrashHandlers } from '~/command-registry/operations/trash';
 import { registerRowColorHandlers } from '~/command-registry/operations/row-color';
@@ -64,6 +66,8 @@ import { WorkflowsService } from '~/services/workflows.service';
 import { ViewSectionsService } from '~/ee/services/view-sections.service';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 import { SyncService } from '~/services/sync.service';
+import { TableSyncService } from '~/modules/table-sync/table-sync.service';
+import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
@@ -109,6 +113,8 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly viewSectionsSvc: ViewSectionsService,
     private readonly recordTemplatesSvc: RecordTemplatesService,
     private readonly syncSvc: SyncService,
+    private readonly tableSyncSvc: TableSyncService,
+    private readonly syncModuleSvc: SyncModuleService,
     private readonly dateDependencySvc: DateDependencyService,
     private readonly filtersV3Svc: FiltersV3Service,
     private readonly baseTrashSvc: BaseTrashService,
@@ -156,6 +162,8 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerViewSectionHandlers(this.viewSectionsSvc);
     registerRecordTemplateHandlers(this.recordTemplatesSvc);
     registerSyncHandlers(this.syncSvc);
+    registerTableSyncHandlers(this.tableSyncSvc, this.baseTrashSvc);
+    registerAppSyncHandlers(this.syncModuleSvc, this.baseTrashSvc);
     registerDateDependencyHandlers(this.dateDependencySvc);
     registerFiltersV3Handlers(this.filtersV3Svc);
     registerRowColorHandlers(this.viewRowColorSvc);

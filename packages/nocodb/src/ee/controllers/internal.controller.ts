@@ -425,7 +425,7 @@ export class InternalController extends InternalControllerCE {
         return await this.syncService.createSync(context, payload, req);
       case 'triggerSync':
         if (!payload.id) {
-          NcError.genericNotFound('SyncConfig', payload.id);
+          NcError.get(context).syncConfigNotFound(payload.id);
         }
 
         return await this.syncService.triggerSync(context, {
@@ -434,20 +434,23 @@ export class InternalController extends InternalControllerCE {
           req,
         });
       case 'updateSync':
-        return await this.syncService.updateSync(
-          context,
-          payload.syncConfigId,
+        return await this.syncService.updateSync(context, {
+          syncConfigId: payload.syncConfigId,
           payload,
           req,
-        );
+        });
       case 'deleteSync':
         if (!payload.id) {
-          NcError.genericNotFound('SyncConfig', payload.id);
+          NcError.get(context).syncConfigNotFound(payload.id);
         }
-        return await this.syncService.deleteSync(context, payload.id, req);
+        return await this.syncService.deleteSync(context, {
+          syncConfigId: payload.id,
+          req,
+          dropTables: !!payload.dropTables,
+        });
       case 'migrateSync':
         if (!payload.id) {
-          NcError.genericNotFound('SyncConfig', payload.id);
+          NcError.get(context).syncConfigNotFound(payload.id);
         }
 
         return await this.syncService.migrateSync(context, payload.id, req);

@@ -177,7 +177,7 @@ export const useSyncStore = defineStore('sync', () => {
     }
   }
 
-  const deleteSync = async (baseId: string, syncConfigId: string) => {
+  const deleteSync = async (baseId: string, syncConfigId: string, options: { dropTables?: boolean } = {}) => {
     if (!activeWorkspaceId.value || !baseId) return null
 
     try {
@@ -189,6 +189,7 @@ export const useSyncStore = defineStore('sync', () => {
         },
         {
           id: syncConfigId,
+          dropTables: !!options.dropTables,
         },
       )
 

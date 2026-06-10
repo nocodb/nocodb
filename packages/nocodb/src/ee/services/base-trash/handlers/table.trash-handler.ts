@@ -4,6 +4,7 @@ import {
   generateUniqueCopyName,
   MetaEventType,
   PlanLimitTypes,
+  SyncMappingStatus,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
@@ -11,10 +12,8 @@ import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
-import Column from '~/models/Column';
-import Model from '~/models/Model';
-import View from '~/models/View';
-import Base from '~/models/Base';
+import { isReplay } from '~/helpers/replayScope';
+import { Column, Model, SyncMapping, TableSyncMapping, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -97,32 +96,62 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       NcError.get(ctx).tableNotFound(id);
     }
 
-    if (table.synced) {
-      NcError.get(ctx).invalidRequestBody('Synced tables cannot be deleted');
-    }
-
-    const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
-    const source = base.sources.find((s) => s.id === table.source_id);
-
-    // External source tables → hard-delete (no trash, can't soft-delete external schema).
-    if (!source?.isMeta()) {
-      await this.tablesService.tableDelete(
-        ctx,
-        {
-          tableId: id,
-          req: param.req,
-          skipTrash: true,
-        },
-        ncMeta,
-      );
-      return { entity: table, skipTrashEntry: true };
-    }
-
-    // MM junction tables can't be trashed individually
-    if (table.mm) {
+    const isSyncDrop =
+      param.parent?.type === 'tableSync' ||
+      param.parent?.type === 'appSync' ||
+      isReplay();
+    if (table.mm && !isSyncDrop) {
       NcError.get(ctx).invalidRequestBody(
         'Junction tables cannot be sent to trash',
       );
+    }
+
+    let suspendedAppSyncMappingIds: string[] = [];
+    let suspendedTableSyncMappings: Array<{ id: string; baseId: string }> = [];
+    if (table.synced) {
+      const appSyncMappings = await SyncMapping.listByModelId(
+        ctx,
+        table.id,
+        ncMeta,
+      );
+      if (appSyncMappings.length) {
+        for (const m of appSyncMappings) {
+          await SyncMapping.markStatus(
+            ctx,
+            m.id,
+            SyncMappingStatus.Suspended,
+            ncMeta,
+          );
+        }
+        suspendedAppSyncMappingIds = appSyncMappings.map((m) => m.id);
+      } else {
+        const tableSyncMappings = await TableSyncMapping.listByDestTable(
+          ctx.base_id,
+          table.id,
+          ncMeta,
+        );
+        // The table is synced but not in app sync or table sync. Under replay
+        // (undo/redo) the registry is the authority and the macro may have
+        // already restored the prior mapping set via its glue op, so the
+        // mapping legitimately isn't here — skip the user-facing guard.
+        if (!tableSyncMappings.length && !isReplay()) {
+          NcError.get(ctx).invalidRequestBody(
+            'Synced tables cannot be deleted',
+          );
+        }
+        for (const m of tableSyncMappings) {
+          await TableSyncMapping.markStatus(
+            { ...ctx, base_id: m.base_id },
+            m.id,
+            SyncMappingStatus.Suspended,
+            ncMeta,
+          );
+        }
+        suspendedTableSyncMappings = tableSyncMappings.map((m) => ({
+          id: m.id,
+          baseId: m.base_id,
+        }));
+      }
     }
 
     // Soft-delete the table
@@ -173,6 +202,12 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     }
     if (dependents.length) {
       relatedItems.dependents = dependents;
+    }
+    if (suspendedAppSyncMappingIds.length) {
+      relatedItems.appSyncMappingIds = suspendedAppSyncMappingIds;
+    }
+    if (suspendedTableSyncMappings.length) {
+      relatedItems.tableSyncMappings = suspendedTableSyncMappings;
     }
 
     // Socket broadcast
@@ -253,6 +288,29 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     const relatedItems = trashEntry.getRelatedItems();
     if (relatedItems?.columns?.length) {
       await this.restoreCascadedLinks(ctx, relatedItems.columns, param, ncMeta);
+    }
+
+    // Reactivate any sync mappings suspended when this synced table was
+    // trashed — the sync resumes writing to the table.
+    if (relatedItems?.appSyncMappingIds?.length) {
+      for (const mappingId of relatedItems.appSyncMappingIds) {
+        await SyncMapping.markStatus(
+          ctx,
+          mappingId,
+          SyncMappingStatus.Active,
+          ncMeta,
+        );
+      }
+    }
+    if (relatedItems?.tableSyncMappings?.length) {
+      for (const ref of relatedItems.tableSyncMappings) {
+        await TableSyncMapping.markStatus(
+          { ...ctx, base_id: ref.baseId },
+          ref.id,
+          SyncMappingStatus.Active,
+          ncMeta,
+        );
+      }
     }
 
     // Handle deferred restores (mutually-trashed tables)

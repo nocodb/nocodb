@@ -31,6 +31,7 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/docs-collab-protocol.test').docsCollabProtocolTests();
         require('./ee/docs-collab-persist.test').docsCollabPersistTests();
         require('./pubsub-redis-demux.test').pubSubRedisDemuxTests();
+        require('./ee/tableSyncUndoRedo.test').tableSyncUndoRedoTests();
       } catch (e) {
         // EE test files not available in CE
       }

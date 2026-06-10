@@ -1,4 +1,3 @@
-import type { TrashHandler } from '~/services/base-trash/types';
 import { TRASH_HANDLER_TOKEN } from '~/services/base-trash/types';
 import { ViewTrashHandler } from '~/services/base-trash/handlers/view.trash-handler';
 import { ExtensionTrashHandler } from '~/services/base-trash/handlers/extension.trash-handler';
@@ -10,6 +9,8 @@ import { WorkflowTrashHandler } from '~/services/base-trash/handlers/workflow.tr
 import { ScriptTrashHandler } from '~/services/base-trash/handlers/script.trash-handler';
 import { RecordTrashHandler } from '~/services/base-trash/handlers/record.trash-handler';
 import { HookTrashHandler } from '~/services/base-trash/handlers/hook.trash-handler';
+import { AppSyncTrashHandler } from '~/services/base-trash/handlers/app-sync.trash-handler';
+import { TableSyncTrashHandler } from '~/services/base-trash/handlers/table-sync.trash-handler';
 
 export const TrashHandlers = [
   RecordTrashHandler,
@@ -22,10 +23,11 @@ export const TrashHandlers = [
   WorkflowTrashHandler,
   ScriptTrashHandler,
   HookTrashHandler,
+  AppSyncTrashHandler,
+  TableSyncTrashHandler,
 ];
 
 export const TrashHandlerProvider = {
   provide: TRASH_HANDLER_TOKEN,
-  useFactory: (...handlers: TrashHandler[]) => handlers,
-  inject: TrashHandlers,
+  useValue: TrashHandlers,
 };

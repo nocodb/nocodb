@@ -39,6 +39,8 @@ export default class SyncConfig {
 
   on_delete_action: OnDeleteAction;
 
+  deleted?: boolean;
+
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -55,6 +57,7 @@ export default class SyncConfig {
   public static async get(
     context: NcContext,
     id: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.SYNC_CONFIGS}:${id}`;
@@ -81,10 +84,29 @@ export default class SyncConfig {
       );
     }
 
+    if (syncConfig.deleted && !includeDeleted) return null;
+
+    // A child whose parent is soft-deleted is part of a trashed tree — treat it
+    // as not-found too (mirrors `list`, which drops children of a filtered-out
+    // parent). Only surfaced when includeDeleted is explicitly set.
+    if (syncConfig.fk_parent_sync_config_id && !includeDeleted) {
+      const parent = await this.get(
+        context,
+        syncConfig.fk_parent_sync_config_id,
+        false,
+        ncMeta,
+      );
+      if (!parent) return null;
+    }
+
     if (!syncConfig.fk_parent_sync_config_id) {
       syncConfig = new SyncConfig(syncConfig);
 
-      syncConfig.children = await syncConfig.listChildren(context, ncMeta);
+      syncConfig.children = await syncConfig.listChildren(
+        context,
+        { includeDeleted },
+        ncMeta,
+      );
     }
 
     return new SyncConfig(syncConfig);
@@ -119,7 +141,7 @@ export default class SyncConfig {
       prepareForDb(insertObj, ['config', 'meta']),
     );
 
-    return this.get(context, id, ncMeta);
+    return this.get(context, id, false, ncMeta);
   }
 
   public static async update(
@@ -155,7 +177,7 @@ export default class SyncConfig {
       prepareForResponse(updateObj, ['config', 'meta']),
     );
 
-    return this.get(context, id, ncMeta);
+    return this.get(context, id, false, ncMeta);
   }
 
   public static async delete(
@@ -163,7 +185,7 @@ export default class SyncConfig {
     id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const syncConfig = await this.get(context, id, ncMeta);
+    const syncConfig = await this.get(context, id, true, ncMeta);
 
     if (!syncConfig) {
       return false;
@@ -178,7 +200,7 @@ export default class SyncConfig {
 
     // delete all children first
     if (!syncConfig.fk_parent_sync_config_id) {
-      const children = await syncConfig.listChildren(context, ncMeta);
+      const children = await syncConfig.listChildren(context, {}, ncMeta);
 
       for (const child of children) {
         await SyncConfig.delete(context, child.id, ncMeta);
@@ -202,17 +224,49 @@ export default class SyncConfig {
     return true;
   }
 
-  static async list(context: NcContext, ncMeta = Noco.ncMeta) {
+  /**
+   * Soft-delete (trash) or restore a single sync config row by flipping the
+   * `deleted` flag. Single-row only — parent/child cascade is orchestrated by
+   * the trash handler so it can record what was trashed for a faithful restore.
+   */
+  public static async softDelete(
+    context: NcContext,
+    id: string,
+    deleted = true,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SYNC_CONFIGS,
+      { deleted },
+      id,
+    );
+
+    await NocoCache.update(context, `${CacheScope.SYNC_CONFIGS}:${id}`, {
+      deleted,
+    });
+
+    return true;
+  }
+
+  static async list(
+    context: NcContext,
+    { includeDeleted = false }: { includeDeleted?: boolean } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
     if (!context.base_id || !context.workspace_id) {
       return [];
     }
 
-    const syncConfigs = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SYNC_CONFIGS,
-      {},
-    );
+    const syncConfigs = (
+      await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.SYNC_CONFIGS,
+        {},
+      )
+    ).filter((syncConfig) => includeDeleted || !syncConfig.deleted);
 
     const parentChildMap = new Map();
 
@@ -244,21 +298,27 @@ export default class SyncConfig {
     });
   }
 
-  async listChildren(context: NcContext, ncMeta = Noco.ncMeta) {
+  async listChildren(
+    context: NcContext,
+    { includeDeleted = false }: { includeDeleted?: boolean } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
     if (this.fk_parent_sync_config_id) {
       NcError.get(context).badRequest('This is a child sync config');
     }
 
-    const syncConfigs = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SYNC_CONFIGS,
-      {
-        condition: {
-          fk_parent_sync_config_id: this.id,
+    const syncConfigs = (
+      await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.SYNC_CONFIGS,
+        {
+          condition: {
+            fk_parent_sync_config_id: this.id,
+          },
         },
-      },
-    );
+      )
+    ).filter((syncConfig) => includeDeleted || !syncConfig.deleted);
 
     return syncConfigs.map((syncConfig) => {
       return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
@@ -271,7 +331,7 @@ export default class SyncConfig {
     from?: Date,
     ncMeta = Noco.ncMeta,
   ) {
-    const syncConfig = await this.get(context, syncConfigId, ncMeta);
+    const syncConfig = await this.get(context, syncConfigId, false, ncMeta);
 
     if (!syncConfig) {
       return null;

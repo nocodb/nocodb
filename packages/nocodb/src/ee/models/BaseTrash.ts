@@ -4,6 +4,7 @@ import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { parseJson } from '~/utils/tsUtils';
 
 function encodeListCursor(deletedAt: string | Date, id: string): string {
   const iso =
@@ -383,17 +384,16 @@ export default class BaseTrash implements BaseTrashType {
       .del();
   }
 
-  public getRelatedItems(): {
-    columns?: Array<{ id: string; placeholder_id: string; table_id: string }>;
-    dependents?: Array<{ id: string; type: string }>;
-  } {
-    if (!this.related_items) return {};
-    if (typeof this.related_items === 'object') return this.related_items;
-
-    try {
-      return JSON.parse(this.related_items);
-    } catch {
-      return {};
-    }
+  public getRelatedItems<
+    T extends object = {
+      columns?: Array<{ id: string; placeholder_id: string; table_id: string }>;
+      dependents?: Array<{ id: string; type: string }>;
+      /** Sync mappings suspended when a synced table is trashed (App Sync). */
+      appSyncMappingIds?: string[];
+      /** Sync mappings suspended when a synced table is trashed (Table Sync). */
+      tableSyncMappings?: Array<{ id: string; baseId: string }>;
+    },
+  >(): T {
+    return parseJson<T>(this.related_items);
   }
 }

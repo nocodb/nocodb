@@ -38,6 +38,7 @@ export default class TableSync implements TableSyncType {
   status: TableSyncStatus;
   last_error: string | null;
   last_synced_at: string | null;
+  deleted?: boolean;
   sync_job_id: string | null;
 
   created_at: string;
@@ -85,12 +86,13 @@ export default class TableSync implements TableSyncType {
       prepareForDb(insertObj, JSON_FIELDS),
     );
 
-    return this.get(context, id, ncMeta);
+    return this.get(context, id, false, ncMeta);
   }
 
   public static async get(
     context: NcContext,
     id: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ): Promise<TableSync | null> {
     const key = `${CacheScope.TABLE_SYNC}:${id}`;
@@ -105,6 +107,7 @@ export default class TableSync implements TableSyncType {
       if (!row) return null;
       await NocoCache.set(context, key, prepareForResponse(row, JSON_FIELDS));
     }
+    if (row.deleted && !includeDeleted) return null;
     const sync = new TableSync(row);
     sync.mappings = await TableSyncMapping.listBySyncId(
       context,
@@ -116,16 +119,19 @@ export default class TableSync implements TableSyncType {
 
   public static async list(
     context: NcContext,
+    { includeDeleted = false }: { includeDeleted?: boolean } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<TableSync[]> {
     if (!context.base_id || !context.workspace_id) return [];
 
-    const rows = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TABLE_SYNCS,
-      {},
-    );
+    const rows = (
+      await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.TABLE_SYNCS,
+        {},
+      )
+    ).filter((row) => includeDeleted || !row.deleted);
 
     const syncs = rows.map(
       (row) => new TableSync(prepareForResponse(row, JSON_FIELDS)),
@@ -174,7 +180,7 @@ export default class TableSync implements TableSyncType {
       prepareForResponse(updateObj, JSON_FIELDS),
     );
 
-    return this.get(context, id, ncMeta);
+    return this.get(context, id, false, ncMeta);
   }
 
   public static async delete(
@@ -195,6 +201,31 @@ export default class TableSync implements TableSyncType {
       `${CacheScope.TABLE_SYNC}:${id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+    return true;
+  }
+
+  /**
+   * Soft-delete (trash) or restore a sync by flipping the `deleted` flag.
+   * Mappings are left intact so the sync can re-attach on restore.
+   */
+  public static async softDelete(
+    context: NcContext,
+    id: string,
+    deleted = true,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.TABLE_SYNCS,
+      { deleted },
+      id,
+    );
+
+    await NocoCache.update(context, `${CacheScope.TABLE_SYNC}:${id}`, {
+      deleted,
+    });
+
     return true;
   }
 

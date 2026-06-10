@@ -112,7 +112,7 @@ export function registerInsertHandlers(
           trashId,
           user: meta.originalReq?.user ?? { id: meta.createdBy },
           req: meta.originalReq,
-          force: true,
+          options: { force: true },
         });
         return {
           metaUpdate: { softDeleteTrashId: null },

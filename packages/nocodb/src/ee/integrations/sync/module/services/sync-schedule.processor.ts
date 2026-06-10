@@ -19,6 +19,7 @@ export class SyncModuleSyncScheduleProcessor {
       .knexConnection(MetaTable.SYNC_CONFIGS)
       .where('sync_trigger', SyncTrigger.Schedule)
       .where('next_sync_at', '<=', new Date().toISOString())
+      .where((qb) => qb.where('deleted', false).orWhereNull('deleted'))
       // For timebeing run 10 jobs at a time maximum
       .limit(10);
 
@@ -36,17 +37,26 @@ export class SyncModuleSyncScheduleProcessor {
         continue;
       }
 
-      const job = await this.syncModuleService.triggerSync(context, {
-        syncConfigId: syncConfig.id,
-        bulk: true,
-        req: {
-          user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
-        } as any,
-      });
+      try {
+        const job = await this.syncModuleService.triggerSync(context, {
+          syncConfigId: syncConfig.id,
+          bulk: true,
+          req: {
+            user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+          } as any,
+        });
 
-      this.logger.debug(
-        `Sync job triggered for ${syncConfig.id} with id ${job.id}`,
-      );
+        this.logger.debug(
+          `Sync job triggered for ${syncConfig.id} with id ${job.id}`,
+        );
+      } catch (e) {
+        this.logger.error(
+          `Failed to trigger scheduled sync ${syncConfig.id}: ${
+            (e as Error).message
+          }`,
+          e.stack,
+        );
+      }
     }
 
     this.logger.debug('SyncModuleSyncScheduleProcessor job completed');

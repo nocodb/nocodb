@@ -102,7 +102,14 @@ export function registerMacroHandlers(): void {
             // at forward time and persisted as `entry.resolvedExtra`.
             // (Side-effect captures from CaptureBag live in entry.extra
             // and are not what the inverse builder typically reads.)
-            { extra: entry.resolvedExtra as Record<string, any> | undefined },
+            // `entityId` is surfaced too so create-style inverses can recover
+            // the created id here — the forward `result` (3rd arg) is undefined
+            // at undo time, so `columnAdd`→`columnDelete` would otherwise have
+            // no id to drop.
+            {
+              extra: entry.resolvedExtra as Record<string, any> | undefined,
+              entityId: entry.entityId,
+            },
           );
         } catch (e: any) {
           failure = {

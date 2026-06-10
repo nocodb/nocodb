@@ -693,6 +693,7 @@
     "scripts": "Scripts",
     "automation": "Automation",
     "automations": "Automations",
+    "sync": "Sync",
     "dashboard": "Dashboard",
     "dashboards": "Dashboards",
     "widget": "Widget",

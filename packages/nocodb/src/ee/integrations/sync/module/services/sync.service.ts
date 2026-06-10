@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  EventType,
   type IntegrationReqType,
   IntegrationsType,
   type MetaType,
@@ -11,6 +12,7 @@ import {
   PlanFeatureTypes,
   RelationTypes,
   SyncCategory,
+  SyncMappingStatus,
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
@@ -28,6 +30,7 @@ import type {
 } from '@noco-local-integrations/core';
 import {
   Base,
+  Column,
   Integration,
   Model,
   SyncConfig,
@@ -36,9 +39,12 @@ import {
   Workspace,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { IntegrationsService } from '~/services/integrations.service';
 import { TablesService } from '~/services/tables.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import {
   ColumnsService,
   getJunctionTableName,
@@ -47,7 +53,9 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { getMMColumnNames } from '~/helpers/columnHelpers';
+import { extractProps } from '~/helpers/extractProps';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class SyncModuleService implements OnModuleInit {
@@ -90,6 +98,7 @@ export class SyncModuleService implements OnModuleInit {
     protected readonly bulkDataAliasService: BulkDataAliasService,
     protected readonly columnsService: ColumnsService,
     protected readonly viewColumnsService: ViewColumnsService,
+    protected readonly baseTrashService: BaseTrashService,
   ) {}
 
   async onModuleInit() {
@@ -104,6 +113,7 @@ export class SyncModuleService implements OnModuleInit {
     );
   }
 
+  @TraceCommand(OperationName.appSyncCreate)
   async createSync(
     context: NcContext,
     payload: {
@@ -596,6 +606,18 @@ export class SyncModuleService implements OnModuleInit {
 
       const config = await SyncConfig.get(context, syncConfig.id);
 
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'app_sync_create',
+            payload: { ...config, base_id: context.base_id },
+          },
+        },
+        context.socket_id,
+      );
+
       return {
         integrations: integrationsToDelete,
         syncConfig: config,
@@ -638,7 +660,7 @@ export class SyncModuleService implements OnModuleInit {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     if (syncConfig.sync_job_id) {
@@ -686,7 +708,7 @@ export class SyncModuleService implements OnModuleInit {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     const job = await this.nocoJobsService.add(JobTypes.SyncModuleMigrateSync, {
@@ -708,54 +730,189 @@ export class SyncModuleService implements OnModuleInit {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     return syncConfig;
   }
 
+  /**
+   * Glue child of the `appSyncUpdate` macro. Applies the scalar config fields
+   * (top-level only) and persists each integration's `custom_schema` (+ removed-
+   * namespace data cleanup) as ONE traced, reversible op, so it lands in the
+   * macro transcript alongside the table/column ops. `updateSync` calls this in
+   * place of doing those mutations inline; the table/column changes stay as
+   * their own transcript children and mappings ride the table ops' trash cycle.
+   */
+  @TraceCommand(OperationName.appSyncConfigUpdate)
+  async appSyncConfigUpdate(
+    context: NcContext,
+    param: {
+      syncConfigId: string;
+      payload: {
+        title?: string;
+        sync_type?: SyncType;
+        sync_trigger?: SyncTrigger;
+        sync_trigger_cron?: string;
+        on_delete_action?: OnDeleteAction;
+        config?:
+          | (IntegrationReqType & { id?: string })
+          | (IntegrationReqType & { id?: string })[];
+      };
+      req: NcRequest;
+    },
+  ): Promise<{ integrations: Integration[] }> {
+    const { syncConfigId, payload, req } = param;
+    const syncConfig = await SyncConfig.get(context, syncConfigId);
+    if (!syncConfig) {
+      NcError.get(context).syncConfigNotFound(syncConfigId);
+    }
+
+    // Scalar config fields — top-level syncs only.
+    const scalarProps = extractProps(payload, [
+      'title',
+      'sync_type',
+      'sync_trigger',
+      'sync_trigger_cron',
+      'on_delete_action',
+    ]);
+    if (
+      !syncConfig.fk_parent_sync_config_id &&
+      Object.keys(scalarProps).length
+    ) {
+      await SyncConfig.update(context, syncConfigId, {
+        ...scalarProps,
+        updated_by: req.user.id,
+      });
+    }
+
+    const updatedIntegrations: Integration[] = [];
+    for (const integrationPayload of [payload.config].flat().filter(Boolean)) {
+      if (!integrationPayload?.id) continue;
+      const integration = await Integration.get(context, integrationPayload.id);
+      if (!integration) continue;
+
+      const integrationWrapper =
+        await integration.getIntegrationWrapper<SyncIntegration>();
+      const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
+        integrationPayload,
+      ) as SyncIntegration;
+      const oldNamespaces = await integrationWrapper.getNamespaces();
+      const newNamespaces = await tempIntegrationWrapper.getNamespaces();
+      const namespacesToDelete = oldNamespaces.filter(
+        (namespace) => !newNamespaces.includes(namespace),
+      );
+
+      const updated = await this.integrationsService.integrationUpdate(
+        context,
+        {
+          integrationId: integrationPayload.id,
+          integration: integrationPayload,
+          req,
+        },
+      );
+      updatedIntegrations.push(updated);
+
+      if (namespacesToDelete.length > 0) {
+        const syncMappings = await SyncMapping.list(context, {
+          fk_sync_config_id:
+            syncConfig.fk_parent_sync_config_id || syncConfig.id,
+          force: true,
+        });
+        for (const syncMapping of syncMappings) {
+          const model = await Model.get(context, syncMapping.fk_model_id);
+          if (!model) continue;
+          await model.getColumns(context);
+          const remoteNamespaceColId = model.columns.find(
+            (c) => c.title === 'RemoteNamespace',
+          )?.id;
+          if (!remoteNamespaceColId) {
+            continue;
+          }
+          await this.bulkDataAliasService.bulkDataDeleteAll(
+            { ...context, socket_id: null },
+            {
+              baseName: model.base_id,
+              tableName: model.id,
+              req,
+              query: {
+                internalFlags: { skipHooks: true },
+                filterArr: [
+                  {
+                    comparison_op: 'in',
+                    value: namespacesToDelete,
+                    logical_op: 'and',
+                    fk_column_id: remoteNamespaceColId,
+                  },
+                ],
+              },
+            },
+          );
+        }
+      }
+    }
+
+    const updated = await SyncConfig.get(context, syncConfigId);
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'app_sync_update',
+          payload: { ...updated, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return { integrations: updatedIntegrations };
+  }
+
+  @TraceCommand(OperationName.appSyncUpdate)
   async updateSync(
     context: NcContext,
-    syncConfigId: string,
-    payload: {
-      title?: string;
-      sync_type?: SyncType;
-      sync_trigger?: SyncTrigger;
-      sync_trigger_cron?: string;
-      on_delete_action?: OnDeleteAction;
-      config?:
-        | (IntegrationReqType & { id?: string; syncConfigId?: string })
-        | (IntegrationReqType & { id?: string; syncConfigId?: string })[];
+    param: {
+      syncConfigId: string;
+      payload: {
+        title?: string;
+        sync_type?: SyncType;
+        sync_trigger?: SyncTrigger;
+        sync_trigger_cron?: string;
+        on_delete_action?: OnDeleteAction;
+        config?:
+          | (IntegrationReqType & { id?: string; syncConfigId?: string })
+          | (IntegrationReqType & { id?: string; syncConfigId?: string })[];
+      };
+      req: NcRequest;
     },
-    req: NcRequest,
   ) {
+    const { syncConfigId, payload, req } = param;
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
     const configsToProcess = [payload.config].flat().filter(Boolean);
 
     const updatedIntegrations: Integration[] = [];
 
-    if (!syncConfig.fk_parent_sync_config_id) {
-      if (
-        payload.title ||
-        payload.sync_type ||
-        payload.sync_trigger ||
-        payload.sync_trigger_cron ||
-        payload.on_delete_action
-      ) {
-        await SyncConfig.update(context, syncConfigId, {
-          title: payload.title,
-          sync_type: payload.sync_type,
-          sync_trigger: payload.sync_trigger,
-          sync_trigger_cron: payload.sync_trigger_cron,
-          on_delete_action: payload.on_delete_action,
-          updated_by: req.user.id,
-        });
-      }
+    const scalarProps = extractProps(payload, [
+      'title',
+      'sync_type',
+      'sync_trigger',
+      'sync_trigger_cron',
+      'on_delete_action',
+    ]);
+    if (
+      !syncConfig.fk_parent_sync_config_id &&
+      Object.keys(scalarProps).length
+    ) {
+      await this.appSyncConfigUpdate(context, {
+        syncConfigId,
+        payload: scalarProps,
+        req,
+      });
     }
 
     // Process all integration configs
@@ -824,6 +981,33 @@ export class SyncModuleService implements OnModuleInit {
           );
 
           for (const tableKey of tablesToCreate) {
+            const staleMapping = syncMappings.find(
+              (m) =>
+                m.target_table === tableKey &&
+                m.status === SyncMappingStatus.Suspended,
+            );
+            if (staleMapping) {
+              const abandoned = await Model.get(
+                context,
+                staleMapping.fk_model_id,
+                true,
+              );
+              if (abandoned) {
+                await Model.updateSynced(context, abandoned.id, false);
+                const cols = await abandoned.getColumns(context);
+                for (const col of cols ?? []) {
+                  if (col.readonly && col.id) {
+                    await Column.update2(context, {
+                      colId: col.id,
+                      column: { readonly: false },
+                      isSimpleUpdate: true,
+                    });
+                  }
+                }
+              }
+              await SyncMapping.delete(context, staleMapping.id);
+            }
+
             const table = newCustomSchema[tableKey];
 
             const columns = [...table.columns, ...syncSystemFields];
@@ -898,7 +1082,7 @@ export class SyncModuleService implements OnModuleInit {
 
           for (const tableKey of tablesToDrop) {
             const mapping = syncMappings.find(
-              (m) => m.target_table === oldCustomSchema[tableKey].title,
+              (m) => m.target_table === tableKey,
             );
 
             if (!mapping) {
@@ -910,18 +1094,17 @@ export class SyncModuleService implements OnModuleInit {
             if (model) {
               await this.tablesService.tableDelete(context, {
                 tableId: model.id,
-                forceDeleteSyncs: true,
-                skipTrash: true,
+                skipTrash: false,
                 req,
               });
+            } else {
+              await SyncMapping.delete(context, mapping.id);
             }
-
-            await SyncMapping.delete(context, mapping.id);
           }
 
           for (const tableKey of tablesToModify) {
             const mapping = syncMappings.find(
-              (m) => m.target_table === oldCustomSchema[tableKey].title,
+              (m) => m.target_table === tableKey,
             );
 
             if (!mapping) {
@@ -1017,77 +1200,11 @@ export class SyncModuleService implements OnModuleInit {
           });
         }
 
-        const integrationWrapper =
-          await integration.getIntegrationWrapper<SyncIntegration>();
-
-        const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
-          integrationPayload,
-        ) as SyncIntegration;
-
-        const oldNamespaces = await integrationWrapper.getNamespaces();
-
-        const newNamespaces = await tempIntegrationWrapper.getNamespaces();
-
-        const namespacesToDelete = oldNamespaces.filter(
-          (namespace) => !newNamespaces.includes(namespace),
-        );
-
-        const updated = await this.integrationsService.integrationUpdate(
+        const { integrations: persisted } = await this.appSyncConfigUpdate(
           context,
-          {
-            integrationId: integrationPayload.id,
-            integration: integrationPayload,
-            req,
-          },
+          { syncConfigId, payload: { config: integrationPayload }, req },
         );
-
-        updatedIntegrations.push(updated);
-
-        // delete the data for the missing namespaces
-        if (namespacesToDelete.length > 0) {
-          const syncMappings = await SyncMapping.list(context, {
-            fk_sync_config_id:
-              syncConfig.fk_parent_sync_config_id || syncConfig.id,
-            force: true,
-          });
-
-          for (const syncMapping of syncMappings) {
-            const model = await Model.get(context, syncMapping.fk_model_id);
-
-            if (!model) {
-              continue;
-            }
-
-            await model.getColumns(context);
-
-            await this.bulkDataAliasService.bulkDataDeleteAll(
-              {
-                ...context,
-                socket_id: null,
-              },
-              {
-                baseName: model.base_id,
-                tableName: model.id,
-                req,
-                query: {
-                  internalFlags: {
-                    skipHooks: true,
-                  },
-                  filterArr: [
-                    {
-                      comparison_op: 'in',
-                      value: namespacesToDelete,
-                      logical_op: 'and',
-                      fk_column_id: model.columns.find(
-                        (c) => c.title === 'RemoteNamespace',
-                      )?.id,
-                    },
-                  ],
-                },
-              },
-            );
-          }
-        }
+        updatedIntegrations.push(...persisted);
       } else {
         // Create new child sync config — gate on the integration manifest's
         // category (source of truth) so a custom (e.g. mssql) integration can't
@@ -1139,20 +1256,69 @@ export class SyncModuleService implements OnModuleInit {
 
     const updatedSyncConfig = await SyncConfig.get(context, syncConfigId);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'app_sync_update',
+          payload: { ...updatedSyncConfig, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
     return {
       syncConfig: updatedSyncConfig,
       integrations: updatedIntegrations,
     };
   }
 
-  async deleteSync(context: NcContext, syncConfigId: string, req: NcRequest) {
+  @TraceCommand(OperationName.appSyncDelete)
+  async deleteSync(
+    context: NcContext,
+    param: {
+      syncConfigId: string;
+      req: NcRequest;
+      dropTables?: boolean;
+      skipTrash?: boolean;
+    },
+  ) {
+    const { syncConfigId, req, dropTables = false, skipTrash = false } = param;
+
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
-      NcError.genericNotFound('SyncConfig', syncConfigId);
+      NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
-    // TODO: transaction
+    if (!skipTrash) {
+      await this.baseTrashService.trashResource(context, {
+        resourceId: syncConfigId,
+        resourceType: 'appSync',
+        user: req.user,
+        req,
+        options: { dropTables },
+      });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'app_sync_delete',
+            payload: { id: syncConfig.id, base_id: context.base_id },
+          },
+        },
+        context.socket_id,
+      );
+
+      return true;
+    }
+
+    // Hard delete (skipTrash) — the normal flow: no trash entry, not
+    // restorable. Child syncs only wipe their rows; top-level syncs drop every
+    // dest table (junction included). The config (+ its integration) is purged.
     try {
       if (syncConfig.fk_parent_sync_config_id) {
         const parentSyncMapping = await SyncMapping.list(context, {
@@ -1160,37 +1326,33 @@ export class SyncModuleService implements OnModuleInit {
           force: true,
         });
 
-        // if this is a child sync clear the data for this
         for (const syncMapping of parentSyncMapping) {
           const model = await Model.get(context, syncMapping.fk_model_id);
-
-          if (!model) {
-            continue;
-          }
+          if (!model) continue;
 
           await model.getColumns(context);
 
+          const syncConfigIdColId = model.columns.find(
+            (c) => c.title === 'SyncConfigId',
+          )?.id;
+          if (!syncConfigIdColId) {
+            continue;
+          }
+
           await this.bulkDataAliasService.bulkDataDeleteAll(
-            {
-              ...context,
-              socket_id: null,
-            },
+            { ...context, socket_id: null },
             {
               baseName: model.base_id,
               tableName: model.id,
               req,
               query: {
-                internalFlags: {
-                  skipHooks: true,
-                },
+                internalFlags: { skipHooks: true },
                 filterArr: [
                   {
                     comparison_op: 'eq',
                     value: syncConfig.id,
                     logical_op: 'and',
-                    fk_column_id: model.columns.find(
-                      (c) => c.title === 'SyncConfigId',
-                    )?.id,
+                    fk_column_id: syncConfigIdColId,
                   },
                 ],
               },
@@ -1212,10 +1374,7 @@ export class SyncModuleService implements OnModuleInit {
             }
 
             await this.tablesService.tableDelete(
-              {
-                ...context,
-                socket_id: null,
-              },
+              { ...context, socket_id: null },
               {
                 tableId: syncMapping.fk_model_id,
                 forceDeleteSyncs: true,
@@ -1236,6 +1395,18 @@ export class SyncModuleService implements OnModuleInit {
       this.logger.error('Failed to delete sync', e);
       NcError.get(context).internalServerError('Failed to delete sync');
     }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'app_sync_delete',
+          payload: { id: syncConfig.id, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

@@ -132,6 +132,8 @@ const RESOURCE_LABEL_KEYS: Record<string, string> = {
   script: 'objects.script',
   extension: 'objects.extension',
   hook: 'objects.webhook',
+  appSync: 'objects.sync',
+  tableSync: 'objects.sync',
 }
 
 function activitySentence(item: any) {

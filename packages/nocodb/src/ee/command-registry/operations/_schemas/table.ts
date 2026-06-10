@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NcApiVersion } from 'nocodb-sdk';
+import { NcApiVersion, OperationSource } from 'nocodb-sdk';
 
 const MODEL_TYPES = ['table', 'view'] as const;
 const boolType = z.union([z.boolean(), z.literal(0), z.literal(1)]);
@@ -75,6 +75,8 @@ export const tableCreateSchema = z
     synced: z.boolean().optional(),
     apiVersion: z.nativeEnum(NcApiVersion).optional(),
     isDuplicateOperation: z.boolean().optional(),
+    operationSource: z.nativeEnum(OperationSource).optional(),
+    mm: boolType.optional(),
   })
   .strict();
 
@@ -93,6 +95,13 @@ export const tableDeleteSchema = z
     forceDeleteSyncs: z.boolean().optional(),
     skipLinkPlaceholder: z.boolean().optional(),
     skipTrash: z.boolean().optional(),
+    parent: z
+      .object({
+        type: z.string(),
+        id: z.string(),
+        name: z.string().optional(),
+      })
+      .optional(),
   })
   .strict();
 

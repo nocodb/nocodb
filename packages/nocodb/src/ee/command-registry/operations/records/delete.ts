@@ -174,7 +174,7 @@ export function registerDeleteHandlers(
             trashId,
             user: meta.originalReq?.user ?? { id: meta.createdBy },
             req: meta.originalReq,
-            force: true,
+            options: { force: true },
           });
           return { metaUpdate: { softDeleteTrashId: null } };
         } catch (e: any) {

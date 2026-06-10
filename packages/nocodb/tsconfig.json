@@ -12,9 +12,9 @@
     "target": "es2022",
     "lib": ["es2022"],
     "useDefineForClassFields": false,
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
+    "strict": false,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "noImplicitThis": false,
@@ -26,9 +26,9 @@
     "esModuleInterop": true,
     "jsx": "react",
     "paths": {
-      "src/*": ["src/*"],
-      "~/*": ["src/*"],
-      "@/*": ["src/*"],
+      "src/*": ["./src/*"],
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"],
       "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
       "@noco-local-integrations/core": ["../noco-integrations/core"]
     },

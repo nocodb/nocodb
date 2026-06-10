@@ -16,6 +16,12 @@ packages:
 # Use minimumReleaseAgeExclude to bypass for emergency security patches.
 minimumReleaseAge: 10080
 
+# ts-checker-rspack-plugin@1.4.0 (published 2026-06-08) adds tsgo
+# (@typescript/native-preview) support needed by the rspack 2 upgrade.
+# Remove this exclusion once the release is older than 7 days.
+minimumReleaseAgeExclude:
+  - ts-checker-rspack-plugin
+
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).
 # NOTE: Re-enable once oxc-* packages restore provenance attestations.

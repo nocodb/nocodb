@@ -4,6 +4,7 @@ import { UITypes } from 'nocodb-sdk';
 import {
   escapeCsvFormulaValue,
   escapeFormulaeInRows,
+  escapeFormulaHeader,
   NC_FORMULA_ESCAPE_SKIP_UITYPES,
 } from '~/helpers/csvFormulaEscape';
 
@@ -88,6 +89,46 @@ function csvFormulaEscapeTests() {
       expect(NC_FORMULA_ESCAPE_SKIP_UITYPES.has(UITypes.LongText)).to.equal(
         false,
       );
+    });
+  });
+
+  describe('escapeFormulaHeader', () => {
+    it('escapes formula-leading titles regardless of column type (no skip-set)', () => {
+      // a numeric column titled "-Revenue" is still a text label in the header,
+      // so it MUST be escaped — unlike a numeric *value* of "-5"
+      expect(
+        escapeFormulaHeader([
+          '=cmd|calc',
+          '+1',
+          '-Revenue',
+          '@handle',
+          '\t=tab',
+          '\r=cr',
+        ]),
+      ).to.deep.equal([
+        `'=cmd|calc`,
+        `'+1`,
+        `'-Revenue`,
+        `'@handle`,
+        `'\t=tab`,
+        `'\r=cr`,
+      ]);
+    });
+
+    it('leaves non-formula titles untouched', () => {
+      expect(escapeFormulaHeader(['Name', 'Amount', 'a=b'])).to.deep.equal([
+        'Name',
+        'Amount',
+        'a=b',
+      ]);
+    });
+
+    it('renders null/undefined titles as empty header cells', () => {
+      expect(escapeFormulaHeader([null, undefined, '=x'])).to.deep.equal([
+        '',
+        '',
+        `'=x`,
+      ]);
     });
   });
 }

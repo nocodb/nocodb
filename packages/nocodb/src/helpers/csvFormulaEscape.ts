@@ -35,6 +35,20 @@ export function escapeCsvFormulaValue(value: unknown): unknown {
     : value;
 }
 
+// Escape formula-leading column titles for the CSV header row. A column title is the
+// header cell, and titles are equally user-controlled — only whitespace-trimmed and
+// length-checked, never validated against formula triggers — so the header is the same
+// CWE-1236 vector as the cells below it. Unlike escapeFormulaeInRows there is NO skip-set:
+// a title is always a text label (never numeric/temporal data), so every formula-leading
+// title is escaped regardless of the column's uidt. null/undefined titles render empty.
+export function escapeFormulaHeader(
+  titles: (string | null | undefined)[],
+): string[] {
+  return titles.map((t) =>
+    typeof t === 'string' && NC_FORMULA_TRIGGER_RE.test(t) ? `'${t}` : t ?? '',
+  );
+}
+
 // Escape formula-leading string cells in-place across `rows` (keyed by column title, the
 // serialized export shape). Cells in numeric/temporal columns are skipped; keys with no
 // matching column are escaped (secure default).

@@ -420,6 +420,18 @@ export class OnPremiseController {
         // Non-fatal — don't fail heartbeat if reseat encounters a Stripe error
       });
 
+    // Self-heal entitlement: rebuild config.addons from the subscription's
+    // currently-active add-ons. This makes the heartbeat the reconciler, so a
+    // grant/revoke whose sync was swallowed — or an out-of-band Stripe change —
+    // converges here (≤6h) instead of drifting forever.
+    if (installation.fk_subscription_id) {
+      await this.onPremLicenseService
+        .syncInstallationAddons(installation.fk_subscription_id, ncMeta)
+        .catch(() => {
+          // Non-fatal — don't fail heartbeat if the add-on sync errors
+        });
+    }
+
     // Refresh installation data after update
     const updatedInstallation = await Installation.get(
       body.installation_id,

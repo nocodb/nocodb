@@ -572,10 +572,25 @@ export class PaymentService {
         payload.price_id,
       );
       stripePriceId = priceId;
+      // The Stripe item is added before the SubscriptionAddon row below, so a
+      // mid-grant failure (or a manual retry) can leave an item for this price
+      // already on the subscription. Stripe rejects adding a duplicate price as
+      // a new item, so reuse the existing item (adjusting its quantity) instead
+      // of adding one — keeps grants idempotent and self-healing.
+      const stripeSub = await stripe.subscriptions.retrieve(
+        subscription.stripe_subscription_id,
+      );
+      const existingItem = stripeSub.items.data.find(
+        (i) => i.price.id === priceId,
+      );
       const updated = await stripe.subscriptions.update(
         subscription.stripe_subscription_id,
         {
-          items: [{ price: priceId, quantity }],
+          items: [
+            existingItem
+              ? { id: existingItem.id, quantity }
+              : { price: priceId, quantity },
+          ],
           proration_behavior: 'always_invoice',
         },
       );
@@ -3706,9 +3721,31 @@ export class PaymentService {
         case 'customer.subscription.deleted': {
           const stripeSub = obj as Stripe.Subscription;
 
-          // Delegate on-prem subscriptions to the cloud handler
+          // Delegate on-prem subscriptions to the cloud handler, then keep their
+          // add-on junctions in sync exactly like cloud subs do below: a
+          // cancellation must end add-on entitlement and tombstone the rows (so a
+          // later reactivation can't resurrect them). The running instance picks
+          // up the change on its next heartbeat.
           if (stripeSub.metadata.on_prem === 'true') {
             await this.handleOnPremSubscriptionUpdated(stripeSub);
+
+            const onPremSub = await Subscription.getByStripeSubscriptionId(
+              stripeSub.id,
+            );
+            if (onPremSub) {
+              if (event.type === 'customer.subscription.deleted') {
+                await this.cancelAllSubscriptionAddons(
+                  onPremSub.id,
+                  Noco.ncMeta,
+                );
+              } else {
+                await this.reconcileSubscriptionAddons(
+                  onPremSub.id,
+                  stripeSub,
+                  Noco.ncMeta,
+                );
+              }
+            }
             break;
           }
 
@@ -3724,6 +3761,21 @@ export class PaymentService {
           );
           if (!workspaceOrOrg)
             NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+
+          // Terminal-state guard: a Stripe subscription id, once canceled, never
+          // reactivates (a new purchase gets a new id). Ignore a late / out-of-
+          // order `updated` that would flip an already-canceled subscription back
+          // to a live status and wrongly re-grant the plan.
+          if (
+            event.type === 'customer.subscription.updated' &&
+            subRec.status === 'canceled' &&
+            stripeSub.status !== 'canceled'
+          ) {
+            this.logger.warn(
+              `Ignoring stale subscription.updated for canceled subscription ${stripeSub.id} (incoming status: ${stripeSub.status})`,
+            );
+            break;
+          }
 
           // Resolve the BASE plan item — add-on grants make this a multi-item
           // subscription, and persisting an add-on item's price/quantity here

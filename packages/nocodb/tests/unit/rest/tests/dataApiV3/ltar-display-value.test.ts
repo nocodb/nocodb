@@ -435,6 +435,31 @@ describe('dataApiV3', () => {
         return items.map((item) => item?.fields ?? item);
       };
 
+      // Like factory createLookupColumn, but by ids — needed when the target
+      // is an auto-created inverse column the factory's title-based column
+      // resolution doesn't see.
+      const createLookupByIds = async (
+        table: Model,
+        title: string,
+        relationColumnId: string,
+        lookupColumnId: string,
+      ) => {
+        const res = await request(getApp())
+          .post(`/api/v1/db/meta/tables/${table.id}/columns`)
+          .set('xc-auth', getToken())
+          .send({
+            title,
+            column_name: title,
+            uidt: UITypes.Lookup,
+            fk_relation_column_id: relationColumnId,
+            fk_lookup_column_id: lookupColumnId,
+          });
+        expect(
+          res.status,
+          `create lookup ${title}: ${JSON.stringify(res.body)}`,
+        ).to.equal(200);
+      };
+
       const runLookupCase = async (
         title: string,
         opts: {
@@ -562,9 +587,257 @@ describe('dataApiV3', () => {
         });
       });
 
-      // NOTE: lookup of a V2 MM `Links` column is intentionally not covered —
-      // the lookup extraction does not propagate `linksAsLtar`, so it resolves
-      // to the rollup count (a number), which has no display value to assert.
+      it('looked-up V2 OO', async () => {
+        await runLookupCase('LkOOV2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.ONE_TO_ONE,
+          version: LinksVersion.V2,
+        });
+      });
+
+      // NOTE: lookups of V2 MM / OM `Links` columns are intentionally not
+      // covered — the lookup extraction does not propagate `linksAsLtar`, so
+      // they resolve to the rollup count (a number), which has no display
+      // value to assert. The grid renders that count via the Links cell, so
+      // the override cannot manifest (or break) there.
+
+      it('looked-up V1 OO (bt side) — override on the inverse column', async () => {
+        const ctx = {
+          workspace_id: testContext.base.fk_workspace_id,
+          base_id: testContext.base.id,
+        };
+        const labelA = findCol(colsA, 'Label');
+
+        // OO A → B creates a symmetric column on tblB (meta.bt = true) that
+        // relates back to tblA — the bt-side OO extraction branch.
+        const ooCol: any = await createLtar(tblA, tblB, 'OoBtFwd', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.ONE_TO_ONE,
+        });
+        const symCol = (await tblB.getColumns(ctx)).find(
+          (c) =>
+            c.uidt === UITypes.LinkToAnotherRecord &&
+            (c.colOptions as any)?.type === RelationTypes.ONE_TO_ONE &&
+            (c.colOptions as any)?.fk_related_model_id === tblA.id,
+        );
+        expect(symCol, 'symmetric bt-side OO column must exist').to.exist;
+
+        // Set the override on the inverse column — it points at tblA, so the
+        // override is one of tblA's columns.
+        await patchColumn(symCol.id, {
+          fk_display_value_column_id: labelA.id,
+        });
+
+        // C → B link + a Lookup in C surfacing tblB's bt-side OO column
+        const tblC = await createTable(testContext.context, testContext.base, {
+          title: 'TblCOoBt',
+          table_name: 'TblCOoBt',
+          columns: customColumns('custom', [
+            {
+              title: 'Title',
+              column_name: 'Title',
+              uidt: UITypes.SingleLineText,
+              pv: true,
+            },
+          ]),
+        });
+        await createBulkRows(testContext.context, {
+          base: testContext.base,
+          table: tblC,
+          values: [{ Title: 'C1' }],
+        });
+        const cToB: any = await createLtar(tblC, tblB, 'OoBtCB', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+        });
+        await createLookupByIds(tblC, 'OoBtLK', cToB.id, symCol.id);
+
+        // Link A1 ↔ B1 (via the forward OO col) and C1 → B1
+        const rowsA = await listRows(tblA.id);
+        const rowsB = await listRows(tblB.id);
+        const a1 = rowsA.find((r) => r.fields?.Title === 'A1');
+        const b1 = rowsB.find((r) => r.fields?.Title === 'B1');
+        await linkV3(tblA.id, ooCol.id, String(a1.id), String(b1.id));
+        const rowsC = await listRows(tblC.id);
+        const c1 = rowsC.find((r) => r.fields?.Title === 'C1');
+        await linkV3(tblC.id, cToB.id, String(c1.id), String(b1.id));
+
+        const rowsCAfter = await listRows(tblC.id);
+        const c1After = rowsCAfter.find((r) => r.fields?.Title === 'C1');
+        const values = extractNestedValues(c1After.fields.OoBtLK);
+        expect(values.length, 'bt-side OO lookup payload must exist').to.be
+          .greaterThan(0);
+        expect(
+          values[0]?.[labelA.title] ?? values[0]?.[labelA.id],
+          'override col Label (tblA) must be present in bt-side OO lookup payload',
+        ).to.equal('A-one');
+      });
+
+      it('looked-up V1 BT (inverse of HM) — override on the inverse column', async () => {
+        const ctx = {
+          workspace_id: testContext.base.fk_workspace_id,
+          base_id: testContext.base.id,
+        };
+        const labelA = findCol(colsA, 'Label');
+
+        // HM A → B creates a symmetric BT column on tblB that relates back to
+        // tblA — the same shape as a directly-created V1 BT, but exercising
+        // the PATCH-override flow on the auto-created inverse column.
+        const hmCol: any = await createLtar(tblA, tblB, 'BtInvFwd', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+        });
+        const symCol = (await tblB.getColumns(ctx)).find(
+          (c) =>
+            c.uidt === UITypes.LinkToAnotherRecord &&
+            (c.colOptions as any)?.type === RelationTypes.BELONGS_TO &&
+            (c.colOptions as any)?.fk_related_model_id === tblA.id,
+        );
+        expect(symCol, 'symmetric BT column must exist').to.exist;
+
+        await patchColumn(symCol.id, {
+          fk_display_value_column_id: labelA.id,
+        });
+
+        // C → B link + a Lookup in C surfacing tblB's BT column
+        const tblC = await createTable(testContext.context, testContext.base, {
+          title: 'TblCBtInv',
+          table_name: 'TblCBtInv',
+          columns: customColumns('custom', [
+            {
+              title: 'Title',
+              column_name: 'Title',
+              uidt: UITypes.SingleLineText,
+              pv: true,
+            },
+          ]),
+        });
+        await createBulkRows(testContext.context, {
+          base: testContext.base,
+          table: tblC,
+          values: [{ Title: 'C1' }],
+        });
+        const cToB: any = await createLtar(tblC, tblB, 'BtInvCB', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+        });
+        await createLookupByIds(tblC, 'BtInvLK', cToB.id, symCol.id);
+
+        // Link A1 → B1 (via the HM col) and C1 → B1
+        const rowsA = await listRows(tblA.id);
+        const rowsB = await listRows(tblB.id);
+        const a1 = rowsA.find((r) => r.fields?.Title === 'A1');
+        const b1 = rowsB.find((r) => r.fields?.Title === 'B1');
+        await linkV3(tblA.id, hmCol.id, String(a1.id), String(b1.id));
+        const rowsC = await listRows(tblC.id);
+        const c1 = rowsC.find((r) => r.fields?.Title === 'C1');
+        await linkV3(tblC.id, cToB.id, String(c1.id), String(b1.id));
+
+        const rowsCAfter = await listRows(tblC.id);
+        const c1After = rowsCAfter.find((r) => r.fields?.Title === 'C1');
+        const values = extractNestedValues(c1After.fields.BtInvLK);
+        expect(values.length, 'inverse BT lookup payload must exist').to.be
+          .greaterThan(0);
+        expect(
+          values[0]?.[labelA.title] ?? values[0]?.[labelA.id],
+          'override col Label (tblA) must be present in inverse BT lookup payload',
+        ).to.equal('A-one');
+      });
+
+      it('chained lookup (lookup → lookup → LTAR)', async () => {
+        const labelB = findCol(colsB, 'Label');
+
+        // A → B link with override
+        const linkCol: any = await createLtar(tblA, tblB, 'ChainLink', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_ONE,
+          version: LinksVersion.V2,
+          fk_display_value_column_id: labelB.id,
+        });
+
+        const makeTable = async (name: string) =>
+          createTable(testContext.context, testContext.base, {
+            title: name,
+            table_name: name,
+            columns: customColumns('custom', [
+              {
+                title: 'Title',
+                column_name: 'Title',
+                uidt: UITypes.SingleLineText,
+                pv: true,
+              },
+            ]),
+          });
+
+        // C looks up A's link; D looks up C's lookup — the LTAR extraction is
+        // reached through two scalar-AST hops.
+        const tblC = await makeTable('TblCChain');
+        await createBulkRows(testContext.context, {
+          base: testContext.base,
+          table: tblC,
+          values: [{ Title: 'C1' }],
+        });
+        const cToA: any = await createLtar(tblC, tblA, 'ChainCA', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+        });
+        await createLookupColumn(testContext.context, {
+          base: testContext.base,
+          title: 'ChainLK1',
+          table: tblC,
+          relatedTableName: tblA.table_name,
+          relatedTableColumnTitle: 'ChainLink',
+          relationColumnId: cToA.id,
+        });
+
+        const tblD = await makeTable('TblDChain');
+        await createBulkRows(testContext.context, {
+          base: testContext.base,
+          table: tblD,
+          values: [{ Title: 'D1' }],
+        });
+        const dToC: any = await createLtar(tblD, tblC, 'ChainDC', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+        });
+        await createLookupColumn(testContext.context, {
+          base: testContext.base,
+          title: 'ChainLK2',
+          table: tblD,
+          relatedTableName: tblC.table_name,
+          relatedTableColumnTitle: 'ChainLK1',
+          relationColumnId: dToC.id,
+        });
+
+        // Link A1 → B1, C1 → A1, D1 → C1
+        const rowsA = await listRows(tblA.id);
+        const rowsB = await listRows(tblB.id);
+        const a1 = rowsA.find((r) => r.fields?.Title === 'A1');
+        const b1 = rowsB.find((r) => r.fields?.Title === 'B1');
+        await linkV3(tblA.id, linkCol.id, String(a1.id), String(b1.id));
+        const rowsC = await listRows(tblC.id);
+        const c1 = rowsC.find((r) => r.fields?.Title === 'C1');
+        await linkV3(tblC.id, cToA.id, String(c1.id), String(a1.id));
+        const rowsD = await listRows(tblD.id);
+        const d1 = rowsD.find((r) => r.fields?.Title === 'D1');
+        await linkV3(tblD.id, dToC.id, String(d1.id), String(c1.id));
+
+        const rowsDAfter = await listRows(tblD.id);
+        const d1After = rowsDAfter.find((r) => r.fields?.Title === 'D1');
+        const values = extractNestedValues(d1After.fields.ChainLK2).flatMap(
+          (v) => extractNestedValues(v),
+        );
+        expect(values.length, 'chained lookup payload must exist').to.be
+          .greaterThan(0);
+        expect(
+          values[0]?.[labelB.title] ?? values[0]?.[labelB.id],
+          'override col Label must survive a chained lookup',
+        ).to.equal('B-one');
+      });
     });
 
     // ----------------------------------------------------------------------

@@ -851,9 +851,16 @@ export default class Team {
       }
     }
 
-    // Clear caches for this team and its list
+    // Clear caches for this team and its list. Key the list bucket by the team's
+    // own scope (matches Team.list), not the ambient context — otherwise
+    // reparenting a team under a divergent context clears the wrong bucket and the
+    // scope's list keeps stale path/depth until the TTL.
     await NocoCache.del('root', `${CacheScope.TEAM}:${teamId}`);
-    const baseCacheKey = context.workspace_id ?? context.org_id;
+    const baseCacheKey =
+      team.fk_workspace_id ??
+      team.fk_org_id ??
+      context.workspace_id ??
+      context.org_id;
     await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}`);
 
     // Clear dependent caches

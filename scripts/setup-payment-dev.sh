@@ -22,6 +22,13 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Load local-only secrets if present (gitignored, never committed). Used to enable
+# license-server mode (NC_LICENSE_SERVER_PRIVATE_KEY + NC_ON_PREMISE_SECRET) so the
+# on-prem license endpoints register. The backend subshell below inherits these exports.
+if [[ -f "$ROOT_DIR/scripts/.payment-dev-secrets.env" ]]; then
+  source "$ROOT_DIR/scripts/.payment-dev-secrets.env"
+fi
+
 BOLD='\033[1m'
 DIM='\033[2m'
 GREEN='\033[0;32m'

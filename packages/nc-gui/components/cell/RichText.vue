@@ -201,6 +201,12 @@ function focusEditor() {
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
+    // Skip while the user is typing in this editor: their keystrokes already flow out via
+    // `onUpdate` → `vModel`, so re-running `setContent` here would reset the document and jump
+    // the caret. We only need to push external value changes in (e.g. switching which record/
+    // field this editor is bound to), which happen while the editor is NOT focused.
+    if (isFocused.value) return
+
     setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value)
   })
 }

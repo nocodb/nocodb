@@ -184,20 +184,6 @@ const FEATURES = [
     isEngineering: false,
   },
   {
-    id: 'white_label',
-    title: 'White Label',
-    description: 'Customize favicon, logo and branding for self-hosted instances.',
-    // version 2: flipped `enabled` on — stored values win unless the version
-    // is bumped, so the flip must ship with a new version to reach existing browsers.
-    enabled: true,
-    version: 2,
-    isEngineering: true,
-    isEE: true,
-    isOnPrem: true,
-    isCloud: false,
-    isAdvanced: true,
-  },
-  {
     id: 'mssql_source',
     title: 'SQL Server data source',
     description: 'Allow connecting Microsoft SQL Server as an external data source (experimental).',

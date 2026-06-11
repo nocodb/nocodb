@@ -3,6 +3,15 @@ const route = useRoute()
 
 const router = useRouter()
 
+const { isDark } = useTheme()
+
+const { isWhiteLabelled, productName, logoUrl, logoDarkUrl, faviconUrl } = useBranding()
+
+const brandIcon = computed(() => {
+  if (!isWhiteLabelled.value) return null
+  return faviconUrl.value || (isDark.value ? logoDarkUrl.value || logoUrl.value : logoUrl.value)
+})
+
 const isHttpUrl = (url: string) => {
   if (!url) return false
   const trimmed = url.trim()
@@ -41,7 +50,15 @@ const handleRedirect = (proceedToLink = false) => {
 <template>
   <div class="flex flex-col items-center justify-center gap-3 max-w-[420px] mx-auto text-center">
     <div>
-      <img class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <img
+        v-if="isWhiteLabelled && brandIcon"
+        width="56px"
+        height="56px"
+        :alt="productName"
+        :src="brandIcon"
+        class="object-contain"
+      />
+      <img v-else class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
     </div>
     <div class="text-xl font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
     <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">{{ $t('title.onlyProceedIfYouTrustThisLink') }}</div>

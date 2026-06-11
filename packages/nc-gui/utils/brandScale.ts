@@ -89,6 +89,24 @@ const DARK_L: Record<number, number> = {
   900: 97,
 }
 
+/**
+ * Mirror of LIGHT_SAT_FACTOR for the dark ramp: the hand-tuned dark palette in
+ * variables.css desaturates the low (background-tint) stops — brand-50 is a
+ * muted navy (~49% sat), not a vivid blue — so dark cell-selection / brand
+ * backgrounds read as a subtle tint rather than a saturated block. Without this
+ * the generated dark ramp keeps full seed saturation, making white-label dark
+ * selections look too dark/vivid vs the default (see issue #9202). Factors are
+ * calibrated against the default #3366ff dark ramp; stops 400→900 keep full
+ * saturation (the accent end stays vivid).
+ */
+const DARK_SAT_FACTOR: Record<number, number> = {
+  20: 0.52,
+  50: 0.49,
+  100: 0.7,
+  200: 0.78,
+  300: 0.92,
+}
+
 interface BrandStop {
   hex: string
   /** "r, g, b" — matches the --rgb-color-* tuple form used by ncBuildColorsWithOpacity */
@@ -150,9 +168,10 @@ export function generateBrandScale(seedHex: string): BrandScale | null {
     }
 
     const lightSat = clampL(seedSat * (LIGHT_SAT_FACTOR[stop] ?? 1))
+    const darkSat = clampL(seedSat * (DARK_SAT_FACTOR[stop] ?? 1))
 
     light[stop] = toStop(h, lightSat, clampL(lightL))
-    dark[stop] = toStop(h, seedSat, DARK_L[stop])
+    dark[stop] = toStop(h, darkSat, DARK_L[stop])
   }
 
   return { light, dark }

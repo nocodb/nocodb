@@ -346,7 +346,7 @@ const collapseKey = ref('')
           target="_blank"
           rel="noopener"
         >
-          Docs
+          {{ $t('title.docs') }}
         </a>
       </template>
 

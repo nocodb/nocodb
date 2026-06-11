@@ -74,7 +74,7 @@ const filterField = (column: ColumnType) => {
 <template>
   <GroupedSettings title="X-axis">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
-      <label>Field</label>
+      <label>{{ $t('objects.field') }}</label>
       <NcListColumnSelector
         v-model:value="selectedFieldId"
         disable-label

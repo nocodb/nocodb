@@ -142,7 +142,7 @@ const handleOpenUrl = (url: string) => {
     </div>
     <NcButton v-if="truncate" size="small" class="w-29 mx-4 mb-3" type="text" @click="expand">
       <div class="gap-2 flex items-center">
-        Show more
+        {{ $t('general.showMore') }}
         <GeneralIcon icon="arrowDown" />
       </div>
     </NcButton>

@@ -188,7 +188,7 @@ const showAdvanced = ref(false)
             :variables="flatVariables"
             :read-only="!isWorkflowEditAllowed"
             :grouped-variables="groupedVariables"
-            placeholder="Value"
+            :placeholder="$t('placeholder.value')"
             class="flex-1 max-w-32"
             @update:model-value="(val) => updateQueryParam(index, 'value', val)"
           />
@@ -215,7 +215,7 @@ const showAdvanced = ref(false)
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between cursor-pointer py-1" @click="showHeaders = !showHeaders">
-        <label class="text-sm font-medium text-nc-content-gray-emphasis cursor-pointer">Headers</label>
+        <label class="text-sm font-medium text-nc-content-gray-emphasis cursor-pointer">{{ $t('title.headers') }}</label>
         <GeneralIcon :icon="showHeaders ? 'ncChevronDown' : 'ncChevronRight'" class="text-nc-content-gray-muted w-4 h-4" />
       </div>
       <div v-if="showHeaders" class="flex flex-col gap-2">
@@ -232,7 +232,7 @@ const showAdvanced = ref(false)
             :variables="flatVariables"
             :read-only="!isWorkflowEditAllowed"
             :grouped-variables="groupedVariables"
-            placeholder="Value"
+            :placeholder="$t('placeholder.value')"
             class="flex-1 max-w-32"
             @update:model-value="(val) => updateHeader(index, 'value', val)"
           />

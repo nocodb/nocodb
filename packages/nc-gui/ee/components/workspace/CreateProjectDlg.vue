@@ -321,7 +321,7 @@ const onBaseCreateModeSelected = (value: NcBaseCreateMode | null) => {
               v-model:value="formState.title"
               name="title"
               class="nc-metadb-base-name nc-input-sm nc-input-shadow"
-              placeholder="Title"
+              :placeholder="$t('general.title')"
             />
           </a-form-item>
 

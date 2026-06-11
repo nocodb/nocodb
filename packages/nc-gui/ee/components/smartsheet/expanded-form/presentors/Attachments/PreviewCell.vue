@@ -254,17 +254,17 @@ watch(isOpenContextMenu, (newValue) => {
           <NcMenu variant="small">
             <NcMenuItem v-if="isEditAllowed" @click="renameCurrentFile">
               <GeneralIcon icon="edit" />
-              Rename
+              {{ $t('general.rename') }}
             </NcMenuItem>
             <NcMenuItem @click="downloadCurrentFile">
               <GeneralIcon icon="download" />
-              Download
+              {{ $t('general.download') }}
             </NcMenuItem>
             <template v-if="isEditAllowed">
               <NcDivider />
               <NcMenuItem danger @click="deleteCurrentFile">
                 <GeneralIcon icon="delete" />
-                Delete
+                {{ $t('general.delete') }}
               </NcMenuItem>
             </template>
           </NcMenu>

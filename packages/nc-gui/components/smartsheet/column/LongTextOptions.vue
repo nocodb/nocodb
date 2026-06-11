@@ -372,7 +372,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           >
             <div class="flex flex-col flex-1 gap-1">
               <div class="flex items-center gap-2">
-                <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
+                <span class="text-sm font-bold text-nc-content-gray-subtle">{{ $t('labels.preview') }}</span>
                 <NcTooltip class="flex cursor-pointer">
                   <template #title> Preview is generated using the first record in this table</template>
                   <GeneralIcon

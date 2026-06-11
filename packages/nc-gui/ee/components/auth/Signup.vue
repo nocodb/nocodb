@@ -294,7 +294,7 @@ const toggleLoginForm = ref(false)
                   size="small"
                   class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
                 />
-                <div class="prose-xs text-nc-content-gray-muted">Subscribe to our weekly newsletter</div>
+                <div class="prose-xs text-nc-content-gray-muted">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</div>
               </div>
 
               <div class="text-end prose-sm text-nc-content-gray">
@@ -307,13 +307,13 @@ const toggleLoginForm = ref(false)
         </div>
 
         <div class="prose-sm mt-4 text-nc-content-gray-muted">
-          By signing up, you agree to the
+          {{ $t('msg.bySigningUp') }}
           <a
             class="prose-sm !text-nc-content-gray-muted underline"
             target="_blank"
             href="https://nocodb.com/policy-nocodb"
             rel="noopener"
-            >Terms of Service</a
+            >{{ $t('title.termsOfService') }}</a
           >
         </div>
       </div>

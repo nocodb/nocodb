@@ -250,7 +250,7 @@ onUnmounted(() => {
         target="_blank"
         rel="noopener"
       >
-        Docs
+        {{ $t('title.docs') }}
       </a>
       <NcButton v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
         {{ detailsIsShown ? 'Hide' : 'Show' }} Details
@@ -262,7 +262,7 @@ onUnmounted(() => {
       <div class="text-nc-content-gray-subtle2 text-sm px-2">
         <p class="mb-2">Easily migrate your base with the following steps:</p>
         <ol class="list-decimal list-inside mt-2 pl-1">
-          <li>Open <strong>settings</strong> in your NocoDB base</li>
+          <li>{{ $t('general.open') }} <strong>settings</strong> in your NocoDB base</li>
           <li>Navigate to <strong>Migrate</strong> tab</li>
           <li>Paste the <strong>URL</strong></li>
           <li>Click <strong>Migrate</strong></li>
@@ -292,7 +292,7 @@ onUnmounted(() => {
         <a-collapse v-if="!listeningImport" v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <a-checkbox v-model:checked="syncOptions.newBase"> New Base </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.newBase"> {{ $t('title.newProj') }} </a-checkbox>
             </div>
 
             <div class="mt-2">

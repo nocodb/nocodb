@@ -153,7 +153,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
             Sheet
           </span>
           <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
-            Coming soon
+            {{ $t('title.comingSoon') }}
           </span>
           <GeneralIcon icon="chevronRight" class="text-lg" />
         </NcMenuItem> -->
@@ -163,7 +163,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
             Salesforce
           </span>
           <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
-            Coming soon
+            {{ $t('title.comingSoon') }}
           </span>
           <GeneralIcon icon="chevronRight" class="text-lg" />
         </NcMenuItem> -->
@@ -173,7 +173,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
             Monday.com
           </span>
           <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
-            Coming soon
+            {{ $t('title.comingSoon') }}
           </span>
           <GeneralIcon icon="chevronRight" class="text-lg" />
         </NcMenuItem> -->

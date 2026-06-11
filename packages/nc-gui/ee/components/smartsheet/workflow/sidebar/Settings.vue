@@ -141,7 +141,7 @@ watch(
         <div class="mb-6">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <div class="text-subHeading2 text-nc-content-gray-emphasis">Error Notifications</div>
+              <div class="text-subHeading2 text-nc-content-gray-emphasis">{{ $t('activity.errorNotifications') }}</div>
               <div class="text-bodyDefaultSm text-nc-content-gray-subtle mt-1">
                 Users who will receive email notifications when this automation fails
               </div>
@@ -158,7 +158,7 @@ watch(
 
           <div v-else-if="subscribers.length === 0" class="border border-nc-border-gray-medium rounded-lg p-6 text-center">
             <GeneralIcon icon="mail" class="w-8 h-8 text-nc-content-gray-muted mb-3" />
-            <div class="text-body text-nc-content-gray-subtle">No users subscribed to error notifications</div>
+            <div class="text-body text-nc-content-gray-subtle">{{ $t('activity.noErrorSubscribers') }}</div>
             <NcButton type="secondary" size="small" class="mt-4" @click="openAddModal">
               <GeneralIcon icon="plus" class="mr-1" />
               Add User
@@ -194,7 +194,7 @@ watch(
     >
       <div>
         <div class="flex items-center justify-between mb-2">
-          <div class="text-subHeading2 text-nc-content-gray-emphasis">Add Users to Notifications</div>
+          <div class="text-subHeading2 text-nc-content-gray-emphasis">{{ $t('activity.addUsersToNotifications') }}</div>
         </div>
 
         <div class="text-body text-nc-content-gray-subtle mb-5">
@@ -240,7 +240,9 @@ watch(
           </div>
           <div v-else>&nbsp;</div>
           <div class="flex gap-2">
-            <NcButton type="secondary" size="small" :disabled="isSaving" @click="showAddModal = false"> Cancel </NcButton>
+            <NcButton type="secondary" size="small" :disabled="isSaving" @click="showAddModal = false">
+              {{ $t('general.cancel') }}
+            </NcButton>
             <NcButton
               type="primary"
               size="small"

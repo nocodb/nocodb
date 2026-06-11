@@ -36,7 +36,7 @@ const toggleChatSupport = () => {
   >
     <div class="flex items-center gap-1.5">
       <GeneralIcon icon="ncSupportAgent" class="!w-3.5 !h-3.5" />
-      <span>Contact Support</span>
+      <span>{{ $t('general.contactSupport') }}</span>
     </div>
   </NcButton>
 </template>

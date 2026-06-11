@@ -444,7 +444,7 @@ async function openNewRecordHandler() {
                       >
                         <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                           <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                          <span v-else class="text-nc-content-gray-disabled">No mapped value</span>
+                          <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.noMappedValue') }}</span>
                         </template>
                       </div>
                       <a-tag
@@ -509,11 +509,11 @@ async function openNewRecordHandler() {
                           <!--
                           <NcMenuItem @click="expandAllGroup">
                             <GeneralIcon icon="maximizeAll" />
-                            Expand all
+                            {{ $t('labels.expandAll') }}
                           </NcMenuItem>
                           <NcMenuItem @click="collapseAllGroup">
                             <GeneralIcon icon="minimizeAll" />
-                            Collapse all
+                            {{ $t('labels.collapseAll') }}
                           </NcMenuItem>
                           -->
                         </NcMenu>

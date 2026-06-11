@@ -59,8 +59,8 @@ export default {
 
         <div v-if="$route.name === 'index-index'" class="flex gap-1">
           <!-- <a-button class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Projects</a-button -->
-          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Template</a-button>
-          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button> -->
+          <!-- <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> {{ $t('general.template') }}</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> {{ $t('general.help') }}</a-button> -->
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
           <div class="flex flex-row flex-grow">

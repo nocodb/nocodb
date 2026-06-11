@@ -489,7 +489,7 @@ onMounted(() => {
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
 
             <div class="w-[calc(100%_-_36px)] flex flex-col gap-1">
-              <div class="font-bold text-base text-nc-content-gray">Something went wrong</div>
+              <div class="font-bold text-base text-nc-content-gray">{{ $t('msg.error.somethingWentWrong') }}</div>
               <NcTooltip class="truncate text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                 <template #title>
                   {{ aiError }}

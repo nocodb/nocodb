@@ -201,7 +201,9 @@ watch(
         </div>
         <div v-else>&nbsp;</div>
         <div class="flex gap-2">
-          <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
           <NcButton
             type="primary"
             size="small"

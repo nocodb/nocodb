@@ -83,10 +83,10 @@ const handleConfigUpdate = async (type: string, updates: any) => {
     <template #data>
       <SmartsheetDashboardWidgetsCommonDataText @update:widget="handleConfigUpdate('text', $event)" />
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
-      <GroupedSettings title="Data">
+      <GroupedSettings :title="$t('general.data')">
         <SmartsheetDashboardWidgetsPiechartConfigCategory @update:category="handleConfigUpdate('data.category', $event)" />
         <div class="flex flex-col gap-4 pt-3">
-          <div class="text-nc-content-gray text-bodyBold">Value</div>
+          <div class="text-nc-content-gray text-bodyBold">{{ $t('placeholder.value') }}</div>
           <SmartsheetDashboardWidgetsCommonDataAggregation
             :show-count-aggregation="true"
             @update:aggregation="handleConfigUpdate('data.value', $event)"

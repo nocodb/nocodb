@@ -191,7 +191,9 @@ onMounted(() => {
       </div>
 
       <div class="flex gap-3 mt-4">
-        <NcButton type="secondary" :disabled="authorizing" class="flex-1" @click="denyAuthorization"> Cancel </NcButton>
+        <NcButton type="secondary" :disabled="authorizing" class="flex-1" @click="denyAuthorization">
+          {{ $t('general.cancel') }}
+        </NcButton>
         <NcButton :disabled="!canAuthorize" :loading="authorizing" class="flex-1" @click="approveAuthorization">
           Authorize
         </NcButton>

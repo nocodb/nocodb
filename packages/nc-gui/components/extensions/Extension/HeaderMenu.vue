@@ -55,7 +55,7 @@ const onDuplicate = () => {
           <template v-if="!activeError">
             <NcMenuItem v-if="extensionAccess.create" data-rec="true" @click="emits('rename')">
               <GeneralIcon icon="edit" />
-              Rename
+              {{ $t('general.rename') }}
             </NcMenuItem>
 
             <NcMenuItem
@@ -67,7 +67,7 @@ const onDuplicate = () => {
             >
               <GeneralIcon icon="duplicate" />
 
-              <div class="flex-1">Duplicate</div>
+              <div class="flex-1">{{ $t('general.duplicate') }}</div>
 
               <LazyPaymentUpgradeBadge
                 :plan-title="PlanTitles.PLUS"
@@ -80,7 +80,7 @@ const onDuplicate = () => {
 
             <NcMenuItem data-rec="true" @click="emits('showDetails')">
               <GeneralIcon icon="info" />
-              Details
+              {{ $t('general.details') }}
             </NcMenuItem>
 
             <NcDivider v-if="extensionAccess.update || extensionAccess.delete" />
@@ -91,7 +91,7 @@ const onDuplicate = () => {
           </NcMenuItem>
           <NcMenuItem v-if="extensionAccess.delete" data-rec="true" danger @click="emits('delete')">
             <GeneralIcon icon="delete" />
-            Delete
+            {{ $t('general.delete') }}
           </NcMenuItem>
         </NcMenu>
       </template>

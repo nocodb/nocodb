@@ -328,7 +328,7 @@ watch(activeViewTab, (value) => {
             <GeneralIcon icon="arrowLeft" />
           </NcButton>
           <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
-          <div class="flex-1 text-base font-weight-700">New Connection</div>
+          <div class="flex-1 text-base font-weight-700">{{ $t('labels.newConnection') }}</div>
           <div class="flex items-center gap-3">
             <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
               <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />

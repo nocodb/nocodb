@@ -335,7 +335,7 @@ onMounted(fetchData)
       <NcButton v-if="error !== 'Table is no longer available'" size="xs" type="text" @click="fetchData">
         <div class="flex items-center gap-1">
           <GeneralIcon icon="refresh" class="w-3.5 h-3.5" />
-          <span>Retry</span>
+          <span>{{ $t('general.retry') }}</span>
         </div>
       </NcButton>
     </div>

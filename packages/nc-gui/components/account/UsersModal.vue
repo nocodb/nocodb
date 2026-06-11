@@ -299,7 +299,7 @@ const clickInviteMore = () => {
                 v-model="inviteData.email"
                 inputmode="email"
                 :disabled="isLoading"
-                placeholder="E-mail"
+                :placeholder="$t('labels.email')"
                 data-testid="nc-invite-email-input"
                 class="flex-1 md:min-w-36 outline-none px-2"
                 @blur="isDivFocused = false"

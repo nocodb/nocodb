@@ -357,7 +357,7 @@ const onValueChange = async () => {
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />
-          <span class="text-sm text-nc-content-gray-muted"> Date field is required! </span>
+          <span class="text-sm text-nc-content-gray-muted"> {{ $t('msg.dateFieldRequired') }} </span>
         </div>
 
         <div>

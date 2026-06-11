@@ -247,14 +247,14 @@ onClickOutside(
                   >
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncEdit" />
-                      Edit
+                      {{ $t('general.edit') }}
                     </div>
                   </NcMenuItem>
                   <NcDivider />
                   <NcMenuItem danger @click="handleDelete">
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="delete" />
-                      Delete
+                      {{ $t('general.delete') }}
                     </div>
                   </NcMenuItem>
                 </NcMenu>

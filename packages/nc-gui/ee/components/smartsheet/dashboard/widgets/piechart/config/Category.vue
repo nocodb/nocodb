@@ -55,9 +55,9 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="text-nc-content-gray text-bodyBold">Category</div>
+    <div class="text-nc-content-gray text-bodyBold">{{ $t('labels.category') }}</div>
     <div class="flex flex-col gap-2 flex-1 min-w-0">
-      <label>Field</label>
+      <label>{{ $t('objects.field') }}</label>
       <NcListColumnSelector
         v-model:value="selectedFieldId"
         :disabled="!modelId"

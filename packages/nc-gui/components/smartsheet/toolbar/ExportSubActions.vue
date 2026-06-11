@@ -175,7 +175,7 @@ const exportFile = async (exportType: ExportTypes) => {
       <GeneralLoader v-if="activeExportType === ExportTypes.EXCEL" size="regular" />
       <GeneralIcon v-else icon="ncFileTypeExcel" class="w-4" />
       <!-- Download as Excel -->
-      Excel
+      {{ $t('labels.excel') }}
     </div>
   </NcMenuItem>
 </template>

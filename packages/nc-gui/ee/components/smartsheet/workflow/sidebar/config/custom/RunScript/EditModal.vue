@@ -28,7 +28,7 @@ const modalVisible = useVModel(props, 'value')
             data-testid="nc-close-script-modal"
             @click.stop="modalVisible = false"
           >
-            Close
+            {{ $t('general.close') }}
           </NcButton>
         </div>
       </div>

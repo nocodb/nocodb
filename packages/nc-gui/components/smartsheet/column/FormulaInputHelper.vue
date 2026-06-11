@@ -755,11 +755,11 @@ const validationErrorDisplay = computed(() => {
     <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
       <div class="flex mt-3 text-[13px] text-nc-content-gray-subtle2 leading-6">{{ suggestionPreviewed.description }}</div>
 
-      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Syntax</div>
+      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">{{ $t('labels.syntax') }}</div>
       <div class="bg-nc-bg-default rounded-md py-1 text-[13px] text-nc-content-gray-subtle2 mono-font leading-6 px-2 border-1">
         {{ suggestionPreviewed.syntax }}
       </div>
-      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Examples</div>
+      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">{{ $t('labels.examples') }}</div>
       <div
         v-for="(example, index) of suggestionPreviewed.examples"
         :key="example"
@@ -868,7 +868,7 @@ const validationErrorDisplay = computed(() => {
                 <template #loadingIcon>
                   <GeneralLoader class="!text-current" size="regular" />
                 </template>
-                <div class="flex items-center gap-1">Generate</div>
+                <div class="flex items-center gap-1">{{ $t('general.generate') }}</div>
               </NcButton>
             </div>
           </div>
@@ -956,7 +956,7 @@ const validationErrorDisplay = computed(() => {
         v-if="!disableSuggestionHeaders"
         class="border-b-1 bg-nc-bg-gray-extralight px-3 py-1 uppercase text-nc-content-gray-subtle2 text-xs font-semibold sticky top-0 z-10"
       >
-        Fields
+        {{ $t('objects.fields') }}
       </div>
 
       <a-list

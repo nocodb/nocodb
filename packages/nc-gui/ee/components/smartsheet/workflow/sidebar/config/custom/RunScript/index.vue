@@ -82,7 +82,7 @@ const updateVariable = (key: string, value: any) => {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <label class="text-sm font-medium text-nc-content-gray-emphasis">Script</label>
+        <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('general.script') }}</label>
 
         <NcButton size="small" type="secondary" @click="editModal = true">
           <div class="flex items-center gap-2">

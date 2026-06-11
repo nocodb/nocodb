@@ -315,7 +315,7 @@ onMounted(async () => {
                     v-if="!authorization.granted_resources?.workspace_id && !authorization.granted_resources?.base_id"
                     class="text-nc-content-gray-subtle text-xs"
                   >
-                    All resources
+                    {{ $t('labels.allResources') }}
                   </div>
                 </div>
               </template>

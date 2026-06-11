@@ -88,7 +88,7 @@ watch(isWebhookModal, (newVal) => {
         href="https://nocodb.com/docs/product-docs/fields/field-types/custom-types/button#create-a-button-field"
         target="_blank"
       >
-        Docs
+        {{ $t('title.docs') }}
       </a>
     </div>
     <div class="flex rounded-lg">

@@ -136,7 +136,7 @@ watch(
       />
       <NcButton v-if="!isResolved" type="primary" size="small" :disabled="!inputValue" @click="onChange">
         <div class="flex gap-2 items-center">
-          Next
+          {{ $t('general.next') }}
           <div
             :class="{
               '!bg-nc-bg-gray-extralight': !inputValue,
@@ -185,7 +185,7 @@ watch(
       </a-select>
       <NcButton v-if="!isResolved" type="primary" size="small" :disabled="!inputValue" @click="onChange">
         <div class="flex gap-2 items-center">
-          Next
+          {{ $t('general.next') }}
           <div
             :class="{
               '!bg-nc-bg-gray-extralight': !inputValue,

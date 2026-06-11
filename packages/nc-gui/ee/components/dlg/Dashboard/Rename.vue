@@ -129,7 +129,7 @@ const renameDashboard = async (disableTitleDiffCheck?: boolean | undefined) => {
           type="primary"
           size="small"
           :disabled="validateInfos.title.validateStatus === 'error' || formState.title?.trim() === dashboard.title"
-          label="Rename Dashboard"
+          :label="$t('title.renameDashboard')"
           loading-label="Renaming Dashboard"
           :loading="loading"
           @click="renameDashboard"

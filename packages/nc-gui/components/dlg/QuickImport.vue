@@ -557,7 +557,7 @@ watch(
           target="_blank"
           rel="noopener"
         >
-          Docs
+          {{ $t('title.docs') }}
         </a>
       </div>
 
@@ -793,7 +793,9 @@ watch(
                     </NcTooltip>
                     <GeneralLoader class="flex text-nc-content-brand" size="medium" />
                   </template>
-                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
+                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()">
+                    {{ $t('general.format') }}
+                  </NcButton>
                 </div>
 
                 <div

@@ -14,7 +14,7 @@ const finishEditing = () => {
 
 <template>
   <div v-if="isEditingDashboard" class="flex gap-2 items-center justify-center">
-    <NcButton type="primary" size="small" @click="finishEditing"> Finish </NcButton>
+    <NcButton type="primary" size="small" @click="finishEditing"> {{ $t('general.finish') }} </NcButton>
   </div>
 
   <div v-else class="flex gap-2 items-center justify-center">

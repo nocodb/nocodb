@@ -619,7 +619,7 @@ async function toggleForce2fa(enabled: boolean) {
     centered
   >
     <div class="flex flex-col items-center justify-center h-full !p-6">
-      <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
+      <div class="text-lg font-semibold self-start mb-5">{{ $t('title.deleteWs') }}</div>
 
       <div v-if="isWorkspaceMarkedForSubscriptionCancellation" class="text-nc-content-gray-subtle">
         <p>
@@ -645,7 +645,7 @@ async function toggleForce2fa(enabled: boolean) {
             v-model:value="form.modalInput"
             autocomplete="off"
             class="w-full nc-input-sm nc-input-shadow"
-            placeholder="Workspace Name"
+            :placeholder="$t('labels.workspaceName')"
           />
         </a-form-item>
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
@@ -661,7 +661,7 @@ async function toggleForce2fa(enabled: boolean) {
             :disabled="form.modalInput !== currentWorkspace?.title"
             :loading="deletingWorkspace"
           >
-            Delete Workspace
+            {{ $t('title.deleteWs') }}
           </NcButton>
         </div>
       </a-form>

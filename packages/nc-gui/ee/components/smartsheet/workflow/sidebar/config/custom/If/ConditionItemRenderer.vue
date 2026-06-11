@@ -369,7 +369,7 @@ const logicalOps = [
           :model-value="(item as WorkflowNodeFilterCondition).field || ''"
           :grouped-variables="groupedVariables"
           :variables="flatVariables"
-          placeholder="Select field"
+          :placeholder="$t('placeholder.selectField')"
           @update:model-value="onFieldChange"
         />
       </div>
@@ -443,7 +443,7 @@ const logicalOps = [
           :grouped-variables="groupedVariables"
           :variables="flatVariables"
           class="h-8"
-          placeholder="Enter value"
+          :placeholder="$t('placeholder.variableValue')"
           @update:model-value="updateItem({ value: $event })"
         />
       </div>

@@ -71,7 +71,7 @@ const onUpdate = () => {
       </div>
     </div>
   </GroupedSettings>
-  <GroupedSettings title="Colour">
+  <GroupedSettings :title="$t('general.colour')">
     <div class="flex gap-3">
       <div class="flex flex-col gap-2 flex-1">
         <label>Text Color</label>

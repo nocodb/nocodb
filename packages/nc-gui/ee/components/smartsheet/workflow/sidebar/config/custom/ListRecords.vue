@@ -217,7 +217,7 @@ onMounted(() => {
 <template>
   <div class="list-records-config flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Table</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('objects.table') }}</label>
       <NcFormBuilderInputSelectTable
         :value="config.modelId"
         :base-id="base?.id"
@@ -229,7 +229,7 @@ onMounted(() => {
     </div>
 
     <div v-if="config.modelId" class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">View</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('objects.view') }}</label>
       <NcFormBuilderInputSelectView
         :value="config.viewId"
         :table-id="config.modelId"
@@ -268,7 +268,7 @@ onMounted(() => {
     </div>
 
     <div v-if="config.modelId && columns.length > 0" class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Filter</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('activity.filter') }}</label>
 
       <NcListDropdown
         v-model:visible="isFilterDropdownOpen"
@@ -314,7 +314,7 @@ onMounted(() => {
                   :model-value="filter.value"
                   :grouped-variables="groupedVariables"
                   :variables="flatVariables"
-                  placeholder="Enter value"
+                  :placeholder="$t('placeholder.variableValue')"
                   @update:model-value="(value) => onUpdateFilterValue(value)"
                 />
               </template>
@@ -325,7 +325,7 @@ onMounted(() => {
     </div>
 
     <div v-if="config.modelId && columns.length > 0" class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Sort</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('activity.sort') }}</label>
 
       <NcListDropdown
         v-model:visible="isSortDropdownOpen"

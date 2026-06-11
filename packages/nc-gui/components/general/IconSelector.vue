@@ -313,7 +313,9 @@ watch(isOpen, (newValue) => {
             </template>
             <template #rightExtra>
               <div>
-                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon"> Remove </NcButton>
+                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon">
+                  {{ $t('general.remove') }}
+                </NcButton>
               </div>
             </template>
             <a-tab-pane v-for="tabItem of tabs" :key="tabItem.value" class="w-full" :disabled="isLoading">

@@ -246,7 +246,7 @@ const initEmblaApi = (val: any) => {
         >
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
-              Comments
+              {{ $t('general.comments') }}
               <GeneralIcon icon="messageCircle" />
             </div>
           </NcButton>

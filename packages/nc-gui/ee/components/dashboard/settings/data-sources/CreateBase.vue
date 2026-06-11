@@ -718,7 +718,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                     </a-row>
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Connection" v-bind="validateInfos.fk_integration_id">
+                        <a-form-item :label="$t('general.connection')" v-bind="validateInfos.fk_integration_id">
                           <NcSelect
                             v-model:value="formState.fk_integration_id"
                             class="nc-extdb-db-type nc-select-shadow"
@@ -806,7 +806,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           </a-col>
                           <a-col :span="12">
                             <!-- Schema -->
-                            <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                            <a-form-item :label="$t('labels.schema')" v-bind="validateInfos['dataSource.connection.schema']">
                               <a-input
                                 v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
                                 class="nc-extdb-host-database"
@@ -819,7 +819,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                       <template v-else-if="formState.dataSource.client === ClientType.DATABRICKS">
                         <a-row :gutter="24">
                           <a-col :span="12">
-                            <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
+                            <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
                               <a-input
                                 v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
                                 class="nc-extdb-host-database"
@@ -827,7 +827,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                             </a-form-item>
                           </a-col>
                           <a-col :span="12">
-                            <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                            <a-form-item :label="$t('labels.schema')" v-bind="validateInfos['dataSource.connection.schema']">
                               <a-input
                                 v-model:value="(formState.dataSource.connection as DatabricksConnection).schema"
                                 class="nc-extdb-host-schema"
@@ -872,7 +872,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                   </div>
 
                   <div class="nc-form-section">
-                    <div class="nc-form-section-title">Permissions</div>
+                    <div class="nc-form-section-title">{{ $t('general.permissions') }}</div>
                     <div class="nc-form-section-body">
                       <DashboardSettingsDataSourcesSourceRestrictions
                         v-model:allow-meta-write="allowMetaWrite"

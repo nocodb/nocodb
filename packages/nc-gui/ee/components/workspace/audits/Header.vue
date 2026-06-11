@@ -490,7 +490,7 @@ const showWorkspaceSelector = computed(() => !!loadActionOrgId.value)
                 <div
                   class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
                 >
-                  <span class="flex-1 text-nc-content-gray"> All Bases </span>
+                  <span class="flex-1 text-nc-content-gray"> {{ $t('activity.allBases') }} </span>
                   <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </div>

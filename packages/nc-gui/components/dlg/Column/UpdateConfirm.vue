@@ -45,7 +45,7 @@ const visible = useVModel(props, 'visible', emit)
           data-testid="nc-delete-modal-delete-btn"
           @click="emit('submit')"
         >
-          Update
+          {{ $t('general.update') }}
           <template #loading> Saving... </template>
         </NcButton>
       </div>

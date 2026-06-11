@@ -11,11 +11,11 @@ const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[
       <div class="flex flex-col gap-1">
         <div class="flex gap-2 items-center">
           <GeneralIcon class="w-[16px] h-[16px]" icon="singleSelect" />
-          <span>Using Single select field</span>
+          <span>{{ $t('objects.coloring.usingSingleSelectField') }}</span>
         </div>
         <div>
           <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">
-            Colour records based on single select field
+            {{ $t('objects.coloring.usingSingleSelectFieldDescription') }}
           </span>
         </div>
       </div>
@@ -24,7 +24,7 @@ const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[
       <div class="flex flex-col gap-1">
         <div class="flex gap-2 items-center">
           <GeneralIcon class="w-[16px] h-[16px]" icon="ncConditions" />
-          <span>Using Conditions</span>
+          <span>{{ $t('objects.coloring.usingConditions') }}</span>
         </div>
         <div>
           <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">Colour records based on conditions</span>

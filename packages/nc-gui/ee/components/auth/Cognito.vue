@@ -198,7 +198,7 @@ const onForgotPasswordClicked = (): void => {
             href="https://www.nocodb.com/terms-of-service"
             target="_blank"
           >
-            Terms of Service
+            {{ $t('title.termsOfService') }}
           </a>
           &
           <a
@@ -260,14 +260,14 @@ const onForgotPasswordClicked = (): void => {
         </div>
       </div>
       <div v-else class="amplify-flex amplify-field amplify-textfield">
-        <label class="amplify-label" for="amplify-confirm-code">Verification Code</label>
+        <label class="amplify-label" for="amplify-confirm-code">{{ $t('labels.verificationCode') }}</label>
         <div class="amplify-flex amplify-field-group">
           <div class="amplify-field-group__field-wrapper">
             <input
               id="amplify-confirm-code"
               v-model="confirmCode"
               class="amplify-input amplify-field-group__control"
-              placeholder="Verification Code"
+              :placeholder="$t('labels.verificationCode')"
               type="password"
             />
           </div>
@@ -275,7 +275,7 @@ const onForgotPasswordClicked = (): void => {
       </div>
 
       <div class="flex justify-end gap-4 mt-4">
-        <NcButton type="secondary" @click="emailVerifyDlg = false"> Close</NcButton>
+        <NcButton type="secondary" @click="emailVerifyDlg = false"> {{ $t('general.close') }}</NcButton>
         <NcButton type="primary" :loading="loading" @click="emailVerify">
           {{ confirmCodeForm ? 'Verify' : 'Get Verification Code' }}
         </NcButton>

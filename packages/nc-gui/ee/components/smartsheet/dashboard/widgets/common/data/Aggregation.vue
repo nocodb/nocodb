@@ -126,7 +126,7 @@ watch(selectedValue, () => {
 
   <div v-if="selectedValue === 'summary'" class="flex gap-2 flex-1 min-w-0">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
-      <label>Field</label>
+      <label>{{ $t('objects.field') }}</label>
       <NcListColumnSelector
         v-model:value="selectedFieldId"
         disable-label
@@ -138,7 +138,7 @@ watch(selectedValue, () => {
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
-      <label>Type</label>
+      <label>{{ $t('general.type') }}</label>
       <NcListAggregationSelector
         v-model:value="selectedAggregationType"
         disable-label

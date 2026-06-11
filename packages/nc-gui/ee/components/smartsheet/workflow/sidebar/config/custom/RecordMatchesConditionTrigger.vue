@@ -122,7 +122,7 @@ onMounted(() => {
 <template>
   <div class="record-matches-condition-config flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Table</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('objects.table') }}</label>
       <NcFormBuilderInputSelectTable
         :value="config.modelId"
         :disabled="!isWorkflowEditAllowed"
@@ -134,7 +134,7 @@ onMounted(() => {
     </div>
 
     <div v-if="config.modelId && columns.length > 0" class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Filter</label>
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">{{ $t('activity.filter') }}</label>
 
       <NcListDropdown
         v-model:visible="isFilterDropdownOpen"

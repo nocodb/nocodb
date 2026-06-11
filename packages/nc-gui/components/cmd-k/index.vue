@@ -606,7 +606,7 @@ defineExpose({
                           <div
                             class="bg-nc-bg-gray-medium text-nc-content-gray-subtle2 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                           >
-                            Enter
+                            {{ $t('general.enter') }}
                             <div
                               class="bg-nc-bg-default border-1 items-center flex justify-center border-nc-border-gray-dark text-nc-content-gray-subtle rounded h-5 w-5 px-0.25"
                             >

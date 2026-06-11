@@ -267,7 +267,7 @@ const onCancelSubscription = async () => {
                 <div class="min-w-[100px] text-right">${{ priceInfo.price + priceInfo.discount }}</div>
               </div>
               <div class="flex justify-between text-nc-content-gray text-sm font-500">
-                <div>Annual Savings</div>
+                <div>{{ $t('labels.annualSavings') }}</div>
 
                 <NcBadge :border="false" color="green" class="!text-nc-content-green-dark !font-500">
                   -${{ priceInfo.discount }}
@@ -423,19 +423,19 @@ const onCancelSubscription = async () => {
               <div class="flex items-center justify-center p-2 bg-nc-bg-gray-light rounded-lg">
                 <GeneralIcon icon="sso" class="text-nc-content-gray-subtle" />
               </div>
-              <span>Single Sign-On (SSO)</span>
+              <span>{{ $t('title.sso') }}</span>
             </div>
             <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-maroon-light rounded-lg">
                 <GeneralIcon icon="integration" />
               </div>
-              <span>Integrations</span>
+              <span>{{ $t('general.integrations') }}</span>
             </div>
             <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-purple-light rounded-lg">
                 <GeneralIcon icon="ncPuzzleOutline" class="!stroke-transparent text-nc-fill-purple-dark" />
               </div>
-              <span>Extensions</span>
+              <span>{{ $t('general.extensions') }}</span>
             </div>
           </div>
           <div class="text-sm">
@@ -449,7 +449,9 @@ const onCancelSubscription = async () => {
       v-if="changes.change === 'cancel'"
       class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium"
     >
-      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing({ isBackToPricing: true })"> Cancel </NcButton>
+      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing({ isBackToPricing: true })">
+        {{ $t('general.cancel') }}
+      </NcButton>
       <NcButton
         class="w-1/2"
         type="danger"
@@ -457,13 +459,15 @@ const onCancelSubscription = async () => {
         :disabled="!changes.plan && !changes.period"
         @click="onCancelSubscription()"
       >
-        Proceed
+        {{ $t('labels.proceed') }}
       </NcButton>
     </div>
     <div v-else class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium">
-      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing({ isBackToPricing: true })"> Cancel </NcButton>
+      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing({ isBackToPricing: true })">
+        {{ $t('general.cancel') }}
+      </NcButton>
       <NcButton class="w-1/2" :loading="isLoading" :disabled="!changes.plan && !changes.period" @click="handleProceed">
-        Proceed
+        {{ $t('labels.proceed') }}
       </NcButton>
     </div>
   </div>

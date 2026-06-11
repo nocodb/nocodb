@@ -172,7 +172,7 @@ const useSameTimezoneForAll = computed({
               </div>
             </a-select-option>
           </a-select-opt-group>
-          <a-select-opt-group label="All">
+          <a-select-opt-group :label="$t('general.all')">
             <a-select-option
               v-for="timezone of timezones"
               :key="timezone.name"

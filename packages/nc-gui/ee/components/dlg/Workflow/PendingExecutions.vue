@@ -55,7 +55,7 @@ const handleCancel = () => {
           :value="true"
         >
           <div class="nc-content-gray leading-5">
-            <span class="font-bold">Cancel</span>
+            <span class="font-bold">{{ $t('general.cancel') }}</span>
             pending executions
           </div>
         </a-radio>

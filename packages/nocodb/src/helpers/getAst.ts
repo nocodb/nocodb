@@ -429,10 +429,11 @@ const getAst = async (
     if (col.uidt === UITypes.Meta) {
       isRequested = false;
     } else if (isSortOrFilterColumn) {
-      // For LTAR / Lookup columns with a custom display value override, `value`
-      // holds the nested AST that tells the query builder to include that
-      // override column. Without an override, the legacy `true` is correct
-      // (pk + pv) — using `value` could narrow the response to a stale subset.
+      // For LTAR columns with a custom display value override, `value` holds
+      // the nested AST that tells the query builder to include that override
+      // column. Without an override, the legacy `true` is correct (pk + pv).
+      // Lookup columns keep the scalar `1` — the EE query clients widen it
+      // when the looked-up column is an LTAR with an override.
       isRequested = value;
     } else if (
       rowColoringColumnIds.has(col.id) ||

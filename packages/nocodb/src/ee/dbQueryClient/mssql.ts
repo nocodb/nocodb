@@ -322,10 +322,22 @@ export class MssqlDBQueryClient
         // identity and substituteColumnIdsWithColumnTitles can't map it.
         // `ast` is typed Record<string, any> but at runtime extract-columns.ts
         // also passes the sentinel values `true` / `1` to mean "all columns".
+        // For the scalar sentinels (a Lookup targeting this LTAR recurses here
+        // with the lookup column's own scalar AST) the pk/pv-only gate in
+        // extract-columns would drop the custom display value column — widen
+        // the scalar into an object AST so the override survives.
         const astAny = ast as unknown as true | 1 | Record<string, any>;
         const innerAst =
           astAny === true || astAny === 1
-            ? ast
+            ? customDisplayCol
+              ? {
+                  ...(pkColumn?.id ? { [pkColumn.id]: true } : {}),
+                  ...(pvColumn?.id && pvColumn.id !== pkColumn?.id
+                    ? { [pvColumn.id]: true }
+                    : {}),
+                  [customDisplayCol.id]: true,
+                }
+              : ast
             : {
                 ...(typeof astAny === 'object' && astAny ? astAny : {}),
                 ...(pkColumn?.id ? { [pkColumn.id]: true } : {}),

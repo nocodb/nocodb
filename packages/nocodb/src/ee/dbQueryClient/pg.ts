@@ -227,6 +227,24 @@ export class PGDBQueryClient
             }
           }
 
+          // A Lookup targeting this LTAR recurses into this branch with the
+          // scalar AST (`1`) of the lookup column itself — getAst only expands
+          // LTAR columns into nested ASTs. The scalar makes the nested
+          // extractColumns call and the selected-field filters below admit
+          // pk/pv only, dropping the custom display value column from the
+          // nested JSON. Widen it into an object AST so the override survives.
+          // `ast` is typed Record<string, any> but at runtime extract-columns.ts
+          // also passes the sentinel values `true` / `1` to mean "pk/pv only".
+          const astAny = ast as unknown as true | 1 | Record<string, any>;
+          const nestedAst =
+            customDisplayCol && (astAny === true || astAny === 1)
+              ? {
+                  ...(pkColumn ? { [pkColumn.id]: 1 } : {}),
+                  ...(pvColumn ? { [pvColumn.id]: 1 } : {}),
+                  [customDisplayCol.id]: 1,
+                }
+              : ast;
+
           const sorts = extractSortsObject(
             context,
             listArgs?.sort,
@@ -379,7 +397,7 @@ export class PGDBQueryClient
                   alias: alias5,
                   baseModel: parentBaseModel,
                   // dependencyFields,
-                  ast,
+                  ast: nestedAst,
                   throwErrorIfInvalidParams,
                   validateFormula,
                   apiVersion,
@@ -391,9 +409,9 @@ export class PGDBQueryClient
                   (f) =>
                     f.pk ||
                     f.pv ||
-                    (ast &&
-                      typeof ast === 'object' &&
-                      (ast[f.title] || ast[f.id])),
+                    (nestedAst &&
+                      typeof nestedAst === 'object' &&
+                      (nestedAst[f.title] || nestedAst[f.id])),
                 );
 
                 qb.joinRaw(
@@ -475,7 +493,7 @@ export class PGDBQueryClient
                   getAlias,
                   alias: alias3,
                   baseModel: parentBaseModel,
-                  ast,
+                  ast: nestedAst,
                   throwErrorIfInvalidParams,
                   validateFormula,
                   apiVersion: apiVersion,
@@ -485,9 +503,9 @@ export class PGDBQueryClient
                   (f) =>
                     f.pk ||
                     f.pv ||
-                    (ast &&
-                      typeof ast === 'object' &&
-                      (ast[f.title] || ast[f.id])),
+                    (nestedAst &&
+                      typeof nestedAst === 'object' &&
+                      (nestedAst[f.title] || nestedAst[f.id])),
                 );
 
                 qb.joinRaw(
@@ -570,7 +588,7 @@ export class PGDBQueryClient
                     alias: alias3,
                     baseModel: refBaseModel,
                     // dependencyFields,
-                    ast,
+                    ast: nestedAst,
                     throwErrorIfInvalidParams,
                     validateFormula,
                     apiVersion,
@@ -580,9 +598,9 @@ export class PGDBQueryClient
                     (f) =>
                       f.pk ||
                       f.pv ||
-                      (ast &&
-                        typeof ast === 'object' &&
-                        (ast[f.title] || ast[f.id])),
+                      (nestedAst &&
+                        typeof nestedAst === 'object' &&
+                        (nestedAst[f.title] || nestedAst[f.id])),
                   );
 
                   qb.joinRaw(
@@ -635,7 +653,7 @@ export class PGDBQueryClient
                     alias: alias3,
                     baseModel: refBaseModel,
                     // dependencyFields,
-                    ast,
+                    ast: nestedAst,
                     throwErrorIfInvalidParams,
                     validateFormula,
                     apiVersion,
@@ -645,9 +663,9 @@ export class PGDBQueryClient
                     (f) =>
                       f.pk ||
                       f.pv ||
-                      (ast &&
-                        typeof ast === 'object' &&
-                        (ast[f.title] || ast[f.id])),
+                      (nestedAst &&
+                        typeof nestedAst === 'object' &&
+                        (nestedAst[f.title] || nestedAst[f.id])),
                   );
 
                   qb.joinRaw(
@@ -750,7 +768,7 @@ export class PGDBQueryClient
                   alias: alias3,
                   baseModel: childBaseModel,
                   // dependencyFields,
-                  ast,
+                  ast: nestedAst,
                   throwErrorIfInvalidParams,
                   validateFormula,
                   apiVersion,
@@ -760,9 +778,9 @@ export class PGDBQueryClient
                   (f) =>
                     f.pk ||
                     f.pv ||
-                    (ast &&
-                      typeof ast === 'object' &&
-                      (ast[f.title] || ast[f.id])),
+                    (nestedAst &&
+                      typeof nestedAst === 'object' &&
+                      (nestedAst[f.title] || nestedAst[f.id])),
                 );
 
                 qb.joinRaw(

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import request from 'supertest';
 import { UITypes, RelationTypes, LinksVersion } from 'nocodb-sdk';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
-import { customColumns } from '../../../factory/column';
+import { createLookupColumn, customColumns } from '../../../factory/column';
 import { createBulkRows } from '../../../factory/row';
 import { createTable } from '../../../factory/table';
 import type { ITestContext } from '../../../init';
@@ -420,6 +420,151 @@ describe('dataApiV3', () => {
           version: LinksVersion.V2,
         });
       });
+    });
+
+    // ----------------------------------------------------------------------
+    // Lookup of an LTAR carries the override column (issue #9211)
+    // ----------------------------------------------------------------------
+
+    describe('lookup of LTAR includes override column', () => {
+      // Lookup-of-LTAR payloads may arrive as a single object or an array,
+      // with nested rows either plain title-keyed or V3 `{ id, fields }`.
+      const extractNestedValues = (nested: any): any[] => {
+        if (!nested) return [];
+        const items = Array.isArray(nested) ? nested : [nested];
+        return items.map((item) => item?.fields ?? item);
+      };
+
+      const runLookupCase = async (
+        title: string,
+        opts: {
+          uidt: UITypes;
+          type: RelationTypes;
+          version?: LinksVersion;
+        },
+      ) => {
+        const labelB = findCol(colsB, 'Label');
+
+        // A → B link with the custom display value override. V1 BT lands the
+        // user-facing column on the child side, so swap the table order there
+        // to keep the link column (and its override) on tblA.
+        const isV1Bt =
+          opts.uidt === UITypes.LinkToAnotherRecord &&
+          opts.type === RelationTypes.BELONGS_TO;
+        const linkCol: any = isV1Bt
+          ? await createLtar(tblB, tblA, title, {
+              ...opts,
+              fk_display_value_column_id: labelB.id,
+            })
+          : await createLtar(tblA, tblB, title, {
+              ...opts,
+              fk_display_value_column_id: labelB.id,
+            });
+        expect(linkCol.colOptions.fk_display_value_column_id).to.equal(
+          labelB.id,
+        );
+
+        // C → A link + a Lookup in C surfacing A's link-to-B column. The
+        // lookup recurses into the LTAR extraction with a scalar AST — the
+        // path that used to drop the override column from the nested JSON.
+        const tblC = await createTable(testContext.context, testContext.base, {
+          title: `TblC${title}`,
+          table_name: `TblC${title}`,
+          columns: customColumns('custom', [
+            {
+              title: 'Title',
+              column_name: 'Title',
+              uidt: UITypes.SingleLineText,
+              pv: true,
+            },
+          ]),
+        });
+        await createBulkRows(testContext.context, {
+          base: testContext.base,
+          table: tblC,
+          values: [{ Title: 'C1' }],
+        });
+
+        const cToA: any = await createLtar(tblC, tblA, `${title}CA`, {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+        });
+
+        await createLookupColumn(testContext.context, {
+          base: testContext.base,
+          title: `${title}LK`,
+          table: tblC,
+          relatedTableName: tblA.table_name,
+          relatedTableColumnTitle: title,
+          relationColumnId: cToA.id,
+        });
+
+        // Link A1 → B1 (through the override link) and C1 → A1
+        const rowsA = await listRows(tblA.id);
+        const rowsB = await listRows(tblB.id);
+        const a1 = rowsA.find((r) => r.fields?.Title === 'A1');
+        const b1 = rowsB.find((r) => r.fields?.Title === 'B1');
+        await linkV3(tblA.id, linkCol.id, String(a1.id), String(b1.id));
+
+        const rowsC = await listRows(tblC.id);
+        const c1 = rowsC.find((r) => r.fields?.Title === 'C1');
+        await linkV3(tblC.id, cToA.id, String(c1.id), String(a1.id));
+
+        const rowsCAfter = await listRows(tblC.id);
+        const c1After = rowsCAfter.find((r) => r.fields?.Title === 'C1');
+        const values = extractNestedValues(c1After.fields[`${title}LK`]);
+        expect(
+          values.length,
+          `${title}: lookup payload must exist`,
+        ).to.be.greaterThan(0);
+        // Nested lookup rows are title-keyed on some relation paths and
+        // column-id-keyed on others — accept either key for the override col.
+        expect(
+          values[0]?.[labelB.title] ?? values[0]?.[labelB.id],
+          `${title}: override col Label must be present in lookup payload`,
+        ).to.equal('B-one');
+      };
+
+      it('looked-up V2 MO (many-to-one — customer scenario)', async () => {
+        await runLookupCase('LkMOV2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_ONE,
+          version: LinksVersion.V2,
+        });
+      });
+
+      it('looked-up V1 HM', async () => {
+        await runLookupCase('LkHMV1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+        });
+      });
+
+      it('looked-up V1 BT', async () => {
+        await runLookupCase('LkBTV1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.BELONGS_TO,
+        });
+      });
+
+      it('looked-up V1 MM', async () => {
+        await runLookupCase('LkMMV1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.MANY_TO_MANY,
+        });
+      });
+
+      it('looked-up V1 OO', async () => {
+        await runLookupCase('LkOOV1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.ONE_TO_ONE,
+        });
+      });
+
+      // NOTE: lookup of a V2 MM `Links` column is intentionally not covered —
+      // the lookup extraction does not propagate `linksAsLtar`, so it resolves
+      // to the rollup count (a number), which has no display value to assert.
     });
 
     // ----------------------------------------------------------------------

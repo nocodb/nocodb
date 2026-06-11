@@ -88,8 +88,12 @@ export default class Team {
       prepareForDb(insertObj, ['meta', 'scim_meta']),
     );
 
-    // Use workspace or org scope for cache key
-    const baseCacheKey = context.workspace_id ?? context.org_id;
+    // Key by the team's own scope (matches Team.list), not the request context.
+    const baseCacheKey =
+      insertObj.fk_workspace_id ??
+      insertObj.fk_org_id ??
+      context.workspace_id ??
+      context.org_id;
 
     if (context.workspace_id) {
       await NocoCache.incrHashField(
@@ -158,14 +162,24 @@ export default class Team {
     } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Team[]> {
-    // Include include_deleted in cache key to prevent cache conflicts
-    const baseCacheKey = context.workspace_id ?? context.org_id;
+    // Key the cache by the queried *scope*, not the ambient request context.
+    // Every caller passes exactly one of fk_workspace_id / fk_org_id, so the bucket
+    // is always consistent with its contents: an org-scoped query issued under a
+    // workspace context lands in the org bucket where it belongs, instead of
+    // polluting the workspace bucket. (context.* is only a fallback for the
+    // degenerate no-filter call, which no current caller makes.)
+    const baseCacheKey =
+      fk_workspace_id ?? fk_org_id ?? context.workspace_id ?? context.org_id;
     const cacheKey = include_deleted ? `${baseCacheKey}:deleted` : baseCacheKey;
 
-    // Authoritative scoped fetch — always reads from the DB with `xcCondition`
-    // applied, so its result is guaranteed in-scope (used to populate the cache
-    // and as the fallback whenever the cache can't be trusted).
-    const fetchFromDb = async (): Promise<any[]> => {
+    const cachedList = await NocoCache.getList('root', CacheScope.TEAM, [
+      cacheKey,
+    ]);
+
+    let { list: teamList } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !teamList.length) {
       const andConditions: any[] = [];
 
       if (fk_org_id) andConditions.push({ fk_org_id: { eq: fk_org_id } });
@@ -182,64 +196,19 @@ export default class Team {
       const xcCondition =
         andConditions.length > 0 ? { _and: andConditions } : {};
 
-      return ncMeta.metaList2(RootScopes.ROOT, RootScopes.ROOT, MetaTable.TEAMS, {
-        ...(andConditions.length > 0 && { xcCondition }),
-      });
-    };
+      teamList = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.TEAMS,
+        {
+          ...(andConditions.length > 0 && { xcCondition }),
+        },
+      );
 
-    // Last-line scope filter, applied on every path. On a DB read it's a no-op
-    // (`xcCondition` already scoped the query); on a cache hit it's the defense
-    // against a bucket polluted by a context/filter mismatch.
-    const inScope = (team: any) => {
-      if (fk_workspace_id && team.fk_workspace_id !== fk_workspace_id)
-        return false;
-      if (fk_org_id && team.fk_org_id !== fk_org_id) return false;
-      if (!include_deleted && team.deleted) return false;
-      return true;
-    };
-
-    // The cache bucket is keyed by the ambient context (`workspace_id ?? org_id`),
-    // but the result is scoped by the `fk_*` filter. When those diverge — e.g. an
-    // org-scoped query issued under a workspace context (see
-    // `org-workspaces.service.ts`) — reading the bucket returns out-of-scope teams
-    // and writing it pollutes the bucket for correctly-scoped callers (who then get
-    // a silently-empty result once `inScope` strips everything). In that case
-    // bypass the cache entirely: read straight from the DB and don't write, so a
-    // mismatched-scope caller can neither read nor poison the bucket.
-    const scopeMatchesContext =
-      (!fk_workspace_id || context.workspace_id === fk_workspace_id) &&
-      (!fk_org_id || (!context.workspace_id && context.org_id === fk_org_id));
-
-    if (!scopeMatchesContext) {
-      return (await fetchFromDb()).filter(inScope).map((t) => this.castType(t));
-    }
-
-    const cachedList = await NocoCache.getList('root', CacheScope.TEAM, [
-      cacheKey,
-    ]);
-
-    const { isNoneList } = cachedList;
-    let teamList: any[] = cachedList.list;
-
-    if (!isNoneList && !teamList.length) {
-      teamList = await fetchFromDb();
       await NocoCache.setList('root', CacheScope.TEAM, [cacheKey], teamList);
     }
 
-    const scopedList = teamList.filter(inScope);
-
-    // Poison detector: a length mismatch on a trusted-scope read means the bucket
-    // still holds out-of-scope rows (written by a path the scope check above
-    // doesn't anticipate). Divergence is impossible on the DB path, so it's a safe
-    // signal — re-read from the DB and overwrite the bucket (`setList` replaces it)
-    // so the poisoned entry self-heals instead of silently returning incomplete data.
-    if (scopedList.length !== teamList.length) {
-      const freshList = await fetchFromDb();
-      await NocoCache.setList('root', CacheScope.TEAM, [cacheKey], freshList);
-      return freshList.filter(inScope).map((t) => this.castType(t));
-    }
-
-    return scopedList.map((team) => this.castType(team));
+    return teamList.map((team) => this.castType(team));
   }
 
   public static async update(
@@ -348,8 +317,20 @@ export default class Team {
 
     await NocoCache.del('root', `${CacheScope.TEAM}:${teamId}`);
 
-    // Invalidate both active and deleted cache lists
-    const baseCacheKey = context.workspace_id ?? context.org_id;
+    // Invalidate the team's own scope buckets (active + deleted), independent of
+    // the ambient context — otherwise restoring an org team under a workspace
+    // context clears the wrong bucket and the scope's list stays stale.
+    const restored = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      { id: teamId },
+    );
+    const baseCacheKey =
+      restored?.fk_workspace_id ??
+      restored?.fk_org_id ??
+      context.workspace_id ??
+      context.org_id;
     await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}`);
     await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
 
@@ -380,14 +361,27 @@ export default class Team {
     // Clear all dependent caches before hard deleting (since assignments will be deleted too)
     await this.clearDependentCaches(context, teamId, ncMeta);
 
+    // Capture the team's scope before the row is deleted, so we invalidate the
+    // correct buckets even when the ambient context diverges from the team scope.
+    const doomed = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      { id: teamId },
+    );
+
     await ncMeta.metaDelete(RootScopes.ROOT, RootScopes.ROOT, MetaTable.TEAMS, {
       id: teamId,
     });
 
     await NocoCache.del('root', `${CacheScope.TEAM}:${teamId}`);
 
-    // Invalidate both active and deleted cache lists
-    const baseCacheKey = context.workspace_id ?? context.org_id;
+    // Invalidate the team's own scope buckets (active + deleted).
+    const baseCacheKey =
+      doomed?.fk_workspace_id ??
+      doomed?.fk_org_id ??
+      context.workspace_id ??
+      context.org_id;
     await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}`);
     await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
 
@@ -488,14 +482,18 @@ export default class Team {
         },
       );
 
-      const baseCacheKey = context.workspace_id ?? context.org_id;
-
       for (const row of rows) {
         await NocoCache.set('root', `${CacheScope.TEAM}:${row.id}`, row);
+        // Append each row to its own scope bucket — a batch can span scopes.
         await NocoCache.appendToList(
           'root',
           CacheScope.TEAM,
-          [baseCacheKey],
+          [
+            row.fk_workspace_id ??
+              row.fk_org_id ??
+              context.workspace_id ??
+              context.org_id,
+          ],
           `${CacheScope.TEAM}:${row.id}`,
         );
         result.set(row.id, this.castType(row));

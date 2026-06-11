@@ -11,6 +11,7 @@ export const internalTests = runOnSet(2, function () {
     if (isEE()) {
       try {
         require('./ee/base-trash.test').baseTrashTests();
+        require('./ee/m2m-junction-cleanup.test').m2mJunctionCleanupTests();
         require('./ee/base-hard-delete-orphans.test').baseHardDeleteOrphansTests();
         require('./ee/meta-satellite-trx-guard.test').metaSatelliteTrxGuardTests();
         require('./ee/clean-up-processor.test').cleanUpProcessorTests();

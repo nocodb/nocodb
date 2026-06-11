@@ -731,6 +731,59 @@ export class OnPremLicenseService {
   }
 
   /**
+   * Resolve an Installation for an internal add-on operation by its license key
+   * OR its installation id — both are unique and identify the same installation,
+   * so a single value is enough. Tries the id lookup first, then the key.
+   * License-server side only.
+   */
+  async getInstallationForAddon(licenseKeyOrId: string): Promise<Installation> {
+    const installation =
+      (await Installation.get(licenseKeyOrId)) ??
+      (await Installation.getByLicenseKey(licenseKeyOrId));
+    if (!installation) {
+      NcError.badRequest(
+        `No on-prem installation found for '${licenseKeyOrId}' (expected a license key or installation id)`,
+      );
+    }
+    return installation;
+  }
+
+  /**
+   * Resolve the Subscription backing an installation's add-ons. Add-ons require
+   * an existing subscription (created at license purchase, or linked via
+   * link-subscription); internally-minted licenses without one are rejected
+   * with a clear, actionable message rather than silently creating billing.
+   */
+  async getInstallationSubscriptionForAddon(
+    installation: Installation,
+  ): Promise<Subscription> {
+    if (!installation.fk_subscription_id) {
+      NcError.badRequest(
+        `License '${installation.license_key}' has no subscription. Add-ons require an active subscription — purchase a license or link one via POST /api/internal/on-premise/license/link-subscription first.`,
+      );
+    }
+    const subscription = await Subscription.get(
+      installation.fk_subscription_id,
+    );
+    if (!subscription) {
+      NcError.genericNotFound('Subscription', installation.fk_subscription_id);
+    }
+    return subscription;
+  }
+
+  /**
+   * List the active add-ons on an installation's subscription. Empty when the
+   * installation has no subscription (and therefore no add-ons).
+   */
+  async listInstallationAddons(
+    licenseKeyOrId: string,
+  ): Promise<SubscriptionAddon[]> {
+    const installation = await this.getInstallationForAddon(licenseKeyOrId);
+    if (!installation.fk_subscription_id) return [];
+    return SubscriptionAddon.listActive(installation.fk_subscription_id);
+  }
+
+  /**
    * Link an existing Installation to a Stripe subscription by creating the
    * missing Subscription DB record.  Use when the webhook that normally
    * creates the Subscription was missed or the Installation was provisioned

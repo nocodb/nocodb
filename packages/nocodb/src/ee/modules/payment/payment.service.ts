@@ -422,6 +422,27 @@ export class PaymentService {
       );
     }
 
+    return this.grantAddonOnSubscription(subscription, payload, req, {
+      workspaceOrOrgId,
+    });
+  }
+
+  /**
+   * Grant core operating on an already-resolved subscription — shared by the
+   * cloud entrypoint (`grantAddon`, keyed by workspace/org) and the on-prem
+   * entrypoint (installation-linked subscription, resolved in
+   * `OnPremLicenseService`). `opts.workspaceOrOrgId` is set only for cloud
+   * subscriptions; on-prem passes `opts.auditId` (installation id) for audit.
+   */
+  async grantAddonOnSubscription(
+    subscription: Subscription,
+    payload: { addon_key: PlanAddonTypes; comped?: boolean },
+    req: NcRequest,
+    opts: { workspaceOrOrgId?: string | null; auditId?: string } = {},
+  ) {
+    const def = AddonDefinitions[payload.addon_key];
+    if (!def) NcError.badRequest(`Unknown add-on '${payload.addon_key}'`);
+
     const plan = await Plan.get(subscription.fk_plan_id);
     if (!plan) NcError.genericNotFound('Plan', subscription.fk_plan_id);
 
@@ -497,12 +518,16 @@ export class PaymentService {
     // don't carry the new add-on item, so Stripe would drop it (and reconcile
     // would cancel the entitlement) at phase activation. Rebuild the schedule
     // so both phases include the add-on (mirrors the reseat path).
-    if (stripeItemId && subscription.stripe_schedule_id) {
+    if (
+      stripeItemId &&
+      subscription.stripe_schedule_id &&
+      opts.workspaceOrOrgId
+    ) {
       const schedulePrice = await stripe.prices.retrieve(
         subscription.schedule_stripe_price_id,
       );
       await this.schedulePlanChange(
-        workspaceOrOrgId,
+        opts.workspaceOrOrgId,
         schedulePrice,
         await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
         {
@@ -511,18 +536,23 @@ export class PaymentService {
       );
     }
 
-    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
-    if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
+    // Cloud subscriptions clear the workspace/org base-list cache; on-prem
+    // (installation-linked) subscriptions have no such entity to clear.
+    if (opts.workspaceOrOrgId) {
+      const workspaceOrOrg = await getWorkspaceOrOrg(opts.workspaceOrOrgId);
+      if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
+    }
 
     await this.syncOnPremAddons(subscription.id);
 
     this.appHooksService.emit(AppEvents.ADDON_GRANTED, {
       context: {
-        workspace_id: workspaceOrOrgId,
+        workspace_id: opts.workspaceOrOrgId ?? opts.auditId ?? subscription.id,
         base_id: undefined,
       },
       req,
-      workspaceOrOrgId,
+      workspaceOrOrgId:
+        opts.workspaceOrOrgId ?? opts.auditId ?? subscription.id,
       addonKey: payload.addon_key,
       comped: !!payload.comped,
     });
@@ -543,6 +573,22 @@ export class PaymentService {
         `Cannot revoke add-on '${addonKey}': workspace/org '${workspaceOrOrgId}' has no active subscription.`,
       );
 
+    return this.revokeAddonOnSubscription(subscription, addonKey, req, {
+      workspaceOrOrgId,
+    });
+  }
+
+  /**
+   * Revoke core operating on an already-resolved subscription — mirror of
+   * `grantAddonOnSubscription`. Shared by the cloud entrypoint (`revokeAddon`)
+   * and the on-prem entrypoint (installation-linked subscription).
+   */
+  async revokeAddonOnSubscription(
+    subscription: Subscription,
+    addonKey: PlanAddonTypes,
+    req: NcRequest,
+    opts: { workspaceOrOrgId?: string | null; auditId?: string } = {},
+  ) {
     const sa = await SubscriptionAddon.getActiveByKey(
       subscription.id,
       addonKey,
@@ -559,12 +605,16 @@ export class PaymentService {
 
     // Rebuild a pending plan-change schedule so its phases drop the revoked
     // add-on item — they were built while the add-on was still active.
-    if (sa.stripe_subscription_item_id && subscription.stripe_schedule_id) {
+    if (
+      sa.stripe_subscription_item_id &&
+      subscription.stripe_schedule_id &&
+      opts.workspaceOrOrgId
+    ) {
       const schedulePrice = await stripe.prices.retrieve(
         subscription.schedule_stripe_price_id,
       );
       await this.schedulePlanChange(
-        workspaceOrOrgId,
+        opts.workspaceOrOrgId,
         schedulePrice,
         await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
         {
@@ -573,18 +623,21 @@ export class PaymentService {
       );
     }
 
-    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
-    if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
+    if (opts.workspaceOrOrgId) {
+      const workspaceOrOrg = await getWorkspaceOrOrg(opts.workspaceOrOrgId);
+      if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
+    }
 
     await this.syncOnPremAddons(subscription.id);
 
     this.appHooksService.emit(AppEvents.ADDON_REVOKED, {
       context: {
-        workspace_id: workspaceOrOrgId,
+        workspace_id: opts.workspaceOrOrgId ?? opts.auditId ?? subscription.id,
         base_id: undefined,
       },
       req,
-      workspaceOrOrgId,
+      workspaceOrOrgId:
+        opts.workspaceOrOrgId ?? opts.auditId ?? subscription.id,
       addonKey,
     });
 

@@ -2,19 +2,26 @@ import crypto from 'crypto';
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   HttpCode,
+  Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import jwt from 'jsonwebtoken';
+import type { PlanAddonTypes } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
 import Installation from '~/models/Installation';
 import Noco from '~/Noco';
 import { LICENSE_CONFIG, LICENSE_SERVER_OLD_PUBLIC_KEY } from '~/utils/license';
 import { InstallationStatus, LicenseType } from '~/utils/license';
 import { OnPremLicenseService } from '~/services/on-prem-license.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 
 // Request envelope types
 enum AgentRequestType {
@@ -92,7 +99,10 @@ export class OnPremiseController {
   private readonly HEARTBEAT_INTERVAL_FAILURE_MS =
     LICENSE_CONFIG.HEARTBEAT_INTERVAL_FAILURE_MS;
 
-  constructor(private readonly onPremLicenseService: OnPremLicenseService) {}
+  constructor(
+    private readonly onPremLicenseService: OnPremLicenseService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   @Post('/api/v1/on-premise/agent')
   @HttpCode(200)
@@ -672,6 +682,83 @@ export class OnPremiseController {
       license_type: installation.license_type,
       config: installation.config,
     };
+  }
+
+  /**
+   * Grant an add-on to an on-prem installation (license-server side).
+   * `:license` is the license key OR the installation id — either uniquely
+   * identifies the installation. Resolves its subscription and runs the shared
+   * add-on grant core: creates the SubscriptionAddon, adds the Stripe item
+   * (unless comped), and syncs `installation.config.addons` — picked up at the
+   * next heartbeat. Requires the installation to already have a subscription.
+   */
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/on-premise/license/:license/addon')
+  @HttpCode(200)
+  async grantInstallationAddon(
+    @Param('license') license: string,
+    @Body()
+    payload: {
+      addon_key: PlanAddonTypes;
+      comped?: boolean;
+    },
+    @Req() req: NcRequest,
+  ) {
+    if (!payload?.addon_key) {
+      NcError._.badRequest('addon_key is required');
+    }
+
+    const installation =
+      await this.onPremLicenseService.getInstallationForAddon(license);
+    const subscription =
+      await this.onPremLicenseService.getInstallationSubscriptionForAddon(
+        installation,
+      );
+
+    return this.paymentService.grantAddonOnSubscription(
+      subscription,
+      { addon_key: payload.addon_key, comped: payload.comped },
+      req,
+      { auditId: installation.id },
+    );
+  }
+
+  /**
+   * Revoke an add-on from an on-prem installation. Mirror of the grant route;
+   * `:license` is the license key OR the installation id.
+   */
+  @UseGuards(AuthGuard('basic'))
+  @Delete('/api/internal/on-premise/license/:license/addon/:addonKey')
+  @HttpCode(200)
+  async revokeInstallationAddon(
+    @Param('license') license: string,
+    @Param('addonKey') addonKey: PlanAddonTypes,
+    @Req() req: NcRequest,
+  ) {
+    const installation =
+      await this.onPremLicenseService.getInstallationForAddon(license);
+    const subscription =
+      await this.onPremLicenseService.getInstallationSubscriptionForAddon(
+        installation,
+      );
+
+    return this.paymentService.revokeAddonOnSubscription(
+      subscription,
+      addonKey,
+      req,
+      { auditId: installation.id },
+    );
+  }
+
+  /**
+   * List the active add-ons on an installation's subscription.
+   * `:license` is the license key OR the installation id.
+   */
+  @UseGuards(AuthGuard('basic'))
+  @Get('/api/internal/on-premise/license/:license/addon')
+  @HttpCode(200)
+  async listInstallationAddons(@Param('license') license: string) {
+    return this.onPremLicenseService.listInstallationAddons(license);
   }
 
   private async verifyOldLicense(licenseKey: string): Promise<{

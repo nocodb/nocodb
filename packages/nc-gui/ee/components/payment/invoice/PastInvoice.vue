@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type Stripe from 'stripe'
-import { AddonDefinitions } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
@@ -28,54 +27,6 @@ const paginatedData = computed(() => {
 // proration description. Covers historical invoices too, since every line
 // carries its product id regardless of current grant status.
 const productToAddonKey = computed(() => new Map(addonsCatalog.value.map((addon) => [addon.stripe_product_id, addon.addon_key])))
-
-// Build the branded "Plan (N seats billed annually/monthly)" label.
-const brandedPlanLabel = (planTitle: string, planPeriod: string, seatCount: number) => {
-  if (!planTitle) return ''
-  if (seatCount > 0) {
-    const seats = t('objects.seatCount', { count: seatCount }, seatCount)
-    return planPeriod
-      ? `${planTitle} (${seats} billed ${planPeriod === 'month' ? 'monthly' : 'annually'})`
-      : `${planTitle} (${seats})`
-  }
-  return planPeriod ? `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})` : planTitle
-}
-
-const getPlanTitle = (record: Stripe.Invoice) => {
-  const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
-  const lines = record?.lines?.data ?? []
-
-  // Label per line so add-on / proration invoices aren't mislabeled as the base
-  // plan. Priority per line:
-  //   1. Line product matches a catalog add-on → branded add-on label ("SCIM Provisioning (3 seats)")
-  //   2. Line carries `plan_title` in its own metadata → branded plan format
-  //   3. Fall back to Stripe's own line description (already names the line)
-  const labels = lines
-    .map((line) => {
-      const addonKey = productToAddonKey.value.get(line?.pricing?.price_details?.product ?? '')
-      if (addonKey) {
-        // Only per-seat add-ons (e.g. SCIM) carry a meaningful seat count; flat add-ons
-        // (white-label) are billed at quantity 1, so suffixing "(1 seat)" is misleading.
-        const qty = line.quantity ?? 0
-        const isPerSeat = AddonDefinitions[addonKey]?.quantityBasis === 'per_seat'
-        return qty > 0 && isPerSeat
-          ? `${getAddonLabel(addonKey)} (${t('objects.seatCount', { count: qty }, qty)})`
-          : getAddonLabel(addonKey)
-      }
-
-      const linePlanTitle = (line?.metadata as Record<string, string> | undefined)?.plan_title
-      if (linePlanTitle) return brandedPlanLabel(linePlanTitle, planPeriod, line.quantity ?? 0)
-      return line.description || ''
-    })
-    .filter(Boolean)
-
-  if (labels.length) return [...new Set(labels)].join('; ')
-
-  // Fallback (no usable line data): reconstruct from subscription-level metadata.
-  const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
-  const seatCount = lines.length > 0 ? lines[lines.length - 1].quantity ?? 0 : 0
-  return brandedPlanLabel(planTitle, planPeriod, seatCount)
-}
 
 const columns: NcTableColumnProps<Stripe.Invoice>[] = [
   {
@@ -171,7 +122,7 @@ onMounted(() => {
           <template v-if="column.key === 'created'">
             {{ record.created ? dayjs(record.created * 1000).format('D MMMM YYYY hh:mm A') : '-' }}
           </template>
-          <template v-if="column.key === 'plan'"> {{ getPlanTitle(record) }}</template>
+          <template v-if="column.key === 'plan'"> {{ buildInvoicePlanLabel(record, productToAddonKey) }}</template>
           <template v-if="column.key === 'invoiceTotal'"> {{ column.format?.(record.amount_paid, record) }}</template>
           <template v-if="column.key === 'status'">
             <span

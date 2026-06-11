@@ -1,8 +1,15 @@
 import type Stripe from 'stripe'
-import type { PaginatedType } from 'nocodb-sdk'
+import type { PaginatedType, PlanAddonTypes } from 'nocodb-sdk'
 import { OnPremPlanPriceLookupKeys, OnPremPlanTitles } from 'nocodb-sdk'
 
 export type OnPremInvoice = Stripe.Invoice & { license_key_masked?: string | null }
+
+// Minimal add-on catalog shape (from /api/public/payment/addon) needed to label
+// add-on invoice lines by their catalog name instead of the base plan.
+interface OnPremAddonCatalogItem {
+  addon_key: PlanAddonTypes
+  stripe_product_id: string
+}
 
 interface OnPremPlanPriceTier {
   unit_amount: number
@@ -80,6 +87,8 @@ export const useOnPremLicense = createSharedComposable(() => {
   }
 
   const invoices = ref<OnPremInvoice[]>([])
+
+  const addonsCatalog = ref<OnPremAddonCatalogItem[]>([])
 
   const invoicePaginationData = ref<
     PaginatedType & { isLoading?: boolean; hasMore?: boolean; pageCursors: (string | undefined)[] }
@@ -252,6 +261,21 @@ export const useOnPremLicense = createSharedComposable(() => {
     }
   }
 
+  const loadAddons = async () => {
+    try {
+      const addons = await $fetch<OnPremAddonCatalogItem[]>('/api/public/payment/addon', {
+        baseURL,
+        method: 'GET',
+        headers: fetchHeaders.value,
+      })
+
+      addonsCatalog.value = addons ?? []
+    } catch {
+      // Non-fatal — invoice labels just fall back to the base-plan label.
+      addonsCatalog.value = []
+    }
+  }
+
   const getCustomerPortal = async (): Promise<{ url: string } | null> => {
     try {
       return await $fetch('/api/payment/on-premise/customer-portal', {
@@ -284,5 +308,7 @@ export const useOnPremLicense = createSharedComposable(() => {
     defaultInvoicePaginationData,
     hasAnySubscription,
     loadInvoices,
+    addonsCatalog,
+    loadAddons,
   }
 })

@@ -10,7 +10,7 @@ import {
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
-import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 import type { ColumnInternalMeta } from '~/types/column-internal-meta';
 import { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
@@ -43,6 +43,10 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import {
+  clearSingleQueryCacheForColumnReferences,
+  clearSingleQueryCacheForRenamedColumnReferences,
+} from '~/helpers/singleQueryCacheInvalidator';
 import { NcCache } from '~/decorators/nc-cache.decorator';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { getReplay, isReplay } from '~/helpers/replayScope';
@@ -1623,136 +1627,19 @@ export default class Column<T = any> implements ColumnType {
         });
     }
 
-    const refTableIds = new Set<string>();
-
-    // clear any related table cache if updating a FK column
-    {
-      // Get LTAR columns in which current column is referenced as foreign key
-      const ltarColumns = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_RELATIONS,
-        {
-          xcCondition: {
-            _and: [
-              {
-                _or: [
-                  { fk_child_column_id: { eq: colId } },
-                  { fk_parent_column_id: { eq: colId } },
-                  { fk_mm_child_column_id: { eq: colId } },
-                  { fk_mm_parent_column_id: { eq: colId } },
-                ],
-              },
-              {
-                fk_related_model_id: { neq: oldCol.fk_model_id },
-              },
-            ],
-          },
-        },
+    // Other models' compiled single-query SQL can embed this column (via FK,
+    // Lookup, or Rollup). A physical column RENAME changes the column name baked
+    // into that SQL — including for transitive multi-hop Lookup/Rollup chains —
+    // so walk the full dependency graph. Non-rename updates can't have stale
+    // transitive referrers, so the cheap one-hop scan is enough.
+    if (oldCol.column_name !== updatedColumn.column_name) {
+      await clearSingleQueryCacheForRenamedColumnReferences(
+        context,
+        oldCol,
+        ncMeta,
       );
-
-      for (const linkCol of ltarColumns) {
-        refTableIds.add((linkCol as LinksColumn).fk_related_model_id);
-      }
-    }
-
-    const relationColIds = new Set<string>();
-
-    // get LTAR relation columns
-    {
-      if (oldCol.pv) {
-        // Get LTAR columns in which current column is referenced as foreign key
-        const ltarColumns = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_RELATIONS,
-          {
-            xcCondition: {
-              _and: [
-                {
-                  fk_related_model_id: { eq: oldCol.fk_model_id },
-                },
-              ],
-            },
-          },
-        );
-
-        for (const ltarCol of ltarColumns) {
-          relationColIds.add(ltarCol.fk_column_id);
-        }
-      }
-    }
-
-    // get LTAR/Links relation column id of Lookup
-    {
-      const lkColumns = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_LOOKUP,
-        {
-          xcCondition: {
-            _and: [
-              {
-                fk_lookup_column_id: { eq: oldCol.id },
-              },
-            ],
-          },
-        },
-      );
-
-      for (const lkCol of lkColumns) {
-        relationColIds.add((lkCol as LookupType).fk_relation_column_id);
-      }
-    }
-
-    // get LTAR/Links relation column id of Rollup
-    {
-      const rlColumns = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_ROLLUP,
-        {
-          xcCondition: {
-            _and: [
-              {
-                fk_rollup_column_id: { eq: oldCol.id },
-              },
-            ],
-          },
-        },
-      );
-
-      for (const rlCol of rlColumns) {
-        relationColIds.add((rlCol as LookupType).fk_relation_column_id);
-      }
-    }
-
-    if (relationColIds.size > 0) {
-      const ltarColumns = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COLUMNS,
-        {
-          xcCondition: {
-            _and: [
-              {
-                id: { in: [...relationColIds] },
-              },
-            ],
-          },
-        },
-      );
-
-      for (const linkCol of ltarColumns) {
-        refTableIds.add(linkCol.fk_model_id);
-      }
-    }
-
-    // remove self link
-    refTableIds.delete(oldCol.fk_model_id);
-
-    for (const modelId of [...refTableIds]) {
-      await View.clearSingleQueryCache(context, modelId, null, ncMeta);
+    } else {
+      await clearSingleQueryCacheForColumnReferences(context, oldCol, ncMeta);
     }
 
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {

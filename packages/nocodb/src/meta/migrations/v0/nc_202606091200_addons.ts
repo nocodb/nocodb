@@ -21,6 +21,7 @@ const up = async (knex: Knex) => {
     table.string('fk_addon_id', 20).notNullable();
     table.string('addon_key', 255).notNullable();
     table.string('stripe_subscription_item_id', 255).nullable(); // null = comped
+    table.string('stripe_price_id', 255).nullable(); // negotiated/deal price; null = comped or default-resolved
     table.integer('seat_count').defaultTo(1);
     table.string('status', 255).defaultTo('active');
     table.text('meta');

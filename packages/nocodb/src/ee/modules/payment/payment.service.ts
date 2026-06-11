@@ -374,13 +374,20 @@ export class PaymentService {
   }
 
   /**
-   * Resolve the add-on's active Stripe price for the subscription's billing
-   * period. Amounts + flat/tiered structure live entirely in Stripe — we only
-   * pick the price matching the co-termed recurring interval.
+   * Resolve the add-on's *default public* Stripe price for the billing period.
+   * Amounts + flat/tiered structure live entirely in Stripe — we only pick the
+   * price matching the co-termed recurring interval. Negotiated `private_` (and
+   * `loyalty`) prices are skipped here so the default never lands on a hidden
+   * deal price; those are selected explicitly at grant time and preserved via
+   * `resolveAddonItemPriceId`.
    */
   private resolveAddonPriceId(addon: Addon, period: 'month' | 'year'): string {
     const price = (addon.prices ?? []).find(
-      (p: Stripe.Price) => p.active && p.recurring?.interval === period,
+      (p: Stripe.Price) =>
+        p.active &&
+        p.recurring?.interval === period &&
+        !p.lookup_key?.includes('private_') &&
+        !p.lookup_key?.includes('loyalty'),
     );
 
     if (!price) {
@@ -390,6 +397,70 @@ export class PaymentService {
     }
 
     return price.id;
+  }
+
+  /**
+   * Resolve the price id to (re)point a subscription add-on's Stripe item at.
+   * Prefers the negotiated price persisted at grant time (`sa.stripe_price_id`)
+   * so deal pricing survives reseat / schedule repoint / reconcile — but only
+   * when that price still exists and matches the requested billing period (a
+   * mid-contract month↔year flip can't reuse a period-specific price, so it
+   * falls back to the default public price for the new period). `addon` MUST be
+   * fetched with forcePrivate=true so a private stored price is visible here.
+   */
+  private resolveAddonItemPriceId(
+    addon: Addon,
+    sa: SubscriptionAddon,
+    period: 'month' | 'year',
+  ): string {
+    const stored = sa.stripe_price_id
+      ? (addon.prices ?? []).find(
+          (p: Stripe.Price) => p.id === sa.stripe_price_id,
+        )
+      : undefined;
+
+    if (stored && stored.active && stored.recurring?.interval === period) {
+      return stored.id;
+    }
+
+    return this.resolveAddonPriceId(addon, period);
+  }
+
+  /**
+   * Pick the price for an add-on grant. With an explicit `requestedPriceId`
+   * (enterprise deal — usually a hidden `private_*` price) we validate it
+   * belongs to the add-on, is active, and matches the subscription's billing
+   * period; otherwise fall back to the default public price. `addon` MUST be
+   * fetched with forcePrivate=true so a private price id is resolvable.
+   */
+  private resolveGrantAddonPriceId(
+    addon: Addon,
+    period: 'month' | 'year',
+    requestedPriceId?: string,
+  ): string {
+    if (!requestedPriceId) {
+      return this.resolveAddonPriceId(addon, period);
+    }
+
+    const chosen = (addon.prices ?? []).find(
+      (p: Stripe.Price) => p.id === requestedPriceId,
+    );
+    if (!chosen) {
+      NcError.badRequest(
+        `Price '${requestedPriceId}' is not a valid price for add-on '${addon.addon_key}'.`,
+      );
+    }
+    if (!chosen.active) {
+      NcError.badRequest(
+        `Price '${requestedPriceId}' for add-on '${addon.addon_key}' is not active.`,
+      );
+    }
+    if (chosen.recurring?.interval !== period) {
+      NcError.badRequest(
+        `Price '${requestedPriceId}' does not match the subscription billing period (${period}).`,
+      );
+    }
+    return chosen.id;
   }
 
   /**
@@ -404,7 +475,7 @@ export class PaymentService {
 
   async grantAddon(
     workspaceOrOrgId: string,
-    payload: { addon_key: PlanAddonTypes; comped?: boolean },
+    payload: { addon_key: PlanAddonTypes; comped?: boolean; price_id?: string },
     req: NcRequest,
   ) {
     const def = AddonDefinitions[payload.addon_key];
@@ -436,7 +507,7 @@ export class PaymentService {
    */
   async grantAddonOnSubscription(
     subscription: Subscription,
-    payload: { addon_key: PlanAddonTypes; comped?: boolean },
+    payload: { addon_key: PlanAddonTypes; comped?: boolean; price_id?: string },
     req: NcRequest,
     opts: { workspaceOrOrgId?: string | null; auditId?: string } = {},
   ) {
@@ -467,7 +538,9 @@ export class PaymentService {
       );
     }
 
-    const addon = await Addon.getByKey(payload.addon_key);
+    // forcePrivate so a negotiated `private_*` price passed as payload.price_id
+    // is resolvable/validatable (public responses hide private prices).
+    const addon = await Addon.getByKey(payload.addon_key, Noco.ncMeta, true);
     if (!addon || !addon.is_active) {
       NcError.badRequest(
         `Add-on '${payload.addon_key}' is not available in the catalog. Register it first via POST /api/internal/payment/addon.`,
@@ -487,8 +560,18 @@ export class PaymentService {
 
     const period = subscription.period === 'year' ? 'year' : 'month';
     let stripeItemId: string | null = null;
+    let stripePriceId: string | null = null;
     if (!isInternal && !payload.comped) {
-      const priceId = this.resolveAddonPriceId(addon, period);
+      // For a negotiated enterprise deal the caller passes an explicit
+      // `price_id` (typically a hidden `private_*` price); otherwise the default
+      // public price is used. The chosen price is persisted on the junction so
+      // reseat / schedule / reconcile keep billing the same rate.
+      const priceId = this.resolveGrantAddonPriceId(
+        addon,
+        period,
+        payload.price_id,
+      );
+      stripePriceId = priceId;
       const updated = await stripe.subscriptions.update(
         subscription.stripe_subscription_id,
         {
@@ -510,6 +593,7 @@ export class PaymentService {
       fk_addon_id: addon.id!,
       addon_key: payload.addon_key,
       stripe_subscription_item_id: stripeItemId,
+      stripe_price_id: stripePriceId,
       seat_count: quantity,
       status: 'active',
     });
@@ -1954,11 +2038,12 @@ export class PaymentService {
       if (!sa.stripe_subscription_item_id) continue; // comped → not billed
       const def = AddonDefinitions[sa.addon_key];
       if (!def) continue;
-      const addon = await Addon.getByKey(sa.addon_key, ncMeta);
+      // forcePrivate so a negotiated stored price is visible to the resolver.
+      const addon = await Addon.getByKey(sa.addon_key, ncMeta, true);
       if (!addon) continue;
       items.push({
         id: sa.stripe_subscription_item_id,
-        price: this.resolveAddonPriceId(addon, period),
+        price: this.resolveAddonItemPriceId(addon, sa, period),
         quantity: def.quantityBasis === 'per_seat' ? billableSeats : 1,
       });
     }
@@ -3008,10 +3093,13 @@ export class PaymentService {
       if (minCloud && PlanOrder[newPlan.title] < PlanOrder[minCloud]) {
         continue; // below min on the new plan → drop, don't carry
       }
-      const addon = await Addon.getByKey(sa.addon_key, ncMeta);
+      // forcePrivate so a negotiated stored price is visible to the resolver.
+      // A period flip (changePhasePeriod ≠ stored price's interval) falls back
+      // to the default public price for the new period.
+      const addon = await Addon.getByKey(sa.addon_key, ncMeta, true);
       if (!addon) continue;
       changePhaseAddonItems.push({
-        price: this.resolveAddonPriceId(addon, changePhasePeriod),
+        price: this.resolveAddonItemPriceId(addon, sa, changePhasePeriod),
         quantity: def.quantityBasis === 'per_seat' ? changePhaseSeats : 1,
       });
     }
@@ -3928,8 +4016,16 @@ export class PaymentService {
         const live = liveById.get(sa.stripe_subscription_item_id);
         if (live) {
           const qty = live.quantity ?? sa.seat_count;
-          if (qty !== sa.seat_count) {
-            await SubscriptionAddon.update(sa.id!, { seat_count: qty }, ncMeta);
+          const livePriceId = live.price?.id;
+          const patch: Partial<SubscriptionAddon> = {};
+          if (qty !== sa.seat_count) patch.seat_count = qty;
+          // Keep the stored price synced to the live item — backfills rows that
+          // predate stripe_price_id and follows external/phase price changes.
+          if (livePriceId && livePriceId !== sa.stripe_price_id) {
+            patch.stripe_price_id = livePriceId;
+          }
+          if (Object.keys(patch).length) {
+            await SubscriptionAddon.update(sa.id!, patch, ncMeta);
           }
           continue;
         }
@@ -3937,14 +4033,19 @@ export class PaymentService {
         // Stored item id is gone — could be a schedule phase reassigning item ids
         // (phase items are price+quantity, so a carried-forward add-on gets a NEW
         // id), or a genuine removal (below-min drop / external delete). Re-match
-        // by price.
-        const addon = await Addon.getByKey(sa.addon_key, ncMeta);
+        // by the negotiated/stored price (falls back to the default public price
+        // for the period). forcePrivate so a private stored price is resolvable.
+        const addon = await Addon.getByKey(sa.addon_key, ncMeta, true);
         let matched: Stripe.SubscriptionItem | undefined;
         if (addon) {
           const baseInterval = baseItem?.price?.recurring?.interval;
           const period = baseInterval === 'year' ? 'year' : 'month';
           try {
-            const expectedPriceId = this.resolveAddonPriceId(addon, period);
+            const expectedPriceId = this.resolveAddonItemPriceId(
+              addon,
+              sa,
+              period,
+            );
             matched = stripeSub.items.data.find(
               (i) => i.price?.id === expectedPriceId,
             );
@@ -3963,6 +4064,7 @@ export class PaymentService {
             sa.id!,
             {
               stripe_subscription_item_id: matched.id,
+              stripe_price_id: matched.price?.id ?? sa.stripe_price_id,
               seat_count: matched.quantity ?? sa.seat_count,
             },
             ncMeta,

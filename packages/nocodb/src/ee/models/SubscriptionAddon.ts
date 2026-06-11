@@ -17,6 +17,7 @@ export default class SubscriptionAddon {
   fk_addon_id: string;
   addon_key: PlanAddonTypes;
   stripe_subscription_item_id?: string | null;
+  stripe_price_id?: string | null;
   seat_count?: number;
   status?: 'active' | 'canceled';
   meta?: Record<string, any>;
@@ -63,6 +64,7 @@ export default class SubscriptionAddon {
       'fk_addon_id',
       'addon_key',
       'stripe_subscription_item_id',
+      'stripe_price_id',
       'seat_count',
       'status',
       'meta',
@@ -94,6 +96,7 @@ export default class SubscriptionAddon {
   ) {
     const updateObj: Record<string, any> = extractProps(data, [
       'stripe_subscription_item_id',
+      'stripe_price_id',
       'seat_count',
       'status',
       'meta',

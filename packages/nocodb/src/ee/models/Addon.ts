@@ -29,11 +29,26 @@ export default class Addon {
     Object.assign(this, addon);
   }
 
-  public static prepare(data: Partial<Addon>): Addon {
-    return prepareForResponse(data, ['prices', 'meta']);
+  public static prepare(data: Partial<Addon>, forcePrivate = false): Addon {
+    const response = prepareForResponse(data, ['prices', 'meta']);
+
+    // Negotiated/deal-specific prices (lookup_key `private_*`) are hidden from
+    // public responses — mirrors Plan.prepare. Internal billing flows pass
+    // forcePrivate=true so they can resolve/validate the deal price.
+    if (!forcePrivate && response?.prices) {
+      response.prices = response.prices.filter(
+        (price) => !price.lookup_key?.includes('private_'),
+      );
+    }
+
+    return response;
   }
 
-  public static async get(addonId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    addonId: string,
+    ncMeta = Noco.ncMeta,
+    forcePrivate = false,
+  ) {
     const key = `${CacheScope.ADDONS}:${addonId}`;
     let addon = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!addon) {
@@ -51,10 +66,14 @@ export default class Addon {
       await NocoCache.set('root', key, addon);
     }
 
-    return this.prepare(addon);
+    return this.prepare(addon, forcePrivate);
   }
 
-  public static async getByKey(addonKey: PlanAddonTypes, ncMeta = Noco.ncMeta) {
+  public static async getByKey(
+    addonKey: PlanAddonTypes,
+    ncMeta = Noco.ncMeta,
+    forcePrivate = false,
+  ) {
     const addon = await ncMeta.metaGet2(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -66,7 +85,7 @@ export default class Addon {
 
     if (!addon) return null;
 
-    return this.prepare(addon);
+    return this.prepare(addon, forcePrivate);
   }
 
   public static async insert(addon: Partial<Addon>, ncMeta = Noco.ncMeta) {

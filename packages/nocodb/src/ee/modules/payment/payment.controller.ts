@@ -123,7 +123,8 @@ export class PaymentController {
   @Post('/api/internal/payment/:workspaceOrOrgId/addon')
   async grantAddon(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
-    @Body() payload: { addon_key: PlanAddonTypes; comped?: boolean },
+    @Body()
+    payload: { addon_key: PlanAddonTypes; comped?: boolean; price_id?: string },
     @Req() req: NcRequest,
   ) {
     return this.paymentService.grantAddon(workspaceOrOrgId, payload, req);

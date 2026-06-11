@@ -2,9 +2,9 @@ import type { LookupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Column from '~/models/Column';
 import type { LinksColumn } from '~/models';
-import View from '~/models/View';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { invalidateSingleQueryCacheForModels } from '~/helpers/metaCacheInvalidator';
 
 /**
  * Dedicated invalidator for the optimised single-query (read/list) cache.
@@ -90,7 +90,7 @@ export async function clearSingleQueryCacheForReferencingModels(
   // the renamed table's own cache is cleared by the caller
   referencingModelIds.delete(modelId);
 
-  await clearModelsSingleQueryCache(context, referencingModelIds, ncMeta);
+  await invalidateSingleQueryCacheForModels(context, [...referencingModelIds], ncMeta);
 }
 
 /**
@@ -151,7 +151,7 @@ export async function clearSingleQueryCacheForRenamedColumnReferences(
   // remove self
   referencingModelIds.delete(oldCol.fk_model_id);
 
-  await clearModelsSingleQueryCache(context, referencingModelIds, ncMeta);
+  await invalidateSingleQueryCacheForModels(context, [...referencingModelIds], ncMeta);
 }
 
 /**
@@ -212,7 +212,7 @@ export async function clearSingleQueryCacheForColumnReferences(
   // remove self link
   refTableIds.delete(oldCol.fk_model_id);
 
-  await clearModelsSingleQueryCache(context, refTableIds, ncMeta);
+  await invalidateSingleQueryCacheForModels(context, [...refTableIds], ncMeta);
 }
 
 /**
@@ -408,17 +408,4 @@ async function resolveModelIdsFromColumnIds(
   }
 
   return modelIds;
-}
-
-/**
- * Clear the single-query cache for each of the given model ids.
- */
-async function clearModelsSingleQueryCache(
-  context: NcContext,
-  modelIds: Set<string>,
-  ncMeta = Noco.ncMeta,
-) {
-  for (const modelId of modelIds) {
-    await View.clearSingleQueryCache(context, modelId, null, ncMeta);
-  }
 }

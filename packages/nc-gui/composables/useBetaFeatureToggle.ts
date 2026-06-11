@@ -187,8 +187,10 @@ const FEATURES = [
     id: 'white_label',
     title: 'White Label',
     description: 'Customize favicon, logo and branding for self-hosted instances.',
+    // version 2: flipped `enabled` on — stored values win unless the version
+    // is bumped, so the flip must ship with a new version to reach existing browsers.
     enabled: true,
-    version: 1,
+    version: 2,
     isEngineering: true,
     isEE: true,
     isOnPrem: true,

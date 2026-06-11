@@ -138,12 +138,6 @@ export enum PlanAddonTypes {
   ADDON_WHITE_LABEL = 'addon_white_label',
 }
 
-export const AddonUpgradeMessages: Record<PlanAddonTypes, string> = {
-  [PlanAddonTypes.ADDON_SCIM]: 'to enable SCIM provisioning.',
-  [PlanAddonTypes.ADDON_WHITE_LABEL]:
-    'to white-label this instance with your own branding.',
-};
-
 export enum PlanTitles {
   FREE = 'Free',
   PLUS = 'Plus',

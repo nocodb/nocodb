@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type Stripe from 'stripe'
+import { AddonDefinitions } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
@@ -32,7 +33,7 @@ const productToAddonKey = computed(() => new Map(addonsCatalog.value.map((addon)
 const brandedPlanLabel = (planTitle: string, planPeriod: string, seatCount: number) => {
   if (!planTitle) return ''
   if (seatCount > 0) {
-    const seats = seatCount === 1 ? '1 seat' : `${seatCount} seats`
+    const seats = t('objects.seatCount', { count: seatCount }, seatCount)
     return planPeriod
       ? `${planTitle} (${seats} billed ${planPeriod === 'month' ? 'monthly' : 'annually'})`
       : `${planTitle} (${seats})`
@@ -53,9 +54,13 @@ const getPlanTitle = (record: Stripe.Invoice) => {
     .map((line) => {
       const addonKey = productToAddonKey.value.get(line?.pricing?.price_details?.product ?? '')
       if (addonKey) {
+        // Only per-seat add-ons (e.g. SCIM) carry a meaningful seat count; flat add-ons
+        // (white-label) are billed at quantity 1, so suffixing "(1 seat)" is misleading.
         const qty = line.quantity ?? 0
-        const seats = qty === 1 ? '1 seat' : `${qty} seats`
-        return qty > 0 ? `${getAddonLabel(addonKey)} (${seats})` : getAddonLabel(addonKey)
+        const isPerSeat = AddonDefinitions[addonKey]?.quantityBasis === 'per_seat'
+        return qty > 0 && isPerSeat
+          ? `${getAddonLabel(addonKey)} (${t('objects.seatCount', { count: qty }, qty)})`
+          : getAddonLabel(addonKey)
       }
 
       const linePlanTitle = (line?.metadata as Record<string, string> | undefined)?.plan_title

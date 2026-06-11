@@ -8,6 +8,10 @@ import type { MailParams } from '~/interface/Mail';
 import { Plan, Subscription, SubscriptionAddon, User } from '~/models';
 import Installation from '~/models/Installation';
 import { NcError } from '~/helpers/catchError';
+import {
+  buildSeatSyncItems,
+  getBaseSubscriptionItem,
+} from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { InstallationStatus, LicenseType } from '~/utils/license';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -364,19 +368,17 @@ export class OnPremLicenseService {
     // rows keyed by it) doesn't exist yet — they're attached later via grantAddon,
     // which calls syncInstallationAddons to refresh this config.
     const config = buildConfigFromPlan(plan);
-    const price = stripeSub.items.data[0].price;
+    const baseItem = await getBaseSubscriptionItem(stripeSub, null, ncMeta);
+    const price = baseItem.price;
     const period = price.recurring.interval;
 
     // Read min_seats from metadata (fallback: Stripe item quantity, then 1)
     const minSeats = stripeSub.metadata.min_seats
       ? parseInt(stripeSub.metadata.min_seats, 10)
-      : stripeSub.items.data[0].quantity || 1;
+      : baseItem.quantity || 1;
 
     // Create Subscription record (no workspace/org, just user)
-    const stripeQuantity = Math.max(
-      minSeats,
-      stripeSub.items.data[0].quantity || 1,
-    );
+    const stripeQuantity = Math.max(minSeats, baseItem.quantity || 1);
     const subRec = await Subscription.insert({
       fk_user_id: userId,
       fk_workspace_id: null,
@@ -786,7 +788,8 @@ export class OnPremLicenseService {
       );
     }
 
-    const price = stripeSub.items.data[0]?.price;
+    const baseItem = await getBaseSubscriptionItem(stripeSub, null, ncMeta);
+    const price = baseItem?.price;
     if (!price) {
       NcError.badRequest('Stripe subscription has no price item');
     }
@@ -815,11 +818,8 @@ export class OnPremLicenseService {
     // which is at least min_seats, but may be higher if already reseated.
     const minSeats = stripeSub.metadata.min_seats
       ? parseInt(stripeSub.metadata.min_seats, 10)
-      : stripeSub.items.data[0].quantity || 1;
-    const stripeQuantity = Math.max(
-      minSeats,
-      stripeSub.items.data[0].quantity || 1,
-    );
+      : baseItem.quantity || 1;
+    const stripeQuantity = Math.max(minSeats, baseItem.quantity || 1);
 
     // Ensure Stripe subscription metadata is complete for webhook routing
     // and future syncLicenses calls
@@ -937,11 +937,16 @@ export class OnPremLicenseService {
     const billedSeats = Math.max(minSeats, reportedSeats);
 
     try {
-      // Get current Stripe quantity
+      // Get current Stripe quantity from the BASE plan item — installation
+      // subscriptions may carry add-on items as second line items.
       const stripeSub = await stripe.subscriptions.retrieve(
         subscription.stripe_subscription_id,
       );
-      const item = stripeSub.items.data[0];
+      const item = await getBaseSubscriptionItem(
+        stripeSub,
+        subscription.stripe_price_id,
+        ncMeta,
+      );
       if (!item) return;
       const previousSeatCount = item.quantity || 1;
       if (billedSeats === previousSeatCount) return;
@@ -965,15 +970,15 @@ export class OnPremLicenseService {
           billedSeats,
         );
       } else {
-        // Monthly — prorate to next invoice (no separate invoice)
+        // Monthly — prorate to next invoice (no separate invoice). Per-seat
+        // add-on items are forced-matched to the base seat count.
         await stripe.subscriptions.update(stripeSub.id, {
-          items: [
-            {
-              id: item.id,
-              price: subscription.stripe_price_id,
-              quantity: billedSeats,
-            },
-          ],
+          items: await buildSeatSyncItems(
+            subscription,
+            stripeSub,
+            billedSeats,
+            ncMeta,
+          ),
         });
       }
 
@@ -1053,13 +1058,7 @@ export class OnPremLicenseService {
 
     if (problematicInvoices.length === 0) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: subscription.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await buildSeatSyncItems(subscription, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
       return;
@@ -1076,13 +1075,7 @@ export class OnPremLicenseService {
 
     if (prorationInvoices.length === 0) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: subscription.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await buildSeatSyncItems(subscription, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
       return;
@@ -1091,9 +1084,14 @@ export class OnPremLicenseService {
     const lastPaidSeatCount =
       subscription.last_paid_seat_count ?? subscription.seat_count;
 
+    const baseItem = await getBaseSubscriptionItem(
+      stripeSub,
+      subscription.stripe_price_id,
+    );
+
     this.logger.warn(
       `Consolidating ${prorationInvoices.length} unpaid proration invoices for installation subscription ${subscription.id}. ` +
-        `Resetting from ${stripeSub.items.data[0].quantity} seats to last paid state (${lastPaidSeatCount}), ` +
+        `Resetting from ${baseItem?.quantity} seats to last paid state (${lastPaidSeatCount}), ` +
         `then updating to ${newSeatCount} seats.`,
     );
 
@@ -1108,26 +1106,18 @@ export class OnPremLicenseService {
 
     // Step 2: Reset subscription to last paid seat count (no proration)
     await stripe.subscriptions.update(stripeSub.id, {
-      items: [
-        {
-          id: stripeSub.items.data[0].id,
-          price: subscription.stripe_price_id,
-          quantity: lastPaidSeatCount,
-        },
-      ],
+      items: await buildSeatSyncItems(
+        subscription,
+        stripeSub,
+        lastPaidSeatCount,
+      ),
       proration_behavior: 'none',
     });
 
     // Step 3: Update to the new desired seat count (with proration)
     if (newSeatCount !== lastPaidSeatCount) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: subscription.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await buildSeatSyncItems(subscription, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
     }
@@ -1136,7 +1126,7 @@ export class OnPremLicenseService {
       payment_type: 'proration_consolidated',
       message:
         `Consolidated ${prorationInvoices.length} unpaid proration invoices for on-prem subscription ${subscription.id}. ` +
-        `Reset from ${stripeSub.items.data[0].quantity} to ${lastPaidSeatCount} (last paid), ` +
+        `Reset from ${baseItem?.quantity} to ${lastPaidSeatCount} (last paid), ` +
         `then updated to ${newSeatCount} seats.`,
       subscription: {
         id: subscription.id,

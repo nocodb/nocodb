@@ -847,6 +847,23 @@ export const AddonDefinitions: Record<
   },
 };
 
+/**
+ * Auto-generated: feature → add-on that grants it. Used by upgrade CTAs to
+ * recognize add-on-only features (no plan tier unlocks them) and advertise
+ * the add-on instead of a plan upgrade that wouldn't grant the feature.
+ */
+export const PlanFeatureToAddon: Partial<
+  Record<PlanFeatureTypes, PlanAddonTypes>
+> = (() => {
+  const result: Partial<Record<PlanFeatureTypes, PlanAddonTypes>> = {};
+  for (const [addonKey, def] of Object.entries(AddonDefinitions)) {
+    for (const feature of Object.keys(def.grants)) {
+      result[feature as PlanFeatureTypes] = addonKey as PlanAddonTypes;
+    }
+  }
+  return result;
+})();
+
 /** Merge each active add-on's granted features into a resolved plan-meta object (mutates `meta`). */
 export function applyAddons(
   meta: Record<string, unknown>,

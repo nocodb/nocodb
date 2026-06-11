@@ -12,6 +12,7 @@ import {
   LOYALTY_GRACE_PERIOD_END_DATE,
   LoyaltyPriceReverseLookupKeyMap,
   NcBaseError,
+  OnPremPlanOrder,
   PlanAddonTypes,
   PlanOrder,
   ReturnToBillingPage,
@@ -42,7 +43,9 @@ import {
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import {
+  buildSeatSyncItems,
   calculateUnitPrice,
+  getBaseSubscriptionItem,
   getWorkspaceOrOrg,
 } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -417,12 +420,11 @@ export class PaymentService {
     const def = AddonDefinitions[payload.addon_key];
     if (!def) NcError.badRequest(`Unknown add-on '${payload.addon_key}'`);
 
-    const minCloud = def.minPlan.cloud;
-
     const subscription = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
     );
     if (!subscription) {
+      const minCloud = def.minPlan.cloud;
       NcError.badRequest(
         minCloud
           ? `Add-on '${payload.addon_key}' requires an active subscription on at least the ${minCloud} plan.`
@@ -433,9 +435,24 @@ export class PaymentService {
     const plan = await Plan.get(subscription.fk_plan_id);
     if (!plan) NcError.genericNotFound('Plan', subscription.fk_plan_id);
 
-    if (minCloud && PlanOrder[plan.title] < PlanOrder[minCloud]) {
+    // Installation-linked subscriptions (no workspace/org) bill on the on-prem
+    // ladder; everything else is cloud. Each ladder has its own min-plan and
+    // its own plan ordering — an unknown rank (e.g. a custom plan title or a
+    // title from the other ladder) must not bypass the gate.
+    const isOnPremLadder =
+      !subscription.fk_workspace_id && !subscription.fk_org_id;
+    const minPlan = isOnPremLadder ? def.minPlan.onPrem : def.minPlan.cloud;
+    if (!minPlan) {
       NcError.badRequest(
-        `Add-on '${payload.addon_key}' requires at least the ${minCloud} plan (current plan: ${plan.title}).`,
+        `Add-on '${payload.addon_key}' is not sold on the ${
+          isOnPremLadder ? 'self-hosted' : 'cloud'
+        } plan ladder.`,
+      );
+    }
+    const ladderOrder = isOnPremLadder ? OnPremPlanOrder : PlanOrder;
+    if (!(ladderOrder[plan.title] >= ladderOrder[minPlan])) {
+      NcError.badRequest(
+        `Add-on '${payload.addon_key}' requires at least the ${minPlan} plan (current plan: ${plan.title}).`,
       );
     }
 
@@ -486,6 +503,24 @@ export class PaymentService {
       status: 'active',
     });
 
+    // A pending plan-change schedule was built before this grant — its phases
+    // don't carry the new add-on item, so Stripe would drop it (and reconcile
+    // would cancel the entitlement) at phase activation. Rebuild the schedule
+    // so both phases include the add-on (mirrors the reseat path).
+    if (stripeItemId && subscription.stripe_schedule_id) {
+      const schedulePrice = await stripe.prices.retrieve(
+        subscription.schedule_stripe_price_id,
+      );
+      await this.schedulePlanChange(
+        workspaceOrOrgId,
+        schedulePrice,
+        await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
+        {
+          scheduleType: subscription.schedule_type,
+        },
+      );
+    }
+
     const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
     if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
 
@@ -531,6 +566,22 @@ export class PaymentService {
     }
 
     await SubscriptionAddon.update(sa.id!, { status: 'canceled' });
+
+    // Rebuild a pending plan-change schedule so its phases drop the revoked
+    // add-on item — they were built while the add-on was still active.
+    if (sa.stripe_subscription_item_id && subscription.stripe_schedule_id) {
+      const schedulePrice = await stripe.prices.retrieve(
+        subscription.schedule_stripe_price_id,
+      );
+      await this.schedulePlanChange(
+        workspaceOrOrgId,
+        schedulePrice,
+        await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
+        {
+          scheduleType: subscription.schedule_type,
+        },
+      );
+    }
 
     const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
     if (workspaceOrOrg) this.clearBaseListCacheForEntity(workspaceOrOrg);
@@ -1536,7 +1587,11 @@ export class PaymentService {
     const newPeriod: 'month' | 'year' =
       newPrice.recurring.interval === 'year' ? 'year' : 'month';
 
-    const item = stripeSub.items.data[0];
+    const item = await getBaseSubscriptionItem(
+      stripeSub,
+      existingSub.stripe_price_id,
+      ncMeta,
+    );
 
     let updatedSubscription;
 
@@ -1837,36 +1892,6 @@ export class PaymentService {
   }
 
   /**
-   * Build the Stripe `items` array for a reseat: the base subscription item plus
-   * every active, Stripe-backed, per-seat add-on item — all at `newSeatCount`
-   * (forced match). Flat add-ons and comped add-ons (no stripe item) are excluded.
-   */
-  private async buildSeatItems(
-    subscription: Subscription,
-    stripeSub: Stripe.Subscription,
-    newSeatCount: number,
-  ): Promise<{ id: string; price?: string; quantity: number }[]> {
-    const items: { id: string; price?: string; quantity: number }[] = [
-      {
-        id: stripeSub.items.data[0].id,
-        price: subscription.stripe_price_id,
-        quantity: newSeatCount,
-      },
-    ];
-    const addons = await SubscriptionAddon.listActive(subscription.id);
-    for (const sa of addons) {
-      if (!sa.stripe_subscription_item_id) continue; // comped → not billed
-      const def = AddonDefinitions[sa.addon_key];
-      if (def?.quantityBasis !== 'per_seat') continue; // flat → leave as-is
-      items.push({
-        id: sa.stripe_subscription_item_id,
-        quantity: newSeatCount,
-      });
-    }
-    return items;
-  }
-
-  /**
    * Build Stripe item updates that re-point every surviving Stripe-backed add-on
    * to its price for `period`, so add-ons stay co-termed with the base item when
    * the base billing period flips on an immediate plan change. Updating an
@@ -1943,7 +1968,7 @@ export class PaymentService {
     if (problematicInvoices.length === 0) {
       // No unpaid invoices — proceed with normal subscription update
       await stripe.subscriptions.update(stripeSub.id, {
-        items: await this.buildSeatItems(existingSub, stripeSub, newSeatCount),
+        items: await buildSeatSyncItems(existingSub, stripeSub, newSeatCount),
         ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
           ? { proration_behavior: 'always_invoice' }
           : {}),
@@ -1965,7 +1990,7 @@ export class PaymentService {
       // Only renewal invoices are unpaid — proceed with normal update
       // (don't void renewal invoices as that would erase legitimate charges)
       await stripe.subscriptions.update(stripeSub.id, {
-        items: await this.buildSeatItems(existingSub, stripeSub, newSeatCount),
+        items: await buildSeatSyncItems(existingSub, stripeSub, newSeatCount),
         ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
           ? { proration_behavior: 'always_invoice' }
           : {}),
@@ -1977,9 +2002,14 @@ export class PaymentService {
     const lastPaidSeatCount =
       existingSub.last_paid_seat_count ?? existingSub.seat_count;
 
+    const baseItem = await getBaseSubscriptionItem(
+      stripeSub,
+      existingSub.stripe_price_id,
+    );
+
     this.logger.warn(
       `Consolidating ${prorationInvoices.length} unpaid proration invoices for ${workspaceOrOrg.id}. ` +
-        `Resetting from ${stripeSub.items.data[0].quantity} seats to last paid state (${lastPaidSeatCount}), ` +
+        `Resetting from ${baseItem?.quantity} seats to last paid state (${lastPaidSeatCount}), ` +
         `then updating to ${newSeatCount} seats.`,
     );
 
@@ -1995,7 +2025,7 @@ export class PaymentService {
     // Step 2: Reset subscription to last paid seat count (no proration)
     // This aligns Stripe's internal state with what was actually paid for
     await stripe.subscriptions.update(stripeSub.id, {
-      items: await this.buildSeatItems(
+      items: await buildSeatSyncItems(
         existingSub,
         stripeSub,
         Math.max(lastPaidSeatCount, minSeats),
@@ -2007,7 +2037,7 @@ export class PaymentService {
     // Skip if the new count equals the last paid count — no proration needed
     if (newSeatCount !== lastPaidSeatCount) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: await this.buildSeatItems(existingSub, stripeSub, newSeatCount),
+        items: await buildSeatSyncItems(existingSub, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
     }
@@ -2017,7 +2047,7 @@ export class PaymentService {
       payment_type: 'proration_consolidated',
       message:
         `Consolidated ${prorationInvoices.length} unpaid proration invoices for ${workspaceOrOrg.title}. ` +
-        `Reset from ${stripeSub.items.data[0].quantity} to ${lastPaidSeatCount} (last paid), ` +
+        `Reset from ${baseItem?.quantity} to ${lastPaidSeatCount} (last paid), ` +
         `then updated to ${newSeatCount} seats.`,
       workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
       extra: {
@@ -2675,9 +2705,15 @@ export class PaymentService {
         NcError._.subscriptionOwnershipMismatch('org');
       }
 
+      const baseItem = await getBaseSubscriptionItem(
+        stripeSubscription,
+        existingSubscription.stripe_price_id,
+        ncMeta,
+      );
+
       await Subscription.update(existingSubscription.id, {
-        stripe_price_id: stripeSubscription.items.data[0].price.id,
-        seat_count: stripeSubscription.items.data[0].quantity,
+        stripe_price_id: baseItem.price.id,
+        seat_count: baseItem.quantity,
         fk_plan_id: stripeSubscription.metadata.fk_plan_id,
         stripe_subscription_id: stripeSubscription.id,
         fk_workspace_id: stripeSubscription.metadata.fk_workspace_id || null,
@@ -2687,7 +2723,7 @@ export class PaymentService {
           ? dayjs.unix(stripeSubscription.canceled_at).utc().toISOString()
           : null,
         start_at: dayjs.unix(stripeSubscription.start_date).utc().toISOString(),
-        period: stripeSubscription.items.data[0].price.recurring.interval,
+        period: baseItem.price.recurring.interval,
         billing_cycle_anchor: dayjs
           .unix(stripeSubscription.billing_cycle_anchor)
           .utc()
@@ -2745,12 +2781,16 @@ export class PaymentService {
       NcError.genericNotFound('Plan', subscriptionData.metadata.fk_plan_id);
     }
 
-    const price = plan.prices.find(
-      (p) => p.id === subscriptionData.items.data[0].price.id,
+    const recoveredBaseItem = await getBaseSubscriptionItem(
+      subscriptionData,
+      null,
+      ncMeta,
     );
 
+    const price = plan.prices.find((p) => p.id === recoveredBaseItem.price.id);
+
     if (!price) {
-      NcError.genericNotFound('Price', subscriptionData.items.data[0].price.id);
+      NcError.genericNotFound('Price', recoveredBaseItem.price.id);
     }
 
     const subscription = await Subscription.insert({
@@ -2760,8 +2800,8 @@ export class PaymentService {
       fk_plan_id: plan.id,
       stripe_subscription_id: subscriptionData.id,
       stripe_price_id: price.id,
-      seat_count: subscriptionData.items.data[0].quantity,
-      last_paid_seat_count: subscriptionData.items.data[0].quantity,
+      seat_count: recoveredBaseItem.quantity,
+      last_paid_seat_count: recoveredBaseItem.quantity,
       status: subscriptionData.status,
       start_at: dayjs.unix(subscriptionData.start_date).utc().toISOString(),
       period: price.recurring.interval,
@@ -2874,15 +2914,31 @@ export class PaymentService {
       iterationsObject.iterations = existingPeriod === 'year' ? 1 : 12;
     }
 
+    // Mirror the LIVE subscription items into the preserved (current) phase —
+    // the stored phase items go stale the moment seats change or an add-on is
+    // granted/revoked after the schedule was created, and Stripe applies the
+    // current phase's items to the subscription on every schedule update.
+    const currentPhaseSeats = this.billableSeatCount(
+      currentPlan?.title,
+      existing.seat_count,
+    );
+    const activeAddons = await SubscriptionAddon.listActive(existing.id);
+    const activeAddonsByItemId = new Map(
+      activeAddons
+        .filter((sa) => sa.stripe_subscription_item_id)
+        .map((sa) => [sa.stripe_subscription_item_id, sa]),
+    );
     const preservedPhase = {
       start_date: firstPhase.start_date,
-      items: firstPhase.items.map((item) => ({
-        price: typeof item.price === 'string' ? item.price : item.price.id,
-        quantity: this.billableSeatCount(
-          currentPlan?.title,
-          existing.seat_count,
-        ),
-      })),
+      items: stripeSub.items.data.map((item) => {
+        const addon = activeAddonsByItemId.get(item.id);
+        const quantity =
+          addon &&
+          AddonDefinitions[addon.addon_key]?.quantityBasis !== 'per_seat'
+            ? 1 // flat add-on — never seat-matched
+            : currentPhaseSeats;
+        return { price: item.price.id, quantity };
+      }),
       ...iterationsObject,
     };
 
@@ -2901,7 +2957,6 @@ export class PaymentService {
     const changePhasePeriod =
       newPrice.recurring.interval === 'year' ? 'year' : 'month';
     const changePhaseAddonItems: { price: string; quantity: number }[] = [];
-    const activeAddons = await SubscriptionAddon.listActive(existing.id);
     for (const sa of activeAddons) {
       if (!sa.stripe_subscription_item_id) continue; // comped → not a Stripe item
       const def = AddonDefinitions[sa.addon_key];
@@ -3251,9 +3306,12 @@ export class PaymentService {
             subRec.stripe_subscription_id,
           );
           if (paidStripeSub) {
-            const paidSeatCount = paidStripeSub.items.data[0].quantity;
+            const paidBaseItem = await getBaseSubscriptionItem(
+              paidStripeSub,
+              subRec.stripe_price_id,
+            );
             await Subscription.update(subRec.id, {
-              last_paid_seat_count: paidSeatCount,
+              last_paid_seat_count: paidBaseItem?.quantity,
             });
           }
 
@@ -3397,9 +3455,10 @@ export class PaymentService {
           if (!workspaceOrOrg)
             NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
 
-          const price = stripeSub.items.data[0].price;
+          const baseItem = await getBaseSubscriptionItem(stripeSub, null);
+          const price = baseItem.price;
           const period = price.recurring.interval;
-          const seatCount = stripeSub.items.data[0].quantity;
+          const seatCount = baseItem.quantity;
 
           // Insert new subscription record
           const subRec = await Subscription.insert({
@@ -3499,8 +3558,7 @@ export class PaymentService {
                   )),
                 seatCount,
                 periodEnd: (() => {
-                  const itemEnd = (stripeSub.items.data[0] as any)
-                    ?.current_period_end;
+                  const itemEnd = (baseItem as any)?.current_period_end;
                   return itemEnd
                     ? dayjs.unix(itemEnd).utc().toISOString()
                     : undefined;
@@ -3536,9 +3594,16 @@ export class PaymentService {
           if (!workspaceOrOrg)
             NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
 
-          const price = stripeSub.items.data[0].price;
+          // Resolve the BASE plan item — add-on grants make this a multi-item
+          // subscription, and persisting an add-on item's price/quantity here
+          // would corrupt the local subscription record.
+          const baseItem = await getBaseSubscriptionItem(
+            stripeSub,
+            subRec.stripe_price_id,
+          );
+          const price = baseItem.price;
           const period = price.recurring?.interval || subRec.period;
-          const seatCount = stripeSub.items.data[0].quantity;
+          const seatCount = baseItem.quantity;
 
           // update core subscription fields
           await Subscription.update(
@@ -3653,8 +3718,7 @@ export class PaymentService {
                     ? dayjs.unix(stripeSub.cancel_at).utc().toISOString()
                     : undefined,
                   periodEnd: (() => {
-                    const itemEnd = (stripeSub.items.data[0] as any)
-                      ?.current_period_end;
+                    const itemEnd = (baseItem as any)?.current_period_end;
                     return itemEnd
                       ? dayjs.unix(itemEnd).utc().toISOString()
                       : undefined;
@@ -3685,8 +3749,7 @@ export class PaymentService {
                   (await this.resolvePlanTitle(newPlanId, 'New plan')),
                 newPriceId,
                 effectiveAt: (() => {
-                  const itemStart = (stripeSub.items.data[0] as any)
-                    ?.current_period_start;
+                  const itemStart = (baseItem as any)?.current_period_start;
                   return itemStart
                     ? dayjs.unix(itemStart).utc().toISOString()
                     : undefined;
@@ -3809,6 +3872,12 @@ export class PaymentService {
       localSubscriptionId,
       ncMeta,
     );
+    if (!addons.length) return;
+
+    // Resolve the base item once — its billing interval drives add-on price
+    // re-matching below (items.data[0] may itself be an add-on item).
+    const baseItem = await getBaseSubscriptionItem(stripeSub, null, ncMeta);
+
     for (const sa of addons) {
       try {
         if (!sa.stripe_subscription_item_id) continue; // comped → entitlement only
@@ -3829,8 +3898,7 @@ export class PaymentService {
         const addon = await Addon.getByKey(sa.addon_key, ncMeta);
         let matched: Stripe.SubscriptionItem | undefined;
         if (addon) {
-          const baseInterval =
-            stripeSub.items.data[0]?.price?.recurring?.interval;
+          const baseInterval = baseItem?.price?.recurring?.interval;
           const period = baseInterval === 'year' ? 'year' : 'month';
           try {
             const expectedPriceId = this.resolveAddonPriceId(addon, period);

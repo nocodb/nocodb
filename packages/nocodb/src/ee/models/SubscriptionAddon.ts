@@ -99,6 +99,8 @@ export default class SubscriptionAddon {
       'meta',
     ]);
 
+    const existing = await this.get(id, ncMeta);
+
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -107,11 +109,18 @@ export default class SubscriptionAddon {
       id,
     );
 
-    await NocoCache.deepDel(
-      'root',
-      `${CacheScope.SUBSCRIPTION_ADDONS}:${id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    // Evict the row AND the whole per-subscription list. A CHILD_TO_PARENT
+    // delete would re-cache the remaining list minus this row — wrong for
+    // updates that keep the row active (seat sync, item re-pointing), where
+    // the entitlement would silently vanish from listActive until expiry.
+    await NocoCache.del('root', `${CacheScope.SUBSCRIPTION_ADDONS}:${id}`);
+    if (existing?.fk_subscription_id) {
+      await NocoCache.deepDel(
+        'root',
+        `${CacheScope.SUBSCRIPTION_ADDONS}:${existing.fk_subscription_id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
 
     return this.get(id, ncMeta);
   }

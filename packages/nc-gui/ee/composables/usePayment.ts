@@ -1,7 +1,7 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
 import { LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles, ReturnToBillingPage } from 'nocodb-sdk'
-import type { OnPremPlanTitles, type PaginatedType, type PlanAddonTypes } from 'nocodb-sdk'
+import type { OnPremPlanTitles, PaginatedType, PlanAddonTypes } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string

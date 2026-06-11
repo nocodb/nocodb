@@ -352,12 +352,16 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
 
         if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
-          const relatedTableMeta = await getMeta(
-            base.value?.id as string,
-            (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-          )
+          const colOptions = groupby.column.colOptions as LinkToAnotherRecordType
+          const relatedTableMeta = await getMeta(base.value?.id as string, colOptions.fk_related_model_id as string)
           if (!relatedTableMeta) return
-          group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+          // Honor the link's custom display value override — server-built group
+          // keys use it, and findGroupForRow derives row keys via this prop
+          const displayValueCol = colOptions.fk_display_value_column_id
+            ? relatedTableMeta.columns?.find((c) => c.id === colOptions.fk_display_value_column_id)
+            : undefined
+          group.displayValueProp =
+            (displayValueCol || relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
         // if (!options?.triggerChildOnly) {

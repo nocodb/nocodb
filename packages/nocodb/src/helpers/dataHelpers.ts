@@ -1,5 +1,6 @@
 import {
   convertMS2Duration,
+  isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
   parseDecimalValue,
   parseHelper,
@@ -153,9 +154,19 @@ export async function serializeCellValue(
         const { refContext } = await colOptions.getRelContext(context);
         const relatedModel = await colOptions.getRelatedTable(refContext);
         await relatedModel.getColumns(refContext);
+        // Honor the per-LTAR custom display value override — the grid shows
+        // that column, so exports must print the same value.
+        const overrideCol = colOptions.fk_display_value_column_id
+          ? relatedModel.columns?.find(
+              (c) =>
+                c.id === colOptions.fk_display_value_column_id &&
+                isSupportedDisplayValueColumn(c),
+            )
+          : undefined;
+        const displayCol = overrideCol ?? relatedModel.displayValue;
         return [...(Array.isArray(value) ? value : [value])]
           .map((v) => {
-            return v[relatedModel.displayValue?.title];
+            return v[displayCol?.title] ?? v[displayCol?.id];
           })
           .join(', ');
       }

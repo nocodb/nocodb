@@ -1,0 +1,31 @@
+.nc-dashboard-layouts-propspanel-value-input {
+  @apply flex-grow py-1 px-3 border-nc-border-gray-light border border-solid rounded-lg text-sm w-full my-2;
+}
+
+.nc-dashboard-layouts-propspanel-description-input {
+  @apply flex-grow py-1 px-3 !border-nc-border-gray-medium border border-solid rounded-lg text-sm w-full my-2;
+}
+
+.nc-dashboard-layouts-propspanel-selectable-config-section {
+  @apply border-nc-border-gray-light rounded-lg p-2;
+  h3 {
+    @apply text-nc-content-gray-extreme;
+  }
+  h4 {
+    @apply text-nc-content-gray-muted
+  }
+}
+
+.nc-dashboard-layouts-propspanel-collapse {
+  background-color: transparent;
+  .nc-dashboard-layouts-propspanel-collapse-panel {
+    @apply border-1 border-nc-border-gray-light rounded-lg my-2 min-w-full;
+    .ant-collapse-header {
+      @apply font-semibold;
+      @apply !text-sm !2xl:text-base;
+    }
+    h3 {
+      @apply text-nc-content-gray-muted;
+    }  
+  }
+}

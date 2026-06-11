@@ -1,0 +1,1030 @@
+<script lang="ts" setup>
+import type { ColumnType, GridType } from 'nocodb-sdk'
+import { isSmartText } from 'nocodb-sdk'
+import InfiniteTable from './InfiniteTable.vue'
+import Table from './Table.vue'
+import CanvasTable from './canvas/index.vue'
+import GroupBy from './GroupBy.vue'
+
+const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+const router = useRouter()
+
+const route = router.currentRoute
+
+const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
+
+const { t } = useI18n()
+
+const { isMobileMode } = useGlobal()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+const expandedFormPanelStore = useExpandedFormPanel()
+
+const { mode: expandedFormMode } = useExpandedFormMode()
+
+const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore?.isOpen.value ?? false)
+
+const expandedFormPanelRowNavigator = expandedFormPanelStore?.rowNavigator ?? ref(null)
+
+const bulkUpdateDlg = ref(false)
+
+const routeQuery = computed(() => route.value.query as Record<string, string>)
+
+const expandedFormRef = ref()
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<Row>()
+const expandedFormRowState = ref<Record<string, any>>()
+
+const reloadVisibleDataHook = createEventHook()
+
+provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
+
+const tableRef = ref<typeof InfiniteTable>()
+
+useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
+
+const smartTextStore = useProvideSmartText()
+
+const { rowNavigator: smartTextRowNavigator } = smartTextStore
+
+const {
+  loadData,
+  selectedRows: _selectedRows,
+  updateOrSaveRow,
+  addEmptyRow: _addEmptyRow,
+  deleteRow,
+  deleteSelectedRows,
+  cachedRows,
+  clearCache,
+  removeRowIfNew,
+  navigateToSiblingRow,
+  deleteRangeOfRows,
+  bulkUpdateRows,
+  bulkUpsertRows,
+  syncCount,
+  totalRows,
+  actualTotalRows,
+  syncVisibleData,
+  optimisedQuery,
+  isLastRow,
+  isFirstRow,
+  chunkStates,
+  updateRecordOrder,
+  clearInvalidRows,
+  isRowSortRequiredRows,
+  applySorting,
+  isBulkOperationInProgress,
+  selectedAllRecords,
+  selectedAllRecordsSkipPks,
+  bulkDeleteAll,
+  getRows,
+  getDataCache,
+  cachedGroups,
+  groupByColumns,
+  groupSyncCount,
+  fetchMissingGroupChunks,
+  toggleExpand,
+  totalGroups,
+  clearGroupCache,
+  toggleExpandAll,
+  groupDataCache,
+} = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
+
+// SmartText panel row navigation contract.
+smartTextRowNavigator.value = {
+  getRow: (index: number) => {
+    const row = cachedRows.value.get(index)
+    if (!row) return null
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return null
+    return { rowId, rowData: row.row }
+  },
+  totalRows: () => totalRows.value,
+}
+
+// Deep-link sync: when ?cellRow + ?cellCol both point at a SmartText column,
+// open the panel. SmartText owns dedicated cell-level params so it never
+// collides with the row-level ?rowId used by the expanded-record panel/modal.
+const _findRowInCache = (rowId: string) => {
+  for (const [idx, row] of cachedRows.value.entries()) {
+    const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (id === rowId) return { idx, rowData: row.row }
+  }
+  return null
+}
+
+watch(
+  [() => route.value.query, () => cachedRows.value.size, () => meta.value?.columns?.length],
+  ([q]) => {
+    const cellRow = q.cellRow as string | undefined
+    const cellCol = q.cellCol as string | undefined
+
+    if (!cellRow || !cellCol) {
+      if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
+      return
+    }
+
+    const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
+    if (!col || !isSmartText(col)) {
+      // Not a SmartText cell — leave to other surfaces (e.g. expanded record).
+      if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
+      return
+    }
+
+    if (
+      smartTextStore.isOpen.value &&
+      smartTextStore.activeRowId.value === cellRow &&
+      smartTextStore.activeColumnId.value === cellCol
+    ) {
+      // Already showing this cell — sync fullscreen if it diverged, and
+      // backfill row context if the row has since arrived in cache (deep-link
+      // open often happens before the grid finishes loading).
+      const wantFs = q.cellMode === 'fullscreen'
+      if (smartTextStore.isFullscreen.value !== wantFs) smartTextStore.setFullscreen(wantFs)
+
+      if (smartTextStore.activeRowIndex.value == null) {
+        const found = _findRowInCache(cellRow)
+        if (found) smartTextStore.setRowContext(found.idx, found.rowData)
+      }
+      return
+    }
+
+    const found = _findRowInCache(cellRow)
+    smartTextStore.openEditor(cellRow, cellCol, found?.rowData, found?.idx)
+    if (q.cellMode === 'fullscreen') smartTextStore.setFullscreen(true)
+  },
+  { immediate: true },
+)
+
+const rowHeight = computed(() => {
+  const gridView = view.value?.view as GridType
+  if (gridView?.row_height !== undefined) {
+    switch (gridView?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
+
+provide(IsFormInj, ref(false))
+
+provide(IsGalleryInj, ref(false))
+
+provide(IsGridInj, ref(true))
+
+provide(IsCalendarInj, ref(false))
+
+provide(RowHeightInj, rowHeight)
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+const skipRowRemovalOnCancel = ref(false)
+
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  aggCommentCount: pAggCommentCount,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+  isFirstRow: pisFirstRow,
+  islastRow: pisLastRow,
+  getExpandedRowIndex: pGetExpandedRowIndex,
+  navigateToSiblingRow: pNavigateToSiblingRow,
+} = useViewData(meta, view, xWhere)
+
+const {
+  isGroupBy,
+  rootGroup,
+  loadGroupData,
+  loadGroups,
+  loadGroupPage,
+  groupWrapperChangePage,
+  loadGroupAggregation,
+  groupBy,
+  redistributeRows,
+  loadDisallowedLookups,
+} = useViewGroupByOrThrow()
+
+const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
+
+const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
+
+const isCanvasGroupByTableEnabled = computed(
+  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
+)
+
+// Mirrors the v-if guarding <CanvasTable /> below. The EFP side panel relies on
+// canvas-only contracts (getDataCache(path), active-cell path comparison, etc.)
+// so we restrict the panel to canvas. Non-canvas branches (paginated Table /
+// DOM-based InfiniteTable) fall back to the modal expanded form.
+const isCanvasRendering = computed(
+  () =>
+    isInfiniteScrollingEnabled.value &&
+    ((isCanvasTableEnabled.value && !isGroupBy.value) || (isCanvasGroupByTableEnabled.value && isGroupBy.value)),
+)
+
+function updateRowIdRoute(rowId: string, path: Array<number> = []) {
+  const routeParams = {
+    query: {
+      ...routeQuery.value,
+      rowId,
+      // Clear cell deep-link params — explicit expand always wins over the
+      // SmartText panel claim.
+      cellRow: undefined,
+      cellCol: undefined,
+      cellMode: undefined,
+      path: ncIsEmptyArray(path) ? undefined : path.join('-'),
+      expand: undefined,
+    },
+  }
+  if (routeQuery.value.expand) {
+    router.replace(routeParams)
+  } else {
+    router.push(routeParams)
+  }
+}
+
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+
+  if (!isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId && isCanvasRendering.value) {
+    const doExpand = () => {
+      expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
+      updateRowIdRoute(rowId, path)
+    }
+    // When panel is already open on a different row, route through the
+    // discard guard so unsaved edits trigger the Save / Discard modal before
+    // we swap rows. Covers every expand surface (cell click, comment icon,
+    // Space key, deep-link) since they all funnel through expandForm.
+    if (expandedFormPanelStore?.isOpen.value && expandedFormPanelStore.activeRowId.value !== rowId) {
+      expandedFormPanelStore.requestSwitch.value?.(doExpand)
+    } else {
+      doExpand()
+    }
+    return
+  }
+
+  expandedFormRowState.value = state
+  if (rowId && !isPublic.value) {
+    expandedFormRow.value = undefined
+    updateRowIdRoute(rowId, path)
+  } else {
+    expandedFormRow.value = row
+    expandedFormDlg.value = true
+    skipRowRemovalOnCancel.value = !fromToolbar
+  }
+}
+
+const exposeOpenColumnCreate = (data: any) => {
+  tableRef.value?.openColumnCreate(data)
+}
+
+defineExpose({
+  loadData,
+  openColumnCreate: exposeOpenColumnCreate,
+})
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    if (!routeQuery.value.rowId) return false
+    // When the side panel is open, don't trigger the modal
+    if (isExpandedFormPanelOpen.value) return false
+    // Desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
+    // Falls back to the modal when the grid isn't canvas-rendered, since the panel
+    // depends on canvas-only contracts (getDataCache(path), highlight bar, etc.).
+    if (!isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && isCanvasRendering.value) return false
+    // When ?cellCol points at a SmartText column the SmartText panel claims
+    // the screen — expanded record dialog stays closed.
+    const cellCol = routeQuery.value.cellCol
+    if (cellCol) {
+      const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
+      if (col && isSmartText(col)) return false
+    }
+    return true
+  },
+  set(val) {
+    if (!val) {
+      router.push({
+        query: {
+          ...routeQuery.value,
+          path: undefined,
+          rowId: undefined,
+        },
+      })
+    }
+  },
+})
+
+const isSyncingPanelRoute = ref(false)
+let syncRouteTimeout: ReturnType<typeof setTimeout> | null = null
+
+const setSyncingRoute = () => {
+  isSyncingPanelRoute.value = true
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  syncRouteTimeout = setTimeout(() => {
+    isSyncingPanelRoute.value = false
+  }, 500)
+}
+
+const clearSyncingRoute = () => {
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  syncRouteTimeout = null
+  nextTick(() => {
+    isSyncingPanelRoute.value = false
+  })
+}
+
+onBeforeUnmount(() => {
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  isSyncingPanelRoute.value = false
+})
+
+// Desktop: open panel from route rowId (page reload, direct link).
+// Depends on meta columns being loaded so injectPkIntoRow can populate the PK.
+watch(
+  [() => routeQuery.value.rowId, () => meta.value?.columns?.length],
+  ([rowId, columnsLen]) => {
+    if (
+      !rowId ||
+      !columnsLen ||
+      isMobileMode.value ||
+      isPublic.value ||
+      expandedFormMode.value !== 'panel' ||
+      !expandedFormPanelStore ||
+      !meta.value?.id
+    )
+      return
+    if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+    // Defer the canvas gate + open to nextTick so child grids (canvas, group-by)
+    // have a chance to mount and register before we read isCanvasRendering and
+    // attempt to open the panel.
+    nextTick(() => {
+      if (!isCanvasRendering.value) return
+      if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+      // Look up rowIndex so prev/next + canvas active-row indicator work right
+      // away on page reload / direct link. Returns -1 if the row isn't loaded
+      // yet (infinite-scroll cache miss); openPanel treats that as "no index".
+      // Path comes from the URL (?path=0-1-2) so deep-links into group-by views
+      // restore both the row AND its group scope — without it prev/next would
+      // walk across all groups instead of the user's group.
+      const pathParam = routeQuery.value.path as string | undefined
+      let path = pathParam
+        ? pathParam
+            .split('-')
+            .map(Number)
+            .filter((n) => !Number.isNaN(n))
+        : []
+      let idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+
+      // Comment-mention notifications produce URLs like `?rowId=…&commentId=…`
+      // with no `path` — the notification can't know which view/group the user
+      // was in when the comment was written. Fall back to a cross-group lookup
+      // so the panel still opens scoped to the correct group instead of
+      // landing index-less (which breaks prev/next + the canvas highlight).
+      if (idx === -1 && !pathParam) {
+        const location = expandedFormPanelRowNavigator.value?.findRowLocation?.(rowId)
+        if (location) {
+          idx = location.index
+          path = location.path
+        }
+      }
+
+      expandedFormPanelStore!.openPanel(
+        { row: {}, oldRow: {}, rowMeta: {} } as Row,
+        idx >= 0 ? idx : undefined,
+        undefined,
+        rowId,
+        path,
+      )
+    })
+  },
+  { immediate: true },
+)
+
+watch(
+  () => routeQuery.value.rowId,
+  (newRowId) => {
+    if (isSyncingPanelRoute.value) return
+    if (!newRowId && isExpandedFormPanelOpen.value) {
+      expandedFormPanelStore?.closePanel()
+    }
+  },
+)
+
+watch(isExpandedFormPanelOpen, (open) => {
+  if (!open && routeQuery.value.rowId) {
+    setSyncingRoute()
+    router
+      .push({
+        query: {
+          ...routeQuery.value,
+          path: undefined,
+          rowId: undefined,
+        },
+      })
+      .finally(clearSyncingRoute)
+  }
+})
+
+watch(
+  () => expandedFormPanelStore?.activeRowId.value,
+  (newRowId) => {
+    if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
+      setSyncingRoute()
+      const activePath = expandedFormPanelStore?.activePath.value ?? []
+      router
+        .push({
+          query: {
+            ...routeQuery.value,
+            rowId: newRowId,
+            // Mirror updateRowIdRoute: opening / switching the expanded record
+            // always wins over the SmartText cell claim. Without this, the
+            // watcher races updateRowIdRoute and can land last, re-introducing
+            // the SmartText params we just cleared and leaving the EFP hidden
+            // behind the SmartText panel.
+            cellRow: undefined,
+            cellCol: undefined,
+            cellMode: undefined,
+            // Same race applies to `path`: updateRowIdRoute writes it, but if
+            // the watcher's spread of routeQuery happens before that push has
+            // landed, path goes missing. Pull it from the store, which is the
+            // source of truth for the panel's group scope.
+            path: ncIsEmptyArray(activePath) ? undefined : activePath.join('-'),
+          },
+        })
+        .finally(clearSyncingRoute)
+    }
+  },
+)
+
+// Sync `path` to the URL when activePath changes without activeRowId
+// changing — i.e. the path-less deep-link recovery flow updated the group
+// scope after the row's group cache loaded. Without this the URL stays as
+// `?rowId=X` and a refresh would replay the entire recovery dance instead
+// of resolving the group directly.
+watch(
+  () => expandedFormPanelStore?.activePath.value,
+  (newPath) => {
+    if (!isExpandedFormPanelOpen.value) return
+    if (isSyncingPanelRoute.value) return
+    const path = newPath ?? []
+    const pathStr = path.length === 0 ? undefined : path.join('-')
+    if ((routeQuery.value.path ?? undefined) === pathStr) return
+    setSyncingRoute()
+    router.push({ query: { ...routeQuery.value, path: pathStr } }).finally(clearSyncingRoute)
+  },
+)
+
+watch([isExpandedFormPanelOpen, () => expandedFormPanelStore?.activeRowIndex.value], () => {
+  eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+})
+
+const addRowExpandOnClose = (row: Row) => {
+  if (!skipRowRemovalOnCancel.value) {
+    eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
+  }
+}
+
+const toggleOptimisedQuery = () => {
+  if (optimisedQuery.value) {
+    optimisedQuery.value = false
+    message.info(t('msg.optimizedQueryDisabled'))
+  } else {
+    optimisedQuery.value = true
+    message.info(t('msg.optimizedQueryEnabled'))
+  }
+}
+
+const sidebarStore = useSidebarStore()
+
+const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
+
+const viewWidth = ref(0)
+
+const smartsheetEvents = (event: SmartsheetStoreEvents) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+}
+
+eventBus.on(smartsheetEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEvents)
+})
+
+const goToNextRow = () => {
+  navigateToSiblingRow(NavigateDir.NEXT)
+}
+
+const goToPreviousRow = () => {
+  navigateToSiblingRow(NavigateDir.PREV)
+}
+
+const updateViewWidth = () => {
+  if (isPublic.value) {
+    viewWidth.value = windowSize.value
+    return
+  }
+  viewWidth.value = windowSize.value - leftSidebarWidth.value
+}
+
+expandedFormPanelRowNavigator.value = {
+  getRow: (index: number, path: number[] = []) => {
+    // Route flat lookups through getDataCache([]) too — it returns the same
+    // root cache, so the canvas (infinite-scroll) path and the group-by path
+    // share one implementation. Non-canvas paginated views are out of scope.
+    const cache = isInfiniteScrollingEnabled.value ? getDataCache(path) : null
+    const row = cache ? cache.cachedRows.value.get(index) : pData.value[index]
+    if (!row) return null
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return null
+    return { rowId, row }
+  },
+  totalRows: (path: number[] = []) => {
+    if (isInfiniteScrollingEnabled.value) return getDataCache(path).totalRows.value ?? 0
+    return pData.value.length
+  },
+  findIndexByRowId: (rowId: string, path: number[] = []) => {
+    const cols = meta.value?.columns as ColumnType[] | undefined
+    if (!cols) return -1
+    if (isInfiniteScrollingEnabled.value) {
+      const groupCachedRows = getDataCache(path).cachedRows.value
+      for (const [idx, row] of groupCachedRows) {
+        if (extractPkFromRow(row.row, cols) === rowId) return idx
+      }
+      return -1
+    }
+    return pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
+  },
+  findRowLocation: (rowId: string) => {
+    const cols = meta.value?.columns as ColumnType[] | undefined
+    if (!cols) return null
+    if (isInfiniteScrollingEnabled.value) {
+      for (const [idx, row] of cachedRows.value) {
+        if (extractPkFromRow(row.row, cols) === rowId) return { index: idx, path: [] }
+      }
+      for (const [key, cache] of groupDataCache.value) {
+        for (const [idx, row] of cache.cachedRows.value) {
+          if (extractPkFromRow(row.row, cols) === rowId) {
+            const path = key
+              .split('-')
+              .map(Number)
+              .filter((n) => !Number.isNaN(n))
+            return { index: idx, path }
+          }
+        }
+      }
+      return null
+    }
+    const idx = pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
+    return idx >= 0 ? { index: idx, path: [] } : null
+  },
+}
+
+watch([windowSize, leftSidebarWidth], updateViewWidth)
+
+onMounted(() => {
+  updateViewWidth()
+})
+
+// Close the side panel when the experimental flag is toggled off mid-session.
+// Without this the panel that was already mounted stays put even though
+// expandedFormMode has flipped to 'modal'. We just close it — the existing
+// panel-close watcher clears rowId from the URL, so the user lands back on the
+// grid. Re-opening a record after the toggle uses the modal path normally.
+watch(
+  () => expandedFormMode.value,
+  (newMode, oldMode) => {
+    if (oldMode === 'panel' && newMode === 'modal' && expandedFormPanelStore?.isOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
+)
+
+// Close the side panel whenever the group-by configuration changes (add /
+// remove / reorder / swap a grouped column). The panel's `activePath` is
+// indexed against the live group structure; once the structure changes the
+// stored path either points at the wrong group or no group at all, and
+// prev/next would walk the wrong scope. Easier to close the panel than to
+// reconcile the new structure.
+//
+// Each groupBy entry is `{ column: ColumnType, sort, order }` — key off the
+// column id so the watcher fires on add/remove/swap regardless of sort
+// direction changes within the same column set.
+watch(
+  () => groupBy.value.map((g) => g.column?.id ?? '').join('|'),
+  (newKey, oldKey) => {
+    if (newKey === oldKey) return
+    if (!expandedFormPanelStore?.isOpen.value) return
+
+    // Skip the initial async load. At mount gridViewCols is empty so groupBy is
+    // []; once the persisted view config arrives, groupBy transitions to its real
+    // value. Two deep-link shapes need to survive that transition:
+    //   - `?rowId=X&path=A-B` — path matches the just-loaded depth (matched).
+    //   - `?rowId=X&commentId=Y` (comment-mention notifications) — URL carries
+    //     no path at all, so the panel opened with activePath=[]. The path
+    //     will be recovered later when the row's group cache loads; closing
+    //     here would strip rowId from the URL before that ever happens.
+    // User-initiated group changes still close because oldKey is non-empty.
+    const newDepth = newKey ? newKey.split('|').length : 0
+    const panelDepth = expandedFormPanelStore.activePath.value?.length ?? 0
+    if (!oldKey && (panelDepth === 0 || panelDepth === newDepth)) return
+
+    expandedFormPanelStore.closePanel()
+  },
+)
+
+// Re-align the panel's activeRowIndex when the visible dataset changes
+// (filter / search / sort all funnel through a cache refresh that updates
+// `cachedRows.size`). Two outcomes:
+//
+//   - row still in the cached set → update activeRowIndex so prev/next and
+//     the canvas highlight bar stay aligned.
+//   - row not in the cached set → close the panel (most likely filtered or
+//     searched out of view; staying open would leave the panel disconnected
+//     from the grid with no prev/next to fall back on).
+//
+// Debounced because a reload does a clear-then-refill on cachedRows: the
+// intermediate `size === 0` would otherwise fire a false-positive close
+// before the refill arrives. The same debounce also coalesces infinite-
+// scroll chunk loads into one no-op resolve.
+let resolveActiveRowIndexTimer: ReturnType<typeof setTimeout> | null = null
+
+const resolveActiveRowIndex = () => {
+  if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
+  resolveActiveRowIndexTimer = setTimeout(() => {
+    resolveActiveRowIndexTimer = null
+    if (!expandedFormPanelStore?.isOpen.value) return
+    const rowId = expandedFormPanelStore.activeRowId.value
+    if (!rowId) return
+    const path = expandedFormPanelStore.activePath.value
+    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+    if (idx === -1) {
+      // Path-less deep-link recovery: if a comment-mention notification
+      // opened the panel without group context (activePath=[]), the row
+      // won't be in the root cache. Before closing, try a cross-group
+      // lookup — the right group cache may have just loaded.
+      if ((path ?? []).length === 0) {
+        const location = expandedFormPanelRowNavigator.value?.findRowLocation?.(rowId)
+        if (location) {
+          expandedFormPanelStore.activePath.value = location.path
+          expandedFormPanelStore.activeRowIndex.value = location.index
+          return
+        }
+        // No recovery yet — leave the panel open; another data event
+        // will retry. Avoids closing on a transient empty-cache state.
+        return
+      }
+      expandedFormPanelStore.closePanel()
+    } else if (idx !== expandedFormPanelStore.activeRowIndex.value) {
+      expandedFormPanelStore.activeRowIndex.value = idx
+    }
+  }, 600)
+}
+
+watch(() => cachedRows.value.size, resolveActiveRowIndex)
+
+// Group caches live behind a shallowRef (`groupDataCache`) — internal Map
+// mutations don't trigger reactivity, so the cachedRows-only watch above
+// never fires in group-by mode. Hook into the grid event bus so the
+// path-less deep-link recovery path in resolveActiveRowIndex retries as
+// each group's data lands.
+const panelGroupPathRecoveryListener = (event: SmartsheetStoreEvents) => {
+  if (
+    event !== SmartsheetStoreEvents.TRIGGER_RE_RENDER &&
+    event !== SmartsheetStoreEvents.GROUP_BY_RELOAD &&
+    event !== SmartsheetStoreEvents.DATA_RELOAD
+  ) {
+    return
+  }
+  if (!expandedFormPanelStore?.isOpen.value) return
+  if ((expandedFormPanelStore.activePath.value ?? []).length > 0) return
+  if (!isGroupBy.value) return
+  resolveActiveRowIndex()
+}
+
+eventBus.on(panelGroupPathRecoveryListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(panelGroupPathRecoveryListener)
+  if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
+})
+
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return 'var(--color-gray-50)'
+    case 2:
+      return 'var(--color-gray-100)'
+    case 3:
+      return 'var(--color-gray-200)'
+    default:
+      return 'var(--color-gray-50)'
+  }
+})
+
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  if (isInfiniteScrollingEnabled.value) {
+    // In group-by mode rows live in per-group caches (groupDataCache);
+    // in non-group mode they live in the root cache. Search the right set.
+    const rowCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()).map((g) => g.cachedRows) : [cachedRows]
+
+    for (const cache of rowCaches) {
+      for (const row of cache.value.values()) {
+        if (extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId) {
+          row.rowMeta.commentCount = count
+          syncVisibleData?.()
+          return
+        }
+      }
+    }
+  } else {
+    const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
+    const currentRowIndex = pData.value.findIndex(
+      (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+    )
+
+    if (currentRowIndex === -1) return
+
+    if (aggCommentCountIndex === -1) {
+      pAggCommentCount.value.push({
+        row_id: routeQuery.value.rowId,
+        count,
+      })
+
+      pData.value[currentRowIndex]!.rowMeta.commentCount = count
+
+      return
+    }
+
+    if (Number(pAggCommentCount.value[aggCommentCountIndex].count) === count) return
+    pAggCommentCount.value[aggCommentCountIndex].count = count
+    pData.value[currentRowIndex].rowMeta.commentCount = count
+  }
+}
+
+const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+  if (
+    (pPaginationData.value?.pageSize ?? 25) * page > 100 &&
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+  ) {
+    return true
+  }
+
+  callback?.()
+}
+
+const pGoToNextRow = () => {
+  const currentIndex = pGetExpandedRowIndex()
+
+  if (
+    !pPaginationData.value.isLastPage &&
+    currentIndex === (pPaginationData.value.pageSize ?? 25) - 1 &&
+    validateExternalSourceRecordVisibility(pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1)
+  ) {
+    expandedFormRef.value?.stopLoading?.()
+    return
+  }
+
+  pNavigateToSiblingRow(NavigateDir.NEXT)
+}
+
+const pGoToPreviousRow = () => {
+  pNavigateToSiblingRow(NavigateDir.PREV)
+}
+
+const groupPath = ref([])
+
+const selectedRows = computed(() => {
+  const dataCache = getDataCache(groupPath.value)
+  return dataCache?.selectedRows.value
+})
+
+const bulkUpdateTrigger = (path: Array<number>) => {
+  groupPath.value = path
+  bulkUpdateDlg.value = true
+}
+
+watch([() => view.value?.id, () => meta.value?.columns], async () => {
+  await loadDisallowedLookups()
+})
+</script>
+
+<template>
+  <div
+    class="relative flex flex-row h-full min-h-0 w-full nc-grid-wrapper"
+    data-testid="nc-grid-wrapper"
+    :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
+  >
+    <div class="flex flex-col flex-1 min-w-0 h-full">
+      <Table
+        v-if="!isGroupBy && !isInfiniteScrollingEnabled"
+        ref="tableRef"
+        v-model:selected-all-records="pSelectedAllRecords"
+        :data="pData"
+        :pagination-data="pPaginationData"
+        :load-data="pLoadData"
+        :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
+        :call-add-empty-row="pAddEmptyRow"
+        :delete-row="pDeleteRow"
+        :update-or-save-row="pUpdateOrSaveRow"
+        :delete-selected-rows="pDeleteSelectedRows"
+        :delete-range-of-rows="pDeleteRangeOfRows"
+        :bulk-update-rows="pBulkUpdateRows"
+        :expand-form="expandForm"
+        :remove-row-if-new="pRemoveRowIfNew"
+        :row-height-enum="rowHeight"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateDlg = true"
+      />
+
+      <CanvasTable
+        v-else-if="
+          isInfiniteScrollingEnabled && ((isCanvasTableEnabled && !isGroupBy) || (isCanvasGroupByTableEnabled && isGroupBy))
+        "
+        ref="tableRef"
+        v-model:selected-all-records="selectedAllRecords"
+        v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
+        :load-data="loadData"
+        :call-add-empty-row="_addEmptyRow"
+        :delete-row="deleteRow"
+        :update-or-save-row="updateOrSaveRow"
+        :delete-selected-rows="deleteSelectedRows"
+        :delete-range-of-rows="deleteRangeOfRows"
+        :apply-sorting="applySorting"
+        :bulk-update-rows="bulkUpdateRows"
+        :bulk-upsert-rows="bulkUpsertRows"
+        :update-record-order="updateRecordOrder"
+        :bulk-delete-all="bulkDeleteAll"
+        :clear-cache="clearCache"
+        :clear-invalid-rows="clearInvalidRows"
+        :data="cachedRows"
+        :total-rows="totalRows"
+        :actual-total-rows="actualTotalRows"
+        :sync-count="syncCount"
+        :get-rows="getRows"
+        :chunk-states="chunkStates"
+        :expand-form="expandForm"
+        :remove-row-if-new="removeRowIfNew"
+        :row-height-enum="rowHeight"
+        :selected-rows="selectedRows"
+        :row-sort-required-rows="isRowSortRequiredRows"
+        :total-groups="totalGroups"
+        :get-data-cache="getDataCache"
+        :cached-groups="cachedGroups"
+        :group-by-columns="groupByColumns"
+        :group-data-cache="groupDataCache"
+        :clear-group-cache="clearGroupCache"
+        :toggle-expand="toggleExpand"
+        :group-sync-count="groupSyncCount"
+        :fetch-missing-group-chunks="fetchMissingGroupChunks"
+        :is-bulk-operation-in-progress="isBulkOperationInProgress"
+        :toggle-expand-all="toggleExpandAll"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateTrigger"
+      />
+
+      <InfiniteTable
+        v-else-if="!isGroupBy"
+        ref="tableRef"
+        v-model:selected-all-records="selectedAllRecords"
+        v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
+        :load-data="loadData"
+        :call-add-empty-row="_addEmptyRow"
+        :delete-row="deleteRow"
+        :update-or-save-row="updateOrSaveRow"
+        :delete-selected-rows="deleteSelectedRows"
+        :delete-range-of-rows="deleteRangeOfRows"
+        :apply-sorting="applySorting"
+        :bulk-update-rows="bulkUpdateRows"
+        :bulk-upsert-rows="bulkUpsertRows"
+        :get-rows="getRows"
+        :update-record-order="updateRecordOrder"
+        :bulk-delete-all="bulkDeleteAll"
+        :clear-cache="clearCache"
+        :clear-invalid-rows="clearInvalidRows"
+        :data="cachedRows"
+        :total-rows="totalRows"
+        :actual-total-rows="actualTotalRows"
+        :sync-count="syncCount"
+        :chunk-states="chunkStates"
+        :expand-form="expandForm"
+        :remove-row-if-new="removeRowIfNew"
+        :row-height-enum="rowHeight"
+        :selected-rows="selectedRows"
+        :row-sort-required-rows="isRowSortRequiredRows"
+        :is-bulk-operation-in-progress="isBulkOperationInProgress"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateDlg = true"
+      />
+
+      <GroupBy
+        v-else
+        :group="rootGroup"
+        :load-groups="loadGroups"
+        :load-group-data="loadGroupData"
+        :call-add-empty-row="pAddEmptyRow"
+        :expand-form="expandForm"
+        :load-group-page="loadGroupPage"
+        :group-wrapper-change-page="groupWrapperChangePage"
+        :row-height="rowHeight"
+        :load-group-aggregation="loadGroupAggregation"
+        :max-depth="groupBy.length"
+        :redistribute-rows="redistributeRows"
+        :view-width="viewWidth"
+      />
+
+      <Suspense>
+        <LazySmartsheetExpandedForm
+          v-if="expandedFormRow && expandedFormDlg"
+          v-model="expandedFormDlg"
+          :load-row="!isPublic"
+          :row="expandedFormRow"
+          :state="expandedFormRowState"
+          :meta="meta"
+          :view="view"
+          @update:model-value="addRowExpandOnClose(expandedFormRow)"
+        />
+      </Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormOnRowIdDlg && meta?.id"
+        ref="expandedFormRef"
+        v-model="expandedFormOnRowIdDlg"
+        :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+        :meta="meta"
+        :load-row="!isPublic"
+        :state="expandedFormRowState"
+        :row-id="routeQuery.rowId"
+        :view="view"
+        show-next-prev-icons
+        :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
+        :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
+        :expand-form="expandForm"
+        @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
+        @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
+        @update-row-comment-count="updateRowCommentCount"
+      />
+      <Suspense>
+        <LazyDlgBulkUpdate
+          v-if="bulkUpdateDlg"
+          v-model="bulkUpdateDlg"
+          :meta="meta"
+          :view="view"
+          :path="groupPath"
+          :bulk-update-rows="bulkUpdateRows"
+          :rows="selectedRows"
+        />
+      </Suspense>
+    </div>
+
+    <SmartsheetGridSmartTextPanel />
+  </div>
+</template>
+
+<style lang="scss">
+.nc-grid-pagination-wrapper .ant-dropdown-button {
+  > .ant-btn {
+    @apply !p-0 !rounded-l-lg hover:border-nc-gray-300;
+  }
+
+  > .ant-dropdown-trigger {
+    @apply !rounded-r-lg;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  @apply !rounded-lg;
+}
+</style>

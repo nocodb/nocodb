@@ -1,0 +1,10 @@
+node_modules
+src
+tests
+test
+docker
+build-utils
+webpack.*.js
+tsconfig*.json
+Dockerfile*
+nest-cli.json

@@ -1,0 +1,26 @@
+{
+  "name": "@noco-integrations/core",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "^3.0.0",
+    "ai": "^6.0.3",
+    "nocodb-sdk": "file:../../nocodb-sdk",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.46",
+    "@vitest/coverage-v8": "^3.1.4",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}

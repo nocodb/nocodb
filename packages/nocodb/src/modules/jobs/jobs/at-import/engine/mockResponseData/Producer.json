@@ -1,0 +1,81 @@
+[
+  {
+    "records": [
+      {
+        "_table": {
+          "_base": {
+            "_airtable": {},
+            "_id": "apprb2mFeIlQitU0o"
+          },
+          "id": null,
+          "name": "Producer"
+        },
+        "id": "rec7CflqABElKe2iz",
+        "_rawJson": {
+          "id": "rec7CflqABElKe2iz",
+          "createdTime": "2022-06-04T10:21:14.000Z",
+          "fields": {
+            "Name": "P2",
+            "Notes": "Notes of P2",
+            "Status": "In progress"
+          }
+        },
+        "fields": {
+          "Name": "P2",
+          "Notes": "Notes of P2",
+          "Status": "In progress"
+        }
+      },
+      {
+        "_table": {
+          "_base": {
+            "_airtable": {},
+            "_id": "apprb2mFeIlQitU0o"
+          },
+          "id": null,
+          "name": "Producer"
+        },
+        "id": "rectTeNHuBbaFBjAv",
+        "_rawJson": {
+          "id": "rectTeNHuBbaFBjAv",
+          "createdTime": "2022-06-04T10:21:14.000Z",
+          "fields": {
+            "Name": "P1",
+            "Notes": "Notes of P1",
+            "Status": "Todo"
+          }
+        },
+        "fields": {
+          "Name": "P1",
+          "Notes": "Notes of P1",
+          "Status": "Todo"
+        }
+      },
+      {
+        "_table": {
+          "_base": {
+            "_airtable": {},
+            "_id": "apprb2mFeIlQitU0o"
+          },
+          "id": null,
+          "name": "Producer"
+        },
+        "id": "recxenRrH5sVUoV8M",
+        "_rawJson": {
+          "id": "recxenRrH5sVUoV8M",
+          "createdTime": "2022-06-04T10:21:14.000Z",
+          "fields": {
+            "Name": "P3",
+            "Notes": "Notes of P3",
+            "Status": "Done"
+          }
+        },
+        "fields": {
+          "Name": "P3",
+          "Notes": "Notes of P3",
+          "Status": "Done"
+        }
+      }
+    ]
+  }
+]

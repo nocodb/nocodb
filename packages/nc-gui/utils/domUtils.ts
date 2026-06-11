@@ -1,0 +1,79 @@
+const isElementInvisible = (elem: HTMLElement) => {
+  return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
+}
+
+/**
+ * Waits until the smooth scrolling animation completes.
+ * Supports both `window` scrolling and scrolling inside an element.
+ *
+ * @param {HTMLElement | Window} element - The element (or window) to track scrolling on.
+ * @returns {Promise<void>} Resolves when scrolling has stopped.
+ */
+const waitForScrollEnd = (element: HTMLElement | Window = window) => {
+  return new Promise<void>((resolve) => {
+    // Get initial scroll positions
+    let lastX = element instanceof Window ? window.scrollX : (element as HTMLElement).scrollLeft
+    let lastY = element instanceof Window ? window.scrollY : (element as HTMLElement).scrollTop
+
+    /**
+     * Checks if scrolling has stopped by comparing the last and current positions.
+     * If scrolling continues, it recursively calls itself using `requestAnimationFrame`.
+     */
+    const checkScroll = () => {
+      const currentX = element instanceof Window ? window.scrollX : (element as HTMLElement).scrollLeft
+      const currentY = element instanceof Window ? window.scrollY : (element as HTMLElement).scrollTop
+
+      // If positions are nearly the same, scrolling has stopped
+      if (Math.abs(currentX - lastX) < 1 && Math.abs(currentY - lastY) < 1) {
+        resolve() // Resolve the promise
+      } else {
+        // Update last positions and continue checking
+        lastX = currentX
+        lastY = currentY
+        requestAnimationFrame(checkScroll)
+      }
+    }
+
+    // Small delay to allow smooth scroll animation to begin
+    setTimeout(() => {
+      requestAnimationFrame(checkScroll)
+    }, 50)
+  })
+}
+
+function isScrollbarAlwaysVisible() {
+  /**
+   * Guard against cases where `document.body` is temporarily unavailable.
+   *
+   * This can happen if:
+   *  - The code runs before <body> is parsed (very early in page lifecycle)
+   *  - During SSR hydration (document exists but <body> not yet attached)
+   *  - Immediately after a route/navigation change, when Vue is tearing down
+   *    the old page and <body> may briefly be null
+   *
+   * Without this check, `document.body.appendChild(...)` can throw:
+   * "Cannot read properties of null (reading 'appendChild')".
+   */
+  if (!document?.body) return false
+
+  const testElement = document.createElement('div')
+  testElement.style.width = '100px'
+  testElement.style.height = '100px'
+  testElement.style.overflow = 'scroll'
+  testElement.style.position = 'absolute'
+  testElement.style.top = '-9999px'
+
+  // Add to DOM temporarily
+  document.body.appendChild(testElement)
+
+  // Check if scrollbar width exists when not hovering/scrolling
+  const scrollbarWidth = testElement.offsetWidth - testElement.clientWidth
+
+  // Clean up
+  document.body.removeChild(testElement)
+
+  // If scrollbar width > 0, scrollbars are likely always visible
+  return scrollbarWidth > 0
+}
+
+export { isElementInvisible, waitForScrollEnd, isScrollbarAlwaysVisible }

@@ -1,0 +1,188 @@
+<script lang="ts" setup>
+import NcCreateBasePlaceholder from '~icons/nc-icons/create-base-placeholder'
+import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-placeholder'
+
+type CreateMode = 'scratch' | 'ai' | 'market' | null
+
+interface Props {
+  aiMode: boolean | null
+  workspaceId?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {})
+
+const emit = defineEmits(['update:aiMode', 'update:mode', 'managedAppInstalled', 'close'])
+
+const aiMode = useVModel(props, 'aiMode', emit)
+
+const { isAiFeaturesEnabled } = useNocoAi()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const showAppMarket = ref(false)
+
+// Reset showAppMarket when aiMode changes back to null (dialog reopened)
+watch(
+  () => props.aiMode,
+  (newVal) => {
+    if (newVal === null) {
+      showAppMarket.value = false
+    }
+  },
+)
+
+const selectMode = (mode: CreateMode) => {
+  if (mode === 'ai') {
+    aiMode.value = true
+  } else if (mode === 'scratch') {
+    aiMode.value = false
+  } else if (mode === 'market') {
+    if (!props.workspaceId) {
+      console.error('Cannot open market without workspaceId')
+      message.error('Workspace not available')
+      return
+    }
+    showAppMarket.value = true
+    return
+  }
+  emit('update:mode', mode)
+}
+
+const onManagedAppInstalled = (managedApp: any) => {
+  showAppMarket.value = false
+  emit('managedAppInstalled', managedApp)
+}
+
+const onAppMarketClose = () => {
+  showAppMarket.value = false
+  emit('close')
+}
+
+onMounted(() => {
+  if (!isAiFeaturesEnabled.value) {
+    aiMode.value = false
+  }
+})
+</script>
+
+<template>
+  <div>
+    <div v-if="isAiFeaturesEnabled" class="nc-create-base-wrapper">
+      <div v-e="['c:base:create:scratch']" class="nc-create-base" @click="selectMode('scratch')">
+        <div class="nc-placeholder-icon-wrapper">
+          <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />
+        </div>
+        <div class="nc-create-base-content">
+          <div class="nc-create-base-content-title">
+            <GeneralIcon icon="plus" class="h-4 w-4 !text-nc-content-gray-subtle" />
+            Start from scratch
+          </div>
+          <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
+        </div>
+      </div>
+      <div v-e="['c:base:ai:create']" class="nc-create-base-ai" @click="selectMode('ai')">
+        <div class="nc-placeholder-icon-wrapper">
+          <component :is="NcCreateBaseWithAiPlaceholder" class="nc-placeholder-icon stroke-transparent" />
+        </div>
+        <div class="nc-create-base-content">
+          <div class="nc-create-base-content-title">
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 !text-nc-fill-purple-dark" />
+            Build Base with AI
+          </div>
+          <div class="nc-create-base-content-subtitle">Quickly build your ideal Base with all tables, views and fields.</div>
+        </div>
+      </div>
+      <div
+        v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)"
+        v-e="['c:base:market:create']"
+        class="nc-create-base-market"
+        @click="selectMode('market')"
+      >
+        <div class="nc-placeholder-icon-wrapper">
+          <GeneralIcon icon="ncBox" class="nc-placeholder-icon !h-20 !w-20" />
+        </div>
+        <div class="nc-create-base-content">
+          <div class="nc-create-base-content-title">
+            <GeneralIcon icon="ncBox" class="h-4 w-4 !text-nc-content-gray-subtle" />
+            Install from App Market
+          </div>
+          <div class="nc-create-base-content-subtitle">Browse and install pre-built Bases from the App Market.</div>
+        </div>
+      </div>
+    </div>
+
+    <WorkspaceProjectAppMarket
+      v-if="showAppMarket && workspaceId"
+      :workspace-id="workspaceId"
+      @close="onAppMarketClose"
+      @installed="onManagedAppInstalled"
+    />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-create-base-wrapper {
+  @apply flex gap-4;
+
+  & > div {
+    @apply rounded-xl flex flex-col border-1 w-[288px] overflow-hidden cursor-pointer transition-all;
+
+    .nc-placeholder-icon-wrapper {
+      @apply border-b-1 h-[180px] flex items-center justify-center;
+
+      .nc-placeholder-icon {
+        @apply flex-none;
+      }
+    }
+
+    &.nc-create-base {
+      @apply border-nc-border-brand-medium;
+
+      &:hover {
+        box-shadow: 0px 12px 16px -4px rgba(var(--nc-brand-accent-rgb), 0.12),
+          0px 4px 6px -2px rgba(var(--nc-brand-accent-rgb), 0.08);
+      }
+
+      .nc-placeholder-icon-wrapper {
+        @apply border-nc-border-brand-medium bg-nc-bg-brand;
+      }
+    }
+
+    &.nc-create-base-market {
+      @apply border-nc-border-gray-medium;
+
+      &:hover {
+        box-shadow: 0px 12px 16px -4px rgba(107, 114, 128, 0.12), 0px 4px 6px -2px rgba(107, 114, 128, 0.08);
+      }
+
+      .nc-placeholder-icon-wrapper {
+        @apply border-nc-border-gray-medium bg-nc-bg-gray-light;
+      }
+    }
+
+    &.nc-create-base-ai {
+      @apply border-nc-border-purple-medium;
+
+      &:hover {
+        box-shadow: 0px 12px 16px -4px rgba(125, 38, 205, 0.12), 0px 4px 6px -2px rgba(125, 38, 205, 0.08);
+      }
+
+      .nc-placeholder-icon-wrapper {
+        @apply border-nc-border-purple-medium bg-nc-bg-purple-light;
+      }
+    }
+
+    .nc-create-base-content {
+      @apply px-4 py-3 flex flex-col gap-2;
+
+      .nc-create-base-content-title {
+        @apply flex items-center gap-2 text-base text-nc-content-gray font-bold;
+      }
+
+      .nc-create-base-content-subtitle {
+        @apply text-small leading-[18px] text-nc-content-gray-muted;
+      }
+    }
+  }
+}
+</style>

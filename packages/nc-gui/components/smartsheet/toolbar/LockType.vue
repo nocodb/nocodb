@@ -1,0 +1,94 @@
+<script setup lang="ts">
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { LockType } from '#imports'
+
+const { type, hideTick } = defineProps<{
+  hideTick?: boolean
+  type: LockType
+  disabled?: boolean
+}>()
+
+const emit = defineEmits(['select', 'cancel'])
+
+const types = viewLockIcons
+
+const selectedView = inject(ActiveViewInj)
+
+const { getPlanTitle } = useEeConfig()
+</script>
+
+<template>
+  <div
+    class="nc-locked-menu-item w-full max-w-[312px]"
+    :class="{
+      '!px-1': hideTick,
+    }"
+    @click="emit('select', type)"
+  >
+    <div class="w-full" :class="{ 'show-tick': !hideTick }">
+      <div class="w-full flex flex-col gap-y-1">
+        <div class="flex items-center gap-2 flex-grow">
+          <component
+            :is="types[type].icon"
+            class="flex-none w-6"
+            :class="{
+              '!w-3 h-3': hideTick,
+              '!w-4 h-4': !hideTick,
+              'text-nc-content-gray-disabled': disabled,
+            }"
+          />
+          <div
+            class="flex"
+            :class="{
+              '!text-xs py-0.7': hideTick,
+              'text-nc-content-gray-disabled': disabled,
+            }"
+          >
+            {{ $t(types[type].title) }}
+          </div>
+          <template v-if="!hideTick">
+            <div class="flex flex-grow"></div>
+            <GeneralIcon
+              v-if="selectedView?.lock_type === type"
+              icon="circleCheckSolid"
+              class="h-4 w-4 flex-none"
+              :class="{ '!text-nc-content-brand': !disabled }"
+            />
+            <LazyPaymentUpgradeBadge
+              v-else-if="type === LockType.Personal"
+              :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+              :content="
+                $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
+                  plan: getPlanTitle(PlanTitles.PLUS),
+                })
+              "
+              :on-click-callback="() => emit('cancel')"
+              show-as-lock
+            />
+            <span v-else />
+          </template>
+        </div>
+        <div
+          v-if="!hideTick"
+          class="nc-subtitle font-weight-400 max-w-120 !text-xs whitespace-normal ml-6 pr-6"
+          :class="{
+            'text-nc-content-gray-disabled': disabled,
+            'text-nc-content-gray-subtle2': !disabled,
+          }"
+        >
+          {{ $t(types[type].subtitle) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.nc-locked-menu-item > div {
+  @apply !py-0 items-center;
+
+  &.show-tick {
+    @apply flex gap-2;
+  }
+}
+</style>

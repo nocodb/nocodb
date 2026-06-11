@@ -1,0 +1,1439 @@
+import UITypes from '../UITypes';
+import { abstractTypeToMetaUIType } from './metaUiDataType';
+import { IDType } from './index';
+import { ColumnType } from '~/lib/Api';
+import { SqlUi } from './SqlUI.types';
+
+const dbTypes = [
+  'NUMBER',
+  'DECIMAL',
+  'NUMERIC',
+  'INT',
+  'INTEGER',
+  'BIGINT',
+  'SMALLINT',
+  'TINYINT',
+  'BYTEINT',
+  'FLOAT',
+  'FLOAT4',
+  'FLOAT8',
+  'DOUBLE',
+  'DOUBLE PRECISION',
+  'REAL',
+  'VARCHAR',
+  'CHAR',
+  'CHARACTER',
+  'STRING',
+  'TEXT',
+  'BINARY',
+  'VARBINARY',
+  'BOOLEAN',
+  'DATE',
+  'DATETIME',
+  'TIME',
+  'TIMESTAMP',
+  'TIMESTAMP_LTZ',
+  'TIMESTAMP_NTZ',
+  'TIMESTAMP_TZ',
+  'VARIANT',
+  'OBJECT',
+  'ARRAY',
+  'GEOGRAPHY',
+];
+
+export class SnowflakeUi implements SqlUi {
+  //#region statics
+  static getNewTableColumns() {
+    return [
+      {
+        column_name: 'id',
+        title: 'Id',
+        dt: 'int',
+        dtx: 'integer',
+        ct: 'int(11)',
+        nrqd: false,
+        rqd: true,
+        ck: false,
+        pk: true,
+        un: false,
+        ai: true,
+        cdf: null,
+        clen: null,
+        np: 11,
+        ns: 0,
+        dtxp: '11',
+        dtxs: '',
+        altered: 1,
+        uidt: 'ID',
+        uip: '',
+        uicn: '',
+      },
+      {
+        column_name: 'title',
+        title: 'Title',
+        dt: 'TEXT',
+        dtx: 'specificType',
+        ct: null,
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: 'SingleLineText',
+        uip: '',
+        uicn: '',
+      },
+      {
+        column_name: 'created_at',
+        title: 'CreatedAt',
+        dt: 'timestamp',
+        dtx: 'specificType',
+        ct: 'timestamp',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.CreatedTime,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'updated_at',
+        title: 'UpdatedAt',
+        dt: 'timestamp',
+        dtx: 'specificType',
+        ct: 'timestamp',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedTime,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'created_by',
+        title: 'nc_created_by',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '45',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.CreatedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'updated_by',
+        title: 'nc_updated_by',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '45',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'number',
+        dtx: 'specificType',
+        ct: 'number(38,18)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 38,
+        ns: 18,
+        dtxp: '38,18',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'boolean',
+        dtx: 'specificType',
+        ct: 'boolean',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: 'false',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+    ];
+  }
+
+  static getNewColumn(suffix) {
+    return {
+      column_name: 'title' + suffix,
+      dt: 'TEXT',
+      dtx: 'specificType',
+      ct: null,
+      nrqd: true,
+      rqd: false,
+      ck: false,
+      pk: false,
+      un: false,
+      ai: false,
+      cdf: null,
+      clen: null,
+      np: null,
+      ns: null,
+      dtxp: '',
+      dtxs: '',
+      altered: 1,
+      uidt: 'SingleLineText',
+      uip: '',
+      uicn: '',
+    };
+  }
+
+  static getDefaultLengthForDatatype(type): any {
+    switch (type) {
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+        return 255;
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+        return 38;
+    }
+  }
+
+  static getDefaultLengthIsDisabled(type): any {
+    switch (type) {
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+        return false;
+      case 'TEXT':
+      case 'BINARY':
+      case 'VARBINARY':
+      case 'BOOLEAN':
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+      case 'VARIANT':
+      case 'OBJECT':
+      case 'ARRAY':
+      case 'GEOGRAPHY':
+        return true;
+    }
+  }
+
+  static getDefaultValueForDatatype(type): any {
+    switch (type) {
+      default:
+        return 'eg: ';
+    }
+  }
+
+  static getDefaultScaleForDatatype(type): any {
+    switch (type) {
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+      case 'TEXT':
+      case 'BINARY':
+      case 'VARBINARY':
+      case 'BOOLEAN':
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+      case 'VARIANT':
+      case 'OBJECT':
+      case 'ARRAY':
+      case 'GEOGRAPHY':
+        return ' ';
+    }
+  }
+
+  static colPropAIDisabled(col, columns) {
+    // console.log(col);
+    if (
+      col.dt === 'NUMBER' ||
+      col.dt === 'DECIMAL' ||
+      col.dt === 'NUMERIC' ||
+      col.dt === 'INT' ||
+      col.dt === 'INTEGER' ||
+      col.dt === 'BIGINT' ||
+      col.dt === 'SMALLINT'
+    ) {
+      for (let i = 0; i < columns.length; ++i) {
+        if (columns[i].cn !== col.cn && columns[i].ai) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  static colPropUNDisabled(_col) {
+    // console.log(col);
+    return true;
+    // if (col.dt === 'int' ||
+    //   col.dt === 'tinyint' ||
+    //   col.dt === 'smallint' ||
+    //   col.dt === 'mediumint' ||
+    //   col.dt === 'bigint') {
+    //   return false;
+    // } else {
+    //   return true;
+    // }
+  }
+
+  static onCheckboxChangeAI(col) {
+    console.log(col);
+    if (
+      col.dt === 'NUMBER' ||
+      col.dt === 'DECIMAL' ||
+      col.dt === 'NUMERIC' ||
+      col.dt === 'INT' ||
+      col.dt === 'INTEGER' ||
+      col.dt === 'BIGINT' ||
+      col.dt === 'SMALLINT'
+    ) {
+      col.altered = col.altered || 2;
+    }
+
+    // if (!col.ai) {
+    //   col.dtx = 'specificType'
+    // } else {
+    //   col.dtx = ''
+    // }
+  }
+
+  static onCheckboxChangeAU(col) {
+    console.log(col);
+    // if (1) {
+    col.altered = col.altered || 2;
+    // }
+    if (col.au) {
+      col.cdf = 'current_timestamp()';
+    }
+
+    // if (!col.ai) {
+    //   col.dtx = 'specificType'
+    // } else {
+    //   col.dtx = ''
+    // }
+  }
+
+  static showScale(_columnObj) {
+    return false;
+  }
+
+  static removeUnsigned(columns) {
+    for (let i = 0; i < columns.length; ++i) {
+      if (
+        columns[i].altered === 1 &&
+        !(
+          columns[i].dt === 'INT' ||
+          columns[i].dt === 'BIGINT' ||
+          columns[i].dt === 'SMALLINT' ||
+          columns[i].dt === 'TINYINT'
+        )
+      ) {
+        columns[i].un = false;
+        console.log('>> resetting unsigned value', columns[i].cn);
+      }
+      console.log(columns[i].cn);
+    }
+  }
+
+  static columnEditable(colObj) {
+    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
+  }
+  /*
+
+  static extractFunctionName(query) {
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const match = query.match(reg);
+    return match && match[1];
+  }
+
+  static extractProcedureName(query) {
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const match = query.match(reg);
+    return match && match[1];
+  }
+
+  static handleRawOutput(result, headers) {
+    if (['DELETE', 'INSERT', 'UPDATE'].includes(result.command.toUpperCase())) {
+      headers.push({ text: 'Row count', value: 'rowCount', sortable: false });
+      result = [
+        {
+          rowCount: result.rowCount,
+        },
+      ];
+    } else {
+      result = result.rows;
+      if (Array.isArray(result) && result[0]) {
+        const keys = Object.keys(result[0]);
+        // set headers before settings result
+        for (let i = 0; i < keys.length; i++) {
+          const text = keys[i];
+          headers.push({ text, value: text, sortable: false });
+        }
+      }
+    }
+    return result;
+  }
+
+  static splitQueries(query) {
+    /!***
+     * we are splitting based on semicolon
+     * there are mechanism to escape semicolon within single/double quotes(string)
+     *!/
+    return query.match(/\b("[^"]*;[^"]*"|'[^']*;[^']*'|[^;])*;/g);
+  }
+
+  /!**
+   * if sql statement is SELECT - it limits to a number
+   * @param args
+   * @returns {string|*}
+   *!/
+  sanitiseQuery(args) {
+    let q = args.query.trim().split(';');
+
+    if (q[0].startsWith('Select')) {
+      q = q[0] + ` LIMIT 0,${args.limit ? args.limit : 100};`;
+    } else if (q[0].startsWith('select')) {
+      q = q[0] + ` LIMIT 0,${args.limit ? args.limit : 100};`;
+    } else if (q[0].startsWith('SELECT')) {
+      q = q[0] + ` LIMIT 0,${args.limit ? args.limit : 100};`;
+    } else {
+      return args.query;
+    }
+
+    return q;
+  }
+
+  static getColumnsFromJson(json, tn) {
+    const columns = [];
+
+    try {
+      if (typeof json === 'object' && !Array.isArray(json)) {
+        const keys = Object.keys(json);
+        for (let i = 0; i < keys.length; ++i) {
+          const column = {
+            dp: null,
+            tn,
+            column_name: keys[i],
+            cno: keys[i],
+            np: 10,
+            ns: 0,
+            clen: null,
+            cop: 1,
+            pk: false,
+            nrqd: false,
+            rqd: false,
+            un: false,
+            ct: 'int(11) unsigned',
+            ai: false,
+            unique: false,
+            cdf: null,
+            cc: '',
+            csn: null,
+            dtx: 'specificType',
+            dtxp: null,
+            dtxs: 0,
+            altered: 1,
+          };
+
+          switch (typeof json[keys[i]]) {
+            case 'number':
+              if (Number.isInteger(json[keys[i]])) {
+                if (SnowflakeUi.isValidTimestamp(keys[i], json[keys[i]])) {
+                  Object.assign(column, {
+                    dt: 'timestamp',
+                  });
+                } else {
+                  Object.assign(column, {
+                    dt: 'int',
+                    np: 10,
+                    ns: 0,
+                  });
+                }
+              } else {
+                Object.assign(column, {
+                  dt: 'float4',
+                  np: null,
+                  ns: null,
+                  dtxp: null,
+                  dtxs: null,
+                });
+              }
+              break;
+            case 'string':
+              if (SnowflakeUi.isValidDate(json[keys[i]])) {
+                Object.assign(column, {
+                  dt: 'date',
+                });
+              } else if (json[keys[i]].length <= 255) {
+                Object.assign(column, {
+                  dt: 'VARCHAR',
+                  np: null,
+                  ns: 0,
+                  dtxp: null,
+                });
+              } else {
+                Object.assign(column, {
+                  dt: 'text',
+                });
+              }
+              break;
+            case 'boolean':
+              Object.assign(column, {
+                dt: 'boolean',
+                np: 3,
+                ns: 0,
+              });
+              break;
+            case 'object':
+              Object.assign(column, {
+                dt: 'json',
+                np: 3,
+                ns: 0,
+              });
+              break;
+            default:
+              break;
+          }
+          columns.push(column);
+        }
+      }
+    } catch (e) {
+      console.log('Error in getColumnsFromJson', e);
+    }
+
+    return columns;
+  }
+
+  static isValidTimestamp(key, value) {
+    if (typeof value !== 'number') {
+      return false;
+    }
+    return new Date(value).getTime() > 0 && /(?:_|(?=A))[aA]t$/.test(key);
+  }
+
+  static isValidDate(value) {
+    return new Date(value).getTime() > 0;
+  }
+*/
+
+  static colPropAuDisabled(col) {
+    if (col.altered !== 1) {
+      return true;
+    }
+
+    switch (col.dt.toUpperCase()) {
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  static getAbstractType(col): any {
+    switch (col.dt?.toUpperCase()) {
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+        return 'integer';
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+        return 'float';
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+        return 'string';
+      case 'TEXT':
+        if (col.dtxp < 1024) return 'string';
+        return 'text';
+      case 'BINARY':
+      case 'VARBINARY':
+        return 'string';
+      case 'BOOLEAN':
+        return 'boolean';
+      case 'DATE':
+        return 'date';
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+        return 'string';
+      case 'VARIANT':
+        return 'string';
+      case 'OBJECT':
+        return 'json';
+      case 'ARRAY':
+        return 'enum';
+      case 'GEOGRAPHY':
+        return 'string';
+      default:
+        return 'string';
+    }
+  }
+
+  // Introspection UIType for meta-sync — exact port of the removed
+  // ModelXcMetaSnowflake.getUIDataType (+ its getAbstractType, which was a
+  // lowercase PG-style resolver, NOT this class's uppercase getAbstractType).
+  // Distinct from getUIType (column-creation default). See metaUiDataType.ts.
+  static getMetaUIDataType(col): any {
+    return abstractTypeToMetaUIType(this.getMetaAbstractType(col));
+  }
+
+  static getMetaAbstractType(col): any {
+    const dt = col.dt.toLowerCase();
+    switch (dt) {
+      case 'anyenum':
+        return 'enum';
+      case 'anynonarray':
+      case 'anyrange':
+        return dt;
+
+      case 'bit':
+        return 'integer';
+      case 'bigint':
+      case 'bigserial':
+        return 'integer';
+
+      case 'bool':
+        return 'boolean';
+
+      case 'bpchar':
+      case 'bytea':
+        return dt;
+      case 'char':
+      case 'character':
+      case 'character varying':
+        return 'string';
+
+      case 'cid':
+      case 'cidr':
+      case 'cstring':
+        return dt;
+
+      case 'date':
+        return 'date';
+      case 'daterange':
+        return 'string';
+      case 'double precision':
+        return 'string';
+
+      case 'event_trigger':
+      case 'fdw_handler':
+        return dt;
+
+      case 'float4':
+      case 'float8':
+        return 'float';
+
+      case 'gtsvector':
+      case 'index_am_handler':
+      case 'inet':
+        return dt;
+
+      case 'int':
+      case 'int2':
+      case 'int4':
+      case 'int8':
+      case 'integer':
+        return 'integer';
+      case 'int4range':
+      case 'int8range':
+      case 'internal':
+      case 'interval':
+        return 'string';
+      case 'json':
+      case 'jsonb':
+        return 'json';
+
+      case 'language_handler':
+      case 'lsec':
+      case 'macaddr':
+      case 'money':
+      case 'name':
+      case 'numeric':
+      case 'numrange':
+      case 'oid':
+      case 'opaque':
+      case 'path':
+      case 'pg_ddl_command':
+      case 'pg_lsn':
+      case 'pg_node_tree':
+        return dt;
+      case 'real':
+        return 'float';
+      case 'record':
+      case 'refcursor':
+      case 'regclass':
+      case 'regconfig':
+      case 'regdictionary':
+      case 'regnamespace':
+      case 'regoper':
+      case 'regoperator':
+      case 'regproc':
+      case 'regpreocedure':
+      case 'regrole':
+      case 'regtype':
+      case 'reltime':
+        return dt;
+      case 'serial':
+      case 'serial2':
+      case 'serial8':
+      case 'smallint':
+      case 'smallserial':
+        return 'integer';
+      case 'smgr':
+        return dt;
+      case 'text':
+        if (col.dtxp < 1024) return 'string';
+        return 'text';
+      case 'tid':
+        return dt;
+      case 'time':
+      case 'time without time zone':
+        return 'time';
+      case 'timestamp':
+      case 'timestamp without time zone':
+      case 'timestamptz':
+      case 'timestamp with time zone':
+        return 'datetime';
+      case 'timetz':
+      case 'time with time zone':
+        return 'time';
+
+      case 'tinterval':
+      case 'trigger':
+      case 'tsm_handler':
+      case 'tsquery':
+      case 'tsrange':
+      case 'tstzrange':
+      case 'tsvector':
+      case 'txid_snapshot':
+      case 'unknown':
+      case 'void':
+      case 'xid':
+      case 'xml':
+        return dt;
+
+      case 'tinyint':
+      case 'mediumint':
+        return 'integer';
+
+      case 'float':
+      case 'decimal':
+      case 'double':
+        return 'float';
+      case 'boolean':
+        return 'boolean';
+      case 'datetime':
+        return 'datetime';
+
+      case 'uuid':
+      case 'year':
+      case 'varchar':
+      case 'nchar':
+        return 'string';
+
+      case 'tinytext':
+      case 'mediumtext':
+      case 'longtext':
+        return 'text';
+
+      case 'binary':
+      case 'varbinary':
+        return 'text';
+
+      case 'blob':
+      case 'tinyblob':
+      case 'mediumblob':
+      case 'longblob':
+        return 'blob';
+      case 'enum':
+        return 'enum';
+      case 'set':
+        return 'set';
+
+      case 'line':
+      case 'point':
+      case 'polygon':
+      case 'circle':
+      case 'box':
+      case 'geometry':
+      case 'linestring':
+      case 'multipoint':
+      case 'multilinestring':
+      case 'multipolygon':
+        return 'geometry';
+    }
+  }
+
+  static getUIType(col): any {
+    switch (this.getAbstractType(col)) {
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+        return 'Number';
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+        return 'Decimal';
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+        return 'SingleLineText';
+      case 'TEXT':
+        return 'LongText';
+      case 'BOOLEAN':
+        return 'Checkbox';
+      case 'DATE':
+        return 'Date';
+      case 'DATETIME':
+        return 'DateTime';
+    }
+  }
+
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    const colProp: any = {};
+    switch (col.uidt) {
+      case 'ID':
+        {
+          const isAutoIncId = idType === 'AI';
+          const isAutoGenId = idType === 'AG';
+          colProp.dt = isAutoGenId ? 'VARCHAR' : 'int4';
+          colProp.pk = true;
+          colProp.un = isAutoIncId;
+          colProp.ai = isAutoIncId;
+          colProp.rqd = true;
+          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+        }
+        break;
+      case 'ForeignKey':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'SingleLineText':
+        colProp.dt = 'TEXT';
+        break;
+      case 'LongText':
+        colProp.dt = 'TEXT';
+        break;
+      case 'Attachment':
+        colProp.dt = 'TEXT';
+        break;
+      case 'GeoData':
+        colProp.dt = 'TEXT';
+        break;
+      case 'Checkbox':
+        colProp.dt = 'BOOLEAN';
+        colProp.cdf = '0';
+        break;
+      case 'MultiSelect':
+        colProp.dt = 'TEXT';
+        break;
+      case 'SingleSelect':
+        colProp.dt = 'TEXT';
+        break;
+      case 'Collaborator':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'Date':
+        colProp.dt = 'DATE';
+        break;
+      case 'Year':
+        colProp.dt = 'INT';
+        break;
+      case 'Time':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'PhoneNumber':
+        colProp.dt = 'VARCHAR';
+        colProp.validate = {
+          func: ['isMobilePhone'],
+          args: [''],
+          msg: ['Validation failed : isMobilePhone'],
+        };
+        break;
+      case 'Email':
+        colProp.dt = 'VARCHAR';
+        colProp.validate = {
+          func: ['isEmail'],
+          args: [''],
+          msg: ['Validation failed : isEmail'],
+        };
+        break;
+      case 'URL':
+        colProp.dt = 'TEXT';
+        colProp.validate = {
+          func: ['isURL'],
+          args: [''],
+          msg: ['Validation failed : isURL'],
+        };
+        break;
+      case 'Number':
+        colProp.dt = 'BIGINT';
+        break;
+      case 'Decimal':
+        colProp.dt = 'DECIMAL';
+        break;
+      case 'Currency':
+        colProp.dt = 'DECIMAL';
+        colProp.validate = {
+          func: ['isCurrency'],
+          args: [''],
+          msg: ['Validation failed : isCurrency'],
+        };
+        break;
+      case 'Percent':
+        colProp.dt = 'DOUBLE PRECISION';
+        break;
+      case 'Duration':
+        colProp.dt = 'DECIMAL';
+        break;
+      case 'Rating':
+        colProp.dt = 'SMALLINT';
+        colProp.cdf = '0';
+        break;
+      case 'Formula':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'Rollup':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'Count':
+        colProp.dt = 'INT';
+        break;
+      case 'Lookup':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'DateTime':
+        colProp.dt = 'TIMESTAMP';
+        break;
+      case 'CreatedTime':
+        colProp.dt = 'TIMESTAMP';
+        break;
+      case 'LastModifiedTime':
+        colProp.dt = 'TIMESTAMP';
+        break;
+      case 'AutoNumber':
+        colProp.dt = 'INT';
+        break;
+      case 'Barcode':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'Button':
+        colProp.dt = 'VARCHAR';
+        break;
+      case 'JSON':
+        colProp.dt = 'TEXT';
+        break;
+      case UITypes.Deleted:
+        colProp.dt = 'boolean';
+        break;
+      default:
+        colProp.dt = 'VARCHAR';
+        break;
+    }
+    return colProp;
+  }
+
+  static getDataTypeListForUiType(col: { uidt: UITypes }, idType: IDType) {
+    switch (col.uidt) {
+      case 'ID':
+        if (idType === 'AG') {
+          return ['VARCHAR'];
+        } else if (idType === 'AI') {
+          return ['NUMBER'];
+        } else {
+          return dbTypes;
+        }
+      case 'ForeignKey':
+        return dbTypes;
+
+      case 'SingleLineText':
+      case 'LongText':
+      case 'Collaborator':
+      case 'GeoData':
+        return ['TEXT', 'VARCHAR', 'CHARACTER', 'CHAR'];
+
+      case 'Attachment':
+        return ['TEXT', 'CHAR', 'CHARACTER', 'VARCHAR'];
+
+      case 'JSON':
+        return ['TEXT'];
+      case 'Checkbox':
+        return ['BIT', 'BOOLEAN', 'TINYINT', 'INT', 'BIGINT'];
+
+      case 'MultiSelect':
+        return ['TEXT'];
+
+      case 'SingleSelect':
+        return ['TEXT'];
+
+      case 'Year':
+        return ['INT'];
+
+      case 'Time':
+        return ['TIMESTAMP', 'VARCHAR'];
+
+      case 'PhoneNumber':
+      case 'Email':
+        return ['VARCHAR'];
+
+      case 'URL':
+        return ['TEXT', 'VARCHAR'];
+
+      case 'Number':
+        return [
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'SMALLINT',
+          'TINYINT',
+          'BYTEINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
+          'REAL',
+        ];
+
+      case 'Decimal':
+        return [
+          'DOUBLE',
+          'DOUBLE PRECISION',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'NUMERIC',
+        ];
+
+      case 'Currency':
+        return [
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
+        ];
+
+      case 'Percent':
+        return [
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
+        ];
+
+      case 'Duration':
+        return [
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
+        ];
+
+      case 'Rating':
+        return [
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
+        ];
+
+      case 'Formula':
+      case 'Button':
+        return ['TEXT', 'VARCHAR'];
+
+      case 'Rollup':
+        return ['VARCHAR'];
+
+      case 'Count':
+        return ['NUMBER', 'INT', 'INTEGER', 'BIGINT'];
+
+      case 'Lookup':
+        return ['VARCHAR'];
+
+      case 'Date':
+        return ['DATE', 'TIMESTAMP'];
+
+      case 'DateTime':
+      case 'CreatedTime':
+      case 'LastModifiedTime':
+        return ['TIMESTAMP'];
+
+      case 'User':
+      case 'CreatedBy':
+      case 'LastModifiedBy':
+        return ['VARCHAR'];
+
+      case 'AutoNumber':
+        return ['NUMBER', 'INT', 'INTEGER', 'BIGINT'];
+
+      case 'Barcode':
+        return ['VARCHAR'];
+
+      case 'Geometry':
+        return ['TEXT'];
+
+      case UITypes.Deleted:
+        return ['boolean'];
+
+      default:
+        return dbTypes;
+    }
+  }
+
+  static getUnsupportedFnList() {
+    return [
+      'XOR',
+      'REGEX_MATCH',
+      'REGEX_EXTRACT',
+      'REGEX_REPLACE',
+      'VALUE',
+      'COUNTA',
+      'COUNT',
+      'DATESTR',
+      'ARRAYSORT',
+      'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
+    ];
+  }
+
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return null;
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1 === dataType2) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
+  }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return SnowflakeUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return SnowflakeUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return SnowflakeUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return SnowflakeUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return SnowflakeUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return SnowflakeUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return SnowflakeUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return SnowflakeUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return SnowflakeUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return SnowflakeUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return SnowflakeUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return SnowflakeUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return SnowflakeUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return SnowflakeUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return SnowflakeUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return SnowflakeUi.getUIType(col);
+  }
+  getMetaUIDataType(col: ColumnType): UITypes {
+    return SnowflakeUi.getMetaUIDataType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return SnowflakeUi.getDataTypeForUiType(col, idType);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return SnowflakeUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return SnowflakeUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return SnowflakeUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return SnowflakeUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(
+    _newColumn: Partial<ColumnType>,
+    _oldColumn?: ColumnType
+  ) {}
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
+  get tableNameLengthLimit(): number {
+    return 255;
+  }
+  //#endregion methods
+}
+
+// module.exports = SnowflakeUiHelp;
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Naveen MR <oof1lab@gmail.com>
+ * @author Pranav C Balan <pranavxc@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */

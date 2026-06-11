@@ -1,0 +1,860 @@
+<script lang="ts" setup>
+import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType } from 'nocodb-sdk'
+
+import type { SidebarTableNode } from '~/lib/types'
+
+const props = withDefaults(
+  defineProps<{
+    base: BaseType
+    table: SidebarTableNode
+    sourceIndex: number
+  }>(),
+  { sourceIndex: 0 },
+)
+
+const { base, table, sourceIndex } = toRefs(props)
+
+const { openTable: _openTable } = useTableNew({
+  baseId: base.value.id!,
+})
+
+const route = useRoute()
+
+const { isUIAllowed } = useRoles()
+
+const { isMobileMode } = useGlobal()
+
+const { $e, $api } = useNuxtApp()
+
+const { isMysql, isPg } = useBase()
+
+useTableNew({
+  baseId: base.value.id!,
+})
+
+const { meta: metaKey, control } = useMagicKeys()
+
+const baseRole = inject(ProjectRoleInj)
+provide(SidebarTableInj, table)
+
+const { isBookmarkAllowed } = useBookmarks()
+
+const {
+  setMenuContext,
+  handleTableRename,
+  openTableDescriptionDialog: _openTableDescriptionDialog,
+  duplicateTable: _duplicateTable,
+  tableRenameId,
+} = inject(TreeViewInj)!
+
+const { loadViews: _loadViews } = useViewsStore()
+const { activeView } = storeToRefs(useViewsStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
+
+// todo: temp
+const { baseTables } = storeToRefs(useTablesStore())
+const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
+
+const openedTableId = computed(() => route.params.viewId)
+
+const source = computed(() => {
+  return base.value?.sources?.[sourceIndex.value]
+})
+
+const isTableDeleteDialogVisible = ref(false)
+const isTablePermissionsDialogVisible = ref(false)
+const isTableRlsDialogVisible = ref(false)
+const isTableDateDependencyDialogVisible = ref(false)
+
+const isOptionsOpen = ref(false)
+
+const showTableNodeTooltip = ref(true)
+
+const emojiPickerRef = ref<HTMLElement>()
+
+const onChangeIcon = () => {
+  isOptionsOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
+}
+
+const input = ref<HTMLInputElement>()
+
+/** Is editing the table name enabled */
+const isEditing = ref(false)
+
+/** Helper to check if editing was disabled before the view navigation timeout triggers */
+const isStopped = ref(false)
+
+const useForm = Form.useForm
+
+const formState = reactive({
+  title: '',
+})
+
+const validators = computed(() => {
+  return {
+    title: [
+      validateTableName,
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            let tableNameLengthLimit = 255
+            if (isMysql(source.value?.id)) {
+              tableNameLengthLimit = 64
+            } else if (isPg(source.value?.id)) {
+              tableNameLengthLimit = 63
+            }
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
+              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
+            }
+            resolve()
+          })
+        },
+      },
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (
+              !(tables?.value || []).every(
+                (t) => t.id === table.value.id || t.title?.trim().toLowerCase() !== (value?.trim() || '').toLowerCase(),
+              )
+            ) {
+              return reject(new Error('Duplicate table alias'))
+            }
+            resolve()
+          })
+        },
+      },
+    ],
+  }
+})
+
+const { validate } = useForm(formState, validators)
+
+const setIcon = async (icon: string, table: TableType) => {
+  try {
+    table.meta = {
+      ...((table.meta as object) || {}),
+      icon,
+    }
+    const index = tables.value.findIndex((t) => t.id === table.id)
+
+    if (index !== -1) {
+      tables.value[index] = { ...table }
+    }
+
+    await $api.internal.postOperation(
+      table.fk_workspace_id!,
+      table.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: table.id as string,
+      },
+      {
+        meta: table.meta,
+      },
+    )
+
+    $e('a:table:icon:navdraw', { icon })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+// Todo: temp
+
+const { isSharedBase } = useBase()
+// const isMultiBase = computed(() => base.sources && base.sources.length > 1)
+
+const canUserEditEmote = computed(() => {
+  return isUIAllowed('tableIconEdit', { roles: baseRole?.value })
+})
+
+const isExpanded = ref(false)
+const isLoading = ref(false)
+
+const onExpand = async () => {
+  if (isExpanded.value) {
+    isExpanded.value = false
+    return
+  }
+
+  isLoading.value = true
+  try {
+    await _loadViews({ tableId: table.value?.id as string, baseId: base.value.id!, ignoreLoading: true })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+
+const onOpenTable = async () => {
+  if (isEditing.value || isStopped.value) return
+
+  if (isMac() ? metaKey.value : control.value) {
+    try {
+      await _openTable(table.value, true)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+    return
+  }
+
+  isLoading.value = true
+  try {
+    await _openTable(table.value)
+
+    if (isMobileMode.value) {
+      isLeftSidebarOpen.value = false
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+
+watch(
+  () => activeView.value?.id,
+  () => {
+    if (!activeView.value) return
+
+    if (activeView.value?.fk_model_id === table.value?.id) {
+      isExpanded.value = true
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const duplicateTable = (table: SidebarTableNode) => {
+  isOptionsOpen.value = false
+
+  if (showRecordPlanLimitExceededModal()) return
+
+  _duplicateTable(table)
+}
+
+const focusInput = () => {
+  setTimeout(() => {
+    input.value?.focus()
+    input.value?.select()
+  })
+}
+
+const onRenameMenuClick = (table: SidebarTableNode) => {
+  if (isMobileMode.value || !isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value })) return
+
+  isOptionsOpen.value = false
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    formState.title = table.title
+
+    nextTick(() => {
+      focusInput()
+    })
+  }
+}
+
+watch(
+  tableRenameId,
+  (n, o) => {
+    if (n === o) return
+
+    if (n && `${table.value.id}:${source.value?.id}` === tableRenameId.value) {
+      onRenameMenuClick(table.value)
+    } else {
+      isEditing.value = false
+      onCancel()
+    }
+  },
+  { immediate: true },
+)
+
+const openTableDescriptionDialog = (table: SidebarTableNode) => {
+  isOptionsOpen.value = false
+  _openTableDescriptionDialog(table)
+}
+
+const deleteTable = () => {
+  isOptionsOpen.value = false
+  isTableDeleteDialogVisible.value = true
+}
+
+async function onPermissions(_table: SidebarTableNode) {
+  isOptionsOpen.value = false
+
+  isTablePermissionsDialogVisible.value = true
+}
+
+function onRowLevelSecurity() {
+  isOptionsOpen.value = false
+  isTableRlsDialogVisible.value = true
+}
+
+function onDateDependency() {
+  isOptionsOpen.value = false
+  isTableDateDependencyDialogVisible.value = true
+}
+
+/** Cancel renaming view */
+function onCancel() {
+  if (!isEditing.value) return
+
+  onStopEdit()
+}
+
+/** Stop editing view name, timeout makes sure that view navigation (click trigger) does not pick up before stop is done */
+function onStopEdit() {
+  isStopped.value = true
+  isEditing.value = false
+  formState.title = ''
+  tableRenameId.value = ''
+
+  setTimeout(() => {
+    isStopped.value = false
+  }, 250)
+}
+
+/** Handle keydown on input field */
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    onKeyEsc(event)
+  } else if (event.key === 'Enter') {
+    onKeyEnter(event)
+  }
+}
+
+/** Rename view when enter is pressed */
+function onKeyEnter(event: KeyboardEvent) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onRename()
+}
+
+/** Disable renaming view when escape is pressed */
+function onKeyEsc(event: KeyboardEvent) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onCancel()
+}
+
+onKeyStroke('Enter', (event) => {
+  if (isEditing.value) {
+    onKeyEnter(event)
+  }
+})
+
+const validateTitle = async () => {
+  try {
+    await validate()
+    return true
+  } catch (e: any) {
+    console.log('e', e)
+    const errMsg = e.errorFields?.[0]?.errors?.[0]
+
+    if (errMsg) {
+      message.error(errMsg)
+    }
+  }
+}
+
+/** Rename a table */
+async function onRename() {
+  if (!isEditing.value) return
+
+  if (!formState.title?.trim() || table.value.title === formState.title) {
+    onCancel()
+    return
+  }
+
+  const isValid = await validateTitle()
+
+  if (!isValid) {
+    onCancel()
+    return
+  }
+
+  const originalTitle = table.value.title
+
+  table.value.title = formState.title.trim() || ''
+
+  const updateTitle = (title: string) => {
+    table.value.title = title
+  }
+
+  handleTableRename(table.value, formState.title, originalTitle, updateTitle)
+
+  onStopEdit()
+
+  onCancel()
+}
+
+const enabledOptions = computed(() => {
+  return {
+    tableRename: isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value }),
+    tableDescriptionEdit: isUIAllowed('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableDuplicate:
+      isUIAllowed('tableDuplicate', {
+        source: source.value,
+      }) &&
+      (source.value?.is_meta || source.value?.is_local),
+    tablePermission:
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
+    tableRowLevelSecurity:
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
+    tableDateDependency:
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
+    tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
+  }
+})
+
+const isMmTable = computed(() => !!table.value?.mm)
+</script>
+
+<template>
+  <div
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full bg-inherit"
+    :data-order="table.order"
+    :data-id="table.id"
+    :data-table-id="table.id"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title?.replaceAll(' ', '')}`]"
+    :data-active="openedTableId === table.id"
+  >
+    <div class="flex items-center py-0.5">
+      <NcTooltip
+        :tooltip-style="{ width: '260px', zIndex: '1049' }"
+        :overlay-inner-style="{ width: '260px' }"
+        :mouse-enter-delay="0.5"
+        class="w-full"
+        trigger="hover"
+        placement="right"
+        :disabled="!table?.synced || isEditing || isOptionsOpen || !showTableNodeTooltip || isMobileMode"
+      >
+        <template #title>
+          <DashboardTreeViewTableSyncStatusBadge :table="table" />
+        </template>
+        <div
+          v-e="['a:table:open']"
+          class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
+          :class="{
+            'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
+            'pl-8 rtl:(pr-8 pl-0.75)': sourceIndex !== 0,
+            'pl-2 xs:(pl-2) rtl:(pr-2 pl-0.75) rtl:xs:(pr-2 pl-0.75)': sourceIndex === 0,
+          }"
+          :data-testid="`nc-tbl-side-node-${table.title}`"
+          @contextmenu="setMenuContext('table', table)"
+          @click="onOpenTable"
+        >
+          <div class="flex flex-row h-full items-center">
+            <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+              <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-nc-content-gray-subtle2" />
+              <!-- Mobile: plain chevron before icon -->
+              <div
+                v-if="!table.isViewsLoading"
+                class="hidden !xs:(flex items-center justify-center) -ml-1 w-6 h-6 flex-none cursor-pointer"
+                @click.stop="onExpand"
+              >
+                <GeneralIcon
+                  icon="chevronRight"
+                  class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
+                  :class="{ '!rotate-90': isExpanded }"
+                />
+              </div>
+              <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
+                <!-- Desktop: combo chevron overlay -->
+                <NcButton
+                  v-e="['c:table:toggle-expand']"
+                  type="text"
+                  size="xxsmall"
+                  class="nc-table-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
+                  @click.stop="onExpand"
+                >
+                  <GeneralIcon
+                    icon="chevronRight"
+                    class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
+                    :class="{ '!rotate-90': isExpanded }"
+                  />
+                </NcButton>
+
+                <!-- Table icon/emoji (hidden on hover, replaced by chevron).
+                   pointer-events-none is intentional — icon changes are triggered via the
+                   "Change Icon" context menu item which programmatically opens the picker. -->
+                <div
+                  ref="emojiPickerRef"
+                  v-e="['c:table:emoji-picker']"
+                  class="flex items-center group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+                >
+                  <LazyGeneralEmojiPicker
+                    :key="table.meta?.icon"
+                    :emoji="table.meta?.icon"
+                    size="small"
+                    :readonly="!canUserEditEmote || isMobileMode"
+                    @emoji-selected="setIcon($event, table)"
+                  >
+                    <template #default>
+                      <component
+                        :is="iconMap.ncZap"
+                        v-if="table?.synced"
+                        class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
+                      />
+
+                      <component
+                        :is="iconMap.table"
+                        v-else-if="table.type === 'table'"
+                        class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
+                      />
+
+                      <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-content-gray-muted" />
+                    </template>
+                  </LazyGeneralEmojiPicker>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a-form v-if="isEditing" :model="formState" name="rename-table-form" class="w-full" @finish.prevent>
+            <a-input
+              ref="input"
+              v-model:value="formState.title"
+              class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
+              :style="{
+                fontWeight: 'inherit',
+              }"
+              @blur="onRename"
+              @keydown.stop="onKeyDown($event)"
+            />
+          </a-form>
+          <NcTooltip
+            v-else
+            class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none !flex-1"
+            show-on-truncate-only
+          >
+            <template #title>{{ table.title }}</template>
+            <span
+              :class="openedTableId === table.id ? 'text-nc-content-gray' : 'text-nc-content-gray-subtle'"
+              :data-testid="`nc-tbl-title-${table.title}`"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              @dblclick.stop="onRenameMenuClick(table)"
+            >
+              {{ table.title }}
+            </span>
+          </NcTooltip>
+          <div
+            v-if="!isEditing"
+            class="flex items-center"
+            @mouseenter="showTableNodeTooltip = false"
+            @mouseleave="showTableNodeTooltip = true"
+          >
+            <NcTooltip v-if="table.description?.length" overlay-class-name="nc-tooltip-scrollable" placement="bottom">
+              <template #title>
+                <div class="whitespace-pre-wrap break-words">{{ table.description }}</div>
+              </template>
+
+              <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+                <GeneralIcon
+                  icon="info"
+                  class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-nc-content-gray-subtle2 opacity-0"
+                />
+              </NcButton>
+            </NcTooltip>
+
+            <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']" @click.stop>
+              <NcButton
+                v-e="['c:table:option']"
+                class="nc-sidebar-node-btn nc-tbl-context-menu text-nc-content-gray-subtle hover:text-nc-content-gray"
+                :class="{
+                  '!opacity-100 !inline-block': isOptionsOpen,
+                }"
+                data-testid="nc-sidebar-table-context-menu"
+                type="text"
+                size="xxsmall"
+                @click.stop
+              >
+                <MdiDotsHorizontal class="!text-current" />
+              </NcButton>
+
+              <template #overlay>
+                <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`" variant="small">
+                  <NcMenuItemCopyId
+                    v-if="table"
+                    :id="table.id"
+                    :tooltip="$t('labels.clickToCopyTableID')"
+                    :label="
+                      $t('labels.tableIdColon', {
+                        tableId: table.id,
+                      })
+                    "
+                    :data-testid="`sidebar-table-copy-id-${table.title}`"
+                  />
+
+                  <template
+                    v-if="
+                      !isSharedBase &&
+                      (enabledOptions.tableRename ||
+                        enabledOptions.tableDescriptionEdit ||
+                        enabledOptions.tableDuplicate ||
+                        enabledOptions.tablePermission)
+                    "
+                  >
+                    <NcDivider v-if="enabledOptions.tableRename || enabledOptions.tableDuplicate" />
+                    <NcMenuItem
+                      v-if="enabledOptions.tableRename"
+                      :data-testid="`sidebar-table-rename-${table.title}`"
+                      class="nc-table-rename"
+                      @click="onRenameMenuClick(table)"
+                    >
+                      <div v-e="['c:table:rename']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="rename" class="opacity-80" />
+                        {{ $t('general.rename') }} {{ $t('objects.table').toLowerCase() }}
+                      </div>
+                    </NcMenuItem>
+
+                    <NcMenuItemChangeIcon
+                      v-e="['c:table:change-icon']"
+                      :disabled="!!(!canUserEditEmote || isMobileMode)"
+                      :data-testid="`sidebar-table-change-icon-${table.title}`"
+                      @change-icon="onChangeIcon"
+                    />
+
+                    <NcMenuItem
+                      v-if="enabledOptions.tableDuplicate"
+                      :data-testid="`sidebar-table-duplicate-${table.title}`"
+                      @click="duplicateTable(table)"
+                    >
+                      <div v-e="['c:table:duplicate']" class="flex-1 flex gap-2 items-center">
+                        <GeneralIcon icon="duplicate" class="opacity-80" />
+                        {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
+                      </div>
+                    </NcMenuItem>
+                    <NcDivider />
+
+                    <NcMenuItem
+                      v-if="enabledOptions.tableDescriptionEdit"
+                      :data-testid="`sidebar-table-description-${table.title}`"
+                      class="nc-table-description"
+                      @click="openTableDescriptionDialog(table)"
+                    >
+                      <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+                        {{ $t('labels.editTableDescription') }}
+                      </div>
+                    </NcMenuItem>
+                    <PaymentUpgradeBadgeProvider
+                      v-if="enabledOptions.tablePermission"
+                      :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                    >
+                      <template #default="{ click }">
+                        <NcMenuItem
+                          :data-testid="`sidebar-table-permissions-${table.title}`"
+                          class="nc-table-permissions"
+                          @click="
+                            click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                              onPermissions(table)
+                            })
+                          "
+                        >
+                          <div v-e="['c:table:permissions']" class="flex gap-2 items-center w-full">
+                            <GeneralIcon icon="ncLock" class="opacity-80" />
+                            <div class="flex-1">
+                              {{ $t('title.editTablePermissions') }}
+                            </div>
+
+                            <LazyPaymentUpgradeBadge
+                              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                              :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                              :content="
+                                $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                                  plan: PlanTitles.PLUS,
+                                })
+                              "
+                              :on-click-callback="() => (isOptionsOpen = false)"
+                              show-as-lock
+                            />
+                          </div>
+                        </NcMenuItem>
+                      </template>
+                    </PaymentUpgradeBadgeProvider>
+                    <PaymentUpgradeBadgeProvider
+                      v-if="enabledOptions.tableRowLevelSecurity"
+                      :feature="PlanFeatureTypes.FEATURE_RLS"
+                    >
+                      <template #default="{ click }">
+                        <NcMenuItem
+                          :data-testid="`sidebar-table-rls-${table.title}`"
+                          class="nc-table-rls"
+                          @click="click(PlanFeatureTypes.FEATURE_RLS, onRowLevelSecurity)"
+                        >
+                          <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
+                            <GeneralIcon icon="ncShield" class="opacity-80" />
+                            <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
+
+                            <LazyPaymentUpgradeBadge
+                              :feature="PlanFeatureTypes.FEATURE_RLS"
+                              remove-click
+                              show-as-lock
+                              :title="$t('upgrade.upgradeToUseRls')"
+                              :content="
+                                $t('upgrade.upgradeToUseRlsSubtitle', {
+                                  plan: PlanTitles.ENTERPRISE,
+                                })
+                              "
+                              :on-click-callback="() => (isOptionsOpen = false)"
+                            />
+                          </div>
+                        </NcMenuItem>
+                      </template>
+                    </PaymentUpgradeBadgeProvider>
+                    <PaymentUpgradeBadgeProvider
+                      v-if="enabledOptions.tableDateDependency"
+                      :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                    >
+                      <template #default="{ click }">
+                        <NcMenuItem
+                          :data-testid="`sidebar-table-date-dependency-${table.title}`"
+                          class="nc-table-date-dependency"
+                          @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, onDateDependency)"
+                        >
+                          <div v-e="['c:table:date-dependency']" class="flex gap-2 items-center w-full">
+                            <GeneralIcon icon="ncCalendar" class="opacity-80" />
+                            <div class="flex-1">{{ $t('labels.dateDependency.title') }}</div>
+                            <LazyPaymentUpgradeBadge
+                              :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                              :title="$t('upgrade.upgradeToUseDateDependency')"
+                              :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
+                              show-as-lock
+                              :on-click-callback="() => (isOptionsOpen = false)"
+                            />
+                          </div>
+                        </NcMenuItem>
+                      </template>
+                    </PaymentUpgradeBadgeProvider>
+                  </template>
+                  <NcDivider v-else-if="isEeUI && isBookmarkAllowed" />
+
+                  <BookmarksMenuAction
+                    v-if="isEeUI"
+                    target-type="table"
+                    :target-id="table.id!"
+                    :meta="{ workspace_id: table.fk_workspace_id, base_id: table.base_id }"
+                    @close="isOptionsOpen = false"
+                  />
+
+                  <DashboardTreeViewTableSyncMenuOptions
+                    v-if="isEeUI && table.synced"
+                    :base-id="table.base_id!"
+                    :table="table"
+                    @close="isOptionsOpen = false"
+                  />
+                  <template v-if="enabledOptions.tableDelete">
+                    <NcDivider />
+                    <NcTooltip :disabled="!isMmTable" :title="$t('tooltip.deleteNotSupportedOnJunctionTable')" placement="right">
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-delete-${table.title}`"
+                        class="nc-table-delete"
+                        danger
+                        :disabled="isMmTable"
+                        @click="deleteTable"
+                      >
+                        <div v-e="['c:table:delete']" class="flex gap-2 items-center">
+                          <GeneralIcon icon="delete" />
+                          {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
+                        </div>
+                      </NcMenuItem>
+                    </NcTooltip>
+                  </template>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+
+            <DashboardTreeViewCreateViewBtn
+              v-if="!isSharedBase && isUIAllowed('viewCreateOrEdit')"
+              :align-left-level="undefined"
+              :source="source"
+              placement="bottomRight"
+            >
+              <NcButton
+                v-e="['c:table:create-view']"
+                type="text"
+                size="xxsmall"
+                class="nc-sidebar-node-btn nc-sidebar-expand text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+                :class="{
+                  '!opacity-100 !visible': isOptionsOpen,
+                }"
+                data-testid="nc-sidebar-table-create-view-btn"
+                @click.stop
+              >
+                <NcTooltip :title="$t('activity.createView')" hide-on-click :placement="isMobileMode ? 'topRight' : undefined">
+                  <GeneralIcon icon="plus" class="!text-current text-[16px]" />
+                </NcTooltip>
+              </NcButton>
+            </DashboardTreeViewCreateViewBtn>
+          </div>
+        </div>
+      </NcTooltip>
+    </div>
+    <DlgTableDelete
+      v-if="table.id && base?.id"
+      v-model:visible="isTableDeleteDialogVisible"
+      :table-id="table.id"
+      :base-id="base.id"
+    />
+    <DlgTablePermissions
+      v-if="table.id && isEeUI"
+      v-model:visible="isTablePermissionsDialogVisible"
+      :table-id="table.id"
+      :title="table.title"
+    />
+    <DlgTableRowLevelSecurity
+      v-if="table.id && isEeUI"
+      v-model:visible="isTableRlsDialogVisible"
+      :table-id="table.id"
+      :title="table.title"
+    />
+    <DlgTableDateDependency
+      v-if="table.id && isEeUI"
+      v-model:visible="isTableDateDependencyDialogVisible"
+      :table-id="table.id"
+      :title="table.title"
+    />
+    <DashboardTreeViewViews v-if="isExpanded" />
+  </div>
+</template>
+
+<style scoped lang="scss">
+.nc-tree-item {
+  @apply relative after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition duration-100 opacity-0);
+}
+
+.nc-tree-item svg {
+  &:not(.nc-info-icon):not(.nc-table-icon):not(.nc-view-icon):not(.nc-script-icon):not(.nc-dashboard-icon):not(
+      .nc-workflow-icon
+    ) {
+    @apply text-primary/60;
+  }
+}
+
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
+}
+</style>

@@ -1,0 +1,44 @@
+<%
+  const { modelTypes, utils } = it;
+  const { formatDescription, require, _ } = utils;
+  
+
+  const dataContractTemplates = {
+    enum: (contract) => {
+      return `enum ${contract.name} {\r\n${contract.content} \r\n }`;
+    },
+    interface: (contract) => {
+      return `interface ${contract.name} {\r\n${contract.content}}`;
+    },
+    type: (contract) => {
+      return `type ${contract.name} = ${contract.content}`;
+    },
+  }
+
+  const createDescription = (contract) => {
+    if (!contract.typeData) return _.compact([contract.description]);
+
+    return _.compact([
+        contract.description && formatDescription(contract.description),
+        !_.isUndefined(contract.typeData.format) && `@format ${contract.typeData.format}`,
+        !_.isUndefined(contract.typeData.minimum) && `@min ${contract.typeData.minimum}`,
+        !_.isUndefined(contract.typeData.maximum) && `@max ${contract.typeData.maximum}`,
+        !_.isUndefined(contract.typeData.pattern) && `@pattern ${contract.typeData.pattern}`,
+        !_.isUndefined(contract.typeData.example) && `@example ${
+          _.isObject(contract.typeData.example) ? JSON.stringify(contract.typeData.example) : contract.typeData.example
+        }`,
+    ]);
+  }
+%>
+<% modelTypes.forEach((contract) => { %>
+<% const description = createDescription(contract); %>
+<% if (description.length) { %>
+/**
+<%~ description.map(part => `* ${part}`).join("\n") %>
+
+*/
+<% } %>
+export <%~ (dataContractTemplates[contract.typeIdentifier] || dataContractTemplates.type)(contract) %>
+
+
+<% }) %>

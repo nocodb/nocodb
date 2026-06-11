@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+common_git_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+
+# 1) If main worktree is explicitly recorded, use it (covers gitdir redirection layouts)
+main_root="$(git --git-dir="$common_git_dir" config --path --get core.worktree 2>/dev/null || true)"
+
+# 2) Fallback: conventional layout where common git dir is <main>/.git
+if [ -z "$main_root" ]; then
+  main_root="$(cd "$common_git_dir/.." && pwd -P)"
+fi
+
+. "$main_root/.husky/_/husky.sh"
+
+npx lint-staged

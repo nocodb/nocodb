@@ -1,0 +1,780 @@
+export enum OrgUserRoles {
+  SUPER_ADMIN = 'super',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
+  CREATOR = 'org-level-creator',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
+  VIEWER = 'org-level-viewer',
+}
+
+/**
+ * Enterprise org-level roles.
+ *
+ * ADMIN was originally named OWNER in cloud (stored as 'cloud-org-level-owner'
+ * in the DB). Renamed to ADMIN because "Admin" better describes the role —
+ * it's not a billing/subscription owner, it's an org administrator.
+ *
+ * OWNER is kept as a deprecated alias because cloud code references
+ * CloudOrgUserRoles.OWNER in ~20 places. Both map to the same DB value.
+ * New code should use ADMIN.
+ */
+export enum EnterpriseOrgUserRoles {
+  ADMIN = 'cloud-org-level-owner',
+  /** @deprecated Use ADMIN — kept for cloud backward compat only */
+  OWNER = 'cloud-org-level-owner',
+  CREATOR = 'cloud-org-level-creator',
+  VIEWER = 'cloud-org-level-viewer',
+}
+
+/** @deprecated Use EnterpriseOrgUserRoles instead */
+export const CloudOrgUserRoles = EnterpriseOrgUserRoles;
+/** @deprecated Use EnterpriseOrgUserRoles instead */
+export type CloudOrgUserRoles = EnterpriseOrgUserRoles;
+
+export enum ProjectRoles {
+  OWNER = 'owner',
+  CREATOR = 'creator',
+  INHERIT = 'inherit',
+  EDITOR = 'editor',
+  COMMENTER = 'commenter',
+  VIEWER = 'viewer',
+  NO_ACCESS = 'no-access',
+}
+
+export enum WorkspaceUserRoles {
+  OWNER = 'workspace-level-owner',
+  CREATOR = 'workspace-level-creator',
+  INHERIT = 'workspace-level-inherit',
+  EDITOR = 'workspace-level-editor',
+  COMMENTER = 'workspace-level-commenter',
+  VIEWER = 'workspace-level-viewer',
+  NO_ACCESS = 'workspace-level-no-access',
+}
+
+export enum TeamUserRoles {
+  MEMBER = 'member',
+  OWNER = 'owner',
+}
+
+export enum AppEvents {
+  PROJECT_CREATE = 'base.create',
+  PROJECT_INVITE = 'base.invite',
+  PROJECT_USER_UPDATE = 'base.user.update',
+  PROJECT_USER_RESEND_INVITE = 'base.user.resend.invite',
+  PROJECT_TEAM_INVITE = 'base.team.invite',
+  PROJECT_TEAM_UPDATE = 'base.team.update',
+  PROJECT_TEAM_DELETE = 'base.team.delete',
+  PROJECT_DELETE = 'base.delete',
+  PROJECT_UPDATE = 'base.update',
+  PROJECT_CLONE = 'base.clone',
+
+  WELCOME = 'app.welcome',
+
+  WORKSPACE_USER_INVITE = 'workspace.invite',
+  WORKSPACE_USER_UPDATE = 'workspace.user.update',
+  WORKSPACE_USER_DELETE = 'workspace.user.delete',
+  WORKSPACE_TEAM_INVITE = 'workspace.team.invite',
+  WORKSPACE_TEAM_UPDATE = 'workspace.team.update',
+  WORKSPACE_TEAM_DELETE = 'workspace.team.delete',
+  WORKSPACE_CREATE = 'workspace.create',
+  WORKSPACE_DELETE = 'workspace.delete',
+  WORKSPACE_UPDATE = 'workspace.update',
+  WORKSPACE_UPGRADE_REQUEST = 'workspace.upgrade.request',
+
+  SCIM_USER_PROVISION = 'scim.user.provision',
+  SCIM_USER_UPDATE = 'scim.user.update',
+  SCIM_USER_DEACTIVATE = 'scim.user.deactivate',
+  SCIM_USER_REACTIVATE = 'scim.user.reactivate',
+  SCIM_USER_DELETE = 'scim.user.delete',
+  SCIM_GROUP_PROVISION = 'scim.group.provision',
+  SCIM_GROUP_UPDATE = 'scim.group.update',
+  SCIM_GROUP_REPLACE = 'scim.group.replace',
+  SCIM_GROUP_DELETE = 'scim.group.delete',
+  SCIM_CONFIG_CREATE = 'scim.config.create',
+  SCIM_CONFIG_UPDATE = 'scim.config.update',
+  SCIM_CONFIG_DISABLE = 'scim.config.disable',
+  SCIM_CONFIG_DELETE = 'scim.config.delete',
+  SCIM_CONFIG_TOKEN_REGENERATE = 'scim.config.token.regenerate',
+
+  SSO_CLIENT_CREATE = 'sso.client.create',
+  SSO_CLIENT_UPDATE = 'sso.client.update',
+  SSO_CLIENT_DELETE = 'sso.client.delete',
+
+  ORG_DOMAIN_ADD = 'org.domain.add',
+  ORG_DOMAIN_UPDATE = 'org.domain.update',
+  ORG_DOMAIN_DELETE = 'org.domain.delete',
+  ORG_DOMAIN_VERIFY = 'org.domain.verify',
+
+  WHITE_LABEL_UPDATE = 'white.label.update',
+
+  USER_SIGNUP = 'user.signup',
+  USER_SIGNIN = 'user.signin',
+  USER_SIGNIN_FAILED = 'user.signin.failed',
+  USER_INVITE = 'user.invite',
+  USER_UPDATE = 'user.update',
+  USER_PASSWORD_RESET = 'user.password.reset',
+  USER_PASSWORD_CHANGE = 'user.password.change',
+  USER_PASSWORD_FORGOT = 'user.password.forgot',
+  USER_DELETE = 'user.delete',
+  USER_EMAIL_VERIFICATION = 'user.email.verification',
+  USER_MFA_SETUP = 'user.mfa.setup',
+  USER_MFA_ENABLED = 'user.mfa.enabled',
+  USER_MFA_DISABLED = 'user.mfa.disabled',
+  USER_MFA_VERIFY = 'user.mfa.verify',
+  USER_MFA_BACKUP_CODE_USED = 'user.mfa.backup.code.used',
+
+  TEAM_CREATE = 'team.create',
+  TEAM_UPDATE = 'team.update',
+  TEAM_DELETE = 'team.delete',
+  TEAM_MEMBER_ADD = 'team.member.add',
+  TEAM_MEMBER_UPDATE = 'team.member.update',
+  TEAM_MEMBER_DELETE = 'team.member.delete',
+  TEAM_MOVE = 'team.move',
+
+  TABLE_CREATE = 'table.create',
+  TABLE_DELETE = 'table.delete',
+  TABLE_UPDATE = 'table.update',
+
+  VIEW_CREATE = 'view.create',
+  VIEW_DELETE = 'view.delete',
+  VIEW_UPDATE = 'view.update',
+
+  SHARED_VIEW_CREATE = 'shared.view.create',
+  SHARED_VIEW_DELETE = 'shared.view.delete',
+  SHARED_VIEW_UPDATE = 'shared.view.update',
+
+  FILTER_CREATE = 'filter.create',
+  FILTER_DELETE = 'filter.delete',
+  FILTER_UPDATE = 'filter.update',
+
+  SORT_CREATE = 'sort.create',
+  SORT_DELETE = 'sort.delete',
+  SORT_UPDATE = 'sort.update',
+
+  COLUMN_CREATE = 'column.create',
+  COLUMN_DELETE = 'column.delete',
+  COLUMN_UPDATE = 'column.update',
+
+  DATA_CREATE = 'data.create',
+  DATA_DELETE = 'data.delete',
+  DATA_UPDATE = 'data.update',
+
+  ORG_USER_INVITE = 'org.user.invite',
+  ORG_USER_RESEND_INVITE = 'org.user.resend.invite',
+  ORG_USER_UPDATE = 'org.user.update',
+  ORG_USER_DELETE = 'org.user.delete',
+  ORG_USER_ADD = 'org.user.add',
+  ORG_USER_REMOVE = 'org.user.remove',
+  ORG_WORKSPACE_ADD = 'org.workspace.add',
+  ORG_WORKSPACE_REMOVE = 'org.workspace.remove',
+
+  VIEW_COLUMN_CREATE = 'view.column.create',
+  VIEW_COLUMN_UPDATE = 'view.column.update',
+
+  API_TOKEN_CREATE = 'api.token.create',
+  API_TOKEN_DELETE = 'api.token.delete',
+  API_TOKEN_UPDATE = 'api.token.update',
+  IMAGE_UPLOAD = 'image.upload',
+
+  FORM_COLUMN_UPDATE = 'form.column.update',
+
+  FORM_CREATE = 'form.create',
+  FORM_UPDATE = 'form.update',
+
+  GALLERY_CREATE = 'gallery.create',
+  GALLERY_UPDATE = 'gallery.update',
+
+  MAP_CREATE = 'map.create',
+  MAP_UPDATE = 'map.update',
+  MAP_DELETE = 'map.delete',
+
+  KANBAN_CREATE = 'kanban.create',
+  KANBAN_UPDATE = 'kanban.update',
+
+  META_DIFF_SYNC = 'meta.diff.sync',
+
+  GRID_CREATE = 'grid.create',
+  GRID_UPDATE = 'grid.update',
+
+  GRID_COLUMN_UPDATE = 'grid.column.update',
+
+  WEBHOOK_CREATE = 'webhook.create',
+  WEBHOOK_UPDATE = 'webhook.update',
+  WEBHOOK_DELETE = 'webhook.delete',
+  WEBHOOK_TEST = 'webhook.test',
+  WEBHOOK_TRIGGER = 'webhook.trigger',
+
+  UI_ACL_UPDATE = 'ui.acl.update',
+
+  ORG_API_TOKEN_CREATE = 'org.api.token.create',
+  ORG_API_TOKEN_DELETE = 'org.api.token.delete',
+  ORG_API_TOKEN_UPDATE = 'org.api.token.update',
+
+  PLUGIN_TEST = 'plugin.test',
+  PLUGIN_INSTALL = 'plugin.install',
+  PLUGIN_UNINSTALL = 'plugin.uninstall',
+
+  SYNC_SOURCE_CREATE = 'sync.source.create',
+  SYNC_SOURCE_UPDATE = 'sync.source.update',
+  SYNC_SOURCE_DELETE = 'sync.source.delete',
+
+  RELATION_DELETE = 'relation.delete',
+  RELATION_CREATE = 'relation.create',
+
+  SHARED_BASE_GENERATE_LINK = 'shared.base.generate.link',
+  SHARED_BASE_DELETE_LINK = 'shared.base.delete.link',
+
+  ATTACHMENT_UPLOAD = 'attachment.upload',
+
+  APIS_CREATED = 'apis.created',
+
+  EXTENSION_CREATE = 'extension.create',
+  EXTENSION_UPDATE = 'extension.update',
+  EXTENSION_DELETE = 'extension.delete',
+
+  COMMENT_CREATE = 'comment.create',
+  COMMENT_DELETE = 'comment.delete',
+  COMMENT_UPDATE = 'comment.update',
+  INTEGRATION_DELETE = 'integration.delete',
+  INTEGRATION_CREATE = 'integration.create',
+  INTEGRATION_UPDATE = 'integration.update',
+
+  ROW_USER_MENTION = 'row.user.mention',
+  ROW_LMT_TOUCHED = 'row.lmt.touched',
+  CALENDAR_CREATE = 'calendar.create',
+  TIMELINE_CREATE = 'timeline.create',
+  FORM_DUPLICATE = 'form.duplicate',
+  CALENDAR_UPDATE = 'calendar.update',
+  TIMELINE_UPDATE = 'timeline.update',
+  CALENDAR_DELETE = 'calendar.delete',
+  TIMELINE_DELETE = 'timeline.delete',
+  GANTT_CREATE = 'gantt.create',
+  GANTT_UPDATE = 'gantt.update',
+  GANTT_DELETE = 'gantt.delete',
+  FORM_DELETE = 'form.delete',
+
+  SOURCE_CREATE = 'source.create',
+  SOURCE_UPDATE = 'source.update',
+  SOURCE_DELETE = 'source.delete',
+  SHARED_BASE_REVOKE_LINK = 'shared.base.revoke.link',
+  GRID_DELETE = 'grid.delete',
+  GRID_DUPLICATE = 'grid.duplicate',
+  KANBAN_DELETE = 'kanban.delete',
+  KANBAN_DUPLICATE = 'kanban.duplicate',
+  GALLERY_DELETE = 'gallery.delete',
+  GALLERY_DUPLICATE = 'gallery.duplicate',
+
+  LIST_CREATE = 'list.create',
+  LIST_UPDATE = 'list.update',
+  LIST_DELETE = 'list.delete',
+
+  BASE_DUPLICATE_START = 'base.duplicate.start',
+  BASE_DUPLICATE_COMPLETE = 'base.duplicate.complete',
+  BASE_DUPLICATE_FAIL = 'base.duplicate.fail',
+
+  TABLE_DUPLICATE_START = 'table.duplicate.start',
+  TABLE_DUPLICATE_COMPLETE = 'table.duplicate.complete',
+  TABLE_DUPLICATE_FAIL = 'table.duplicate.fail',
+
+  COLUMN_DUPLICATE_START = 'column.duplicate.start',
+  COLUMN_DUPLICATE_COMPLETE = 'column.duplicate.complete',
+  COLUMN_DUPLICATE_FAIL = 'column.duplicate.fail',
+
+  VIEW_DUPLICATE_START = 'view.duplicate.start',
+  VIEW_DUPLICATE_COMPLETE = 'view.duplicate.complete',
+  VIEW_DUPLICATE_FAIL = 'view.duplicate.fail',
+  USER_SIGNOUT = 'user.signout',
+  PROJECT_USER_DELETE = 'base.user.delete',
+  UI_ACL = 'model.role.ui.acl',
+
+  SNAPSHOT_CREATE = 'snapshot.create',
+  SNAPSHOT_DELETE = 'snapshot.delete',
+  SNAPSHOT_RESTORE = 'snapshot.restore',
+
+  DATA_EXPORT = 'data.export',
+  DATA_IMPORT = 'data.import',
+  USER_PROFILE_UPDATE = 'user.profile.update',
+
+  SCRIPT_CREATE = 'script.create',
+  SCRIPT_DELETE = 'script.delete',
+  SCRIPT_UPDATE = 'script.update',
+  SCRIPT_DUPLICATE = 'script.duplicate',
+
+  DASHBOARD_CREATE = 'dashboard.create',
+  DASHBOARD_UPDATE = 'dashboard.update',
+  DASHBOARD_DELETE = 'dashboard.delete',
+
+  SHARED_DASHBOARD_GENERATE_LINK = 'shared.dashboard.generate.link',
+  SHARED_DASHBOARD_UPDATE_LINK = 'shared.dashboard.update.link',
+  SHARED_DASHBOARD_DELETE_LINK = 'shared.dashboard.delete.link',
+
+  DASHBOARD_DUPLICATE_START = 'dashboard.duplicate.start',
+  DASHBOARD_DUPLICATE_COMPLETE = 'dashboard.duplicate.complete',
+  DASHBOARD_DUPLICATE_FAIL = 'dashboard.duplicate.fail',
+
+  TABLE_SYNC_CREATE = 'tableSync.create',
+  TABLE_SYNC_UPDATE = 'tableSync.update',
+  TABLE_SYNC_DELETE = 'tableSync.delete',
+  TABLE_SYNC_FREEZE = 'tableSync.freeze',
+  TABLE_SYNC_RESUME = 'tableSync.resume',
+  TABLE_SYNC_RESYNC = 'tableSync.resync',
+
+  WIDGET_CREATE = 'widget.create',
+  WIDGET_UPDATE = 'widget.update',
+  WIDGET_DELETE = 'widget.delete',
+  WIDGET_DUPLICATE = 'widget.duplicate',
+
+  PERMISSION_CREATE = 'permission.create',
+  PERMISSION_UPDATE = 'permission.update',
+  PERMISSION_DELETE = 'permission.delete',
+
+  WORKFLOW_CREATE = 'workflow.create',
+  WORKFLOW_UPDATE = 'workflow.update',
+  WORKFLOW_DELETE = 'workflow.delete',
+  WORKFLOW_DUPLICATE = 'workflow.duplicate',
+  WORKFLOW_EXECUTE = 'workflow.execute',
+
+  BOOKMARK_CREATE = 'bookmark.create',
+  BOOKMARK_DELETE = 'bookmark.delete',
+  BOOKMARK_MOVE = 'bookmark.move',
+  BOOKMARK_GROUP_CREATE = 'bookmark.group.create',
+  BOOKMARK_GROUP_DELETE = 'bookmark.group.delete',
+
+  SANDBOX_CREATE = 'sandbox.create',
+  SANDBOX_DELETE = 'sandbox.delete',
+  SANDBOX_DISCARD = 'sandbox.discard',
+  SANDBOX_MERGE = 'sandbox.merge',
+
+  RECORD_TEMPLATE_CREATE = 'record.template.create',
+  RECORD_TEMPLATE_UPDATE = 'record.template.update',
+  RECORD_TEMPLATE_DELETE = 'record.template.delete',
+  RECORD_TEMPLATE_USE = 'record.template.use',
+
+  RLS_POLICY_CREATE = 'rls_policy.create',
+  RLS_POLICY_UPDATE = 'rls_policy.update',
+  RLS_POLICY_DELETE = 'rls_policy.delete',
+
+  VIEW_SECTION_CREATE = 'viewSection.create',
+  VIEW_SECTION_UPDATE = 'viewSection.update',
+  VIEW_SECTION_DELETE = 'viewSection.delete',
+
+  CHAT_SESSION_CREATE = 'chat.session.create',
+  CHAT_SESSION_UPDATE = 'chat.session.update',
+  CHAT_SESSION_DELETE = 'chat.session.delete',
+  CHAT_MESSAGE_CREATE = 'chat.message.create',
+  CHAT_TOOL_EXECUTE = 'chat.tool.execute',
+
+  DOC_AI_COMPLETION = 'doc.ai.completion',
+
+  DOCUMENT_CREATE = 'document.create',
+  DOCUMENT_UPDATE = 'document.update',
+  DOCUMENT_DELETE = 'document.delete',
+  DOCUMENT_USER_MENTION = 'document.user.mention',
+  DOCUMENT_REVISION_RESTORE = 'document.revision.restore',
+
+  DOCUMENT_PUBLIC_SHARE_CREATE = 'document.public_share.create',
+  DOCUMENT_PUBLIC_SHARE_UPDATE = 'document.public_share.update',
+  DOCUMENT_PUBLIC_SHARE_DELETE = 'document.public_share.delete',
+
+  DOCUMENT_COMMENT_CREATE = 'document.comment.create',
+  DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
+  DOCUMENT_COMMENT_DELETE = 'document.comment.delete',
+
+  DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
+  DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
+
+  RECORDS_SOFT_DELETE = 'records.soft.delete',
+  RECORDS_RESTORE = 'records.restore',
+  RECORDS_PERMANENT_DELETE = 'records.permanent.delete',
+
+  RESOURCE_RESTORE = 'resource.restore',
+  RESOURCE_PERMANENT_DELETE = 'resource.permanent_delete',
+
+  BASE_VARIABLE_CREATE = 'baseVariable.create',
+  BASE_VARIABLE_UPDATE = 'baseVariable.update',
+  BASE_VARIABLE_DELETE = 'baseVariable.delete',
+
+  MANAGED_APP_CREATE = 'managedApp.create',
+  MANAGED_APP_UPDATE = 'managedApp.update',
+  MANAGED_APP_DELETE = 'managedApp.delete',
+  MANAGED_APP_PUBLISH = 'managedApp.publish',
+  MANAGED_APP_INSTALL = 'managedApp.install',
+  MANAGED_APP_UPDATE_START = 'managedApp.update.start',
+  MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
+  MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
+}
+
+export enum ClickhouseTables {
+  API_CALLS = 'usage_api_calls',
+  API_COUNT = 'usage_api_count',
+  NOTIFICATION = 'nc_notification',
+  PAGE_SNAPSHOT = 'docs_page_snapshot',
+  TELEMETRY = 'usage_telemetry',
+  AUDIT = 'nc_audit',
+}
+
+export enum WorkspaceStatus {
+  CREATING,
+  CREATED,
+  DELETING,
+  DELETED,
+  FAILED,
+}
+
+export enum WorkspacePlan {
+  FREE = 'free',
+  TEAM = 'team',
+  BUSINESS = 'business',
+}
+
+export const RoleLabels = {
+  [WorkspaceUserRoles.OWNER]: 'owner',
+  [WorkspaceUserRoles.CREATOR]: 'creator',
+  [WorkspaceUserRoles.EDITOR]: 'editor',
+  [WorkspaceUserRoles.COMMENTER]: 'commenter',
+  [WorkspaceUserRoles.VIEWER]: 'viewer',
+  [WorkspaceUserRoles.INHERIT]: 'inherit',
+  [WorkspaceUserRoles.NO_ACCESS]: 'noaccess',
+  [ProjectRoles.OWNER]: 'owner',
+  [ProjectRoles.CREATOR]: 'creator',
+  [ProjectRoles.EDITOR]: 'editor',
+  [ProjectRoles.COMMENTER]: 'commenter',
+  [ProjectRoles.VIEWER]: 'viewer',
+  [ProjectRoles.INHERIT]: 'inherit',
+  [ProjectRoles.NO_ACCESS]: 'noaccess',
+  [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
+  [OrgUserRoles.CREATOR]: 'creator',
+  [OrgUserRoles.VIEWER]: 'viewer',
+  [CloudOrgUserRoles.OWNER]: 'orgAdmin',
+  [CloudOrgUserRoles.CREATOR]: 'orgCreator',
+  [CloudOrgUserRoles.VIEWER]: 'orgViewer',
+};
+
+export const RoleColors = {
+  [WorkspaceUserRoles.OWNER]: 'purple',
+  [WorkspaceUserRoles.CREATOR]: 'blue',
+  [WorkspaceUserRoles.EDITOR]: 'green',
+  [WorkspaceUserRoles.COMMENTER]: 'orange',
+  [WorkspaceUserRoles.VIEWER]: 'yellow',
+  [WorkspaceUserRoles.INHERIT]: 'gray',
+  [WorkspaceUserRoles.NO_ACCESS]: 'red',
+  [ProjectRoles.OWNER]: 'purple',
+  [ProjectRoles.CREATOR]: 'blue',
+  [ProjectRoles.EDITOR]: 'green',
+  [ProjectRoles.COMMENTER]: 'orange',
+  [ProjectRoles.VIEWER]: 'yellow',
+  [ProjectRoles.INHERIT]: 'gray',
+  [OrgUserRoles.SUPER_ADMIN]: 'maroon',
+  [ProjectRoles.NO_ACCESS]: 'red',
+  [OrgUserRoles.CREATOR]: 'blue',
+  [OrgUserRoles.VIEWER]: 'yellow',
+  [CloudOrgUserRoles.OWNER]: 'purple',
+  [CloudOrgUserRoles.CREATOR]: 'blue',
+  [CloudOrgUserRoles.VIEWER]: 'yellow',
+};
+
+export const RoleDescriptions = {
+  [WorkspaceUserRoles.OWNER]:
+    'Has full control over all workspace bases, settings, and billing',
+  [WorkspaceUserRoles.CREATOR]:
+    'Can create, configure, and edit all bases within the workspace',
+  [WorkspaceUserRoles.EDITOR]:
+    'Can add, edit, and delete records, but cannot modify base configurations',
+  [WorkspaceUserRoles.COMMENTER]:
+    'Can view and comment on records within workspace bases',
+  [WorkspaceUserRoles.VIEWER]: 'Can only view records within workspace bases',
+  [WorkspaceUserRoles.INHERIT]:
+    'Inherits role from workspace-level team assignment',
+  [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
+
+  [ProjectRoles.OWNER]:
+    'Has full control over the base, including configuration and deletion rights',
+  [ProjectRoles.CREATOR]: 'Can fully configure the base but cannot delete it',
+  [ProjectRoles.EDITOR]:
+    'Can add, edit, and delete records, but cannot modify base configurations',
+  [ProjectRoles.COMMENTER]: 'Can view and comment on records within the base',
+  [ProjectRoles.VIEWER]: 'Can only view records within the base',
+  [ProjectRoles.INHERIT]:
+    'Inherits role from base-level team, or workspace level if no base-level team',
+  [ProjectRoles.NO_ACCESS]: 'No access to this base',
+
+  [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
+  [OrgUserRoles.CREATOR]: 'Can fully configure and edit bases',
+  [OrgUserRoles.VIEWER]: 'Can only view records in bases',
+
+  [CloudOrgUserRoles.OWNER]: 'Full access to organization and workspaces',
+  [CloudOrgUserRoles.CREATOR]:
+    'Can create and manage domains, users and workspaces',
+  [CloudOrgUserRoles.VIEWER]: 'Can only view organization and workspaces',
+};
+
+export const RoleIcons = {
+  [WorkspaceUserRoles.OWNER]: 'role_owner',
+  [WorkspaceUserRoles.CREATOR]: 'role_creator',
+  [WorkspaceUserRoles.EDITOR]: 'role_editor',
+  [WorkspaceUserRoles.COMMENTER]: 'role_commenter',
+  [WorkspaceUserRoles.VIEWER]: 'role_viewer',
+  [WorkspaceUserRoles.INHERIT]: 'role_inherit',
+  [WorkspaceUserRoles.NO_ACCESS]: 'role_no_access',
+  [ProjectRoles.OWNER]: 'role_owner',
+  [ProjectRoles.CREATOR]: 'role_creator',
+  [ProjectRoles.EDITOR]: 'role_editor',
+  [ProjectRoles.COMMENTER]: 'role_commenter',
+  [ProjectRoles.VIEWER]: 'role_viewer',
+  [ProjectRoles.INHERIT]: 'role_inherit',
+  [ProjectRoles.NO_ACCESS]: 'role_no_access',
+  [OrgUserRoles.SUPER_ADMIN]: 'role_super',
+  [OrgUserRoles.CREATOR]: 'role_creator',
+  [OrgUserRoles.VIEWER]: 'role_viewer',
+
+  [CloudOrgUserRoles.OWNER]: 'role_owner',
+  [CloudOrgUserRoles.CREATOR]: 'role_creator',
+  [CloudOrgUserRoles.VIEWER]: 'role_viewer',
+};
+
+export const WorkspaceRolesToProjectRoles = {
+  [WorkspaceUserRoles.OWNER]: ProjectRoles.OWNER,
+  [WorkspaceUserRoles.CREATOR]: ProjectRoles.CREATOR,
+  [WorkspaceUserRoles.EDITOR]: ProjectRoles.EDITOR,
+  [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
+  [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
+  [WorkspaceUserRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
+  [WorkspaceUserRoles.INHERIT]: ProjectRoles.INHERIT,
+};
+
+export const OrderedWorkspaceRoles = [
+  WorkspaceUserRoles.OWNER,
+  WorkspaceUserRoles.CREATOR,
+  WorkspaceUserRoles.INHERIT,
+  WorkspaceUserRoles.EDITOR,
+  WorkspaceUserRoles.COMMENTER,
+  WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.NO_ACCESS,
+];
+
+export const OrderedOrgRoles = [
+  OrgUserRoles.SUPER_ADMIN,
+  OrgUserRoles.CREATOR,
+  OrgUserRoles.VIEWER,
+];
+
+export const OrderedProjectRoles = [
+  ProjectRoles.OWNER,
+  ProjectRoles.CREATOR,
+  ProjectRoles.INHERIT,
+  ProjectRoles.EDITOR,
+  ProjectRoles.COMMENTER,
+  ProjectRoles.VIEWER,
+  ProjectRoles.NO_ACCESS,
+];
+
+export enum APIContext {
+  VIEW_COLUMNS = 'fields',
+  FILTERS = 'filters',
+  SORTS = 'sorts',
+}
+
+export enum SourceRestriction {
+  SCHEMA_READONLY = 'is_schema_readonly',
+  DATA_READONLY = 'is_data_readonly',
+}
+
+export enum ClientType {
+  MYSQL = 'mysql2',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+  MSSQL = 'mssql',
+  SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
+}
+
+export enum SSLUsage {
+  No = 'No',
+  Allowed = 'Allowed',
+  Preferred = 'Preferred',
+  Required = 'Required',
+  RequiredWithCa = 'Required-CA',
+  RequiredWithIdentity = 'Required-Identity',
+}
+
+export enum SyncDataType {
+  // Database
+  NOCODB = 'nocodb',
+  MICROSOFT_ACCESS = 'microsoft-access',
+  TABLEAU = 'tableau',
+  // AI
+  OPENAI = 'openai',
+  CLAUDE = 'claude',
+  OLLAMA = 'ollama',
+  GROQ = 'groq',
+  // Communication
+  SLACK = 'slack',
+  DISCORD = 'discord',
+  TWILLO = 'twillo',
+  MICROSOFT_OUTLOOK = 'microsoft-outlook',
+  MICROSOFT_TEAMS = 'microsoft-teams',
+  TELEGRAM = 'telegram',
+  GMAIL = 'gmail',
+  WHATSAPP = 'whatsapp',
+  // Project Management
+  ASANA = 'asana',
+  JIRA = 'jira',
+  MIRO = 'miro',
+  TRELLO = 'trello',
+  // CRM
+  SALESFORCE = 'salesforce',
+  PIPEDRIVE = 'pipedrive',
+  MICROSOFT_DYNAMICS_365 = 'microsoft-dynamics-365',
+  ZOHO_CRM = 'zoho-crm',
+  // Marketing
+  HUBSPOT = 'hubspot',
+  MAILCHIMP = 'mailchimp',
+  SURVEYMONKEY = 'surveymonkey',
+  TYPEFORM = 'typeform',
+  // ATS
+  WORKDAY = 'workday',
+  GREENHOUSE = 'greenhouse',
+  LEVER = 'lever',
+  // Development
+  GITHUB = 'github',
+  GITLAB = 'gitlab',
+  BITBUCKET = 'bitbucket',
+  // Finance
+  STRIPE = 'stripe',
+  QUICKBOOKS = 'quickbooks',
+  // Ticketing
+  FRESHDESK = 'freshdesk',
+  INTERCOM = 'intercom',
+  ZENDESK = 'zendesk',
+  HUBSPOT_SERVICE_HUB = 'hubspot-service-hub',
+  SALESFORCE_SERVICE_CLOUD = 'salesforce-service-cloud',
+  // Storage
+  BOX = 'box',
+  GOOGLE_DRIVE = 'google-drive',
+  DROPBOX = 'dropbox',
+  // Others
+  APPLE_NUMBERS = 'apple-numbers',
+  GOOGLE_CALENDAR = 'google-calendar',
+  MICROSOFT_EXCEL = 'microsoft-excel',
+  GOOGLE_SHEETS = 'google-sheets',
+}
+
+export enum IntegrationCategoryType {
+  DATABASE = 'database',
+  AI = 'ai',
+  COMMUNICATION = 'communication',
+  SPREAD_SHEET = 'spread-sheet',
+  PROJECT_MANAGEMENT = 'project-management',
+  CRM = 'crm',
+  MARKETING = 'marketing',
+  ATS = 'ats',
+  DEVELOPMENT = 'development',
+  FINANCE = 'finance',
+  TICKETING = 'ticketing',
+  STORAGE = 'storage',
+  OTHERS = 'others',
+  SYNC = 'sync',
+  AUTH = 'auth',
+}
+
+export enum ViewLockType {
+  Personal = 'personal',
+  Locked = 'locked',
+  Collaborative = 'collaborative',
+}
+
+export enum PublicAttachmentScope {
+  WORKSPACEPICS = 'workspacePics',
+  PROFILEPICS = 'profilePics',
+  ORGANIZATIONPICS = 'organizationPics',
+  OAUTHCLIENTS = 'oauthClients',
+  WHITELABEL = 'whiteLabel',
+}
+
+export enum IconType {
+  IMAGE = 'IMAGE',
+  EMOJI = 'EMOJI',
+  ICON = 'ICON',
+}
+
+export enum NcApiVersion {
+  V1,
+  V2,
+  V3,
+}
+
+export enum HookOperationCode {
+  insert = 1 << 0, // 1
+  update = 1 << 1, // 2
+  delete = 1 << 2, // 4
+  trigger = 1 << 3, // 8
+}
+
+export enum WebhookActions {
+  INSERT = 'insert',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum WebhookEvents {
+  AFTER = 'after',
+  BEFORE = 'before',
+  MANUAL = 'manual',
+  VIEW = 'view',
+  FIELD = 'field',
+}
+
+export enum ViewSettingOverrideOptions {
+  FIELD_VISIBILITY = 'fieldVisibility',
+  FIELD_ORDER = 'fieldOrder',
+  COLUMN_WIDTH = 'columnWidth',
+  ROW_HEIGHT = 'rowHeight',
+  FILTER_CONDITION = 'filterCondition',
+  SORT = 'sort',
+  GROUP = 'group',
+  ROW_COLORING = 'rowColoring',
+}
+
+export enum MetaEventType {
+  COLUMN_ADDED = 'COLUMN_ADDED',
+  COLUMN_UPDATED = 'COLUMN_UPDATED',
+  COLUMN_DELETED = 'COLUMN_DELETED',
+  HOOK_DELETED = 'HOOK_DELETED',
+  FILTER_CREATED = 'FILTER_CREATED',
+  FILTER_UPDATED = 'FILTER_UPDATED',
+  FILTER_DELETED = 'FILTER_DELETED',
+  VIEW_UPDATED = 'VIEW_UPDATED',
+  VIEW_DELETED = 'VIEW_DELETED',
+  TABLE_DELETED = 'TABLE_DELETED',
+}
+
+export enum MetaEntityType {
+  BASE = 'BASE',
+  TABLE = 'TABLE',
+  COLUMN = 'COLUMN',
+  VIEW = 'VIEW',
+  FILTER = 'FILTER',
+  SORT = 'SORT',
+  VIEW_ROW_COLOR = 'VIEW_ROW_COLOR',
+}
+
+export enum MapProvider {
+  OPENSTREETMAP = 'openstreetmap',
+  STADIAMAP = 'stadiamap',
+  STADIAMAP_APIKEY = 'stadiamap_apikey',
+}
+
+/** Default org ID for on-prem deployments */
+export const NC_DEFAULT_ORG_ID = 'org_default';
+
+export enum OperationSource {
+  AT_IMPORT = 'at_import',
+  HOOKS = 'hooks',
+  EXTERNAL_DBS = 'external_dbs',
+  ATTACHMENTS = 'attachments',
+  SSO = 'sso',
+  MIGRATION = 'migration',
+  WORKFLOW = 'workflow',
+  PLUGINS = 'plugins',
+  SYNC = 'sync',
+}

@@ -1,0 +1,101 @@
+import { ColumnType } from './Api';
+import { testExtractFilterFromXwhere } from './filterHelpers_old.spec';
+import { extractFilterFromXwhere } from './filterHelpers_withparser';
+import UITypes from './UITypes';
+
+const context = { timezone: 'Asia/Calcutta' };
+
+testExtractFilterFromXwhere(
+  'filterHelpers_withparser',
+  (str, aliasColObjMap, throwErrorIfInvalid) => {
+    return extractFilterFromXwhere(context, {
+      str,
+      aliasColObjMap,
+      throwErrorIfInvalid,
+    });
+  }
+);
+
+describe('filterHelpers_withparser_specific', () => {
+  describe('extractFilterFromXwhere', () => {
+    describe('logical', () => {
+      it('will parse basic logical query', () => {
+        // isWithin need to have specific suboperator :|
+        const query = '(Date,isWithin,pastMonth)~and(Name,like,Hello)';
+        const columnAlias: Record<string, ColumnType> = {
+          Date: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Date',
+            uidt: UITypes.DateTime,
+          },
+          Name: {
+            id: 'field2',
+            column_name: 'col2',
+            title: 'Name',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere(context, {
+          str: query,
+          aliasColObjMap: columnAlias,
+        });
+        expect(result).toBeDefined();
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].children?.[1].logical_op).toBe('and');
+      });
+      it('will parse nested logical query', () => {
+        // isWithin need to have specific suboperator :|
+        const query =
+          '(Date,isWithin,pastMonth)~or((Name,like,Hello)~and(Name,like,World))';
+        const columnAlias: Record<string, ColumnType> = {
+          Date: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Date',
+            uidt: UITypes.DateTime,
+          },
+          Name: {
+            id: 'field2',
+            column_name: 'col2',
+            title: 'Name',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere(context, {
+          str: query,
+          aliasColObjMap: columnAlias,
+        });
+        expect(result).toBeDefined();
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].children?.[1].logical_op).toBe('or');
+      });
+
+      it('will parse multiselect with ~or connection', () => {
+        const query = '(fMultiSelect,allof,jun)~or(fMultiSelect,allof,may)';
+
+        const columnAlias: Record<string, ColumnType> = {
+          fMultiSelect: {
+            id: 'field1',
+            column_name: 'fMultiSelect',
+            title: 'fMultiSelect',
+            uidt: UITypes.MultiSelect,
+          },
+        };
+
+        const result = extractFilterFromXwhere(context, {
+          str: query,
+          aliasColObjMap: columnAlias,
+        });
+        expect(result).toBeDefined();
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].children?.[1].logical_op).toBe('or');
+      });
+    });
+  });
+});

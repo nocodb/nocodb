@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JetBrains/web-types/master/v2-preview/web-types.json",
+  "name": "nc-gui",
+  "framework": "vue",
+  "version": "1.0.0",
+  "contributions": {
+    "html": {
+      "vue-directives": [
+        {
+          "name": "e",
+          "description": "Telemetry directive"
+        },
+        {
+          "name": "t",
+          "description": "I18n directive"
+        },
+        {
+          "name": "xc-ver-resize",
+          "description": "Resize directive"
+        }
+      ]
+    }
+  }
+}

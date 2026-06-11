@@ -1,0 +1,44 @@
+<script setup lang="ts">
+const { theme = 'dark' } = defineProps<{
+  tooltipStyle: any
+  theme?: 'light' | 'dark'
+}>()
+const store = useTooltipStore()
+const { tooltipText } = storeToRefs(store)
+</script>
+
+<template>
+  <div class="tooltip" :class="[`tooltip-${theme}`]" :style="tooltipStyle">
+    <component :is="tooltipText" v-if="!ncIsString(tooltipText)" />
+    <template v-else>{{ tooltipText }}</template>
+  </div>
+</template>
+
+<style lang="scss">
+.tooltip {
+  @apply pointer-events-none px-2 py-1 max-w-[250px] rounded-lg text-xs whitespace-pre-line break-words;
+  z-index: 1000;
+}
+
+.tooltip.hidden {
+  @apply invisible;
+}
+
+.tooltip-dark {
+  @apply bg-gray-800 text-white dark:!bg-[#3a3f4b];
+}
+
+.tooltip-light {
+  @apply bg-nc-bg-gray-medium text-nc-content-gray;
+}
+
+.tooltip-enter-active,
+.tooltip-leave-active {
+  @apply transition-opacity duration-150 ease-in-out;
+}
+
+.tooltip-enter-from,
+.tooltip-leave-to {
+  @apply opacity-0;
+}
+</style>

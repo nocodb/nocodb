@@ -1,0 +1,388 @@
+import { NcErrorType } from 'nocodb-sdk';
+import { DBError } from './utils';
+import type { Logger } from '@nestjs/common';
+import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+
+const REGEX_DATE_TIME_OUT_OF_RANGE =
+  /date\/time field value out of range:\s*(.*)$/;
+
+/**
+ * Pull the raw Postgres message out of a Knex-wrapped error.
+ *
+ * Knex wraps PG errors into `Error('<sql query> - <original-message>')`,
+ * but preserves the pg-protocol error at `error.original` (knex-pg) or
+ * `error.nativeError` (some drivers). Prefer those when present so the
+ * user doesn't see a SQL fragment prepended to their RAISE EXCEPTION
+ * text. Falls back to splitting on the ` - ` separator Knex uses.
+ */
+function pgRawMessage(error: any): string | undefined {
+  const inner = error?.original?.message ?? error?.nativeError?.message;
+  if (typeof inner === 'string' && inner.trim()) return inner.trim();
+  const raw = error?.message;
+  if (typeof raw !== 'string') return undefined;
+  // Strip the `<sql query> - ` prefix Knex prepends. The SQL portion
+  // always begins with a recognisable verb; only strip when we see one
+  // to avoid mangling messages that legitimately contain ` - `. Use
+  // the FIRST ` - ` after the SQL verb so a user-authored RAISE
+  // EXCEPTION message that itself contains ` - ` survives intact.
+  const sqlPrefix =
+    /^\s*(insert|update|delete|select|alter|drop|create|with)\s+/i;
+  if (sqlPrefix.test(raw)) {
+    const idx = raw.indexOf(' - ');
+    if (idx >= 0) return raw.slice(idx + 3).trim();
+  }
+  return raw.trim();
+}
+
+export class PgDBErrorExtractor implements IClientDbErrorExtractor {
+  constructor(
+    private readonly option?: {
+      dbErrorLogger?: Logger;
+    },
+  ) {}
+
+  extract(error: any): DBErrorExtractResult {
+    if (!error.code) return;
+
+    let message: string;
+    let _extra: Record<string, any>;
+    let _type: DBError;
+    let httpStatus = 422;
+
+    // todo: handle not null constraint error for all databases
+    switch (error.code) {
+      // postgres errors
+      case '22008': {
+        const matchedMessage = error.message.match(
+          REGEX_DATE_TIME_OUT_OF_RANGE,
+        )?.[0];
+        message = matchedMessage
+          ? `${matchedMessage[0].toUpperCase()}${matchedMessage.substring(1)}`
+          : 'Date/time field value out of range';
+        break;
+      }
+      case '23505': {
+        message = 'This record already exists.';
+        _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+
+        // Extract column name and duplicate value from error detail
+        // PostgreSQL error detail format: "Key ("Text_7")=(a) already exists."
+        const errorDetail = error?.detail || '';
+        let columnName: string | undefined;
+        let duplicateValue: string | undefined;
+
+        if (errorDetail) {
+          // Extract column name from pattern: Key ("column_name")= or Key (column_name)=
+          const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
+          if (columnNameMatch) {
+            // Remove surrounding quotes if present and get first column if composite
+            columnName = columnNameMatch[1]
+              .split(',')[0]
+              .trim()
+              .replace(/^["']|["']$/g, '');
+          }
+
+          // Extract duplicate value from pattern: Key (...)=(value)
+          const valueMatch = errorDetail.match(
+            /Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/,
+          );
+          if (valueMatch) {
+            // Remove surrounding quotes if present
+            duplicateValue = valueMatch[1].trim().replace(/^["']|["']$/g, '');
+          }
+        }
+
+        // Include extracted information in _extra if available
+        if (columnName || duplicateValue) {
+          _extra = {};
+          if (columnName) {
+            _extra.column = columnName;
+          }
+          if (duplicateValue !== undefined) {
+            _extra.value = duplicateValue;
+          }
+
+          // Update message to be more descriptive if we have column info
+          if (columnName) {
+            if (
+              duplicateValue === 'unknown' ||
+              duplicateValue === undefined ||
+              duplicateValue === null
+            ) {
+              message = `${columnName} field unique constraint violation.`;
+            } else {
+              message = `${columnName} field unique constraint violation. Value '${duplicateValue}' already exists.`;
+            }
+          }
+        }
+
+        // Note: This is a fallback message. If handleUniqueConstraintError is called
+        // before this extractor, it will throw UniqueConstraintViolationError with
+        // proper field name. This extractor only processes errors that weren't
+        // handled by handleUniqueConstraintError.
+        break;
+      }
+      case '42601':
+        message = 'There was a syntax error in your SQL query.';
+        break;
+      case '23502': {
+        // not_null_violation. Surface the generic message and expose the
+        // offending column via `details.column` so downstream consumers
+        // (e.g. the data-import error formatter) can decorate it with
+        // a "(column: X)" suffix without us having to know the row.
+        // Postgres sets `error.column` directly; fall back to the
+        // standard PG message form
+        //   null value in column "X" of relation "Y" violates not-null constraint
+        // if the driver omits it.
+        let column: string | undefined = error.column;
+        if (!column && error.message) {
+          const m = error.message.match(/null value in column "([^"]+)"/i);
+          if (m) column = m[1];
+        }
+        message = 'A value is required for this field.';
+        _type = DBError.COLUMN_NOT_NULL;
+        if (column) _extra = { column };
+        break;
+      }
+      case '23503': {
+        // foreign_key_violation. Fires on INSERT/UPDATE when the target
+        // row doesn't exist, and on DELETE when this row is referenced.
+        // PG sets `error.constraint`; `error.detail` carries the offending
+        // key/value: `Key (fk_id)=(123) is not present in table "y".`
+        // Strip the physical table reference (the PG name is internal —
+        // e.g. `nc_xyz___tasks`) but keep the key/value so the user can
+        // see which value they tried to insert/delete.
+        const constraint: string | undefined = error.constraint;
+        const detail = (error.detail || '').replace(
+          /\s*(?:in|from) table\s+"[^"]+"\.?/i,
+          '',
+        );
+        if (detail && /is not present/i.test(detail)) {
+          message = `Foreign-key violation: ${detail.trim()}.`;
+        } else if (detail && /is still referenced/i.test(detail)) {
+          message = `Cannot delete this record because other records depend on it. ${detail.trim()}.`;
+        } else {
+          message =
+            'Foreign-key constraint violation. Please verify the linked record exists.';
+        }
+        if (constraint) _extra = { constraint };
+        break;
+      }
+      case '23514': {
+        // check_violation. PG: `new row for relation "tasks" violates
+        // check constraint "tasks_priority_check"`. `error.constraint`
+        // carries the constraint name; `error.message` (or `error.hint`)
+        // carries any RAISE-style hint the schema author wrote.
+        const constraint: string | undefined = error.constraint;
+        const hint = error.hint;
+        if (hint) {
+          message = `Check constraint violated${
+            constraint ? ` ('${constraint}')` : ''
+          }: ${hint}`;
+        } else if (constraint) {
+          message = `Check constraint '${constraint}' violated.`;
+        } else {
+          message = error.message || 'Check constraint violation.';
+        }
+        if (constraint) _extra = { constraint };
+        break;
+      }
+      case 'P0001':
+      case 'P0002':
+      case 'P0003':
+      case 'P0004': {
+        // PL/pgSQL exceptions carry a user-authored message; surface it
+        // along with any HINT so schema-level guards reach the caller.
+        const raw = pgRawMessage(error);
+        message = [raw, error.hint].filter(Boolean).join(' — ');
+        if (!message) message = 'Database raised an exception.';
+        break;
+      }
+      case '22001':
+        message = 'The data entered is too long for this field.';
+        break;
+      case '22007':
+        message = 'The date / time value is invalid.';
+        break;
+      case '22011':
+        message = 'Negative substring length not allowed.';
+        break;
+      case '28000':
+        message = 'You do not have permission to perform this action.';
+        httpStatus = 401;
+        break;
+      case '40P01':
+        message = 'A timeout occurred while waiting for a table lock.';
+        httpStatus = 500;
+        break;
+      case '23506':
+        message = 'This record is being referenced by other records.';
+        break;
+      case '3D000':
+        message = 'The database does not exist.';
+        break;
+      case '42P07':
+        message = 'The table already exists.';
+        if (error.message) {
+          const extractTableNameMatch = error.message.match(
+            / relation "?(\w+)"? already exists/i,
+          );
+          if (extractTableNameMatch && extractTableNameMatch[1]) {
+            message = `The table '${extractTableNameMatch[1]}' already exists.`;
+            _type = DBError.TABLE_EXIST;
+            _extra = {
+              table: extractTableNameMatch[1],
+            };
+          }
+        }
+        break;
+      case '22P02': // PostgreSQL invalid_text_representation
+      case '22003': // PostgreSQL numeric_value_out_of_range
+        if (error.message) {
+          const regexCandidates = [
+            /invalid input syntax for (\w+): "(.+)"(?: in column "(\w+)")?/i,
+            /invalid input syntax for type (\w+): "([^"]+)"?/i,
+          ];
+
+          let matched = false;
+          for (const regExp of regexCandidates) {
+            const pgTypeMismatchMatch = error.message.match(regExp);
+            if (pgTypeMismatchMatch) {
+              const dataType = pgTypeMismatchMatch[1];
+              const invalidValue = pgTypeMismatchMatch[2];
+              const columnName = pgTypeMismatchMatch[3];
+
+              if (columnName) {
+                message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+              } else {
+                message = `Invalid value '${invalidValue}' for type '${dataType}'`;
+              }
+              _type = DBError.DATA_TYPE_MISMATCH;
+              _extra = { dataType, column: columnName, value: invalidValue };
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) {
+            const detailMatch = error.detail
+              ? error.detail.match(/Column (\w+)/)
+              : null;
+
+            const columnName =
+              detailMatch?.[1] ??
+              error.message.match(/ set\s+"([^"]+)"/)?.[1] ??
+              'unknown';
+            message = `Invalid data type or value for column '${columnName}'.`;
+            _type = DBError.DATA_TYPE_MISMATCH;
+            _extra = { column: columnName };
+          }
+        }
+        break;
+      case '42701':
+        message = 'The column already exists.';
+        if (error.message) {
+          const extractTableNameMatch = error.message.match(
+            / column "(\w+)" of relation "(\w+)" already exists/i,
+          );
+          if (extractTableNameMatch && extractTableNameMatch[1]) {
+            message = `The column '${extractTableNameMatch[1]}' already exists.`;
+            _type = DBError.COLUMN_EXIST;
+            _extra = {
+              column: extractTableNameMatch[1],
+            };
+          }
+        }
+        break;
+      case '42P01':
+        message = 'The table does not exist.';
+        if (error.message) {
+          const extractTableNameMatch = error.message.match(
+            / relation "(\w+)" does not exist/i,
+          );
+          if (extractTableNameMatch && extractTableNameMatch[1]) {
+            message = `The table '${extractTableNameMatch[1]}' does not exist.`;
+            _type = DBError.TABLE_NOT_EXIST;
+            _extra = {
+              table: extractTableNameMatch[1],
+            };
+          }
+
+          const extractColumnNameMatch = error.message.match(
+            / column "(\w+)" does not exist/i,
+          );
+
+          if (extractColumnNameMatch && extractColumnNameMatch[1]) {
+            message = `The column '${extractColumnNameMatch[1]}' does not exist.`;
+            _type = DBError.COLUMN_NOT_EXIST;
+            _extra = {
+              table: extractColumnNameMatch[1],
+            };
+          }
+        }
+        break;
+      case '42703':
+        message = 'The column does not exist.';
+        if (error.message) {
+          const extractTableNameMatch = error.message.match(
+            / column "(\w+)" does not exist/i,
+          );
+          if (extractTableNameMatch && extractTableNameMatch[1]) {
+            message = `The column '${extractTableNameMatch[1]}' does not exist.`;
+            _type = DBError.COLUMN_NOT_EXIST;
+            _extra = {
+              column: extractTableNameMatch[1],
+            };
+          }
+        }
+        break;
+      case '22012': // division_by_zero
+        message = 'Cannot divide by zero.';
+        httpStatus = 422;
+        break;
+
+      case '40001': // serialization_failure
+        message = 'Transaction serialization failure. Please retry.';
+        httpStatus = 409;
+        break;
+
+      case '53300': // too_many_connections
+        message = 'Too many database connections.';
+        httpStatus = 503;
+        break;
+
+      case 'XX000': // internal_error — leave unhandled on purpose.
+        // PG raises this for assertion failures or driver-level wrap of
+        // an otherwise-uncategorised internal exception. The bare code
+        // doesn't tell us anything actionable, and `error.message` often
+        // contains backend internals (SQL fragments, OIDs, stack
+        // fragments) we don't want surfacing on end-user toasts (see
+        // the `describeRowError` "does not leak raw text when the code
+        // is unknown" contract).
+        //
+        // Callers that want the raw text for operator triage
+        // (formulaQueryBuilderv2, the global exception filter) already
+        // fall back to `e.message` when `extractDbError` returns
+        // undefined — no behavioural regression for them, just the
+        // user-facing leak gone.
+        this.option.dbErrorLogger.error(
+          `XX000 internal_error from pg: ${error.message}`,
+        );
+        return;
+      default:
+        this.option.dbErrorLogger.error(
+          `${error.code} is not handled on database pg`,
+        );
+        message = `An error occurred when querying postgresql database.`;
+        httpStatus = 500;
+        return;
+    }
+
+    return {
+      error: NcErrorType.ERR_DATABASE_OP_FAILED,
+      message,
+      code: error.code,
+      httpStatus,
+      ...(_extra && { details: _extra }),
+    };
+  }
+}

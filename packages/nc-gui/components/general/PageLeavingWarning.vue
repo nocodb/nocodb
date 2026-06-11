@@ -1,0 +1,75 @@
+<script lang="ts" setup>
+const route = useRoute()
+
+const router = useRouter()
+
+const { isDark } = useTheme()
+
+const { isWhiteLabelled, productName, logoUrl, logoDarkUrl, faviconUrl } = useBranding()
+
+const brandIcon = computed(() => {
+  if (!isWhiteLabelled.value) return null
+  return faviconUrl.value || (isDark.value ? logoDarkUrl.value || logoUrl.value : logoUrl.value)
+})
+
+const isHttpUrl = (url: string) => {
+  if (!url) return false
+  const trimmed = url.trim()
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    return /^https?:\/\//i.test(trimmed)
+  }
+  return true
+}
+
+const redirectUrl = computed(() => {
+  const url = (route.query.ncRedirectUrl as string) ?? ''
+  return isHttpUrl(url) ? url : ''
+})
+
+const backUrl = computed(() => {
+  const url = (route.query.ncBackUrl as string) ?? ''
+  return isHttpUrl(url) && isSameOriginUrl(url, true) ? url : ''
+})
+
+if (!redirectUrl.value || !backUrl.value) {
+  router.replace('/error/404')
+}
+
+const handleRedirect = (proceedToLink = false) => {
+  const url = proceedToLink ? redirectUrl.value : backUrl.value
+
+  if (isSameOriginUrl(url, true)) {
+    window.history.pushState('object', document.title, url)
+    window.location.reload()
+  } else {
+    window.location.href = url
+  }
+}
+</script>
+
+<template>
+  <div class="flex flex-col items-center justify-center gap-3 max-w-[420px] mx-auto text-center">
+    <div>
+      <img
+        v-if="isWhiteLabelled && brandIcon"
+        width="56px"
+        height="56px"
+        :alt="productName"
+        :src="brandIcon"
+        class="object-contain"
+      />
+      <img v-else class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+    </div>
+    <div class="text-xl font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
+    <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">{{ $t('title.onlyProceedIfYouTrustThisLink') }}</div>
+    <a class="text-sm font-weight-500 text-nc-content-gray-subtle" :href="redirectUrl">{{ redirectUrl }}</a>
+    <div class="flex items-center gap-3 mt-3">
+      <NcButton type="secondary" size="small" @click="handleRedirect(false)">
+        {{ $t('general.back') }}
+      </NcButton>
+      <NcButton size="small" @click="handleRedirect(true)">
+        {{ $t('labels.proceedToLink') }}
+      </NcButton>
+    </div>
+  </div>
+</template>

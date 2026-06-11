@@ -1,0 +1,876 @@
+import { Logger } from '@nestjs/common';
+import { BaseVersion } from 'nocodb-sdk';
+import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
+import type { DB_TYPES } from '~/utils/globals';
+import type { NcContext } from '~/interface/config';
+import {
+  BaseUser,
+  CustomUrl,
+  DataReflection,
+  Extension,
+  FileReference,
+  MCPToken,
+  Source,
+} from '~/models';
+import Noco from '~/Noco';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { NcError } from '~/helpers/catchError';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+
+const logger = new Logger('Base');
+
+export default class Base implements BaseType {
+  public id: string;
+  public fk_workspace_id?: string;
+  public title: string;
+  public prefix: string;
+  public status: string;
+  public description: string;
+  public meta: MetaType;
+  public color: string;
+  public deleted: BoolType | number;
+  public order: number;
+  public is_meta: boolean | number = false;
+  public sources?: Source[];
+  public linked_db_projects?: Base[];
+  public default_role?: 'no-access';
+  public is_snapshot?: boolean;
+  public version?: BaseVersion;
+
+  // shared base props
+  uuid?: string;
+  password?: string;
+  roles?: string;
+  fk_custom_url_id?: string;
+
+  // managed app props
+  managed_app_master?: boolean; // Is this base a managed app master?
+  managed_app_id?: string; // Points to MANAGED_APPS (for both master and installed instances)
+  managed_app_version_id?: string; // Current version ID from MANAGED_APP_VERSIONS
+  auto_update?: boolean; // For installed instances: auto-update to new published versions
+  // managed app info (populated fields)
+  managed_app_version?: string; // Current version string
+  managed_app_published_at?: string; // When this version was published
+  managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
+
+  // sandbox props
+  is_sandbox_production?: boolean; // Is this base a production base that has sandbox(es) derived from it?
+  is_sandbox?: boolean; // Is this base a sandbox base?
+
+  constructor(base: Partial<Base>) {
+    Object.assign(this, base);
+  }
+
+  public static castType(base: Base): Base {
+    return base && new Base(base);
+  }
+
+  public static async populateManagedAppInfo(_base: Base): Promise<void> {
+    return;
+  }
+
+  public static async createProject(
+    base: Partial<BaseType>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Base> {
+    const insertObj = extractProps(base, [
+      'id',
+      'title',
+      'prefix',
+      'description',
+      'is_meta',
+      'status',
+      'meta',
+      'color',
+      'order',
+      'version',
+      'managed_app_master',
+      'managed_app_id',
+      'managed_app_version_id',
+      'auto_update',
+      'is_sandbox_production',
+      'is_sandbox',
+    ]);
+
+    if (!insertObj.order) {
+      // get order value
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.PROJECT, {});
+    }
+
+    // stringify meta
+    if (insertObj.meta) {
+      insertObj.meta = stringifyMetaProp(insertObj);
+    }
+    // set default meta if not present
+    else if (!('meta' in insertObj)) {
+      insertObj.meta = '{"iconColor":"#36BFFF"}';
+    }
+
+    // set as db if not set
+    if (!insertObj.type) {
+      insertObj.type = 'database';
+    }
+
+    insertObj.fk_workspace_id = Noco.ncDefaultWorkspaceId;
+
+    const createdBase = await ncMeta.metaInsert2(
+      RootScopes.BASE,
+      RootScopes.BASE,
+      MetaTable.PROJECT,
+      insertObj,
+    );
+
+    const context = {
+      workspace_id: createdBase.fk_workspace_id,
+      base_id: createdBase.id,
+    };
+
+    for (const source of base.sources) {
+      await Source.createBase(
+        context,
+        {
+          type: source.config?.client as (typeof DB_TYPES)[number],
+          ...source,
+          baseId: createdBase.id,
+        },
+        ncMeta,
+      );
+    }
+
+    await NocoCache.del('root', CacheScope.INSTANCE_META);
+
+    await DataReflection.grantBase(base.fk_workspace_id, base.id, ncMeta);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    return this.getWithInfo(context, createdBase.id, true, ncMeta).then(
+      async (base) => {
+        await NocoCache.appendToList(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: null,
+          },
+          CacheScope.PROJECT,
+          [base.fk_workspace_id],
+          `${CacheScope.PROJECT}:${base.id}`,
+        );
+        return base;
+      },
+    );
+  }
+
+  static async list(
+    workspaceId?: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Base[]> {
+    // todo: pagination
+    const cachedList = workspaceId
+      ? await NocoCache.getList(
+          {
+            workspace_id: workspaceId,
+            base_id: null,
+          },
+          CacheScope.PROJECT,
+          [workspaceId],
+        )
+      : { list: [], isNoneList: false };
+    let { list: baseList } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !baseList.length) {
+      baseList = await ncMeta.metaList2(
+        RootScopes.BASE,
+        RootScopes.BASE,
+        MetaTable.PROJECT,
+        {
+          xcCondition: {
+            _and: [
+              ...(workspaceId
+                ? [
+                    {
+                      fk_workspace_id: {
+                        eq: workspaceId,
+                      },
+                    },
+                  ]
+                : []),
+              {
+                _or: [
+                  {
+                    deleted: {
+                      eq: false,
+                    },
+                  },
+                  {
+                    deleted: {
+                      eq: null,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      );
+      await NocoCache.setList(
+        {
+          workspace_id: workspaceId,
+          base_id: null,
+        },
+        CacheScope.PROJECT,
+        [workspaceId],
+        baseList,
+      );
+    }
+
+    const promises = [];
+
+    const castedProjectList = baseList
+      .filter(
+        (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
+      )
+      .sort(
+        (a, b) =>
+          (a.order != null ? a.order : Infinity) -
+          (b.order != null ? b.order : Infinity),
+      )
+      .map((p) => {
+        const base = this.castType(p);
+        promises.push(base.getSources(false, ncMeta));
+        return base;
+      });
+
+    await Promise.all(promises);
+
+    return castedProjectList;
+  }
+
+  // @ts-ignore
+  static async get(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Base> {
+    let baseData =
+      baseId &&
+      (await NocoCache.get(
+        { workspace_id: context.workspace_id, base_id: null },
+        `${CacheScope.PROJECT}:${baseId}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!baseData) {
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          id: baseId,
+          deleted: false,
+        },
+      );
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(
+          { workspace_id: baseData.fk_workspace_id, base_id: null },
+          `${CacheScope.PROJECT}:${baseId}`,
+          baseData,
+        );
+      }
+    } else {
+      if (baseData.deleted) {
+        baseData = null;
+      }
+    }
+    const base = this.castType(baseData);
+
+    if (base && base.managed_app_id) {
+      await this.populateManagedAppInfo(base);
+    }
+
+    return base;
+  }
+
+  async getSources(
+    includeConfig = true,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Source[]> {
+    const sources = await Source.list(
+      { workspace_id: this.fk_workspace_id, base_id: this.id },
+      { baseId: this.id },
+      ncMeta,
+    );
+    this.sources = sources;
+    if (!includeConfig) {
+      sources.forEach((s) => {
+        s.config = undefined;
+        s.integration_config = undefined;
+      });
+    }
+    return sources;
+  }
+
+  // @ts-ignore
+  static async getWithInfo(
+    context: NcContext,
+    baseId: string,
+    includeConfig = true,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Base> {
+    let baseData =
+      baseId &&
+      (await NocoCache.get(
+        { workspace_id: context.workspace_id, base_id: null },
+        `${CacheScope.PROJECT}:${baseId}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+
+    if (!baseData) {
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          id: baseId,
+          deleted: false,
+        },
+      );
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT}:${baseId}`,
+          baseData,
+        );
+      }
+      if (baseData?.uuid) {
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${baseData.uuid}`,
+          baseId,
+        );
+      }
+    } else {
+      if (baseData?.deleted) {
+        baseData = null;
+      }
+    }
+    if (baseData) {
+      const base = this.castType(baseData);
+
+      if (base.managed_app_id) {
+        await this.populateManagedAppInfo(base);
+      }
+
+      await base.getSources(includeConfig, ncMeta);
+
+      return base;
+    }
+    return null;
+  }
+
+  // @ts-ignore
+  static async softDelete(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const base = (await this.get(context, baseId, ncMeta)) as Base;
+
+    await this.clearConnectionPool(context, baseId, ncMeta);
+
+    if (base) {
+      // delete <scope>:<title>
+      // delete <scope>:<uuid>
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(
+        {
+          workspace_id: base.fk_workspace_id,
+          base_id: null,
+        },
+        [
+          `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+        ],
+      );
+    }
+
+    await NocoCache.del('root', CacheScope.INSTANCE_META);
+
+    // remove item in cache list
+    await NocoCache.deepDel(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
+      `${CacheScope.PROJECT}:${baseId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
+    });
+
+    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
+
+    await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
+
+    await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache for workspace');
+    });
+
+    // set meta
+    return await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      { deleted: true },
+      baseId,
+    );
+  }
+
+  // @ts-ignore
+  static async update(
+    context: NcContext,
+    baseId: string,
+    base: Partial<Base>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const updateObj = extractProps(base, [
+      'title',
+      'prefix',
+      'status',
+      'description',
+      'meta',
+      'color',
+      'deleted',
+      'order',
+      'sources',
+      'uuid',
+      'password',
+      'roles',
+      'version',
+      'managed_app_master',
+      'managed_app_id',
+      'managed_app_version_id',
+      'auto_update',
+      'is_sandbox_production',
+      'is_sandbox',
+    ]);
+
+    // stringify meta
+    if (updateObj.meta) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
+    if (+updateObj.version !== BaseVersion.V3) {
+      // we do not allow downgrade from V3 to previous versions
+      delete updateObj.version;
+    }
+
+    // get existing cache
+    const key = `${CacheScope.PROJECT}:${baseId}`;
+    let o = await NocoCache.get(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
+    if (o) {
+      // update data
+      // new uuid is generated
+      if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        );
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${updateObj.uuid}`,
+          baseId,
+        );
+      }
+      // disable shared base
+      if (o.uuid && updateObj.uuid === null) {
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        );
+      }
+      if (o.title && updateObj.title && o.title !== updateObj.title) {
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.title}`,
+        );
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${updateObj.title}`,
+          baseId,
+        );
+      }
+      o = { ...o, ...updateObj };
+
+      await NocoCache.del('root', CacheScope.INSTANCE_META);
+
+      // set cache
+      await NocoCache.set(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        key,
+        o,
+      );
+    }
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache for base');
+    });
+
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
+    // set meta
+    return await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      updateObj,
+      baseId,
+    );
+  }
+
+  // Todo: Remove the base entry from the connection pool in NcConnectionMgrv2
+  static async delete(
+    context: NcContext,
+    baseId,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const base = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      baseId,
+    );
+
+    if (!base) {
+      NcError.baseNotFound(baseId);
+    }
+
+    const users = await BaseUser.getUsersList(
+      context,
+      {
+        base_id: baseId,
+        include_ws_deleted: true,
+      },
+      ncMeta,
+    );
+
+    for (const user of users) {
+      await BaseUser.delete(context, baseId, user.id, ncMeta);
+    }
+
+    const sources = await Source.list(
+      context,
+      { baseId, includeDeleted: true },
+      ncMeta,
+    );
+    for (const source of sources) {
+      await source.delete(context, ncMeta);
+    }
+
+    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
+
+    if (base) {
+      // delete <scope>:<uuid>
+      // delete <scope>:<title>
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(
+        {
+          workspace_id: base.fk_workspace_id,
+          base_id: null,
+        },
+        [
+          `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+          `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+        ],
+      );
+    }
+
+    await NocoCache.deepDel(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
+      `${CacheScope.PROJECT}:${baseId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await Noco.ncAudit.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.AUDIT,
+      {
+        base_id: baseId,
+      },
+    );
+
+    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
+    });
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache for base');
+    });
+
+    await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
+
+    await Extension.deleteByBaseId(context, baseId, ncMeta);
+
+    return await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      baseId,
+    );
+  }
+
+  static async getByUuid(context: NcContext, uuid, ncMeta = Noco.ncMeta) {
+    const baseId =
+      uuid &&
+      (await NocoCache.get(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        `${CacheScope.PROJECT_ALIAS}:${uuid}`,
+        CacheGetType.TYPE_STRING,
+      ));
+    let baseData = null;
+    if (!baseId) {
+      baseData = await ncMeta.metaGet2(
+        RootScopes.FULL_BYPASS,
+        RootScopes.FULL_BYPASS,
+        MetaTable.PROJECT,
+        {
+          uuid,
+        },
+      );
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${uuid}`,
+          baseData?.id,
+        );
+      }
+    } else {
+      return this.get(context, baseId, ncMeta);
+    }
+    return baseData?.id && this.get(context, baseData?.id, ncMeta);
+  }
+
+  static async getWithInfoByTitle(
+    context: NcContext,
+    title: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.getByTitle(context, title, ncMeta);
+    if (base) {
+      await base.getSources(false, ncMeta);
+    }
+
+    return base;
+  }
+
+  static async getByTitle(
+    context: NcContext,
+    title: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const baseId =
+      title &&
+      (await NocoCache.get(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        `${CacheScope.PROJECT_ALIAS}:${title}`,
+        CacheGetType.TYPE_STRING,
+      ));
+    let baseData = null;
+    if (!baseId) {
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          title,
+          deleted: false,
+        },
+      );
+      if (baseData) {
+        baseData.meta = parseMetaProp(baseData);
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${title}`,
+          baseData?.id,
+        );
+      }
+    } else {
+      return this.get(context, baseId, ncMeta);
+    }
+    return baseData?.id && this.get(context, baseData?.id, ncMeta);
+  }
+
+  static async getByTitleOrId(
+    context: NcContext,
+    titleOrId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const baseId =
+      titleOrId &&
+      (await NocoCache.get(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        `${CacheScope.PROJECT_ALIAS}:ref:${titleOrId}`,
+        CacheGetType.TYPE_STRING,
+      ));
+    let baseData = null;
+    if (!baseId) {
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          deleted: false,
+        },
+        null,
+        {
+          _or: [
+            {
+              id: {
+                eq: titleOrId,
+              },
+            },
+            {
+              title: {
+                eq: titleOrId,
+              },
+            },
+          ],
+        },
+      );
+
+      if (baseData) {
+        // parse meta
+        baseData.meta = parseMetaProp(baseData);
+
+        await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:ref:${titleOrId}`,
+          baseData?.id,
+        );
+      }
+    } else {
+      return this.get(context, baseId, ncMeta);
+    }
+    return baseData?.id && this.get(context, baseData?.id, ncMeta);
+  }
+
+  static async getWithInfoByTitleOrId(
+    context: NcContext,
+    titleOrId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.getByTitleOrId(context, titleOrId, ncMeta);
+
+    if (base) {
+      // parse meta
+      base.meta = parseMetaProp(base);
+      await base.getSources(false, ncMeta);
+    }
+
+    return base;
+  }
+
+  static async clearConnectionPool(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.get(context, baseId, ncMeta);
+    if (base) {
+      const sources = await base.getSources(false, ncMeta);
+      for (const source of sources) {
+        await NcConnectionMgrv2.deleteAwait(source);
+      }
+    }
+  }
+}

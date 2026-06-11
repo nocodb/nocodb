@@ -1,0 +1,195 @@
+import { useStorage } from '@vueuse/core'
+import type { JwtPayload } from 'jwt-decode'
+import { MapProvider, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
+import type { AppInfo, State, StoredState } from './types'
+import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
+
+export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
+  /** get the preferred languages of a user, according to browser settings */
+  const preferredLanguages = usePreferredLanguages()
+  /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
+  //   const prefersDarkMode = $(usePreferredDark())
+  const prefersDarkMode = false
+
+  /** reactive timestamp to check token expiry against */
+  const timestamp = useTimestamp({ immediate: true, interval: 100 })
+
+  const {
+    vueApp: { i18n },
+  } = useNuxtApp()
+
+  const router = useRouter()
+
+  const isSharedBaseOrErdOrView = computed(() => isSharedBaseOrErdOrViewRoute(router.currentRoute.value))
+
+  /**
+   * Set initial language based on browser settings.
+   * If the user has not set a preferred language, we fall back to 'en'.
+   * If the user has set a preferred language, we try to find a matching locale in the available locales.
+   */
+  const preferredLanguage = preferredLanguages.value.reduce<keyof typeof Language>((locale, language) => {
+    /** split language to language and code, e.g. en-GB -> [en, GB] */
+    const [lang, code] = language.split(/[_-]/)
+
+    /** find all locales that match the language */
+    let availableLocales = i18n.global.availableLocales.filter((locale) => locale.startsWith(lang))
+
+    /** If we can match more than one locale, we check if the code of the language matches as well */
+    if (availableLocales.length > 1) {
+      availableLocales = availableLocales.filter((locale) => locale.endsWith(code))
+    }
+
+    /** if there are still multiple locales, pick the first one */
+    const availableLocale = availableLocales[0]
+
+    /** if we found a matching locale, return it */
+    if (availableLocale) locale = availableLocale as keyof typeof Language
+
+    return locale
+  }, 'en' /** fallback locale */)
+
+  const { width } = useWindowSize()
+  const isViewPortMobile = () => {
+    return width.value < NC_BREAKPOINTS.sm
+  }
+
+  /** State */
+  const initialState: StoredState = {
+    token: null,
+    lang: preferredLanguage,
+    darkMode: prefersDarkMode,
+    filterAutoSave: true,
+    includeM2M: false,
+    showNull: false,
+    currentVersion: null,
+    latestRelease: null,
+    hiddenRelease: null,
+    isMobileMode: null,
+    activeBreakpoint: null,
+    lastOpenedWorkspaceId: null,
+    gridViewPageSize: 25,
+    leftSidebarSize: {
+      old: INITIAL_LEFT_SIDEBAR_WIDTH,
+      current: INITIAL_LEFT_SIDEBAR_WIDTH,
+    },
+    isAddNewRecordGridMode: true,
+    syncDataUpvotes: [],
+    giftBannerDismissedCount: 0,
+    isLeftSidebarOpen: !isViewPortMobile(),
+    lastUsedAuthMethod: null,
+  }
+
+  /** saves a reactive state, any change to these values will write/delete to localStorage */
+  const storage = useStorage<StoredState>(storageKey, initialState, localStorage, { mergeDefaults: true })
+
+  /** force turn off of dark mode, regardless of previously stored settings */
+  storage.value.darkMode = false
+
+  /** current token ref, used by `useJwt` to reactively parse our token payload */
+  /**
+   * Token management behavior (read/write rules):
+   *
+   * Issue:
+   * - When opening a Shared Base, ERD, or Shared View in a new tab,
+   *   the main application’s auth token from `localStorage` gets reused.
+   * - This incorrectly treats the user as authenticated, even though
+   *   shared resources must always behave as "guest/readonly" access.
+   *
+   * Fix:
+   * - When we detect that current route is a Shared Base / ERD / Shared View,
+   *   we completely avoid reading from or writing to localStorage.
+   * - This ensures:
+   *    ✅ Shared views always open as guest users
+   *    ✅ Real login session in main app remains unaffected
+   *    ✅ No accidental privilege escalation when opening links in new tab
+   *
+   * Result:
+   * - Main app uses persistent auth from localStorage
+   * - Shared resources use a temporary, isolated token only in memory
+   */
+  const token = computed({
+    get: () => (isSharedBaseOrErdOrView.value ? '' : storage.value.token || ''),
+    set: (val) => {
+      if (isSharedBaseOrErdOrView.value) return
+
+      storage.value.token = val
+    },
+  })
+
+  const config = useRuntimeConfig()
+
+  const appInfo = ref<AppInfo>({
+    ncSiteUrl: config.public.ncBackendUrl || BASE_FALLBACK_URL,
+    authType: 'jwt',
+    connectToExternalDB: false,
+    defaultLimit: 0,
+    firstUser: true,
+    githubAuthEnabled: false,
+    googleAuthEnabled: false,
+    oidcAuthEnabled: false,
+    oidcProviderName: null,
+    openReplayKey: null,
+    samlAuthEnabled: false,
+    samlProviderName: null,
+    ncMin: false,
+    oneClick: false,
+    baseHasAdmin: false,
+    teleEnabled: true,
+    errorReportingEnabled: false,
+    auditEnabled: true,
+    undoRedoEnabled: true,
+    docsRealtimeEnabled: true,
+    type: 'nocodb',
+    version: '0.0.0',
+    ncAttachmentFieldSize: 20,
+    ncMaxAttachmentsAllowed: 10,
+    ncMaxTextLength: 100000,
+    ncDataImportFileSize: 100 * 1024 * 1024,
+    ncGridMaxSelectionLimit: 1000,
+    isCloud: false,
+    automationLogLevel: 'OFF',
+    disableEmailAuth: false,
+    dashboardPath: '/',
+    inviteOnlySignup: false,
+    giftUrl: '',
+    isOnPrem: false,
+    isPostgres: false,
+    isAirgapped: false,
+    seatLimit: null,
+    isTrial: false,
+    isTrialExpired: false,
+    licenseExpiryTime: 0,
+    defaultWorkspaceId: null,
+    disableGroupByAggregation: false,
+    mapProvider: MapProvider.OPENSTREETMAP,
+    defaultOrgId: NC_DEFAULT_ORG_ID,
+  })
+
+  /** reactive token payload */
+  const { payload } = useJwt<JwtPayload & User>(token)
+
+  /** currently running requests */
+  const runningRequests = useCounter()
+
+  /** global error */
+  const error = ref()
+
+  /** our local user object */
+  const user = ref<User | null>(null)
+
+  /** tracks appInfo API call status: 'idle' → 'loading' → 'loaded' | 'error' */
+  const appInfoStatus = ref<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+
+  return {
+    ...toRefs(storage.value),
+    storage,
+    token,
+    jwtPayload: payload,
+    timestamp,
+    runningRequests,
+    error,
+    user,
+    appInfo,
+    appInfoStatus,
+  }
+}

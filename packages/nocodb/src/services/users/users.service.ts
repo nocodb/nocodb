@@ -1,0 +1,762 @@
+import { promisify } from 'util';
+import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
+import isEmail from 'validator/lib/isEmail';
+import bcrypt from 'bcryptjs';
+import type {
+  MetaType,
+  PasswordChangeReqType,
+  PasswordForgotReqType,
+  PasswordResetReqType,
+  SignUpReqType,
+  UserType,
+} from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import {
+  ensureUserInDefaultWorkspace,
+  verifyDefaultWorkspace,
+} from '~/helpers/verifyDefaultWorkspace';
+import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
+import { isEE, isOnPrem, sanitiseUserObj, T } from '~/utils';
+import {
+  clearAuthCookie,
+  genJwt,
+  setTokenCookie,
+} from '~/services/users/helpers';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
+import { MetaService } from '~/meta/meta.service';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import Noco from '~/Noco';
+import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import { NcError } from '~/helpers/catchError';
+import { BasesService } from '~/services/bases.service';
+import { extractProps } from '~/helpers/extractProps';
+import deepClone from '~/helpers/deepClone';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
+import { sanitizeEmail } from '~/utils/emailUtils';
+
+@Injectable()
+export class UsersService {
+  logger = new Logger(UsersService.name);
+
+  constructor(
+    protected metaService: MetaService,
+    protected appHooksService: AppHooksService,
+    protected basesService: BasesService,
+    protected mailService: MailService,
+  ) {}
+
+  // allow signup/signin only if email matches against pattern
+  validateEmailPattern(email: string) {
+    const emailPattern =
+      process.env.NC_USER_ALLOWED_EMAIL_PATTERN ||
+      process.env.NC_AUTH_EMAIL_PATTERN;
+    if (emailPattern) {
+      const regex = new RegExp(emailPattern);
+      if (!regex.test(email)) {
+        NcError.forbidden('Not allowed to signup/signin with this email');
+      }
+    }
+  }
+
+  async findOne(_email: string) {
+    const user = await User.getByEmail(_email);
+
+    await PresignedUrl.signMetaIconImage(user);
+
+    return user;
+  }
+
+  async insert(
+    param: {
+      token_version: string;
+      firstname: any;
+      password: any;
+      salt: any;
+      email_verification_token: any;
+      roles: string;
+      email: string;
+      lastname: any;
+    },
+    ncMeta = this.metaService || Noco.ncMeta,
+  ) {
+    return ncMeta.metaInsert2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        ...param,
+        email: param.email?.toLowerCase(),
+      },
+    );
+  }
+
+  async profileUpdate({
+    id,
+    params,
+    req,
+  }: {
+    id: string;
+    params: {
+      display_name?: string;
+      avatar?: string;
+      is_new_user?: boolean;
+      meta?: MetaType;
+    };
+    req: NcRequest;
+  }) {
+    const oldUser = await User.get(id);
+    const updateObj = extractProps(params, [
+      'display_name',
+      'avatar',
+      'is_new_user',
+      'meta',
+    ]);
+
+    const user = await User.update(id, updateObj);
+
+    this.appHooksService.emit(AppEvents.USER_PROFILE_UPDATE, {
+      user: deepClone(user),
+      oldUser,
+      req,
+    });
+
+    await PresignedUrl.signMetaIconImage(user);
+
+    // Strip secrets before returning this user as the API response.
+    // sanitiseUserObj drops password/salt/tokens/totp; also drop token_version
+    // here (the JWT-invalidation counter), which the shared sanitiser
+    // intentionally keeps because the auth/token-issuance paths read it. The
+    // audit hook above gets the full object but already excludes secrets and
+    // only diffs changed fields.
+    const safeUser = sanitiseUserObj(user);
+    delete safeUser.token_version;
+    return safeUser;
+  }
+
+  async registerNewUserIfAllowed(
+    {
+      email,
+      salt,
+      password,
+      email_verification_token,
+      req,
+      is_invite = false,
+      workspace_invite = false,
+    }: {
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+      req: NcRequest;
+      is_invite?: boolean;
+      workspace_invite?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    this.validateEmailPattern(email);
+
+    let roles: string = OrgUserRoles.CREATOR;
+
+    const isFirstUser = await User.isFirst(ncMeta);
+
+    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
+      // todo: update in nc_store
+      // roles = 'owner,creator,editor'
+      T.emit('evt', {
+        evt_type: 'base:invite',
+        count: 1,
+      });
+    } else {
+      const settings = await Noco.getAppSettings();
+
+      if (settings?.invite_only_signup && !is_invite && !workspace_invite) {
+        NcError.badRequest('Not allowed to signup, contact super admin.');
+      } else {
+        roles = OrgUserRoles.VIEWER;
+      }
+    }
+
+    const token_version = randomTokenString();
+    const user = await User.insert(
+      {
+        email,
+        salt,
+        password,
+        email_verification_token,
+        roles,
+        token_version,
+      },
+      ncMeta,
+    );
+
+    // if first user and super admin, create a base
+    // On unlicensed on-prem (EE build), @EEOnly() falls back to this CE code,
+    // so on-prem also needs workspace + base creation here.
+    if (isFirstUser && (!isEE || isOnPrem)) {
+      await verifyDefaultWorkspace(user, ncMeta);
+      await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
+
+      // todo: update swagger type
+      (user as any).createdProject = await this.createDefaultProject(
+        user,
+        req,
+        ncMeta,
+      );
+    } else if (!isFirstUser && !is_invite && !workspace_invite) {
+      // Only add to default workspace for self-signups, not invites.
+      // Workspace invites set the role explicitly via the invite flow;
+      // org invites call ensureUserInDefaultWorkspace separately.
+      await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
+      await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
+    }
+
+    // todo: update swagger type
+    return user as any;
+  }
+
+  async passwordChange(param: {
+    body: PasswordChangeReqType;
+    user: UserType;
+    req: NcRequest;
+  }): Promise<any> {
+    validatePayload(
+      'swagger.json#/components/schemas/PasswordChangeReq',
+      param.body,
+    );
+
+    const { currentPassword, newPassword } = param.body;
+
+    if (!currentPassword || !newPassword) {
+      return NcError.badRequest('Missing new/old password');
+    }
+
+    // validate password and throw error if password is satisfying the conditions
+    const { valid, error } = validatePassword(newPassword);
+
+    if (!valid) {
+      NcError.badRequest(`Password : ${error}`);
+    }
+
+    const user = await User.getByEmail(param.user.email);
+
+    const isValid = await promisify(bcrypt.compare)(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isValid) {
+      return NcError.badRequest('Current password is wrong');
+    }
+
+    const salt = await promisify(bcrypt.genSalt)(10);
+    const password = await promisify(bcrypt.hash)(newPassword, salt);
+
+    await User.update(user.id, {
+      salt,
+      password,
+      email: user.email,
+      token_version: randomTokenString(),
+      reset_password_token: null,
+      reset_password_expires: null,
+    });
+
+    // delete all refresh token and populate a new one
+    await UserRefreshToken.deleteAllUserToken(user.id);
+    await this.revokeAllOAuthTokensByUser(user.id);
+
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
+      user: user,
+      req: param.req,
+    });
+
+    return true;
+  }
+
+  async passwordForgot(param: {
+    body: PasswordForgotReqType;
+    siteUrl: string;
+    req: NcRequest;
+  }): Promise<any> {
+    validatePayload(
+      'swagger.json#/components/schemas/PasswordForgotReq',
+      param.body,
+    );
+
+    const _email = sanitizeEmail(param.body.email);
+
+    if (!_email) {
+      NcError.badRequest('Please enter your email address.');
+    }
+
+    const email = _email.toLowerCase();
+    const user = await User.getByEmail(email);
+
+    if (user) {
+      const token = uuidv4();
+      const updatedUser = await User.update(user.id, {
+        email: user.email,
+        reset_password_token: token,
+        reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
+        token_version: randomTokenString(),
+      });
+      try {
+        await this.mailService.sendMail({
+          mailEvent: MailEvent.RESET_PASSWORD,
+          payload: {
+            user: updatedUser,
+            req: param.req,
+          },
+        });
+      } catch (e) {
+        return NcError.badRequest(
+          'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
+        );
+      }
+
+      await UserRefreshToken.deleteAllUserToken(user.id);
+      await this.revokeAllOAuthTokensByUser(user.id);
+
+      this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
+        user: user,
+        req: param.req,
+      });
+    }
+
+    return true;
+  }
+
+  async tokenValidate(param: { token: string }): Promise<any> {
+    const token = param.token;
+
+    const user = await Noco.ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        reset_password_token: token,
+      },
+    );
+
+    if (!user || !user.email) {
+      NcError.badRequest('Invalid reset url');
+    }
+    if (new Date(user.reset_password_expires) < new Date()) {
+      NcError.badRequest('Password reset url expired');
+    }
+
+    return true;
+  }
+
+  async passwordReset(param: {
+    body: PasswordResetReqType;
+    token: string;
+    req: NcRequest;
+  }): Promise<any> {
+    validatePayload(
+      'swagger.json#/components/schemas/PasswordResetReq',
+      param.body,
+    );
+
+    const { token, body } = param;
+
+    const user = await Noco.ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        reset_password_token: token,
+      },
+    );
+
+    if (!user) {
+      NcError.badRequest('Invalid reset url');
+    }
+    if (user.reset_password_expires < new Date()) {
+      NcError.badRequest('Password reset url expired');
+    }
+    if (user.provider && user.provider !== 'local') {
+      NcError.badRequest('Email registered via social account');
+    }
+
+    // validate password and throw error if password is satisfying the conditions
+    const { valid, error } = validatePassword(body.password);
+    if (!valid) {
+      NcError.badRequest(`Password : ${error}`);
+    }
+
+    const salt = await promisify(bcrypt.genSalt)(10);
+    const password = await promisify(bcrypt.hash)(body.password, salt);
+
+    await User.update(user.id, {
+      salt,
+      password,
+      email: user.email,
+      reset_password_expires: null,
+      reset_password_token: '',
+      token_version: randomTokenString(),
+    });
+
+    // delete all refresh tokens to invalidate existing sessions
+    await UserRefreshToken.deleteAllUserToken(user.id);
+    await this.revokeAllOAuthTokensByUser(user.id);
+
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
+      user: user,
+      req: param.req,
+    });
+
+    return true;
+  }
+
+  async emailVerification(param: {
+    token: string;
+    // todo: exclude
+    req: NcRequest;
+  }): Promise<any> {
+    const { token, req } = param;
+
+    const user = await Noco.ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        email_verification_token: token,
+      },
+    );
+
+    if (!user) {
+      NcError.badRequest('Invalid verification url');
+    }
+
+    await User.update(user.id, {
+      email: user.email,
+      email_verification_token: '',
+      email_verified: true,
+    });
+
+    this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
+      user: user,
+      req,
+    });
+
+    return true;
+  }
+
+  async refreshToken(param: {
+    body: SignUpReqType;
+    req: any;
+    res: any;
+  }): Promise<any> {
+    try {
+      if (!param.req?.cookies?.refresh_token) {
+        NcError.badRequest(`Missing refresh token`);
+      }
+
+      const oldRefreshToken = param.req.cookies.refresh_token;
+
+      const userRefreshToken = await UserRefreshToken.getByToken(
+        oldRefreshToken,
+      );
+
+      if (!userRefreshToken) {
+        NcError.unauthorized(`Invalid refresh token`);
+      }
+
+      // check if refresh token expired and delete it if expired
+      if (
+        userRefreshToken.expires_at &&
+        new Date(userRefreshToken.expires_at) < new Date()
+      ) {
+        await UserRefreshToken.deleteToken(oldRefreshToken);
+        NcError.unauthorized(`Refresh token expired`);
+      }
+
+      const user = await User.get(userRefreshToken.fk_user_id);
+
+      if (!user) {
+        NcError.unauthorized(`Invalid refresh token`);
+      }
+
+      const refreshToken = randomTokenString();
+
+      try {
+        await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+      } catch (error) {
+        console.error('Failed to update old refresh token:', error);
+        NcError.internalServerError('Failed to update refresh token');
+      }
+
+      setTokenCookie(param.res, refreshToken, param.req);
+
+      return {
+        token: genJwt(
+          {
+            ...user,
+            extra: userRefreshToken.meta,
+          },
+          Noco.getConfig(),
+        ),
+      } as any;
+    } catch (e) {
+      NcError.badRequest(e.message);
+    }
+  }
+
+  async signup(param: {
+    body: SignUpReqType;
+    req: any;
+    res: any;
+  }): Promise<any> {
+    validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
+
+    const { email: rawEmail, token, ignore_subscribe } = param.req.body;
+    const _email = sanitizeEmail(rawEmail);
+
+    let { password } = param.req.body;
+
+    // validate password and throw error if password is satisfying the conditions
+    const { valid, error } = validatePassword(password);
+    if (!valid) {
+      NcError.badRequest(`Password : ${error}`);
+    }
+
+    if (!isEmail(_email)) {
+      NcError.badRequest(`Invalid email`);
+    }
+
+    // Reject plus addressing (always abusive)
+    if (_email.split('@')[0].includes('+')) {
+      NcError.badRequest('Email aliases with "+" are not allowed');
+    }
+
+    const email = _email.toLowerCase();
+
+    this.validateEmailPattern(email);
+
+    // Check for existing user by canonical email to prevent alias abuse
+    let user =
+      (await User.getByCanonicalEmail(email)) || (await User.getByEmail(email));
+
+    if (user) {
+      if (token) {
+        if (token !== user.invite_token) {
+          NcError.badRequest(`Invalid invite url`);
+        } else if (user.invite_token_expires < new Date()) {
+          NcError.badRequest(
+            'Expired invite url, Please contact super admin to get a new invite url',
+          );
+        }
+      } else {
+        // todo : opening up signup for timebeing
+        // return next(new Error(`Email '${email}' already registered`));
+      }
+    }
+
+    const salt = await promisify(bcrypt.genSalt)(10);
+    password = await promisify(bcrypt.hash)(password, salt);
+    const email_verification_token = uuidv4();
+
+    if (!ignore_subscribe) {
+      T.emit('evt_subscribe', email);
+    }
+    let createdProject = undefined;
+
+    if (user) {
+      if (token) {
+        await User.update(user.id, {
+          salt,
+          password,
+          email_verification_token,
+          invite_token: null,
+          invite_token_expires: null,
+          email: user.email,
+        });
+      } else {
+        NcError.badRequest('User already exist');
+      }
+    } else {
+      const { createdProject: _createdProject } =
+        await this.registerNewUserIfAllowed({
+          email,
+          salt,
+          password,
+          email_verification_token,
+          req: param.req,
+        });
+      createdProject = _createdProject;
+    }
+    user = await User.getByEmail(email);
+
+    // TODO: Right now we are not actively enforcing email verification @pranavxc
+    // so we are not sending email verification email
+    // but we should send email verification email
+    // once we start enforcing email
+    /* try {
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.VERIFY_EMAIL,
+        payload: {
+          user,
+          req: param.req,
+        },
+      });
+    } catch (e) {
+      this.logger.warn(
+        'Warning : `mailSend` failed, Please configure emailClient configuration.',
+      );
+    }
+*/
+    const refreshToken = randomTokenString();
+
+    await UserRefreshToken.insert({
+      token: refreshToken,
+      fk_user_id: user.id,
+    });
+
+    setTokenCookie(param.res, refreshToken);
+
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user: user,
+      req: param.req,
+    });
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.WELCOME,
+      payload: {
+        user,
+        req: param.req,
+      },
+    });
+
+    this.appHooksService.emit(AppEvents.WELCOME, {
+      user,
+      req: param.req,
+    });
+
+    return { ...(await this.login(user, param.req)), createdProject };
+  }
+
+  async login(user: UserType & { provider?: string }, req: any) {
+    this.appHooksService.emit(AppEvents.USER_SIGNIN, {
+      user,
+      req,
+    });
+    return {
+      token: genJwt(user, Noco.getConfig()),
+    };
+  }
+
+  async signOut(param: { res: any; req: any }) {
+    try {
+      this.clearCookie(param);
+      const user = (param.req as any).user;
+      if (user?.id) {
+        await User.update(user.id, {
+          token_version: randomTokenString(),
+        });
+        // todo: clear only token present in cookie to avoid invalidating all refresh token
+        await UserRefreshToken.deleteAllUserToken(user.id);
+        // OAuth tokens are not revoked on sign-out: sign-out ends the user's
+        // own session, not third-party OAuth client grants. OAuth tokens are
+        // revoked on password change/reset/forgot where credential compromise
+        // is assumed.
+      }
+      return { msg: 'Signed out successfully' };
+    } catch (e) {
+      NcError.badRequest(e.message);
+    }
+  }
+
+  protected clearCookie(param: { res: any; req: any }) {
+    param.res.clearCookie('refresh_token');
+    clearAuthCookie(param.res);
+  }
+
+  private async createDefaultProject(
+    user: User,
+    req: any,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // create new base for user
+    const base = await this.basesService.createDefaultBase(
+      {
+        user,
+        req,
+      },
+      ncMeta,
+    );
+
+    return base;
+  }
+
+  // Test-only bypass: parallel Playwright workers share user@nocodb.com
+  // and would otherwise invalidate each other's sessions. EE overrides to
+  // add an operator-controlled opt-out as well.
+  protected shouldEnforceSingleSession(_req?: any): boolean {
+    return process.env.PLAYWRIGHT_TEST !== 'true';
+  }
+
+  async setRefreshToken({ res, req }) {
+    const userId = req.user?.id;
+
+    if (!userId) return;
+
+    const user = await User.get(userId);
+
+    if (!user) return;
+
+    const refreshToken = randomTokenString();
+
+    // Single-session enforcement: rotate token_version and clear any existing
+    // refresh tokens so previously logged-in sessions for this user are
+    // invalidated as soon as this login completes.
+    // API tokens are unaffected — the JWT strategy short-circuits before the
+    // token_version check when `is_api_token` is set on the payload.
+    //
+    // The bypass conditions live in `shouldEnforceSingleSession`, which EE
+    // overrides to support deployment-specific opt-outs.
+    if (this.shouldEnforceSingleSession(req)) {
+      const newTokenVersion = randomTokenString();
+
+      await User.update(user.id, {
+        token_version: newTokenVersion,
+      });
+
+      user.token_version = newTokenVersion;
+      // Mirror onto req.user so the genJwt() call that follows (in login())
+      // signs the access token with the rotated version.
+      if (req.user) {
+        req.user.token_version = newTokenVersion;
+      }
+
+      await UserRefreshToken.deleteAllUserToken(user.id);
+    } else if (!user.token_version) {
+      // Preserve legacy behavior: ensure token_version exists for users that
+      // pre-date the column or had it cleared.
+      user.token_version = randomTokenString();
+      await User.update(user.id, {
+        token_version: user.token_version,
+      });
+      if (req.user) {
+        req.user.token_version = user.token_version;
+      }
+    }
+
+    await UserRefreshToken.insert({
+      token: refreshToken,
+      fk_user_id: user.id,
+      meta: req.user?.extra,
+    });
+
+    setTokenCookie(res, refreshToken, req);
+  }
+
+  protected async revokeAllOAuthTokensByUser(userId: string) {
+    await OAuthToken.revokeAllByUser(userId);
+  }
+}

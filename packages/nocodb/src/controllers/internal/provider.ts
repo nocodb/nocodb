@@ -1,0 +1,38 @@
+import type { InternalApiModule } from '~/utils/internal-type';
+import { RecordAuditListOperations } from '~/controllers/internal/modules/RecordAuditList.operations';
+import { McpGetOperations } from '~/controllers/internal/modules/McpGet.operations';
+import { McpPostOperations } from '~/controllers/internal/modules/McpPost.operations';
+import { OAuthGetOperations } from '~/controllers/internal/modules/OAuthGet.operations';
+import { OAuthPostOperations } from '~/controllers/internal/modules/OAuthPost.operations';
+import { DependencyPostOperations } from '~/controllers/internal/modules/DependencyPost.operations';
+import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations';
+import { UiPostOperations } from '~/controllers/internal/modules/UiPost.operations';
+import { BaseListAllGetOperations } from '~/controllers/internal/modules/BaseListAllGet.operations';
+import { InstanceAdminGetOperations } from '~/controllers/internal/modules/InstanceAdminGet.operations';
+import { IntegrationGetOperations } from '~/controllers/internal/modules/IntegrationGet.operations';
+import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
+import { AttachmentGetOperations } from '~/controllers/internal/modules/AttachmentGet.operations';
+import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
+
+export const InternalApiModules = [
+  McpGetOperations,
+  McpPostOperations,
+  OAuthGetOperations,
+  OAuthPostOperations,
+  RecordAuditListOperations,
+  DependencyPostOperations,
+  UiGetOperations,
+  UiPostOperations,
+  BaseListAllGetOperations,
+  InstanceAdminGetOperations,
+  IntegrationGetOperations,
+  IntegrationPostOperations,
+  AttachmentGetOperations,
+];
+
+export const InternalApiModuleProvider = {
+  provide: INTERNAL_API_MODULE_PROVIDER_KEY,
+  useFactory: (...internalApiModules: InternalApiModule<any>[]) =>
+    internalApiModules,
+  inject: InternalApiModules,
+};

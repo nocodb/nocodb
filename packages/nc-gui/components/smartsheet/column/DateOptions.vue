@@ -1,0 +1,46 @@
+<script setup lang="ts">
+import { ColumnHelper, UITypes, dateFormats, dateMonthFormats } from 'nocodb-sdk'
+
+const props = defineProps<{
+  value: any
+}>()
+
+const emit = defineEmits(['update:value'])
+
+const vModel = useVModel(props, 'value', emit)
+
+// set default value
+vModel.value.meta = {
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Date),
+  ...(vModel.value.meta || {}),
+}
+
+const { isSystem } = useColumnCreateStoreOrThrow()
+</script>
+
+<template>
+  <a-form-item>
+    <a-select
+      v-model:value="vModel.meta.date_format"
+      :disabled="isSystem"
+      show-search
+      class="nc-date-select"
+      dropdown-class-name="nc-dropdown-date-format"
+    >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+      </template>
+      <a-select-option v-for="(format, i) of [...dateFormats, ...dateMonthFormats]" :key="i" :value="format">
+        <div class="w-full flex gap-2 justify-between items-center">
+          {{ format }}
+          <component
+            :is="iconMap.check"
+            v-if="vModel.meta.date_format === format"
+            id="nc-selected-item-icon"
+            class="text-nc-content-brand w-4 h-4"
+          />
+        </div>
+      </a-select-option>
+    </a-select>
+  </a-form-item>
+</template>

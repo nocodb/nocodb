@@ -1,0 +1,423 @@
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  AppEvents,
+  extractRolesObj,
+  OrgUserRoles,
+  PluginCategory,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
+import validator from 'validator';
+import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { MailService } from '~/services/mail/mail.service';
+import { validatePayload } from '~/helpers';
+import { NcBaseError, NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import {
+  ApiToken,
+  BaseUser,
+  PresignedUrl,
+  SyncSource,
+  User,
+  UserRefreshToken,
+} from '~/models';
+import WorkspaceUser from '~/models/WorkspaceUser';
+
+import Noco from '~/Noco';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import { MailEvent } from '~/interface/Mail';
+import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
+import { sanitizeEmail } from '~/utils/emailUtils';
+
+@Injectable()
+export class OrgUsersService {
+  private logger = new Logger(OrgUsersService.name);
+  constructor(
+    protected readonly baseUsersService: BaseUsersService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
+  ) {}
+
+  async userList(param: {
+    // todo: add better typing
+    query: Record<string, any>;
+  }) {
+    const users = await User.list(param.query);
+
+    await PresignedUrl.signMetaIconImage(users);
+
+    // Augment with workspace roles from default workspace
+    if (Noco.ncDefaultWorkspaceId) {
+      const wsUsers = await WorkspaceUser.userList({
+        fk_workspace_id: Noco.ncDefaultWorkspaceId,
+      });
+      const wsRoleMap = new Map(wsUsers.map((wu) => [wu.fk_user_id, wu.roles]));
+      for (const user of users) {
+        (user as any).workspace_roles = wsRoleMap.get(user.id) || null;
+      }
+    }
+
+    return users;
+  }
+
+  async userUpdate(param: {
+    // todo: better typing
+    user: Partial<UserType>;
+    userId: string;
+    req: NcRequest;
+  }) {
+    validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
+
+    const updateBody = extractProps(param.user, ['roles']);
+
+    if (
+      updateBody.roles &&
+      ![OrgUserRoles.VIEWER, OrgUserRoles.CREATOR].includes(
+        updateBody.roles as OrgUserRoles,
+      )
+    ) {
+      NcError.badRequest('Invalid role');
+    }
+
+    const user = await User.get(param.userId);
+
+    if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
+      NcError.badRequest('Cannot update super admin roles');
+    }
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.ORGANIZATION_ROLE_UPDATE,
+      payload: {
+        req: param.req,
+        user,
+        newRole: param.user.roles as OrgUserRoles,
+        oldRole: user.roles as OrgUserRoles,
+      },
+    });
+
+    const result = await User.update(param.userId, {
+      ...updateBody,
+    });
+
+    this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
+      userId: param.userId,
+      orgId: 'default',
+      oldRole: user.roles,
+      newRole: updateBody.roles,
+      req: param.req,
+    });
+
+    // Also update workspace role in the default workspace
+    if (Noco.ncDefaultWorkspaceId && updateBody.roles) {
+      const wsRole =
+        updateBody.roles === OrgUserRoles.CREATOR
+          ? WorkspaceUserRoles.CREATOR
+          : WorkspaceUserRoles.VIEWER;
+      try {
+        await WorkspaceUser.update(Noco.ncDefaultWorkspaceId, param.userId, {
+          roles: wsRole,
+        });
+      } catch {
+        // User might not have a workspace entry yet — ignore
+      }
+    }
+
+    return result;
+  }
+
+  async userDelete(param: { userId: string; req?: NcRequest }) {
+    const ncMeta = await Noco.ncMeta.startTransaction();
+    try {
+      const user = await User.get(param.userId, ncMeta);
+
+      if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
+        NcError.badRequest('Cannot delete super admin');
+      }
+
+      // Block deletion if user is SCIM-managed in any workspace
+      const hasScimColumn = await ncMeta
+        .knexConnection('nc_workspace_users')
+        .columnInfo()
+        .then((cols) => 'scim_managed' in cols)
+        .catch(() => false);
+
+      if (hasScimColumn) {
+        const scimCount = await ncMeta
+          .knexConnection('nc_workspace_users')
+          .where('fk_user_id', param.userId)
+          .where('scim_managed', true)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          })
+          .count('* as count')
+          .first();
+
+        if (scimCount && Number(scimCount.count) > 0) {
+          NcError.badRequest(
+            'This user is managed via SCIM in one or more workspaces. Removal must be done from the identity provider.',
+          );
+        }
+      }
+
+      // delete base user entry and assign to super admin
+      const baseUsers = await BaseUser.getProjectsIdList(param.userId, ncMeta);
+
+      // todo: clear cache
+
+      // TODO: assign super admin as base owner
+      for (const baseUser of baseUsers) {
+        await BaseUser.delete(
+          {
+            workspace_id: baseUser.fk_workspace_id,
+            base_id: baseUser.base_id,
+          },
+          baseUser.base_id,
+          baseUser.fk_user_id,
+          ncMeta,
+        );
+      }
+
+      // delete sync source entry
+      await SyncSource.deleteByUserId(param.userId, ncMeta);
+
+      // delete workspace user entries (with cache invalidation)
+      await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
+
+      // soft-delete from org_users
+      await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_user_id', param.userId)
+        .update({ deleted: true, deleted_at: new Date().toISOString() });
+
+      // delete refresh tokens
+      await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);
+
+      // delete api tokens (with cache invalidation)
+      await ApiToken.deleteByUser(param.userId, ncMeta);
+
+      // soft-delete user (preserves record for audit/cell data)
+      await User.softDelete(param.userId, ncMeta);
+      await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.ORG_USER_DELETE, {
+        userId: param.userId,
+        req: param.req,
+      });
+    } catch (e) {
+      await ncMeta.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting user', e);
+      NcError.orgUserError('Bad Request');
+    }
+
+    return true;
+  }
+
+  async userAdd(param: {
+    user: UserType;
+    // todo: refactor
+    req: NcRequest;
+  }) {
+    validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
+
+    // allow only viewer or creator role
+    if (
+      param.user.roles &&
+      ![OrgUserRoles.VIEWER, OrgUserRoles.CREATOR].includes(
+        param.user.roles as OrgUserRoles,
+      )
+    ) {
+      NcError.badRequest('Invalid role');
+    }
+
+    // extract emails from request body
+    const emails = (param.user.email || '')
+      .toLowerCase()
+      .split(/\s*,\s*/)
+      .map((v) => sanitizeEmail(v))
+      .filter(Boolean);
+
+    // check for invalid emails
+    const invalidEmails = emails.filter((v) => !validator.isEmail(v));
+
+    if (!emails.length) {
+      return NcError.badRequest('Invalid email address');
+    }
+    if (invalidEmails.length) {
+      NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+    }
+
+    const invite_token = uuidv4();
+    const error = [];
+
+    for (const email of emails) {
+      // add user to base if user already exist
+      let user = await User.getByCanonicalEmail(email);
+
+      if (user) {
+        NcError.badRequest('User already exist');
+      } else {
+        try {
+          // create new user with invite token
+          user = await User.insert({
+            invite_token,
+            invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            email,
+            roles: param.user.roles || OrgUserRoles.VIEWER,
+            token_version: randomTokenString(),
+          });
+
+          // Add user to default workspace with NO_ACCESS —
+          // role management happens at workspace or base level, not org invite
+          await ensureUserInDefaultWorkspace(
+            user.id,
+            WorkspaceUserRoles.NO_ACCESS,
+          );
+
+          await ensureUserInDefaultOrg(user.id);
+
+          const count = await User.count();
+
+          this.appHooksService.emit(AppEvents.ORG_USER_INVITE, {
+            user,
+            count,
+            req: param.req,
+          });
+
+          // in case of single user check for smtp failure
+          // and send back token if failed
+          if (emails.length === 1) {
+            try {
+              const res = await this.mailService.sendMail({
+                mailEvent: MailEvent.ORGANIZATION_INVITE,
+                payload: {
+                  user,
+                  req: param.req,
+                  token: invite_token,
+                },
+              });
+
+              if (!res) {
+                return { invite_token, email };
+              }
+            } catch (e) {
+              return { invite_token, email };
+            }
+          } else {
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.ORGANIZATION_INVITE,
+              payload: {
+                user,
+                req: param.req,
+                token: invite_token,
+              },
+            });
+          }
+        } catch (e) {
+          this.logger.error(e.message, e.stack);
+          if (emails.length === 1) {
+            NcError.orgUserError('Bad Request');
+          } else {
+            error.push({ email, error: e.message });
+          }
+        }
+      }
+    }
+
+    if (emails.length === 1) {
+      return {
+        msg: 'success',
+      };
+    } else {
+      return { invite_token, emails, error };
+    }
+  }
+
+  async userSettings(_param): Promise<any> {
+    NcError.notImplemented();
+  }
+
+  async userInviteResend(param: {
+    userId: string;
+    req: NcRequest;
+  }): Promise<any> {
+    const user = await User.get(param.userId);
+
+    if (!user) {
+      NcError.userNotFound(param.userId);
+    }
+
+    const invite_token = uuidv4();
+
+    await User.update(user.id, {
+      invite_token,
+      invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    });
+
+    const pluginData = await Noco.ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.PLUGIN,
+      {
+        category: PluginCategory.EMAIL,
+        active: true,
+      },
+    );
+
+    if (!pluginData) {
+      NcError.badRequest(
+        `No Email Plugin is found. Please go to App Store to configure first or copy the invitation URL to users instead.`,
+      );
+    }
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.ORGANIZATION_INVITE,
+      payload: {
+        user,
+        req: param.req,
+        token: invite_token,
+      },
+    });
+
+    this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {
+      user: user as UserType,
+      req: param.req,
+    });
+
+    return true;
+  }
+
+  async generateResetUrl(param: { userId: string; siteUrl: string }) {
+    const user = await User.get(param.userId);
+
+    if (!user) {
+      NcError.userNotFound(param.userId);
+    }
+    const token = uuidv4();
+    await User.update(user.id, {
+      email: user.email,
+      reset_password_token: token,
+      reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
+      token_version: randomTokenString(),
+    });
+
+    return {
+      reset_password_token: token,
+      reset_password_url: param.siteUrl + `/reset/${token}`,
+    };
+  }
+
+  async appSettingsGet() {
+    return await Noco.getAppSettings();
+  }
+
+  async appSettingsSet(param: { settings: any }) {
+    await Noco.updateAppSettings(param.settings);
+    return true;
+  }
+}

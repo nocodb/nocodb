@@ -1,0 +1,619 @@
+<script setup lang="ts">
+import type { ButtonType, ColumnType, FilterType, HookType, ScriptType, UnifiedMetaType } from 'nocodb-sdk'
+import {
+  ButtonActionsType,
+  FormulaError,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypes,
+  isHiddenCol,
+  substituteColumnIdWithAliasInFormula,
+  substituteColumnIdWithAliasInPrompt,
+  validateFormulaAndExtractTreeWithType,
+} from 'nocodb-sdk'
+import { searchIcons } from '~/utils/iconUtils'
+
+const props = defineProps<{
+  value: any
+  fromTableExplorer?: boolean
+}>()
+
+const emit = defineEmits(['update:value'])
+
+const buttonActionsType = {
+  ...ButtonActionsType,
+}
+
+const vModel = useVModel(props, 'value', emit)
+
+const meta = inject(MetaInj, ref())
+
+const { t } = useI18n()
+
+const { getMeta } = useMetas()
+
+const { getColor } = useTheme()
+
+const { isAiBetaFeaturesEnabled } = useNocoAi()
+
+const { getPlanTitle, showEEFeatures } = useEeConfig()
+
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
+  useColumnCreateStoreOrThrow()
+
+const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
+
+const webhooksStore = useWebhooksStore()
+
+const { loadHooksList } = webhooksStore
+
+const { hooks } = toRefs(webhooksStore)
+
+const scriptStore = useScriptStore()
+
+const { loadScripts } = scriptStore
+
+const bases = useBases()
+
+const { openedProject } = storeToRefs(bases)
+
+if (showEEFeatures.value) {
+  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+}
+
+const { activeBaseScripts } = toRefs(scriptStore)
+
+const selectedWebhook = ref<HookType>()
+
+const selectedScript = ref<ScriptType>()
+
+const defaultEditorError = {
+  isError: false,
+  message: '',
+  position: {
+    column: -1,
+    row: -1,
+  },
+}
+const editorError = ref(defaultEditorError)
+
+const isAiButtonEnabled = computed(() => {
+  if (isEdit.value) {
+    return true
+  }
+
+  return isAiBetaFeaturesEnabled.value
+})
+
+const buttonTypes = computed(() => [
+  {
+    icon: 'ncLink',
+    label: t('labels.openUrl'),
+    value: ButtonActionsType.Url,
+  },
+  {
+    label: t('labels.runWebHook'),
+    value: ButtonActionsType.Webhook,
+    icon: 'ncWebhook',
+  },
+  ...(isAiButtonEnabled.value && showEEFeatures.value
+    ? [
+        {
+          icon: 'ncAutoAwesome',
+          label: t('labels.generateFieldDataUsingAi'),
+          value: ButtonActionsType.Ai,
+          tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
+        },
+      ]
+    : []),
+  ...(isEeUI && showEEFeatures.value
+    ? [
+        {
+          icon: 'ncScript',
+          label: t('labels.runScript'),
+          value: ButtonActionsType.Script,
+        },
+      ]
+    : []),
+])
+
+const supportedColumns = computed(
+  () =>
+    meta?.value?.columns?.filter((col) => {
+      if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
+        return false
+      }
+
+      if (isHiddenCol(col, meta.value)) {
+        return false
+      }
+
+      return true
+    }) || [],
+)
+
+const validators = {
+  formula_raw: [
+    {
+      required: [ButtonActionsType.Url, ButtonActionsType.Ai].includes(vModel.value.type),
+      validator: (_: any, formula: any) => {
+        return (async () => {
+          if (vModel.value.type === ButtonActionsType.Url) {
+            if (!formula?.trim()) throw new Error('Formula is required for URL Button')
+
+            try {
+              await validateFormulaAndExtractTreeWithType({
+                column: column.value as UnifiedMetaType.IColumn,
+                formula,
+                columns: supportedColumns.value as UnifiedMetaType.IColumn[],
+                clientOrSqlUi: sqlUi.value,
+                getMeta: validateFormulaGetMeta(getMeta),
+                trackPosition: true,
+              })
+              editorError.value = { ...defaultEditorError }
+            } catch (e: any) {
+              const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+              if (e instanceof FormulaError && e.extra?.position) {
+                editorError.value = {
+                  isError: true,
+                  message: errorMessage,
+                  position: e.extra.position,
+                }
+              } else {
+                editorError.value = { ...defaultEditorError }
+              }
+              throw new Error(e.message)
+            }
+          } else if (vModel.value.type === ButtonActionsType.Ai) {
+            if (!formula?.trim()) throw new Error('Prompt required for AI Button')
+          }
+        })()
+      },
+    },
+  ],
+  fk_webhook_id: [
+    {
+      required: vModel.value.type === ButtonActionsType.Webhook,
+      validator: (_: any, fk_webhook_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Webhook && !fk_webhook_id) {
+            reject(new Error(t('general.required')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_script_id: [
+    {
+      required: vModel.value.type === ButtonActionsType.Script,
+      validator: (_: any, fk_script_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Script && !fk_script_id) {
+            reject(new Error(t('general.required')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  color: [
+    {
+      validator: (_: any, color: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (!['brand', 'red', 'green', 'maroon', 'blue', 'orange', 'pink', 'purple', 'yellow', 'gray'].includes(color)) {
+            reject(new Error(t('msg.invalidColor')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  theme: [
+    {
+      validator: (_: any, theme: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (!['solid', 'light', 'text'].includes(theme)) {
+            reject(new Error(t('msg.invalidTheme')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  type: [
+    {
+      validator: (_: any, type: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (!Object.values(ButtonActionsType).includes(type)) {
+            reject(new Error(t('msg.invalidType')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  label: [
+    {
+      validator: (_: any, label: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (!(label.length > 0) && !vModel.value.icon) {
+            reject(new Error(t('msg.invalidLabel')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  output_column_ids: [
+    {
+      validator: (_: any, value: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Ai && !value) {
+            reject(new Error('At least one output field is required for AI Button'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_integration_id: [
+    {
+      validator: (_: any, value: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Ai && !value) {
+            reject(new Error(t('title.aiIntegrationMissing')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+}
+
+if (isEdit.value) {
+  const colOptions = vModel.value.colOptions as ButtonType
+  vModel.value.type = colOptions?.type
+  vModel.value.theme = colOptions?.theme
+  vModel.value.label = colOptions?.label
+  vModel.value.color = colOptions?.color
+  vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
+  vModel.value.fk_script_id = colOptions?.fk_script_id
+  vModel.value.icon = colOptions?.icon
+  selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
+  selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
+
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    vModel.value.formula_raw = colOptions?.formula_raw || ''
+    vModel.value.output_column_ids = colOptions?.output_column_ids || ''
+    vModel.value.fk_integration_id = colOptions?.fk_integration_id
+  }
+} else {
+  vModel.value.type = vModel.value?.type || buttonTypes.value[0]?.value
+
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    vModel.value.theme = 'light'
+    vModel.value.label = 'Generate data'
+    vModel.value.color = 'purple'
+    vModel.value.icon = 'ncAutoAwesome'
+    vModel.value.output_column_ids = vModel.value?.output_column_ids || ''
+  } else {
+    vModel.value.theme = 'solid'
+    vModel.value.label = 'Button'
+    vModel.value.color = 'brand'
+  }
+
+  vModel.value.formula_raw = vModel.value?.formula_raw || ''
+}
+
+setAdditionalValidations({
+  ...validators,
+})
+
+// set default value
+if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as any)?.type === ButtonActionsType.Url) {
+  if ((column.value?.colOptions as any)?.formula_raw) {
+    vModel.value.formula_raw =
+      substituteColumnIdWithAliasInFormula(
+        (column.value?.colOptions as ButtonType)?.formula,
+        meta?.value?.columns as ColumnType[],
+        (column.value?.colOptions as any)?.formula_raw,
+      ) || ''
+  } else {
+    vModel.value.formula_raw = ''
+  }
+} else if (vModel.value?.type === ButtonActionsType.Ai || (column.value?.colOptions as any)?.type === ButtonActionsType.Ai) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInPrompt(
+      (column.value?.colOptions as ButtonType)?.formula ?? '',
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ).substituted || ''
+}
+
+const isDropdownOpen = ref(false)
+
+const updateButtonTheme = (type: string, name: string) => {
+  vModel.value.theme = type
+  vModel.value.color = name
+  isDropdownOpen.value = false
+}
+
+const isButtonIconDropdownOpen = ref(false)
+
+const iconSearchQuery = ref('')
+
+const icons = computed(() => {
+  return searchIcons(iconSearchQuery.value)
+})
+
+const removeIcon = () => {
+  vModel.value.icon = null
+  isButtonIconDropdownOpen.value = false
+}
+
+const selectIcon = (icon: string) => {
+  vModel.value.icon = icon
+  isButtonIconDropdownOpen.value = false
+}
+
+const handleUpdateActionType = () => {
+  updateFieldName(true, undefined, true)
+  vModel.value.formula_raw = ''
+}
+
+const filterRef = ref()
+
+const isFilterSectionOpen = ref(false)
+
+const filtersCount = ref(0)
+
+if (isEdit.value) {
+  const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
+  if (Array.isArray(existingFilters) && existingFilters.length) {
+    vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+    isFilterSectionOpen.value = true
+    filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
+  }
+}
+</script>
+
+<template>
+  <div class="relative flex flex-col gap-4">
+    <a-row :gutter="8">
+      <a-col :span="12">
+        <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
+          <a-input
+            v-model:value="vModel.label"
+            class="nc-column-label-input nc-input-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            placeholder="Button"
+          />
+        </a-form-item>
+      </a-col>
+      <a-col :span="6">
+        <a-form-item :label="$t('general.style')" v-bind="validateInfos.theme">
+          <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
+            <div
+              :class="{
+                'nc-button-style-dropdown': isDropdownOpen,
+                '!border-nc-border-purple !shadow-selected-ai': isDropdownOpen && isAiMode,
+                '!border-nc-border-brand !shadow-selected': isDropdownOpen && !isAiMode,
+              }"
+              class="flex items-center justify-between border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
+            >
+              <div
+                :style="{
+                  background: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor)
+                    .background,
+                  color: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor).text,
+                }"
+                :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
+                class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
+              >
+                <component :is="iconMap.cellText" class="w-4 h-4" />
+              </div>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted !w-4 !h-4" />
+            </div>
+            <template #overlay>
+              <div class="bg-nc-bg-default space-y-2 p-2 rounded-lg">
+                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-2">
+                  <div v-for="[name, color] in Object.entries(colors)" :key="name">
+                    <button
+                      :style="{
+                        background: getColor(color.base.background),
+                        color: getColor(color.base.text),
+                      }"
+                      :class="{
+                        '!border-transparent': type !== 'text',
+                      }"
+                      class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-6 w-6"
+                      @click="updateButtonTheme(type, name)"
+                    >
+                      <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </NcDropdown>
+        </a-form-item>
+      </a-col>
+      <a-col :span="6">
+        <a-form-item :label="$t('labels.icon')" v-bind="validateInfos.icon">
+          <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
+            <div
+              :class="{
+                'nc-button-style-dropdown ': isButtonIconDropdownOpen,
+                '!border-nc-border-purple !shadow-selected-ai': isButtonIconDropdownOpen && isAiMode,
+                '!border-nc-border-brand !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
+              }"
+              class="flex items-center justify-center border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
+            >
+              <div class="flex w-full items-center leading-5 justify-between gap-1">
+                <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4 text-nc-content-gray" />
+                <div v-else class="text-sm flex items-center leading-5 text-nc-content-gray-muted">
+                  {{ $t('labels.selectIcon') }}
+                </div>
+                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted !w-4 !h-4" />
+              </div>
+            </div>
+            <template #overlay>
+              <div class="bg-nc-bg-default w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
+                <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
+                  <a-input
+                    ref="inputRef"
+                    v-model:value="iconSearchQuery"
+                    :placeholder="$t('placeholder.searchIcons')"
+                    class="nc-dropdown-search-unified-input z-10 nc-input-shadow"
+                    :class="{
+                      'nc-ai-input': isAiMode,
+                    }"
+                  >
+                    <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+                  ></a-input>
+                  <NcButton size="small" class="!px-4" type="text" @click="removeIcon">
+                    <span class="text-[13px]">
+                      {{ $t('general.remove') }}
+                    </span>
+                  </NcButton>
+                </div>
+
+                <div class="grid px-3 auto-rows-max pb-2 nc-scrollbar-md gap-3 grid-cols-10">
+                  <component
+                    :is="icon"
+                    v-for="({ icon, name }, i) in icons"
+                    :key="i"
+                    :icon="icon"
+                    class="w-6 hover:bg-nc-bg-gray-light cursor-pointer rounded p-1 text-nc-content-gray-subtle h-6"
+                    @click="selectIcon(name)"
+                  />
+                </div>
+              </div>
+            </template>
+          </NcDropdown>
+        </a-form-item>
+      </a-col>
+    </a-row>
+    <a-row :gutter="8">
+      <a-col :span="24">
+        <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
+          <a-select
+            v-model:value="vModel.type"
+            class="w-52 nc-button-type-select nc-select-shadow"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            dropdown-class-name="nc-dropdown-button-cell-type"
+            @change="handleUpdateActionType"
+          >
+            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted" /> </template>
+
+            <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
+              <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
+                <div class="flex gap-2 w-full capitalize text-nc-content-gray truncate items-center">
+                  <GeneralIcon :icon="type.icon" />
+                  <div class="flex-1">
+                    {{ type.label }}
+                  </div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="vModel.type === type.value"
+                    id="nc-selected-item-icon"
+                    class="text-nc-content-brand w-4 h-4"
+                  />
+                </div>
+              </NcTooltip>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-col>
+    </a-row>
+    <div v-if="vModel?.type === buttonActionsType.Url">
+      <SmartsheetColumnFormulaInputHelper
+        v-model:value="vModel.formula_raw"
+        suggestion-height="medium"
+        editor-height="50px"
+        :disabled-formulas="['URL()', 'URLENCODE()']"
+        disable-suggestion-headers
+        :editor-error="editorError"
+        :label="$t('labels.urlFormula')"
+        :error="validateInfos.formula_raw?.validateStatus === 'error'"
+      />
+    </div>
+    <SmartsheetColumnButtonOptionsWebhook
+      v-if="vModel?.type === buttonActionsType.Webhook"
+      v-model:model-value="vModel"
+      v-model:selected-webhook="selectedWebhook"
+    />
+    <SmartsheetColumnButtonOptionsScript
+      v-if="vModel?.type === buttonActionsType.Script && showEEFeatures"
+      v-model:model-value="vModel"
+      v-model:selected-script="selectedScript"
+    />
+
+    <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+      <template #default="{ click }">
+        <div class="nc-button-filter-section mt-2">
+          <div
+            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+            @click="click(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY, () => (isFilterSectionOpen = !isFilterSectionOpen))"
+          >
+            <GeneralIcon
+              icon="arrowDown"
+              class="transform transition-transform duration-150 !w-4 !h-4"
+              :class="{ '-rotate-90': !isFilterSectionOpen }"
+            />
+            <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+            <PaymentUpgradeBadge
+              :plan-title="PlanTitles.BUSINESS"
+              :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"
+              :title="$t('upgrade.upgradeToUseButtonVisibility')"
+              :content="
+                $t('upgrade.upgradeToUseButtonVisibilitySubtitle', {
+                  plan: getPlanTitle(PlanTitles.BUSINESS),
+                })
+              "
+            />
+          </div>
+          <div v-if="isFilterSectionOpen" class="mt-2 overflow-x-auto nc-scrollbar-thin">
+            <SmartsheetToolbarColumnFilter
+              ref="filterRef"
+              v-model="vModel.filters"
+              :auto-save="false"
+              :is-button="true"
+              :button-col-id="vModel.id"
+              :show-loading="false"
+              :show-dynamic-condition="false"
+              :hide-checkbox="true"
+              class="!min-w-full !pl-0"
+              @update:filters-length="filtersCount = $event"
+            />
+          </div>
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
+  </div>
+</template>
+
+<style scoped lang="scss">
+:deep(.ant-form-item-label > label) {
+  @apply !text-small !leading-[18px] mb-2 !text-nc-content-gray flex;
+}
+
+.mono-font {
+  font-family: 'JetBrainsMono', monospace;
+}
+
+.nc-button-style-dropdown {
+  @apply border-[#d9d9d9];
+}
+
+.nc-cell-button {
+  &.text {
+    @apply border-1 border-nc-border-gray-medium rounded;
+  }
+}
+</style>

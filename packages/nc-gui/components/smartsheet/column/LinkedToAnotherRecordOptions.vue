@@ -1,0 +1,1206 @@
+<script setup lang="ts">
+import {
+  type LinkToAnotherRecordType,
+  LinksVersion,
+  ModelTypes,
+  PlanFeatureTypes,
+  PlanTitles,
+  ProjectRoles,
+  RelationTypes,
+  SqliteUi,
+  type TableType,
+  UITypes,
+  ViewTypes,
+  WorkspaceUserRoles,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
+} from 'nocodb-sdk'
+
+const props = defineProps<{
+  value: any
+  isEdit: boolean
+  /** Hide advanced link options (custom display field, limit-by-view, limit-by-filter)
+   *  — used during text→link conversion to keep the dialog minimal. */
+  hideAdvancedOptions?: boolean
+}>()
+
+const emit = defineEmits(['update:value', 'upgrade'])
+
+const vModel = useVModel(props, 'value', emit)
+
+const isEdit = toRef(props, 'isEdit')
+
+const isUpgradeable = computed(() => {
+  if (!isEdit.value) return false
+  const col = vModel.value
+  const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
+  // Custom links cannot be upgraded — upgrading may break/delete the foreign key
+  if (col?.meta?.custom) return false
+  // All Links columns (deprecated) can be upgraded — even v2 (splits into Rollup + LTAR)
+  if (col?.uidt === UITypes.Links) return true
+  // LTAR v1 can be upgraded; LTAR v2 is already fully upgraded
+  return col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2
+})
+
+const meta = inject(MetaInj, ref())
+
+const { isMetaReadOnly } = useRoles()
+
+const filterRef = ref()
+
+const crossBase = ref(
+  (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
+    (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
+)
+
+const { basesList } = storeToRefs(useBases())
+
+const {
+  setAdditionalValidations,
+  setAvoidShowingToastMsgForValidations,
+  validateInfos,
+  onDataTypeChange,
+  sqlUi,
+  isXcdbBase,
+  updateFieldName,
+  isSyncedField,
+} = useColumnCreateStoreOrThrow()
+
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
+
+const viewsStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewsStore)
+
+const { t } = useI18n()
+
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
+
+const { getMeta, getMetaByKey } = useMetas()
+
+if (!isEdit.value) {
+  setAdditionalValidations({
+    childId: [{ required: true, message: t('general.required') }],
+  })
+
+  setAvoidShowingToastMsgForValidations({
+    childId: true,
+  })
+}
+
+const onUpdateDeleteOptions = ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
+
+if (!isEdit.value) {
+  if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
+  if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.value?.table_name}_id`
+  if (!vModel.value.childTable) vModel.value.childTable = meta.value?.table_name
+  if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
+  if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
+
+  if (!vModel.value.type) vModel.value.type = 'mm'
+  if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
+  if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
+  if (!vModel.value.virtual) vModel.value.virtual = sqlUi instanceof SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
+  if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
+} else {
+  const colOptions = vModel.value?.colOptions as LinkToAnotherRecordType
+  if (vModel.value?.meta?.custom && isEeUI) {
+    let ref_column_id = colOptions.fk_child_column_id
+    let column_id = colOptions.fk_parent_column_id
+
+    // extract ref column id from colOptions
+    if (
+      colOptions.type === RelationTypes.MANY_TO_MANY ||
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      vModel?.value?.meta?.bt
+    ) {
+      ref_column_id = colOptions.fk_parent_column_id
+      column_id = colOptions.fk_child_column_id
+    }
+    vModel.value.custom = {
+      ref_model_id: colOptions?.fk_related_model_id,
+      base_id: meta.value?.base_id,
+      junc_base_id: meta.value?.base_id,
+      junc_model_id: colOptions?.fk_mm_model_id,
+      junc_ref_column_id: colOptions?.fk_mm_parent_column_id,
+      junc_column_id: colOptions?.fk_mm_child_column_id,
+      ref_column_id,
+      column_id,
+    }
+  }
+  vModel.value.is_custom_link = vModel.value?.meta?.custom
+
+  if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
+}
+if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_related_model_id || null
+if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
+if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'mm'
+
+// Initialize custom display value field from colOptions
+if (vModel.value.fk_display_value_column_id === undefined) {
+  vModel.value.fk_display_value_column_id =
+    (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id || null
+}
+
+const useCustomDisplayField = ref(!!vModel.value.fk_display_value_column_id)
+
+watch(useCustomDisplayField, (val) => {
+  if (!val) {
+    vModel.value.fk_display_value_column_id = null
+  }
+})
+
+// Custom display value field is an enterprise feature. showUpgradeForEEFeature
+// auto-routes: on unlicensed on-prem → license upgrade modal; on licensed
+// Starter → Enterprise upgrade modal. CE: no-op (the section is hidden).
+const onToggleCustomDisplayField = (val: boolean) => {
+  if (val && isEEFeatureBlocked.value) {
+    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'))
+    return
+  }
+  useCustomDisplayField.value = val
+}
+
+const onCustomDisplayLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+  onToggleCustomDisplayField(!useCustomDisplayField.value)
+}
+
+const advancedOptions = ref(false)
+
+const tablesStore = useTablesStore()
+const { baseTables } = storeToRefs(tablesStore)
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+// Check if linked view is private (views inherit from table)
+const isLinkedViewPrivate = computed(() => {
+  if (!vModel.value.childViewId) return false
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return false
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, childId)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
+})
+
+// Fields eligible for custom display value — same filter as useLTARStore's `fields`
+const eligibleDisplayFields = computed(() => {
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return []
+
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
+
+  if (!relatedBaseId) return []
+
+  const tableMeta = getMetaByKey(relatedBaseId, childId)
+
+  return ((tableMeta as TableType)?.columns ?? []).filter(
+    (col) => !isSystemColumn(col) && !isPrimary(col) && isSupportedDisplayValueColumn(col),
+  )
+})
+
+const refTables = computed(() => {
+  if (isEdit.value) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    const refTableId = referenceTableChildId.value
+    if (!refTableId) return []
+
+    // For cross-base links, use the related base ID, otherwise use current base ID
+    const relatedBaseId = crossBase.value
+      ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id
+      : meta.value?.base_id
+
+    if (!relatedBaseId) return []
+
+    // Load meta if not already loaded
+    if (!getMetaByKey(relatedBaseId, refTableId)) getMeta(relatedBaseId, refTableId)
+    const tableMeta = getMetaByKey(relatedBaseId, refTableId)
+    // Check if table is private (from API response only)
+    const isPrivate = tableMeta && (tableMeta as any).is_private
+
+    if (isPrivate) {
+      // Return a "Private" table object with the actual table title if available
+      return [
+        {
+          id: refTableId,
+          title: tableMeta?.title || t('labels.privateTable'),
+          is_private: true,
+        },
+      ]
+    }
+
+    return tableMeta ? [tableMeta] : []
+  }
+
+  let tablesList: any[] = []
+
+  if (!crossBase.value) {
+    if (!tables.value || !tables.value.length) {
+      return []
+    }
+
+    tablesList = tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+  } else {
+    if (!baseTables.value.get(vModel.value.ref_base_id)) {
+      return []
+    }
+
+    tablesList = [...baseTables.value.get(vModel.value.ref_base_id).filter((t) => t.type === ModelTypes.TABLE)]
+  }
+
+  // Backend already filters tables based on visibility, so return all tables from the list
+  return tablesList
+})
+
+const refViews = computed(() => {
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+
+  if (!childId) return []
+
+  // For cross-base links, get the related base ID, otherwise use current base ID
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
+
+  if (!relatedBaseId) return []
+
+  // Find the child table to get its actual base_id (should match relatedBaseId)
+  const childTable = baseTables.value.get(relatedBaseId)?.find((t) => t.id === childId)
+
+  if (!childTable) return []
+
+  const key = `${relatedBaseId}:${childId}`
+  const views = viewsByTable.value.get(key) || []
+
+  // In edit mode, if view is not accessible, return a "Private view" object
+  if (isEdit.value && vModel.value.childViewId && isLinkedViewPrivate.value) {
+    // Try to get the view title from views if available, otherwise use "Private view"
+    const viewMeta = (views || []).find((v) => v.id === vModel.value.childViewId)
+    return [
+      {
+        id: vModel.value.childViewId,
+        title: viewMeta?.title || t('labels.privateView'),
+        is_private: true,
+      },
+    ]
+  }
+
+  // Backend already filters views based on table visibility, so return all views (excluding forms)
+  return (views || []).filter((v) => v.type !== ViewTypes.FORM)
+})
+
+const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
+
+// Set version based on relation type and uidt
+// hm/bt are V1-only relation types; om/mo are V2 relation types
+// For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
+// Custom links are always V1
+watch(
+  [() => vModel.value.type, () => vModel.value.uidt, () => vModel.value.is_custom_link],
+  () => {
+    if (isEdit.value) return
+
+    // Custom links are always V1 regardless of type
+    if (vModel.value.is_custom_link) {
+      vModel.value.version = LinksVersion.V1
+      return
+    }
+
+    const type = vModel.value.type
+
+    if (type === RelationTypes.HAS_MANY || type === RelationTypes.BELONGS_TO) {
+      vModel.value.version = LinksVersion.V1
+    } else if (type === RelationTypes.ONE_TO_MANY || type === RelationTypes.MANY_TO_ONE) {
+      vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+      vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.Links) {
+      vModel.value.version = LinksVersion.V1
+    } else {
+      delete vModel.value.version
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
+  async (tableId) => {
+    if (tableId) {
+      // For cross-base links, use the related base ID
+      const relatedBaseId = crossBase.value
+        ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+        : meta.value?.base_id
+
+      if (!relatedBaseId) return
+
+      getMeta(relatedBaseId, tableId).catch(() => {
+        // ignore
+      })
+      viewsStore
+        .loadViews({
+          ignoreLoading: true,
+          tableId,
+          baseId: relatedBaseId,
+        })
+        .catch(() => {
+          // ignore
+        })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+vModel.value.meta = vModel.value.meta || {}
+const limitRecToView = ref(!!vModel.value.childViewId)
+const limitRecToCond = computed({
+  get() {
+    return !!vModel.value.meta?.enableConditions
+  },
+  set(value) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.enableConditions = value
+  },
+})
+
+const onLimitRecToViewChange = (value: boolean) => {
+  if (!value) {
+    vModel.value.childViewId = null
+  }
+}
+
+provide(
+  MetaInj,
+  computed(() => {
+    const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+
+    // For cross-base links, use the related base ID
+    const relatedBaseId = crossBase.value
+      ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+      : meta.value?.base_id
+
+    return (getMetaByKey(relatedBaseId, childId) as any) || {}
+  }),
+)
+
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
+
+const referenceTableChildId = computed({
+  get: () => (isEdit.value ? vModel.value?.colOptions?.fk_related_model_id : vModel.value?.childId) ?? null,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.childId = value
+      vModel.value.childTableTitle = refTables.value.find((t) => t.id === value)?.title
+    }
+  },
+})
+
+// Check if linked table is private (for edit mode display)
+// Only check is_private flag from API response
+const isLinkedTablePrivate = computed(() => {
+  if (!isEdit.value) return false
+  const refTableId = referenceTableChildId.value
+  if (!refTableId) return false
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, refTableId)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
+})
+
+const linkType = computed({
+  get: () => {
+    const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
+    // Custom links use V1 types directly (hm/bt) — no remapping
+    if (vModel.value?.is_custom_link || vModel.value?.meta?.custom) return type
+    // Remap legacy relation types to V2 radio values (om/mo)
+    if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
+    if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
+    return type
+  },
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.type = value
+
+      updateFieldName()
+    }
+  },
+})
+
+const referenceBaseId = computed({
+  get: () => vModel.value?.ref_base_id ?? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.ref_base_id = value
+    }
+  },
+})
+
+const handleUpdateRefTable = () => {
+  onDataTypeChange()
+
+  nextTick(() => {
+    updateFieldName()
+  })
+}
+
+const onBaseChange = async (baseId: string) => {
+  // load tables for the selected base
+  await tablesStore.loadProjectTables(baseId)
+
+  // reset current model id value
+  if (referenceTableChildId.value) {
+    referenceTableChildId.value = null
+  }
+}
+
+const cusValidators = {
+  'custom.column_id': [{ required: true, message: t('general.required') }],
+  'custom.ref_model_id': [{ required: true, message: t('general.required') }],
+  'custom.ref_column_id': [{ required: true, message: t('general.required') }],
+}
+
+const cusJuncTableValidations = {
+  'custom.junc_model_id': [{ required: true, message: t('general.required') }],
+  'custom.junc_column_id': [{ required: true, message: t('general.required') }],
+  'custom.junc_ref_column_id': [{ required: true, message: t('general.required') }],
+}
+
+const onCustomSwitchToggle = () => {
+  if (vModel.value?.is_custom_link) {
+    setAdditionalValidations({
+      childId: [],
+      ...cusValidators,
+      ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
+    })
+
+    vModel.value.virtual = true
+  } else
+    setAdditionalValidations({
+      childId: [{ required: true, message: t('general.required') }],
+    })
+}
+
+const onCustomSwitchLabelClick = () => {
+  if (isEdit.value) return
+
+  vModel.value.is_custom_link = !vModel.value.is_custom_link
+  onCustomSwitchToggle()
+}
+
+const onViewLabelClick = () => {
+  if (isSyncedField.value) return
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+
+  limitRecToView.value = !limitRecToView.value
+  return onLimitRecToViewChange()
+}
+const onFilterLabelClick = () => {
+  if (isSyncedField.value) return
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
+
+const onCrossBaseToggle = () => {
+  // reset current model id value if cross base disabled and selected table is not in current base
+  if (!crossBase.value) {
+    referenceBaseId.value = null
+    if (refTables.value.every((t) => t.id !== referenceTableChildId)) {
+      referenceTableChildId.value = null
+    }
+  }
+}
+
+// check user have creator or above role to create cross base link to the base
+const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
+  if (base.project_role) {
+    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
+      return true
+    }
+  } else if (base.workspace_role) {
+    if ([WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(base.workspace_role)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+const toggleCrossBase = () => {
+  if (isEdit.value) return
+
+  crossBase.value = !crossBase.value
+  onCrossBaseToggle()
+}
+
+const handleScrollIntoView = () => {
+  filterRef.value?.$el?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+    inline: 'nearest',
+  })
+}
+</script>
+
+<template>
+  <div class="w-full flex flex-col gap-4">
+    <div class="flex flex-col gap-4">
+      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
+        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
+          <!-- Custom links use V1 relation types: MM, HM, OO -->
+          <template v-if="vModel.is_custom_link">
+            <a-row :gutter="[8, 8]" class="nc-links-3-col">
+              <a-col :span="8">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="hm" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+          <!-- V2 relation types: MM, OM, MO, OO -->
+          <template
+            v-else-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
+          >
+            <a-row :gutter="[8, 8]">
+              <a-col :span="12">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
+                  <span class="nc-ltar-icon nc-om-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.oneToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One">
+                  <span class="nc-ltar-icon nc-mo-icon">
+                    <GeneralIcon icon="bt_solid" />
+                  </span>
+                  {{ $t('title.manyToOne') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+          <!-- Legacy Links (V1): MM, HM, OO -->
+          <template v-else>
+            <a-row :gutter="[8, 8]" class="nc-links-3-col">
+              <a-col :span="8">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="hm" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+        </a-radio-group>
+      </a-form-item>
+    </div>
+    <div
+      v-if="isUpgradeable"
+      class="flex items-center justify-between bg-nc-orange-50 dark:bg-nc-orange-20 rounded-lg px-3 py-2 -mt-2"
+      data-testid="nc-ltar-upgrade-banner"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 text-orange-500" />
+        <span class="text-sm text-nc-content-gray">
+          {{ $t('msg.info.upgradeLinkFieldAvailable') }}
+          <a
+            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/link-to-another-record#upgrade-from-links-v1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-nc-content-brand underline ml-1"
+            >{{ $t('msg.learnMore') }}</a
+          >
+        </span>
+      </div>
+      <GeneralSourceRestrictionTooltip message="Field cannot be upgraded." :enabled="!!isMetaReadOnly">
+        <NcButton size="xs" type="primary" :disabled="isMetaReadOnly" @click="emit('upgrade')">
+          {{ $t('general.upgrade') }}
+        </NcButton>
+      </GeneralSourceRestrictionTooltip>
+    </div>
+    <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI && !isEEFeatureBlocked">
+      <a-switch
+        v-model:checked="vModel.is_custom_link"
+        :disabled="isEdit"
+        :is-edit="isEdit"
+        size="small"
+        name="Custom"
+        @change="onCustomSwitchToggle"
+      />
+      <span
+        class="ml-3"
+        :class="{
+          'cursor-pointer': !isEdit,
+        }"
+        @click="onCustomSwitchLabelClick"
+        >Advanced Link</span
+      >
+    </div>
+    <div v-if="isEeUI && vModel.is_custom_link">
+      <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
+    </div>
+    <template v-else>
+      <template v-if="isFeatureEnabled(FEATURE_FLAG.CROSS_BASE_LINK)">
+        <div>
+          <a-switch
+            v-model:checked="crossBase"
+            :disabled="isEdit"
+            :is-edit="isEdit"
+            size="small"
+            name="crossBase"
+            @change="onCrossBaseToggle"
+          />
+
+          <a-tooltip>
+            <template v-if="!isEdit" #title>{{ $t('tooltip.crossBase') }}</template>
+            <span
+              class="ml-3"
+              :class="{
+                'cursor-pointer': !isEdit,
+              }"
+              @click="toggleCrossBase"
+              @dblclick="onCustomSwitchLabelClick"
+              >{{ $t('labels.crossBase') }}</span
+            >
+          </a-tooltip>
+        </div>
+
+        <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
+          <a-select
+            v-model:value="referenceBaseId"
+            show-search
+            :disabled="isEdit"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+            placeholder="Select base"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onBaseChange(referenceBaseId)"
+          >
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+            </template>
+            <a-select-option
+              v-for="base of basesList"
+              :key="base.id"
+              :data-label="base.title"
+              :disabled="!canCreateCrossBaseLink(base)"
+              :value="base.id"
+            >
+              <a-tooltip>
+                <template v-if="!canCreateCrossBaseLink(base)" #title>
+                  You can only link to tables in bases where you have creator access or above.
+                </template>
+                <div class="flex w-full items-center gap-2">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <GeneralProjectIcon
+                      :color="parseProp(base.meta).iconColor"
+                      :type="base.type"
+                      :managed-app="{
+                        managed_app_master: base.managed_app_master,
+                        managed_app_id: base.managed_app_id,
+                      }"
+                      class="nc-project-icon"
+                    />
+                  </div>
+                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                    <template #title>{{ base.title }}</template>
+                    <span>{{ base.title }}</span>
+                  </NcTooltip>
+
+                  <div class="flex gap-2 items-center">
+                    <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                      {{ $t('labels.currentBase') }}
+                    </div>
+                  </div>
+                </div>
+              </a-tooltip>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+      </template>
+      <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
+        <NcTooltip :disabled="!isLinkedTablePrivate" placement="right">
+          <a-select
+            v-model:value="referenceTableChildId"
+            show-search
+            :disabled="isEdit || isLinkedTablePrivate"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+            placeholder="select table to link"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="handleUpdateRefTable"
+          >
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+            </template>
+            <a-select-option
+              v-for="table of refTables"
+              :key="table.id"
+              :data-label="table.title"
+              :value="table.id"
+              :disabled="(table as any).is_private"
+            >
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon v-if="(table as any).is_private" class="!text-nc-content-gray-disabled" />
+                  <GeneralTableIcon v-else :meta="table" class="text-nc-content-gray-muted" />
+                </div>
+                <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ table.title }}</template>
+                  <span>{{ table.title }}</span>
+                </NcTooltip>
+                <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateTable') }}</span>
+              </div>
+            </a-select-option>
+          </a-select>
+
+          <template #title>
+            {{
+              $t('tooltip.notHaveAccess', {
+                context: $t('objects.table'),
+              })
+            }}
+          </template>
+        </NcTooltip>
+      </a-form-item>
+    </template>
+
+    <div v-if="isEeUI && !hideAdvancedOptions" class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
+        <a-switch
+          v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
+          :checked="useCustomDisplayField"
+          size="small"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+          @change="onToggleCustomDisplayField"
+        />
+        <span class="cursor-pointer" data-testid="nc-use-custom-display-field" @click="onCustomDisplayLabelClick">
+          {{ $t('labels.useCustomDisplayField') }}
+        </span>
+        <LazyPaymentUpgradeBadge
+          v-if="!useCustomDisplayField"
+          :feature-enabled-callback="() => !isEEFeatureBlocked"
+          :plan-title="PlanTitles.ENTERPRISE"
+          class="ml-1"
+        />
+      </div>
+      <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
+        <NcSelect
+          v-model:value="vModel.fk_display_value_column_id"
+          :placeholder="$t('labels.selectFieldAsDisplayName')"
+          show-search
+          :disabled="isEEFeatureBlocked"
+          :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+          dropdown-class-name="nc-dropdown-ltar-display-value-field"
+        >
+          <a-select-option v-for="field of eligibleDisplayFields" :key="field.id" :value="field.id" :data-label="field.title">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ field.title }}</template>
+                <span>{{ field.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+    </div>
+
+    <div v-if="!hideAdvancedOptions" class="flex flex-col gap-2">
+      <NcTooltip :disabled="!isSyncedField && !isLinkedViewPrivate" placement="right">
+        <div class="flex gap-2 items-center">
+          <a-switch
+            v-model:checked="limitRecToView"
+            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+            size="small"
+            :disabled="
+              (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) ||
+              isSyncedField ||
+              isLinkedTablePrivate
+            "
+            @change="onLimitRecToViewChange"
+          />
+
+          <span
+            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+            class="cursor-pointer inline-flex items-center gap-1"
+            data-testid="nc-limit-record-view"
+            @click="onViewLabelClick"
+          >
+            {{ $t('labels.limitRecordSelectionToView') }}
+
+            <a
+              href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-view"
+              target="_blank"
+              class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+              @click.stop
+            >
+              <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
+          ></span>
+        </div>
+        <template #title>
+          {{
+            isSyncedField
+              ? $t('tooltip.optionNotAvailableInSyncTable')
+              : $t('tooltip.notHaveAccess', {
+                  context: $t('objects.view'),
+                })
+          }}
+        </template>
+      </NcTooltip>
+      <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+        <NcTooltip :disabled="!isLinkedViewPrivate" placement="right">
+          <NcSelect
+            v-model:value="vModel.childViewId"
+            :placeholder="$t('labels.selectView')"
+            show-search
+            :disabled="isLinkedViewPrivate"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+            dropdown-class-name="nc-dropdown-ltar-child-view"
+          >
+            <a-select-option
+              v-for="view of refViews"
+              :key="view.id"
+              :value="view.id"
+              :data-label="view.title"
+              :disabled="(view as any).is_private"
+            >
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon
+                    v-if="(view as any).is_private"
+                    :meta="{type: ViewTypes.GRID} as any"
+                    class="!text-nc-content-gray-disabled"
+                  />
+                  <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
+                </div>
+                <NcTooltip v-if="!(view as any).is_private" class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ view.title }}</template>
+                  <span>{{ view.title }}</span>
+                </NcTooltip>
+                <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateView') }}</span>
+              </div>
+            </a-select-option>
+          </NcSelect>
+
+          <template #title>
+            {{
+              $t('tooltip.notHaveAccess', {
+                context: $t('objects.view'),
+              })
+            }}
+          </template>
+        </NcTooltip>
+      </a-form-item>
+    </div>
+
+    <template v-if="isEeUI && showEEFeatures && !hideAdvancedOptions">
+      <div class="flex flex-col gap-2">
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
+          <template #default="{ click }">
+            <NcTooltip :disabled="!isSyncedField" placement="right">
+              <div class="flex gap-2 items-center">
+                <a-switch
+                  v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                  :checked="limitRecToCond"
+                  :disabled="
+                    (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) ||
+                    isSyncedField ||
+                    isLinkedTablePrivate
+                  "
+                  size="small"
+                  @change="
+                    (value) => {
+                      if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
+
+                      onFilterLabelClick()
+                    }
+                  "
+                />
+                <span
+                  v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                  data-testid="nc-limit-record-filters"
+                  class="cursor-pointer inline-flex items-center gap-1"
+                  @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
+                >
+                  {{ $t('labels.limitRecordSelectionToFilters') }}
+
+                  <a
+                    href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-filter-"
+                    target="_blank"
+                    class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+                    @click.stop
+                  >
+                    <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
+                  </a>
+                </span>
+                <LazyPaymentUpgradeBadge
+                  v-if="!limitRecToCond"
+                  :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
+                  :content="
+                    $t('upgrade.upgradeToAddLimitRecordSelection', {
+                      plan: getPlanTitle(PlanTitles.PLUS),
+                    })
+                  "
+                />
+              </div>
+              <template #title> {{ $t('tooltip.optionNotAvailableInSyncTable') }} </template>
+            </NcTooltip>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+        <div v-if="limitRecToCond && !isLinkedTablePrivate" class="overflow-auto nc-scrollbar-thin">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            class="!pl-8 !p-0 max-w-620px"
+            :auto-save="false"
+            :show-loading="false"
+            :link="true"
+            :root-meta="meta"
+            :link-col-id="vModel.id"
+            @add-filter="handleScrollIntoView"
+            @add-filter-group="handleScrollIntoView"
+          />
+        </div>
+      </div>
+    </template>
+    <template v-if="(!isXcdbBase && !isEdit) || isLinks">
+      <div>
+        <NcButton
+          size="small"
+          type="text"
+          class="!text-nc-content-gray-muted !hover:text-nc-content-gray-subtle"
+          @click.stop="advancedOptions = !advancedOptions"
+        >
+          <div class="flex items-center gap-2">
+            <span class="first-letter:capitalize">
+              {{ $t('title.advancedSettings').toLowerCase() }}
+            </span>
+
+            <GeneralIcon :icon="advancedOptions ? 'arrowUp' : 'arrowDown'" class="h-4 w-4" />
+          </div>
+        </NcButton>
+      </div>
+
+      <div v-if="advancedOptions" class="flex flex-col gap-4">
+        <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" />
+        <template v-if="!isXcdbBase && !isEdit">
+          <div class="flex flex-row space-x-2">
+            <a-form-item class="flex w-1/2">
+              <a-select
+                v-model:value="vModel.onUpdate"
+                :disabled="vModel.virtual"
+                name="onUpdate"
+                dropdown-class-name="nc-dropdown-on-update"
+                @change="onDataTypeChange"
+              >
+                <template #label>
+                  <span class="capitalize">{{ $t('labels.onUpdate') }}</span>
+                </template>
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
+                <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
+                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
+                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
+                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
+                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
+                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-else>
+                    {{ option }}
+                  </template>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+
+            <a-form-item class="flex w-1/2">
+              <template #label>
+                <span class="capitalize">{{ $t('labels.onDelete') }}</span>
+              </template>
+
+              <a-select
+                v-model:value="vModel.onDelete"
+                :disabled="vModel.virtual"
+                name="onDelete"
+                dropdown-class-name="nc-dropdown-on-delete"
+                @change="onDataTypeChange"
+              >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
+                <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
+                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
+                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
+                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
+                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
+                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-else>
+                    {{ option }}
+                  </template>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </div>
+
+          <div class="flex flex-row">
+            <a-form-item>
+              <div class="flex items-center gap-1">
+                <NcSwitch v-model:checked="vModel.virtual" :disabled="vModel.is_custom_link" @change="onDataTypeChange">
+                  <div class="text-sm text-nc-content-gray select-none">
+                    {{ $t('title.virtualRelation') }}
+                  </div>
+                </NcSwitch>
+              </div>
+            </a-form-item>
+          </div>
+        </template>
+      </div>
+    </template>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+:deep(.nc-filter-grid) {
+  @apply !pr-0;
+}
+
+:deep(.nc-ltar-relation-type .ant-radio-group) {
+  .ant-row {
+    @apply flex flex-wrap;
+  }
+
+  .ant-col {
+    @apply flex;
+  }
+
+  .ant-radio-wrapper {
+    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3 m-0 px-2 border-1 border-nc-border-gray-medium rounded-lg flex-1;
+
+    &.ant-radio-wrapper-checked {
+      @apply border-nc-border-brand bg-nc-bg-brand-light;
+
+      &:not(.ant-radio-wrapper-disabled):focus-within {
+        @apply border-nc-border-brand;
+      }
+    }
+
+    span:not(.ant-radio):not(.nc-ltar-icon) {
+      @apply flex-1 pl-0 flex items-center gap-2;
+    }
+
+    .ant-radio {
+      @apply top-0;
+    }
+
+    .nc-ltar-icon {
+      @apply inline-flex items-center p-1 rounded-md;
+    }
+  }
+}
+
+:deep(.nc-ltar-relation-type .ant-col.ant-form-item-control) {
+  @apply flex-1;
+}
+</style>
+
+<!-- todo: remove later
+<style lang="scss" scoped>
+.nc-ltar-relation-type-radio-group {
+  .nc-ltar-icon {
+    @apply flex items-center p-1 rounded;
+
+    &.nc-mm-icon {
+      @apply bg-pink-500;
+    }
+    &.nc-hm-icon {
+      @apply bg-orange-500;
+    }
+    &.nc-oo-icon {
+      @apply bg-purple-500;
+      :deep(svg path) {
+        @apply stroke-purple-50;
+      }
+    }
+  }
+
+  :deep(.ant-radio-wrapper) {
+    @apply px-3 py-2 flex items-center mr-0;
+
+    &:not(:last-child) {
+      @apply border-b border-nc-border-gray-medium;
+    }
+  }
+
+  :deep(.ant-radio) {
+    @apply top-0;
+    & + span {
+      @apply flex items-center gap-2;
+    }
+  }
+}
+</style>
+-->

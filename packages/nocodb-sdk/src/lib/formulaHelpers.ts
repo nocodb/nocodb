@@ -1,0 +1,168 @@
+import { ColumnType } from './Api';
+import { formulaJsep } from './formula/jsepInstances';
+
+export * from './formula/enums';
+export * from './formula/error';
+export * from './formula/formulas';
+export * from './formula/handle-formula-error';
+export * from './formula/hooks';
+export * from './formula/operators';
+export * from './formula/types';
+export * from './formula/validate-extract-tree';
+export * from './formula/jsepInstances';
+
+export async function substituteColumnAliasWithIdInFormula(
+  formula,
+  columns: ColumnType[]
+) {
+  const substituteId = async (pt: any) => {
+    if (pt.type === 'CallExpression') {
+      for (const arg of pt.arguments || []) {
+        await substituteId(arg);
+      }
+    } else if (pt.type === 'Literal') {
+      return;
+    } else if (pt.type === 'Identifier') {
+      const colNameOrId = pt.name;
+      const column = columns.find(
+        (c) =>
+          c.id === colNameOrId ||
+          c.column_name === colNameOrId ||
+          c.title === colNameOrId
+      );
+      pt.name = '{' + column.id + '}';
+    } else if (pt.type === 'BinaryExpression') {
+      await substituteId(pt.left);
+      await substituteId(pt.right);
+    }
+  };
+  const parsedFormula = formulaJsep(formula);
+  await substituteId(parsedFormula);
+  return jsepTreeToFormula(parsedFormula);
+}
+
+export function substituteColumnIdWithAliasInFormula(
+  formula,
+  columns: ColumnType[],
+  rawFormula?
+) {
+  const substituteId = (pt: any, ptRaw?: any) => {
+    if (pt.type === 'CallExpression') {
+      let i = 0;
+      for (const arg of pt.arguments || []) {
+        substituteId(arg, ptRaw?.arguments?.[i++]);
+      }
+    } else if (pt.type === 'Literal') {
+      return;
+    } else if (pt.type === 'Identifier') {
+      const colNameOrId = pt?.name;
+      const column = columns.find(
+        (c) =>
+          c.id === colNameOrId ||
+          c.column_name === colNameOrId ||
+          c.title === colNameOrId
+      );
+      pt.name = column?.title || ptRaw?.name || pt?.name;
+    } else if (pt.type === 'BinaryExpression') {
+      substituteId(pt.left, ptRaw?.left);
+      substituteId(pt.right, ptRaw?.right);
+    }
+  };
+
+  const parsedFormula = formulaJsep(formula);
+  const parsedRawFormula = rawFormula && formulaJsep(rawFormula);
+  substituteId(parsedFormula, parsedRawFormula);
+  return jsepTreeToFormula(parsedFormula);
+}
+
+// isCallExpId - is the identifier part of a call expression
+// in case of call expression, we don't want to wrap the identifier in curly brackets
+export function jsepTreeToFormula(node, isCallExpId = false) {
+  if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
+    return (
+      '(' +
+      jsepTreeToFormula(node.left) +
+      ' ' +
+      node.operator +
+      ' ' +
+      jsepTreeToFormula(node.right) +
+      ')'
+    );
+  }
+
+  if (node.type === 'UnaryExpression') {
+    return node.operator + jsepTreeToFormula(node.argument);
+  }
+
+  if (node.type === 'MemberExpression') {
+    return (
+      jsepTreeToFormula(node.object) +
+      '[' +
+      jsepTreeToFormula(node.property) +
+      ']'
+    );
+  }
+
+  if (node.type === 'Identifier') {
+    if (!isCallExpId) return '{' + node.name + '}';
+    return node.name;
+  }
+
+  if (node.type === 'Literal') {
+    if (typeof node.value === 'string') {
+      return String.raw`"${escapeLiteral(node.raw.slice(1, -1))}"`;
+    }
+    return '' + node.value;
+  }
+
+  if (node.type === 'CallExpression') {
+    return (
+      jsepTreeToFormula(node.callee, true) +
+      '(' +
+      node.arguments.map((argPt) => jsepTreeToFormula(argPt)).join(', ') +
+      ')'
+    );
+  }
+
+  if (node.type === 'ArrayExpression') {
+    return (
+      '[' +
+      node.elements.map((elePt) => jsepTreeToFormula(elePt)).join(', ') +
+      ']'
+    );
+  }
+
+  if (node.type === 'Compound') {
+    return node.body.map((e) => jsepTreeToFormula(e)).join(' ');
+  }
+
+  if (node.type === 'ConditionalExpression') {
+    return (
+      jsepTreeToFormula(node.test) +
+      ' ? ' +
+      jsepTreeToFormula(node.consequent) +
+      ' : ' +
+      jsepTreeToFormula(node.alternate)
+    );
+  }
+
+  return '';
+}
+
+function escapeLiteral(v: string) {
+  return (
+    v
+      // 1️⃣ Temporarily protect real newline
+      .replace(/\\n/g, '__NC_NEWLINE__')
+
+      // 2️⃣ Escape unescaped backslashes (replace \ to \\, escape only unescaped \)
+      .replace(/([^\\]|^)\\(?!\\)/g, `$1\\\\`)
+
+      // 3️⃣ Escape quotes (replace " to \" and ' to \')
+      .replace(/([^\\]|^)"/g, `$1\\"`)
+      .replace(/([^\\]|^)'/g, `$1\\'`)
+
+      // 4️⃣ Restore protected newline and tab
+      .replace(/__NC_NEWLINE__/g, '\\n')
+  );
+}

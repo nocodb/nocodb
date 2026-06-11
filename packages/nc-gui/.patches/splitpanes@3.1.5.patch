@@ -1,0 +1,22 @@
+diff --git a/dist/splitpanes.es.js b/dist/splitpanes.es.js
+--- a/dist/splitpanes.es.js
++++ b/dist/splitpanes.es.js
+@@ -149,6 +149,7 @@
+       e.onmousedown = void 0, e.onclick = void 0, e.ondblclick = void 0, e.parentNode.removeChild(e);
+     },
+     redoSplitters() {
++      if (!this.container) return;
+       const e = Array.from(this.container.children);
+       e.forEach((s) => {
+         s.className.includes("splitpanes__splitter") && this.removeSplitter(s);
+@@ -160,7 +161,9 @@
+     },
+     requestUpdate({ target: e, ...i }) {
+       const s = this.indexedPanes[e._.uid];
+-      Object.entries(i).forEach(([n, t]) => s[n] = t);
++      if (s) {
++        Object.entries(i).forEach(([n, t]) => s[n] = t);
++      }
+     },
+     onPaneAdd(e) {
+       let i = -1;

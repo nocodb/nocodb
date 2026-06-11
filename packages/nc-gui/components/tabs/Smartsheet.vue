@@ -1,0 +1,485 @@
+<script setup lang="ts">
+import { Pane, Splitpanes } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSmartText } from 'nocodb-sdk'
+import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
+import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
+
+const props = defineProps<{
+  activeTab: TabItem
+}>()
+
+const activeTab = toRef(props, 'activeTab')
+
+useSidebar('nc-right-sidebar')
+
+const { isUIAllowed } = useRoles()
+
+const { isRtl } = useRtl()
+
+const { getMeta, getMetaByKey } = useMetas()
+
+const { ncNavigateTo } = useGlobal()
+
+const route = useRoute()
+
+const { activeProjectId } = storeToRefs(useBases())
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const viewStore = useViewsStore()
+
+const webhooksStore = useWebhooksStore()
+
+const { pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
+
+const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
+
+const meta = computed<TableType | undefined>(() => {
+  const viewId = route.params.viewId as string
+  return viewId && getMetaByKey(activeProjectId.value, viewId)
+})
+
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, isGantt, xWhere, eventBus } =
+  useProvideSmartsheetStore(activeView, meta)
+
+useViewRowColorProvider({ view: activeView, eventBus })
+
+const expandedFormPanelStore = useProvideExpandedFormPanel()
+
+const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
+
+const isExpandedFormPanelFullscreen = computed(
+  () => expandedFormPanelStore.isOpen.value && expandedFormPanelStore.isFullscreen.value,
+)
+
+// SmartText panel claims the right-side slot when ?cellCol points at a SmartText
+// column. Hide the expanded-record panel while that's true so we never show two
+// panels at once. The `useExpandedFormPanel` provider state is kept (rowId in
+// URL is untouched), so closing the SmartText panel re-renders the expanded
+// record at the same row.
+const isSmartTextActive = computed(() => {
+  const cellCol = route.query.cellCol as string | undefined
+  if (!cellCol) return false
+  const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
+  return !!col && isSmartText(col)
+})
+
+// When the SmartText panel closes (true → false), the expanded-record panel
+// becomes the topmost visible panel again. Clicking SmartText's close button
+// counts as a click outside `.nc-expanded-form-panel`, so the click-intent
+// flag would otherwise leave the user stuck — Escape and Tab would not act
+// on EFP until they click into it. Reset intent here so the next keystroke
+// targets EFP.
+watch(isSmartTextActive, (active, prev) => {
+  if (prev && !active && isExpandedFormPanelOpen.value) {
+    markExpandedFormPanelFocus()
+  }
+})
+
+watch(
+  () => isGrid.value,
+  (gridActive) => {
+    if (!gridActive && isExpandedFormPanelOpen.value) {
+      expandedFormPanelStore.closePanel()
+      if (route.query.rowId) {
+        navigateTo({
+          query: {
+            ...route.query,
+            path: undefined,
+            rowId: undefined,
+          },
+        })
+      }
+    }
+  },
+)
+
+const reloadViewDataEventHook = createEventHook()
+
+const reloadViewMetaEventHook = createEventHook<void | boolean>()
+
+const openNewRecordFormHook = createEventHook<void>()
+
+const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
+
+const activeSource = computed(() => {
+  return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
+})
+
+useProvideKanbanViewStore(meta, activeView)
+useProvideMapViewStore(meta, activeView)
+useProvideCalendarViewStore(meta, activeView, false, xWhere)
+useProvideListViewStore(meta, activeView)
+useProvideTimelineViewStore(meta, activeView, false, xWhere)
+useProvideGanttViewStore(meta, activeView, false, xWhere)
+
+// todo: move to store
+provide(MetaInj, meta)
+provide(ActiveViewInj, activeView)
+provide(IsLockedInj, isLocked)
+provide(ReloadViewDataHookInj, reloadViewDataEventHook)
+provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
+provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
+provide(IsFormInj, isForm)
+provide(IsTimelineInj, isTimeline)
+provide(IsGanttInj, isGantt)
+provide(TabMetaInj, activeTab)
+provide(ActiveSourceInj, activeSource)
+provide(ReloadAggregateHookInj, createEventHook())
+
+provide(
+  ReadonlyInj,
+  computed(
+    () =>
+      !isUIAllowed('dataEdit', {
+        skipSourceCheck: true,
+      }),
+  ),
+)
+useExpandedFormDetachedProvider()
+UseDetachedLongTextProvider()
+
+useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
+
+useProvideViewGroupBy(activeView, meta, xWhere)
+
+useProvideSmartsheetLtarHelpers(meta)
+
+const grid = ref()
+
+const extensionPaneRef = ref()
+
+const actionPaneRef = ref()
+
+/*
+ * NOTE:
+ * Splitpanes internally schedules async resize/redo logic.
+ * If the component is mounted/unmounted quickly (route change, fullscreen toggle),
+ * those callbacks can run after unmount and crash with:
+ * "Cannot read properties of null (reading 'children')".
+ *
+ * We delay rendering Splitpanes until the parent component is fully mounted
+ * and show a loader meanwhile to ensure DOM stability.
+ */
+const { isMounted } = useIsMounted()
+
+const onDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  try {
+    // Access the dropped data
+    const data = JSON.parse(event.dataTransfer!.getData('text/json') || '{}')
+    // Do something with the received data
+
+    // if dragged item is not from the same source, return
+    if (data.sourceId !== meta.value?.source_id) return
+
+    // if dragged item or opened view is not a table, return
+    if (data.type !== 'table' || meta.value?.type !== 'table') return
+
+    const childMeta = await getMeta(meta.value.base_id!, data.id)
+    const parentMeta = getMetaByKey(activeProjectId.value, meta.value.id!)
+
+    if (!childMeta || !parentMeta) return
+
+    const parentPkCol = parentMeta.columns?.find((c) => c.pk)
+    const childPkCol = childMeta.columns?.find((c) => c.pk)
+
+    // if already a link column exists, create a new Lookup column
+    const relationCol = parentMeta.columns?.find((c: ColumnType) => {
+      if (!isLinksOrLTAR(c)) return false
+
+      const ltarOptions = c.colOptions as LinkToAnotherRecordType
+
+      if (ltarOptions.type !== 'mm') {
+        return false
+      }
+
+      if (c.system) return false
+
+      if (ltarOptions.fk_related_model_id === childMeta.id) {
+        return true
+      }
+
+      return false
+    })
+
+    if (relationCol) {
+      const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
+      grid.value?.openColumnCreate({
+        uidt: UITypes.Lookup,
+        title: `${data.title} Lookup`,
+        fk_relation_column_id: relationCol.id,
+        fk_lookup_column_id: lookupCol?.id,
+      })
+    } else {
+      if (!parentPkCol) {
+        message.error('Parent table does not have a primary key column')
+        return
+      }
+
+      if (!childPkCol) {
+        message.error('Child table does not have a primary key column')
+        return
+      }
+
+      grid.value?.openColumnCreate({
+        uidt: UITypes.Links,
+        title: `${data.title}List`,
+        parentId: parentMeta.id,
+        childId: childMeta.id,
+        parentTable: parentMeta.title,
+        parentColumn: parentPkCol.title,
+        childTable: childMeta.title,
+        childColumn: childPkCol?.title,
+      })
+    }
+  } catch (e) {
+    console.log('error', e)
+  }
+}
+
+const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
+
+const { isPanelExpanded, extensionPanelSize } = useExtensions()
+
+const { isPanelExpanded: isActionPanelExpanded, actionPanelSize } = useActionPane()
+
+const contentSize = computed(() => {
+  if (isPanelExpanded.value && extensionPanelSize.value) {
+    return 100 - extensionPanelSize.value
+  } else if (isActionPanelExpanded.value && actionPanelSize.value) {
+    return 100 - actionPanelSize.value
+  } else {
+    return 100
+  }
+})
+
+const contentMaxSize = computed(() => {
+  if (!isPanelExpanded.value && !isActionPanelExpanded.value) {
+    return 100
+  } else {
+    return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
+  }
+})
+
+const onResize = () => {
+  if (isPanelExpanded.value && !extensionPaneRef.value?.isReady) {
+    extensionPaneRef.value?.onReady()
+  }
+  if (isActionPanelExpanded.value && !actionPaneRef.value?.isReady) {
+    actionPaneRef.value?.onReady()
+  }
+}
+
+const onResized = (sizes: { min: number; max: number; size: number }[]) => {
+  if (sizes.length === 2) {
+    if (!sizes[1]?.size) return
+    if (isPanelExpanded.value) extensionPanelSize.value = sizes[1]!.size
+    if (isActionPanelExpanded.value) actionPanelSize.value = sizes[1]!.size
+  }
+}
+
+const onReady = () => {
+  if (isPanelExpanded.value && extensionPaneRef.value) {
+    // wait until extension pane animation complete
+    setTimeout(() => {
+      extensionPaneRef.value?.onReady()
+    }, 300)
+  }
+  if (isActionPanelExpanded.value && actionPaneRef.value) {
+    // wait until action pane animation complete
+    setTimeout(() => {
+      actionPaneRef.value?.onReady()
+    }, 300)
+  }
+}
+
+const checkIfViewExists = async () => {
+  await until(() => isViewsLoading.value).toBe(false)
+  const views = await viewStore.loadViews({
+    baseId: activeProjectId.value,
+    ignoreLoading: true,
+  })
+
+  // If no views exist or the current view is not found, navigate to workspace/base
+  if (
+    !views?.length ||
+    !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
+  ) {
+    ncNavigateTo({
+      workspaceId: activeWorkspaceId.value,
+      baseId: activeProjectId.value,
+    })
+  }
+}
+
+onMounted(async () => {
+  await checkIfViewExists()
+
+  const hookId = route.query.hookId as string
+  if (hookId) {
+    pendingDeepLinkHookId.value = hookId
+    pendingDeepLinkHookTab.value = (route.query.hookTab as string) || 'log'
+    if (openedViewsTab.value !== 'webhook') {
+      viewStore.onViewsTabChange('webhook')
+    }
+  }
+})
+
+watch(isViewsLoading, async () => {
+  await checkIfViewExists()
+})
+</script>
+
+<template>
+  <div
+    class="nc-container relative flex flex-col h-full"
+    :class="{ 'children:pointer-events-none': isEeUI && showBaseAccessRequestOverlay }"
+    @drop="onDrop"
+    @dragover.prevent
+  >
+    <SmartsheetTopbar v-if="!isFullScreen" />
+    <div style="height: calc(100% - var(--topbar-height))">
+      <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
+        <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
+        <Splitpanes
+          v-if="isMounted"
+          :rtl="isRtl"
+          class="nc-extensions-content-resizable-wrapper"
+          :class="{
+            'nc-is-open-extensions': isPanelExpanded,
+            'nc-is-open-actions': isActionPanelExpanded,
+          }"
+          @ready="() => onReady()"
+          @resize="onResize"
+          @resized="onResized"
+        >
+          <Pane class="flex flex-row h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
+            <div v-show="!isExpandedFormPanelFullscreen" class="flex flex-col flex-1 min-w-0 h-full">
+              <SmartsheetToolbar v-if="!isForm && !isGantt" show-full-screen-toggle />
+              <div
+                :style="{ height: isForm || isTimeline || isGantt ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+                class="flex flex-row w-full"
+              >
+                <Transition name="layout" mode="out-in">
+                  <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                    <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
+                      <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+
+                      <template v-if="activeView && meta">
+                        <SmartsheetGallery v-if="isGallery" />
+
+                        <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
+
+                        <SmartsheetKanbanWrapper v-else-if="isKanban" />
+
+                        <SmartsheetCalendar v-else-if="isCalendar" />
+
+                        <SmartsheetTimeline v-else-if="isTimeline" />
+
+                        <SmartsheetGantt v-else-if="isGantt" />
+
+                        <SmartsheetMap v-else-if="isMap" />
+
+                        <SmartsheetList v-else-if="isList" />
+                      </template>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+            </div>
+            <!-- Wrap with display:contents so the EFP itself remains the flex
+                 child of <Pane>. Toggling visibility on the wrapper (instead
+                 of the component) preserves the EFP's internal state across
+                 SmartText cell hops — otherwise users lose unsaved edits when
+                 they briefly open a SmartText cell from the grid. -->
+            <div v-if="isExpandedFormPanelOpen && isGrid" v-show="!isSmartTextActive" style="display: contents">
+              <SmartsheetGridExpandedFormPanel />
+            </div>
+          </Pane>
+          <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
+          <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
+        </Splitpanes>
+        <div v-else class="flex items-center justify-center h-full w-full">
+          <a-spin size="large" />
+        </div>
+      </NcFullScreen>
+
+      <LazySmartsheetDetails v-else />
+    </div>
+    <LazySmartsheetExpandedFormDetached />
+    <DetachedExpandedText />
+    <TabsSmartsheetBaseAccessOverlay />
+  </div>
+</template>
+
+<style lang="scss">
+:deep(.nc-right-sidebar.ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+
+.nc-extensions-content-resizable-wrapper {
+  &:not(.nc-is-open-extensions):not(.nc-is-open-actions) > .splitpanes__splitter {
+    @apply hidden;
+  }
+
+  > .splitpanes__splitter {
+    @apply !w-0 relative overflow-visible z-40 -ml-1px;
+  }
+
+  > .splitpanes__splitter:before {
+    @apply bg-nc-bg-gray-medium absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
+    content: '';
+  }
+
+  > .splitpanes__splitter:hover:before {
+    @apply bg-nc-border-gray-medium;
+    width: 3px !important;
+    left: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter:before {
+    @apply bg-nc-border-gray-medium;
+    width: 3px !important;
+    left: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter {
+    @apply w-1 mr-0;
+  }
+
+  > .splitpanes__pane {
+    transition: width 0.15s ease-in-out !important;
+  }
+
+  &.splitpanes--dragging > .splitpanes__pane {
+    transition: none !important;
+  }
+}
+
+.rtl .nc-extensions-content-resizable-wrapper {
+  > .splitpanes__splitter {
+    @apply -ml-0 -mr-1px;
+  }
+
+  > .splitpanes__splitter:before {
+    @apply left-auto right-0;
+  }
+
+  > .splitpanes__splitter:hover:before {
+    left: auto;
+    right: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter:before {
+    left: auto;
+    right: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter {
+    @apply mr-auto ml-0;
+  }
+}
+</style>

@@ -1,0 +1,23 @@
+packages:
+  - "packages/nocodb-sdk"
+  - "packages/nocodb-sdk-v2"
+  - "packages/nc-gui"
+  - "packages/nc-mail-templates"
+  - "packages/nocodb"
+
+  - "packages/nc-secret-mgr"
+
+# Supply chain security settings (pnpm 10.16+)
+# Quarantine newly published versions for 7 days before allowing install.
+# Blocks fast-acting attacks (Axios 1.14.1 was live ~3h, Shai-Hulud ~12h).
+# Use minimumReleaseAgeExclude to bypass for emergency security patches.
+minimumReleaseAge: 10080
+
+# Detect when a package loses its provenance guarantees (e.g. previously
+# published via CI, now published from a local machine — signals account compromise).
+# NOTE: Re-enable once oxc-* packages restore provenance attestations.
+# trustPolicy: no-downgrade
+
+# Prevent transitive dependencies from pulling code via git+ssh, https tarballs,
+# or other non-registry protocols. Only direct dependencies may use exotic sources.
+blockExoticSubdeps: true

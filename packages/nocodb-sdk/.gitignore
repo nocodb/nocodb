@@ -1,0 +1,11 @@
+.idea/*
+.nyc_output
+build
+node_modules
+test
+src/**.js
+coverage
+*.log
+yarn.lock
+nc_swagger.json
+src/lib/Api.ts

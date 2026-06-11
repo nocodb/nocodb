@@ -1,0 +1,346 @@
+const FEATURES = [
+  {
+    id: 'managed_apps',
+    title: 'Managed Apps',
+    description: 'Allow users to create replicable managed app environments',
+    enabled: false,
+    isEngineering: true,
+    isAdvanced: true,
+  },
+  {
+    id: 'bases_v3',
+    title: 'Bases V3',
+    description: 'Experience the next generation of NocoDB with Bases V3 with and enhanced performance and optimizations.',
+    enabled: false,
+    version: 1,
+  },
+  {
+    id: 'advanced_nodes',
+    title: 'Enabled advanced nodes',
+    description: 'Enabled advanced nodes like scripts, external trigger node, etc.',
+    enabled: false,
+    isEngineering: true,
+    version: 1,
+  },
+  {
+    id: 'infinite_scrolling',
+    title: 'Infinite scrolling',
+    description: 'Effortlessly browse large datasets with infinite scrolling.',
+    enabled: true,
+    version: 1,
+  },
+  {
+    id: 'ai_beta_features',
+    title: 'AI beta features',
+    description: 'Unlock AI beta features to enhance your NocoDB experience.',
+    enabled: false,
+    version: 2,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'integrations',
+    title: 'Integrations',
+    description: 'Enable dynamic integrations.',
+    enabled: true,
+    version: 2,
+    isEngineering: true,
+  },
+  {
+    id: 'data_reflection',
+    title: 'Data reflection',
+    description: 'Enable data reflection.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'sync_beta_feature',
+    title: 'Advanced Sync Features',
+    description: 'Enable sync beta features like multi source sync, etc.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'form_support_column_scanning',
+    title: 'Scanner for filling data in forms',
+    description: 'Enable scanner to fill data in forms.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+  },
+  {
+    id: 'extensions',
+    title: 'Extensions beta features',
+    description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
+    enabled: ncIsPlaywright(),
+    version: 4,
+    isEngineering: true,
+  },
+  {
+    id: 'attachment_carousel_comments',
+    title: 'Comments in attachment carousel',
+    description: 'Enable comments in attachment carousel.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+  },
+  {
+    id: 'cross_base_link',
+    title: 'Cross Base Link',
+    description: 'Enables link creation between tables in different bases.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
+  {
+    id: 'custom_link',
+    title: 'Custom Link',
+    description: 'Allows user to create custom links using existing fields.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
+  {
+    id: 'view_actions',
+    title: 'View Actions',
+    description: 'Execute scripts and webhooks to all records in a view.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'show_everyones_personal_views',
+    title: "Show Everyone's Personal Views",
+    description: 'With this feature we can avoid showing other users personal views in left sidebar',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'templates',
+    title: 'Templates',
+    description: 'Enable templates feature to browse and use templates.',
+    enabled: true,
+    version: 3,
+    isEngineering: false,
+    isEE: true,
+    isOnPrem: false,
+  },
+  {
+    id: 'gauge_widget',
+    title: 'Gauge Widget',
+    description: 'A visual indicator that displays real-time values, limits, and performance levels at a glance.',
+    isEngineering: true,
+    enabled: false,
+    version: 1,
+  },
+  {
+    id: 'kanban_opt',
+    title: 'Optimized Kanban View',
+    description: 'Optimized Kanban view with optimised API for better performance.',
+    enabled: false,
+    version: 3,
+    isEE: true,
+  },
+  {
+    id: 'ai_fill_handle',
+    title: 'AI Fill Handle',
+    description: 'Use AI to fill data in cells based on existing data patterns.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'workflows_tab',
+    title: 'Workflows tab',
+    description: 'Enable workflows tab in base overview to manage workflows.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'presence_visibility_toggle',
+    title: 'Presence Visibility Toggle',
+    description: 'Allow users to hide their own presence from other collaborators.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'expanded_record_panel',
+    title: 'Expanded record side panel',
+    description: 'Open expanded records in a resizable side panel beside the grid instead of a centered modal.',
+    enabled: true,
+    version: 2,
+    isEngineering: false,
+  },
+  {
+    id: 'white_label',
+    title: 'White Label',
+    description: 'Customize favicon, logo and branding for self-hosted instances.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+    isOnPrem: true,
+    isCloud: false,
+    isAdvanced: true,
+  },
+  {
+    id: 'mssql_source',
+    title: 'SQL Server data source',
+    description: 'Allow connecting Microsoft SQL Server as an external data source (experimental).',
+    // Off in the UI by default; revealed via the engineering feature modal.
+    // Enabled automatically under Playwright so e2e can create MSSQL sources.
+    enabled: ncIsPlaywright(),
+    version: 1,
+    isEngineering: true,
+  },
+] as const
+
+export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
+  Uppercase<(typeof FEATURES)[number]['id']>,
+  (typeof FEATURES)[number]['id']
+>
+
+export type BetaFeatureId = (typeof FEATURES)[number]['id']
+export type BetaFeatureType = (typeof FEATURES)[number]
+
+const STORAGE_KEY = 'featureToggleStates'
+
+export const useBetaFeatureToggle = createSharedComposable(() => {
+  const features = ref<BetaFeatureType[]>(deepClone(FEATURES))
+
+  const featureMap = computed(() =>
+    features.value.reduce((acc, f) => {
+      acc[f.id] = f
+      return acc
+    }, {} as Record<BetaFeatureId, BetaFeatureType>),
+  )
+
+  const { appInfo } = useGlobal()
+
+  const featureStates = computed(() => {
+    return features.value.reduce((acc, feature) => {
+      const isEeFeatureEnabled = feature.isEE && !isEeUI ? false : feature.enabled
+      const isOnPremFeatureEnabled = !appInfo.value.isOnPrem || feature.isOnPrem !== false
+      const isCloudFeatureEnabled = !appInfo.value.isCloud || feature.isCloud !== false
+
+      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled && isCloudFeatureEnabled
+      return acc
+    }, {} as Record<BetaFeatureId, boolean>)
+  })
+
+  const { $e } = useNuxtApp()
+
+  const isEngineeringModeOn = ref(false)
+
+  const isAdvancedModeOn = ref(false)
+
+  const isExperimentalFeatureModalOpen = ref(false)
+
+  const saveFeatures = () => {
+    try {
+      const featuresToSave = features.value.map((feature) => ({
+        id: feature.id,
+        enabled: feature.enabled,
+        version: feature.version,
+      }))
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(featuresToSave))
+    } catch (error) {
+      console.error('Failed to save features:', error)
+    }
+  }
+
+  const toggleFeature = (id: BetaFeatureId, forceUpdate?: boolean) => {
+    const feature = features.value.find((f) => f.id === id)
+    if (feature) {
+      if (forceUpdate !== undefined) {
+        feature.enabled = forceUpdate
+      } else {
+        feature.enabled = !feature.enabled
+      }
+      $e(`a:feature-preview:${id}:${feature.enabled ? 'on' : 'off'}`)
+      saveFeatures()
+
+      return true
+    } else {
+      console.error(`Feature ${id} not found`)
+    }
+  }
+
+  const isFeatureEnabled = (id: BetaFeatureId) => {
+    // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
+    const { showEEFeatures } = useEeConfig()
+
+    const feature = featureMap.value[id]
+
+    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+      return false
+    }
+
+    return featureStates.value[id] ?? false
+  }
+
+  const initializeFeatures = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        const parsedFeatures = JSON.parse(stored) as Array<{
+          id: string
+          enabled: boolean
+          version?: number
+        }>
+
+        features.value = FEATURES.map((defaultFeature) => {
+          const storedFeature = parsedFeatures.find((f) => f.id === defaultFeature.id)
+
+          if (!storedFeature) {
+            return { ...defaultFeature }
+          }
+
+          const storedVersion = storedFeature.version || 1
+          const currentVersion = defaultFeature.version || 1
+
+          if (storedVersion < currentVersion) {
+            console.log(`Feature ${defaultFeature.id} updated from v${storedVersion} to v${currentVersion}`)
+            return {
+              ...defaultFeature,
+            }
+          }
+          return {
+            ...defaultFeature,
+            enabled: storedFeature.enabled,
+          }
+        })
+      } else {
+        features.value = deepClone(FEATURES)
+      }
+    } catch (error) {
+      console.error('Failed to initialize features:', error)
+      features.value = deepClone(FEATURES)
+    }
+
+    saveFeatures()
+  }
+
+  return {
+    features,
+    toggleFeature,
+    isFeatureEnabled,
+    isEngineeringModeOn,
+    isAdvancedModeOn,
+    isExperimentalFeatureModalOpen,
+    initializeFeatures,
+  }
+})

@@ -1,0 +1,1260 @@
+import { Injectable, Logger } from '@nestjs/common';
+import DOMPurify from 'isomorphic-dompurify';
+import {
+  AppEvents,
+  EventType,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isOrderCol,
+  isServiceUser,
+  isVirtualCol,
+  MetaEventType,
+  ModelTypes,
+  NcBaseError,
+  ProjectRoles,
+  RelationTypes,
+  ServiceUserType,
+  UITypes,
+} from 'nocodb-sdk';
+import type {
+  ColumnType,
+  NcApiVersion,
+  NormalColumnRequestType,
+  OperationSource,
+  TableReqType,
+  TableType,
+  UserType,
+} from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn, User } from '~/models';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { ColumnsService } from '~/services/columns.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import {
+  hasDefaultTableVisibility,
+  hasTableVisibilityAccess,
+  hasViewersAndUpTableVisibility,
+  repopulateCreateTableSystemColumns,
+} from '~/helpers/tableHelpers';
+import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
+import {
+  Base,
+  Column,
+  Model,
+  ModelRoleVisibility,
+  Permission,
+  View,
+} from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
+import { NcError } from '~/helpers/catchError';
+import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
+import getColumnUiType from '~/helpers/getColumnUiType';
+import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { sanitizeColumnName, validatePayload } from '~/helpers';
+import { MetaTable } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
+import { OperationName } from '~/command-registry/op-names';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+
+@Injectable()
+export class TablesService {
+  protected logger = new Logger(TablesService.name);
+
+  constructor(
+    protected readonly metaDiffService: MetaDiffsService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly columnsService: ColumnsService,
+    protected readonly linkPlaceholderService: LinkPlaceholderService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
+
+  async tableUpdate(
+    context: NcContext,
+    param: {
+      tableId: any;
+      table: Partial<TableReqType> & { base_id?: string };
+      baseId?: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    const model = await Model.get(context, param.tableId);
+
+    const base = await Base.getWithInfo(
+      context,
+      param.table.base_id || model.base_id,
+    );
+    const source = base.sources.find((b) => b.id === model.source_id);
+
+    if (model.base_id !== base.id) {
+      NcError.get(context).invalidRequestBody('Model does not belong to base');
+    }
+
+    // if meta/description present update and return
+    // todo: allow user to update meta  and other prop in single api call
+    if ('meta' in param.table || 'description' in param.table) {
+      await Model.updateMeta(context, param.tableId, param.table);
+
+      this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+        table: param.table,
+        prevTable: model,
+        req: param.req,
+        context,
+      });
+
+      const table = await Model.getWithInfo(context, {
+        id: model.id,
+      });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_update',
+            payload: table,
+          },
+        },
+        context.socket_id,
+      );
+
+      return true;
+    }
+
+    // allow user to only update meta json data when source is restricted changes to schema
+    if (source?.is_schema_readonly) {
+      NcError.get(context).sourceMetaReadOnly(source.alias);
+    }
+
+    if (!param.table.table_name) {
+      NcError.get(context).invalidRequestBody(
+        'Missing table name `table_name` property in request body',
+      );
+    }
+
+    if (source.type === 'databricks') {
+      param.table.table_name = param.table.table_name
+        .replace(/\s/g, '_')
+        .toLowerCase();
+    }
+
+    if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
+      if (!param.table.table_name.startsWith(base.prefix)) {
+        param.table.table_name = `${base.prefix}_${param.table.table_name}`;
+      }
+    }
+
+    param.table.table_name = DOMPurify.sanitize(param.table.table_name);
+
+    // validate table name
+    if (/^\s+|\s+$/.test(param.table.table_name)) {
+      NcError.get(context).invalidRequestBody(
+        'Leading or trailing whitespace not allowed in table names',
+      );
+    }
+    const specialCharRegex = /[./\\]/g;
+    if (specialCharRegex.test(param.table.table_name)) {
+      const match = param.table.table_name.match(specialCharRegex);
+      NcError.get(context).invalidRequestBody(
+        'Following characters are not allowed ' +
+          match.map((m) => JSON.stringify(m)).join(', '),
+      );
+    }
+
+    const replaceCharRegex = /[$?]/g;
+    if (replaceCharRegex.test(param.table.table_name)) {
+      param.table.table_name = param.table.table_name.replace(
+        replaceCharRegex,
+        '_',
+      );
+    }
+
+    if (
+      !(await Model.checkTitleAvailable(context, {
+        table_name: param.table.table_name,
+        base_id: base.id,
+        source_id: source.id,
+      }))
+    ) {
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: param.table.table_name,
+        base: context.base_id,
+        label: 'name',
+      });
+    }
+
+    if (!param.table.title) {
+      param.table.title = getTableNameAlias(
+        param.table.table_name,
+        base.prefix,
+        source,
+      );
+    }
+
+    if (
+      !(await Model.checkAliasAvailable(context, {
+        title: param.table.title,
+        base_id: base.id,
+        source_id: source.id,
+      }))
+    ) {
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: param.table.title,
+        base: context.base_id,
+      });
+    }
+
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+
+    let tableNameLengthLimit = 255;
+    const sqlClientType = sqlClient.knex.clientType();
+    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+      tableNameLengthLimit = 64;
+    } else if (sqlClientType === 'pg') {
+      tableNameLengthLimit = 63;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
+    }
+
+    if (param.table.table_name.length > tableNameLengthLimit) {
+      NcError.get(context).invalidRequestBody(
+        `Table name exceeds ${tableNameLengthLimit} characters`,
+      );
+    }
+
+    await sqlMgr.sqlOpPlus(source, 'tableRename', {
+      ...param.table,
+      tn: param.table.table_name,
+      tn_old: model.table_name,
+      schema: source.getConfig()?.schema,
+    });
+
+    await Model.updateAliasAndTableName(
+      context,
+      param.tableId,
+      param.table.title,
+      param.table.table_name,
+    );
+    const result = await Model.getWithInfo(context, {
+      id: model.id,
+    });
+
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table: param.table,
+      prevTable: model,
+      req: param.req,
+      context,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_update',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
+
+    return true;
+  }
+
+  @TraceCommand(OperationName.tableReorder)
+  async reorderTable(
+    context: NcContext,
+    param: { tableId: string; order: any; req: NcRequest },
+  ) {
+    const model = await Model.get(context, param.tableId);
+
+    const res = await Model.updateOrder(context, param.tableId, param.order);
+
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      prevTable: model as TableType,
+      table: {
+        ...model,
+        order: param.order,
+      } as TableType,
+      req: param.req,
+      context,
+    } as any);
+
+    const table = await Model.getWithInfo(context, {
+      id: model.id,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_update',
+          payload: table,
+        },
+      },
+      context.socket_id,
+    );
+
+    return res;
+  }
+
+  async tableDelete(
+    context: NcContext,
+    param: {
+      tableId: string;
+      forceDeleteRelations?: boolean;
+      forceDeleteSyncs?: boolean;
+      skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
+      req: NcRequest;
+    },
+    ncMetaParam?: MetaService,
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    const ncMeta = ncMetaParam ?? Noco.ncMeta;
+    // Source of truth for the actor — every caller passes `req`.
+    const user = param.req?.user as User;
+
+    let result;
+    let placeholderRefTables: Map<string, Model>;
+    let table: Model;
+    try {
+      table = await Model.getByIdOrName(context, { id: param.tableId }, ncMeta);
+
+      if (!table) {
+        NcError.get(context).tableNotFound(param.tableId);
+      }
+
+      if (table.synced && !param.forceDeleteSyncs) {
+        NcError.get(context).invalidRequestBody(
+          'Synced tables cannot be deleted',
+        );
+      }
+
+      await table.getColumns(context, ncMeta, undefined, true, true);
+
+      if (table.mm && !param.forceDeleteSyncs) {
+        const columns = await table.getColumns(
+          context,
+          ncMeta,
+          undefined,
+          true,
+          true,
+        );
+
+        // get table names of the relation which uses the current table as junction table
+        const tables = await Promise.all(
+          columns
+            .filter((c) => isLinksOrLTAR(c))
+            .map((c) => c.colOptions.getRelatedTable()),
+        );
+
+        // get relation column names
+        const relColumns = await Promise.all(
+          tables.map((t) => {
+            return t
+              .getColumns({
+                ...context,
+                base_id: t.base_id,
+                workspace_id: t.fk_workspace_id,
+              })
+              .then((cols) => {
+                return cols.find((c) => {
+                  return (
+                    isLinksOrLTAR(c) &&
+                    (c.colOptions as LinkToAnotherRecordColumn).type ===
+                      RelationTypes.MANY_TO_MANY &&
+                    (c.colOptions as LinkToAnotherRecordColumn)
+                      .fk_mm_model_id === table.id
+                  );
+                });
+              });
+          }),
+        );
+
+        NcError.get(context).invalidRequestBody(
+          `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
+        );
+      } else if (!param.forceDeleteRelations) {
+        // if table is using in custom relation as junction table then delete all the relation
+        const relations = await ncMeta.metaList2(
+          table.fk_workspace_id,
+          table.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            condition: {
+              fk_mm_model_id: table.id,
+            },
+          },
+        );
+
+        if (relations.length) {
+          const relCol = await Column.get(
+            context,
+            {
+              colId: relations[0].fk_column_id,
+            },
+            ncMeta,
+          );
+          const relTable = await Model.get(
+            context,
+            relCol.fk_model_id,
+            false,
+            ncMeta,
+          );
+          NcError.tableAssociatedWithLink(table.id, {
+            customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
+          });
+        }
+      }
+
+      const base = await Base.getWithInfo(context, table.base_id, true, ncMeta);
+      const source = base.sources.find((b) => b.id === table.source_id);
+
+      const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
+
+      const deleteRelations = source.isMeta() || param.forceDeleteRelations;
+
+      if (relationColumns?.length && !deleteRelations) {
+        const referredTables = await Promise.all(
+          relationColumns.map(async (c) =>
+            c
+              .getColOptions<LinkToAnotherRecordColumn>(context, ncMeta)
+              .then((opt) => opt.getRelatedTable(context, ncMeta))
+              .then((t) => t?.title),
+          ),
+        );
+        NcError.get(context).invalidRequestBody(
+          `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
+            ', ',
+          )}. Delete LinkToAnotherRecord columns and try again.`,
+        );
+      }
+
+      // TODO: replace this with the one that's generated by table webhook manager
+      // currently this one is to prevent webhook to trigger when delete table
+      const columnWebhookManager = (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          table.id,
+        )
+      ).forDelete();
+
+      placeholderRefTables = new Map<string, Model>();
+
+      if (!param.skipLinkPlaceholder) {
+        for (const c of relationColumns) {
+          if (c.system && !table.mm) continue;
+          try {
+            const reverseCol =
+              await this.linkPlaceholderService.findReverseLinkColumn(
+                context,
+                c.id,
+                ncMeta,
+              );
+            // Skip self-ref: opposite column lives on the same table being deleted
+            if (!reverseCol || reverseCol.fk_model_id === table.id) continue;
+            const placeholderResult =
+              await this.linkPlaceholderService.createPlaceholderForReverse(
+                context,
+                reverseCol,
+                undefined,
+                ncMeta,
+              );
+            if (placeholderResult) {
+              const refTable = await Model.getWithInfo(
+                context,
+                { id: placeholderResult.table_id },
+                ncMeta,
+              );
+              if (refTable)
+                placeholderRefTables.set(placeholderResult.table_id, refTable);
+            }
+          } catch (e) {
+            this.logger.error(
+              `Failed to create link placeholder for reverse of ${c.id}: ${e.message}`,
+              e.stack,
+            );
+          }
+        }
+      }
+
+      // delete all relations
+      for (const c of relationColumns) {
+        // skip if column is hasmany relation to mm table
+        if (c.system && !table.mm) {
+          continue;
+        }
+
+        // verify column exist or not and based on that delete the column
+        if (!(await Column.get(context, { colId: c.id }, ncMeta))) {
+          continue;
+        }
+
+        await this.columnsService.columnDelete(
+          context,
+          {
+            req: param.req,
+            columnId: c.id,
+            forceDeleteSystem: true,
+            skipLinkPlaceholder: true,
+            columnWebhookManager,
+          },
+          ncMeta,
+        );
+      }
+
+      const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base, ncMeta);
+      (table as any).tn = table.table_name;
+      table.columns = table.columns.filter((c) => !isVirtualCol(c));
+      table.columns.forEach((c) => {
+        (c as any).cn = c.column_name;
+      });
+
+      if (table.type === ModelTypes.TABLE) {
+        await sqlMgr.sqlOpPlus(source, 'tableDelete', table);
+      } else if (table.type === ModelTypes.VIEW) {
+        await sqlMgr.sqlOpPlus(source, 'viewDelete', {
+          ...table,
+          view_name: table.table_name,
+        });
+      }
+
+      result = await table.delete(context, ncMeta);
+    } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error(
+        `Error deleting table ${table.id}: ${e.message}`,
+        e.stack,
+      );
+      NcError.get(context).tableError(e.message || 'Bad Request');
+    }
+
+    if (result) {
+      this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+        table,
+        user,
+        req: param.req,
+        context,
+      });
+
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.TABLE_DELETED,
+          oldEntity: table,
+        },
+        ncMeta,
+      );
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_delete',
+            payload: table,
+          },
+        },
+        context.socket_id,
+      );
+
+      for (const [refTableId, refTable] of placeholderRefTables) {
+        if (refTableId === table.id) continue;
+        try {
+          const refContext: NcContext = {
+            ...context,
+            workspace_id: refTable.fk_workspace_id,
+            base_id: refTable.base_id,
+          };
+          await refTable.getColumns(refContext, ncMeta);
+          NocoSocket.broadcastEvent(refContext, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_delete',
+              payload: {
+                table: refTable,
+              },
+            },
+          });
+        } catch (e) {
+          this.logger.error(
+            `Failed to broadcast placeholder column_delete for table ${refTable.id}: ${e.message}`,
+            e.stack,
+          );
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async getTableWithAccessibleViews(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: User | UserType;
+    },
+  ) {
+    const table = await Model.getWithInfo(context, {
+      id: param.tableId,
+    });
+
+    if (!table) {
+      NcError.tableNotFound(param.tableId);
+    }
+
+    // Check table visibility permission
+    // Base owners always have access, but we still need to check for others
+    if (!isServiceUser(param.user)) {
+      const hasAccess = await hasTableVisibilityAccess(
+        context,
+        param.tableId,
+        param.user,
+      );
+
+      if (!hasAccess) {
+        // Return 404 as if table doesn't exist
+        NcError.tableNotFound(param.tableId);
+      }
+    }
+
+    if (
+      isServiceUser(param.user, [
+        ServiceUserType.WORKFLOW_USER,
+        ServiceUserType.SYNC_USER,
+      ])
+    ) {
+      await table.getViews(context);
+      // Mask the bcrypt password hash before returning to the caller.
+      if (table.views?.length) {
+        table.views = table.views.map((v) =>
+          View.maskPasswordForResponse(v),
+        ) as View[];
+      }
+    } else {
+      // todo: optimise
+      const viewList = <View[]>(
+        await this.xcVisibilityMetaGet(context, table.base_id, [table])
+      );
+      //await View.list(param.tableId)
+      table.views = viewList.filter((view: any) => {
+        return Object.keys(param.user?.roles || {}).some(
+          (role) => param.user?.roles[role] && !view.disabled[role],
+        );
+      });
+    }
+
+    return table;
+  }
+
+  async xcVisibilityMetaGet(
+    context: NcContext,
+    baseId,
+    _models: Model[] = null,
+    includeM2M = true,
+    // type: 'table' | 'tableAndViews' | 'views' = 'table'
+  ) {
+    // todo: move to
+    const roles = [
+      'owner',
+      'creator',
+      'viewer',
+      'editor',
+      'commenter',
+      'guest',
+    ];
+
+    const defaultDisabled = roles.reduce((o, r) => ({ ...o, [r]: false }), {});
+
+    let models =
+      _models ||
+      (await Model.list(context, {
+        base_id: baseId,
+        source_id: undefined,
+      }));
+
+    models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
+
+    const result = await models.reduce(async (_obj, model) => {
+      const obj = await _obj;
+
+      const views = await model.getViews(context);
+      for (const view of views) {
+        // Mask the bcrypt password hash — the owner UI never needs the
+        // stored value; it sees a sentinel and renders a masked state.
+        const safeView = View.maskPasswordForResponse(view);
+        obj[view.id] = {
+          ptn: model.table_name,
+          _ptn: model.title,
+          ptype: model.type,
+          tn: view.title,
+          _tn: view.title,
+          table_meta: model.meta,
+          ...safeView,
+          disabled: { ...defaultDisabled },
+        };
+      }
+
+      return obj;
+    }, Promise.resolve({}));
+
+    const disabledList = await ModelRoleVisibility.list(context, baseId);
+
+    for (const d of disabledList) {
+      if (result[d.fk_view_id])
+        result[d.fk_view_id].disabled[d.role] = !!d.disabled;
+    }
+
+    return Object.values(result);
+  }
+
+  async getAccessibleTables(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId?: string;
+      includeM2M?: boolean;
+      roles: Record<string, boolean>;
+      allSources?: boolean;
+      user: (User | UserType) & {
+        base_roles?: Record<string, boolean>;
+        workspace_roles?: Record<string, boolean>;
+      };
+      isPublicBase?: boolean;
+    },
+  ) {
+    const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
+
+    // todo: optimise
+    const tableViewMapping = viewList.reduce((o, view: any) => {
+      o[view.fk_model_id] = o[view.fk_model_id] || 0;
+      if (
+        Object.values(ProjectRoles).some(
+          (role) => param.roles[role] && !view.disabled[role],
+        )
+      ) {
+        o[view.fk_model_id]++;
+      }
+      return o;
+    }, {});
+
+    let tableList = (
+      await Model.list(context, {
+        base_id: param.baseId,
+        source_id: param.allSources ? undefined : param.sourceId,
+      })
+    ).filter((t) => tableViewMapping[t.id]);
+
+    // Filter tables based on TABLE_VISIBILITY permission
+    // Base owners always see all tables, so skip filtering for them
+    if (!param.roles?.[ProjectRoles.OWNER] && !isServiceUser(param.user)) {
+      const permissions = await Permission.list(context, param.baseId);
+      const accessibleTableIds = new Set<string>();
+
+      for (const table of tableList) {
+        // For shared bases (public bases), show tables with default visibility (Everyone) or "Viewers & up" permission
+        if (param.isPublicBase) {
+          if (
+            hasDefaultTableVisibility(table.id, permissions) ||
+            hasViewersAndUpTableVisibility(table.id, permissions)
+          ) {
+            accessibleTableIds.add(table.id);
+          }
+        } else if (param.user) {
+          let user = param.user ?? context.user;
+
+          if (!user) {
+            user = {
+              base_roles: param.roles,
+            } as unknown as UserType;
+          }
+
+          // For regular bases, check user access
+          const hasAccess = await hasTableVisibilityAccess(
+            context,
+            table.id,
+            user,
+            permissions,
+          );
+          if (hasAccess) {
+            accessibleTableIds.add(table.id);
+          }
+        }
+      }
+
+      tableList = tableList.filter((t) => accessibleTableIds.has(t.id));
+    }
+
+    return param.includeM2M
+      ? tableList
+      : (tableList.filter((t) => !t.mm) as Model[]);
+  }
+
+  async tableCreate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId?: string;
+      table: TableReqType;
+      user: User | UserType;
+      req: NcRequest;
+      synced?: boolean;
+      mm?: boolean;
+      apiVersion?: NcApiVersion;
+      isDuplicateOperation?: boolean;
+      operationSource?: OperationSource;
+    },
+  ) {
+    // before validating add title for columns if only column name is present
+    if (param.table.columns) {
+      param.table.columns.forEach((c) => {
+        if (!c.title && c.column_name) {
+          c.title = c.column_name;
+        }
+      });
+    }
+
+    // before validating add title for table if only table name is present
+    if (!param.table.title && param.table.table_name) {
+      param.table.title = param.table.table_name;
+    }
+    validatePayload(
+      'swagger.json#/components/schemas/TableReq',
+      param.table,
+      false,
+      context,
+    );
+
+    const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
+      columns: (ColumnType & { cn?: string })[];
+    } = {
+      ...param.table,
+      ...(param.synced ? { synced: true } : {}),
+      ...(param.mm ? { mm: true } : {}),
+    };
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    const base = await Base.getWithInfo(context, param.baseId);
+    let source = base.sources[0];
+
+    if (param.sourceId) {
+      source = base.sources.find((b) => b.id === param.sourceId);
+    }
+
+    if (!param.isDuplicateOperation) {
+      // add CreatedTime and LastModifiedTime system columns if missing in request payload
+      tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+        columns: tableCreatePayLoad.columns,
+        clientType: source.type,
+        isMeta: !!source.isMeta(),
+        operationSource: param.operationSource,
+      });
+    }
+
+    //#region validating table title and table name
+    if (!tableCreatePayLoad.title) {
+      NcError.get(context).invalidRequestBody(
+        'Missing table `title` property in request body',
+      );
+    }
+
+    if (!tableCreatePayLoad.table_name) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.title;
+    }
+
+    if (
+      !(await Model.checkAliasAvailable(context, {
+        title: tableCreatePayLoad.title,
+        base_id: base.id,
+        source_id: source.id,
+      }))
+    ) {
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: tableCreatePayLoad.title,
+        base: context.base_id,
+      });
+    }
+
+    if (source.type === 'databricks') {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name
+        .replace(/\s/g, '_')
+        .toLowerCase();
+    }
+
+    if (source.is_meta && base.prefix) {
+      if (!tableCreatePayLoad.table_name.startsWith(base.prefix)) {
+        tableCreatePayLoad.table_name = `${base.prefix}_${tableCreatePayLoad.table_name}`;
+      }
+    }
+
+    tableCreatePayLoad.table_name = DOMPurify.sanitize(
+      tableCreatePayLoad.table_name,
+    );
+    // validate table name
+    if (/^\s+|\s+$/.test(tableCreatePayLoad.table_name)) {
+      NcError.get(context).invalidRequestBody(
+        'Leading or trailing whitespace not allowed in table names',
+      );
+    }
+    const specialCharRegex = /[./\\]/g;
+    if (specialCharRegex.test(param.table.table_name ?? param.table.title)) {
+      const match = (param.table.title ?? param.table.table_name).match(
+        specialCharRegex,
+      );
+      NcError.get(context).invalidRequestBody(
+        'Following characters are not allowed ' +
+          match.map((m) => JSON.stringify(m)).join(', '),
+      );
+    }
+
+    const replaceCharRegex = /[$?]/g;
+    if (replaceCharRegex.test(tableCreatePayLoad.table_name)) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name.replace(
+        replaceCharRegex,
+        '_',
+      );
+    }
+
+    if (
+      !(await Model.checkTitleAvailable(context, {
+        table_name: tableCreatePayLoad.table_name,
+        base_id: base.id,
+        source_id: source.id,
+      }))
+    ) {
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: tableCreatePayLoad.table_name,
+        base: context.base_id,
+        label: 'name',
+      });
+    }
+
+    // Soft-deleted tables keep their physical DB tables until permanent delete.
+    // If a trashed row shares the requested table_name, the CREATE TABLE DDL
+    // will collide — uniquify the new name to dodge that. Live collisions have
+    // already been rejected above.
+    const trashedModels = await Model.list(context, {
+      base_id: base.id,
+      source_id: source.id,
+      includeDeleted: true,
+    });
+    const trashedTableNames = new Set(
+      trashedModels.filter((m) => m.deleted).map((m) => m.table_name),
+    );
+    if (trashedTableNames.has(tableCreatePayLoad.table_name)) {
+      const baseName = tableCreatePayLoad.table_name;
+      let i = 1;
+      let candidate = `${baseName}_${i}`;
+      while (trashedTableNames.has(candidate)) {
+        i++;
+        candidate = `${baseName}_${i}`;
+      }
+      tableCreatePayLoad.table_name = candidate;
+    }
+
+    if (!tableCreatePayLoad.title) {
+      tableCreatePayLoad.title = getTableNameAlias(
+        tableCreatePayLoad.table_name,
+        base.prefix,
+        source,
+      );
+    }
+
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
+
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+
+    let tableNameLengthLimit = 255;
+    const sqlClientType = sqlClient.knex.clientType();
+    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+      tableNameLengthLimit = 64;
+    } else if (sqlClientType === 'pg') {
+      tableNameLengthLimit = 63;
+    } else if (sqlClientType === 'mssql') {
+      // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
+    }
+
+    if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
+      NcError.get(context).invalidRequestBody(
+        `Table name exceeds ${tableNameLengthLimit} characters`,
+      );
+    }
+    //#endregion validating table title and table name
+
+    const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+    const uniqueColumnNameCount = {};
+
+    mapDefaultDisplayValue(tableCreatePayLoad.columns);
+
+    const virtualColumns = [];
+
+    for (const column of tableCreatePayLoad.columns) {
+      if (
+        !isVirtualCol(column) ||
+        (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
+        (isCreatedOrLastModifiedByCol(column) && (column as any).system)
+      ) {
+        // set column name using title if not present
+        if (!column.column_name && column.title) {
+          column.column_name = column.title;
+        }
+
+        // - 5 is a buffer for suffix
+        column.column_name = sanitizeColumnName(
+          column.column_name.slice(0, mxColumnLength - 5),
+          source.type,
+        );
+
+        if (uniqueColumnNameCount[column.column_name]) {
+          let suffix = 1;
+          let targetColumnName = `${column.column_name}_${suffix++}`;
+          while (uniqueColumnNameCount[targetColumnName]) {
+            targetColumnName = `${column.column_name}_${suffix++}`;
+          }
+          column.column_name = targetColumnName;
+        }
+        uniqueColumnNameCount[column.column_name] = 1;
+
+        if (column.column_name.length > mxColumnLength) {
+          column.column_name = column.column_name.slice(0, mxColumnLength);
+        }
+      }
+
+      if (column.title && column.title.length > 255) {
+        NcError.get(context).invalidRequestBody(
+          `Column title ${column.title} exceeds 255 characters`,
+        );
+      }
+    }
+
+    tableCreatePayLoad.columns = await Promise.all(
+      tableCreatePayLoad.columns
+        // exclude alias columns from column list
+        ?.filter((c) => {
+          const allowed =
+            (!isCreatedOrLastModifiedTimeCol(c) &&
+              !isCreatedOrLastModifiedByCol(c)) ||
+            (c as any).system ||
+            isOrderCol(c);
+
+          if (!allowed) {
+            virtualColumns.push(c);
+          }
+
+          return allowed;
+        })
+        .map(async (c) => {
+          // Store original cdf and unique before getColumnPropsFromUIDT potentially overwrites them
+          const originalCdf = c.cdf;
+          const originalUnique = c.unique;
+          const props = await getColumnPropsFromUIDT(c as any, source);
+          // getColumnPropsFromUIDT already preserves cdf if it was set (see getColumnPropsFromUIDT.ts lines 43-45)
+          // But we need to ensure it's preserved here as well in case getColumnPropsFromUIDT didn't preserve it
+          // Map unique to ck (column_key) for database operations
+          const preservedCdf =
+            originalCdf !== undefined &&
+            originalCdf !== null &&
+            originalCdf !== ''
+              ? originalCdf
+              : props.cdf !== undefined &&
+                props.cdf !== null &&
+                props.cdf !== ''
+              ? props.cdf
+              : null;
+          return {
+            ...props,
+            cdf: preservedCdf,
+            unique:
+              originalUnique !== undefined ? originalUnique : props.unique,
+            ck: originalUnique ? 1 : props.ck || 0, // Map unique to ck for database operations
+            cn: c.column_name,
+            column_name: c.column_name,
+          };
+        }),
+    );
+
+    // Validate unique constraints for columns during table creation
+    // Do this AFTER getColumnPropsFromUIDT but use preserved cdf value
+    for (const column of tableCreatePayLoad.columns) {
+      if (column.unique) {
+        // Use the preserved cdf value from the column object
+        const cdfValue = column.cdf;
+        validateUniqueConstraint(
+          context,
+          column.uidt as UITypes,
+          column.meta,
+          !!column.unique, // Convert to boolean (might be number or boolean)
+          {
+            is_meta: !!source.is_meta,
+            is_local: !!source.is_local,
+            type: source.type,
+          },
+          cdfValue as unknown as string,
+        );
+      }
+    }
+
+    await sqlMgr.sqlOpPlus(source, 'tableCreate', {
+      ...tableCreatePayLoad,
+      tn: tableCreatePayLoad.table_name,
+    });
+
+    let columns: Array<
+      Omit<Column, 'column_name' | 'title'> & {
+        cn: string;
+        system?: boolean;
+      }
+    >;
+
+    if (!source.isMeta()) {
+      columns = (
+        await sqlMgr.sqlOpPlus(source, 'columnList', {
+          tn: tableCreatePayLoad.table_name,
+          schema: source.getConfig()?.schema,
+        })
+      )?.data?.list;
+    }
+
+    await Model.list(context, {
+      base_id: base.id,
+      source_id: source.id,
+    });
+
+    // todo: type correction
+    const result = await Model.insert(context, base.id, source.id, {
+      ...tableCreatePayLoad,
+      columns: [
+        ...tableCreatePayLoad.columns.map((c, i) => {
+          const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
+          return {
+            ...c,
+            uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
+            ...(colMetaFromDb || {}),
+            title: c.title || getColumnNameAlias(c.cn, source),
+            column_name: colMetaFromDb?.cn || c.cn || c.column_name,
+            order: i + 1,
+            readonly: c.readonly || false,
+            meta: c.meta || {},
+          } as NormalColumnRequestType;
+        }),
+        ...virtualColumns.map((c, i) => ({
+          ...c,
+          uidt: c.uidt || getColumnUiType(source, c),
+          title: c.title || getColumnNameAlias(c.cn, source),
+          order: tableCreatePayLoad.columns.length + i + 1,
+        })),
+      ],
+    } as any);
+
+    try {
+      // create nc_order index column
+      const metaOrderColumn = tableCreatePayLoad.columns.find(
+        (c) => c.uidt === UITypes.Order,
+      );
+
+      if (!metaOrderColumn) {
+        throw new Error('Order column not found' + result.id);
+      }
+
+      const dbDriver = await NcConnectionMgrv2.get(source);
+
+      const baseModel = await Model.getBaseModelSQL(context, {
+        model: result,
+        source,
+        dbDriver,
+      });
+
+      await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+        `${tableCreatePayLoad.table_name}_order_idx`,
+        baseModel.getTnPath(tableCreatePayLoad.table_name),
+        metaOrderColumn.column_name,
+      ]);
+    } catch (e) {
+      this.logger.error(
+        `Something went wrong while creating index for nc_order`,
+        e,
+      );
+    }
+
+    try {
+      // create __nc_deleted index column
+      const metaDeletedColumn = tableCreatePayLoad.columns.find(
+        (c) => c.uidt === UITypes.Deleted,
+      );
+
+      if (metaDeletedColumn) {
+        const dbDriver = await NcConnectionMgrv2.get(source);
+
+        const baseModel = await Model.getBaseModelSQL(context, {
+          model: result,
+          source,
+          dbDriver,
+        });
+
+        await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+          `${tableCreatePayLoad.table_name}_deleted_idx`,
+          baseModel.getTnPath(tableCreatePayLoad.table_name),
+          metaDeletedColumn.column_name,
+        ]);
+      }
+    } catch (e) {
+      this.logger.error(
+        `Something went wrong while creating index for __nc_deleted`,
+        e,
+      );
+    }
+
+    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+      table: {
+        ...param.table,
+        id: result.id,
+      },
+      source,
+      user: param.user,
+      req: param.req,
+      context,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_create',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
+
+    return result;
+  }
+}

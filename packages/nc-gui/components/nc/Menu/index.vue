@@ -1,0 +1,94 @@
+<script lang="ts" setup>
+const props = withDefaults(
+  defineProps<{
+    selectable?: boolean | undefined
+    variant?: 'default' | 'small' | 'medium' | 'large'
+  }>(),
+  {
+    variant: 'default',
+  },
+)
+
+const { isMobileMode } = useGlobal()
+
+const selectable = computed(() => props.selectable ?? false)
+
+const responsiveVariant = computed(() => {
+  if (isMobileMode.value && ['small', 'medium'].includes(props.variant)) {
+    return 'large'
+  }
+
+  return props.variant
+})
+</script>
+
+<template>
+  <a-menu class="nc-menu" :class="`nc-variant-${responsiveVariant}`" :selectable="selectable">
+    <slot />
+  </a-menu>
+</template>
+
+<style lang="scss">
+.nc-menu {
+  @apply !rounded-md !py-1.5;
+
+  &:not(.nc-variant-default) {
+    @apply flex flex-col gap-0.5 !py-1 min-w-[144px];
+
+    .ant-dropdown-menu-item {
+      @apply !py-1 !text-small !leading-5 font-weight-550 mx-1;
+
+      .nc-menu-item-inner {
+        @apply !text-small !leading-5 font-weight-550;
+      }
+
+      .nc-icon {
+        @apply opacity-80;
+      }
+    }
+
+    &.nc-variant-small {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-7;
+      }
+    }
+
+    &.nc-variant-medium {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-8;
+      }
+    }
+
+    &.nc-variant-large {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-9;
+      }
+
+      .nc-menu-item-inner {
+        @apply !font-600;
+      }
+    }
+
+    .nc-ant-dropdown-menu-item-label {
+      @apply py-0 mx-1 text-bodyDefaultSmBold;
+    }
+
+    .nc-divider {
+      @apply my-0.5;
+    }
+  }
+
+  &.nc-variant-default {
+    .nc-ant-dropdown-menu-item-label {
+      @apply py-2.5 text-bodyDefaultSmBold;
+    }
+  }
+}
+
+.nc-menu.ant-dropdown-menu {
+  @apply !rounded-lg !shadow-none;
+}
+</style>

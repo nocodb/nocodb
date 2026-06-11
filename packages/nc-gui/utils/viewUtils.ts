@@ -1,0 +1,123 @@
+import { ViewTypes } from 'nocodb-sdk'
+import type { RowColoringInfo, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { iconMap } from './iconUtils'
+import type { Language } from '~/lib/types'
+import UsersIcon from '~icons/nc-icons/users'
+import LockIcon from '~icons/nc-icons-v2/lock'
+import PersonalIcon from '~icons/nc-icons/personal'
+
+export const viewIcons: Record<number | string, { icon: any; color: string; darkColor?: string }> = {
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: 'var(--color-view-icon-grid)' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: 'var(--color-view-icon-form)' },
+  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: 'var(--color-view-icon-calendar)' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: 'var(--color-view-icon-gallery)' },
+  [ViewTypes.MAP]: { icon: iconMap.map, color: 'var(--color-view-icon-map)' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'var(--color-view-icon-kanban)' },
+  [ViewTypes.LIST]: { icon: iconMap.ncList, color: 'var(--color-view-icon-list)' },
+  [ViewTypes.TIMELINE]: { icon: iconMap.timeline, color: 'var(--color-view-icon-timeline)' },
+  [ViewTypes.GANTT]: { icon: iconMap.gantt, color: 'var(--color-view-icon-gantt, #d97706)' },
+  view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
+}
+
+export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar', 'he', 'ur'].includes(lang)
+
+const rtl = 'rtl' as const
+const ltr = 'ltr' as const
+
+export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
+  const oppositeDirection = dir === ltr ? rtl : ltr
+
+  document.body.classList.remove(oppositeDirection)
+  document.body.classList.add(dir)
+  document.body.style.direction = dir
+  document.documentElement.setAttribute('dir', dir)
+}
+
+export const getViewIcon = (key?: string | number) => {
+  if (!key) return
+
+  return viewIcons[key]
+}
+
+export function applyNonSelectable() {
+  document.body.classList.add('non-selectable')
+}
+
+export const viewLockIcons = {
+  [LockType.Personal]: {
+    title: 'title.personal',
+    icon: PersonalIcon,
+    subtitle: 'msg.info.personalView',
+  },
+  [LockType.Collaborative]: {
+    title: 'title.collaborative',
+    icon: UsersIcon,
+    subtitle: 'msg.info.collabView',
+  },
+  [LockType.Locked]: {
+    title: 'title.locked',
+    icon: LockIcon,
+    subtitle: 'msg.info.lockedView',
+  },
+}
+
+export const defaultRowColorInfo: RowColoringInfo = {
+  mode: null,
+  conditions: [],
+  fk_column_id: null,
+  color: null,
+  is_set_as_background: null,
+}
+
+export const getDefaultViewMetas = (viewType: ViewTypes) => {
+  switch (viewType) {
+    case ViewTypes.FORM:
+      return {
+        submit_another_form: false,
+        show_blank_form: false,
+        meta: {
+          hide_branding: false,
+          background_color: '#F9F9FA',
+          hide_banner: false,
+        },
+      }
+  }
+  return {}
+}
+
+export const validateViewConfigOverrideEvent = (
+  event: SmartsheetStoreEvents | string,
+  optionToValidate: ViewSettingOverrideOptions,
+  params?: { viewId: string; copiedOptions: ViewSettingOverrideOptions[] },
+) => {
+  if (
+    event !== SmartsheetStoreEvents.COPIED_VIEW_CONFIG ||
+    !optionToValidate ||
+    !ncIsObject(params) ||
+    !ncIsArray(params?.copiedOptions)
+  ) {
+    return false
+  }
+
+  return params.copiedOptions.includes(optionToValidate)
+}
+
+/**
+ * Pick only the fields that `formColumnUpdate` strict zod schema accepts.
+ * Callers typically have the full form-column row (incl. column metadata
+ * spread in via fieldById join) — the schema rejects everything outside
+ * the allowed list.
+ */
+export const pickFormColumnUpdateBody = (col: Record<string, any>) => {
+  const body: Record<string, unknown> = {}
+  if ('label' in col) body.label = col.label
+  if ('help' in col) body.help = col.help
+  if ('description' in col) body.description = col.description
+  if ('required' in col) body.required = col.required
+  if ('enable_scanner' in col) body.enable_scanner = col.enable_scanner
+  if ('show' in col) body.show = col.show
+  if ('order' in col) body.order = col.order
+  if ('row_id' in col) body.row_id = col.row_id
+  if ('meta' in col) body.meta = col.meta
+  return body
+}

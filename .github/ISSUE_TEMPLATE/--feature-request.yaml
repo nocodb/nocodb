@@ -1,0 +1,38 @@
+name: 🔦 Feature request
+description: Suggest a new/missing feature for NocoDB
+title: "🔦 Feature: "
+labels: [Type : Feature]
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for taking the time to fill out this feature request report! ❤️
+
+- type: checkboxes
+  attributes:
+    label: Please confirm that the feature request does ***not*** already exist
+    description: We kindly ask you [to search the open issues](https://github.com/nocodb/nocodb/issues?q=is%3Aissue+sort%3Acreated-desc+) and ensure the feature has not already been requested before.
+    options:
+    - label: I confirm there is no existing issue for this feature request.
+      required: true
+
+- type: textarea
+  attributes:
+    label: Use case
+    description: Describe the use case for the requested feature. A clear and concise description of the end result you're interested in.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Suggested solution
+    description: Describe the solution you'd like. A clear and concise description of what you want to happen.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Additional context
+    description: Add more context about the problem the requested feature intends to solve.
+  validations:
+    required: false

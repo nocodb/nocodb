@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "rootDir": "src",
+      "outDir": "dist",
+      "strict": true,
+      "target": "es6",
+      "module": "commonjs",
+      "sourceMap": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node",
+      "skipLibCheck": true,
+      "noImplicitAny": false,
+      "allowJs": true,
+      "experimentalDecorators": true
+    }
+}

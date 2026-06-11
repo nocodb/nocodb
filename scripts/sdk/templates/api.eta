@@ -1,0 +1,65 @@
+<%
+const { apiConfig, routes, utils, config } = it;
+const { info, servers, externalDocs } = apiConfig;
+const { _, require, formatDescription } = utils;
+
+const server = (servers && servers[0]) || { url: "" };
+
+const descriptionLines = _.compact([
+  `@title ${info.title || "No title"}`,
+  info.version && `@version ${info.version}`,
+  info.license && `@license ${_.compact([
+    info.license.name,
+    info.license.url && `(${info.license.url})`,
+  ]).join(" ")}`,
+  info.termsOfService && `@termsOfService ${info.termsOfService}`,
+  server.url && `@baseUrl ${server.url}`,
+  externalDocs.url && `@externalDocs ${externalDocs.url}`,
+  info.contact && `@contact ${_.compact([
+    info.contact.name,
+    info.contact.email && `<${info.contact.email}>`,
+    info.contact.url && `(${info.contact.url})`,
+  ]).join(" ")}`,
+  info.description && " ",
+  info.description && _.replace(formatDescription(info.description), /\n/g, "\n * "),
+]);
+
+%>
+
+<% if (config.httpClientType === config.constants.HTTP_CLIENT.AXIOS) { %> import { AxiosRequestConfig, AxiosResponse } from "axios"; <% } %>
+
+<% if (descriptionLines.length) { %>
+/**
+<% descriptionLines.forEach((descriptionLine) => { %>
+* <%~ descriptionLine %>
+
+<% }) %>
+*/
+<% } %>
+export class Api<SecurityDataType extends unknown><% if (!config.singleHttpClient) { %> extends HttpClient<SecurityDataType> <% } %> {
+
+<% if(config.singleHttpClient) { %>
+  http: HttpClient<SecurityDataType>;
+
+  constructor (http: HttpClient<SecurityDataType>) {
+    this.http = http;
+  }
+<% } %>
+
+
+<% routes.outOfModule && routes.outOfModule.forEach((route) => { %>
+
+        <%~ includeFile('./procedure-call.eta', { ...it, route }) %>
+
+<% }) %>
+
+<% routes.combined && routes.combined.forEach(({ routes = [], moduleName }) => { %>
+    <%~ moduleName %> = {
+    <% routes.forEach((route) => { %>
+
+        <%~ includeFile('./procedure-call.eta', { ...it, route }) %>
+
+    <% }) %>
+    }
+<% }) %>
+}

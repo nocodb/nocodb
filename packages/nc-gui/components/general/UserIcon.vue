@@ -1,0 +1,218 @@
+<script lang="ts" setup>
+import { IconType, type UserType } from 'nocodb-sdk'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import { Icon } from '@iconify/vue'
+import { type IconMapKey, isColorDark, stringToColor } from '#imports'
+
+const props = withDefaults(
+  defineProps<{
+    size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
+    user?: Partial<UserType> | Partial<User> | null
+    disabled?: boolean
+    iconBgColor?: string
+    showPlaceholderIcon?: boolean
+    isDeleted?: boolean
+    initialsLength?: 1 | 2
+    placeholderIcon?: IconMapKey
+  }>(),
+  {
+    user: () => ({}),
+    size: 'medium',
+    name: '',
+    email: '',
+    disabled: false,
+    iconBgColor: 'var(--nc-bg-gray-light)',
+    showPlaceholderIcon: false,
+    isDeleted: false,
+    initialsLength: 2,
+  },
+)
+
+const { size } = toRefs(props)
+
+const { getColor } = useTheme()
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
+const user = computed(() => {
+  return {
+    ...(props.user || {}),
+    email: props.user?.email?.trim() || '',
+    display_name: props.user?.display_name?.trim() || '',
+    meta: props.user?.meta || null,
+  }
+})
+
+const userIcon = computed<{
+  icon: any
+  iconType: IconType | string
+}>(() => {
+  if (props.isDeleted) {
+    return {
+      icon: 'ncSlash',
+      iconType: IconType.ICON,
+    }
+  }
+
+  if (!user.value.meta) {
+    return {
+      icon: '',
+      iconType: '',
+    }
+  }
+
+  const icon = parseProp(user.value.meta).icon || ''
+  const iconType = parseProp(user.value.meta).iconType || ''
+
+  if ((!icon || !iconType) && props.placeholderIcon) {
+    return {
+      icon: props.placeholderIcon,
+      iconType: IconType.ICON,
+    }
+  }
+
+  return {
+    icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),
+    iconType,
+  }
+})
+
+const backgroundColor = computed(() => {
+  if (props.disabled || props.isDeleted) {
+    return '#bbbbbb'
+  }
+
+  // in comments we need to generate user icon from email
+  const color = user.value.display_name
+    ? stringToColor(user.value.display_name)
+    : user.value.email
+    ? stringToColor(user.value.email)
+    : '#FFFFFF'
+
+  if (userIcon.value.icon) {
+    switch (userIcon.value.iconType) {
+      case IconType.IMAGE: {
+        return ''
+      }
+      case IconType.EMOJI: {
+        return props.iconBgColor
+      }
+      case IconType.ICON: {
+        return props.iconBgColor
+      }
+
+      default: {
+        return color || '#FFFFFF'
+      }
+    }
+  }
+
+  return color || '#FFFFFF'
+})
+
+const usernameInitials = computed(() => {
+  if (props.disabled || props.isDeleted) {
+    return ''
+  }
+
+  return getSafeInitials(user.value.display_name?.trim() || user.value.email?.split('@')[0], props.initialsLength, true)
+})
+</script>
+
+<template>
+  <div
+    class="nc-user-avatar"
+    :class="{
+      'h-full min-h-5 aspect-square': size === 'auto',
+      'w-4 h-4': size === 'small',
+      'w-6 h-6': size === 'medium',
+      'w-8 h-8': size === 'base',
+      'w-20 h-20': size === 'large',
+      'w-26 h-26': size === 'xlarge',
+    }"
+    :style="{
+      backgroundColor:
+        showPlaceholderIcon || (userIcon.icon && userIcon.iconType === IconType.IMAGE) ? undefined : backgroundColor,
+    }"
+  >
+    <div v-if="showPlaceholderIcon" class="border-1 border-nc-border-gray-medium rounded-full overflow-hidden">
+      <img src="~assets/img/placeholder/avatar.png" class="!w-full h-full flex-none" />
+    </div>
+    <CellAttachmentPreviewImage
+      v-else-if="userIcon.icon && userIcon.iconType === IconType.IMAGE"
+      :srcs="userIcon.icon"
+      class="flex-none !object-contain max-h-full max-w-full !m-0"
+      :is-cell-preview="false"
+    />
+
+    <div
+      v-else-if="userIcon.icon && userIcon.iconType === IconType.EMOJI"
+      class="flex items-center justify-center align-middle"
+      :class="{
+        'text-inherit': size === 'auto',
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black opacity-80': !isColorDark(getColor(backgroundColor)),
+        'text-tiny': size === 'small',
+        'text-base': size === 'medium',
+        'text-lg': size === 'base',
+        'text-4xl': size === 'large',
+        'text-5xl': size === 'xlarge',
+      }"
+    >
+      <div v-if="isUnicodeEmoji(userIcon.icon)">
+        {{ userIcon.icon }}
+      </div>
+
+      <Icon
+        v-else
+        :data-testid="`nc-icon-${userIcon.icon}`"
+        class="!text-inherit flex-none"
+        :class="{
+          'w-[75%] h-[75%]': size === 'auto',
+          'w-3 h-3': size === 'small',
+          'w-4 h-4': size === 'medium',
+          'w-5 h-5': size === 'base',
+          'w-12 h-12': size === 'large',
+          'w-14 h-14': size === 'xlarge',
+        }"
+        :icon="userIcon.icon"
+      ></Icon>
+    </div>
+    <GeneralIcon
+      v-else-if="userIcon.icon && userIcon.iconType === IconType.ICON"
+      :icon="userIcon.icon"
+      class="flex-none"
+      :class="{
+        'w-[75%] h-[75%]': size === 'auto',
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black opacity-80': !isColorDark(getColor(backgroundColor)),
+        'w-3 h-3': size === 'small',
+        'w-4 h-4': size === 'medium',
+        'w-5 h-5': size === 'base',
+        'w-12 h-12': size === 'large',
+        'w-14 h-14': size === 'xlarge',
+        '!opacity-50': isDeleted,
+      }"
+    />
+    <div
+      v-else-if="usernameInitials"
+      class="font-semibold"
+      :class="{
+        '!text-md': size === 'base',
+        '!text-3xl': size === 'large',
+        '!text-4xl': size === 'xlarge',
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black': !isColorDark(getColor(backgroundColor)),
+      }"
+    >
+      {{ usernameInitials }}
+    </div>
+    <div v-else>&nbsp;</div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-user-avatar {
+  @apply flex-none rounded-full text-xs flex items-center justify-center uppercase overflow-hidden;
+}
+</style>

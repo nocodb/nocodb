@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run::Backend::Mysql" type="js.build_tools.npm" activateToolWindowBeforeRun="false">
+    <package-json value="$PROJECT_DIR$/packages/nocodb/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="watch:run:mysql" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="NC_DISABLE_CACHE" value="true" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,0 +1,696 @@
+import RowColorCondition from 'src/models/RowColorCondition';
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  AppEvents,
+  comparisonOpList,
+  EventType,
+  MetaEventType,
+} from 'nocodb-sdk';
+import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import NocoSocket from '~/socket/NocoSocket';
+import { Column, Filter, Hook, View } from '~/models';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
+
+@Injectable()
+export class FiltersService {
+  protected readonly logger = new Logger(FiltersService.name);
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
+
+  async hookFilterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      hookId: any;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook) {
+      NcError.badRequest('Hook not found');
+    }
+
+    const filter = await Filter.insert(context, {
+      ...param.filter,
+      fk_hook_id: param.hookId,
+    });
+
+    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+      filter,
+      hook,
+      req: param.req,
+      context,
+    });
+    return filter;
+  }
+
+  async hookFilterList(context: NcContext, param: { hookId: any }) {
+    return Filter.rootFilterListByHook(context, { hookId: param.hookId });
+  }
+
+  @TraceCommand(OperationName.buttonFilterCreate)
+  async buttonFilterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      buttonColId: any;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    return await Filter.insert(context, {
+      ...param.filter,
+      fk_button_col_id: param.buttonColId,
+    });
+  }
+
+  async buttonFilterList(context: NcContext, param: { buttonColId: string }) {
+    return Filter.rootFilterListByButtonColumn(context, {
+      buttonColId: param.buttonColId,
+    });
+  }
+
+  async filterDelete(
+    context: NcContext,
+    param: { filterId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    const filter = await Filter.get(context, param.filterId);
+
+    if (!filter) {
+      NcError.badRequest('Filter not found');
+    }
+
+    const parentData = await filter.extractRelatedParentMetas(context);
+
+    let viewWebhookManager: ViewWebhookManager;
+    if (filter.fk_view_id) {
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(filter.fk_view_id)
+      ).forUpdate();
+    } else if (filter.fk_row_color_condition_id) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        filter.fk_row_color_condition_id,
+        ncMeta,
+      );
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        false,
+        ncMeta,
+      );
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
+    await Filter.delete(context, param.filterId);
+
+    this.appHooksService.emit(AppEvents.FILTER_DELETE, {
+      filter,
+      req: param.req,
+      context,
+      ...parentData,
+    });
+
+    if (filter.fk_view_id) {
+      await this.metaDependencyEventHandler.handleEvent(context, {
+        eventType: MetaEventType.FILTER_DELETED,
+        oldEntity: filter,
+      });
+    }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'filter_delete',
+          payload: filter,
+        },
+      },
+      context.socket_id,
+    );
+
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+    return true;
+  }
+
+  async filterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      viewId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    if (param.filter.fk_column_id) {
+      const column = await Column.get(context, {
+        colId: param.filter.fk_column_id,
+      });
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
+        );
+      }
+    }
+
+    const view = await View.get(context, param.viewId);
+
+    const viewWebhookManager: ViewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(param.viewId)
+    ).forUpdate();
+
+    const filter = await Filter.insert(context, {
+      ...param.filter,
+      fk_view_id: param.viewId,
+    });
+
+    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+      filter,
+      view,
+      req: param.req,
+      context,
+    });
+
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.FILTER_CREATED,
+      newEntity: filter,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'filter_create',
+          payload: filter,
+        },
+      },
+      context.socket_id,
+    );
+
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+    return filter;
+  }
+
+  async filterUpdate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      filterId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    if (param.filter.fk_column_id) {
+      const column = await Column.get(
+        context,
+        { colId: param.filter.fk_column_id },
+        ncMeta,
+      );
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
+        );
+      }
+    }
+
+    const filter = await Filter.get(context, param.filterId, ncMeta);
+
+    let viewWebhookManager: ViewWebhookManager;
+    if (filter.fk_view_id) {
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(filter.fk_view_id)
+      ).forUpdate();
+    } else if (filter.fk_row_color_condition_id) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        filter.fk_row_color_condition_id,
+        ncMeta,
+      );
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        false,
+        ncMeta,
+      );
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
+
+    if (!filter) {
+      NcError.badRequest('Filter not found');
+    }
+    // todo: type correction
+    const res = await Filter.update(
+      context,
+      param.filterId,
+      param.filter as Filter,
+      ncMeta,
+    );
+
+    const parentData = await filter.extractRelatedParentMetas(context, ncMeta);
+
+    this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
+      filter: { ...filter, ...param.filter },
+      oldFilter: filter,
+      req: param.req,
+      ...parentData,
+      context,
+    });
+
+    if (filter.fk_view_id) {
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.FILTER_UPDATED,
+          oldEntity: filter,
+          newEntity: { ...filter, ...param.filter },
+        },
+        ncMeta,
+      );
+    }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'filter_update',
+          payload: { ...filter, ...param.filter },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+    return res;
+  }
+
+  @TraceCommand(OperationName.filterBulkLogicalOpUpdate)
+  async filterBulkLogicalOpUpdate(
+    context: NcContext,
+    param: {
+      filters: Array<{
+        filterId: string;
+        logical_op: 'and' | 'or' | 'not';
+      }>;
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    if (!param.filters?.length) return [];
+
+    const loaded: Array<{ before: Filter; logical_op: 'and' | 'or' | 'not' }> =
+      [];
+    for (const { filterId, logical_op } of param.filters) {
+      const before = await Filter.get(context, filterId, ncMeta);
+      if (!before) NcError.get(context).badRequest('Filter not found');
+      loaded.push({ before, logical_op });
+    }
+
+    const firstViewId = loaded[0].before.fk_view_id;
+    if (!firstViewId) {
+      NcError.get(context).badRequest(
+        'Bulk logical_op update only supports view-scoped filters',
+      );
+    }
+    const firstParentId = loaded[0].before.fk_parent_id ?? null;
+    for (const { before } of loaded) {
+      if (before.fk_view_id !== firstViewId) {
+        NcError.get(context).badRequest(
+          'All filters must belong to the same view',
+        );
+      }
+      if ((before.fk_parent_id ?? null) !== firstParentId) {
+        NcError.get(context).badRequest(
+          'All filters must share the same parent (be siblings)',
+        );
+      }
+    }
+
+    // One shared webhook manager — single firing covers the whole bulk
+    // action. Audit (`AppEvents.FILTER_UPDATE`) and realtime
+    // `filter_update` still fire per row so listeners and other tabs see
+    // each change individually.
+    const view = await View.get(context, firstViewId, false, ncMeta);
+    const sharedViewWebhookManager: ViewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(firstViewId)
+    ).forUpdate();
+
+    const updated: Filter[] = [];
+    for (const { before, logical_op } of loaded) {
+      if (before.logical_op === logical_op) continue;
+
+      const res = await Filter.update(
+        context,
+        before.id,
+        { logical_op } as Filter,
+        ncMeta,
+      );
+      const after = await Filter.get(context, before.id, ncMeta);
+
+      const parentData = await before.extractRelatedParentMetas(
+        context,
+        ncMeta,
+      );
+
+      this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
+        filter: { ...before, logical_op },
+        oldFilter: before,
+        req: param.req,
+        ...parentData,
+        context,
+      });
+
+      await this.metaDependencyEventHandler.handleEvent(
+        context,
+        {
+          eventType: MetaEventType.FILTER_UPDATED,
+          oldEntity: before,
+          newEntity: { ...before, logical_op },
+        },
+        ncMeta,
+      );
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'filter_update',
+            payload: after,
+          },
+        },
+        context.socket_id,
+      );
+
+      updated.push(res);
+    }
+
+    (
+      await sharedViewWebhookManager.withNewViewId(
+        sharedViewWebhookManager.getViewId(),
+      )
+    ).emit();
+
+    return updated;
+  }
+
+  async filterChildrenList(context: NcContext, param: { filterId: string }) {
+    return Filter.parentFilterList(context, {
+      parentId: param.filterId,
+    });
+  }
+
+  async filterGet(context: NcContext, param: { filterId: string }) {
+    const filter = await Filter.get(context, param.filterId);
+    return filter;
+  }
+
+  async filterList(
+    context: NcContext,
+    param: { viewId: string; includeAllFilters?: boolean },
+  ) {
+    const filter = await (param.includeAllFilters
+      ? Filter.allViewFilterList(context, { viewId: param.viewId })
+      : Filter.rootFilterList(context, { viewId: param.viewId }));
+
+    return filter;
+  }
+
+  async linkFilterCreate(
+    _context: NcContext,
+    _param: {
+      filter: any;
+      columnId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ): Promise<any> {
+    // placeholder method
+    return null;
+  }
+
+  /**
+   * Transform filters for a column type change - remove incompatible ones
+   * Works for all filter types: hook, link, grid, etc.
+   */
+  async transformFiltersForColumnTypeChange(
+    context: NcContext,
+    params: {
+      columnId: string;
+      newColumnType: UITypes;
+      oldColumnType: UITypes;
+      sqlUi: any;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const { columnId, newColumnType, oldColumnType, sqlUi } = params;
+
+    // Get all filters that reference this column from all tables
+    const filtersToCheck = await this.getAllFiltersForColumn(
+      context,
+      columnId,
+      ncMeta,
+    );
+
+    // Remove incompatible filters
+    for (const filter of filtersToCheck) {
+      const validation = this.validateFilterForTypeChange(
+        filter,
+        newColumnType,
+        oldColumnType,
+        sqlUi,
+      );
+      if (validation.shouldRemove) {
+        await this.deleteFilter(context, filter.id, ncMeta);
+      }
+    }
+  }
+
+  /**
+   * Get all filters that reference a specific column from all filter tables
+   */
+  private async getAllFiltersForColumn(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<FilterType[]> {
+    const filters: FilterType[] = [];
+
+    try {
+      // Query nc_filter table directly for all filters referencing this column
+      const filterResults = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          xcCondition: {
+            _or: [
+              {
+                fk_column_id: {
+                  eq: columnId,
+                },
+              },
+              {
+                fk_value_col_id: {
+                  eq: columnId,
+                },
+              },
+            ],
+          },
+        },
+      );
+
+      // Convert to FilterType objects
+      for (const row of filterResults) {
+        filters.push({
+          id: row.id,
+          fk_column_id: row.fk_column_id,
+          comparison_op: row.comparison_op,
+          comparison_sub_op: row.comparison_sub_op,
+          value: row.value,
+          logical_op: row.logical_op,
+          is_group: row.is_group,
+          fk_view_id: row.fk_view_id,
+          fk_hook_id: row.fk_hook_id,
+          fk_parent_id: row.fk_parent_id,
+          children: [], // Will be populated if needed
+        });
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to query filters for column ${columnId}: ${error.message}`,
+      );
+    }
+
+    return filters;
+  }
+
+  /**
+   * Delete a filter directly from the database
+   */
+  private async deleteFilter(
+    context: NcContext,
+    filterId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await Filter.delete(context, filterId, ncMeta);
+  }
+
+  /**
+   * Check if an operator is compatible with a column type
+   */
+  isOperatorCompatible(
+    operator: string,
+    columnType: UITypes,
+    oldColumnType: UITypes,
+  ): boolean {
+    const operators = comparisonOpList(columnType);
+    const oldOperators = comparisonOpList(oldColumnType);
+
+    const oldOperator = oldOperators.find((op) => op.value === operator);
+    const newOperator = operators.find((op) => op.value === operator);
+
+    // If operator doesn't exist in either type, it's not compatible
+    if (!oldOperator || !newOperator) {
+      return false;
+    }
+
+    // Check if type-specific semantic types match - this is the most reliable method
+    if (oldOperator.typeSpecificSemantic && newOperator.typeSpecificSemantic) {
+      const oldTypeSpecificSemantic =
+        oldOperator.typeSpecificSemantic(oldColumnType);
+      const newTypeSpecificSemantic =
+        newOperator.typeSpecificSemantic(columnType);
+      return oldTypeSpecificSemantic === newTypeSpecificSemantic;
+    }
+
+    // Fallback to basic semantic type comparison
+    if (oldOperator.semanticType && newOperator.semanticType) {
+      return oldOperator.semanticType === newOperator.semanticType;
+    }
+
+    // Final fallback to text comparison
+    return oldOperator.text === newOperator.text;
+  }
+
+  /**
+   * Validate if a filter should be removed due to column type change
+   */
+  validateFilterForTypeChange(
+    filter: FilterType,
+    newColumnType: UITypes,
+    oldColumnType: UITypes,
+    sqlUI: any,
+  ): { shouldRemove: boolean; reason?: string } {
+    const operator = filter.comparison_op;
+    if (!operator) {
+      return {
+        shouldRemove: true,
+        reason: 'Filter has no comparison operator',
+      };
+    }
+
+    // check if abstract type changed
+    const oldAbstractType = sqlUI.getAbstractType({ uidt: oldColumnType });
+    const newAbstractType = sqlUI.getAbstractType({ uidt: newColumnType });
+
+    if (oldAbstractType !== newAbstractType) {
+      return {
+        shouldRemove: true,
+        reason: `Column abstract type changed from ${oldAbstractType} to ${newAbstractType}`,
+      };
+    }
+
+    // Operator is not compatible, filter must be removed
+    if (!this.isOperatorCompatible(operator, newColumnType, oldColumnType)) {
+      return {
+        shouldRemove: true,
+        reason: `Operator ${operator} is not compatible with column type ${newColumnType}`,
+      };
+    }
+
+    // Operator is compatible, no removal needed
+    return { shouldRemove: false };
+  }
+
+  /**
+   * Get all operators compatible with a column type
+   */
+  getCompatibleOperators(columnType: UITypes): string[] {
+    const operators = comparisonOpList(columnType);
+    return operators.map((op) => op.value);
+  }
+}

@@ -1,0 +1,757 @@
+import {
+  RelationTypes,
+  UITypes,
+  dateFormats,
+  getRenderAsTextFunForUiType,
+  getRollupColumnMeta,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
+  isAIPromptCol,
+  isBtLikeV2Junction,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isIntegerUiType,
+  isLinkV2,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isValidValue,
+  isVirtualCol,
+  resolveCurrentUserToken,
+  getLookupColumnType as sdkGetLookupColumnType,
+  validateRowFilters as sdkValidateRowFilters,
+  timeFormats,
+} from 'nocodb-sdk'
+import type {
+  AIRecordType,
+  ButtonType,
+  ColumnType,
+  FilterType,
+  LinkToAnotherRecordType,
+  LookupType,
+  RollupType,
+  TableType,
+} from 'nocodb-sdk'
+import dayjs from 'dayjs'
+import { isColumnRequiredAndNull } from './columnUtils'
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
+
+export { isValidValue }
+
+// Core PK extraction from pre-filtered PK columns — avoids re-filtering on every call.
+export const extractPkFromPkColumns = (row: Record<string, any>, pkCols: ColumnType[]) => {
+  if (!row || !pkCols.length) return null
+
+  // if multiple pk columns, join them with ___ and escape _ in id values with \_ to avoid conflicts
+  if (pkCols.length > 1) {
+    return pkCols.map((c) => row?.[c.title!]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
+  }
+
+  const id = row?.[pkCols[0].title!] ?? null
+  return id === null ? null : `${id}`
+}
+
+export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
+  if (!row || !columns) return null
+
+  return extractPkFromPkColumns(
+    row,
+    columns.filter((c: Required<ColumnType>) => c.pk),
+  )
+}
+
+export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
+  const pkData: Record<string, string> = {}
+  const pks = columns?.filter((c) => c.pk)
+  if (row && pks && pks.length) {
+    for (const pk of pks) {
+      if (pk.title) pkData[pk.title] = row[pk.title]
+    }
+  }
+  return pkData
+}
+
+export const getRowHash = (row: Record<string, any>) => {
+  return MD5(JSON.stringify(row))
+}
+
+export const extractPk = (columns: ColumnType[]) => {
+  if (!columns && !Array.isArray(columns)) return null
+  return columns
+    .filter((c) => c.pk)
+    .map((c) => c.title)
+    .join('___')
+}
+
+export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
+  for (const [i, row] of Object.entries(data)) {
+    if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
+      return parseInt(i)
+    }
+  }
+  return -1
+}
+
+/**
+ * Compute the pre-fill state for a new record opened from a LTAR "New record"
+ * button (LinkedItems or UnLinkedItems panel).
+ *
+ * Finds the back-reference column in the related table and seeds it with the
+ * parent row so the junction row is written on save.
+ *
+ * @param ltarColumn   The LTAR column the panel belongs to (injectedColumn)
+ * @param relatedMeta  Metadata of the related table (relatedTableMeta)
+ * @param currentTableId  ID of the current (parent) table (meta.id)
+ * @param rowData      The raw data object of the current row (row.value.row)
+ * @param isNewRow     Whether the current row itself is a new, unsaved row
+ */
+export function computeLtarNewRowState(
+  ltarColumn: ColumnType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  currentTableId: string | null | undefined,
+  rowData: Record<string, any> | null | undefined,
+  isNewRow: boolean,
+): Record<string, any> {
+  if (isNewRow || !ltarColumn || !relatedMeta?.columns || !currentTableId) return {}
+
+  const colOpt = ltarColumn.colOptions as LinkToAnotherRecordType
+  if (!colOpt) return {}
+
+  const colInRelatedTable = relatedMeta.columns.find((col) => {
+    if (!isLinksOrLTAR(col)) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== currentTableId) return false
+
+    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
+    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
+    const isJunctionShape =
+      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
+      (isLinkV2(ltarColumn) && isLinkV2(col))
+
+    if (isJunctionShape) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
+      )
+    }
+
+    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+  })
+
+  if (!colInRelatedTable) return {}
+  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
+  if (!relatedTableColOpt) return {}
+
+  // V1 BT and V2 single-record junction relations (MO, OO) hold one record.
+  const isSingleRecord = relatedTableColOpt.type === RelationTypes.BELONGS_TO || isBtLikeV2Junction(colInRelatedTable)
+
+  return {
+    [colInRelatedTable.title as string]: isSingleRecord ? rowData : rowData && [rowData],
+  }
+}
+
+// a function to populate insert object and verify if all required fields are present
+export async function populateInsertObject({
+  getMeta,
+  row,
+  meta,
+  ltarState,
+  throwError,
+  allowNullFieldIds = [],
+}: {
+  meta: TableType
+  ltarState: Record<string, any>
+  getMeta: (baseId: string, tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
+  row: Record<string, any>
+  throwError?: boolean
+  allowNullFieldIds?: string[]
+}) {
+  const missingRequiredColumns = new Set()
+  const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
+    const o = await _o
+
+    // if column is BT relation then check if foreign key is not_null(required)
+    if (
+      ltarState &&
+      col.uidt === UITypes.LinkToAnotherRecord &&
+      (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
+    ) {
+      if (ltarState[col.title!] || row[col.title!]) {
+        const ltarVal = ltarState[col.title!] || row[col.title!]
+        const colOpt = <LinkToAnotherRecordType>col.colOptions
+        const childCol = meta.columns!.find((c) => colOpt.fk_child_column_id === c.id)
+        const relatedBaseId = (colOpt as any)?.fk_related_base_id || meta.base_id
+        const relatedTableMeta = (await getMeta(relatedBaseId!, colOpt.fk_related_model_id!)) as TableType
+        if (relatedTableMeta && childCol) {
+          o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
+          if (o[childCol.title!] !== null && o[childCol.title!] !== undefined) missingRequiredColumns.delete(childCol.title)
+        }
+      }
+    }
+    // check all the required columns are not null
+    if (isColumnRequiredAndNull(col, row)) {
+      missingRequiredColumns.add(col.title)
+    }
+
+    if (!col.ai && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
+      o[col.title as string] = row?.[col.title as string]
+    }
+
+    return o
+  }, Promise.resolve({}))
+
+  if (throwError && missingRequiredColumns.size) {
+    throw new Error(`Missing required columns: ${[...missingRequiredColumns].join(', ')}`)
+  }
+
+  return { missingRequiredColumns, insertObj }
+}
+
+// Build the row payload for duplicating an existing record. Clones the source
+// values but drops:
+//  - the client-side identity markers (`ncRecordId`/`ncRecordHash`)
+//  - system columns (auto pk, raw foreign keys, created/updated by/at, order)
+//
+// System columns are auto-managed and must never be carried into the insert. In
+// particular a self-referencing LTAR keeps a raw FK column (e.g. `Sheet11_id`)
+// in the cached row after an in-place link edit; re-inserting it verbatim trips
+// a unique-constraint violation (a freshly fetched row doesn't carry it). The
+// LTAR/link cell values themselves are kept so relationships are duplicated.
+export const getDuplicateRowData = (row: Record<string, any> = {}, columns: ColumnType[] = []) => {
+  const clonedRow = { ...row }
+
+  delete clonedRow.ncRecordId
+  delete clonedRow.ncRecordHash
+
+  for (const col of columns) {
+    if (col.title && isSystemColumn(col)) {
+      delete clonedRow[col.title]
+    }
+  }
+
+  return clonedRow
+}
+
+// a function to get default values of row
+export const rowDefaultData = (columns: ColumnType[] = [], currentUser?: { id?: string; email?: string }) => {
+  const defaultData: Record<string, string> = columns.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+    //  avoid setting default value for system col, virtual col, rollup, formula, barcode, qrcode, links, ltar
+    if (
+      !isSystemColumn(col) &&
+      !isVirtualCol(col) &&
+      ![
+        UITypes.Attachment,
+        UITypes.Rollup,
+        UITypes.Lookup,
+        UITypes.Formula,
+        UITypes.Barcode,
+        UITypes.QrCode,
+        UITypes.UUID,
+      ].includes(col.uidt) &&
+      isValidValue(col?.cdf) &&
+      !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
+    ) {
+      let defaultValue = col.cdf
+
+      // Resolve @me token for User fields to current user's ID
+      if (col.uidt === UITypes.User && typeof defaultValue === 'string' && currentUser?.id) {
+        defaultValue = resolveCurrentUserToken(defaultValue, currentUser.id)
+      }
+
+      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^['"]|['"]$/g, '') : defaultValue
+    }
+    return acc
+  }, {} as Record<string, any>)
+
+  return defaultData
+}
+
+export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean => {
+  if (!record || !col || !col.title) return true
+
+  return !isValidValue(record.row[col.title])
+}
+
+export function validateRowFilters(
+  _filters: FilterType[],
+  data: any,
+  columns: ColumnType[],
+  client: any,
+  metas: Record<string, any>,
+  baseId?: string,
+  options?: {
+    currentUser?: {
+      id: string
+      email: string
+    }
+    timezone?: string
+  },
+) {
+  return sdkValidateRowFilters({
+    filters: _filters,
+    data,
+    columns,
+    client,
+    metas,
+    baseId,
+    options,
+  })
+}
+
+export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
+  if (!col) return false
+
+  if (isAI(col)) {
+    return true
+  }
+
+  if (isAiButton(col)) {
+    return true
+  }
+
+  return false
+}
+
+// Plain cell value
+export const getCheckBoxValue = (modelValue: boolean | string | number | '0' | '1') => {
+  return !!modelValue && modelValue !== '0' && modelValue !== 0 && modelValue !== 'false'
+}
+
+export const getMultiSelectValue = (modelValue: any, params: ParsePlainCellValueProps['params']): string => {
+  const { col, isMysql } = params
+
+  if (!modelValue) {
+    return ''
+  }
+
+  return modelValue
+    ? Array.isArray(modelValue)
+      ? modelValue.join(', ')
+      : modelValue.toString()
+    : isMysql(col.source_id)
+    ? modelValue.toString().split(',').join(', ')
+    : modelValue.split(', ')
+}
+
+export const getDateValue = (modelValue: string | null | number, col: ColumnType) => {
+  const dateFormat = parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
+
+  if (!modelValue) {
+    return ''
+  } else if (!dayjs(modelValue).isValid()) {
+    const parsedDate = parseFlexibleDate(modelValue)
+    if (parsedDate) {
+      return parsedDate.format(dateFormat) as string
+    }
+  } else {
+    return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
+  }
+
+  return ''
+}
+
+export const getYearValue = (modelValue: string | null) => {
+  if (!modelValue) {
+    return ''
+  } else if (!dayjs(modelValue).isValid()) {
+    return ''
+  } else {
+    return dayjs(modelValue.toString(), 'YYYY').format('YYYY')
+  }
+}
+
+export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCellValueProps['params']) => {
+  const { col, isXcdbBase } = params
+
+  if (!modelValue || !dayjs(modelValue).isValid()) {
+    return ''
+  }
+
+  const columnMeta = parseProp(col.meta)
+  const dateFormat = columnMeta?.date_format ?? dateFormats[0]
+  const timeFormat = columnMeta?.time_format ?? timeFormats[0]
+  const dateTimeFormat = `${dateFormat} ${timeFormat}`
+  const timezone = isEeUI && columnMeta?.timezone ? getTimeZoneFromName(columnMeta?.timezone) : undefined
+  const { timezonize } = withTimezone(timezone?.name)
+  const displayTimezone = timezone && columnMeta?.isDisplayTimezone ? ` (${timezone.abbreviation})` : ''
+
+  const isXcDB = isXcdbBase(col.source_id)
+
+  if (!isXcDB) {
+    return timezonize(dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue))?.format(dateTimeFormat) + displayTimezone
+  }
+
+  return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
+}
+
+export const getTimeValue = (modelValue: string | null, col: ColumnType) => {
+  const timeFormat = parseProp(col?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
+
+  if (!modelValue) {
+    return ''
+  }
+  let time = dayjs(modelValue)
+
+  if (!time.isValid()) {
+    time = dayjs(modelValue, 'HH:mm:ss')
+  }
+  if (!time.isValid()) {
+    time = dayjs(`1999-01-01 ${modelValue}`)
+  }
+  if (!time.isValid()) {
+    return ''
+  }
+
+  return time.format(timeFormat)
+}
+
+export const getDurationValue = (modelValue: string | null, col: ColumnType) => {
+  const durationType = parseProp(col.meta)?.duration || 0
+  return convertMS2Duration(modelValue, durationType)
+}
+
+export const getPercentValue = (modelValue: string | null) => {
+  return modelValue ? `${modelValue}%` : ''
+}
+
+export const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {
+  const currencyMeta = {
+    currency_locale: 'en-US',
+    currency_code: 'USD',
+    ...parseProp(col.meta),
+  }
+
+  try {
+    if (modelValue === null || modelValue === undefined || isNaN(modelValue)) {
+      return modelValue === null || modelValue === undefined ? '' : (modelValue as string)
+    }
+    return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: currencyMeta.currency_code || 'USD',
+    }).format(+modelValue)
+  } catch (e) {
+    return modelValue as string
+  }
+}
+
+export const getUserValue = (modelValue: string | string[] | null | Array<any>, params: ParsePlainCellValueProps['params']) => {
+  const { meta, baseUsers: baseUsersMap = new Map() } = params
+  if (!modelValue) {
+    return ''
+  }
+  const baseUsers = meta?.base_id ? baseUsersMap.get(meta?.base_id) || [] : []
+
+  if (typeof modelValue === 'string') {
+    const idsOrMails = modelValue.split(',')
+
+    return idsOrMails
+      .map((idOrMail) => {
+        const user = baseUsers.find((u) => u.id === idOrMail || u.email === idOrMail)
+        return user ? user.display_name || user.email : idOrMail.id
+      })
+      .join(', ')
+  } else {
+    if (Array.isArray(modelValue)) {
+      return modelValue
+        .map((idOrMail) => {
+          const user = baseUsers.find((u) => u.id === idOrMail.id || u.email === idOrMail.email)
+          return user ? user.display_name || user.email : idOrMail.id
+        })
+        .join(', ')
+    } else {
+      return modelValue ? modelValue.display_name || modelValue.email : ''
+    }
+  }
+}
+
+export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
+    return ''
+  }
+  const columnMeta = parseProp(col.meta)
+
+  return Number(modelValue).toFixed(columnMeta?.precision ?? 1)
+}
+
+export const getIntValue = (modelValue: string | null | number) => {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
+    return ''
+  }
+  return Number(modelValue).toString()
+}
+
+export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
+  const isRichMode = parseProp(col.meta).richMode
+  if (isRichMode) {
+    return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
+  }
+
+  if (isAIPromptCol(col)) {
+    return (modelValue as AIRecordType)?.value || ''
+  }
+
+  return modelValue || ''
+}
+
+export const getRollupValue = (modelValue: string | null | number, params: ParsePlainCellValueProps['params']) => {
+  const { col, meta, metas } = params
+
+  const colOptions = col.colOptions as RollupType
+  const relationColumnOptions = colOptions.fk_relation_column_id
+    ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
+    : null
+
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = relationColumnOptions?.fk_related_base_id || meta?.base_id
+  const relatedTableMeta = relationColumnOptions?.fk_related_model_id
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
+      metas?.[relationColumnOptions.fk_related_model_id as string]
+    : null
+
+  let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
+    | ColumnType
+    | undefined
+
+  if (!childColumn) return modelValue?.toString() ?? ''
+  // may use deepClone
+  childColumn = { ...childColumn }
+
+  const renderAsTextFun = getRenderAsTextFunForUiType((childColumn.uidt ?? UITypes.SingleLineText) as UITypes)
+
+  childColumn.meta = {
+    ...parseProp(childColumn?.meta),
+    ...getRollupColumnMeta(col?.meta, childColumn.uidt as UITypes, colOptions.rollup_function ?? ''),
+  }
+
+  if (renderAsTextFun.includes(colOptions.rollup_function ?? '')) {
+    const isInteger =
+      integerRollupFunctions.includes(colOptions.rollup_function ?? '') ||
+      (isIntegerUiType(childColumn as ColumnType) && integerPreservingRollupFunctions.includes(colOptions.rollup_function ?? ''))
+
+    childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return parsePlainCellValue(modelValue, { ...params, col: childColumn }) as string
+}
+
+export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
+  const { col, meta, metas } = params
+
+  const colOptions = col.colOptions as LookupType
+  const relationColumnOptions = colOptions.fk_relation_column_id
+    ? (meta?.value ?? meta)?.columns?.find((c) => c && c.id === colOptions.fk_relation_column_id)?.colOptions
+    : col.colOptions
+
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_related_base_id || (meta?.value ?? meta)?.base_id
+  const relatedTableMeta = relationColumnOptions?.fk_related_model_id
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
+      metas?.[relationColumnOptions.fk_related_model_id as string]
+    : null
+
+  // Priority:
+  //   1. Lookup column's explicit target (fk_lookup_column_id)
+  //   2. LTAR's custom display value override (fk_display_value_column_id)
+  //   3. Related table's PV (default)
+  const customDisplayColId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
+  const childColumn = relatedTableMeta?.columns.find(
+    (c: ColumnType) =>
+      c && c.id === (colOptions?.fk_lookup_column_id ?? customDisplayColId ?? relatedTableMeta?.columns.find((c) => c?.pv)?.id),
+  ) as ColumnType | undefined
+
+  // When the value is a record object (from Lookup of LTAR), extract the child column's
+  // field value before recursing — otherwise the object reaches a primitive column parser
+  // and stringifies as [object Object]
+  const resolveRecordValue = (v: any) => {
+    if (v && typeof v === 'object' && !Array.isArray(v) && childColumn?.title) {
+      return v[childColumn.title] ?? v[childColumn.id] ?? v
+    }
+
+    return v
+  }
+
+  if (Array.isArray(modelValue)) {
+    return modelValue
+      .map((v) => {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: childColumn! })
+      })
+      .join(', ')
+  }
+
+  // when childColumn not found (external base or nested links, simply return the modelValue
+  if (!childColumn) {
+    if (typeof modelValue === 'string') {
+      return modelValue
+    } else {
+      return modelValue?.toString() ?? ''
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: childColumn })
+}
+
+export function getLookupColumnType(
+  col: ColumnType,
+  meta: { columns: ColumnType[]; base_id?: string },
+  metas: Record<string, any>,
+  visitedIds = new Set<string>(),
+): UITypes | null | undefined {
+  return sdkGetLookupColumnType({
+    col,
+    meta,
+    metas,
+    baseId: meta.base_id,
+    visitedIds,
+  })
+}
+
+export const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
+  if (Array.isArray(modelValue)) {
+    return modelValue.map((v) => `${v.title}`).join(', ')
+  }
+  return modelValue as string
+}
+
+export const getLinksValue = (modelValue: string, params: ParsePlainCellValueProps['params']) => {
+  const { col, t } = params
+
+  if (typeof col?.meta === 'string') {
+    col.meta = JSON.parse(col.meta)
+  }
+
+  const parsedValue = +modelValue || 0
+  if (!parsedValue) {
+    return `0 ${col?.meta?.plural || t('general.links')}`
+  } else if (parsedValue === 1) {
+    return `1 ${col?.meta?.singular || t('general.link')}`
+  } else {
+    return `${parsedValue} ${col?.meta?.plural || t('general.links')}`
+  }
+}
+
+export const parsePlainCellValue = (
+  value: ParsePlainCellValueProps['value'],
+  params: ParsePlainCellValueProps['params'],
+): string => {
+  const { col, abstractType, isUnderLookup } = params
+
+  if (!col) {
+    return ''
+  }
+
+  if (isGeoData(col)) {
+    const [latitude, longitude] = ((value as string) || '').split(';')
+    return latitude && longitude ? `${latitude}; ${longitude}` : value
+  }
+  if (isTextArea(col)) {
+    return getTextAreaValue(value, col)
+  }
+  if (isBoolean(col, abstractType)) {
+    return getCheckBoxValue(value) ? 'Checked' : 'Unchecked'
+  }
+  if (isMultiSelect(col)) {
+    return getMultiSelectValue(value, params)
+  }
+  if (isDate(col, abstractType)) {
+    return getDateValue(value, col)
+  }
+  if (isYear(col, abstractType)) {
+    return getYearValue(value)
+  }
+  if (isDateTime(col, abstractType)) {
+    return getDateTimeValue(value, params)
+  }
+  if (isTime(col, abstractType)) {
+    return getTimeValue(value, col)
+  }
+  if (isDuration(col)) {
+    return getDurationValue(value, col)
+  }
+  if (isPercent(col)) {
+    return getPercentValue(value)
+  }
+  if (isCurrency(col)) {
+    return getCurrencyValue(value, col)
+  }
+  if (isUser(col)) {
+    return getUserValue(value, params)
+  }
+  if (isDecimal(col)) {
+    return getDecimalValue(value, col)
+  }
+  if (isRating(col)) {
+    return value ? `${value}` : '0'
+  }
+
+  if (isInt(col, abstractType)) {
+    return getIntValue(value)
+  }
+  if (isJSON(col)) {
+    try {
+      if (isUnderLookup) {
+        return typeof value === 'string' ? JSON.stringify(JSON.parse(value)) : JSON.stringify(value)
+      } else {
+        return JSON.stringify(JSON.parse(value), null, 2)
+      }
+    } catch {
+      return value
+    }
+  }
+  if (isRollup(col)) {
+    return getRollupValue(value, params)
+  }
+  // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
+  // uidt=Links → count cell; everything else LTAR/Lookup → linked-row display value(s).
+  if (isBtLikeV2Junction(col)) {
+    return getLookupValue(value, params)
+  }
+  if (isLink(col)) {
+    return getLinksValue(value, params)
+  }
+  if (isLookup(col) || isLTAR(col.uidt, col.colOptions)) {
+    return getLookupValue(value, params)
+  }
+  if (isCreatedOrLastModifiedTimeCol(col)) {
+    return getDateTimeValue(value, params)
+  }
+  if (isCreatedOrLastModifiedByCol(col)) {
+    return getUserValue(value, params)
+  }
+  if (isAttachment(col)) {
+    return getAttachmentValue(value)
+  }
+
+  if (isFormula(col)) {
+    if (col?.meta?.display_type) {
+      const childColumn = {
+        uidt: col?.meta?.display_type,
+        ...col?.meta?.display_column_meta,
+      }
+
+      return parsePlainCellValue(value, { ...params, col: childColumn })
+    } else {
+      const url = replaceUrlsWithLink(value, true)
+
+      if (url && ncIsString(url)) {
+        return url
+      }
+    }
+  }
+
+  if (isButton(col)) {
+    if ((col.colOptions as ButtonType).type === 'url') return value
+    else return col.colOptions?.label
+  }
+
+  return value as unknown as string
+}
+
+// Utility to stringify filter or sort array, if the array is empty return undefined
+export const stringifyFilterOrSortArr = (arr: any[]) => {
+  if (!arr || (Array.isArray(arr) && !arr.length)) return undefined
+
+  return JSON.stringify(arr)
+}

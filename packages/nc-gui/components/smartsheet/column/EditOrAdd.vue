@@ -1,0 +1,1914 @@
+<script lang="ts" setup>
+import {
+  type ColumnReqType,
+  type ColumnType,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypesSearchTerms,
+  isAIPromptCol,
+  isSupportedDisplayValueColumn,
+} from 'nocodb-sdk'
+import {
+  ButtonActionsType,
+  UITypes,
+  UITypesName,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isSelfReferencingTableColumn,
+  isSystemColumn,
+  isVirtualCol,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
+import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#imports'
+import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
+import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
+import MdiIdentifierIcon from '~icons/mdi/identifier'
+import { isEeUI } from '#imports'
+
+const props = defineProps<{
+  preload?: Partial<ColumnType>
+  columnPosition?: Pick<ColumnReqType, 'column_order'>
+  // Disable styles like border, shadow to be embedded on other components
+  embedMode?: boolean
+  // Will be used to show where ever text 'Column' is used.
+  // i.e 'Column Name' label in form, thus will be of form `${columnLabel} Name`
+  columnLabel?: string
+  hideTitle?: boolean
+  hideType?: boolean
+  hideAdditionalOptions?: boolean
+  fromTableExplorer?: boolean
+  editDescription?: boolean
+  readonly?: boolean
+  disableTitleFocus?: boolean
+}>()
+
+const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
+
+const {
+  formState,
+  isWebhookCreateModalOpen,
+  isAiButtonConfigModalOpen,
+  isConvertLinkV2ModalOpen,
+  generateNewColumnMeta,
+  addOrUpdate,
+  onAlter,
+  onUidtOrIdTypeChange,
+  validateInfos,
+  isEdit,
+  isSystem,
+  disableSubmitBtn,
+  column,
+  isAiMode,
+  isSyncedField,
+  defaultFormState,
+  sqlUi,
+} = useColumnCreateStoreOrThrow()
+
+// Patch colOptions into formState during setup so the child SelectOptions
+// (whose onMounted runs before this parent's onMounted) initializes its
+// local options from preload's pending edits rather than the stale column data.
+// Full preload merge (others + meta) still happens in onMounted below.
+if (props.preload?.colOptions) {
+  formState.value.colOptions = { ...props.preload.colOptions }
+}
+
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+
+const {
+  aiMode: aiAutoSuggestMode,
+  aiModeStep: aiAutoSuggestModeStep,
+  predicted,
+  activeTabPredictedFields,
+  selected,
+  activeTabSelectedFields,
+  activeTabPredictHistory,
+  calledFunction,
+  prompt,
+  oldPrompt,
+  isPromtAlreadyGenerated,
+  maxSelectionCount,
+  activeAiTab,
+  isPredictFromPromptLoading,
+  isFormulaPredictionMode,
+  activeSelectedField,
+  failedToSaveFields,
+  onInit,
+  toggleAiMode: _toggleAiMode,
+  disableAiMode: _disableAiMode,
+  predictMore,
+  predictRefresh,
+  predictFromPrompt,
+  handleRefreshOnError,
+  saveFields,
+  onToggleTag: _onToggleTag,
+} = usePredictFields(ref(false))
+
+onBeforeMount(() => {
+  if (props.fromTableExplorer || isEdit.value) return
+
+  onInit()
+})
+
+const editDescription = toRef(props, 'editDescription')
+
+const { getMeta } = useMetas()
+
+const { t } = useI18n()
+
+const { isMetaReadOnly } = useRoles()
+
+const {
+  showUpgradeToUseAiPromptField,
+  showUpgradeToUseUnique,
+  blockAiPromptField,
+  showUpgradeToUseAiButtonField,
+  blockAiButtonField,
+  blockUnique,
+  blockColourField,
+  showUpgradeToUseColourField,
+  showEEFeatures,
+} = useEeConfig()
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+const columnLabel = computed(() => props.columnLabel || t('objects.field'))
+
+const { $e } = useNuxtApp()
+
+const { appInfo } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const { openedViewsTab } = storeToRefs(useViewsStore())
+
+const meta = inject(MetaInj, ref())
+
+const isForm = inject(IsFormInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
+const readOnly = computed(() => props.readonly)
+
+const { isMysql, isPg, isMssql, isDatabricks, isXcdbBase } = useBase()
+
+const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
+
+const reloadDataTrigger = inject(ReloadViewDataHookInj)
+
+const advancedOptions = ref(false)
+
+const mounted = ref(false)
+
+const showDefaultValueInput = ref(false)
+
+const showHoverEffectOnSelectedType = ref(true)
+
+const onMouseOverUniqueValuesInfoIcon = ref(false)
+
+const columnUidt = computed({
+  get: () => {
+    // Show legacy LTAR v1 columns as "Links" in the type dropdown — but only
+    // when editing an existing link column. When converting another type
+    // (e.g. SingleLineText) into a link, the new field has no version yet, so
+    // this would wrongly relabel the freshly chosen "Link to another record".
+    if (
+      isEdit.value &&
+      column?.value?.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.colOptions?.version !== 2
+    ) {
+      return UITypes.Links
+    }
+    return formState.value.uidt
+  },
+  set: (value: UITypes) => {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+      return
+    }
+
+    if (value === AIButton && showUpgradeToUseAiButtonField()) {
+      return
+    }
+
+    if (value === UITypes.Colour && showUpgradeToUseColourField()) {
+      return
+    }
+
+    formState.value.uidt = value
+  },
+})
+
+const isVisibleDefaultValueInput = computed({
+  get: () => {
+    if (column.value?.uidt === UITypes.Checkbox && isSyncedField.value) {
+      return false
+    }
+
+    if (isValidValue(formState.value.cdf) && !showDefaultValueInput.value) {
+      showDefaultValueInput.value = true
+    }
+
+    return isValidValue(formState.value.cdf) || showDefaultValueInput.value
+  },
+  set: (value: boolean) => {
+    showDefaultValueInput.value = value
+  },
+})
+
+const onlyNameUpdateOnEditColumns = [
+  UITypes.LinkToAnotherRecord,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Links,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Button,
+]
+
+// To close column type dropdown on escape and
+// close modal only when the type popup is close
+const isColumnTypeOpen = ref(false)
+
+const showDeprecated = ref(false)
+
+const isSystemField = (t: { name: UITypes }) =>
+  [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
+
+const uiFilters = (t: UiTypesType) => {
+  // always enable field to return to it's  column type
+  if (t.name === column?.value?.uidt) {
+    return true
+  }
+  // A link (LTAR/Links) column can only be converted to SingleLineText (its
+  // linked display values are joined into text) — hide all other targets.
+  if (isEdit.value && column?.value && isLinksOrLTAR(column.value)) {
+    return t.name === UITypes.SingleLineText
+  }
+  // M2M junction tables have no source rows for system audit fields — values would always be null
+  const isMmTable = !!meta.value?.mm
+  if (isMmTable && isSystemField(t)) return false
+
+  const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
+
+  // Converting an existing SingleLineText column into a link (LTAR) is
+  // supported — cell text is resolved to related records on save. Allow LTAR
+  // through the edit-mode virtual/LTAR guards for that one source type.
+  const isTextToLtar = isEdit.value && column?.value?.uidt === UITypes.SingleLineText && t.name === UITypes.LinkToAnotherRecord
+
+  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt || isTextToLtar
+  const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
+  const showDeprecatedField = !t.deprecated || showDeprecated.value
+
+  const showAiFields = [AIPrompt, AIButton].includes(t.name)
+    ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+    : true
+  const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
+  const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
+
+  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value || isTextToLtar : true
+
+  let formulaColumnTypeValid = true
+  if (column?.value?.uidt === UITypes.Formula) {
+    formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
+  }
+
+  // UUID is supported on PostgreSQL (`uuid` + `gen_random_uuid()`) and SQL
+  // Server (`uniqueidentifier` + `NEWID()`). Cannot be CONVERTED to from
+  // other types because values are DB-generated + unique — converting
+  // existing data would break both invariants; the backend (and the
+  // dropdown line 228 above for edit mode) enforces that.
+  const isUuidCompatibleSource = isPg(meta.value?.source_id) || isMssql(meta.value?.source_id)
+  const showUUID = t.name !== UITypes.UUID || (isUuidCompatibleSource && isEeUI && showEEFeatures.value && !isEdit.value)
+
+  // AutoNumber is only supported for PostgreSQL databases
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+
+  return (
+    systemFiledNotEdited &&
+    isVirtualEditAllowed &&
+    !specificDBType &&
+    showDeprecatedField &&
+    isAllowToAddInFormView &&
+    showAiFields &&
+    showColourField &&
+    showLTAR &&
+    formulaColumnTypeValid &&
+    showUUID &&
+    showAutoNumber
+  )
+}
+
+// Converting an existing SingleLineText column into a link: the field is
+// edited, but the LTAR options sub-component must behave like create mode so
+// it surfaces the related-table / relation-type pickers and validation.
+const isTextToLtarConversion = computed(
+  () => isEdit.value && column?.value?.uidt === UITypes.SingleLineText && formState.value.uidt === UITypes.LinkToAnotherRecord,
+)
+
+// Editing a link (LTAR/Links) column — the type dropdown is normally locked
+// for links, but we allow converting them to SingleLineText.
+const canConvertLtarToText = computed(() => isEdit.value && !!column?.value && isLinksOrLTAR(column.value))
+
+const extraIcons = ref<Record<string, string>>({})
+
+const predictedFieldType = ref<UITypes | null>(null)
+
+// const lastPredictedAt = ref<number>(0)
+
+const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: string })[]>(() => {
+  const types = [
+    ...uiTypes.filter(uiFilters),
+    ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
+      ? [
+          {
+            name: UITypes.ID,
+            icon: MdiIdentifierIcon,
+            virtual: 0,
+          },
+        ]
+      : []),
+  ]
+
+  // if meta is readonly, move disabled types to the end
+  if (isMetaReadOnly.value) {
+    types.sort((a, b) => {
+      const aDisabled = readonlyMetaAllowedTypes.includes(a.name)
+      const bDisabled = readonlyMetaAllowedTypes.includes(b.name)
+
+      if (aDisabled && !bDisabled) return -1
+      if (!aDisabled && bDisabled) return 1
+
+      return 0
+    })
+  }
+
+  // if prediction is available, move it to the top
+  if (predictedFieldType.value) {
+    types.sort((a, b) => {
+      if (a.name === predictedFieldType.value) return -1
+      if (b.name === predictedFieldType.value) return 1
+
+      return 0
+    })
+
+    if (!(predictedFieldType.value in extraIcons.value)) {
+      extraIcons.value[predictedFieldType.value] = 'magic'
+    }
+  }
+
+  if (!isEdit.value) {
+    return types
+  } else {
+    return types.map((type) => {
+      if (!isEdit.value) return type
+
+      const isColumnTypeDisabled =
+        !!column.value?.pv && column.value?.uidt !== type.name && !isSupportedDisplayValueColumn({ uidt: type.name as UITypes })
+
+      return {
+        ...type,
+        disabled: isColumnTypeDisabled,
+        tooltip:
+          isColumnTypeDisabled && UITypesName[type.name]
+            ? `${UITypesName[type.name]} field cannot be used as display value field`
+            : '',
+      }
+    })
+  }
+})
+
+const editOrAddRef = ref<HTMLDivElement>()
+
+const isScrollEnabled = ref(false)
+
+const handleScrollDebounce = useDebounceFn(() => {
+  if (props.fromTableExplorer || !editOrAddRef.value || aiAutoSuggestMode.value) return
+
+  if (editOrAddRef.value.clientHeight < editOrAddRef.value.scrollHeight) {
+    isScrollEnabled.value = true
+  } else {
+    isScrollEnabled.value = false
+  }
+}, 500)
+
+const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
+  let preload
+
+  if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
+
+  if (uidt === UITypes.Colour && blockColourField.value) return
+
+  if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
+    onInit()
+  }
+
+  if (uidt === AIButton) {
+    formState.value.uidt = UITypes.Button
+    preload = {
+      type: ButtonActionsType.Ai,
+    }
+  } else if (uidt === AIPrompt) {
+    formState.value.uidt = UITypes.LongText
+    preload = {
+      meta: {
+        [LongTextAiMetaProp]: true,
+      },
+    }
+  } else {
+    formState.value.uidt = uidt
+  }
+
+  onUidtOrIdTypeChange(preload)
+
+  nextTick(() => {
+    handleScrollDebounce()
+  })
+}
+
+const reloadMetaAndData = async () => {
+  await getMeta(meta.value?.base_id, meta.value?.id as string, true)
+
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+  if (!isKanban.value) {
+    reloadDataTrigger?.trigger({
+      fieldAdd: true,
+    })
+  }
+}
+
+const saving = ref(false)
+
+const warningVisible = ref(false)
+
+const selectOptionsRef = ref<{ flushSort: () => void } | null>(null)
+
+const saveSubmitted = async () => {
+  if (readOnly.value) return
+  let saved, savedColumn
+  saving.value = true
+  if (aiAutoSuggestMode.value) {
+    saved = await saveFields(reloadMetaAndData)
+
+    if (!saved && !ncIsArrayIncludes(activeTabSelectedFields.value, activeSelectedField.value, 'ai_temp_id')) {
+      onSelectedTagClick()
+    }
+  } else {
+    saved = await addOrUpdate(async (col?: ColumnType) => {
+      if (props.columnPosition) {
+        savedColumn = col
+      }
+
+      reloadMetaAndData()
+    }, props.columnPosition)
+  }
+  saving.value = false
+
+  if (!saved) return
+
+  // add delay to complete minimize transition
+  setTimeout(() => {
+    advancedOptions.value = false
+  }, 500)
+
+  if (isAiButtonConfigModalOpen.value) {
+    isAiButtonConfigModalOpen.value = false
+  }
+
+  emit('submit', savedColumn)
+
+  if (isForm.value) {
+    $e('a:form-view:add-new-field')
+  }
+}
+
+async function onSubmit() {
+  if (readOnly.value) return
+
+  selectOptionsRef.value?.flushSort()
+  await nextTick()
+
+  // Show warning message if user tries to change type of column
+  if (isEdit.value && formState.value.uidt !== column.value?.uidt) {
+    warningVisible.value = true
+
+    const { close } = useDialog(resolveComponent('DlgColumnUpdateConfirm'), {
+      'visible': warningVisible,
+      'onUpdate:visible': (value) => (warningVisible.value = value),
+      'saving': saving,
+      'onSubmit': async () => {
+        close()
+        await saveSubmitted()
+      },
+    })
+  } else await saveSubmitted()
+}
+
+// focus and select the column name field
+const antInput = ref()
+
+watchEffect(() => {
+  if (antInput.value && formState.value && !readOnly.value) {
+    // todo: replace setTimeout
+    setTimeout(() => {
+      // focus and select input only if active element is not an input or textarea
+      if (
+        (document.activeElement === document.body ||
+          document.activeElement === null ||
+          ['BUTTON', 'DIV'].includes(document.activeElement?.tagName)) &&
+        !props.disableTitleFocus
+      ) {
+        antInput.value?.focus()
+        antInput.value?.select()
+      }
+    }, 300)
+  }
+  advancedOptions.value = false
+})
+
+const enableDescription = ref(false)
+
+const descInputEl = ref()
+
+const removeDescription = () => {
+  formState.value.description = ''
+  enableDescription.value = false
+}
+
+onMounted(() => {
+  if (column.value?.description?.length || editDescription.value) {
+    enableDescription.value = true
+  }
+  if (!isEdit.value) {
+    generateNewColumnMeta(true)
+  } else {
+    if (formState.value.pk) {
+      message.info(t('msg.info.editingPKnotSupported'))
+      emit('cancel')
+    } else if (
+      isSystemColumn(formState.value) &&
+      !isSelfReferencingTableColumn(formState.value) &&
+      !isCreatedOrLastModifiedTimeCol(formState.value)
+    ) {
+      message.info(t('msg.info.editingSystemKeyNotSupported'))
+      emit('cancel')
+    }
+  }
+
+  if (props.preload) {
+    const { colOptions, ...others } = props.preload
+    formState.value = {
+      ...formState.value,
+      ...others,
+    }
+
+    if (colOptions) {
+      const meta = formState.value.meta || {}
+      onUidtOrIdTypeChange()
+      formState.value = {
+        ...formState.value,
+        colOptions: {
+          ...colOptions,
+        },
+        meta,
+      }
+    }
+  } else {
+    formState.value.filters = undefined
+  }
+
+  // for cases like formula
+  if (formState.value && !formState.value.column_name && !isLinksOrLTAR(formState.value)) {
+    formState.value.column_name = formState.value?.title
+  }
+
+  nextTick(() => {
+    mounted.value = true
+    emit('mounted')
+
+    handleScrollDebounce()
+
+    if (!isEdit.value) {
+      if (!formState.value?.temp_id) {
+        emit('add', formState.value)
+      }
+    }
+
+    // Watch for mutual exclusivity between unique constraint and default value
+    watch(
+      () => formState.value.unique,
+      (newUnique) => {
+        if (newUnique) {
+          // If enabling unique constraint, clear default value
+          if (formState.value.cdf) {
+            formState.value.cdf = null
+          }
+        }
+      },
+    )
+
+    watch(
+      () => formState.value.cdf,
+      (newCdf) => {
+        if (newCdf && formState.value.unique) {
+          // If setting default value, disable unique constraint
+          formState.value.unique = false
+        }
+      },
+    )
+
+    if (isForm.value && !props.fromTableExplorer && !enableDescription.value) {
+      setTimeout(() => {
+        antInput.value?.focus()
+        antInput.value?.select()
+      }, 100)
+    } else if (props.editDescription) {
+      setTimeout(() => {
+        descInputEl.value?.focus()
+      }, 100)
+    }
+  })
+})
+
+const handleEscape = (event: KeyboardEvent): void => {
+  if (
+    isColumnTypeOpen.value ||
+    isWebhookCreateModalOpen.value ||
+    isAiButtonConfigModalOpen.value ||
+    isConvertLinkV2ModalOpen.value
+  )
+    return
+
+  if (event.key === 'Escape') emit('cancel')
+}
+
+const isFieldsTab = computed(() => {
+  return openedViewsTab.value === 'field'
+})
+
+const onDropdownChange = (value: boolean) => {
+  if (value) {
+    isColumnTypeOpen.value = value
+  } else {
+    showHoverEffectOnSelectedType.value = true
+    setTimeout(() => {
+      isColumnTypeOpen.value = value
+    }, 100)
+  }
+}
+
+const handleResetHoverEffect = () => {
+  if (!showHoverEffectOnSelectedType.value) return
+
+  showHoverEffectOnSelectedType.value = false
+}
+
+watch(
+  formState,
+  () => {
+    if (mounted.value) {
+      if (props.fromTableExplorer) {
+        emit('update', formState.value)
+      } else if (activeSelectedField.value === formState.value.ai_temp_id) {
+        const selectedField = predicted.value.find((f) => f.ai_temp_id === activeSelectedField.value)
+
+        if (!selectedField) return
+
+        selectedField.formState = deepClone(formState.value)
+      }
+    }
+  },
+  { deep: true },
+)
+
+const submitBtnLabel = computed(() => {
+  const aiAutoSuggestModeLabel = `${t('general.create')} ${
+    activeTabSelectedFields.value.length > 1
+      ? `${activeTabSelectedFields.value.length} ${t('objects.fields')}`
+      : t('objects.field')
+  }`
+  return {
+    label: aiAutoSuggestMode.value
+      ? aiAutoSuggestModeLabel
+      : `${isEdit.value && !props.columnLabel ? t('general.update') : t('general.save')} ${columnLabel.value}`,
+    loadingLabel: aiAutoSuggestMode.value
+      ? aiAutoSuggestModeLabel
+      : `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
+  }
+})
+
+const searchBasisInfoMap = ref<Record<string, string>>({})
+
+const filterOption = (input: string, option: { value: UITypes }) => {
+  delete searchBasisInfoMap.value[option.value]
+
+  // Step 1: apply default filter
+  if (searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)) return true
+
+  // Step 2: apply search basis options
+  return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
+    if (!matchKeyword) return
+
+    searchBasisInfoMap.value[option.value] = `Matched by keyword: ${matchKeyword}`
+  })
+}
+
+const triggerDescriptionEnable = () => {
+  if (enableDescription.value) {
+    enableDescription.value = false
+  } else {
+    enableDescription.value = true
+    setTimeout(() => {
+      descInputEl.value?.focus()
+      descInputEl.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+  nextTick(() => {
+    handleScrollDebounce()
+  })
+}
+
+const isFullUpdateAllowed = computed(() => {
+  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(formState.value?.uidt) && !isVirtualCol(formState.value)) {
+    return false
+  }
+
+  return true
+})
+
+const onPredictFieldType = async () => {
+  /*
+  ### disable for now as this is only action triggered without user interaction -- need to be discussed
+
+  if (readOnly.value || (lastPredictedAt.value > 0 && Date.now() - lastPredictedAt.value < 5000)) return
+
+  if (formState.value.title.length > 4) {
+    lastPredictedAt.value = Date.now()
+
+    const res = await predictFieldType(formState.value.title, meta.value?.base_id)
+    if (res) {
+      extraIcons.value = {}
+      predictedFieldType.value = res
+    }
+  }
+  */
+}
+
+const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
+
+const handleNavigateToIntegrations = () => {
+  emit('cancel')
+
+  workspaceStore.navigateToIntegrations(undefined, undefined, {
+    categories: 'ai',
+  })
+}
+
+const toggleAiMode = () => {
+  formState.value = {
+    ...defaultFormState,
+  }
+  _toggleAiMode(undefined, true)
+}
+
+const disableAiMode = () => {
+  activeSelectedField.value = null
+  formState.value = {
+    ...defaultFormState,
+  }
+  enableDescription.value = false
+
+  _disableAiMode()
+}
+
+function onSelectedTagClick(field: PredictedFieldType | undefined = undefined) {
+  if (!field && activeTabSelectedFields.value.length) {
+    field = activeTabSelectedFields.value[activeTabSelectedFields.value.length - 1]
+  }
+
+  if (!field) {
+    activeSelectedField.value = null
+    formState.value = {
+      title: '',
+      description: '',
+    }
+    enableDescription.value = false
+
+    return
+  }
+
+  activeSelectedField.value = field.ai_temp_id
+  formState.value.uidt = field.formState?.uidt || field.type
+  enableDescription.value = !!field.formState?.description
+
+  onUidtOrIdTypeChange(field.formState)
+}
+
+const onToggleTag = (field: PredictedFieldType, select = false) => {
+  if (saving.value) return
+
+  if (select) {
+    _onToggleTag(field)
+    onSelectedTagClick(field.selected ? field : undefined)
+  } else {
+    onSelectedTagClick(field)
+  }
+}
+
+const isAiButtonSelectOption = (uidt: string) => {
+  return uidt === UITypes.Button && formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai
+}
+
+const isAiPromptSelectOption = (uidt: string) => {
+  return uidt === UITypes.LongText && isAIPromptCol(formState.value)
+}
+
+const aiPromptInputRef = ref<HTMLElement>()
+
+watch(activeAiTab, (newValue) => {
+  if (newValue === AiWizardTabsType.PROMPT) {
+    nextTick(() => {
+      aiPromptInputRef.value?.focus()
+    })
+  }
+  onSelectedTagClick()
+})
+
+const isLookupOrRollup = computed(() => {
+  return formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup
+})
+
+const lookupRollupFilterEnabled = computed(() => {
+  return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
+})
+
+const easterEggCount = ref(0)
+const easterEgg = computed(() => easterEggCount.value >= 2)
+
+const unique = computed({
+  get: () => formState.value?.unique,
+  set: (value) => {
+    if (!!value && showUpgradeToUseUnique()) {
+      return
+    }
+
+    if (formState.value) {
+      formState.value.unique = value
+    }
+  },
+})
+</script>
+
+<template>
+  <div
+    v-if="!warningVisible"
+    ref="editOrAddRef"
+    class="overflow-auto nc-scrollbar-md"
+    :class="{
+      'bg-nc-bg-default max-h-[max(80vh,500px)]': !props.fromTableExplorer,
+      'w-[416px]': !props.embedMode,
+      '!w-[500px]': isLinksOrLTAR(formState.uidt),
+      '!min-w-[560px]': lookupRollupFilterEnabled,
+      'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
+      'shadow-lg shadow-gray-300 dark:shadow-black/40 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
+      'nc-ai-mode': isAiMode,
+      'h-full': props.fromTableExplorer,
+      '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
+      '!pb-0': !embedMode && !aiAutoSuggestMode && formState.uidt,
+    }"
+    @keydown="handleEscape"
+    @click.stop
+    @scroll="handleScrollDebounce"
+    @dblclick="easterEggCount += 1"
+  >
+    <a-form
+      v-model="formState"
+      no-style
+      name="column-create-or-edit"
+      layout="vertical"
+      data-testid="add-or-edit-column"
+      class="flex flex-col gap-4 h-full"
+    >
+      <template v-if="!isEdit && !props.fromTableExplorer && (aiAutoSuggestMode || !formState.uidt)">
+        <div
+          class="flex flex-col gap-4"
+          :class="{
+            'bg-nc-bg-default -mx-5 -mt-5 px-5 pt-5': aiAutoSuggestMode,
+          }"
+        >
+          <div class="flex items-center gap-3">
+            <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
+
+            <AiToggleButton
+              v-if="isAiFeaturesEnabled"
+              :ai-mode="aiAutoSuggestMode"
+              :ai-loading="aiLoading"
+              :off-tooltip="`Auto suggest fields for ${meta?.title || 'the current table'}`"
+              @click="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
+            />
+          </div>
+          <template v-if="aiAutoSuggestMode">
+            <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">
+              <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
+              <div class="text-sm text-nc-content-gray-subtle flex-1">
+                {{ $t('title.noAiIntegrationAvailable') }} {{ $t('objects.field') }}
+              </div>
+            </div>
+
+            <AiWizardTabs v-else v-model:active-tab="activeAiTab" class="!-mx-5">
+              <template #AutoSuggestedContent>
+                <div class="px-5 pt-4 pb-2">
+                  <div v-if="aiError" class="w-full flex items-center gap-3">
+                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+
+                    <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                      <template #title>
+                        {{ aiError }}
+                      </template>
+                      {{ aiError }}
+                    </NcTooltip>
+
+                    <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
+                      {{ $t('general.refresh') }}
+                    </NcButton>
+                  </div>
+
+                  <div v-else-if="aiAutoSuggestModeStep === 'init'">
+                    <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
+                      <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
+
+                      <!-- Todo: add table name  -->
+                      <div class="nc-animate-dots">Auto suggesting fields for {{ meta?.title }}</div>
+                    </div>
+                  </div>
+                  <div v-else-if="aiAutoSuggestModeStep === 'pick'" class="flex gap-3 items-start">
+                    <div class="flex-1 flex gap-2 flex-wrap">
+                      <template v-if="activeTabPredictedFields.length">
+                        <template v-for="f of activeTabPredictedFields" :key="f.title">
+                          <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
+                            <template #title>
+                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
+                            </template>
+
+                            <a-tag
+                              class="nc-ai-suggested-tag"
+                              :class="{
+                                'nc-disabled': saving || (!f.selected && selected.length >= maxSelectionCount),
+                                'nc-selected': f.selected,
+                                'nc-bg-selected': activeSelectedField === f.ai_temp_id,
+                              }"
+                              :disabled="selected.length >= maxSelectionCount"
+                              @click="onToggleTag(f)"
+                            >
+                              <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
+                                <NcCheckbox
+                                  :checked="f.selected"
+                                  theme="ai"
+                                  class="!-mr-0.5"
+                                  :disabled="saving || (!f.selected && selected.length >= maxSelectionCount)"
+                                  @click.stop="onToggleTag(f, true)"
+                                />
+
+                                <component
+                                  :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
+                                  v-if="isFormulaPredictionMode || f?.type"
+                                  class="flex-none w-3.5 h-3.5"
+                                  :class="{
+                                    'opacity-60': saving || (!f.selected && selected.length >= maxSelectionCount),
+                                  }"
+                                />
+
+                                <div>{{ f.formState?.title || f.title }}</div>
+                              </div>
+                            </a-tag>
+                          </NcTooltip>
+                        </template>
+                      </template>
+                      <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <NcTooltip
+                        v-if="
+                          activeTabPredictHistory.length < activeTabSelectedFields.length
+                            ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
+                            : activeTabPredictHistory.length < 10
+                        "
+                        title="Suggest more"
+                        placement="top"
+                      >
+                        <NcButton
+                          size="xs"
+                          class="!px-1"
+                          type="text"
+                          theme="ai"
+                          :loading="aiLoading && calledFunction === 'predictMore'"
+                          icon-only
+                          :disabled="saving"
+                          @click="predictMore"
+                        >
+                          <template #icon>
+                            <GeneralIcon icon="ncPlusAi" class="!text-current" />
+                          </template>
+                        </NcButton>
+                      </NcTooltip>
+                      <NcTooltip title="Clear all and Re-suggest" placement="top">
+                        <NcButton
+                          size="xs"
+                          class="!px-1"
+                          type="text"
+                          theme="ai"
+                          :disabled="saving"
+                          :loading="aiLoading && calledFunction === 'predictRefresh'"
+                          @click="predictRefresh(onSelectedTagClick)"
+                        >
+                          <template #loadingIcon>
+                            <!-- eslint-disable vue/no-lone-template -->
+                            <template></template>
+                          </template>
+                          <GeneralIcon
+                            icon="refresh"
+                            class="!text-current"
+                            :class="{
+                              'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                            }"
+                          />
+                        </NcButton>
+                      </NcTooltip>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template #PromptContent>
+                <div class="px-5 pt-4 pb-2 flex flex-col gap-4">
+                  <div class="relative">
+                    <a-textarea
+                      ref="aiPromptInputRef"
+                      v-model:value="prompt"
+                      :disabled="saving"
+                      placeholder="Enter your prompt to get field suggestions.."
+                      class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
+                      @keydown.enter.stop
+                    >
+                    </a-textarea>
+
+                    <NcButton
+                      size="xs"
+                      type="primary"
+                      theme="ai"
+                      class="!px-1 !absolute bottom-2 right-2"
+                      :disabled="
+                        !prompt.trim() ||
+                        isPredictFromPromptLoading ||
+                        (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
+                        saving
+                      "
+                      :loading="isPredictFromPromptLoading"
+                      icon-only
+                      @click="predictFromPrompt(onSelectedTagClick)"
+                    >
+                      <template #loadingIcon>
+                        <GeneralLoader class="!text-nc-content-pink-dark" size="medium" />
+                      </template>
+                      <template #icon>
+                        <GeneralIcon icon="send" class="flex-none h-4 w-4" />
+                      </template>
+                    </NcButton>
+                  </div>
+
+                  <div v-if="aiError" class="w-full flex items-center gap-3">
+                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+
+                    <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                      <template #title>
+                        {{ aiError }}
+                      </template>
+                      {{ aiError }}
+                    </NcTooltip>
+
+                    <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
+                      {{ $t('general.refresh') }}
+                    </NcButton>
+                  </div>
+
+                  <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
+                    <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Field(s)</div>
+                    <div class="flex gap-2 flex-wrap">
+                      <template v-if="activeTabPredictedFields.length">
+                        <template v-for="f of activeTabPredictedFields" :key="f.title">
+                          <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
+                            <template #title>
+                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
+                            </template>
+
+                            <a-tag
+                              class="nc-ai-suggested-tag"
+                              :class="{
+                                'nc-disabled': saving || (!f.selected && selected.length >= maxSelectionCount),
+                                'nc-selected': f.selected,
+                                'nc-bg-selected': activeSelectedField === f.ai_temp_id,
+                              }"
+                              :disabled="selected.length >= maxSelectionCount"
+                              @click="onToggleTag(f)"
+                            >
+                              <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
+                                <NcCheckbox
+                                  :checked="f.selected"
+                                  theme="ai"
+                                  class="!-mr-0.5"
+                                  :disabled="saving || (!f.selected && selected.length >= maxSelectionCount)"
+                                  @click.stop="onToggleTag(f, true)"
+                                />
+
+                                <component
+                                  :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
+                                  v-if="isFormulaPredictionMode || f?.type"
+                                  class="flex-none w-3.5 h-3.5"
+                                  :class="{
+                                    'opacity-60': saving || (!f.selected && selected.length >= maxSelectionCount),
+                                  }"
+                                />
+
+                                <div>{{ f.formState?.title || f.title }}</div>
+                              </div>
+                            </a-tag>
+                          </NcTooltip>
+                        </template>
+                      </template>
+                      <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </AiWizardTabs>
+
+            <div
+              v-if="failedToSaveFields"
+              class="w-full p-4 flex items-start gap-4 border-1 border-nc-border-gray-medium rounded-lg"
+            >
+              <GeneralIcon icon="ncInfoSolid" class="flex-none text-nc-content-red-dark" />
+              <div class="flex flex-col gap-1">
+                <div class="text-nc-content-gray text-base font-bold">Failed to add fields</div>
+                <div class="text-nc-content-gray-muted text-sm">
+                  NocoDB was unable to add {{ predicted.length }} fields to the table. Please retry adding the fields.
+                </div>
+              </div>
+              <NcButton size="xsmall" type="text" class="!px-1" @click.stop="failedToSaveFields = false">
+                <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
+              </NcButton>
+            </div>
+          </template>
+        </div>
+        <div
+          v-if="aiAutoSuggestMode"
+          class="sticky -top-5 z-100 bg-nc-bg-default -mx-5 -mt-5 pt-5 px-5"
+          :class="{
+            'pb-5 border-b-1 border-b-nc-border-gray-medium': formState.uidt,
+          }"
+        >
+          <a-form-item>
+            <div class="flex gap-x-2 justify-end">
+              <!-- Cancel -->
+              <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
+                {{ $t('general.cancel') }}
+              </NcButton>
+
+              <!-- Save -->
+              <NcButton
+                v-if="aiIntegrationAvailable"
+                v-e="['a:column:ai:add']"
+                html-type="submit"
+                type="primary"
+                theme="ai"
+                :loading="saving"
+                :disabled="disableSubmitBtn || saving"
+                size="small"
+                :label="submitBtnLabel.label"
+                :loading-label="submitBtnLabel.loadingLabel"
+                data-testid="nc-field-modal-submit-btn"
+                @click.prevent="onSubmit"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" />
+                </template>
+
+                {{ submitBtnLabel.label }}
+                <template #loading>
+                  {{ submitBtnLabel.loadingLabel }}
+                </template>
+              </NcButton>
+              <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
+            </div>
+          </a-form-item>
+        </div>
+      </template>
+      <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex">
+        <div
+          :class="{
+            '!bg-nc-bg-gray-light text-nc-content-gray-disabled': isSyncedField,
+          }"
+          class="flex flex-grow px-2 py-1 items-center rounded-md bg-nc-bg-gray-light focus:bg-nc-bg-gray-light outline-none"
+          style="outline-style: solid; outline-width: thin"
+        >
+          <input
+            ref="antInput"
+            v-model="formState.title"
+            :disabled="readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
+            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            class="flex flex-grow nc-fields-input nc-input-shadow text-sm font-semibold outline-none bg-inherit min-h-6"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            :contenteditable="true"
+            @change="debouncedOnPredictFieldType"
+            @input="formState.userHasChangedTitle = true"
+          />
+        </div>
+      </a-form-item>
+      <a-form-item
+        v-if="!props.hideTitle && !isFieldsTab && (aiAutoSuggestMode ? formState.uidt : true)"
+        v-bind="validateInfos.title"
+        :required="false"
+        class="!mb-0"
+      >
+        <NcTooltip :disabled="!isSyncedField" placement="right">
+          <template #title>
+            {{ $t('msg.info.updateTitleSyncedCol') }}
+          </template>
+          <a-input
+            ref="antInput"
+            v-model:value="formState.title"
+            class="nc-column-name-input nc-input-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
+            @change="debouncedOnPredictFieldType"
+            @input="onAlter(8)"
+          />
+        </NcTooltip>
+      </a-form-item>
+
+      <div class="flex items-center gap-1 empty:hidden">
+        <template v-if="!props.hideType && !formState.uidt">
+          <SmartsheetColumnUITypesOptionsWithSearch
+            v-if="!(aiAutoSuggestMode && !props.fromTableExplorer)"
+            :options="uiTypesOptions"
+            :extra-icons="extraIcons"
+            @selected="onSelectType($event, true)"
+          />
+        </template>
+
+        <a-form-item
+          v-else-if="!props.hideType"
+          class="flex-1"
+          @keydown.up.stop="handleResetHoverEffect"
+          @keydown.down.stop="handleResetHoverEffect"
+        >
+          <NcTooltip placement="right" :disabled="!isSyncedField && !(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
+            <template #title>
+              {{
+                isSyncedField
+                  ? $t('msg.info.updateTypeSyncedCol')
+                  : 'You cannot edit field types of AI-generated fields. Edits can be made after the field is created.'
+              }}
+            </template>
+            <a-select
+              v-model:open="isColumnTypeOpen"
+              v-model:value="columnUidt"
+              show-search
+              class="nc-column-type-input nc-select-shadow !rounded-lg"
+              :class="{
+                'nc-ai-input': isAiMode,
+                '!pointer-events-none !cursor-not-allowed': !isEdit && formState.uidt && !!formState?.ai_temp_id,
+              }"
+              :disabled="
+                (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
+                isKanban ||
+                readOnly ||
+                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt) && !canConvertLtarToText) ||
+                (isEdit && !isFullUpdateAllowed) ||
+                isSystem ||
+                isSyncedField
+              "
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg !border-nc-border-gray-medium"
+              :filter-option="filterOption"
+              @dropdown-visible-change="onDropdownChange"
+              @change="onSelectType($event)"
+              @dblclick="showDeprecated = !showDeprecated"
+            >
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+              </template>
+              <a-select-option
+                v-for="opt of uiTypesOptions"
+                :key="opt.name"
+                :value="opt.name"
+                :disabled="(isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)) || opt.disabled"
+                v-bind="validateInfos.uidt"
+                :class="{
+                  'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
+                  '!text-nc-content-purple-dark': [AIPrompt, AIButton].includes(opt.name),
+                }"
+                @mouseover="handleResetHoverEffect"
+              >
+                <NcTooltip
+                  class="w-full flex gap-2 items-center justify-between"
+                  placement="right"
+                  :disabled="!opt?.tooltip"
+                  :attrs="{
+                    'data-testid': opt.name,
+                  }"
+                >
+                  <template #title> {{ opt?.tooltip }} </template>
+                  <div class="flex-1 flex gap-2 items-center max-w-[calc(100%_-_24px)]">
+                    <component
+                      :is="
+                        isAiButtonSelectOption(opt.name) && !isColumnTypeOpen
+                          ? iconMap.cellAiButton
+                          : isAiPromptSelectOption(opt.name) && !isColumnTypeOpen
+                          ? iconMap.cellAi
+                          : opt.icon
+                      "
+                      class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
+                    />
+                    <div
+                      class="flex items-center gap-1"
+                      :class="{
+                        'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
+                      }"
+                    >
+                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
+                      <NcTooltip
+                        v-if="
+                          isEdit &&
+                          column &&
+                          column.uidt === UITypes.LinkToAnotherRecord &&
+                          opt.name === UITypes.LinkToAnotherRecord &&
+                          column.colOptions?.version !== 2 &&
+                          column.colOptions?.type !== 'mm' &&
+                          !column.meta?.custom
+                        "
+                        :title="$t('labels.convertToNewLink')"
+                      >
+                        <span
+                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
+                          @click.stop="isConvertLinkV2ModalOpen = true"
+                          >(Legacy)</span
+                        >
+                      </NcTooltip>
+                    </div>
+
+                    <div v-if="searchBasisInfoMap[opt.name]" class="flex-1 flex">
+                      <NcTooltip :title="searchBasisInfoMap[opt.name]" class="flex cursor-help">
+                        <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                      </NcTooltip>
+                    </div>
+
+                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover"
+                      >({{ $t('general.deprecated') }})</span
+                    >
+                    <span
+                      v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
+                      class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md font-normal"
+                      >{{ $t('general.new') }}</span
+                    >
+                  </div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="formState.uidt === opt.name"
+                    id="nc-selected-item-icon"
+                    class="w-4 h-4"
+                    :class="{
+                      'text-nc-content-brand': !isAiMode,
+                      'text-nc-content-purple-medium': isAiMode,
+                    }"
+                  />
+                </NcTooltip>
+              </a-select-option>
+            </a-select>
+          </NcTooltip>
+        </a-form-item>
+      </div>
+      <a-form-item v-if="enableDescription && aiAutoSuggestMode">
+        <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
+          <span class="text-[13px]">
+            {{ $t('labels.description') }}
+          </span>
+
+          <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+            <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
+          </NcButton>
+        </div>
+
+        <a-textarea
+          ref="descInputEl"
+          v-model:value="formState.description"
+          :class="{
+            '!min-h-[200px]': props.fromTableExplorer,
+            'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
+            'nc-ai-input': isAiMode,
+          }"
+          class="nc-input-sm nc-input-text-area nc-input-shadow !text-nc-content-gray px-3 !max-h-[300px]"
+          hide-details
+          data-testid="create-field-description-input"
+          :placeholder="$t('msg.info.enterFieldDescription')"
+        />
+      </a-form-item>
+
+      <template v-if="!readOnly && formState.uidt">
+        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <SmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+        <SmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
+        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+        <SmartsheetColumnLongTextOptions
+          v-if="formState.uidt === UITypes.LongText"
+          v-model="formState"
+          @navigate-to-integrations="handleNavigateToIntegrations"
+        />
+        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+        <SmartsheetColumnColourOptions v-if="formState.uidt === UITypes.Colour" v-model:value="formState" />
+        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+        <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <SmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
+        <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
+        <SmartsheetColumnAutoNumberOptions v-if="formState.uidt === UITypes.AutoNumber" v-model:value="formState" />
+        <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+        <SmartsheetColumnDateTimeOptions
+          v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
+          v-model:value="formState"
+        />
+        <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <SmartsheetColumnLinkedToAnotherRecordOptions
+          v-if="isLinksOrLTAR(formState.uidt)"
+          :key="`${formState.uidt}-${formState.id || 'new'}`"
+          v-model:value="formState"
+          :is-edit="isEdit && !isTextToLtarConversion"
+          :hide-advanced-options="isTextToLtarConversion"
+          @upgrade="isConvertLinkV2ModalOpen = true"
+        />
+        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
+        <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+        <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
+        <SmartsheetColumnSelectOptions
+          v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          ref="selectOptionsRef"
+          v-model:value="formState"
+          :from-table-explorer="props.fromTableExplorer || false"
+        />
+        <SmartsheetColumnButtonOptions
+          v-if="formState.uidt === UITypes.Button"
+          v-model:value="formState"
+          :from-table-explorer="props.fromTableExplorer || false"
+          @navigate-to-integrations="handleNavigateToIntegrations"
+        />
+        <SmartsheetColumnAiButtonOptions
+          v-if="formState.uidt === UITypes.Button && formState?.type === ButtonActionsType.Ai"
+          v-model:value="formState"
+          :submit-btn-label="submitBtnLabel"
+          :saving="saving"
+          @navigate-to-integrations="handleNavigateToIntegrations"
+          @on-submit="onSubmit"
+        />
+      </template>
+      <template v-if="formState.uidt">
+        <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
+          <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
+            <div class="text-sm text-nc-content-gray">
+              {{
+                `${$t('msg.acceptOnlyValid', {
+                  type:
+                    formState.uidt === UITypes.URL
+                      ? `${UITypesName[formState.uidt as UITypes]}s`
+                      : `${UITypesName[formState.uidt as UITypes]}s`.toLowerCase(),
+                })}`
+              }}
+            </div>
+          </NcSwitch>
+        </div>
+
+        <template v-if="!readOnly && isFullUpdateAllowed">
+          <div class="nc-column-options-wrapper flex flex-col gap-4">
+            <!-- Unique Constraint Toggle -->
+            <div
+              v-if="
+                isXcdbBase(meta?.source_id) &&
+                !isVirtualCol(formState) &&
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
+                sqlUi?.isUniqueSupportedField?.(formState.uidt) !== false &&
+                !isUUID(formState) &&
+                !isAutoNumber(formState) &&
+                isEeUI &&
+                showEEFeatures
+              "
+              class="flex"
+            >
+              <NcTooltip
+                :disabled="
+                  canEnableUniqueConstraint(formState, isXcdbBase(meta?.source_id)).canEnable || onMouseOverUniqueValuesInfoIcon
+                "
+                placement="right"
+                class="flex gap-1 items-center"
+              >
+                <template #title>
+                  <div class="max-w-xs">
+                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta?.source_id)).reason }}
+                  </div>
+                </template>
+                <NcSwitch
+                  v-model:checked="unique"
+                  size="small"
+                  class="nc-switch"
+                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta?.source_id)).canEnable"
+                >
+                  <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
+                    <span>{{ $t('labels.uniqueValuesOnly') }}</span>
+                    <NcTooltip placement="right">
+                      <template #title>
+                        <div class="max-w-xs">
+                          {{ $t('msg.info.uniqueConstraintTooltip') }}
+                        </div>
+                      </template>
+                      <GeneralIcon
+                        icon="info"
+                        class="h-3.5 w-3.5 text-nc-content-gray-muted"
+                        @mouseover="onMouseOverUniqueValuesInfoIcon = true"
+                        @mouseleave="onMouseOverUniqueValuesInfoIcon = false"
+                      />
+                    </NcTooltip>
+
+                    <PaymentUpgradeBadge
+                      v-if="blockUnique && !unique"
+                      :feature="PlanFeatureTypes.FEATURE_UNIQUE"
+                      :plan-title="PlanTitles.BUSINESS"
+                      size="sm"
+                      remove-click
+                      class="!font-normal !text-bodyDefaultSm"
+                    />
+                  </div>
+                </NcSwitch>
+              </NcTooltip>
+            </div>
+
+            <!--
+            Default Value for JSON & LongText is not supported in MySQL  -->
+            <NcTooltip
+              v-if="isTextArea(formState) && formState.meta?.richMode && formState.unique"
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnRichLongTextDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
+            <LazySmartsheetColumnRichLongTextDefaultValue
+              v-else-if="isTextArea(formState) && formState.meta?.richMode"
+              v-model:value="formState"
+              v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+            />
+            <NcTooltip
+              v-else-if="
+                !isVirtualCol(formState) &&
+                !isAttachment(formState) &&
+                !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta?.source_id) &&
+                formState.unique &&
+                !isAI(formState) &&
+                !isUUID(formState) &&
+                !isAutoNumber(formState)
+              "
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
+            <LazySmartsheetColumnDefaultValue
+              v-else-if="
+                !isVirtualCol(formState) &&
+                !isAttachment(formState) &&
+                !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta?.source_id) &&
+                !isAI(formState) &&
+                !isUUID(formState) &&
+                !isAutoNumber(formState)
+              "
+              v-model:value="formState"
+              v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+            />
+          </div>
+          <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
+            <!-- TODO: Refactor the if condition and verify AttachmentOption -->
+            <div
+              v-if="
+                !props.hideAdditionalOptions &&
+                !isVirtualCol(formState.uidt) &&
+                !(!appInfo.ee && isAttachment(formState)) &&
+                (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta?.source_id) && formState.uidt === UITypes.SpecificDBType))
+              "
+              class="text-xs text-nc-content-gray-disabled flex items-center justify-end"
+            >
+              <div
+                class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
+                @click="advancedOptions = !advancedOptions"
+              >
+                {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+                <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              </div>
+            </div>
+
+            <Transition name="layout" mode="out-in">
+              <div v-if="advancedOptions" class="overflow-hidden">
+                <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
+
+                <LazySmartsheetColumnAdvancedOptions
+                  v-if="formState.uidt !== UITypes.Attachment"
+                  v-model:value="formState"
+                  :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+                />
+              </div>
+            </Transition>
+          </template>
+        </template>
+
+        <a-form-item
+          v-if="enableDescription && !aiAutoSuggestMode"
+          :class="{
+            '!pb-4': embedMode,
+          }"
+        >
+          <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
+            <span class="text-[13px]">
+              {{ $t('labels.description') }}
+            </span>
+
+            <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+              <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
+            </NcButton>
+          </div>
+
+          <a-textarea
+            ref="descInputEl"
+            v-model:value="formState.description"
+            :class="{
+              '!min-h-[200px]': props.fromTableExplorer,
+              'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
+              'nc-ai-input': isAiMode,
+            }"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-nc-content-gray px-3 !max-h-[300px]"
+            hide-details
+            data-testid="create-field-description-input"
+            :placeholder="$t('msg.info.enterFieldDescription')"
+          />
+        </a-form-item>
+
+        <template v-if="props.fromTableExplorer || aiAutoSuggestMode">
+          <a-form-item
+            v-if="!enableDescription"
+            :class="{
+              '!pb-4': embedMode,
+            }"
+          >
+            <NcButton v-if="!isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
+              <div class="flex !text-nc-content-gray-subtle items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+
+                <span class="first-letter:capitalize">
+                  {{ $t('labels.addDescription').toLowerCase() }}
+                </span>
+              </div>
+            </NcButton>
+          </a-form-item>
+        </template>
+
+        <template v-else>
+          <div
+            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-nc-bg-default px-5 pb-5 -mx-5"
+            :class="{
+              'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
+            }"
+          >
+            <NcButton v-if="!enableDescription && !isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
+              <div class="flex !text-nc-content-gray-subtle items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+
+                <span class="first-letter:capitalize">
+                  {{ $t('labels.addDescription').toLowerCase() }}
+                </span>
+              </div>
+            </NcButton>
+            <div v-else-if="!aiAutoSuggestMode"></div>
+
+            <a-form-item v-if="!aiAutoSuggestMode">
+              <div
+                class="flex gap-x-2 justify-end"
+                :class="{
+                  'justify-end': !props.embedMode,
+                }"
+              >
+                <!-- Cancel -->
+                <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
+                  {{ $t('general.cancel') }}
+                </NcButton>
+
+                <!-- Save -->
+                <NcButton
+                  html-type="submit"
+                  type="primary"
+                  :theme="isAiMode ? 'ai' : 'default'"
+                  :loading="saving"
+                  :disabled="!formState.uidt || disableSubmitBtn || saving || (isTextToLtarConversion && !formState.childId)"
+                  size="small"
+                  :label="submitBtnLabel.label"
+                  :loading-label="submitBtnLabel.loadingLabel"
+                  data-testid="nc-field-modal-submit-btn"
+                  @click.prevent="onSubmit"
+                >
+                  {{ submitBtnLabel.label }}
+                  <template #loading>
+                    {{ submitBtnLabel.loadingLabel }}
+                  </template>
+                </NcButton>
+              </div>
+            </a-form-item>
+          </div>
+        </template>
+      </template>
+    </a-form>
+
+    <LazyDlgConvertLinkV2 v-model:visible="isConvertLinkV2ModalOpen" :column="column" @converted="emit('cancel')" />
+  </div>
+</template>
+
+<style lang="scss">
+.nc-dropdown-column-type {
+  .ant-select-item-option-active-selected {
+    @apply !bg-nc-bg-gray-light;
+  }
+}
+
+.nc-edit-or-add-provider-wrapper .nc-ai-mode {
+  .nc-fields-input,
+  .nc-column-name-input {
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+.nc-input-text-area {
+  @apply !text-nc-content-gray;
+  padding-block: 8px !important;
+}
+
+.nc-fields-input {
+  &::placeholder {
+    @apply font-normal;
+  }
+}
+
+:deep(.ant-select.nc-column-type-input) {
+  .nc-new-field-badge {
+    @apply hidden;
+  }
+}
+
+.nc-column-name-input,
+:deep(.nc-formula-input),
+:deep(.ant-form-item-control-input-content > input.ant-input) {
+  &:not(:hover):not(:focus) {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+  }
+}
+
+:deep(.nc-color-picker-dropdown-trigger),
+:deep(.nc-default-value-wrapper) {
+  @apply transition-all duration-0.3s;
+
+  &:not(:hover):not(:focus-within):not(.shadow-selected) {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+  }
+
+  &:hover:not(:focus-within):not(.shadow-selected) {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
+  }
+}
+
+:deep(.ant-radio-group .ant-radio-wrapper) {
+  @apply transition-all duration-0.3s;
+
+  &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
+    @apply shadow-selected;
+  }
+
+  &.ant-radio-wrapper-disabled {
+    @apply pointer-events-none !bg-nc-bg-gray-light dark:!bg-nc-bg-gray-medium;
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: none;
+    }
+  }
+
+  &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+  }
+
+  &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
+  }
+}
+
+:deep(.ant-select) {
+  &:not(.ant-select-borderless):not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-borderless):not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !border-nc-border-gray-medium;
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+  }
+
+  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
+  }
+
+  &.ant-select-disabled .ant-select-selector {
+    box-shadow: none;
+  }
+}
+
+:deep(.ant-form-item-label > label) {
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex font-normal;
+
+  &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+    @apply content-[''] m-0;
+  }
+}
+
+:deep(.ant-form-item-label) {
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle font-normal;
+}
+
+:deep(.ant-form-item-control-input) {
+  @apply !min-h-min;
+}
+
+:deep(.ant-form-item) {
+  @apply !mb-0;
+}
+
+:deep(.ant-select-selection-item) {
+  @apply flex items-center;
+}
+
+:deep(.ant-form-item-explain) {
+  @apply !text-[10px] leading-normal;
+
+  & > div:first-child {
+    @apply mt-0.5;
+  }
+}
+
+:deep(.ant-form-item-explain) {
+  @apply !min-h-[15px];
+}
+
+:deep(.ant-alert) {
+  @apply !rounded-lg !bg-transparent !border-none !p-0;
+
+  .ant-alert-message {
+    @apply text-sm text-nc-content-gray font-weight-600;
+  }
+
+  .ant-alert-description {
+    @apply text-small text-nc-content-gray-muted font-weight-500;
+  }
+}
+
+:deep(.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
+}
+
+:deep(input::placeholder),
+:deep(textarea::placeholder) {
+  @apply text-nc-content-gray-muted;
+}
+
+.nc-column-options-wrapper {
+  &:empty {
+    @apply hidden;
+  }
+}
+</style>

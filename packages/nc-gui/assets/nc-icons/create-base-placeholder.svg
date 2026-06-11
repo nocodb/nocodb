@@ -1,0 +1,70 @@
+<svg width="214" height="145" viewBox="0 0 214 145" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g filter="url(#filter0_dd_629_51670)">
+        <g clip-path="url(#clip0_629_51670)">
+            <rect x="12" y="0.5" width="190" height="120" rx="8" fill="white" />
+            <g clip-path="url(#clip1_629_51670)">
+                <mask id="path-3-inside-1_629_51670" fill="white">
+                    <path d="M12 0.5H52V120.5H12V0.5Z" />
+                </mask>
+                <mask id="path-5-inside-2_629_51670" fill="white">
+                    <path d="M12 0.5H52V30.5H12V0.5Z" />
+                </mask>
+                <path d="M52 29.5H12V31.5H52V29.5Z" fill="#E7E7E9" mask="url(#path-5-inside-2_629_51670)" />
+                <rect x="16" y="34.5" width="4" height="4" rx="2" fill="#D5D5D9" />
+                <rect x="22" y="34.5" width="27" height="4" rx="2" fill="#D5D5D9" />
+            </g>
+            <path d="M51 0.5V120.5H53V0.5H51Z" fill="#E7E7E9" mask="url(#path-3-inside-1_629_51670)" />
+            <g clip-path="url(#clip2_629_51670)">
+                <rect width="150" height="120" transform="translate(52 0.5)" fill="white" />
+                <mask id="path-9-inside-3_629_51670" fill="white">
+                    <path d="M52 0.5H202V14.5H52V0.5Z" />
+                </mask>
+                <path d="M202 13.5H52V15.5H202V13.5Z" fill="#E7E7E9" mask="url(#path-9-inside-3_629_51670)" />
+                <rect x="56" y="5.5" width="24" height="4" rx="2" fill="#D5D5D9" />
+                <rect x="107" y="3.5" width="40" height="8" rx="2" fill="#D5D5D9" />
+                <rect x="108" y="4.5" width="19" height="6" rx="2" fill="white" />
+                <rect x="127" y="4.5" width="19" height="6" rx="2" fill="#D5D5D9" />
+                <mask id="path-15-inside-4_629_51670" fill="white">
+                    <path d="M52 14.5H202V24.5H52V14.5Z" />
+                </mask>
+                <path d="M202 23.5H52V25.5H202V23.5Z" fill="#E7E7E9" mask="url(#path-15-inside-4_629_51670)" />
+                <rect x="56" y="17.5" width="9" height="4" rx="2" fill="#E7E7E9" />
+                <rect x="67" y="17.5" width="9" height="4" rx="2" fill="#E7E7E9" />
+                <rect x="78" y="17.5" width="9" height="4" rx="2" fill="#E7E7E9" />
+            </g>
+        </g>
+        <rect x="12.5" y="1" width="189" height="119" rx="7.5" stroke="#E7E7E9" />
+    </g>
+    <defs>
+        <filter id="filter0_dd_629_51670" x="0" y="0.5" width="214" height="144" filterUnits="userSpaceOnUse"
+            color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                result="hardAlpha" />
+            <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_dropShadow_629_51670" />
+            <feOffset dy="4" />
+            <feGaussianBlur stdDeviation="3" />
+            <feComposite in2="hardAlpha" operator="out" />
+            <feColorMatrix type="matrix" values="0 0 0 0 0.2 0 0 0 0 0.4 0 0 0 0 1 0 0 0 0.08 0" />
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_629_51670" />
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                result="hardAlpha" />
+            <feMorphology radius="4" operator="erode" in="SourceAlpha" result="effect2_dropShadow_629_51670" />
+            <feOffset dy="12" />
+            <feGaussianBlur stdDeviation="8" />
+            <feComposite in2="hardAlpha" operator="out" />
+            <feColorMatrix type="matrix" values="0 0 0 0 0.2 0 0 0 0 0.4 0 0 0 0 1 0 0 0 0.12 0" />
+            <feBlend mode="normal" in2="effect1_dropShadow_629_51670" result="effect2_dropShadow_629_51670" />
+            <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_629_51670" result="shape" />
+        </filter>
+        <clipPath id="clip0_629_51670">
+            <rect x="12" y="0.5" width="190" height="120" rx="8" fill="white" />
+        </clipPath>
+        <clipPath id="clip1_629_51670">
+            <path d="M12 0.5H52V120.5H12V0.5Z" fill="white" />
+        </clipPath>
+        <clipPath id="clip2_629_51670">
+            <rect width="150" height="120" fill="white" transform="translate(52 0.5)" />
+        </clipPath>
+    </defs>
+</svg>

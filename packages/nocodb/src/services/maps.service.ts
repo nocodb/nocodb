@@ -1,0 +1,125 @@
+import { Injectable } from '@nestjs/common';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import NocoCache from '~/cache/NocoCache';
+import { validatePayload } from '~/helpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
+import { NcError } from '~/helpers/catchError';
+import { MapView, Model, User, View } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { CacheScope } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
+
+@Injectable()
+export class MapsService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
+  async mapViewGet(context: NcContext, param: { mapViewId: string }) {
+    return await MapView.get(context, param.mapViewId);
+  }
+
+  @TraceCommand(OperationName.mapViewCreate)
+  async mapViewCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      map: ViewCreateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/ViewCreateReq',
+      param.map,
+    );
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    await assertPersonalViewAllowed(context, param.map.lock_type);
+
+    const model = await Model.get(context, param.tableId);
+
+    const { id } = await View.insertMetaOnly(context, {
+      view: {
+        ...param.map,
+        // todo: sanitize
+        fk_model_id: param.tableId,
+        type: ViewTypes.MAP,
+        base_id: model.base_id,
+        source_id: model.source_id,
+        created_by: param.user?.id,
+        owned_by: param.user?.id,
+      },
+      model,
+      req: param.req,
+    });
+
+    // populate  cache and add to list since the list cache already exist
+    const view = await View.get(context, id);
+    await NocoCache.appendToList(
+      context,
+      CacheScope.VIEW,
+      [view.fk_model_id],
+      `${CacheScope.VIEW}:${id}`,
+    );
+
+    const owner = param.req.user;
+
+    this.appHooksService.emit(AppEvents.MAP_CREATE, {
+      view,
+      req: param.req,
+      owner,
+      context,
+    });
+
+    return view;
+  }
+
+  @TraceCommand(OperationName.mapViewUpdate)
+  async mapViewUpdate(
+    context: NcContext,
+    param: {
+      mapViewId: string;
+      map: MapUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
+
+    const view = await View.get(context, param.mapViewId);
+
+    if (!view) {
+      NcError.get(context).viewNotFound(param.mapViewId);
+    }
+
+    const oldMapView = await MapView.get(context, param.mapViewId);
+
+    await MapView.update(context, param.mapViewId, param.map);
+
+    let owner = param.req.user;
+
+    if (view.owned_by && view.owned_by !== param.req.user?.id) {
+      owner = await User.get(view.owned_by);
+    }
+
+    this.appHooksService.emit(AppEvents.MAP_UPDATE, {
+      view: { ...view, ...param.map },
+      mapView: param.map,
+      oldMapView,
+      oldView: view,
+      req: param.req,
+      context,
+      owner,
+    });
+
+    await view.getView(context);
+
+    // Strip the stored bcrypt password hash from the outbound response.
+    return View.maskPasswordForResponse(view);
+  }
+}

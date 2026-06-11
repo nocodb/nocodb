@@ -1,0 +1,163 @@
+<script lang="ts" setup>
+import { type LocalSelectOptionType, getOptions, getSelectedTitles } from './utils'
+
+interface Props {
+  modelValue?: string | string[]
+  rowIndex?: number
+  location?: 'cell' | 'filter'
+  options?: LocalSelectOptionType[]
+}
+
+const { modelValue, options: selectOptions } = defineProps<Props>()
+
+const { isDark, getColor } = useTheme()
+
+const column = inject(ColumnInj)!
+
+const isForm = inject(IsFormInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
+const isEditColumn = inject(EditModeInj, ref(false))
+
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
+
+const { isMysql } = useBase()
+
+const options = computed(() => {
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
+})
+
+const optionsMap = computed(() => {
+  return options.value.reduce((acc, op) => {
+    if (op.title) {
+      acc[op.title.trim()] = op
+    }
+    return acc
+  }, {} as Record<string, (typeof options.value)[number]>)
+})
+
+const selectedOpts = computed(() => {
+  return getSelectedTitles(column.value, optionsMap.value, isMysql, modelValue).reduce((acc, el) => {
+    const item = optionsMap.value[el?.trim()]
+
+    if (item?.id || item?.title) {
+      acc.push(item)
+    }
+
+    return acc
+  }, [] as LocalSelectOptionType[])
+})
+
+const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => item.title!))
+</script>
+
+<template>
+  <div class="nc-cell-field nc-multi-select h-full w-full flex items-center read-only" :class="{ 'max-w-full': isForm }">
+    <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+      <CellMultiSelectLayoutList
+        :options="options"
+        :selected-options="selectedOptsListLayout"
+        disabled
+        :location="location"
+        :row-index="rowIndex"
+      />
+    </div>
+
+    <div
+      v-else
+      class="flex flex-wrap"
+      :class="{
+        'flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
+      }"
+      :style="
+        extensionConfig?.widget?.displayAs !== 'List'
+          ? {
+              'display': '-webkit-box',
+              'max-width': '100%',
+              '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+              '-webkit-box-orient': 'vertical',
+              '-webkit-box-align': 'center',
+              'overflow': 'hidden',
+            }
+          : {}
+      "
+    >
+      <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
+        <a-tag
+          class="rounded-tag max-w-full"
+          :class="{
+            '!my-0': !rowHeight || rowHeight === 1,
+          }"
+          :color="selectedOpt.bgColor"
+        >
+          <span
+            :style="{
+              color: selectedOpt.textColor,
+            }"
+            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
+          >
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ selectedOpt.title }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                {{ selectedOpt.title }}
+              </span>
+            </NcTooltip>
+          </span>
+        </a-tag>
+      </template>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.ms-close-icon {
+  color: rgba(var(--rgb-base), 0.25);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  font-style: normal;
+  height: 12px;
+  line-height: 1;
+  text-align: center;
+  text-transform: none;
+  transition: color 0.3s ease, opacity 0.15s ease;
+  width: 12px;
+  z-index: 1;
+  margin-right: -6px;
+  margin-left: 3px;
+}
+
+.ms-close-icon:before {
+  display: block;
+}
+
+.ms-close-icon:hover {
+  color: rgba(var(--rgb-base), 0.45);
+}
+
+.read-only {
+  .ms-close-icon {
+    display: none;
+  }
+}
+
+.rounded-tag {
+  @apply py-[0.5px] px-2 rounded-[12px];
+}
+
+:deep(.ant-tag) {
+  @apply "rounded-tag" my-[1px];
+}
+</style>

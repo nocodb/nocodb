@@ -1,0 +1,598 @@
+<script setup lang="ts">
+import {
+  type AttachmentType,
+  type AuditType,
+  type TableType,
+  checkboxIconListMap,
+  isAIPromptCol,
+  parseHelper,
+  ratingIconListMap,
+} from 'nocodb-sdk'
+
+const props = defineProps<{
+  audit: AuditType
+}>()
+
+const tableMeta = inject(MetaInj, ref())
+
+const isSyncedTable = computed(() => !!(tableMeta.value as TableType | undefined)?.synced)
+
+const details = computed(() => {
+  try {
+    return JSON.parse(props.audit.details || '')
+  } catch (e) {
+    return {}
+  }
+})
+
+const oldData = computed(() => {
+  return details.value.old_data ?? {}
+})
+
+const newData = computed(() => {
+  return details.value.data ?? {}
+})
+
+const meta = computed(() => {
+  return details.value.column_meta ?? {}
+})
+
+const columnKeys = computed(() => {
+  const keys = Object.keys(newData.value)
+  // On synced tables, sync bookkeeping fields (RemoteSyncedAt, SyncRunId, …)
+  // change on every sync and drown out the real edit — hide their rows.
+  if (!isSyncedTable.value) return keys
+  return keys.filter((key) => !isSyncSystemColumnTitle(key))
+})
+
+/* provides */
+
+provide(RawReadonlyInj, ref(true))
+
+/* attachment */
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
+/* meta processing */
+
+function normalizeColOptions(key: string) {
+  return {
+    ...(meta.value?.[key]?.options ?? {}),
+    options: meta.value?.[key]?.options?.choices,
+  }
+}
+
+function normalizeMeta(key: string) {
+  const mta = meta.value?.[key] ?? {}
+  const opts = normalizeColOptions(key)
+  const icn = opts.icon || (mta.type === 'Rating' ? 'star' : 'circle-check')
+
+  return {
+    ...opts,
+    ...mta,
+    icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
+    duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
+    is12hrFormat: opts['12hr_format'],
+    isLocaleString: opts.locale_string,
+    isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
+    useSameTimezoneForAll: opts?.useSameTimezoneForAll || opts?.use_same_timezone_for_all,
+  }
+}
+
+function processOldDataFor(key: string) {
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
+
+  if (meta.value?.[key]?.type === 'Attachment') {
+    // Attachment cell value can be string so we have to parse it
+    if (!ncIsArray(parseHelper(odata))) return []
+
+    return parseHelper(odata)?.filter((it: AttachmentType) => {
+      if (!ncIsArray(parseHelper(ndata))) return true
+
+      return !parseHelper(ndata)?.some((t: AttachmentType) => t.title === it.title)
+    })
+  }
+  if (meta.value?.[key]?.type === 'MultiSelect') {
+    return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata
+  }
+
+  return odata
+}
+
+function processNewDataFor(key: string) {
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
+
+  if (meta.value?.[key]?.type === 'Attachment') {
+    if (!ncIsArray(ndata)) return []
+
+    return ndata.filter((it: AttachmentType) => ncIsArray(odata) && !odata?.some((t: AttachmentType) => t.title === it.title))
+  }
+  if (meta.value?.[key]?.type === 'MultiSelect') {
+    return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata
+  }
+
+  return ndata
+}
+
+function safeJsonDiff(key: string) {
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
+
+  if (!odata && !ndata) {
+    return []
+  }
+
+  return diffTextBlocks(!odata ? '' : JSON.stringify(odata, null, 2), !ndata ? '' : JSON.stringify(ndata, null, 2))
+}
+
+function shouldUseNormalizedPadding(key: string) {
+  return !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type) && !normalizeMeta(key).is_progress
+}
+
+function shouldUseUniformPadding(key: string) {
+  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type)
+}
+
+/* visibility */
+
+function isShowableValue(value: any) {
+  return ![undefined, null, ''].includes(value)
+}
+
+function shouldShowRaw(key: string) {
+  return ['URL', 'PhoneNumber', 'Email'].includes(meta.value?.[key]?.type)
+}
+
+const isAiGeneratedText = (key: string) => {
+  return (
+    isAIPromptCol({
+      uidt: meta.value?.[key]?.type,
+      dt: meta.value?.[key]?.type === 'Number' ? 'bigint' : undefined,
+      meta: normalizeMeta(key),
+    }) &&
+    (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
+  )
+}
+
+/* long-text collapse — applies to plain LongText, RichText, and SmartText
+ * (all share uidt='LongText'). Long values dominate the revision sidebar; show
+ * a clamped preview with a toggle so other entries stay scannable. */
+const LONG_TEXT_LINE_LIMIT = 5
+const LONG_TEXT_CHAR_LIMIT = 300
+
+const longTextExpanded = ref<Record<string, boolean>>({})
+
+function getLongTextRaw(key: string): string {
+  const isAi = meta.value?.[key]?.options?.ai
+  const oldVal = (isAi ? oldData.value[key]?.value : oldData.value[key]) || ''
+  const newVal = (isAi ? newData.value[key]?.value : newData.value[key]) || ''
+  return `${oldVal}\n${newVal}`
+}
+
+function isLongTextCollapsible(key: string): boolean {
+  if (meta.value?.[key]?.type !== 'LongText') return false
+  const combined = getLongTextRaw(key)
+  return combined.length > LONG_TEXT_CHAR_LIMIT || combined.split('\n').length > LONG_TEXT_LINE_LIMIT
+}
+
+function toggleLongText(key: string) {
+  longTextExpanded.value = { ...longTextExpanded.value, [key]: !longTextExpanded.value[key] }
+}
+</script>
+
+<template>
+  <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
+    <div class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header">
+      <SmartsheetHeaderIcon
+        :column="{
+          uidt: meta[columnKey]?.type,
+          dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
+          meta: normalizeMeta(columnKey),
+        }"
+        class="!w-4 !h-4 !mx-0"
+      />
+      <NcTooltip
+        class="truncate"
+        :class="{
+          'max-w-1/2': isAiGeneratedText(columnKey),
+        }"
+        show-on-truncate-only
+      >
+        <template #title>
+          {{ columnKey }}
+        </template>
+
+        {{ columnKey }}
+      </NcTooltip>
+      <span v-if="isAiGeneratedText(columnKey)" class="whitespace-nowrap text-xs text-nc-content-purple-medium">
+        (Generated by AI)
+      </span>
+    </div>
+    <div class="flex items-center gap-2 mt-3 flex-wrap">
+      <template v-if="meta[columnKey]?.type === 'Attachment'">
+        <div
+          v-if="processOldDataFor(columnKey)?.length > 0"
+          class="border-1 border-nc-border-red rounded-md bg-nc-bg-red-light w-full p-0.5"
+        >
+          <div class="flex flex-col items-start gap-0.5">
+            <div
+              v-for="(item, i) of processOldDataFor(columnKey)"
+              :key="item.url || item.title"
+              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <div class="flex items-center justify-center w-8 aspect-square">
+                  <LazyCellAttachmentPreviewImage
+                    v-if="isImage(item.title, item.mimetype ?? item.type)"
+                    :alt="item.title || `#${i}`"
+                    class="nc-attachment rounded !w-5.5 !h-5.5 object-cover overflow-hidden"
+                    :srcs="getPossibleAttachmentSrc(item, 'small')"
+                  />
+                  <div v-else class="nc-attachment flex items-center justify-center">
+                    <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
+                  </div>
+                </div>
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-nc-content-gray-subtle2">
+                  {{ item.title }}
+                </span>
+                <span class="text-xs font-weight-500 p-2 text-nc-content-gray-muted">
+                  {{ getReadableFileSize(item.size) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="processNewDataFor(columnKey)?.length > 0"
+          class="border-1 border-nc-border-green rounded-md bg-nc-bg-green-light w-full p-0.5"
+        >
+          <div class="flex flex-col items-start gap-0.5">
+            <div
+              v-for="(item, i) of processNewDataFor(columnKey)"
+              :key="item.url || item.title"
+              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <div class="flex items-center justify-center w-8 aspect-square">
+                  <LazyCellAttachmentPreviewImage
+                    v-if="isImage(item.title, item.mimetype ?? item.type)"
+                    :alt="item.title || `#${i}`"
+                    class="nc-attachment rounded !w-5.5 !h-5.5 object-cover overflow-hidden"
+                    :srcs="getPossibleAttachmentSrc(item, 'small')"
+                  />
+                  <div v-else class="nc-attachment flex items-center justify-center">
+                    <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
+                  </div>
+                </div>
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-nc-content-gray-subtle2">
+                  {{ item.title }}
+                </span>
+                <span class="text-xs font-weight-500 p-2 text-nc-content-gray-muted">
+                  {{ getReadableFileSize(item.size) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="shouldShowRaw(columnKey)">
+        <div
+          v-if="isShowableValue(oldData[columnKey])"
+          class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through break-all"
+        >
+          {{ oldData[columnKey] }}
+        </div>
+        <div
+          v-if="isShowableValue(newData[columnKey])"
+          class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light break-all"
+        >
+          {{ newData[columnKey] }}
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'SingleLineText'">
+        <div class="w-full">
+          <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
+            <span
+              v-if="block.op === 'removed'"
+              class="max-w-full text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 mr-1 bg-nc-bg-red-light line-through decoration-clone"
+            >
+              {{ block.text }}
+            </span>
+            <span
+              v-else-if="block.op === 'added'"
+              class="max-w-full text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 mr-1 bg-nc-bg-green-light decoration-clone"
+            >
+              {{ block.text }}
+            </span>
+            <span v-else>
+              {{ block.text }}
+            </span>
+          </template>
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'LongText'">
+        <div class="w-full">
+          <div
+            class="relative"
+            :class="{
+              'nc-audit-long-text-collapsed': isLongTextCollapsible(columnKey) && !longTextExpanded[columnKey],
+            }"
+          >
+            <template
+              v-for="(block, i) of diffTextBlocks(
+                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                  ? oldData[columnKey]?.value || ''
+                  : oldData[columnKey] || '',
+                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                  ? newData[columnKey]?.value || ''
+                  : newData[columnKey] || '',
+              )"
+              :key="i"
+            >
+              <span
+                v-if="block.op === 'removed'"
+                class="max-w-full text-nc-content-red-dark px-1 bg-nc-bg-red-light rounded-md line-through decoration-clone !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+              <span
+                v-else-if="block.op === 'added'"
+                class="max-w-full text-nc-content-green-dark px-1 bg-nc-bg-green-light rounded-md decoration-clone !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+              <span
+                v-else
+                class="max-w-full !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+            </template>
+          </div>
+          <button
+            v-if="isLongTextCollapsible(columnKey)"
+            type="button"
+            class="nc-audit-long-text-toggle mt-1 text-xs font-weight-500 text-nc-content-gray-subtle2 hover:text-nc-content-gray-emphasis"
+            @click="toggleLongText(columnKey)"
+          >
+            {{ longTextExpanded[columnKey] ? $t('general.showLess') : $t('general.showMore') }}
+          </button>
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'JSON'">
+        <div class="overflow-x-auto nc-scrollbar-thin whitespace-nowrap">
+          <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
+            <pre
+              v-if="block.op === 'removed'"
+              class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through decoration-clone inline"
+              >{{ block.text }}</pre
+            >
+            <pre
+              v-else-if="block.op === 'added'"
+              class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light decoration-clone inline"
+              >{{ block.text }}</pre
+            >
+            <pre v-else class="inline text-small1">{{ block.text }}</pre>
+          </template>
+        </div>
+      </template>
+      <template v-else>
+        <div
+          v-if="isShowableValue(processOldDataFor(columnKey))"
+          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-nc-content-red-dark border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light line-through"
+          :class="{
+            'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
+            '!p-0.25': shouldUseUniformPadding(columnKey),
+          }"
+        >
+          <SmartsheetCell
+            :column="{
+              uidt: meta[columnKey]?.type,
+              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
+              meta: normalizeMeta(columnKey),
+              colOptions: normalizeColOptions(columnKey),
+            }"
+            :model-value="processOldDataFor(columnKey)"
+            :edit-enabled="false"
+            read-only
+            :class="{
+              'min-w-[100px]': normalizeMeta(columnKey).is_progress,
+            }"
+            class="!text-nc-content-red-dark"
+          />
+        </div>
+        <div
+          v-if="isShowableValue(processNewDataFor(columnKey))"
+          class="nc-audit-mini-item-cell nc-audit-addition border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light"
+          :class="{
+            'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
+            '!p-0.25': shouldUseUniformPadding(columnKey),
+          }"
+        >
+          <SmartsheetCell
+            :column="{
+              uidt: meta[columnKey]?.type,
+              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
+              meta: normalizeMeta(columnKey),
+              colOptions: normalizeColOptions(columnKey),
+            }"
+            :model-value="processNewDataFor(columnKey)"
+            :edit-enabled="false"
+            read-only
+            :class="{
+              'min-w-[100px]': normalizeMeta(columnKey).is_progress,
+            }"
+            class="!text-nc-content-green-dark"
+          />
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+// LongText / RichText / SmartText — clamp long values with a fade-out so the
+// revision sidebar stays scannable; expand via the inline toggle.
+.nc-audit-long-text-collapsed {
+  max-height: 6.5rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+.nc-audit-long-text-toggle {
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+.nc-audit-mini-item-cell :deep(.nc-cell-checkbox > div:first-child) {
+  @apply pl-0;
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-field.nc-multi-select > div) {
+  @apply !gap-1 !flex;
+  & > span {
+    @apply !m-0 flex items-center h-[22px];
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-field.nc-single-select > div) {
+  height: 20px !important;
+  & > span {
+    @apply !m-0;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-field.nc-multi-select > div) {
+  span.ant-tag span.text-ellipsis {
+    @apply line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-field.nc-single-select > div) {
+  span.ant-tag span.text-ellipsis {
+    @apply line-through;
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-rating .ant-rate) {
+  @apply !p-0 transform -translate-y-[1px];
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-percent) {
+  & > div > div {
+    @apply !p-0;
+    &,
+    & * {
+      height: 6px !important;
+    }
+    .ant-progress-inner {
+      transform: translateY(-9px) !important;
+    }
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-datetime) {
+  .nc-date-picker {
+    @apply !inline !text-inherit text-small1;
+
+    & > div {
+      @apply !inline;
+
+      & > div {
+        @apply !inline;
+      }
+    }
+    & > div + div {
+      @apply !ml-1;
+    }
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-time) {
+  .nc-time-picker span {
+    text-decoration: line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-year) {
+  .nc-year-picker span {
+    text-decoration: line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-date) {
+  .nc-date-picker span {
+    text-decoration: line-through;
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-user) {
+  .nc-cell-field > div {
+    display: flex !important;
+    & > .ant-tag {
+      @apply !m-0 !text-inherit !border-1 !border-nc-border-gray-dark !pr-1 !pl-0.5 !bg-nc-bg-gray-light !rounded-[17px];
+      & > span > div + div {
+        @apply flex items-center !text-small1 font-weight-500 !leading-[16px];
+      }
+      & > span {
+        @apply gap-1;
+      }
+    }
+    .nc-user-avatar {
+      @apply border-1 border-nc-border-gray-medium !text-[8px];
+      height: 16px !important;
+      width: 16px !important;
+    }
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-user:has(.ant-tag + .ant-tag)) {
+  .ant-tag {
+    @apply !border-1 !border-nc-border-gray-dark !py-0.5 !px-1 !bg-nc-bg-gray-light !rounded-[6px];
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-user) {
+  .ant-tag > span > div + div {
+    @apply !text-nc-content-red-dark;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-addition :deep(.nc-cell-user) {
+  .ant-tag > span > div + div {
+    @apply !text-nc-content-green-dark;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-audit-mini-item-header {
+  svg {
+    height: 12px;
+  }
+}
+.nc-audit-mini-item-cell:has(.nc-cell-user .ant-tag + .ant-tag) {
+  @apply !p-1;
+  .nc-cell-field > div {
+    @apply gap-1;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal:has(.nc-cell-user) {
+  text-decoration: none;
+  .ant-tag div + div {
+    text-decoration: line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell
+  .nc-cell
+  .nc-cell-field.nc-cell-field {
+  font-size: 13px !important;
+}
+.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell
+  .nc-cell
+  :where(.nc-date-picker)
+  span {
+  font-size: 13px !important;
+}
+</style>

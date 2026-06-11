@@ -1,0 +1,1070 @@
+<script setup lang="ts">
+import type { AIRecordType } from 'nocodb-sdk'
+import { isSmartText } from 'nocodb-sdk'
+import { NcMarkdownParser } from '~/helpers/tiptap'
+
+const props = defineProps<{
+  modelValue?: string | number
+  isFocus?: boolean
+  virtual?: boolean
+  isAi?: boolean
+  aiMeta?: AIRecordType
+  isAiEdited?: boolean
+  isFieldAiIntegrationAvailable?: boolean
+}>()
+
+const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
+
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
+const meta = inject(MetaInj, ref())
+
+const column = inject(ColumnInj)
+
+const editEnabled = inject(EditModeInj, ref(false))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
+
+const rowHeight = inject(RowHeightInj, ref(1 as const))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
+
+const isGrid = inject(IsGridInj, ref(false))
+
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
+const readOnlyInj = inject(ReadonlyInj, ref(false))
+
+const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
+
+const cellEventHook = inject(CellEventHookInj, null)
+
+// SmartText modal saves via its own backend endpoint, bypassing the cell's
+// v-model auto-save. The expanded form fetches its own copy of the row
+// (different object reference from the grid's cached row), so a local
+// mutation here doesn't reach the canvas. Trigger the expanded form's
+// reloadHook — it propagates to the parent grid's row reload + canvas
+// redraw, mirroring the rich-text auto-save chain.
+const reloadRowHook = inject(ReloadRowDataHookInj, undefined)
+
+const active = inject(ActiveCellInj, null)
+
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
+
+const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
+
+const { showNull, user } = useGlobal()
+
+const { currentRow } = useSmartsheetRowStoreOrThrow()
+
+const { aiLoading, aiIntegrations, generatingRows, generatingColumnRows } = useNocoAi()
+
+const baseStore = useBase()
+
+const { idUserMap } = storeToRefs(baseStore)
+
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
+const vModel = useVModel(props, 'modelValue', emits, {
+  shouldEmit: () => !readOnly.value,
+})
+
+const isAiEdited = useVModel(props, 'isAiEdited', emits)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const textAreaRef = ref<HTMLTextAreaElement>()
+
+const position = ref<
+  | {
+      top: number
+      left: number
+    }
+  | undefined
+>()
+
+const mousePosition = ref<
+  | {
+      top: number
+      left: number
+    }
+  | undefined
+>()
+
+const isDragging = ref(false)
+
+const height = computed(() => {
+  if (isExpandedFormOpen.value) return 36 * 4
+
+  if (!rowHeight.value || rowHeight.value === 1 || isEditColumn.value) return 36
+
+  return rowHeight.value * 36
+})
+
+const localRowHeight = computed(() => {
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 4
+
+  return rowHeight.value
+})
+
+const isPageDesignerPreviewPanel = computed(() => {
+  return extensionConfig.value.isPageDesignerPreviewPanel
+})
+
+const isFullHeight = computed(() => {
+  return isForm.value || isPageDesignerPreviewPanel.value
+})
+
+const isVisible = ref(false)
+
+const inputWrapperRef = ref<HTMLElement | null>(null)
+
+const inputRef = ref<HTMLTextAreaElement | null>(null)
+
+const aiWarningRef = ref<HTMLDivElement>()
+
+const { height: aiWarningRefHeight } = useElementSize(aiWarningRef)
+
+const rowId = computed(() => {
+  return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
+})
+
+const isAiGenerating = computed(() => {
+  return !!(
+    rowId.value &&
+    column?.value.id &&
+    generatingRows.value.includes(rowId.value) &&
+    generatingColumnRows.value.includes(column.value.id)
+  )
+})
+
+watch(isVisible, (newVal, oldVal) => {
+  if (isVisible.value) {
+    setTimeout(() => {
+      inputRef.value?.focus()
+    }, 100)
+  }
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
+})
+
+onClickOutside(inputWrapperRef, (e) => {
+  if ((e.target as HTMLElement)?.className.includes('nc-long-text-toggle-expand')) return
+
+  const targetEl = e?.target as HTMLElement
+
+  if (
+    targetEl?.closest(
+      '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+    )
+  ) {
+    return
+  }
+
+  emits('close')
+  isVisible.value = false
+})
+
+const onTextClick = () => {
+  if (!props.virtual) return
+
+  isVisible.value = true
+  editEnabled.value = true
+}
+
+const isRichMode = computed(() => {
+  let meta: any = {}
+  if (typeof column?.value?.meta === 'string') {
+    meta = JSON.parse(column?.value?.meta)
+  } else {
+    meta = column?.value?.meta ?? {}
+  }
+
+  return meta?.richMode
+})
+
+// SmartText cells are edited via the SmartText side panel — the rich text
+// expand modal would just show raw markdown, so suppress the expand affordance.
+const isSmartMode = computed(() => isSmartText(column?.value))
+
+// Render-only flag — SmartText cells preview their stored markdown the same
+// way the grid canvas does (LongText.ts treats SmartText as rich-mode for
+// rendering). Form view still uses the textarea so users can type input.
+// Edit-mode flows continue to gate on isRichMode so the LongText rich modal
+// doesn't auto-open for SmartText cells (they have their own modal).
+const isRichPreview = computed(() => isRichMode.value || (isSmartMode.value && !isForm.value))
+
+const richTextContent = computedAsync(async () => {
+  if (isRichPreview.value && vModel.value) {
+    return Promise.resolve(
+      NcMarkdownParser.parse(
+        unref(vModel.value),
+        {
+          enableMention: true,
+          users: unref(baseUsers.value),
+          currentUser: unref(user.value),
+          ...(isExpandedFormOpen.value || isPageDesignerPreviewPanel.value
+            ? { maxBlockTokens: undefined }
+            : { maxBlockTokens: rowHeight.value }),
+        },
+        true,
+      ),
+    )
+  }
+  return Promise.resolve('')
+})
+
+const isSmartTextModalOpen = ref(false)
+
+const onExpand = () => {
+  if (isSmartMode.value) {
+    if (isExpandedFormOpen.value) {
+      isSmartTextModalOpen.value = true
+    }
+    // Outside the expanded form (gallery / kanban card) the SmartText modal
+    // isn't mounted here — opening the LongText rich modal would surface raw
+    // markdown, which is worse than no-op. The user reaches the modal by
+    // opening the row.
+    return
+  }
+  isVisible.value = true
+}
+
+const onSmartTextSaved = (markdown: string | null) => {
+  // Mirror the new markdown into the expanded form's local row copy so the
+  // form preview updates immediately (without waiting for the reload below).
+  if (currentRow.value?.row && column?.value?.title) {
+    currentRow.value.row[column.value.title] = markdown
+  }
+  // Propagate to the parent grid — the expanded form's reloadHook reloads
+  // the row from the server, which refreshes the canvas's cached row and
+  // forces a redraw. Required because the expanded form's row is a fresh
+  // server-fetched object, not the same reference as the canvas cache.
+  reloadRowHook?.trigger(null)
+}
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!isDragging.value) return
+
+  e.stopPropagation()
+
+  position.value = {
+    top: e.clientY - (mousePosition.value?.top || 0) > 0 ? e.clientY - (mousePosition.value?.top || 0) : position.value?.top || 0,
+    left:
+      e.clientX - (mousePosition.value?.left || 0) > -16
+        ? e.clientX - (mousePosition.value?.left || 0)
+        : position.value?.left || 0,
+  }
+}
+
+const onMouseUp = (e: MouseEvent) => {
+  if (!isDragging.value) return
+
+  e.stopPropagation()
+
+  isDragging.value = false
+  position.value = undefined
+  mousePosition.value = undefined
+
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
+}
+
+watch(
+  position,
+  () => {
+    const dom = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
+    if (!dom || !position.value) return
+
+    // Set left and top of dom
+    dom.style.transform = 'none'
+    dom.style.left = `${position.value.left}px`
+    dom.style.top = `${position.value.top}px`
+  },
+  { deep: true },
+)
+
+const dragStart = (e: MouseEvent) => {
+  if (isEditColumn.value) return
+
+  const dom = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
+
+  mousePosition.value = {
+    top: e.clientY - dom.getBoundingClientRect().top,
+    left: e.clientX - dom.getBoundingClientRect().left + 16,
+  }
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+
+  isDragging.value = true
+}
+
+const generate = () => {
+  emits('generate')
+}
+
+if (props.isAi) {
+  watch(vModel, (_o, _n) => {
+    isAiEdited.value = true
+  })
+}
+
+watch(editEnabled, () => {
+  if (editEnabled.value && (isRichMode.value || props.isAi)) {
+    isVisible.value = true
+  }
+})
+
+const stopPropagation = (event: MouseEvent) => {
+  event.stopPropagation()
+}
+
+const listners: Array<'click' | 'mousedown' | 'mouseup'> = ['click', 'mousedown', 'mouseup']
+
+const addListeners = (element: HTMLDivElement) => {
+  listners.forEach((listener) => {
+    element.addEventListener(listener, stopPropagation)
+  })
+}
+
+const removeListeners = (element: HTMLDivElement) => {
+  listners.forEach((listener) => {
+    element.removeEventListener(listener, stopPropagation)
+  })
+}
+
+watch(inputWrapperRef, () => {
+  if (!isEditColumn.value) return
+
+  // stop event propogation in edit column
+  const modal = document.querySelector('.nc-long-text-expanded-modal') as HTMLElement
+
+  if (!modal?.parentElement) return
+
+  removeListeners(modal.parentElement as HTMLDivElement)
+
+  if (isVisible.value) {
+    addListeners(modal.parentElement as HTMLDivElement)
+  }
+})
+
+const handleClose = () => {
+  isVisible.value = false
+}
+
+watch(textAreaRef, (el) => {
+  if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    el.focus()
+  }
+})
+
+const onCellEvent = (event?: Event, isCanvasEvent?: boolean) => {
+  if (!(event instanceof KeyboardEvent) || !event.target) return
+
+  if (isExpandCellKey(event)) {
+    if (isVisible.value && !isActiveInputElementExist(event)) {
+      handleClose()
+    } else if (!isActiveInputElementExist(event) || isCanvasEvent) {
+      // Expand only if user is not editing inline
+      onExpand()
+    }
+
+    return true
+  }
+}
+
+onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
+  if (
+    isUnderLookup.value ||
+    isUnderLTAR.value ||
+    !isCanvasInjected ||
+    !clientMousePosition ||
+    isExpandedFormOpen.value ||
+    isEditColumn.value
+  ) {
+    return
+  }
+
+  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
+  forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event, true)) return
+
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
+      onExpand()
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
+      generate()
+    } else if (isRichMode.value || props.isAi) {
+      onExpand()
+    }
+  })
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
+})
+
+/**
+ * Tracks whether the size has been updated.
+ * Prevents redundant updates when resizing elements.
+ */
+const isSizeUpdated = ref(false)
+
+/**
+ * Controls whether the next size update should be skipped.
+ * Used to avoid unnecessary updates on initialization.
+ */
+const skipSizeUpdate = ref(true)
+
+watch(isVisible, (open) => {
+  if (open) return
+
+  isSizeUpdated.value = false
+  skipSizeUpdate.value = true
+})
+
+/**
+ * Updates the size of the text area based on stored dimensions in localStorage.
+ * Retrieves the stored size and applies it to the corresponding text area element.
+ */
+const updateSize = () => {
+  try {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror') as HTMLElement
+    }
+
+    const parsedJSON = JSON.parse(size)
+
+    if (parsedJSON && elem) {
+      elem.style.width = `${parsedJSON.width}px`
+      elem.style.height = `${parsedJSON.height}px`
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+/**
+ * Retrieves the element that should be observed for resizing.
+ * @returns {HTMLElement | null} The resize target element.
+ */
+const getResizeEl = () => {
+  if (!inputWrapperRef.value) return null
+
+  if (isRichMode.value) {
+    return inputWrapperRef.value.querySelector(
+      '.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror',
+    ) as HTMLElement
+  }
+
+  return inputWrapperRef.value.querySelector('.nc-text-area-expanded') as HTMLElement
+}
+
+useResizeObserver(inputWrapperRef, () => {
+  /**
+   * Updates the size of the resize element when the modal becomes visible.
+   */
+  if (!isSizeUpdated.value) {
+    nextTick(() => {
+      until(() => !!getResizeEl())
+        .toBeTruthy()
+        .then(() => {
+          updateSize()
+        })
+    })
+    isSizeUpdated.value = true
+
+    return
+  }
+
+  /**
+   * When the size is manually updated, this callback is triggered again.
+   * To prevent unnecessary updates at that time, we skip the update.
+   */
+  if (skipSizeUpdate.value) {
+    skipSizeUpdate.value = false
+
+    return
+  }
+
+  const resizeEl = getResizeEl()
+
+  if (!resizeEl) return
+
+  const { width, height } = resizeEl.getBoundingClientRect()
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      width,
+      height,
+    }),
+  )
+})
+</script>
+
+<template>
+  <div
+    :class="{
+      'nc-expanded-form-open': isExpandedFormOpen,
+    }"
+  >
+    <div
+      class="flex flex-row w-full long-text-wrapper items-center"
+      :class="{
+        'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
+        'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
+        'h-full w-full': isFullHeight,
+      }"
+    >
+      <div v-if="isForm && isRichMode" class="w-full">
+        <div
+          class="w-full relative w-full px-0"
+          :class="{
+            'pt-11': !readOnly,
+          }"
+        >
+          <CellRichText
+            v-model:value="vModel"
+            :class="{
+              'border-t-1 border-nc-border-gray-light allow-vertical-resize': !readOnly,
+            }"
+            :autofocus="false"
+            show-menu
+            :read-only="readOnly"
+          />
+        </div>
+      </div>
+
+      <div
+        v-else-if="isRichPreview"
+        class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
+        :class="[
+          isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',
+          {
+            'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
+            'nc-readonly-rich-text-sort-height':
+              localRowHeight === 1 && !isExpandedFormOpen && !isForm && !isPageDesignerPreviewPanel,
+          },
+        ]"
+        :style="{
+          maxHeight: isFullHeight
+            ? undefined
+            : isExpandedFormOpen
+            ? `${height}px`
+            : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
+          minHeight: isFullHeight
+            ? undefined
+            : isExpandedFormOpen
+            ? `${height}px`
+            : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
+        }"
+        @click.stop="isExpandedFormOpen ? onExpand() : undefined"
+        @dblclick="onExpand"
+        @keydown.enter="onExpand"
+      >
+        <div
+          v-dompurify-html="richTextContent"
+          class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
+          :class="
+            !isExpandedFormOpen && !isPageDesignerPreviewPanel
+              ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`
+              : 'py-2'
+          "
+          @click="handleDompurifyLinkClick"
+        ></div>
+      </div>
+      <!-- eslint-disable vue/use-v-on-exact -->
+      <div
+        v-else-if="
+          (editEnabled && !isVisible) ||
+          (isForm && !isUnderLTAR) ||
+          (isUnderFormula && isVisible) ||
+          (isCanvasInjected && isUnderFormula) ||
+          (isUnderFormula && isExpandedFormOpen && !isUnderLookup)
+        "
+        class="h-full w-full"
+        :class="{
+          'my-1 bg-nc-bg-purple-light rounded-lg': props.isAi && isExpandedFormOpen && !readOnly,
+        }"
+      >
+        <textarea
+          ref="textAreaRef"
+          v-model="vModel"
+          :rows="isForm ? 5 : 4"
+          class="nc-inline-textarea h-full w-full !outline-none nc-scrollbar-thin"
+          :class="{
+            'p-2': editEnabled || isUnderFormula,
+            'py-1 h-full': isForm,
+            'px-2': isExpandedFormOpen,
+            'border-none': !(props.isAi && isExpandedFormOpen),
+            'nc-inline-textarea-ai border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
+              props.isAi && isExpandedFormOpen,
+            'bg-transparent': isUnderFormula,
+          }"
+          :style="{
+            minHeight: isForm ? '117px' : `${height}px`,
+            maxHeight: 'min(800px, calc(100vh - 200px))',
+          }"
+          :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
+          :readonly="isSmartMode && isExpandedFormOpen"
+          :autocomplete="formFieldAutocomplete"
+          @blur="editEnabled = false"
+          @keydown.alt.stop
+          @keydown.alt.enter.stop
+          @keydown.shift.enter.stop
+          @keydown.down.stop
+          @keydown.left.stop
+          @keydown.right.stop
+          @keydown.up.stop
+          @keydown.delete.stop
+          @selectstart.capture.stop
+          @mousedown.stop
+        />
+        <div v-if="!readOnly && props.isAi && isExpandedFormOpen" class="-mt-1">
+          <div v-if="props.aiMeta?.isStale" ref="aiWarningRef">
+            <div class="flex items-start p-3 bg-nc-bg-purple-light gap-4">
+              <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-4 w-4 flex-none" />
+              <div class="flex flex-col">
+                <div class="text-small leading-[18px] text-nc-content-gray-muted">
+                  AI generated content may be outdated. The source data for this record has changed.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="!isEditColumn" class="flex items-center gap-2 px-3 pt-0.5 pb-[3.5px] !text-small leading-[18px]">
+            <NcTooltip v-if="isAiEdited" class="text-nc-content-green-dark flex-1 truncate" show-on-truncate-only>
+              <template #title> Edited by you </template>
+              Edited by you
+            </NcTooltip>
+            <NcTooltip
+              v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]"
+              class="text-nc-content-green-dark flex-1 truncate"
+              show-on-truncate-only
+            >
+              <template #title>
+                Edited by
+                {{
+                  user?.id === props.aiMeta?.lastModifiedBy
+                    ? 'you'
+                    : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                }}
+              </template>
+              Edited by
+              {{
+                user?.id === props.aiMeta?.lastModifiedBy
+                  ? 'you'
+                  : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+              }}
+            </NcTooltip>
+            <span v-else class="text-nc-content-purple-light truncate flex-1">Generated by AI</span>
+            <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcButton
+                type="text"
+                theme="ai"
+                size="xs"
+                :disabled="!isFieldAiIntegrationAvailable"
+                :loading="isAiGenerating"
+                @click.stop="generate"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                </template>
+                <template #loading> Re-generating... </template>
+                Re-generate
+              </NcButton>
+            </NcTooltip>
+          </div>
+        </div>
+      </div>
+
+      <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+
+      <CellClampedText
+        v-else-if="rowHeight"
+        :value="vModel"
+        :lines="isUnderLookup && (isGallery || isKanban) && !isExpandedFormOpen ? 1 : rowHeightTruncateLines(localRowHeight)"
+        class="nc-text-area-clamped-text"
+        :style="{
+          'word-break': 'break-word',
+          'max-height': `${25 * rowHeightTruncateLines(localRowHeight)}px`,
+          'my-auto': rowHeightTruncateLines(localRowHeight) === 1,
+        }"
+        @click="onTextClick"
+      />
+
+      <span v-else>{{ vModel }}</span>
+
+      <div
+        v-if="!isPageDesignerPreviewPanel"
+        class="!absolute nc-text-area-expand-btn z-3 items-center gap-1"
+        :class="{
+          'active': active && isCanvasInjected,
+          'right-1': isForm,
+          'right-0': !isForm,
+          'top-0 right-0': isGrid && !isExpandedFormOpen && !isForm,
+          '!right-2 top-2':
+            isGrid &&
+            !isExpandedFormOpen &&
+            !isForm &&
+            !isRichMode &&
+            ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
+          'top-1': !(isGrid && !isExpandedFormOpen && !isForm) || isUnderFormula,
+          // SmartText cells inside the expanded form keep the expand button
+          // always visible — keyboard-only users have no way to open the
+          // SmartText editor otherwise (the hover-revealed affordance is
+          // unreachable via Tab).
+          '!flex': isExpandedFormOpen && isSmartMode,
+          '!hidden group-hover:block': !(isExpandedFormOpen && isSmartMode),
+        }"
+      >
+        <NcTooltip
+          v-if="!isVisible && !isForm && !readOnly && props.isAi && !isExpandedFormOpen && !isEditColumn"
+          placement="bottom"
+          class="nc-action-icon"
+        >
+          <template #title>
+            {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }}
+          </template>
+          <NcButton
+            type="secondary"
+            size="xsmall"
+            class="!p-0 !w-5 !h-5 !min-w-[fit-content] nc-textarea-generate"
+            :disabled="isAiGenerating"
+            loader-size="small"
+            icon-only
+            @click.stop="generate"
+          >
+            <template #icon>
+              <GeneralIcon
+                icon="refresh"
+                class="transform group-hover:(!text-nc-content-gray) text-nc-content-inverted-secondary w-3 h-3"
+                :class="{ 'animate-infinite animate-spin': isAiGenerating }"
+              />
+            </template>
+          </NcButton>
+        </NcTooltip>
+        <NcTooltip v-if="!isVisible && !isForm && (!isSmartMode || isExpandedFormOpen)" placement="bottom" class="nc-action-icon">
+          <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+          <NcButton
+            type="secondary"
+            size="xsmall"
+            class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
+            @click.stop="onExpand"
+          >
+            <component
+              :is="iconMap.maximize"
+              class="transform group-hover:(!text-nc-content-gray) text-nc-content-inverted-secondary w-3 h-3"
+            />
+          </NcButton>
+        </NcTooltip>
+      </div>
+    </div>
+    <a-modal
+      v-if="isVisible"
+      v-model:visible="isVisible"
+      :closable="false"
+      :footer="null"
+      wrap-class-name="nc-long-text-expanded-modal"
+      :mask="true"
+      :mask-closable="false"
+      :mask-style="{ zIndex: 1051 }"
+      :z-index="1052"
+    >
+      <div
+        ref="inputWrapperRef"
+        class="flex flex-col pb-3 w-full expanded-cell-input relative"
+        :class="{
+          'cursor-move': isDragging,
+          'expanded-cell-input-ai': props.isAi,
+        }"
+        @keydown.enter.stop
+      >
+        <div
+          v-if="column"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-nc-border-gray-light overflow-hidden"
+          :class="{
+            'select-none': isDragging,
+            'cursor-move': !isEditColumn,
+          }"
+          @mousedown="dragStart"
+        >
+          <SmartsheetHeaderCellIcon
+            class="flex"
+            :class="{
+              '!w-6 !h-6': props.isAi,
+            }"
+          />
+          <div
+            class="flex"
+            :class="{
+              'text-xl': props.isAi,
+              'max-w-full': props.isAi && isEditColumn,
+              'max-w-38': !(props.isAi && isEditColumn),
+            }"
+          >
+            <span class="truncate">
+              {{ column.title }}
+            </span>
+          </div>
+          <template v-if="!props.isAi && !isRichMode">
+            <div class="flex-1" />
+
+            <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">
+              <GeneralIcon icon="close" />
+            </NcButton>
+          </template>
+          <template v-if="props.isAi && !isEditColumn">
+            <div class="flex items-center text-small leading-[18px] gap-3 ml-2">
+              <template v-if="!readOnly">
+                <span v-if="isAiEdited" class="text-nc-content-green-dark truncate"> Edited by you </span>
+                <span v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]" class="text-green-600">
+                  Edited by
+                  {{
+                    user?.id === props.aiMeta?.lastModifiedBy
+                      ? 'you'
+                      : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                  }}
+                </span>
+                <span v-else class="text-nc-content-purple-dark truncate">Generated by AI</span>
+              </template>
+            </div>
+            <div class="flex-1"></div>
+            <div v-if="!readOnly" class="flex items-center gap-1">
+              <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+                <template #title>
+                  {{
+                    aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                  }}
+                </template>
+                <NcButton
+                  type="secondary"
+                  :bordered="false"
+                  theme="ai"
+                  size="small"
+                  inner-class="!gap-2"
+                  :disabled="!isFieldAiIntegrationAvailable"
+                  :class="{
+                    '!text-nc-content-purple-medium !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark':
+                      isFieldAiIntegrationAvailable,
+                  }"
+                  :loading="isAiGenerating"
+                  @click.stop="generate"
+                >
+                  <template #icon>
+                    <GeneralIcon icon="refresh" />
+                  </template>
+                  <template #loadingIcon>
+                    <GeneralIcon icon="refresh" class="animate-infinite animate-spin" />
+                  </template>
+
+                  {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }}
+                </NcButton>
+              </NcTooltip>
+            </div>
+          </template>
+          <template v-if="props.isAi">
+            <div v-if="isEditColumn" class="flex-1"></div>
+            <NcButton class="mr-3" type="text" size="small" @click="isVisible = false">
+              <GeneralIcon icon="close" />
+            </NcButton>
+          </template>
+        </div>
+        <div
+          v-if="props.isAi && props.aiMeta?.isStale && !readOnly"
+          ref="aiWarningRef"
+          class="border-b-1 border-nc-border-gray-light"
+        >
+          <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
+            <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
+            <div class="flex flex-col">
+              <div class="text-nc-content-gray-muted text-sm">
+                AI generated content may be outdated. The source data for this record has changed.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="!isRichMode" class="p-3 pb-0 h-full">
+          <a-textarea
+            ref="inputRef"
+            v-model:value="vModel"
+            class="nc-text-area-expanded !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
+            :class="{
+              '!focus:border-nc-border-brand': !props.isAi,
+              '!hover:border-nc-border-purple !focus:border-nc-border-purple': props.isAi,
+            }"
+            :placeholder="$t('activity.enterText')"
+            :style="{
+              resize: 'both',
+              maxHeight: props.isAi
+                ? `min(795px - ${aiWarningRefHeight + 8}px, 100vh - 170px - ${aiWarningRefHeight + 8}px)`
+                : 'min(795px, 100vh - 170px)',
+            }"
+            :disabled="readOnly || (props.isAi && aiLoading) || (props.isAi && isEditColumn)"
+            @keydown.escape="isVisible = false"
+            @keydown.alt.stop
+          />
+        </div>
+
+        <CellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
+      </div>
+    </a-modal>
+
+    <CellSmartTextModal
+      v-if="isEeUI && isSmartMode && isExpandedFormOpen"
+      v-model:visible="isSmartTextModalOpen"
+      :table-id="meta?.id"
+      :row-id="rowId"
+      :column-id="column?.id"
+      :column-title="column?.title"
+      :column="column"
+      :read-only="readOnly"
+      @saved="onSmartTextSaved"
+    />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-inline-textarea {
+  &:disabled {
+    @apply !bg-transparent;
+  }
+
+  &.nc-inline-textarea-ai {
+    &:not(:disabled) {
+      @apply dark:!bg-nc-bg-default;
+    }
+  }
+}
+
+textarea:focus {
+  box-shadow: none;
+}
+.nc-text-area-expanded {
+  @apply h-[min(795px,100vh_-_300px)] w-[min(1256px,100vw_-_124px)];
+
+  max-height: min(795px, 100vh - 170px);
+  min-width: -webkit-fill-available;
+  max-width: min(1256px, 100vw - 126px);
+  transition-property: shadow, colors, border;
+  scrollbar-width: thin !important;
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-lg;
+  }
+}
+.nc-longtext-scrollbar {
+  @apply nc-scrollbar-thin;
+}
+
+.nc-readonly-rich-text-wrapper {
+  &.nc-readonly-rich-text-grid {
+    :deep(.ProseMirror) {
+      @apply !pt-0;
+    }
+    // &.nc-readonly-rich-text-sort-height {
+    //   @apply mt-1;
+    // }
+  }
+}
+</style>
+
+<style lang="scss">
+.cell:hover .nc-text-area-expand-btn,
+.long-text-wrapper:hover .nc-text-area-expand-btn {
+  @apply !flex cursor-pointer;
+}
+.long-text-wrapper .nc-text-area-expand-btn.active {
+  @apply !flex;
+}
+
+.nc-grid-cell {
+  &.align-top {
+    .long-text-wrapper {
+      @apply items-start;
+    }
+  }
+
+  &:not(.align-top) {
+    @apply items-center;
+  }
+}
+
+.nc-data-cell {
+  &:has(.nc-cell-longtext-ai .nc-expanded-form-open) {
+    @apply !border-none -mx-1 -my-1;
+    box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
+    }
+
+    .nc-text-area-expand-btn {
+      @apply top-2 right-1;
+    }
+  }
+}
+
+.nc-long-text-expanded-modal {
+  .ant-modal {
+    @apply !w-full h-full !top-0 !mx-auto !my-0;
+
+    .ant-modal-content {
+      @apply absolute w-[fit-content] min-h-70 min-w-70 !p-0 left-[50%] top-[50%];
+
+      /* Use 'transform' to center the div correctly */
+      transform: translate(-50%, -50%);
+
+      max-width: min(1280px, 100vw - 100px);
+      max-height: min(864px, 100vh - 100px);
+
+      @supports (height: 100dvh) {
+        max-height: min(864px, 100dvh - 100px);
+      }
+
+      @media (max-width: 767px) {
+        max-width: min(1280px, 100vw - 32px);
+        min-width: min(1280px, 100vw - 32px);
+      }
+
+      .nc-longtext-scrollbar {
+        @apply nc-scrollbar-thin;
+      }
+
+      .expanded-cell-input-ai {
+        .nc-text-area-expanded {
+          max-height: min(783px - 76px, 100vh - 180px);
+
+          @supports (height: 100dvh) {
+            max-height: min(783px - 76px, 100dvh - 180px);
+          }
+        }
+      }
+    }
+  }
+}
+</style>

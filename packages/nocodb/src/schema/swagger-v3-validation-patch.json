@@ -1,0 +1,342 @@
+{
+  "components": {
+    "schemas": {
+      "CreateField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBaseCreate"
+          }
+        ]
+      },
+      "FieldUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          }
+        ]
+      },
+      "ViewCreate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "grid",
+                  "gallery",
+                  "kanban",
+                  "calendar",
+                  "form",
+                  "map",
+                  "timeline",
+                  "gantt"
+                ],
+                "description": "Type of the view."
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string"
+                    },
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
+                    }
+                  },
+                  "required": [
+                    "field_id",
+                    "show"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "title"
+            ]
+          }
+        ]
+      },
+      "ViewUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
+          },
+          {
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the view."
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string"
+                    },
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
+                    }
+                  },
+                  "required": [
+                    "field_id",
+                    "show"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WidgetCreateReq": {
+        "description": "Widget create request body",
+        "type": "object",
+        "required": ["title", "type"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["chart", "metric", "text", "iframe"],
+            "description": "Type of the widget."
+          },
+          "options": {
+            "type": "object",
+            "description": "Widget configuration. Structure depends on widget type."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "table_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "chart" } }, "required": ["type"] },
+            "then": {
+              "properties": {
+                "options": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsLineChart" }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": { "properties": { "type": { "const": "metric" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsMetric" } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsText" } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "iframe" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsIframe" } } }
+          }
+        ]
+      },
+      "FieldOptions_Number": {
+        "type": "object",
+        "title": "Number",
+        "properties": {
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
+          },
+          "locale_string": {
+            "type": "boolean",
+            "description": "Deprecated — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; `separator` wins when both are present."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_Decimal": {
+        "type": "object",
+        "title": "Decimal",
+        "properties": {
+          "precision": {
+            "type": "number",
+            "description": "Decimal field precision. Defaults to 0",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
+          },
+          "locale_string": {
+            "type": "boolean",
+            "description": "Deprecated — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; `separator` wins when both are present."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_Rollup": {
+        "type": "object",
+        "title": "Rollup",
+        "properties": {
+          "related_field_id": {
+            "type": "string",
+            "description": "Linked field ID."
+          },
+          "related_table_rollup_field_id": {
+            "type": "string",
+            "description": "Rollup field ID in the linked table."
+          },
+          "rollup_function": {
+            "type": "string",
+            "description": "Rollup function.",
+            "enum": [
+              "count",
+              "min",
+              "max",
+              "avg",
+              "sum",
+              "countDistinct",
+              "sumDistinct",
+              "avgDistinct"
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when dependent field is deleted"
+          },
+          "separator": {
+            "type": "string",
+            "description": "Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
+            "enum": [
+              "locale",
+              "none_period",
+              "none_comma",
+              "comma_period",
+              "period_comma",
+              "space_period",
+              "space_comma"
+            ]
+          },
+          "locale_string": {
+            "type": "boolean",
+            "description": "Deprecated — use `separator` instead. `true` maps to `comma_period`, `false` to `none_period`. Still accepted on write; `separator` wins when both are present."
+          }
+        },
+        "required": [
+          "related_field_id",
+          "related_table_rollup_field_id",
+          "rollup_function"
+        ],
+        "additionalProperties": false
+      },
+      "WidgetUpdateReq": {
+        "description": "Widget update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "options": {
+            "type": "object",
+            "description": "Widget configuration. Structure depends on widget type."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the widget."
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "table_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,372 @@
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
+import { SqlUiFactory } from 'nocodb-sdk'
+import { isString } from '@vue/shared'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+
+export const useBase = defineStore('baseStore', () => {
+  const { api, isLoading } = useApi()
+
+  const router = useRouter()
+
+  const route = router.currentRoute
+
+  const { loadRoles } = useRoles()
+
+  const { refreshCommandPalette } = useCommandPalette()
+
+  const forcedProjectId = ref<string>()
+
+  const basesStore = useBases()
+
+  const managedApp = ref<any>(null)
+
+  const managedAppVersions = ref<any[]>([])
+
+  const managedAppVersionsInfo = computed(() => {})
+
+  const isManagedAppMaster = ref(false)
+
+  const isManagedAppInstaller = ref(false)
+
+  const baseId = computed(() => {
+    // In shared base mode, use activeProjectId from basesStore which has the correct base ID
+    if (route.value.params.typeOrId === 'base') {
+      return forcedProjectId.value || basesStore.activeProjectId || (route.value.params.baseId as string)
+    }
+    return forcedProjectId.value || (route.value.params.baseId as string)
+  })
+
+  const tablesStore = useTablesStore()
+
+  const idUserMap = computed(() => {
+    return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
+      acc[user.id] = user
+      acc[user.email] = user
+      return acc
+    }, {} as Record<string, any>)
+  })
+
+  // todo: refactor
+  const sharedProject = ref<BaseType>()
+
+  const openedProject = computed(() => basesStore.bases.get(baseId.value))
+
+  // todo: new-layout
+  const base = computed<NcProject>(() => basesStore.bases.get(baseId.value) || sharedProject.value || {})
+  const tables = computed<TableType[]>(() => tablesStore.baseTables.get(baseId.value) || [])
+
+  const baseLoadedHook = createEventHook<BaseType>()
+
+  const sources = computed<SourceType[]>(() => base.value?.sources || [])
+
+  const baseMetaInfo = ref<ProjectMetaInfo | undefined>()
+
+  const lastOpenedViewMap = ref<Record<string, string>>({})
+
+  // todo: refactor path param name and variable name
+  const baseType = computed(() => route.value.params.typeOrId as string)
+
+  const baseMeta = computed<Record<string, any>>(() => {
+    const defaultMeta = {
+      showNullAndEmptyInFilter: false,
+    }
+    try {
+      return (isString(base.value.meta) ? JSON.parse(base.value.meta) : base.value.meta) ?? defaultMeta
+    } catch (e) {
+      return defaultMeta
+    }
+  })
+
+  const isPrivateBase = computed(() => false)
+
+  const showBaseAccessRequestOverlay = computed(() => false)
+
+  const sqlUis = computed(() => {
+    const temp: Record<string, any> = {}
+    for (const source of sources.value) {
+      if (source.id) {
+        temp[source.id] = SqlUiFactory.create({ client: source.type })
+      }
+    }
+    return temp
+  })
+
+  /**
+   * @Note - Always use this fn inside computed as `sqlUis` is computed property
+   */
+  function getSqlUiBySourceId(sourceId?: string): any {
+    if (sourceId && sqlUis.value[sourceId]) {
+      return sqlUis.value[sourceId]
+    }
+
+    return Object.values(sqlUis.value)[0]
+  }
+
+  function getBaseType(sourceId?: string) {
+    return sources.value.find((source) => source.id === sourceId)?.type || ClientType.MYSQL
+  }
+
+  function isMysql(sourceId?: string) {
+    return ['mysql', ClientType.MYSQL].includes(getBaseType(sourceId))
+  }
+
+  function isSqlite(sourceId?: string) {
+    return getBaseType(sourceId) === ClientType.SQLITE
+  }
+
+  function isPg(sourceId?: string) {
+    return getBaseType(sourceId) === 'pg'
+  }
+
+  function isMssql(sourceId?: string) {
+    return getBaseType(sourceId) === ClientType.MSSQL
+  }
+
+  function isSnowflake(sourceId?: string) {
+    return getBaseType(sourceId) === 'snowflake'
+  }
+
+  function isDatabricks(sourceId?: string) {
+    return getBaseType(sourceId) === 'databricks'
+  }
+
+  function isXcdbBase(sourceId?: string) {
+    const source = sources.value.find((source) => source.id === sourceId)
+    return (source?.is_meta as boolean) || (source?.is_local as boolean) || false
+  }
+
+  const isSharedBase = computed(() => baseType.value === 'base')
+
+  const isSharedErd = computed(() => baseType.value === 'ERD')
+
+  async function loadProjectMetaInfo(force?: boolean) {
+    if (!baseMetaInfo.value || force) {
+      baseMetaInfo.value = await api.base.metaGet(base.value.id!, {})
+    }
+  }
+
+  // todo: add force parameter
+  async function loadTables() {
+    if (base.value.id) {
+      await tablesStore.loadProjectTables(base.value.id, true)
+      // tables.value = basesStore.baseTableList[base.value.id]
+      //   await api.dbTable.list(base.value.id, {
+      //   includeM2M: includeM2M.value,
+      // })
+
+      // if (tablesResponse.list) {
+      //   tables.value = tablesResponse.list
+      // }
+    }
+  }
+
+  async function loadProject(_withTheme = true, forcedId?: string) {
+    if (forcedId) forcedProjectId.value = forcedId
+    if (baseType.value === 'base') {
+      try {
+        const baseData = await api.public.sharedBaseGet(route.value.params.baseId as string)
+
+        forcedProjectId.value = baseData.base_id
+        sharedProject.value = await api.base.read(baseData.base_id!)
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          return router.push('/error/404')
+        }
+        throw e
+      }
+    } else if (baseId.value) {
+      await basesStore.loadProject(baseId.value)
+      // base.value = basesStore.bases[baseId.value] // await api.base.read(baseId.value)
+    } else {
+      console.warn('Base id not found')
+      return
+    }
+
+    if (isSharedBase.value) {
+      await loadRoles(base.value.id || baseId.value, {
+        isSharedBase: isSharedBase.value,
+        sharedBaseId: route.value.params.baseId as string,
+      })
+    } else if (isSharedErd.value) {
+      await loadRoles(base.value.id || baseId.value, {
+        isSharedErd: isSharedErd.value,
+        sharedErdId: route.value.params.erdUuid as string,
+      })
+    } else {
+      await loadRoles(base.value.id || baseId.value)
+    }
+
+    await loadTables()
+
+    if (!isSharedBase.value) {
+      await basesStore.getBaseUsers({
+        baseId: base.value.id || baseId.value,
+      })
+    }
+
+    // if (withTheme) setTheme(baseMeta.value?.theme)
+
+    return baseLoadedHook.trigger(base.value)
+  }
+
+  async function updateProject(data: Partial<BaseType>) {
+    if (baseType.value === 'base') {
+      return
+    }
+    if (data.meta && typeof data.meta === 'string') {
+      await api.base.update(baseId.value, data)
+    } else {
+      await api.base.update(baseId.value, { ...data, meta: stringifyProp(data.meta) })
+    }
+
+    refreshCommandPalette()
+  }
+
+  async function saveTheme(_theme: Partial<ThemeConfig>) {
+    /* const fullTheme = {
+      primaryColor: theme.value.primaryColor,
+      accentColor: theme.value.accentColor,
+      ..._theme,
+    }
+
+    await updateProject({
+      color: fullTheme.primaryColor,
+      meta: {
+        ...baseMeta.value,
+        theme: fullTheme,
+      },
+    })
+*/
+    // setTheme(fullTheme)
+    // $e('c:themes:change')
+  }
+
+  async function hasEmptyOrNullFilters() {
+    return await api.base.hasEmptyOrNullFilters(baseId.value)
+  }
+
+  const reset = () => {
+    // base.value = {}
+    // tables.value = []
+    baseMetaInfo.value = undefined
+    // setTheme()
+  }
+
+  const setProject = (baseVal: BaseType) => {
+    sharedProject.value = baseVal
+  }
+
+  const baseUrl = ({
+    id,
+    type: _type,
+    isSharedBase,
+    projectPage,
+  }: {
+    id: string
+    type: 'database'
+    isSharedBase?: boolean
+    projectPage?: ProjectPageType
+  }) => {
+    if (isSharedBase) {
+      const typeOrId = route.value.params.typeOrId as string
+      const baseId = route.value.params.baseId as string
+
+      return `/${typeOrId}/${baseId}`
+    }
+
+    const basUrl = `/nc/${id}`
+
+    if (projectPage) {
+      return `${basUrl}/settings/${baseSettingsTabToSlug[projectPage] || projectPage}`
+    }
+
+    return basUrl
+  }
+
+  const loadManagedApp = async () => {}
+
+  const loadCurrentVersion = async () => {}
+
+  watch(
+    () => route.value.params.baseType,
+    (n) => {
+      if (!n) reset()
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => openedProject.value?.id,
+    () => {
+      if (!openedProject.value) return
+
+      if (openedProject.value.isExpanded) return
+
+      openedProject.value.isExpanded = true
+    },
+  )
+
+  const navigateToProjectPage = async ({
+    page,
+    action,
+  }: {
+    page: 'overview' | 'collaborator' | 'data-source'
+    action?: string
+  }) => {
+    const wsId = route.value.params.typeOrId
+    const bId = route.value.params.baseId
+    const slug = baseSettingsTabToSlug[page] || page
+    const query = action ? { action } : undefined
+
+    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
+  }
+
+  return {
+    base,
+    sources,
+    tables,
+    baseId,
+    loadRoles,
+    loadProject,
+    updateProject,
+    loadTables,
+    isMysql,
+    isPg,
+    isMssql,
+    isSqlite,
+    isSnowflake,
+    isDatabricks,
+    sqlUis,
+    getSqlUiBySourceId,
+    isSharedBase,
+    isSharedErd,
+    loadProjectMetaInfo,
+    baseMetaInfo,
+    baseMeta,
+    saveTheme,
+    baseLoadedHook: baseLoadedHook.on,
+    reset,
+    isLoading,
+    lastOpenedViewMap,
+    isXcdbBase,
+    hasEmptyOrNullFilters,
+    setProject,
+    baseUrl,
+    getBaseType,
+    navigateToProjectPage,
+    idUserMap,
+    isPrivateBase,
+    showBaseAccessRequestOverlay,
+    isManagedAppMaster,
+    isManagedAppInstaller,
+    managedApp,
+    loadManagedApp,
+    loadCurrentVersion,
+    managedAppVersions,
+    managedAppVersionsInfo,
+  }
+})
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useBase as any, import.meta.hot))
+}

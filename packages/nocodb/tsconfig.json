@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    /* module/moduleResolution are set for type checking only (IDE + tsc --noEmit).
+       Actual compilation is handled by SWC via rspack, which ignores these settings.
+       "bundler" avoids an infinite peer-dependency resolution loop */
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2022",
+    "lib": ["es2022"],
+    "useDefineForClassFields": false,
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictBindCallApply": false,
+    "useUnknownInCatchVariables": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "paths": {
+      "src/*": ["src/*"],
+      "~/*": ["src/*"],
+      "@/*": ["src/*"],
+      "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
+      "@noco-local-integrations/core": ["../noco-integrations/core"]
+    },
+    "typeRoots": ["node_modules/@types"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
+}

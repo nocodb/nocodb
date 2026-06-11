@@ -1,0 +1,54 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Trigger configuration : https://gist.github.com/myobie/671d2f2a1e503efa0c05e7b865c26a9d
+
+name: "CI/CD"
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
+  # Triggered manually
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-swagger-json:
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 10
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      # enable after fixing all validation errors
+      #        - name: Validate OpenAPI definition
+      #          uses: char0n/swagger-editor-validate@v1
+      #          with:
+      #            swagger-editor-url: http://localhost/
+      #            definition-file: packages/nocodb/src/schema/swagger.json
+
+      - name: Validate Swagger JSON
+        run: |
+          if ! jq empty packages/nocodb/src/schema/swagger.json; then
+            echo "swagger.json file is not valid JSON"
+            exit 1
+          fi
+          if ! jq empty packages/nocodb/src/schema/swagger-v2.json; then
+            echo "swaggerv2.json file is not valid JSON"
+            exit 1
+          fi

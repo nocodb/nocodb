@@ -1,0 +1,127 @@
+<script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
+
+const props = defineProps<Props>()
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
+interface Props {
+  code: string
+}
+
+const code = toRef(props, 'code')
+
+const { t } = useI18n()
+
+const { copy } = useCopy()
+
+const isCopied = ref(false)
+
+const onCopyToClipboard = async () => {
+  try {
+    await copy(code.value)
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
+
+    isCopied.value = true
+
+    setTimeout(() => {
+      isCopied.value = false
+    }, 5000)
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+</script>
+
+<template>
+  <div class="nc-mcp-code-tab-wrapper h-80 flex flex-col mt-2">
+    <div class="flex h-9 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium rounded-t-lg items-center px-3">
+      <div class="flex-1 text-nc-content-gray leading-5">MCP Configuration</div>
+      <NcButton type="text" size="small" class="!hover:bg-nc-bg-gray-medium" @click="onCopyToClipboard">
+        <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
+          <GeneralIcon
+            :icon="isCopied ? 'circleCheckSolid' : 'copy'"
+            class="h-4 w-4"
+            :class="{
+              'text-nc-content-gray-subtle': !isCopied,
+              'text-green-700': isCopied,
+            }"
+          />
+          {{ isCopied ? $t('general.copied') : $t('general.copy') }}
+        </div>
+      </NcButton>
+    </div>
+    <Suspense>
+      <template #default>
+        <MonacoEditor
+          class="h-72 !rounded-b-lg overflow-hidden !bg-nc-bg-gray-extralight"
+          :model-value="code"
+          :read-only="true"
+          lang="json"
+          :validate="false"
+          :disable-deep-compare="true"
+          :monaco-config="{
+            minimap: {
+              enabled: false,
+            },
+            fontSize: 13,
+            lineHeight: 18,
+            padding: {
+              top: 12,
+              bottom: 12,
+            },
+            overviewRulerBorder: false,
+            overviewRulerLanes: 0,
+            hideCursorInOverviewRuler: true,
+            lineDecorationsWidth: 12,
+            lineNumbersMinChars: 0,
+            roundedSelection: false,
+            selectOnLineNumbers: false,
+            scrollBeyondLastLine: false,
+            contextmenu: false,
+            glyphMargin: false,
+            folding: false,
+            bracketPairColorization: { enabled: false },
+            wordWrap: 'on',
+            scrollbar: {
+              horizontal: 'hidden',
+              verticalScrollbarSize: 6,
+            },
+            renderIndentGuides: false,
+            wrappingStrategy: 'advanced',
+            renderLineHighlight: 'none',
+            tabSize: 2,
+            detectIndentation: false,
+            insertSpaces: true,
+            lineNumbers: 'off',
+          }"
+          hide-minimap
+        />
+      </template>
+      <template #fallback>
+        <MonacoLoading class="h-72 w-full !rounded-b-lg" />
+      </template>
+    </Suspense>
+  </div>
+</template>
+
+<style lang="scss">
+.nc-mcp-code-tab-wrapper {
+  @apply !bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg flex-1;
+
+  .monaco-editor {
+    @apply !border-0 !rounded-b-lg pr-3 outline-none;
+  }
+  .overflow-guard {
+    @apply !border-0 !rounded-b-lg !rounded-t-0;
+  }
+  .monaco-editor,
+  .monaco-diff-editor,
+  .monaco-component {
+    --vscode-editor-background: var(--nc-bg-gray-extralight);
+    --vscode-editorGutter-background: var(--nc-bg-gray-extralight);
+  }
+}
+</style>

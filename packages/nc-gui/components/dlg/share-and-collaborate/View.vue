@@ -1,0 +1,268 @@
+<script lang="ts" setup>
+import { ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import { useViewsStore } from '~/store/views'
+
+const { isViewToolbar } = defineProps<{
+  isViewToolbar?: boolean
+}>()
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const baseStore = useBase()
+const { base, isPrivateBase } = storeToRefs(baseStore)
+const { navigateToProjectPage } = baseStore
+const { isUIAllowed } = useRoles()
+const { activeView } = storeToRefs(useViewsStore())
+const dashboardStore = useDashboardStore()
+const { activeDashboard } = storeToRefs(dashboardStore)
+const documentsStore = useDocumentsStore()
+const { activeDocument } = storeToRefs(documentsStore)
+
+let view: Ref<ViewType | undefined>
+if (isViewToolbar) {
+  try {
+    const store = useSmartsheetStoreOrThrow()
+    view = store.view
+  } catch (_e) {
+    // console.error(e)
+  }
+}
+
+const { formStatus, showShareModal } = storeToRefs(useShare())
+const { resetData } = useShare()
+
+const isOpeningManageAccess = ref(false)
+
+const isViewSharingRestricted = computed(() => {
+  return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
+})
+
+const openManageAccess = async () => {
+  isOpeningManageAccess.value = true
+  try {
+    await navigateToProjectPage({ page: 'collaborator' })
+    showShareModal.value = false
+  } catch (e) {
+    console.error(e)
+    message.error('Failed to open manage access')
+  } finally {
+    isOpeningManageAccess.value = false
+  }
+}
+
+watch(showShareModal, (val) => {
+  if (!val) {
+    setTimeout(() => {
+      resetData()
+    }, 500)
+  }
+})
+</script>
+
+<template>
+  <a-modal
+    v-model:visible="showShareModal"
+    class="!top-[1%]"
+    :class="{ active: showShareModal }"
+    wrap-class-name="nc-modal-share-collaborate"
+    :closable="false"
+    :mask-closable="formStatus !== 'base-collaborateSaving'"
+    :ok-button-props="{ hidden: true } as any"
+    :cancel-button-props="{ hidden: true } as any"
+    :footer="null"
+    :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
+  >
+    <div class="flex flex-col px-1">
+      <div class="flex flex-col gap-2 pb-1 mx-4 mt-3">
+        <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
+      </div>
+      <div v-if="isViewToolbar && activeView" class="share-view">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <component
+            :is="viewIcons[view?.type]?.icon"
+            class="nc-view-icon group-hover"
+            :style="{ color: viewIcons[view?.type]?.color }"
+          />
+          <div>{{ $t('activity.shareView') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span>
+              {{ activeView.title }}
+            </span>
+          </div>
+        </div>
+        <div
+          v-if="isLocked || isViewSharingRestricted"
+          class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
+        >
+          <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
+            <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          </div>
+          <component
+            :is="viewLockIcons[view.lock_type].icon"
+            v-if="!isViewSharingRestricted"
+            class="flex-none"
+            :class="{
+              'w-4 h-4': view?.lock_type === ViewLockType.Locked,
+              'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
+            }"
+          />
+
+          <div class="flex-1">
+            {{
+              isViewSharingRestricted
+                ? $t('msg.privateBaseViewShareRestrictedMsg')
+                : $t('title.viewSettingsCantBeChangedWhenViewIs', {
+                    type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
+                  })
+            }}
+          </div>
+        </div>
+
+        <DlgShareAndCollaborateSharePage />
+      </div>
+
+      <div v-if="activeDocument" class="share-doc">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <GeneralIcon icon="ncFileText" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+          <div>{{ $t('activity.shareDoc') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span>{{ activeDocument.title || $t('general.untitled') }}</span>
+          </div>
+        </div>
+        <DlgShareAndCollaborateSharePageDoc />
+      </div>
+
+      <div v-if="activeDashboard" class="share-dashboard">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <LazyGeneralEmojiPicker class="nc-dashboard-icon" size="small" :emoji="activeDashboard?.meta?.icon" readonly>
+            <template #default>
+              <GeneralIcon icon="dashboards" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+            </template>
+          </LazyGeneralEmojiPicker>
+          <div>{{ $t('activity.shareDashboard') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span>
+              {{ activeDashboard.title }}
+            </span>
+          </div>
+        </div>
+        <DlgShareAndCollaborateShareDashboard />
+      </div>
+
+      <div v-if="isUIAllowed('baseShare')" class="share-base">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <GeneralProjectIcon
+            :color="parseProp(base.meta).iconColor"
+            :type="base.type"
+            :managed-app="{
+              managed_app_master: base.managed_app_master,
+              managed_app_id: base.managed_app_id,
+            }"
+            class="nc-view-icon group-hover"
+          />
+
+          <div>{{ $t('activity.shareBase.label') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            {{ base.title }}
+          </div>
+        </div>
+        <div
+          v-if="isPrivateBase"
+          class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-subtle2 bg-nc-bg-gray-light rounded-md"
+        >
+          <div class="flex items-center justify-center h-4 w-5">
+            <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          </div>
+          <div class="flex-1">{{ $t('msg.privateBaseShareRestrictedMsg') }}</div>
+        </div>
+        <LazyDlgShareAndCollaborateShareBase />
+      </div>
+      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 pt-4 gap-x-2">
+        <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false">
+          {{ $t('general.close') }}
+        </NcButton>
+        <NcButton
+          v-if="isUIAllowed('baseShare')"
+          data-testid="docs-share-manage-access"
+          type="secondary"
+          :loading="isOpeningManageAccess"
+          @click="openManageAccess"
+          >{{ $t('activity.manageProjectAccess') }}
+        </NcButton>
+      </div>
+    </div>
+  </a-modal>
+</template>
+
+<style lang="scss" scoped>
+.share-collapse-item {
+  @apply !rounded-lg !mb-2 !mt-4 !border-0;
+}
+
+.ant-collapse {
+  @apply !bg-nc-bg-default !border-0;
+}
+</style>
+
+<style lang="scss">
+.nc-modal-share-collaborate {
+  .ant-modal {
+    top: 10vh !important;
+  }
+
+  .share-view,
+  .share-dashboard,
+  .share-doc,
+  .share-base {
+    @apply !border-1 border-nc-border-gray-medium mx-3 rounded-lg mt-3 px-1 py-1;
+  }
+
+  .ant-collapse-item {
+    @apply !border-1 border-nc-border-gray-light;
+  }
+
+  .ant-collapse-content {
+    @apply !border-t-0;
+  }
+
+  .ant-collapse-content-box {
+    @apply !p-0;
+  }
+
+  .ant-modal-content {
+    @apply !rounded-lg !px-1 !py-2;
+  }
+
+  .ant-select-selector {
+    @apply !rounded-md !border-nc-border-gray-medium !border-1;
+  }
+
+  .ant-form-item {
+    @apply !my-0;
+  }
+
+  .ant-form-item-explain {
+    @apply !ml-3;
+  }
+
+  .ant-select {
+    @apply !p-0.5;
+  }
+
+  .ant-select-selector {
+    @apply !bg-nc-bg-default;
+  }
+}
+</style>

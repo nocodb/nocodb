@@ -1,0 +1,360 @@
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { LinksVersion, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import dagre from 'dagre'
+import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
+import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
+import type { MaybeRef } from '@vueuse/core'
+import { scaleLinear as d3ScaleLinear } from 'd3-scale'
+import tinycolor from 'tinycolor2'
+
+export interface ERDConfig {
+  showPkAndFk: boolean
+  showViews: boolean
+  showAllColumns: boolean
+  singleTableMode: boolean
+  showJunctionTableNames: boolean
+  showMMTables: boolean
+  isFullScreen: boolean
+}
+
+export interface NodeData {
+  table: TableType
+  pkAndFkColumns: ColumnType[]
+  nonPkColumns: ColumnType[]
+  showPkAndFk: boolean
+  showAllColumns: boolean
+  color: string
+  columnLength: number
+}
+
+export interface EdgeData {
+  isManyToMany: boolean
+  isOneToMany: boolean
+  isManyToOne: boolean
+  isOneToOne: boolean
+  isSelfRelation: boolean
+  label?: string
+  simpleLabel?: string
+  color: string
+}
+
+interface Relation {
+  source: string
+  target: string
+  childColId?: string
+  parentColId?: string
+  modelId?: string
+  type: RelationTypes
+  // v2 links are junction-backed; v1 HM/BT/OO are direct-FK.
+  isV2?: boolean
+  // Handle anchors — the LTAR column ids on each side.
+  // Using `col.id` (unique per row) avoids v2's fk_child collision where OM/MO/OO
+  // on the same table all resolve to the table's PK.
+  sourceColumnId?: string
+  targetColumnId?: string
+}
+
+/**
+ * This util is used to generate the ERD graph elements and layout them
+ *
+ * @param tables
+ * @param props
+ */
+export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ERDConfig>) {
+  const elements = ref<Elements<NodeData | EdgeData>>([])
+
+  const colorScale = d3ScaleLinear<string>().domain([0, 2]).range([themeV3Colors.brand['500'], themeV3Colors.pink['500']])
+
+  const dagreGraph = new dagre.graphlib.Graph()
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
+  dagreGraph.setGraph({
+    rankdir: 'LR',
+    align: 'UL',
+    nodesep: 50,
+    ranksep: 100,
+  })
+
+  const { metasWithIdAsKey } = useMetas()
+
+  const erdTables = computed(() => unref(tables))
+  const config = computed(() => unref(props))
+
+  const nodeWidth = 300
+  const nodeHeight = computed(() => (config.value.showViews && config.value.showAllColumns ? 50 : 40))
+
+  const relations = computed(() =>
+    erdTables.value.reduce((acc, table) => {
+      const meta = metasWithIdAsKey.value[table.id!]
+      const columns = meta?.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
+
+      for (const column of columns) {
+        const colOptions = column.colOptions as LinkToAnotherRecordType
+        const source = column.fk_model_id
+        const target = colOptions.fk_related_model_id
+
+        if (!source || !target) continue
+        if (!erdTables.value.some((t) => t.id === source)) continue
+        if (!erdTables.value.some((t) => t.id === target)) continue
+
+        const type = colOptions.type as RelationTypes
+
+        // BT is always the mirror of HM; MO is always the mirror of OM — skip them.
+        if (type === RelationTypes.BELONGS_TO) continue
+        if (type === RelationTypes.MANY_TO_ONE) continue
+
+        // db may store version as string "2" or number 2
+        // eslint-disable-next-line eqeqeq
+        const isV2 = colOptions.version == LinksVersion.V2
+        // junction-backed relation (v1 MM + any v2 link): mirror has swapped fk_child/fk_parent
+        const isJunction = isV2 || type === RelationTypes.MANY_TO_MANY
+
+        // v1 OO tags the child side with meta.bt — skip it so the relation is pushed once.
+        if (type === RelationTypes.ONE_TO_ONE && !isV2 && column.meta?.bt) continue
+
+        // Find the mirror column on the target table.
+        const mirror = metasWithIdAsKey.value[target]?.columns?.find((c: ColumnType) => {
+          if (!isLinksOrLTAR(c) || !!c.system || c.id === column.id) return false
+          const co = c.colOptions as LinkToAnotherRecordType | undefined
+          if (!co || co.fk_related_model_id !== source) return false
+          if (isJunction) {
+            return (
+              co.fk_child_column_id === colOptions.fk_parent_column_id &&
+              co.fk_parent_column_id === colOptions.fk_child_column_id &&
+              co.fk_mm_model_id === colOptions.fk_mm_model_id
+            )
+          }
+          // v1 direct-FK — mirror keeps the same fk_child / fk_parent values
+          return (
+            co.fk_child_column_id === colOptions.fk_child_column_id && co.fk_parent_column_id === colOptions.fk_parent_column_id
+          )
+        })
+
+        // If our mirror was already processed and pushed, we'd be its mirror — skip.
+        if (mirror && acc.some((r) => r.sourceColumnId === mirror.id)) continue
+
+        acc.push({
+          source,
+          target,
+          childColId: colOptions.fk_child_column_id,
+          parentColId: colOptions.fk_parent_column_id,
+          modelId: colOptions.fk_mm_model_id,
+          type,
+          isV2,
+          sourceColumnId: column.id,
+          targetColumnId: mirror?.id ?? column.id,
+        })
+      }
+
+      return acc
+    }, [] as Relation[]),
+  )
+
+  function edgeLabel({ type, source, target, modelId, sourceColumnId, targetColumnId }: Relation) {
+    let typeLabel = ''
+
+    if (type === RelationTypes.HAS_MANY) typeLabel = 'has many'
+    else if (type === RelationTypes.MANY_TO_MANY) typeLabel = 'many to many'
+    else if (type === RelationTypes.ONE_TO_ONE) typeLabel = 'one to one'
+    else if (type === RelationTypes.ONE_TO_MANY) typeLabel = 'one to many'
+    else if (type === RelationTypes.MANY_TO_ONE) typeLabel = 'many to one'
+    else if (type === RelationTypes.BELONGS_TO) typeLabel = 'belongs to'
+
+    // Source/target column ids were computed at collection time; look up by id directly.
+    const parentCol = metasWithIdAsKey.value[source]?.columns?.find((col) => col.id === sourceColumnId)
+    const childCol = metasWithIdAsKey.value[target]?.columns?.find((col) => col.id === targetColumnId)
+
+    if (!parentCol || !childCol) return ['', '']
+
+    if (type === RelationTypes.MANY_TO_MANY) {
+      if (config.value.showJunctionTableNames) {
+        if (!modelId) return ['', '']
+
+        const mmModel = metasWithIdAsKey.value[modelId]
+
+        if (!mmModel) return ['', '']
+
+        if (mmModel.title !== mmModel.table_name) {
+          return [`${mmModel.title} (${mmModel.table_name})`]
+        }
+
+        return [mmModel.title]
+      }
+    }
+
+    const sourceMeta = metasWithIdAsKey.value[source]
+    const targetMeta = metasWithIdAsKey.value[target]
+
+    if (!sourceMeta || !targetMeta) return ['', '']
+
+    return [
+      // detailed edge label
+      `[${sourceMeta.title}] ${parentCol.title} - ${typeLabel} - ${childCol.title} [${targetMeta.title}]`,
+      // simple edge label (for skeleton)
+      `${sourceMeta.title} - ${typeLabel} - ${targetMeta.title}`,
+    ]
+  }
+
+  function createNodes() {
+    return erdTables.value.reduce<Node<NodeData>[]>((acc, table) => {
+      if (!table.id) return acc
+
+      const columns =
+        metasWithIdAsKey.value[table.id]?.columns?.filter((col) => {
+          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes) && col.system) return false
+          return config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col))
+        }) || []
+
+      const pkAndFkColumns = columns
+        .filter(() => config.value.showPkAndFk)
+        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+
+      const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
+
+      acc.push({
+        id: table.id,
+        data: {
+          table: metasWithIdAsKey.value[table.id],
+          pkAndFkColumns,
+          nonPkColumns,
+          showPkAndFk: config.value.showPkAndFk,
+          showAllColumns: config.value.showAllColumns,
+          columnLength: columns.length,
+          color: '',
+        },
+        type: 'custom',
+        position: { x: 0, y: 0 },
+      })
+
+      return acc
+    }, [])
+  }
+
+  function createEdges() {
+    return relations.value.reduce<Edge<EdgeData>[]>((acc, rel) => {
+      const { source, target, type, sourceColumnId, targetColumnId } = rel
+
+      const [label, simpleLabel] = edgeLabel(rel)
+
+      acc.push({
+        id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${label}`,
+        source: `${source}`,
+        target: `${target}`,
+        sourceHandle: `s-${sourceColumnId}-${source}`,
+        targetHandle: `d-${targetColumnId}-${target}`,
+        type: 'custom',
+        markerEnd: {
+          id: 'arrow-colored',
+          type: MarkerType.ArrowClosed,
+        },
+        data: {
+          isManyToMany: type === RelationTypes.MANY_TO_MANY,
+          isOneToMany: type === RelationTypes.ONE_TO_MANY,
+          isManyToOne: type === RelationTypes.MANY_TO_ONE,
+          isOneToOne: type === RelationTypes.ONE_TO_ONE,
+          isSelfRelation: source === target,
+          label,
+          simpleLabel,
+          color: '',
+        },
+      })
+
+      return acc
+    }, [])
+  }
+
+  const boxShadow = (_skeleton: boolean, _color: string) => ({})
+
+  const layout = async (skeleton = false): Promise<void> => {
+    return new Promise((resolve) => {
+      elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
+
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const node = el as Node<NodeData>
+          const colLength = node.data!.columnLength
+
+          const width = skeleton ? nodeWidth * 3 : nodeWidth
+          const height = nodeHeight.value + (skeleton ? 250 : colLength > 0 ? nodeHeight.value * colLength : nodeHeight.value)
+          dagreGraph.setNode(el.id, {
+            width,
+            height,
+          })
+        } else if (isEdge(el)) {
+          dagreGraph.setEdge(el.source, el.target)
+        }
+      }
+
+      dagre.layout(dagreGraph)
+
+      // Calculate bounds to center the layout
+      let minX = Infinity
+      let minY = Infinity
+      let maxX = -Infinity
+      let maxY = -Infinity
+
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const nodeWithPosition = dagreGraph.node(el.id)
+          const width = skeleton ? nodeWidth * 3 : nodeWidth
+          const height =
+            nodeHeight.value +
+            (skeleton
+              ? 250
+              : (el as Node<NodeData>).data!.columnLength > 0
+              ? nodeHeight.value * (el as Node<NodeData>).data!.columnLength
+              : nodeHeight.value)
+
+          minX = Math.min(minX, nodeWithPosition.x - width / 2)
+          minY = Math.min(minY, nodeWithPosition.y - height / 2)
+          maxX = Math.max(maxX, nodeWithPosition.x + width / 2)
+          maxY = Math.max(maxY, nodeWithPosition.y + height / 2)
+        }
+      }
+
+      // Calculate center offset to position the layout at origin
+      const centerOffsetX = -(minX + maxX) / 2
+      const centerOffsetY = -(minY + maxY) / 2
+
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const color = colorScale(dagreGraph.predecessors(el.id)!.length)
+
+          const nodeWithPosition = dagreGraph.node(el.id)
+
+          el.targetPosition = Position.Left
+          el.sourcePosition = Position.Right
+          // Apply center offset to position nodes around the origin
+          el.position = {
+            x: nodeWithPosition.x + centerOffsetX,
+            y: nodeWithPosition.y + centerOffsetY,
+          }
+          el.class = [erdNodeClassNames.node].join(' ')
+          el.data.color = color
+
+          el.style = (n) => {
+            if (n.selected) {
+              return boxShadow(skeleton, color)
+            }
+
+            return boxShadow(skeleton, '#64748B')
+          }
+        } else if (isEdge(el)) {
+          const node = elements.value.find((nodes) => nodes.id === el.source)
+          if (node) {
+            const color = node.data!.color
+
+            el.data.color = color
+            ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+          }
+        }
+      }
+
+      resolve()
+    })
+  }
+
+  return {
+    elements,
+    layout,
+  }
+}

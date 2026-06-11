@@ -1,0 +1,34 @@
+<script setup lang="ts">
+const { getMeta } = useMetas()
+
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
+
+const route = useRoute()
+
+const activeTab = inject(
+  TabMetaInj,
+  computed(() => ({} as TabItem)),
+)
+
+watch(
+  () => route.params.viewId,
+  (viewId) => {
+    /** wait until table list loads since meta load requires table list **/
+    until(tables)
+      .toMatch((tables) => {
+        return tables.length > 0
+      })
+      .then(() => {
+        getMeta(baseStore.baseId as string, viewId as string, undefined, undefined, undefined, true)
+      })
+  },
+  { immediate: true },
+)
+</script>
+
+<template>
+  <div class="w-full h-full relative">
+    <TabsSmartsheet :active-tab="activeTab" />
+  </div>
+</template>

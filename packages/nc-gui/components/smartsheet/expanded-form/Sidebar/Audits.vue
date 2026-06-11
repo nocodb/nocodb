@@ -1,0 +1,321 @@
+<script setup lang="ts">
+import { type AuditType, PlanLimitTypes, type TableType } from 'nocodb-sdk'
+
+const { user } = useGlobal()
+
+const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits } =
+  useExpandedFormStoreOrThrow()
+
+const { getPlanLimit } = useWorkspace()
+
+const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+
+function showAuditUpgradeModal() {
+  handleUpgradePlan({
+    limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+  })
+}
+
+const auditRetentionLimit = computed(() => {
+  const retention = getPlanLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION)
+
+  if (retention === 14) {
+    return '2 weeks'
+  } else if (retention === 60) {
+    return '2 months'
+  } else if (retention === 180) {
+    return '6 months'
+  } else if (retention === 365) {
+    return '1 year'
+  }
+
+  return null
+})
+
+const auditsWrapperEl = ref<HTMLElement | null>(null)
+
+watch(primaryKey, () => {
+  resetAuditPages()
+})
+
+function scrollToLastAudit() {
+  auditsWrapperEl.value?.scrollBy({
+    top: 50000,
+    behavior: 'instant',
+  })
+}
+
+const createdByAudit = (
+  comment: AuditType & {
+    created_display_name_short?: string
+  },
+) => {
+  if (comment.user === user.value?.email) {
+    return 'You'
+  } else if (comment.created_display_name_short?.trim()) {
+    return comment.created_display_name_short || 'Shared source'
+  } else if (comment.user) {
+    return comment.user
+  } else {
+    return 'Shared source'
+  }
+}
+
+const shouldSkipAuditsScroll = ref(false)
+
+function initLoadMoreAudits() {
+  shouldSkipAuditsScroll.value = true
+  loadMoreAudits()
+
+  // Restore focus to the modal container to ensure escape key handling works
+  nextTick(() => {
+    document.querySelector('.nc-drawer-expanded-form.active > div[tabindex="0"]')?.focus?.()
+  })
+}
+
+watch(
+  consolidatedAudits,
+  () => {
+    if (shouldSkipAuditsScroll.value) {
+      shouldSkipAuditsScroll.value = true
+      return
+    }
+    nextTick(() => {
+      setTimeout(() => {
+        scrollToLastAudit()
+      }, 500)
+    })
+  },
+  {
+    immediate: true,
+  },
+)
+
+const meta = inject(MetaInj, ref())
+
+const isSyncedTable = computed(() => !!(meta.value as TableType | undefined)?.synced)
+
+function safeJsonParse(json: string) {
+  try {
+    return JSON.parse(json)
+  } catch (e) {
+    return {}
+  }
+}
+
+// Op types whose audit detail is a per-field change set (DATA_UPDATE family).
+const UPDATE_OP_TYPES = ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE']
+
+// On synced tables, an update that touched ONLY sync bookkeeping fields
+// (RemoteSyncedAt, SyncRunId, …) is pure sync noise — drop the whole entry so
+// the revision history only surfaces real data changes. Mixed entries still
+// render; AuditMiniItem hides their sync-system rows individually.
+const visibleAudits = computed(() => {
+  if (!isSyncedTable.value) return consolidatedAudits.value
+
+  return consolidatedAudits.value.filter((audit) => {
+    if (!UPDATE_OP_TYPES.includes(audit?.op_type)) return true
+
+    const changedKeys = Object.keys(safeJsonParse(audit.details as string)?.data ?? {})
+    if (!changedKeys.length) return true
+
+    return changedKeys.some((key) => !isSyncSystemColumnTitle(key))
+  })
+})
+
+function getLinkColumnType(audit: AuditType) {
+  const details = safeJsonParse(audit.details as string)
+  const col = meta.value?.columns?.find((c: any) => c.id === details.link_field_id)
+  return (col?.colOptions as any)?.type || details.type
+}
+
+function isV0Audit(audit: AuditType) {
+  if (audit.version === 0) {
+    return true
+  }
+
+  if (['LINK_RECORD', 'UNLINK_RECORD'].includes(audit?.op_sub_type || '') && audit.details?.startsWith('<span')) {
+    return true
+  }
+
+  return false
+}
+</script>
+
+<template>
+  <div class="h-full">
+    <div v-if="isAuditLoading && consolidatedAudits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
+      <GeneralLoader size="xlarge" />
+    </div>
+
+    <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
+      <template v-if="visibleAudits.length === 0">
+        <div class="flex flex-col text-center justify-center h-full">
+          <div class="text-center text-3xl text-nc-content-gray-subtle2">
+            <MdiHistory />
+          </div>
+          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">See changes to this record</div>
+          <div v-if="auditRetentionLimit" class="text-center text-nc-content-gray-subtle2">
+            Your current plan provides <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div class="mt-auto" />
+        <div v-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <div class="text-center text-nc-content-gray-subtle2 text-xs">
+            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full
+            history.
+          </div>
+          <NcButton
+            v-if="isPaymentEnabled"
+            v-e="['c:audit:retention:upgrade']"
+            type="secondary"
+            size="xs"
+            @click="showAuditUpgradeModal"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
+              {{ $t('general.upgrade') }}
+            </div>
+          </NcButton>
+        </div>
+        <div v-if="hasMoreAudits" class="p-3 text-center">
+          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
+        </div>
+        <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
+          <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-3 flex-1 w-full">
+                <GeneralUserIcon
+                  :user="{
+                    email: audit?.created_by_email || audit?.user,
+                    display_name: audit?.created_display_name,
+                    meta: audit?.created_by_meta,
+                  }"
+                  class="mt-0.5"
+                  size="medium"
+                />
+                <div class="flex h-[28px] items-center gap-2 w-[calc(100%_-_40px)]">
+                  <div class="truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden">
+                    {{ createdByAudit(audit) }}
+                  </div>
+                  <div class="text-xs text-nc-content-gray-muted">
+                    <NcTooltip>
+                      <template #title>{{ parseStringDateTime(audit.created_at) }}</template>
+                      {{ timeAgo(audit.created_at!) }}
+                    </NcTooltip>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="isV0Audit(audit)" class="pl-9">
+              <div
+                v-if="audit.details"
+                v-dompurify-html="audit.details"
+                class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3"
+                @click="handleDompurifyLinkClick"
+              ></div>
+              <div v-else class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
+                {{ audit.description }}
+              </div>
+            </div>
+            <template v-else-if="['DATA_INSERT', 'DATA_BULK_INSERT'].includes(audit?.op_type)">
+              <div class="pl-9">created the record.</div>
+              <div
+                v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
+                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y"
+              >
+                <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
+              </div>
+            </template>
+            <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
+              <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
+                <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
+                  <SmartsheetHeaderVirtualCellIcon
+                    :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"
+                    class="!m-0"
+                  />
+                  {{ safeJsonParse(audit.details).link_field_title }}
+                </div>
+                <div class="!border-none audit-link-container">
+                  <div
+                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0"
+                    class="audit-link-removal"
+                  >
+                    <span
+                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
+                      :key="entry.refRowId"
+                      class="audit-link-item"
+                    >
+                      {{ entry.value }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0"
+                    class="audit-link-addition"
+                  >
+                    <span
+                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_links"
+                      :key="entry.refRowId"
+                      class="audit-link-item"
+                    >
+                      {{ entry.value }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <template
+              v-else-if="
+                ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE'].includes(audit?.op_type)
+              "
+            >
+              <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="pl-9 text-xs text-nc-content-gray-muted mb-1">
+                {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
+              </div>
+              <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
+                <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
+              </div>
+            </template>
+            <template v-else-if="['DATA_SOFT_DELETE', 'DATA_BULK_SOFT_DELETE'].includes(audit?.op_type)">
+              <div class="pl-9">moved the record to trash.</div>
+            </template>
+            <template v-else-if="['DATA_RESTORE', 'DATA_BULK_RESTORE'].includes(audit?.op_type)">
+              <div class="pl-9">restored the record from trash.</div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+:deep(.red.lighten-4) {
+  @apply bg-nc-bg-red-dark rounded-md line-through;
+}
+
+.nc-audit-item {
+  @apply gap-3;
+}
+
+:deep(.green.lighten-4) {
+  @apply bg-nc-bg-green-dark rounded-md !mr-3;
+}
+.audit-link-container {
+  @apply flex flex-row flex-wrap gap-2;
+  .audit-link-addition {
+    @apply flex gap-2 flex-wrap;
+    span {
+      @apply !text-[13px] px-1 py-0.5 text-nc-content-green-dark font-weight-500 border-1 border-green-200 rounded-md bg-nc-bg-green-light decoration-clone;
+    }
+  }
+  .audit-link-removal {
+    @apply flex gap-2 flex-wrap;
+    span {
+      @apply !text-[13px] px-1 py-0.5 text-nc-content-red-dark font-weight-500 border-1 border-red-200 rounded-md bg-nc-bg-red-light decoration-clone line-through;
+    }
+  }
+}
+</style>

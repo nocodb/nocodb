@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Build::SDK" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/packages/nocodb-sdk/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="build" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="NC_DISABLE_CACHE" value="true" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

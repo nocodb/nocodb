@@ -1,0 +1,269 @@
+import { isAIPromptCol, isSmartText } from 'nocodb-sdk'
+import { isBoxHovered, renderIconButton, renderMarkdown, renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { AILongTextCellRenderer } from './AILongText'
+
+export const LongTextCellRenderer: CellRenderer = {
+  render: (ctx, props) => {
+    if (isAIPromptCol(props.column)) {
+      AILongTextCellRenderer.render(ctx, props)
+      return
+    }
+
+    // SmartText cells render their stored markdown using the same rich-mode
+    // canvas path so users still see formatted preview in the grid.
+    const isSmartMode = isSmartText(props.column)
+    const isRichMode = props.column?.meta?.richMode || isSmartMode
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = themeV4Colors.gray['600'],
+      getColor,
+      mousePosition,
+      spriteLoader,
+      setCursor,
+      selected,
+      baseUsers,
+      user,
+      markdownLoader,
+    } = props
+
+    const text = value?.toString() ?? ''
+
+    const renderExpandIcon = () => {
+      renderIconButton(ctx, {
+        buttonX: x + width - 28,
+        buttonY: y + 7,
+        buttonSize: 20,
+        borderRadius: 6,
+        iconData: {
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'maximize',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
+        setCursor,
+      })
+    }
+
+    if (!text) {
+      if (!props.tag?.renderAsTag && selected) {
+        renderExpandIcon()
+      }
+
+      return {
+        x,
+        y,
+      }
+    }
+
+    if (props.tag?.renderAsTag) {
+      return renderTagLabel(ctx, { ...props, text, renderAsMarkdown: isRichMode })
+    } else if (isRichMode) {
+      // Begin clipping
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(x, y, width - padding, height) // Define the clipping rectangle
+      ctx.clip()
+
+      const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
+        x: x + padding,
+        y,
+        text,
+        maxWidth: width - padding * 2,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
+        height,
+        mousePosition,
+        spriteLoader,
+        cellRenderStore: props.cellRenderStore,
+        selected,
+        baseUsers,
+        user,
+        getColor,
+        markdownLoader,
+      })
+
+      // Restore context after clipping
+      ctx.restore()
+
+      if (!props.tag?.renderAsTag && selected) {
+        renderExpandIcon()
+      }
+
+      return {
+        x: xOffset,
+        y: yOffset,
+      }
+    } else {
+      const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+        x: x + padding,
+        y,
+        text,
+        maxWidth: width - padding * 2,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
+        height,
+        cellRenderStore: props.cellRenderStore,
+        renderAsPreTag: true,
+      })
+
+      if (!props.tag?.renderAsTag && selected) {
+        renderExpandIcon()
+      }
+
+      return {
+        x: xOffset,
+        y: yOffset,
+      }
+    }
+  },
+  handleClick: async (props) => {
+    const {
+      column,
+      getCellPosition,
+      row,
+      mousePosition,
+      makeCellEditable,
+      cellRenderStore,
+      isDoubleClick,
+      selected,
+      openSmartText,
+      pk,
+    } = props
+
+    if (isAIPromptCol(column?.columnObj)) {
+      return AILongTextCellRenderer.handleClick!(props)
+    }
+
+    if (!selected && !isDoubleClick) return false
+
+    // SmartText opens the panel instead of inline editing.
+    if (isSmartText(column?.columnObj) && openSmartText && column.columnObj?.id && pk) {
+      const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+      if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+        await openSmartText(String(pk), column.columnObj.id, row.row, row.rowMeta.rowIndex)
+        return true
+      }
+    }
+
+    const isRichMode = column.columnObj?.meta?.richMode
+
+    if (isRichMode) {
+      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore?.links || []
+
+      for (const link of links) {
+        if (isBoxHovered(link, mousePosition)) {
+          confirmPageLeavingRedirect(link.url, '_blank')
+          return true
+        }
+      }
+    }
+
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    if (isDoubleClick && isBoxHovered({ x, y, width, height }, mousePosition)) {
+      makeCellEditable(row, column)
+    }
+    return false
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable, openSmartText, pk } = ctx
+
+    const columnObj = column?.columnObj
+
+    if (isAIPromptCol(columnObj)) {
+      return AILongTextCellRenderer.handleKeyDown?.(ctx)
+    }
+
+    // SmartText: any printable key or Enter / Shift+Space opens the panel
+    // — there is no inline edit mode for SmartText cells.
+    if (isSmartText(columnObj) && openSmartText && columnObj?.id && pk) {
+      if (isExpandCellKey(e) || e.key === 'Enter' || (e.key.length === 1 && !e.ctrlKey && !e.metaKey)) {
+        e.preventDefault()
+        await openSmartText(String(pk), columnObj.id, row.row, row.rowMeta.rowIndex)
+        return true
+      }
+    }
+
+    if (isExpandCellKey(e)) {
+      // prevent default to avoid adding space to the end of the cell
+      e.preventDefault()
+
+      makeCellEditable(row, column)
+      return true
+    }
+
+    if (column.readonly || columnObj?.readonly) return
+
+    if (e.key.length === 1 && columnObj.title) {
+      if (row.row[columnObj.title] === '<br />' || row.row[columnObj.title] === '<br>') {
+        row.row[columnObj.title] = e.key
+      } else if (parseProp(columnObj.meta).richMode) {
+        row.row[columnObj.title] = row.row[columnObj.title] ? row.row[columnObj.title] + e.key : e.key
+      }
+
+      makeCellEditable(row, column)
+      return true
+    }
+
+    return false
+  },
+  handleHover: async (props) => {
+    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor, selected, t } = props
+
+    if (!selected && !isAIPromptCol(column?.columnObj)) {
+      return
+    }
+
+    const isRichMode = column.columnObj?.meta?.richMode
+
+    if (isRichMode) {
+      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore?.links || []
+
+      let hoveringAnyLink = false
+
+      for (const link of links) {
+        if (isBoxHovered(link, mousePosition)) {
+          hoveringAnyLink = true
+          break
+        }
+      }
+
+      if (hoveringAnyLink) {
+        setCursor('pointer')
+        return
+      }
+    }
+
+    if (isAIPromptCol(column?.columnObj)) {
+      AILongTextCellRenderer.handleHover?.(props)
+    } else {
+      const { tryShowTooltip, hideTooltip } = useTooltipStore()
+      hideTooltip()
+
+      const text = value?.toString() ?? ''
+
+      if (!row || !column?.id || !mousePosition || !text) return
+
+      const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+      const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
+      tryShowTooltip({ rect: box, mousePosition, text: t('tooltip.expandShiftSpace') })
+    }
+  },
+}

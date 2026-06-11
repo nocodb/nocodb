@@ -1,0 +1,1039 @@
+import {
+  ButtonActionsType,
+  ColumnReqType,
+  ColumnType,
+  LinkToAnotherRecordType,
+  TableType,
+} from './Api';
+import { FormulaDataTypes } from './formula/enums';
+import { LinksVersion, LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
+import { parseProp } from './helperFunctions';
+import { SYNC_SYSTEM_COLUMN_TITLES } from './sync';
+
+enum UITypes {
+  ID = 'ID',
+  LinkToAnotherRecord = 'LinkToAnotherRecord',
+  ForeignKey = 'ForeignKey',
+  Lookup = 'Lookup',
+  SingleLineText = 'SingleLineText',
+  LongText = 'LongText',
+  Attachment = 'Attachment',
+  Checkbox = 'Checkbox',
+  MultiSelect = 'MultiSelect',
+  SingleSelect = 'SingleSelect',
+  Collaborator = 'Collaborator',
+  Date = 'Date',
+  Year = 'Year',
+  Time = 'Time',
+  PhoneNumber = 'PhoneNumber',
+  GeoData = 'GeoData',
+  Email = 'Email',
+  URL = 'URL',
+  Number = 'Number',
+  Decimal = 'Decimal',
+  Currency = 'Currency',
+  Percent = 'Percent',
+  Duration = 'Duration',
+  Rating = 'Rating',
+  Colour = 'Colour',
+  Formula = 'Formula',
+  Rollup = 'Rollup',
+  Count = 'Count',
+  DateTime = 'DateTime',
+  CreatedTime = 'CreatedTime',
+  LastModifiedTime = 'LastModifiedTime',
+  AutoNumber = 'AutoNumber',
+  Geometry = 'Geometry',
+  JSON = 'JSON',
+  SpecificDBType = 'SpecificDBType',
+  Barcode = 'Barcode',
+  QrCode = 'QrCode',
+  Button = 'Button',
+  Links = 'Links',
+  User = 'User',
+  CreatedBy = 'CreatedBy',
+  LastModifiedBy = 'LastModifiedBy',
+  Order = 'Order',
+  Deleted = 'Deleted',
+  Meta = 'Meta',
+  UUID = 'UUID',
+}
+
+export const UITypesName = {
+  [UITypes.ID]: 'ID',
+  [UITypes.LinkToAnotherRecord]: 'Link to another record',
+  [UITypes.ForeignKey]: 'Foreign key',
+  [UITypes.Order]: 'Order',
+  [UITypes.Lookup]: 'Lookup',
+  [UITypes.SingleLineText]: 'Single line text',
+  [UITypes.LongText]: 'Long text',
+  RichText: 'Rich text',
+  SmartText: 'Smart Text',
+  [UITypes.Attachment]: 'Attachment',
+  [UITypes.Checkbox]: 'Checkbox',
+  [UITypes.MultiSelect]: 'Multi select',
+  [UITypes.SingleSelect]: 'Single select',
+  [UITypes.Collaborator]: 'Collaborator',
+  [UITypes.Date]: 'Date',
+  [UITypes.Year]: 'Year',
+  [UITypes.Time]: 'Time',
+  [UITypes.PhoneNumber]: 'Phone number',
+  [UITypes.GeoData]: 'Geo data',
+  [UITypes.Email]: 'Email',
+  [UITypes.URL]: 'URL',
+  [UITypes.Number]: 'Number',
+  [UITypes.Decimal]: 'Decimal',
+  [UITypes.Currency]: 'Currency',
+  [UITypes.Percent]: 'Percent',
+  [UITypes.Duration]: 'Duration',
+  [UITypes.Rating]: 'Rating',
+  [UITypes.Colour]: 'Colour',
+  [UITypes.Formula]: 'Formula',
+  [UITypes.Rollup]: 'Rollup',
+  [UITypes.Count]: 'Count',
+  [UITypes.DateTime]: 'Date time',
+  [UITypes.CreatedTime]: 'Created time',
+  [UITypes.LastModifiedTime]: 'Last modified time',
+  [UITypes.AutoNumber]: 'Auto number',
+  [UITypes.Geometry]: 'Geometry',
+  [UITypes.JSON]: 'JSON',
+  [UITypes.SpecificDBType]: 'Specific DB type',
+  [UITypes.Barcode]: 'Barcode',
+  [UITypes.QrCode]: 'Qr code',
+  [UITypes.Button]: 'Button',
+  [UITypes.Links]: 'Links',
+  [UITypes.User]: 'User',
+  [UITypes.CreatedBy]: 'Created by',
+  [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Deleted]: 'Deleted',
+  [UITypes.Meta]: 'Row Meta',
+  [UITypes.UUID]: 'UUID',
+  AIButton: 'AI Button',
+  AIPrompt: 'AI Text',
+};
+
+export const UITypesSearchTerms = {
+  [UITypes.ID]: ['ID', 'record number', 'unique number'],
+  [UITypes.ForeignKey]: [
+    'Foreign key',
+    'connect records',
+    'related record',
+    'reference',
+    'relationship',
+  ],
+  [UITypes.LinkToAnotherRecord]: [
+    'Link to another record',
+    'connect records',
+    'related record',
+    'reference',
+    'relationship',
+  ],
+  [UITypes.Lookup]: ['Lookup', 'pull data', 'get value from', 'reference data'],
+  [UITypes.SingleLineText]: [
+    'Single line text',
+    'text',
+    'short text',
+    'name',
+    'title',
+  ],
+  [UITypes.LongText]: [
+    'Long text',
+    'paragraph',
+    'notes',
+    'description',
+    'comments',
+    'memo',
+    'Rich text',
+    'formatted text',
+    'styled text',
+    'html text',
+    'Smart text',
+  ],
+  [UITypes.Attachment]: ['Attachment', 'file', 'document', 'image', 'upload'],
+  [UITypes.Checkbox]: ['Checkbox', 'yes/no', 'true/false', 'completed', 'done'],
+  [UITypes.MultiSelect]: [
+    'Multi select',
+    'multiple options',
+    'tags',
+    'categories',
+    'list',
+    'options',
+    'choice',
+  ],
+  [UITypes.SingleSelect]: [
+    'Single select',
+    'dropdown',
+    'options',
+    'choice',
+    'pick one',
+    'status',
+    'priority',
+  ],
+  [UITypes.Collaborator]: [
+    'Collaborator',
+    'team member',
+    'person',
+    'assignee',
+    'owner',
+  ],
+  [UITypes.Date]: ['Date', 'calendar', 'due date', 'start date'],
+  [UITypes.Year]: ['Year'],
+  [UITypes.Time]: ['Time', 'time of day', 'hour'],
+  [UITypes.PhoneNumber]: ['Phone number', 'phone', 'contact number', 'mobile'],
+  [UITypes.GeoData]: ['Geo data', 'location', 'address', 'map', 'coordinates'],
+  [UITypes.Email]: ['Email', 'email address', 'contact email'],
+  [UITypes.URL]: ['URL', 'website', 'link', 'web address'],
+  [UITypes.Number]: ['Number', 'quantity', 'amount', 'count'],
+  [UITypes.Decimal]: ['Decimal', 'decimal number', 'precise number'],
+  [UITypes.Currency]: [
+    'Currency',
+    'money',
+    'price',
+    'cost',
+    'budget',
+    'revenue',
+  ],
+  [UITypes.Percent]: ['Percent', 'percentage', 'completion', 'progress'],
+  [UITypes.Duration]: [
+    'Duration',
+    'time spent',
+    'elapsed time',
+    'hours worked',
+  ],
+  [UITypes.Rating]: ['Rating', 'stars', 'score', 'review', 'feedback'],
+  [UITypes.Colour]: [
+    'Colour',
+    'Color',
+    'hex',
+    'rgb',
+    'visual',
+    'palette',
+    'swatch',
+  ],
+  [UITypes.Formula]: [
+    'Formula',
+    'calculation',
+    'computed field',
+    'auto calculate',
+  ],
+  [UITypes.Rollup]: [
+    'Rollup',
+    'summary',
+    'total from related records',
+    'aggregate',
+  ],
+  [UITypes.Count]: ['Count', 'number of records', 'total count'],
+  [UITypes.DateTime]: ['Date time', 'date and time', 'timestamp'],
+  [UITypes.CreatedTime]: ['Created time', 'date created', 'created on'],
+  [UITypes.LastModifiedTime]: [
+    'Last modified time',
+    'last updated',
+    'modified on',
+  ],
+  [UITypes.AutoNumber]: ['Auto number', 'auto increment', 'sequence number'],
+  [UITypes.Geometry]: ['Geometry', 'shape', 'geographic shape'],
+  [UITypes.JSON]: ['JSON', 'structured data', 'complex data'],
+  [UITypes.SpecificDBType]: [
+    'Specific DB type',
+    'database type',
+    'custom type',
+  ],
+  [UITypes.Barcode]: ['Barcode', 'product code', 'scan code'],
+  [UITypes.QrCode]: ['Qr code', 'QR code', 'scan code'],
+  [UITypes.Button]: ['Button', 'action button', 'click button'],
+  [UITypes.Links]: ['Links', 'related links', 'connections'],
+  [UITypes.User]: ['User', 'person', 'team member', 'assignee', 'owner'],
+  [UITypes.CreatedBy]: ['Created by', 'author', 'who created'],
+  [UITypes.LastModifiedBy]: [
+    'Last modified by',
+    'last updated by',
+    'who changed',
+  ],
+  [UITypes.UUID]: [
+    'UUID',
+    'unique identifier',
+    'globally unique',
+    'GUID',
+    'universally unique identifier',
+  ],
+  AIButton: ['AI Button', 'AI action', 'smart button'],
+  AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
+};
+
+export const columnTypeName = (column?: ColumnType) => {
+  if (!column) return '';
+
+  switch (column.uidt) {
+    case UITypes.LongText: {
+      if (parseProp(column.meta)?.richMode) {
+        return UITypesName.RichText;
+      }
+
+      if (parseProp(column.meta)?.smartMode) {
+        return UITypesName.SmartText;
+      }
+
+      if (parseProp(column.meta)[LongTextAiMetaProp]) {
+        return UITypesName.AIPrompt;
+      }
+
+      return UITypesName[column.uidt];
+    }
+    case UITypes.Button: {
+      if (
+        column.uidt === UITypes.Button &&
+        (column?.colOptions as any)?.type === 'ai'
+      ) {
+        return UITypesName.AIButton;
+      }
+
+      return UITypesName[column.uidt];
+    }
+    default: {
+      return column.uidt ? UITypesName[column.uidt] : '';
+    }
+  }
+};
+
+export const FieldNameFromUITypes: Record<UITypes, string> = {
+  [UITypes.ID]: 'ID',
+  [UITypes.LinkToAnotherRecord]: '{TableName}',
+  [UITypes.ForeignKey]: 'Foreign key',
+  [UITypes.Lookup]: '{FieldName} (from {TableName})',
+  [UITypes.SingleLineText]: 'Text',
+  [UITypes.LongText]: 'Notes',
+  [UITypes.Attachment]: 'Attachment',
+  [UITypes.Checkbox]: 'Done',
+  [UITypes.MultiSelect]: 'Tags',
+  [UITypes.SingleSelect]: 'Status',
+  [UITypes.Collaborator]: 'User',
+  [UITypes.Date]: 'Date',
+  [UITypes.Year]: 'Year',
+  [UITypes.Time]: 'Time',
+  [UITypes.PhoneNumber]: 'Phone',
+  [UITypes.GeoData]: 'Geo data',
+  [UITypes.Email]: 'Email',
+  [UITypes.URL]: 'URL',
+  [UITypes.Number]: 'Number',
+  [UITypes.Decimal]: 'Decimal',
+  [UITypes.Currency]: 'Currency',
+  [UITypes.Percent]: 'Percent',
+  [UITypes.Duration]: 'Duration',
+  [UITypes.Rating]: 'Rating',
+  [UITypes.Colour]: 'Colour',
+  [UITypes.Formula]: 'Formula',
+  [UITypes.Rollup]: '{RollupFunction}({FieldName}) from {TableName}',
+  [UITypes.Count]: 'Count',
+  [UITypes.DateTime]: 'Date time',
+  [UITypes.CreatedTime]: 'Created time',
+  [UITypes.LastModifiedTime]: 'Last modified time',
+  [UITypes.AutoNumber]: 'Auto number',
+  [UITypes.Geometry]: 'Geometry',
+  [UITypes.JSON]: 'JSON',
+  [UITypes.SpecificDBType]: 'Specific DB type',
+  [UITypes.Barcode]: 'Barcode',
+  [UITypes.QrCode]: 'Qr code',
+  [UITypes.Button]: 'Button',
+  [UITypes.Links]: '{TableName}',
+  [UITypes.User]: 'User',
+  [UITypes.CreatedBy]: 'Created by',
+  [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Order]: 'Order',
+  [UITypes.Deleted]: 'Deleted',
+  [UITypes.Meta]: 'Row Meta',
+  [UITypes.UUID]: 'UUID',
+};
+
+export const numericUITypes = [
+  UITypes.Duration,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Rating,
+  UITypes.Rollup,
+  UITypes.Year,
+  UITypes.Links,
+  UITypes.ID,
+  UITypes.AutoNumber,
+];
+
+export function isNumericCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return numericUITypes.includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isVirtualCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [
+    // Shouldn't be treated as virtual column (Issue with SQL View column data display)
+    // UITypes.SpecificDBType,
+    UITypes.LinkToAnotherRecord,
+    UITypes.Formula,
+    UITypes.QrCode,
+    UITypes.Barcode,
+    UITypes.Rollup,
+    UITypes.Lookup,
+    UITypes.Links,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+    UITypes.CreatedBy,
+    UITypes.LastModifiedBy,
+    UITypes.Button,
+    // UITypes.Count,
+  ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+}
+
+export function isAIPromptCol(col: ColumnReqType | ColumnType) {
+  return (
+    col.uidt === UITypes.LongText &&
+    parseProp((col as any)?.meta)?.[LongTextAiMetaProp]
+  );
+}
+
+export function isCreatedOrLastModifiedTimeCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isCreatedOrLastModifiedByCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isOrderCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.Order].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isDeletedCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.Deleted].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isActionButtonCol(
+  col: (ColumnReqType | ColumnType) & {
+    colOptions?: any;
+  }
+) {
+  return (
+    col.uidt === UITypes.Button &&
+    [
+      ButtonActionsType.Script,
+      ButtonActionsType.Webhook,
+      ButtonActionsType.Ai,
+    ].includes((col?.colOptions as any)?.type)
+  );
+}
+
+export function isHiddenCol(
+  col: (ColumnReqType | ColumnType) & {
+    colOptions?: any;
+    system?: number | boolean;
+    title?: string;
+  },
+  tableMeta: Partial<TableType>
+) {
+  if (!col.system) return false;
+
+  if (
+    tableMeta?.synced &&
+    col.title &&
+    SYNC_SYSTEM_COLUMN_TITLES.includes(col.title)
+  ) {
+    return true;
+  }
+
+  // hide belongs to column in mm tables only
+  if (col.uidt === UITypes.LinkToAnotherRecord) {
+    if (col.colOptions?.type === RelationTypes.BELONGS_TO && tableMeta?.mm) {
+      return true;
+    }
+    // hide system columns in other tables which are has-many used for mm
+    return col.colOptions?.type === RelationTypes.HAS_MANY;
+  }
+
+  if (
+    col.uidt === UITypes.Order ||
+    col.uidt === UITypes.Meta ||
+    col.uidt === UITypes.Deleted
+  ) {
+    return true;
+  }
+
+  return ([UITypes.CreatedBy, UITypes.LastModifiedBy] as string[]).includes(
+    col.uidt
+  );
+}
+
+export function isLinksOrLTAR(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) {
+  return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+}
+
+// Alias for isLinksOrLTAR
+export const isLTARType = isLinksOrLTAR;
+
+/**
+ * True when the column is a custom-built link (created via `is_custom_link`
+ * on column creation — the framework persists this as `meta.custom = true`).
+ * Currently emitted by the sync framework when wiring synced-table relations.
+ */
+export function isCustomLink(col: ColumnType | { meta?: any }): boolean {
+  return parseProp((col as { meta?: any })?.meta)?.custom === true;
+}
+
+export function isLinkV2(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any }
+    | UITypes
+    | string
+) {
+  // Strings and simple UIType values cannot be determined as v2 without colOptions
+  if (typeof col === 'string' || typeof col !== 'object') {
+    return false;
+  }
+
+  // Check colOptions.version if available
+  if (col.colOptions) {
+    return (
+      isLinksOrLTAR(col) &&
+      (col.colOptions as LinkToAnotherRecordType)?.version == LinksVersion.V2
+    );
+  }
+
+  // Fallback: check v2-only relation types on colOptions-less objects
+  // These types only exist in v2 so their presence is definitive
+  if ('colOptions' in col && !col.colOptions) {
+    return false;
+  }
+
+  return false;
+}
+
+export function isMMOrMMLike(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes }
+): boolean {
+  if (typeof col === 'object' && isLinksOrLTAR(col)) {
+    if (col.colOptions) {
+      const opts = col.colOptions as LinkToAnotherRecordType;
+      // V2 relations are all junction-table-based (MM-like)
+      // Use == for version check since DB may store as string "2" not number 2
+      if (opts.version == LinksVersion.V2) {
+        return true;
+      }
+      // Traditional MANY_TO_MANY
+      return opts.type === RelationTypes.MANY_TO_MANY;
+    }
+
+    // colOptions not loaded — check type on column root
+    // (set during column creation in the UI before colOptions exists)
+    if ('type' in col && col.type) {
+      return (
+        col.type === RelationTypes.MANY_TO_MANY ||
+        col.type === RelationTypes.ONE_TO_MANY ||
+        col.type === RelationTypes.MANY_TO_ONE
+      );
+    }
+  }
+  return false;
+}
+
+// Returns true for V2 relations that have single-record semantics
+// (MO, OO, BT) — they use junction tables but should return one record, not an array
+export function isBtLikeV2Junction(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes }
+): boolean {
+  if (typeof col === 'object' && isLinksOrLTAR(col) && col.colOptions) {
+    const opts = col.colOptions as LinkToAnotherRecordType;
+    // Use != for version check since DB may store as string "2" not number 2
+    if (opts.version != LinksVersion.V2) return false;
+    return [
+      RelationTypes.MANY_TO_ONE,
+      RelationTypes.ONE_TO_ONE,
+      RelationTypes.BELONGS_TO,
+    ].includes(opts.type as RelationTypes);
+  }
+  return false;
+}
+
+/**
+ * Whether an LTAR/Links column resolves to an array of related records (`[]`
+ * when unlinked) vs a single record / null (object-shape).
+ *
+ * This is the single source of truth for the rule, used by:
+ *   - V3 record-transform `recordsV2ToV3` (decides unlinked-shape: `[]` vs `null`)
+ *   - EE BaseModel `preProcessMssqlRows` (decides LTAR bucket: array vs object)
+ *
+ * Priority order:
+ *   1. `isBtLikeV2Junction` — V2 MO / OO / BT-through-junction. These have
+ *      `colOptions.type === MANY_TO_MANY` on the wire (so `isMMOrMMLike`
+ *      would say true) but semantically return a single record. Caught first.
+ *   2. `isMMOrMMLike` — V2 (anything else) and V1 MANY_TO_MANY → array.
+ *   3. V1 HAS_MANY → array.
+ *   4. V1 MANY_TO_MANY → array.
+ *   5. V1 ONE_TO_ONE with `meta.bt` unset → OO-forward → array;
+ *      with `meta.bt` set → BT-style → object.
+ *   6. Default → object.
+ */
+export function isArrayShapeLtar(
+  col:
+    | ColumnType
+    | {
+        uidt: UITypes | string;
+        colOptions?: any;
+        type?: RelationTypes;
+        meta?: any;
+      }
+): boolean {
+  if (isBtLikeV2Junction(col)) return false;
+  if (isMMOrMMLike(col)) return true;
+  const relType = (col as any).colOptions?.type as RelationTypes | undefined;
+  if (relType === RelationTypes.HAS_MANY) return true;
+  if (relType === RelationTypes.MANY_TO_MANY) return true;
+  if (relType === RelationTypes.ONE_TO_ONE && !(col as any).meta?.bt)
+    return true;
+  return false;
+}
+
+export function isSelfLinkCol(
+  col: ColumnType & { colOptions: unknown }
+): boolean {
+  return (
+    isLinksOrLTAR(col) &&
+    col.system &&
+    // except has-many all other relation types are self link
+    // has-many system column get created to mm table only
+    (col.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.HAS_MANY
+  );
+}
+
+export const getEquivalentUIType = ({
+  formulaColumn,
+}: {
+  formulaColumn: ColumnType;
+}): void | UITypes => {
+  switch ((formulaColumn?.colOptions as any)?.parsed_tree?.dataType) {
+    case FormulaDataTypes.NUMERIC:
+      return UITypes.Number;
+    case FormulaDataTypes.DATE:
+      return UITypes.DateTime;
+    case FormulaDataTypes.LOGICAL:
+    case FormulaDataTypes.COND_EXP:
+    case FormulaDataTypes.BOOLEAN:
+      return UITypes.Checkbox;
+  }
+};
+
+export const isSelectTypeCol = (
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) => {
+  return [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User].includes(
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+};
+
+export const isInUIType = <T extends UITypes>(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string,
+  types: T | readonly T[]
+): colOrUidt is (ColumnType & { uidt: T }) | { uidt: T } | T => {
+  const uidt = <UITypes>(
+    (typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+  return Array.isArray(types) ? types.includes(uidt as T) : uidt === types;
+};
+
+export default UITypes;
+
+export const readonlyMetaAllowedTypes = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Button,
+  UITypes.Barcode,
+  UITypes.QrCode,
+  UITypes.UUID,
+];
+
+export const partialUpdateAllowedTypes = [
+  // Single/Multi select is disabled for now since it involves updating type in some cases
+  // UITypes.SingleSelect,
+  // UITypes.MultiSelect,
+  UITypes.Checkbox,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rating,
+  UITypes.DateTime,
+  UITypes.Date,
+  UITypes.Time,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
+  UITypes.PhoneNumber,
+  UITypes.Email,
+  UITypes.URL,
+];
+
+export const getUITypesForFormulaDataType = (
+  dataType: FormulaDataTypes
+): UITypes[] => {
+  switch (dataType) {
+    case FormulaDataTypes.NUMERIC:
+      return [
+        UITypes.Decimal,
+        UITypes.Currency,
+        UITypes.Percent,
+        UITypes.Rating,
+        UITypes.Time,
+      ];
+    case FormulaDataTypes.DATE:
+      return [UITypes.DateTime, UITypes.Date, UITypes.Time];
+    case FormulaDataTypes.BOOLEAN:
+    case FormulaDataTypes.COND_EXP:
+      return [UITypes.Checkbox];
+    case FormulaDataTypes.STRING:
+      return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
+    default:
+      return [];
+  }
+};
+
+export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
+  if (!column?.uidt) return false;
+
+  switch (column.uidt) {
+    case UITypes.SingleLineText:
+    case UITypes.Date:
+    case UITypes.DateTime:
+    case UITypes.Time:
+    case UITypes.Year:
+    case UITypes.PhoneNumber:
+    case UITypes.Email:
+    case UITypes.URL:
+    case UITypes.Number:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+    case UITypes.Decimal:
+    case UITypes.AutoNumber:
+    case UITypes.Formula: {
+      return true;
+    }
+    case UITypes.LongText: {
+      // Long Text and its variants (RichText, SmartText, AI) render poorly in
+      // the single-line surfaces that consume the display value (LTAR chips,
+      // breadcrumbs, audit lines, search). Block as a new selection. Existing
+      // PV columns of this type are honoured by the backend service and not
+      // forced off — this only gates *new* selections.
+      return false;
+    }
+
+    default: {
+      return false;
+    }
+  }
+};
+
+export const checkboxIconList = [
+  {
+    checked: 'mdi-check-bold',
+    unchecked: 'mdi-crop-square',
+    label: 'square',
+  },
+  {
+    checked: 'mdi-check-circle-outline',
+    unchecked: 'mdi-checkbox-blank-circle-outline',
+    label: 'circle-check',
+  },
+  {
+    checked: 'mdi-star',
+    unchecked: 'mdi-star-outline',
+    label: 'star',
+  },
+  {
+    checked: 'mdi-heart',
+    unchecked: 'mdi-heart-outline',
+    label: 'heart',
+  },
+  {
+    checked: 'mdi-moon-full',
+    unchecked: 'mdi-moon-new',
+    label: 'circle-filled',
+  },
+  {
+    checked: 'mdi-thumb-up',
+    unchecked: 'mdi-thumb-up-outline',
+    label: 'thumbs-up',
+  },
+  {
+    checked: 'mdi-flag',
+    unchecked: 'mdi-flag-outline',
+    label: 'flag',
+  },
+];
+
+export const checkboxIconListMap = checkboxIconList.reduce((acc, curr) => {
+  acc[curr.label] = curr;
+
+  return acc;
+}, {} as Record<string, (typeof checkboxIconList)[number]>);
+
+export const ratingIconList = [
+  {
+    full: 'mdi-star',
+    empty: 'mdi-star-outline',
+    label: 'star',
+  },
+  {
+    full: 'mdi-heart',
+    empty: 'mdi-heart-outline',
+    label: 'heart',
+  },
+  {
+    full: 'mdi-moon-full',
+    empty: 'mdi-moon-new',
+    label: 'circle-filled',
+  },
+  {
+    full: 'mdi-thumb-up',
+    empty: 'mdi-thumb-up-outline',
+    label: 'thumbs-up',
+  },
+  {
+    full: 'mdi-flag',
+    empty: 'mdi-flag-outline',
+    label: 'flag',
+  },
+];
+
+export const ratingIconListMap = ratingIconList.reduce((acc, curr) => {
+  acc[curr.label] = curr;
+
+  return acc;
+}, {} as Record<string, (typeof ratingIconList)[number]>);
+
+export const durationOptions = [
+  {
+    id: 0,
+    title: 'h:mm',
+    example: '(e.g. 1:23)',
+    regex: /(\d+)(?::(\d+))?/,
+  },
+  {
+    id: 1,
+    title: 'h:mm:ss',
+    example: '(e.g. 3:45, 1:23:40)',
+    regex: /(?=\d)(\d+)?(?::(\d+))?(?::(\d+))?/,
+  },
+  {
+    id: 2,
+    title: 'h:mm:ss.s',
+    example: '(e.g. 3:34.6, 1:23:40.0)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+  {
+    id: 3,
+    title: 'h:mm:ss.ss',
+    example: '(e.g. 3.45.67, 1:23:40.00)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+  {
+    id: 4,
+    title: 'h:mm:ss.sss',
+    example: '(e.g. 3.45.678, 1:23:40.000)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+  {
+    id: 5,
+    title: 'd h',
+    example: '(e.g. 1d 2h, 2h)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h?)?$/i,
+  },
+  {
+    id: 6,
+    title: 'd h:mm',
+    example: '(e.g. 1d 2:30, 2:30)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)(?::(\d+))?)?$/,
+  },
+  {
+    id: 7,
+    title: 'd h:mm:ss',
+    example: '(e.g. 1d 2:30:45, 2:30:45)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)(?::(\d+))?(?::(\d+))?)?$/,
+  },
+  {
+    id: 8,
+    title: 'd h m',
+    example: '(e.g. 1d 2h 30m, 2h 30m)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m?)?$/i,
+  },
+  {
+    id: 9,
+    title: 'd h m s',
+    example: '(e.g. 1d 2h 30m 45s, 2h 30m 45s)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s?)?$/i,
+  },
+];
+
+/**
+ * Checks if a given column is read-only.
+ * A column is considered read-only if it belongs to specific UI types
+ * (e.g., Lookup, Rollup, Formula, etc.) or if it represents system-generated
+ * metadata such as created/modified timestamps or ordering information.
+ *
+ * @param {ColumnType} column - The column to check.
+ * @returns {boolean} - Returns `true` if the column is read-only, otherwise `false`.
+ */
+export const isReadOnlyColumn = (column: ColumnType): boolean => {
+  return (
+    // Check if the column belongs to a predefined set of read-only UI types
+    [
+      UITypes.Lookup,
+      UITypes.Rollup,
+      UITypes.Formula,
+      UITypes.Button,
+      UITypes.Barcode,
+      UITypes.QrCode,
+      UITypes.ForeignKey,
+      UITypes.UUID,
+      UITypes.AutoNumber,
+    ].includes(column.uidt as UITypes) ||
+    // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
+    isCreatedOrLastModifiedByCol(column) ||
+    // Check if the column is a system-generated timestamp field (CreatedTime, LastModifiedTime)
+    isCreatedOrLastModifiedTimeCol(column) ||
+    // Check if the column is used for row ordering
+    isOrderCol(column) ||
+    isDeletedCol(column) ||
+    // if primary key and auto generated then treat as readonly
+    (column.pk && (column.ai || parseProp(column.meta)?.ag))
+  );
+};
+
+/**
+ * Determines whether a given column is an AutoNumber field.
+ *
+ * @param {ColumnType} column - The column to check.
+ * @returns {boolean} - Returns `true` if the column is an AutoNumber field.
+ */
+export const isAutoNumber = (column: ColumnType): boolean =>
+  column.uidt === UITypes.AutoNumber;
+
+/**
+ * Whether a column's value is produced by the DB or backend without user
+ * input — AutoNumber (PG BIGSERIAL), UUID (gen_random_uuid()), and any
+ * future auto-filled identity fields.
+ *
+ * These columns are `readonly: true` but are locally owned (not pulled
+ * from an external sync). Used to exempt them from synced-column
+ * predicates and to disable operations like duplicate/paste/clear that
+ * don't make sense for auto-generated values.
+ *
+ * To add a new auto-generated type, extend this membership list — every
+ * call site benefits automatically.
+ */
+export const isAutoGeneratedColumn = (column: ColumnType): boolean =>
+  column.uidt === UITypes.AutoNumber || column.uidt === UITypes.UUID;
+
+/**
+ * Determines whether a given column type represents a Date or DateTime field.
+ *
+ * @param column - The column type to check.
+ * @returns `true` if the column is a Date, DateTime, CreatedTime, or LastModifiedTime field;
+ *          `true` if it is a Formula column that evaluates to DateTime;
+ *          otherwise, `false`.
+ */
+export const isDateOrDateTimeCol = (column: ColumnType) => {
+  // Check if the column's UI type is one of the predefined date-related types
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(column.uidt as UITypes)
+  ) {
+    return true;
+  }
+
+  // If the column is a Formula, determine if its evaluated type is DateTime
+  if (column.uidt === UITypes.Formula) {
+    return getEquivalentUIType({ formulaColumn: column }) === UITypes.DateTime;
+  }
+
+  return false;
+};
+
+export const customLinkSupportedTypes: UITypes[] = [
+  UITypes.SingleSelect,
+  UITypes.SingleLineText,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Email,
+  UITypes.PhoneNumber,
+  UITypes.URL,
+  UITypes.ID,
+  UITypes.ForeignKey,
+];
+
+// column types that are not shown in the GUI
+export const hiddenColumnTypes: UITypes[] = [
+  UITypes.Meta,
+  UITypes.Deleted,
+  UITypes.Order,
+];
+
+// Re-export LinksVersion from globals for backward compatibility
+export { LinksVersion } from '~/lib/globals';

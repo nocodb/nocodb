@@ -1,0 +1,69 @@
+@import url('./inter-new/inter.css');
+
+/* Manrope */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Manrope';
+  font-weight: 450 900;
+  src: url('./manrope/Manrope-VariableFont_wght.ttf') format('truetype');
+}
+
+/*  //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
+*/
+@font-face {
+  font-family: 'Material Symbols';
+  font-style: normal;
+  font-weight: 300;
+  src: url(./material.woff2) format('woff2');
+}
+
+/* dm mono */
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./dm-mono/DMMono-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./dm-mono/DMMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./dm-mono/DMMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.material-symbols {
+  font-family: 'Material Symbols';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-weight: 300;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-size: 1rem;
+  user-select: none;
+}
+
+.nc-fonts-not-loaded {
+  .material-symbols {
+    opacity: 0;
+    width: 0 !important;
+  }
+}

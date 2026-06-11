@@ -1,0 +1,18 @@
+name: "Publish : Docker Readme"
+
+on: workflow_dispatch
+#  push:
+#    branches: [ master ]
+
+jobs:
+  docker-description:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: nocodb/nocodb

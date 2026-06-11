@@ -1,0 +1,673 @@
+import { Logger } from '@nestjs/common';
+import {
+  CircularRefContext,
+  FormulaDataTypes,
+  isBtLikeV2Junction,
+  JSEPNode,
+  LongTextAiMetaProp,
+  NcErrorType,
+  UITypes,
+  validateFormulaAndExtractTreeWithType,
+} from 'nocodb-sdk';
+import { getColumnName } from 'src/helpers/dbHelpers';
+import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
+import genRollupSelectv2 from '../genRollupSelectv2';
+import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
+import {
+  binaryExpressionBuilder,
+  callExpressionBuilder,
+} from './parsed-tree-builder';
+import type { ClientType, LiteralNode } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
+import type Column from '~/models/Column';
+import type RollupColumn from '~/models/RollupColumn';
+import type {
+  FnParsedTreeNode,
+  FormulaQueryBuilderBaseParams,
+  TAliasToColumn,
+  TAliasToColumnParam,
+} from './formula-query-builder.types';
+import { DBQueryClient } from '~/dbQueryClient';
+import { isTransientError } from '~/helpers/db-error/utils';
+import NocoCache from '~/cache/NocoCache';
+import { getRefColumnIfAlias } from '~/helpers';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { BaseUser, ButtonColumn } from '~/models';
+import FormulaColumn from '~/models/FormulaColumn';
+import { CacheScope } from '~/utils/globals';
+import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
+
+const logger = new Logger('FormulaQueryBuilderv2');
+
+async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
+  const {
+    baseModelSqlv2,
+    _tree,
+    model,
+    aliasToColumn = {},
+    columnIdToUidt = {},
+    tableAlias,
+    parsedTree,
+    column = null,
+    columns,
+    getAliasCount,
+  } = params;
+
+  let { baseUsers = null } = params;
+
+  const knex = baseModelSqlv2.dbDriver;
+
+  const context = baseModelSqlv2.context;
+
+  let tree = parsedTree;
+  if (!tree) {
+    const relatedModels: Map<string, Model> = await getRelatedModelMap(
+      context,
+      model,
+    );
+    // formula may include double curly brackets in previous version
+    // convert to single curly bracket here for compatibility
+    // const _tree1 = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
+    tree = await validateFormulaAndExtractTreeWithType({
+      formula: _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
+      columns,
+      column,
+      clientOrSqlUi: baseModelSqlv2.clientType as
+        | 'mysql'
+        | 'pg'
+        | 'sqlite3'
+        | 'mysql2'
+        | 'mariadb'
+        | 'sqlite'
+        | 'snowflake',
+      getMeta: async (_, { id }) => {
+        return relatedModels.get(id);
+      },
+    });
+
+    // populate and save parsedTree to column if not exist
+    if (column) {
+      if (column.uidt === UITypes.Formula) {
+        FormulaColumn.update(context, column.id, { parsed_tree: tree }).then(
+          () => {
+            // ignore
+          },
+          (err) => {
+            logger.error(err);
+          },
+        );
+      } else {
+        ButtonColumn.update(context, column.id, { parsed_tree: tree }).then(
+          () => {
+            // ignore
+          },
+          (err) => {
+            logger.error(err);
+          },
+        );
+      }
+    }
+  }
+
+  // todo: improve - implement a common solution for filter, sort, formula, etc
+  for (const col of columns) {
+    columnIdToUidt[col.id] = col.uidt;
+    if (col.id in aliasToColumn) continue;
+    switch (col.uidt) {
+      case UITypes.Formula:
+      case UITypes.Button:
+        {
+          aliasToColumn[col.id] = async ({
+            tableAlias,
+            parentColumns,
+          }: TAliasToColumnParam) => {
+            parentColumns = (
+              parentColumns ?? CircularRefContext.make()
+            ).cloneAndAdd({
+              id: col.id,
+              title: col.title,
+              table: model.title,
+            });
+
+            const formulOption = await col.getColOptions<
+              FormulaColumn | ButtonColumn
+            >(context);
+            const { builder } = await _formulaQueryBuilder({
+              baseModelSqlv2,
+              _tree: formulOption.formula,
+              model,
+              aliasToColumn: { ...aliasToColumn, [col.id]: null },
+              tableAlias,
+              parsedTree: formulOption.getParsedTree(),
+              baseUsers,
+              parentColumns,
+              getAliasCount,
+              column: col,
+              columns,
+            });
+            builder.sql = '(' + builder.sql + ')';
+            return {
+              builder,
+            };
+          };
+        }
+        break;
+      case UITypes.Lookup:
+      case UITypes.LinkToAnotherRecord:
+        aliasToColumn[col.id] = lookupOrLtarBuilder({
+          ...params,
+          column: col,
+          _formulaQueryBuilder,
+          knex,
+        });
+        break;
+      case UITypes.Rollup:
+      case UITypes.Links:
+        if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+          aliasToColumn[col.id] = lookupOrLtarBuilder({
+            ...params,
+            column: col,
+            _formulaQueryBuilder,
+            knex,
+          });
+          break;
+        }
+        aliasToColumn[col.id] = async ({
+          tableAlias,
+          parentColumns: parentColumns,
+        }: TAliasToColumnParam): Promise<any> => {
+          const qb = await genRollupSelectv2({
+            baseModelSqlv2,
+            knex,
+            columnOptions: (await col.getColOptions(context)) as RollupColumn,
+            alias: tableAlias,
+            parentColumns,
+          });
+          return { builder: knex.raw(qb.builder).wrap('(', ')') };
+        };
+        break;
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
+      case UITypes.DateTime:
+        {
+          const refCol = await getRefColumnIfAlias(context, col, columns);
+
+          if (refCol.id in aliasToColumn) {
+            aliasToColumn[col.id] = aliasToColumn[refCol.id];
+            break;
+          }
+          if (knex.clientType().startsWith('mysql')) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                // convert from DB timezone to UTC
+                builder: knex.raw(
+                  `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                  [refCol.column_name],
+                ),
+              };
+            };
+          } else if (
+            knex.clientType() === 'pg' &&
+            refCol.dt !== 'timestamp with time zone' &&
+            refCol.dt !== 'timestamptz'
+          ) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                // convert from DB timezone to UTC
+                builder: knex
+                  .raw(
+                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    [refCol.column_name],
+                  )
+                  .wrap('(', ')'),
+              };
+            };
+          } else {
+            aliasToColumn[col.id] = () =>
+              Promise.resolve({ builder: refCol.column_name });
+          }
+          aliasToColumn[refCol.id] = aliasToColumn[col.id];
+        }
+        break;
+      case UITypes.User:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy:
+        {
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            baseUsers =
+              baseUsers ??
+              (await BaseUser.getUsersList(context, {
+                base_id: model.base_id,
+                include_internal_user: true,
+              }));
+
+            let finalStatement = '';
+
+            // CreatedBy and LastModifiedBy with system = false has no column_name
+            // need to get it from siblings
+            const columnName = await getColumnName(context, col, columns);
+
+            // create nested replace statement for each user
+            if (knex.clientType() === 'pg' || knex.clientType() === 'sqlite3') {
+              finalStatement = `(${DBQueryClient.get(
+                knex.clientType() as ClientType,
+              ).replaceDelimitedWithKeyValue({
+                knex,
+                needleColumn: columnName,
+                stack: baseUsers.map((user) => ({
+                  key: user.id,
+                  value: `${user.email}`,
+                })),
+              })})`;
+            } else {
+              finalStatement = baseUsers.reduce((acc, user) => {
+                const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+                  user.id,
+                  user.email,
+                ]);
+                return qb.toQuery();
+              }, knex.raw(`??`, [columnName]).toQuery());
+            }
+
+            return {
+              builder: knex.raw(finalStatement).wrap('(', ')'),
+            };
+          };
+        }
+        break;
+      case UITypes.LongText: {
+        if (col.meta?.[LongTextAiMetaProp] === true) {
+          if (knex.clientType() === 'pg') {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          } else if (knex.clientType().startsWith('mysql')) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          } else if (knex.clientType() === 'sqlite3') {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`json_extract(??, '$.value')`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          } else if (knex.clientType() === 'mssql') {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
+                  col.column_name,
+                ]),
+              };
+            };
+          }
+        } else {
+          aliasToColumn[col.id] = () =>
+            Promise.resolve({ builder: col.column_name });
+        }
+        break;
+      }
+      case UITypes.QrCode:
+      case UITypes.Barcode: {
+        const referencedColumn = await (
+          await col.getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        ).getValueColumn(context);
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+          Promise.resolve({
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              referencedColumn.column_name,
+            ]),
+          });
+        break;
+      }
+      default:
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+          Promise.resolve({
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              col.column_name,
+            ]),
+          });
+        break;
+    }
+  }
+
+  const fn = async (pt: FnParsedTreeNode, prevBinaryOp?) => {
+    if (pt.type === JSEPNode.CALL_EXP) {
+      pt.arguments?.forEach?.((arg: FnParsedTreeNode) => {
+        if (arg.fnName) return;
+        arg.fnName = pt.callee.name.toUpperCase();
+        arg.argsCount = pt.arguments?.length;
+      });
+    }
+
+    // if cast is string, then wrap with STRING() function
+    if (pt.cast === FormulaDataTypes.STRING) {
+      return fn(
+        {
+          type: JSEPNode.CALL_EXP,
+          arguments: [{ ...pt, cast: null }],
+          callee: {
+            type: 'Identifier',
+            name: 'STRING',
+          },
+        },
+        prevBinaryOp,
+      );
+    }
+
+    if (pt.type === JSEPNode.CALL_EXP) {
+      return await callExpressionBuilder({
+        context,
+        pt,
+        fn,
+        aliasToColumn,
+        columnIdToUidt,
+        knex,
+        model,
+        prevBinaryOp,
+      });
+    } else if (pt.type === 'Literal') {
+      // MSSQL workaround: inline string literals directly instead of going
+      // through knex bindings. knex-mssql's positional-to-named substitution
+      // does a naive `sql.replace(/\?/g, '@pN')` that DOES NOT track
+      // string-literal context — so a `?` inside a user's literal (e.g. a
+      // URL like `https://x.com/?q=1`) gets corrupted to `@p0`.
+      //
+      // Inlining with the standard `N'...'` SQL Server literal isn't enough:
+      // the formula composer (parsed-tree-builder) further runs
+      // `.replace(/\?/g, '\\?')` on the composed expression to escape any
+      // surviving `?` placeholders, but knex then strips that backslash and
+      // hands a plain `?` to the dialect adapter — which mangles it again.
+      //
+      // The robust workaround: emit ZERO `?` characters in the resulting
+      // SQL by splitting on `?` and re-composing the literal via
+      // `CHAR(63)` (T-SQL for `?`). Empty fragments and trailing `?`s are
+      // handled naturally by `CONCAT`.
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'string') {
+        const escapeSingles = (s: string) => s.replace(/'/g, "''");
+        const v = pt.value;
+        if (v.includes('?')) {
+          const parts = v.split('?');
+          const sqlArgs: string[] = [];
+          for (let i = 0; i < parts.length; i++) {
+            if (i > 0) sqlArgs.push('CHAR(63)');
+            sqlArgs.push(`N'${escapeSingles(parts[i])}'`);
+          }
+          return { builder: knex.raw(`CONCAT(${sqlArgs.join(', ')})`) };
+        }
+        return { builder: knex.raw(`N'${escapeSingles(v)}'`) };
+      }
+      if (knex.clientType() === 'mssql' && typeof pt.value === 'boolean') {
+        return { builder: knex.raw(pt.value ? '1' : '0') };
+      }
+      return { builder: knex.raw(`?`, [pt.value]) };
+    } else if (pt.type === 'Identifier') {
+      const { builder } =
+        (await aliasToColumn?.[pt.name]?.({
+          tableAlias,
+          parentColumns: params.parentColumns,
+        })) || {};
+      if (typeof builder === 'function') {
+        return { builder: knex.raw(`??`, builder(pt.fnName)) };
+      }
+
+      if (
+        knex.clientType() === 'databricks' &&
+        builder.toQuery().endsWith(')')
+      ) {
+        // limit 1 for subquery
+        return {
+          builder: knex.raw(`${builder.toQuery().replace(/\)$/, '')} LIMIT 1)`),
+        };
+      }
+
+      return { builder: knex.raw(`??`, [builder || pt.name]) };
+    } else if (pt.type === 'BinaryExpression') {
+      return await binaryExpressionBuilder({
+        context,
+        pt,
+        fn,
+        columnIdToUidt,
+        knex,
+        prevBinaryOp,
+        aliasToColumn,
+        model,
+      });
+    } else if (pt.type === 'UnaryExpression') {
+      let query;
+      if (
+        (pt.operator === '-' || pt.operator === '+') &&
+        pt.dataType === FormulaDataTypes.NUMERIC
+      ) {
+        query = knex.raw('?', [
+          (pt.operator === '-' ? -1 : 1) *
+            ((pt.argument as LiteralNode).value as number),
+        ]);
+      } else {
+        query = knex.raw(
+          `${pt.operator}${(
+            await fn(pt.argument, pt.operator)
+          ).builder.toQuery()}`,
+        );
+      }
+
+      if (prevBinaryOp && pt.operator !== prevBinaryOp) {
+        query.wrap('(', ')');
+      }
+      return { builder: query };
+    }
+  };
+  const builder = (await fn(tree)).builder;
+  return { builder };
+}
+
+export default async function formulaQueryBuilderv2({
+  baseModel: baseModelSqlv2,
+  tree: _tree,
+  model,
+  column,
+  aliasToColumn = {},
+  columnIdToUidt = {},
+  tableAlias,
+  validateFormula = false,
+  parsedTree,
+  baseUsers,
+  parentColumns,
+  columns,
+}: {
+  baseModel: IBaseModelSqlV2;
+  tree;
+  model: Model;
+  column?: Column;
+  aliasToColumn?: TAliasToColumn;
+  columnIdToUidt?: Record<string, UITypes>;
+  tableAlias?: string;
+  validateFormula?: boolean;
+  parsedTree?: any;
+  baseUsers?: (Partial<User> & BaseUser)[];
+  parentColumns?: CircularRefContext;
+  columns?: Column[];
+}) {
+  const knex = baseModelSqlv2.dbDriver;
+
+  const context = baseModelSqlv2.context;
+
+  columns = columns ?? (await model.getColumns(context));
+
+  const formulaContext = {
+    count: 0,
+  };
+  const getAliasCount = () => {
+    const result = formulaContext.count++;
+    return result;
+  };
+
+  let qb;
+  try {
+    parentColumns = parentColumns ?? CircularRefContext.make();
+    if (column) {
+      parentColumns = parentColumns.cloneAndAdd({
+        id: column.id,
+        title: column.title,
+        table: model?.title,
+      });
+    }
+    // generate qb
+    qb = await _formulaQueryBuilder({
+      baseModelSqlv2,
+      _tree,
+      model,
+      aliasToColumn,
+      tableAlias,
+      columnIdToUidt,
+      column,
+      parsedTree:
+        parsedTree ??
+        (await column
+          ?.getColOptions<FormulaColumn | ButtonColumn>(context)
+          .then((formula) => formula?.getParsedTree())),
+      baseUsers,
+      parentColumns,
+      columns,
+      getAliasCount,
+    });
+    let sqlLength = 0;
+    try {
+      sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;
+    } catch (ex) {}
+
+    // we limit the formula length to 500k to prevent server crashing
+    if (sqlLength > 500 * 1000) {
+      const columnInfo = {
+        title: column?.title ? `column ${column.title}` : 'new column',
+        id: column?.id ? ` (${column.id})` : '',
+      };
+      TelemetryHandlerService.sendPriorityError(context, {
+        trigger: 'formulaQueryBuilder',
+        error_type: 'FORMULA_TOO_LONG_ERROR',
+        message: `Generated query too long for ${columnInfo.title}${columnInfo.id}`,
+      });
+      NcError.get(context).formulaError(
+        `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`,
+      );
+    }
+    if (!validateFormula) return qb;
+
+    // Short-circuit if a previous dry-run already failed for this base model,
+    // to avoid amplifying requests to an overwhelmed external source
+    if (baseModelSqlv2.formulaDryRunFailed) {
+      throw new Error(
+        'Skipping formula dry-run: a previous validation already failed',
+      );
+    }
+
+    // dry run qb.builder to see if it will break the grid view or not
+    // if so, set formula error and show empty selectQb instead
+    await baseModelSqlv2.execAndParse(
+      knex(baseModelSqlv2.getTnPath(model, tableAlias))
+        .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
+        .as('dry-run-only'),
+      null,
+      { raw: true },
+    );
+
+    // if column is provided, i.e. formula has been created
+    if (column) {
+      const formula = await column.getColOptions<FormulaColumn | ButtonColumn>(
+        context,
+      );
+      // clean the previous formula error if the formula works this time
+      if (formula.error) {
+        if (formula.constructor.name === 'ButtonColumn') {
+          await ButtonColumn.update({ ...context, cache: false }, column.id, {
+            error: null,
+          });
+        } else {
+          await FormulaColumn.update({ ...context, cache: false }, column.id, {
+            error: null,
+          });
+        }
+      }
+      // clear context cache if present since metadata has changed
+      context.cacheMap?.clear();
+    }
+  } catch (e) {
+    // Check if this is a transient error (connection/timeout issue)
+    const isTransient = isTransientError(e);
+
+    // Mark formula error if formula validation is invoked
+    // or if a circular reference error occurs and a column is provided
+    // BUT skip marking for transient errors
+    if (
+      !isTransient &&
+      (validateFormula ||
+        (column?.id &&
+          e instanceof NcBaseErrorv2 &&
+          e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA))
+    ) {
+      console.error(e);
+
+      if (column) {
+        if (column?.uidt === UITypes.Button) {
+          await ButtonColumn.update(context, column.id, {
+            error: null,
+          });
+          // update cache to reflect the error in UI
+          await NocoCache.update(
+            context,
+            `${CacheScope.COL_BUTTON}:${column.id}`,
+            {
+              error: e.message,
+            },
+          );
+        } else {
+          // add formula error to show in UI
+          await FormulaColumn.update(context, column.id, {
+            error: e.message,
+          });
+
+          // update cache to reflect the error in UI
+          await NocoCache.update(
+            context,
+            `${CacheScope.COL_FORMULA}:${column.id}`,
+            {
+              error: e.message,
+            },
+          );
+        }
+      }
+    } else {
+      // Mark dry-run as failed so subsequent formula validations on the same
+      // base model short-circuit instead of hammering an unreachable source
+      if (isTransient && validateFormula) {
+        baseModelSqlv2.formulaDryRunFailed = true;
+      }
+      throw e;
+    }
+
+    // if it's a formula error, throw it
+    if (e instanceof NcBaseErrorv2) {
+      throw e;
+    }
+
+    const dbError = DBErrorExtractor.get().extractDbError(e, {
+      clientType: baseModelSqlv2.clientType as ClientType,
+      ignoreDefault: true,
+    });
+    NcError.get(context).formulaError(dbError?.message ?? e.message);
+  }
+  return qb;
+}

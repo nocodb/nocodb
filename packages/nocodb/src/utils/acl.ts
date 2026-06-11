@@ -1,0 +1,1093 @@
+import {
+  OrgUserRoles,
+  ProjectRoles,
+  SourceRestriction,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
+
+const roleScopes = {
+  org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  workspace: [
+    WorkspaceUserRoles.NO_ACCESS,
+    WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.COMMENTER,
+    WorkspaceUserRoles.EDITOR,
+    WorkspaceUserRoles.CREATOR,
+    WorkspaceUserRoles.OWNER,
+  ],
+  base: [
+    ProjectRoles.VIEWER,
+    ProjectRoles.COMMENTER,
+    ProjectRoles.EDITOR,
+    ProjectRoles.CREATOR,
+    ProjectRoles.OWNER,
+  ],
+};
+
+// todo: convert to enum
+const permissionScopes = {
+  org: [
+    // API Tokens
+    'apiTokenList',
+    'apiTokenCreate',
+    'apiTokenUpdate',
+    'apiTokenDelete',
+
+    'oAuthAuthorizationList',
+    'oAuthAuthorizationRevoke',
+    'oAuthClientRegenerateSecret',
+
+    // User (SUPER_ADMIN only via '*')
+    'userList',
+    'userAdd',
+    'userUpdate',
+    'userDelete',
+    'passwordChange',
+    'mfaSetup',
+    'mfaVerifySetup',
+    'mfaDisable',
+    'mfaStatus',
+    'mfaRegenerateBackupCodes',
+    'userInviteResend',
+    'generateResetUrl',
+
+    // Plugin
+    'isPluginActive',
+    'pluginList',
+    'pluginTest',
+    'pluginRead',
+    'pluginUpdate',
+
+    // Misc
+    'commandPalette',
+    'baseListAll',
+    'instanceAdminStats',
+    'instanceAdminWorkspaces',
+    'instanceAdminBases',
+
+    // Cache
+    'cacheGet',
+    'cacheDelete',
+
+    'notification',
+
+    // oAuth
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
+
+    'mcpRootList',
+
+    'getUserProfile',
+
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkCheck',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkRefresh',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
+    // Connection + upload (matches EE org scope)
+    'testConnection',
+    'upload',
+    'uploadViaURL',
+    'genericGPT',
+  ],
+  workspace: [
+    // Base operations (workspace scope — unified CE/EE model)
+    'baseList',
+    'baseCreate',
+
+    // Integration
+    'integrationGet',
+    'integrationCreate',
+    'integrationDelete',
+    'integrationUpdate',
+    'integrationList',
+    'integrationStore',
+    'integrationEndpointGet',
+
+    // Integration link management (workspace scope)
+    'integrationLinkedBaseList',
+    'integrationUpdateLinkedBases',
+
+    // Misc
+    'duplicateSharedBase',
+    'webhookPluginList',
+
+    // AI
+    'aiSchema',
+
+    // Workspace user ops (internal, not exposed as CE API)
+    'workspaceUserList',
+    'workspaceInvite',
+    'workspaceUserUpdate',
+    'workspaceUserDelete',
+  ],
+  base: [
+    'nestedDataListCopyPasteOrDeleteAll',
+    'nestedDataBulkCopyPasteOrDeleteAll',
+    'nestedDataBulkLinkByDisplayValue',
+    'formViewGet',
+    'baseGet',
+    'tableGet',
+    'attachmentDownload',
+    'dataList',
+    'linkDataList',
+    'bulkDataList',
+    'dataRead',
+    'dataExist',
+    'dataFindOne',
+    'dataGroupBy',
+    'dataExport',
+    'exportCsv',
+    'exportExcel',
+    'sortList',
+    'filterList',
+    'baseInfoGet',
+    'baseUserMetaUpdate',
+    'galleryViewGet',
+    'kanbanViewGet',
+    'gridViewCreate',
+    'gridViewUpdate',
+    'formViewCreate',
+    'formViewUpdate',
+    'formColumnUpdate',
+    'formColumnBulkUpdate',
+    'galleryViewCreate',
+    'galleryViewUpdate',
+    'kanbanViewCreate',
+    'kanbanViewUpdate',
+    'mapViewCreate',
+    'mapViewUpdate',
+    'calendarViewCreate',
+    'calendarViewGet',
+    'mapViewGet',
+    'calendarViewUpdate',
+    'groupedDataList',
+    'mmList',
+    'hmList',
+    'commentRow',
+    'baseCost',
+    'tableList',
+    'viewList',
+    'viewCreate',
+    'viewUpdate',
+    'viewDelete',
+    'shareView',
+    'shareViewUpdate',
+    'shareViewDelete',
+    'shareViewList',
+    'functionList',
+    'sequenceList',
+    'procedureList',
+    'columnList',
+    'viewColumnList',
+    'triggerList',
+    'relationList',
+    'relationListAll',
+    'indexList',
+    'list',
+    'dataCount',
+    'dataAggregate',
+    'bulkAggregate',
+    'swaggerJson',
+    'commentList',
+    'commentCount',
+    'commentDelete',
+    'commentUpdate',
+    'hideAllColumns',
+    'showAllColumns',
+    'recordAuditList',
+    'dataUpdate',
+    'dataDelete',
+    'dataInsert',
+    'dataMove',
+    'dataUpsert',
+    'bulkDataUpsert',
+    'viewColumnUpdate',
+    'viewColumnsBulkSetVisibility',
+    'sortCreate',
+    'sortUpdate',
+    'sortDelete',
+    'filterCreate',
+    'filterUpdate',
+    'filterDelete',
+    'filterBulkLogicalOpUpdate',
+    'filterGet',
+    'filterChildrenList',
+    'buttonFilterList',
+    'buttonFilterCreate',
+    'mmExcludedList',
+    'hmExcludedList',
+    'btExcludedList',
+    'ooExcludedList',
+    'gridColumnUpdate',
+    'listColumnUpdate',
+    'bulkDataInsert',
+    'bulkDataUpdate',
+    'bulkDataUpdateAll',
+    'bulkDataDelete',
+    'bulkDataDeleteAll',
+    'relationDataRemove',
+    'relationDataAdd',
+    'duplicateColumn',
+    'nestedDataList',
+    'nestedDataLink',
+    'nestedDataUnlink',
+    'nestedListCopyPasteOrDeleteAll',
+    'baseUserList',
+    'sourceCreate',
+    'columnAdd',
+
+    // Base API Tokens
+    'baseApiTokenList',
+    'baseApiTokenCreate',
+    'baseApiTokenDelete',
+
+    // Extensions
+    'extensionList',
+    'extensionRead',
+    'extensionCreate',
+    'extensionUpdate',
+    'extensionDelete',
+
+    // Jobs
+    'jobList',
+
+    'org_integrationList',
+
+    // Webhooks
+
+    'hookTrigger',
+
+    'userInvite',
+
+    // Migration
+    'migrateBase',
+
+    // AI
+    'aiUtils',
+    'aiData',
+    'aiBaseSchema',
+    'aiDataGenerateRows',
+    'aiDataFillRows',
+    'aiDataExtractRows',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
+
+    // Table Sync
+    'tableSyncList',
+    'tableSyncGet',
+    'tableSyncSourceSchema',
+    'tableSyncCreate',
+    'tableSyncUpdate',
+    'tableSyncDelete',
+    'tableSyncResync',
+    'tableSyncFreeze',
+    'tableSyncResume',
+    'tableSyncResolveLink',
+
+    // Data Import
+    'dataImportPreview',
+    'dataImportFile',
+
+    // Web Bookmark (doc editor)
+    'webBookmarkFetch',
+
+    // etc
+    'fetchViaUrl',
+
+    // Base-scoped integrations
+    'baseIntegrationList',
+    'baseIntegrationRead',
+    'baseIntegrationFetchOptions',
+    'baseIntegrationCreate',
+    'baseIntegrationUpdate',
+    'baseIntegrationLink',
+    'baseIntegrationUnlink',
+  ],
+};
+
+const rolePermissions:
+  | Record<
+      | Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN>
+      | ProjectRoles
+      | WorkspaceUserRoles
+      | 'guest',
+      { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
+    >
+  | Record<OrgUserRoles.SUPER_ADMIN, string> = {
+  guest: {},
+  [OrgUserRoles.SUPER_ADMIN]: '*',
+
+  // ── Org roles — common user permissions (noop, collapsed below) ──
+  [OrgUserRoles.VIEWER]: {
+    include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenUpdate: true,
+      apiTokenDelete: true,
+      passwordChange: true,
+      mfaSetup: true,
+      mfaVerifySetup: true,
+      mfaDisable: true,
+      mfaStatus: true,
+      mfaRegenerateBackupCodes: true,
+      commandPalette: true,
+      baseListAll: true,
+      testConnection: true,
+      notification: true,
+
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
+      oAuthAuthorizationList: true,
+      oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
+
+      mcpRootList: true,
+      getUserProfile: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkRefresh: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
+    },
+  },
+  [OrgUserRoles.CREATOR]: {
+    include: {
+      upload: true,
+      uploadViaURL: true,
+      isPluginActive: true,
+      genericGPT: true,
+    },
+  },
+
+  // ── Workspace roles ──
+  [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {
+      baseList: true,
+    },
+  },
+  [WorkspaceUserRoles.VIEWER]: {
+    include: {
+      workspaceUserList: true,
+      workspaceInvite: true,
+    },
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.CREATOR]: {
+    include: {
+      baseCreate: true,
+      duplicateSharedBase: true,
+      webhookPluginList: true,
+      integrationGet: true,
+      integrationCreate: true,
+      integrationDelete: true,
+      integrationUpdate: true,
+      integrationList: true,
+      integrationStore: true,
+      integrationEndpointGet: true,
+      integrationLinkedBaseList: true,
+      integrationUpdateLinkedBases: true,
+      aiSchema: true,
+      workspaceUserUpdate: true,
+      workspaceUserDelete: true,
+    },
+  },
+  [WorkspaceUserRoles.OWNER]: {
+    exclude: {},
+  },
+
+  // ── Base roles (unchanged) ──
+  [ProjectRoles.VIEWER]: {
+    include: {
+      formViewGet: true,
+      // base
+      baseGet: true,
+      //table
+      tableGet: true,
+      // attachment
+      attachmentDownload: true,
+      // data
+      dataList: true,
+      linkDataList: true,
+      bulkDataList: true,
+      dataRead: true,
+      dataExist: true,
+      dataFindOne: true,
+      dataGroupBy: true,
+
+      dataExport: true,
+      exportCsv: true,
+      exportExcel: true,
+
+      // sort & filter
+      sortList: true,
+      filterList: true,
+      baseInfoGet: true,
+      baseUserMetaUpdate: true,
+
+      galleryViewGet: true,
+      kanbanViewGet: true,
+      groupedDataList: true,
+      calendarViewGet: true,
+      mapViewGet: true,
+
+      mmList: true,
+      hmList: true,
+
+      baseCost: true,
+
+      tableList: true,
+      viewList: true,
+      functionList: true,
+      sequenceList: true,
+      procedureList: true,
+      columnList: true,
+      viewColumnList: true,
+      triggerList: true,
+      relationList: true,
+      relationListAll: true,
+      indexList: true,
+      list: true,
+      dataCount: true,
+      dataAggregate: true,
+      bulkAggregate: true,
+      swaggerJson: true,
+
+      nestedDataList: true,
+      baseUserList: true,
+
+      // Extensions
+      extensionList: true,
+      extensionRead: true,
+
+      jobList: true,
+      commentList: true,
+      commentCount: true,
+      recordAuditList: true,
+
+      userInvite: true,
+
+      // MCP CRUD
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
+    },
+  },
+  [ProjectRoles.COMMENTER]: {
+    include: {
+      commentRow: true,
+      commentUpdate: true,
+      commentDelete: true,
+    },
+  },
+  [ProjectRoles.EDITOR]: {
+    include: {
+      dataUpdate: true,
+      dataDelete: true,
+      dataInsert: true,
+      dataMove: true,
+      dataUpsert: true,
+      bulkDataUpsert: true,
+      nestedDataListCopyPasteOrDeleteAll: true,
+      nestedDataBulkCopyPasteOrDeleteAll: true,
+      nestedDataBulkLinkByDisplayValue: true,
+      filterGet: true,
+      filterChildrenList: true,
+      mmExcludedList: true,
+      hmExcludedList: true,
+      btExcludedList: true,
+      ooExcludedList: true,
+      bulkDataInsert: true,
+      bulkDataUpdate: true,
+      bulkDataUpdateAll: true,
+      bulkDataDelete: true,
+      bulkDataDeleteAll: true,
+      relationDataRemove: true,
+      relationDataAdd: true,
+
+      dataImportPreview: true,
+      dataImportFile: true,
+
+      nestedDataLink: true,
+      nestedDataUnlink: true,
+      nestedListCopyPasteOrDeleteAll: true,
+      // TODO add ACL with base scope
+      // upload: true,
+      // uploadViaURL: true,
+      hookTrigger: true,
+
+      // AI
+      aiUtils: true,
+      aiData: true,
+      aiDataGenerateRows: true,
+      aiDataFillRows: true,
+      aiDataExtractRows: true,
+
+      // Base integrations (read only)
+      baseIntegrationList: true,
+
+      // Extensions
+      extensionUpdate: true,
+
+      // etc
+      fetchViaUrl: true,
+      webBookmarkFetch: true,
+
+      // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
+      sortCreate: true,
+      sortUpdate: true,
+      sortDelete: true,
+      filterCreate: true,
+      filterUpdate: true,
+      filterDelete: true,
+      filterBulkLogicalOpUpdate: true,
+      buttonFilterList: true,
+      buttonFilterCreate: true,
+      viewColumnUpdate: true,
+      viewColumnsBulkSetVisibility: true,
+      hideAllColumns: true,
+      showAllColumns: true,
+      gridColumnUpdate: true,
+      listColumnUpdate: true,
+      gridViewCreate: true,
+      gridViewUpdate: true,
+      formViewCreate: true,
+      formViewUpdate: true,
+      formColumnUpdate: true,
+      formColumnBulkUpdate: true,
+      galleryViewCreate: true,
+      galleryViewUpdate: true,
+      kanbanViewCreate: true,
+      kanbanViewUpdate: true,
+      mapViewCreate: true,
+      mapViewUpdate: true,
+      calendarViewCreate: true,
+      calendarViewUpdate: true,
+
+      // View CRUD — editor restrictions (locked views, ownership on personal)
+      // are enforced in middleware + views.service.ts
+      viewCreate: true,
+      viewUpdate: true,
+      viewDelete: true,
+
+      // Share view — editors can create/update/delete share links on
+      // collaborative views they have access to. Base-level sharing is
+      // still gated by `baseShare` (creator+).
+      shareView: true,
+      shareViewUpdate: true,
+      shareViewDelete: true,
+      shareViewList: true,
+    },
+  },
+  [ProjectRoles.CREATOR]: {
+    exclude: {
+      baseDelete: true,
+      migrateBase: true,
+    },
+  },
+  [ProjectRoles.OWNER]: {
+    exclude: {
+      pluginList: true,
+      pluginTest: true,
+      pluginRead: true,
+      pluginUpdate: true,
+      isPluginActive: true,
+      createBase: true,
+    },
+  },
+};
+
+// VALIDATIONS
+
+// validate no permission shared between scopes
+{
+  const scopePermissions = {};
+  const duplicates = [];
+  Object.keys(permissionScopes).forEach((scope) => {
+    permissionScopes[scope].forEach((perm) => {
+      if (scopePermissions[perm]) {
+        duplicates.push(perm);
+      } else {
+        scopePermissions[perm] = true;
+      }
+    });
+    if (duplicates.length) {
+      throw new Error(
+        `Duplicate permissions found in scope ${scope}. Please remove duplicate permissions: ${duplicates.join(
+          ', ',
+        )}`,
+      );
+    }
+  });
+}
+
+// validate no duplicate permissions within same scope
+/*
+  We inherit include permissions from previous roles in the same scope (role order)
+  We inherit exclude permissions from previous roles in the same scope (reverse role order)
+  To determine role order, we use `roleScopes` object
+*/
+Object.values(roleScopes).forEach((roles) => {
+  const scopePermissions = {};
+  const duplicates = [];
+  roles.forEach((role) => {
+    const perms =
+      rolePermissions[role].include || rolePermissions[role].exclude || {};
+    Object.keys(perms).forEach((perm) => {
+      if (scopePermissions[perm]) {
+        duplicates.push(perm);
+      }
+      scopePermissions[perm] = true;
+    });
+  });
+  if (duplicates.length) {
+    throw new Error(
+      `Duplicate permissions found in roles ${roles.join(
+        ', ',
+      )}. Please remove duplicate permissions: ${duplicates.join(', ')}`,
+    );
+  }
+});
+
+// validate permission scopes are valid
+Object.entries(rolePermissions).forEach(([role, permissions]) => {
+  if (permissions === '*') return;
+  if (role === 'guest') return;
+
+  let roleScope = null;
+
+  Object.entries(roleScopes).forEach(([scope, roles]) => {
+    if ((roles as any).includes(role)) {
+      roleScope = scope;
+    }
+  });
+
+  if (!roleScope) {
+    throw new Error(
+      `Role ${role} does not belong to any scope, please assign it to a scope`,
+    );
+  }
+
+  const scopePermissions = permissionScopes[roleScope];
+
+  if (!scopePermissions) {
+    throw new Error(
+      `Scope ${roleScope} does not exist, please create it in permissionScopes`,
+    );
+  }
+
+  const mismatchedPermissions = [];
+
+  Object.keys(permissions.include || {}).forEach((perm) => {
+    if (!scopePermissions.includes(perm)) {
+      mismatchedPermissions.push(perm);
+    }
+  });
+
+  if (mismatchedPermissions.length) {
+    throw new Error(
+      `Role ${role} has permissions that do not belong to its scope ${roleScope}. Please remove or add these permissions: ${mismatchedPermissions.join(
+        ', ',
+      )}`,
+    );
+  }
+});
+
+// inherit include permissions within scope (role order)
+Object.values(roleScopes).forEach((roles) => {
+  let roleIndex = 0;
+  for (const role of roles) {
+    if (roleIndex === 0) {
+      roleIndex++;
+      continue;
+    }
+
+    if (rolePermissions[role] === '*') continue;
+    if (rolePermissions[role].include) {
+      Object.assign(
+        rolePermissions[role].include,
+        rolePermissions[roles[roleIndex - 1]].include,
+      );
+    }
+
+    roleIndex++;
+  }
+});
+
+// inherit exclude permissions within scope (reverse role order)
+Object.values(roleScopes).forEach((roles) => {
+  const reversedRoles = [...roles].reverse();
+  let roleIndex = 0;
+  for (const role of reversedRoles) {
+    if (roleIndex === 0) {
+      roleIndex++;
+      continue;
+    }
+
+    if (rolePermissions[role] === '*') continue;
+
+    if (rolePermissions[role].exclude) {
+      Object.assign(
+        rolePermissions[role].exclude,
+        rolePermissions[roles[roleIndex - 1]].exclude,
+      );
+    }
+
+    roleIndex++;
+  }
+});
+
+// validate include and exclude can't exist at the same time
+Object.values(rolePermissions).forEach((role) => {
+  if (role === '*') return;
+  if (role.include && role.exclude) {
+    throw new Error(
+      `Role ${role} has both include and exclude permissions. Please remove one of them`,
+    );
+  }
+});
+
+// Collapse org roles — VIEWER gets same as CREATOR (EE pattern)
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR];
+
+// Excluded permissions for source restrictions
+// `true` means permission is restricted and `false`/missing means permission is allowed
+export const sourceRestrictions = {
+  [SourceRestriction.SCHEMA_READONLY]: {
+    tableCreate: true,
+    tableDelete: true,
+  },
+  [SourceRestriction.DATA_READONLY]: {
+    dataUpdate: true,
+    dataDelete: true,
+    dataInsert: true,
+    dataMove: true,
+    dataUpsert: true,
+    bulkDataInsert: true,
+    bulkDataUpdate: true,
+    bulkDataUpdateAll: true,
+    bulkDataDelete: true,
+    bulkDataDeleteAll: true,
+    relationDataRemove: true,
+    relationDataAdd: true,
+    nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataBulkCopyPasteOrDeleteAll: true,
+    nestedDataBulkLinkByDisplayValue: true,
+    nestedDataUnlink: true,
+    nestedDataLink: true,
+  },
+};
+
+export default rolePermissions;
+
+const permissionDescriptions: Record<string, string> = {
+  // cloudOrg permissions
+  orgUserAdd: 'add users to the organization',
+  orgUserRemove: 'remove users from the organization',
+  orgUserRoleUpdate: 'update user roles in the organization',
+  orgUpdate: 'update organization details',
+  orgDomainList: 'view organization domains',
+  orgDomainAdd: 'add a new domain to the organization',
+  orgDomainVerify: 'verify a domain in the organization',
+  orgDomainUpdate: 'update domain details in the organization',
+  orgDomainDelete: 'remove a domain from the organization',
+  orgSsoClientCreate: 'create a new SSO client',
+  orgSsoClientUpdate: 'update SSO client details',
+  orgSsoClientDelete: 'delete an SSO client',
+  orgWorkspaceUpdate: 'update workspace details',
+  orgWorkspaceAdd: 'add a new workspace',
+  orgGet: 'view organization details',
+  orgWorkspaceList: 'view list of workspaces in the organization',
+  orgUserList: 'view list of users in the organization',
+  orgBaseList: 'view list of bases in the organization',
+  orgSsoClientList: 'view list of SSO clients in the organization',
+
+  // org permissions
+  ssoClientList: 'view list of SSO clients',
+  ssoClientCreate: 'create a new SSO client',
+  ssoClientUpdate: 'update SSO client details',
+  ssoClientDelete: 'delete an SSO client',
+  ssoClientGet: 'view SSO client details',
+  ssoClientTest: 'test an SSO client',
+
+  whiteLabelGet: 'view white-label configuration',
+  whiteLabelUpdate: 'update white-label configuration',
+
+  apiTokenList: 'view list of API tokens',
+  apiTokenCreate: 'create a new API token',
+  apiTokenUpdate: 'update an API token',
+  apiTokenDelete: 'delete an API token',
+
+  passwordChange: 'change your password',
+  mfaSetup: 'set up two-factor authentication',
+  mfaVerifySetup: 'verify two-factor authentication setup',
+  mfaDisable: 'disable two-factor authentication',
+  mfaStatus: 'check two-factor authentication status',
+  mfaRegenerateBackupCodes: 'regenerate two-factor backup codes',
+
+  workspaceList: 'view list of workspaces',
+  workspaceCreate: 'create a new workspace',
+
+  isPluginActive: 'check if a plugin is active',
+  pluginList: 'view list of plugins',
+  pluginTest: 'test a plugin',
+  pluginRead: 'read plugin configuration',
+  pluginUpdate: 'update plugin configuration',
+
+  commandPalette: 'access the command palette',
+  baseListAll: 'list all workspaces and bases',
+  instanceAdminStats: 'view instance admin statistics',
+  instanceAdminWorkspaces: 'list all workspaces in instance admin',
+  instanceAdminBases: 'list all bases in instance admin',
+  testConnection: 'test connection to a service',
+  genericGPT: 'use generic GPT functionality',
+
+  upload: 'upload files',
+  uploadViaURL: 'upload files via URL',
+
+  notification: 'send notifications',
+
+  // workspace permissions
+  workspaceUserList: 'view list of users in the workspace',
+  workspaceInvite: 'invite users to the workspace',
+  workspaceUserUpdate: 'update workspace user details',
+  workspaceUserDelete: 'remove a user from the workspace',
+
+  integrationCreate: 'create a new integration',
+  integrationDelete: 'delete an integration',
+  integrationUpdate: 'update integration details',
+  integrationList: 'view list of integrations',
+  integrationStore: "get data from an integration's store",
+  integrationEndpointGet: 'call get request to an exposed integration endpoint',
+  integrationLinkedBaseList: 'view bases linked to an integration',
+  integrationUpdateLinkedBases: 'update base assignments for an integration',
+
+  // base-scoped integration permissions
+  baseIntegrationList: 'view integrations linked to a base',
+  baseIntegrationRead: 'view a single integration from a base',
+  baseIntegrationFetchOptions: 'fetch options for a base-scoped integration',
+
+  baseIntegrationCreate: 'create an integration from a base',
+  baseIntegrationUpdate: 'update an integration from a base',
+  baseIntegrationLink: 'link an integration to a base',
+  baseIntegrationUnlink: 'unlink an integration from a base',
+
+  // base permissions
+  formViewGet: 'view forms',
+  baseGet: 'view base details',
+  tableGet: 'view table details',
+  attachmentDownload: 'download attachments',
+  dataList: 'view data',
+  linkDataList: 'view data',
+  bulkDataList: 'view data',
+  dataRead: 'read data',
+  dataExist: 'check if data exists',
+  dataFindOne: 'find a single data record',
+  dataGroupBy: 'group data by a specific field',
+  exportCsv: 'export data to CSV',
+  exportExcel: 'export data to Excel',
+  sortList: 'view list of sorts',
+  filterList: 'view list of filters',
+  baseInfoGet: 'view base information',
+  baseUserMetaUpdate: 'update user metadata for the base',
+  galleryViewGet: 'view gallery',
+  kanbanViewGet: 'view Kanban board',
+  calendarViewGet: 'view calendar',
+  mapViewGet: 'view map',
+  gridViewUpdate: 'update grid view',
+  formViewUpdate: 'update form view',
+  formColumnUpdate: 'update form columns',
+  formColumnBulkUpdate: 'bulk update form column layout',
+  galleryViewUpdate: 'update gallery view',
+  kanbanViewUpdate: 'update kanban view',
+  mapViewUpdate: 'update map view',
+  calendarViewUpdate: 'update calendar view',
+  groupedDataList: 'view grouped data',
+  mmList: 'view many-to-many relationships',
+  hmList: 'view hierarchical relationships',
+  commentRow: 'comment on a row',
+  baseList: 'view list of bases',
+  baseCost: 'view base cost',
+  tableList: 'view list of tables',
+  viewList: 'view list of views',
+  viewCreate: 'create a view',
+  viewUpdate: 'update a view',
+  viewDelete: 'delete a view',
+  shareView: 'create a share link for a view',
+  shareViewUpdate: 'update a view share link',
+  shareViewDelete: 'remove a view share link',
+  shareViewList: 'list share links of views',
+  gridViewCreate: 'create a grid view',
+  formViewCreate: 'create a form view',
+  galleryViewCreate: 'create a gallery view',
+  kanbanViewCreate: 'create a kanban view',
+  mapViewCreate: 'create a map view',
+  calendarViewCreate: 'create a calendar view',
+  functionList: 'view list of functions',
+  sequenceList: 'view list of sequences',
+  procedureList: 'view list of procedures',
+  columnList: 'view list of columns',
+  viewColumnList: 'view list of view columns',
+  triggerList: 'view list of triggers',
+  relationList: 'view list of relations',
+  relationListAll: 'view all relations',
+  indexList: 'view list of indexes',
+  list: 'view list of items',
+  dataCount: 'view data count',
+  dataAggregate: 'view data aggregates',
+  bulkAggregate: 'view data aggregates',
+  swaggerJson: 'view Swagger JSON',
+  commentList: 'view list of comments',
+  commentsCount: 'view comment count',
+  commentDelete: 'delete comments',
+  commentUpdate: 'update comments',
+  hideAllColumns: 'hide all columns',
+  showAllColumns: 'show all columns',
+  recordAuditList: 'view audit log for a row',
+  dataUpdate: 'update data',
+  dataDelete: 'delete data',
+  dataInsert: 'insert new data',
+  dataMove: 'reorder a row',
+  dataUpsert: 'upsert data (insert or update)',
+  viewColumnUpdate: 'update view columns',
+  viewColumnsBulkSetVisibility: 'bulk update view column visibility',
+  sortCreate: 'create a new sort',
+  sortUpdate: 'update an existing sort',
+  sortDelete: 'delete a sort',
+  filterCreate: 'create a new filter',
+  filterUpdate: 'update an existing filter',
+  filterDelete: 'delete a filter',
+  filterBulkLogicalOpUpdate: 'update logical operator across sibling filters',
+  filterGet: 'view filter details',
+  filterChildrenList: 'view child filters',
+  buttonFilterList: 'list button visibility filters',
+  buttonFilterCreate: 'create a button visibility filter',
+  mmExcludedList: 'view excluded many-to-many relationships',
+  hmExcludedList: 'view excluded hierarchical relationships',
+  btExcludedList: 'view excluded relationships',
+  ooExcludedList: 'view excluded one-to-one relationships',
+  gridColumnUpdate: 'update grid columns',
+  listColumnUpdate: 'update list columns',
+  bulkDataInsert: 'bulk insert data',
+  bulkDataUpdate: 'bulk update data',
+  bulkDataUpdateAll: 'bulk update all data',
+  bulkDataDelete: 'bulk delete data',
+  bulkDataDeleteAll: 'bulk delete all data',
+  relationDataRemove: 'remove related data',
+  relationDataAdd: 'add related data',
+  nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
+  baseUserList: 'view list of users in the base',
+
+  baseApiTokenList: 'view list of base API tokens',
+  baseApiTokenCreate: 'create a new base API token',
+  baseApiTokenDelete: 'delete a base API token',
+
+  createBase: 'create a new base',
+  baseDelete: 'delete a base',
+  sourceCreate: 'create a new source',
+
+  userInvite: 'invite a user',
+
+  jobList: 'view list of jobs',
+
+  hookTrigger: 'trigger a webhook',
+
+  migrateBase: 'migrate a base to another instance',
+
+  mcpList: 'view list of MCP tokens',
+  mcpCreate: 'create a new MCP token',
+  mcpUpdate: 'update an MCP token',
+  mcpDelete: 'delete an MCP token',
+
+  tableSyncList: 'view list of table syncs',
+  tableSyncGet: 'view table sync details',
+  tableSyncSourceSchema: 'view a table sync source schema',
+  tableSyncCreate: 'create a table sync',
+  tableSyncUpdate: 'update a table sync',
+  tableSyncDelete: 'delete a table sync',
+  tableSyncResync: 'manually resync a table sync',
+  tableSyncFreeze: 'pause a table sync',
+  tableSyncResume: 'resume a paused table sync',
+  tableSyncResolveLink: 'resolve a source share link for a table sync',
+
+  dataImportPreview: 'preview file for import',
+  dataImportFile: 'import file into a table',
+
+  webBookmarkFetch: 'fetch link metadata for a doc bookmark block',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkRefresh: 'refresh bookmark metadata from target entity',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
+};
+
+// Human-readable descriptions for roles
+const roleDescriptions: Record<string, string> = {
+  // Workspace roles
+  [WorkspaceUserRoles.NO_ACCESS]: 'No Access',
+  [WorkspaceUserRoles.VIEWER]: 'Viewer',
+  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
+  [WorkspaceUserRoles.EDITOR]: 'Editor',
+  [WorkspaceUserRoles.CREATOR]: 'Creator',
+  [WorkspaceUserRoles.OWNER]: 'Owner',
+  // Base roles
+  [ProjectRoles.VIEWER]: 'Viewer',
+  [ProjectRoles.COMMENTER]: 'Commenter',
+  [ProjectRoles.EDITOR]: 'Editor',
+  [ProjectRoles.CREATOR]: 'Creator',
+  [ProjectRoles.OWNER]: 'Owner',
+};
+
+export function generateReadablePermissionErr(
+  permissionName: string,
+  roles: Record<string, boolean>,
+  _scope: string,
+): string {
+  const roleLabels = Object.keys(roles)
+    .filter((key) => roles[key])
+    .map((role) => roleDescriptions[role])
+    .join(', ');
+
+  const permissionDescription =
+    permissionDescriptions[permissionName] ||
+    `perform the action "${permissionName}"`;
+
+  return `You do not have permission to ${permissionDescription} with the roles: ${roleLabels}.`;
+}

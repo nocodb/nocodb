@@ -1,0 +1,141 @@
+<script setup lang="ts">
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
+
+const props = defineProps<{
+  value: any
+}>()
+
+const emit = defineEmits(['update:value'])
+
+const vModel = useVModel(props, 'value', emit)
+
+// cater existing v1 cases
+const iconList = checkboxIconList
+
+const { isDark, getColor } = useTheme()
+
+const picked = computed({
+  get: () => vModel.value.meta.color,
+  set: (val) => {
+    vModel.value.meta.color = val
+  },
+})
+
+const isOpenColorPicker = ref(false)
+
+// set default value
+vModel.value.meta = {
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Checkbox),
+  ...(vModel.value.meta || {}),
+  icon: extractCheckboxIcon(vModel.value.meta || {}),
+}
+
+const iconColor = computed(() => {
+  if (!isDark.value) return vModel.value.meta.color
+
+  if (vModel.value.meta.color === '#777') {
+    return getColor(themeV4Colors.gray['600'])
+  }
+
+  return getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), vModel.value.meta.color, ['#4a5268', '#d5dce8'])
+})
+
+// antdv doesn't support object as value
+// use iconIdx as value and update back in watch
+const iconIdx = iconList.findIndex(
+  (ele) => ele.checked === vModel.value.meta.icon.checked && ele.unchecked === vModel.value.meta.icon.unchecked,
+)
+
+vModel.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
+
+watch(
+  () => vModel.value.meta.iconIdx,
+  (v) => {
+    vModel.value.meta.icon = iconList[v]
+  },
+)
+</script>
+
+<template>
+  <a-row :gutter="8">
+    <a-col :span="12">
+      <a-form-item :label="$t('labels.icon')">
+        <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
+
+          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
+            <div class="flex gap-2 w-full truncate items-center">
+              <div class="flex-1 flex items-center text-nc-content-gray-subtle gap-2 children:(h-4 w-4)">
+                <component :is="getMdiIcon(icon.checked)" />
+                <component :is="getMdiIcon(icon.unchecked)" />
+              </div>
+
+              <component
+                :is="iconMap.check"
+                v-if="vModel.meta.iconIdx === i"
+                id="nc-selected-item-icon"
+                class="text-nc-content-brand w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-col>
+    <a-col :span="12">
+      <a-form-item :label="$t('general.colour')">
+        <NcDropdown
+          v-model:visible="isOpenColorPicker"
+          placement="bottomRight"
+          :auto-close="false"
+          use-backdrop
+          class="nc-color-picker-dropdown-trigger"
+        >
+          <div
+            class="flex-1 border-1 border-nc-border-gray-dark rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
+            :class="{
+              'border-nc-border-brand shadow-selected': isOpenColorPicker,
+            }"
+          >
+            <div class="flex-1 flex items-center gap-2 children:(h-4 w-4)">
+              <component
+                :is="getMdiIcon(iconList[vModel.meta.iconIdx].checked)"
+                :style="{
+                  color: iconColor,
+                }"
+              />
+              <component
+                :is="getMdiIcon(iconList[vModel.meta.iconIdx].unchecked)"
+                :style="{
+                  color: iconColor,
+                }"
+              />
+            </div>
+
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle h-4 w-4" />
+          </div>
+          <template #overlay>
+            <div>
+              <LazyGeneralAdvanceColorPicker
+                v-model="picked"
+                :is-open="isOpenColorPicker"
+                @input="(el:string)=>vModel.meta.color=el"
+              ></LazyGeneralAdvanceColorPicker>
+            </div>
+          </template>
+        </NcDropdown>
+      </a-form-item>
+    </a-col>
+  </a-row>
+</template>
+
+<style scoped lang="scss">
+.color-selector:hover {
+  @apply brightness-90;
+}
+
+.color-selector.selected {
+  @apply py-[5px] px-[10px] brightness-90;
+}
+</style>

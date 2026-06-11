@@ -1,0 +1,1438 @@
+import {
+  getFirstNonPersonalView,
+  isLinksOrLTAR,
+  isVirtualCol,
+  ModelTypes,
+  NcApiVersion,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
+import dayjs from 'dayjs';
+import { Logger } from '@nestjs/common';
+import hash from 'object-hash';
+import type { NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
+import type {
+  BoolType,
+  DateDependencyType,
+  TableReqType,
+  TableType,
+} from 'nocodb-sdk';
+import type PQueue from 'p-queue';
+import type { XKnex } from '~/db/CustomKnex';
+import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
+import { NcContext } from '~/interface/config';
+import Hook from '~/models/Hook';
+import View from '~/models/View';
+import Comment from '~/models/Comment';
+import Column from '~/models/Column';
+import { extractProps } from '~/helpers/extractProps';
+import { sanitize } from '~/helpers/sqlSanitize';
+import { NcError } from '~/helpers/catchError';
+import { getReplay } from '~/helpers/replayScope';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { FileReference } from '~/models';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+} from '~/utils/modelUtils';
+import { Source } from '~/models';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { clearSingleQueryCacheForReferencingModels } from '~/helpers/singleQueryCacheInvalidator';
+import { dataWrapper } from '~/helpers/dbHelpers';
+import { isEE } from '~/utils';
+import { NcCache } from '~/decorators/nc-cache.decorator';
+import {
+  modelOrViewNotDeletedXcCondition,
+  modelOrViewXcCondition,
+} from '~/utils/trashUtils';
+
+const logger = new Logger('Model');
+
+/**
+ * Build a JSON-/hash-safe clone: drop functions, replace promises with a
+ * placeholder, and break cycles. Used as a fallback when `object-hash` chokes
+ * on a transient lazily-loaded promise sitting on a cached column instance.
+ */
+function sanitizeForHash(value: any, seen = new WeakSet()): any {
+  if (value === null || typeof value !== 'object') {
+    return typeof value === 'function' ? undefined : value;
+  }
+  if (typeof (value as any).then === 'function') return '[promise]';
+  if (seen.has(value)) return '[circular]';
+  seen.add(value);
+  if (Array.isArray(value)) return value.map((v) => sanitizeForHash(v, seen));
+  if (value instanceof Map) {
+    return [...value.entries()].map(([k, v]) => [k, sanitizeForHash(v, seen)]);
+  }
+  if (value instanceof Set) return [...value].map((v) => sanitizeForHash(v, seen));
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(value)) out[k] = sanitizeForHash(v, seen);
+  return out;
+}
+
+export default class Model implements TableType {
+  copy_enabled: BoolType;
+  source_id: 'db' | string;
+  deleted: BoolType;
+  enabled: BoolType;
+  export_enabled: BoolType;
+  id: string;
+  order: number;
+  parent_id: string;
+  password: string;
+  pin: BoolType;
+  fk_workspace_id?: string;
+  base_id: string;
+  schema: any;
+  show_all_fields: boolean;
+  tags: string;
+  type: ModelTypes;
+
+  table_name: string;
+  title: string;
+  description?: string;
+
+  mm: BoolType;
+
+  uuid: string;
+
+  // Document-only fields — undefined on non-document model types
+  updated_by?: string;
+  has_children?: BoolType;
+  doc_version?: number;
+
+  date_dependency?: DateDependencyType | null;
+
+  trash_disabled?: boolean | null;
+  trash_retention_days?: number | null;
+
+  get isTrashEnabled(): boolean {
+    return false;
+  }
+
+  async isTrashEnabledForWorkspace(_context: NcContext): Promise<boolean> {
+    return this.isTrashEnabled;
+  }
+
+  columns?: Column[];
+  columnsById?: { [id: string]: Column };
+  columnsHash?: string;
+  views?: View[];
+  meta?: Record<string, any> | string;
+
+  synced?: boolean;
+
+  constructor(data: Partial<TableType | Model>) {
+    Object.assign(this, data);
+  }
+
+  public static castType(data: Model): Model {
+    return data && new Model(data);
+  }
+
+  public async getColumns(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    defaultViewId = undefined,
+    updateColumns = true,
+    includeDeleted = false,
+  ): Promise<Column[]> {
+    const columns = await Column.list(
+      context,
+      {
+        fk_model_id: this.id,
+        fk_default_view_id: defaultViewId,
+        includeDeleted,
+      },
+      ncMeta,
+    );
+
+    if (!updateColumns) return columns;
+
+    this.columns = columns;
+
+    this.columnsById = this.columns.reduce((agg, c) => {
+      agg[c.id] = c;
+      return agg;
+    }, {});
+
+    return this.columns;
+  }
+
+  public async getColumnsHash(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string> {
+    const columns = await this.getColumns(context, ncMeta, undefined, false);
+
+    try {
+      return (this.columnsHash = hash(columns));
+    } catch {
+      // A column can transiently carry a lazily-loaded Promise (e.g. a relation
+      // mid-load on a shared cached instance); object-hash throws on promises.
+      // Hash a sanitized projection instead so meta operations never crash on a
+      // transient cache state.
+      return (this.columnsHash = hash(sanitizeForHash(columns)));
+    }
+  }
+
+  // get columns cached under the instance or fetch from db/redis cache
+  public async getCachedColumns(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column[]> {
+    if (this.columns) return this.columns;
+    return this.getColumns(context, ncMeta);
+  }
+
+  // @ts-ignore
+  public async getViews(
+    context: NcContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    force = false,
+    ncMeta = Noco.ncMeta,
+  ): Promise<View[]> {
+    this.views = await View.listWithInfo(context, this.id, ncMeta);
+    return this.views;
+  }
+
+  public get primaryKey(): Column {
+    if (!this.columns) return null;
+    //  return first auto increment or auto generated column
+    // if not found return first pk column
+    return (
+      this.columns.find((c) => c.pk && (c.ai || c.meta?.ag)) ||
+      this.columns?.find((c) => c.pk)
+    );
+  }
+
+  public get primaryKeys(): Column[] {
+    if (!this.columns) return null;
+    return this.columns?.filter((c) => c.pk);
+  }
+
+  // If there is no column marked as display value,
+  // we are getting the immediate next column to pk as display value
+  // or the first column(if pk is the last column).
+  public get displayValue(): Column {
+    if (!this.columns) return null;
+    const pCol = this.columns?.find((c) => c.pv);
+    if (pCol) return pCol;
+    if (this.mm) {
+      // by default, there is no default value in m2m table
+      // take the first column instead
+      return this.columns[0];
+    }
+    const pkIndex = this.columns.indexOf(this.primaryKey);
+    if (pkIndex < this.columns.length - 1) return this.columns[pkIndex + 1];
+    return this.columns[0];
+  }
+
+  public static async insert(
+    context: NcContext,
+    baseId,
+    sourceId,
+    model: Partial<TableReqType> & {
+      mm?: BoolType;
+      type?: ModelTypes;
+      source_id?: string;
+      user_id: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = extractProps(model, [
+      'table_name',
+      'title',
+      'description',
+      'mm',
+      'order',
+      'type',
+      'id',
+      'meta',
+      'synced',
+    ]);
+
+    insertObj.mm = !!insertObj.mm;
+
+    const condition: Record<string, any> = {
+      base_id: baseId,
+    };
+
+    if (isEE) {
+      condition.fk_workspace_id = context.workspace_id;
+    }
+
+    if (!insertObj.order) {
+      insertObj.order = await ncMeta.metaGetNextOrder(
+        MetaTable.MODELS,
+        condition,
+        {
+          _or: [
+            {
+              source_id: {
+                eq: sourceId, // Match the given source_id
+              },
+            },
+            {
+              source_id: {
+                eq: null, // Also include records with null source_id
+              },
+            },
+          ],
+        },
+      );
+    }
+
+    if (!insertObj.type) {
+      insertObj.type = ModelTypes.TABLE;
+    }
+
+    insertObj.source_id = sourceId;
+
+    const { id } = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      insertObj,
+    );
+
+    const insertedColumns = await Column.bulkInsert(
+      context,
+      {
+        columns: (model?.columns || []) as Column[],
+        fk_model_id: id,
+        source_id: sourceId,
+        base_id: baseId,
+      },
+      ncMeta,
+    );
+
+    const sandboxDefaultViewId = getReplay('sandboxDefaultViewId');
+    await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...(sandboxDefaultViewId ? { id: sandboxDefaultViewId } : {}),
+          fk_model_id: id,
+          title: model.title || model.table_name,
+          type: ViewTypes.GRID,
+          base_id: baseId,
+          source_id: sourceId,
+          created_by: model.user_id,
+          owned_by: model.user_id,
+        },
+        model: {
+          getColumns: async () => insertedColumns,
+        },
+        req: { user: {} } as unknown as NcRequest,
+      },
+      ncMeta,
+    );
+
+    const modelRes = await this.getWithInfo(context, { id }, ncMeta);
+
+    // append to model list since model list cache will be there already
+    if (sourceId) {
+      await NocoCache.appendToList(
+        context,
+        CacheScope.MODEL,
+        [baseId, sourceId],
+        `${CacheScope.MODEL}:${id}`,
+      );
+    }
+    // cater cases where sourceId is not required
+    // e.g. xcVisibilityMetaGet
+    await NocoCache.appendToList(
+      context,
+      CacheScope.MODEL,
+      [baseId],
+      `${CacheScope.MODEL}:${id}`,
+    );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
+    return modelRes;
+  }
+
+  public static async list(
+    context: NcContext,
+    {
+      base_id,
+      source_id,
+      includeDeleted,
+    }: {
+      base_id: string;
+      source_id?: string;
+      includeDeleted?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model[]> {
+    const cachedList = await NocoCache.getList(context, CacheScope.MODEL, [
+      base_id,
+      ...(source_id ? [source_id] : []),
+    ]);
+    let { list: modelList } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !modelList.length) {
+      modelList = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        {
+          orderBy: {
+            order: 'asc',
+          },
+          ...(source_id ? { condition: { source_id } } : {}),
+          xcCondition: modelOrViewXcCondition,
+        },
+      );
+
+      // parse meta of each model
+      for (const model of modelList) {
+        model.meta = parseMetaProp(model);
+      }
+
+      // set cache based on source_id presence
+      if (source_id) {
+        await NocoCache.setList(
+          context,
+          CacheScope.MODEL,
+          [base_id, source_id],
+          modelList,
+        );
+      } else {
+        await NocoCache.setList(
+          context,
+          CacheScope.MODEL,
+          [base_id],
+          modelList,
+        );
+      }
+    }
+
+    if (!includeDeleted) {
+      modelList = modelList.filter((m) => !m.deleted);
+    }
+
+    modelList.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity),
+    );
+
+    return modelList.map((m) => this.castType(m));
+  }
+
+  @NcCache({
+    key: (args) => `${args[1]}:${args[2] ? 'd' : ''}`,
+  })
+  public static async get(
+    context: NcContext,
+    id: string,
+    includeDeleted = false,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model> {
+    let modelData =
+      id &&
+      (await NocoCache.get(
+        context,
+        `${CacheScope.MODEL}:${id}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!modelData) {
+      modelData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        id,
+        undefined,
+        modelOrViewXcCondition,
+      );
+
+      if (modelData) {
+        modelData.meta = parseMetaProp(modelData);
+        await NocoCache.set(
+          context,
+          `${CacheScope.MODEL}:${modelData.id}`,
+          modelData,
+        );
+      }
+    }
+
+    if (modelData?.deleted && !includeDeleted) {
+      return null;
+    }
+
+    return this.castType(modelData);
+  }
+
+  @NcCache({
+    key: (args) =>
+      `${
+        args[1].id ||
+        `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
+      }:${args[1].includeDeleted ? 'd' : ''}`,
+  })
+  public static async getByIdOrName(
+    context: NcContext,
+    args:
+      | {
+          base_id: string;
+          source_id: string;
+          table_name: string;
+          includeDeleted?: boolean;
+        }
+      | {
+          id?: string;
+          includeDeleted?: boolean;
+        },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model> {
+    if ('id' in args && args?.id) {
+      return this.get(context, args.id, args.includeDeleted, ncMeta);
+    }
+
+    const k = 'id' in args ? args?.id : args;
+    let modelData =
+      k &&
+      (await NocoCache.get(
+        context,
+        `${CacheScope.MODEL}:${k}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!modelData) {
+      modelData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        k,
+        undefined,
+        args.includeDeleted
+          ? modelOrViewXcCondition
+          : modelOrViewNotDeletedXcCondition,
+      );
+      if (modelData) {
+        modelData.meta = parseMetaProp(modelData);
+      }
+    }
+    if (modelData) {
+      modelData.meta = parseMetaProp(modelData);
+      await NocoCache.set(
+        context,
+        `${CacheScope.MODEL}:${modelData.id}`,
+        modelData,
+      );
+      return this.castType(modelData);
+    }
+    return null;
+  }
+
+  public static async getWithInfo(
+    context: NcContext,
+    {
+      table_name,
+      id,
+    }: {
+      table_name?: string;
+      id?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model> {
+    let modelData =
+      id &&
+      (await NocoCache.get(
+        context,
+        `${CacheScope.MODEL}:${id}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!modelData) {
+      modelData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        id || {
+          table_name,
+        },
+        undefined,
+        modelOrViewNotDeletedXcCondition,
+      );
+      if (modelData) {
+        modelData.meta = parseMetaProp(modelData);
+        await NocoCache.set(
+          context,
+          `${CacheScope.MODEL}:${modelData.id}`,
+          modelData,
+        );
+      }
+      // modelData.filters = await Filter.getFilterObject({
+      //   viewId: modelData.id
+      // });
+      // modelData.sorts = await Sort.list({ modelId: modelData.id });
+    }
+    if (modelData) {
+      const m = this.castType(modelData);
+
+      await m.getViews(context, false, ncMeta);
+
+      const defaultViewId = getFirstNonPersonalView(m.views, {
+        includeViewType: ViewTypes.GRID,
+      })?.id;
+
+      await m.getColumns(context, ncMeta, defaultViewId);
+
+      await m.getColumnsHash(context, ncMeta);
+
+      return m;
+    }
+    return null;
+  }
+
+  /**
+   * Creates a BaseModelSqlv2 instance with optional transaction support.
+   *
+   * @param context - The NocoDB context
+   * @param args - Configuration arguments
+   * @param args.dbDriver - The base database driver
+   * @param args.transaction - Optional transaction instance to use for operations
+   * @param args.model - The model instance (optional, will be fetched if not provided)
+   * @param args.extractFirstCollaborativeView - Whether to extract the first collaborative grid view if viewId not provided
+   * @param args.viewId - The view ID (optional)
+   * @param args.source - The data source (optional, will be fetched if not provided)
+   * @param ncMeta - The NocoDB metadata instance
+   * @returns A configured BaseModelSqlv2 instance
+   */
+  public static async getBaseModelSQL(
+    context: NcContext,
+    args: {
+      id?: string;
+      viewId?: string;
+      dbDriver: XKnex;
+      transaction?: XKnex | Knex.Transaction;
+      model?: Model;
+      extractFirstCollaborativeView?: boolean;
+      source?: Source;
+      queryQueue?: PQueue;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<BaseModelSqlv2> {
+    const model =
+      args?.model || (await this.get(context, args.id, false, ncMeta));
+
+    if (!model) {
+      NcError.get(context).tableNotFound(args.id);
+    }
+
+    const source =
+      args.source ||
+      (await Source.get(context, model.source_id, false, ncMeta));
+
+    if (!args?.viewId && args.extractFirstCollaborativeView) {
+      const view = await View.getFirstCollaborativeView(
+        context,
+        model.id,
+        ncMeta,
+      );
+      if (view) {
+        args.viewId = view.id;
+      }
+    }
+
+    let schema: string;
+
+    if (source?.isMeta(true, 1)) {
+      schema = source.getConfig()?.schema;
+    } else if (source?.type === 'pg' || source?.type === 'mssql') {
+      schema = source.getConfig()?.searchPath?.[0];
+    }
+
+    return new BaseModelSqlv2({
+      context,
+      dbDriver: args.dbDriver,
+      transaction: args.transaction,
+      viewId: args.viewId,
+      model,
+      schema,
+      queryQueue: args.queryQueue,
+    });
+  }
+
+  static async softDelete(
+    context: NcContext,
+    modelId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { deleted },
+      modelId,
+    );
+    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
+      deleted,
+    });
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {});
+  }
+
+  async delete(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    force = false,
+  ): Promise<boolean> {
+    await Comment.deleteModelComments(context, this.id, ncMeta);
+
+    for (const view of await this.getViews(context, true, ncMeta)) {
+      await view.delete(context, ncMeta);
+    }
+
+    // delete associated hooks
+    for (const hook of await Hook.list(
+      context,
+      { fk_model_id: this.id },
+      ncMeta,
+    )) {
+      await Hook.delete(context, hook.id, ncMeta);
+    }
+
+    for (const col of await this.getColumns(context, ncMeta)) {
+      let colOptionTableName = null;
+      let cacheScopeName = null;
+      switch (col.uidt) {
+        case UITypes.Rollup:
+          colOptionTableName = MetaTable.COL_ROLLUP;
+          cacheScopeName = CacheScope.COL_ROLLUP;
+          break;
+        case UITypes.Lookup:
+          colOptionTableName = MetaTable.COL_LOOKUP;
+          cacheScopeName = CacheScope.COL_LOOKUP;
+          break;
+        case UITypes.ForeignKey:
+        case UITypes.LinkToAnotherRecord:
+          colOptionTableName = MetaTable.COL_RELATIONS;
+          cacheScopeName = CacheScope.COL_RELATION;
+          break;
+        case UITypes.MultiSelect:
+        case UITypes.SingleSelect:
+          colOptionTableName = MetaTable.COL_SELECT_OPTIONS;
+          cacheScopeName = CacheScope.COL_SELECT_OPTION;
+          break;
+        case UITypes.Formula:
+          colOptionTableName = MetaTable.COL_FORMULA;
+          cacheScopeName = CacheScope.COL_FORMULA;
+          break;
+        case UITypes.QrCode:
+          colOptionTableName = MetaTable.COL_QRCODE;
+          cacheScopeName = CacheScope.COL_QRCODE;
+          break;
+        case UITypes.Barcode:
+          colOptionTableName = MetaTable.COL_BARCODE;
+          cacheScopeName = CacheScope.COL_BARCODE;
+          break;
+      }
+      if (colOptionTableName && cacheScopeName) {
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          colOptionTableName,
+          {
+            fk_column_id: col.id,
+          },
+        );
+        await NocoCache.deepDel(
+          context,
+          `${cacheScopeName}:${col.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+    }
+
+    if (force) {
+      const leftOverColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_related_model_id: this.id,
+          },
+        },
+      );
+
+      for (const col of leftOverColumns) {
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.COL_RELATION}:${col.fk_column_id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_related_model_id: this.id,
+        },
+      );
+
+      // Also clean up MM columns that reference this model as their junction table
+      const leftOverMmColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_mm_model_id: this.id,
+          },
+        },
+      );
+
+      for (const col of leftOverMmColumns) {
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.COL_RELATION}:${col.fk_column_id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_mm_model_id: this.id,
+        },
+      );
+    }
+
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.COLUMN}:${this.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        fk_model_id: this.id,
+      },
+    );
+
+    // Delete FileReference
+    await FileReference.bulkDelete(context, { fk_model_id: this.id }, ncMeta);
+
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.MODEL}:${this.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      this.id,
+    );
+
+    // delete alias cache
+    await NocoCache.del(context, [
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.id}`,
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.source_id}:${this.id}`,
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.title}`,
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.source_id}:${this.title}`,
+    ]);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
+    return true;
+  }
+
+  async mapAliasToColumn(
+    context: NcContext,
+    data,
+    clientMeta = {
+      isMySQL: false,
+      isSqlite: false,
+      isPg: false,
+      isMssql: false,
+    },
+    knex,
+    columns?: Column[],
+  ) {
+    const dbDataWrapper = dataWrapper(data);
+    const insertObj = {};
+    for (const col of columns || (await this.getColumns(context))) {
+      if (isVirtualCol(col)) continue;
+      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
+      if (val !== undefined) {
+        if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
+          val = JSON.stringify(val);
+        }
+        if (
+          context.api_version !== NcApiVersion.V3 &&
+          col.uidt === UITypes.DateTime &&
+          dayjs(val).isValid()
+        ) {
+          const { isMySQL, isSqlite, isPg, isMssql } = clientMeta as any;
+          if (
+            val.indexOf('-') < 0 &&
+            val.indexOf('+') < 0 &&
+            val.slice(-1) !== 'Z'
+          ) {
+            // if no timezone is given,
+            // then append +00:00 to make it as UTC
+            val += '+00:00';
+          }
+          if (isMssql) {
+            // T-SQL `datetime`/`datetime2` reject the `+00:00` offset
+            // suffix that the other dialects accept. NocoDB stores UTC
+            // wall-clock without TZ on mssql — strip the offset after
+            // computing the UTC instant (matches
+            // `DateTimeMssqlHandler.parseUserInput`).
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+          } else if (isMySQL) {
+            // first convert the value to utc
+            // from UI
+            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+            // from API
+            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+            // if timezone info is not found - considered as utc
+            // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+            // if timezone info is found
+            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+            // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
+            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+            // then we use CONVERT_TZ to convert that in the db timezone
+            val = knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+            ]);
+          } else if (isSqlite) {
+            // convert to UTC
+            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+          } else if (isPg) {
+            // convert to UTC
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            // then convert to db timezone
+            val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
+              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+            ]);
+          } else {
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+          }
+        }
+        insertObj[sanitize(col.column_name)] = val;
+
+        if (clientMeta.isPg && col.dt === 'bytea') {
+          insertObj[sanitize(col.column_name)] = knex.raw(
+            `decode(?, '${col.meta?.format === 'hex' ? 'hex' : 'escape'}')`,
+            [
+              col.meta?.format === 'hex' && (val + '').length % 2 === 1
+                ? '0' + val
+                : val,
+            ],
+          );
+        }
+      }
+    }
+    return insertObj;
+  }
+
+  async mapColumnToAlias(context: NcContext, data, columns?: Column[]) {
+    const res = {};
+    const dbDataWrapper = dataWrapper(data);
+    for (const col of columns || (await this.getColumns(context))) {
+      if (isVirtualCol(col)) continue;
+      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
+      if (val !== undefined) {
+        if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
+          val = JSON.stringify(val);
+        }
+        res[sanitize(col.title)] = val;
+      }
+    }
+    return res;
+  }
+
+  static async updateAliasAndTableName(
+    context: NcContext,
+    tableId,
+    title: string,
+    table_name: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!title) {
+      NcError.badRequest("Missing 'title' property in body");
+    }
+    if (!table_name) {
+      NcError.badRequest("Missing 'table_name' property in body");
+    }
+
+    const oldModel = await this.get(context, tableId, false, ncMeta);
+
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        title,
+        table_name,
+      },
+      tableId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${tableId}`, {
+      title,
+      table_name,
+    });
+
+    // delete alias cache
+    await NocoCache.del(context, [
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.id}`,
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.id}`,
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.title}`,
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.title}`,
+    ]);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
+    // clear all the cached query under this model
+    await View.clearSingleQueryCache(context, tableId, null, ncMeta);
+
+    // A physical table rename invalidates the compiled single-query SQL of every
+    // model that embeds this table's name — directly via a Link/LTAR, OR via a
+    // transitive Lookup/Rollup chain. Only walk that graph when the physical
+    // name actually changed; a title-only rename leaves the SQL untouched.
+    if (oldModel.table_name !== table_name) {
+      await clearSingleQueryCacheForReferencingModels(context, tableId, ncMeta);
+    }
+
+    return res;
+  }
+
+  static async markAsMmTable(
+    context: NcContext,
+    tableId,
+    isMm = true,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        mm: isMm,
+      },
+      tableId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${tableId}`, {
+      mm: isMm,
+    });
+
+    return res;
+  }
+
+  async getAliasColMapping(context: NcContext) {
+    return (await this.getColumns(context)).reduce((o, c) => {
+      if (c.column_name) {
+        o[c.title] = c.column_name;
+      }
+      return o;
+    }, {});
+  }
+
+  async getColAliasMapping(context: NcContext) {
+    return (await this.getColumns(context)).reduce((o, c) => {
+      if (c.column_name) {
+        o[c.column_name] = c.title;
+      }
+      return o;
+    }, {});
+  }
+
+  static async updateOrder(
+    context: NcContext,
+    tableId: string,
+    order: number,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        order,
+      },
+      tableId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${tableId}`, {
+      order,
+    });
+
+    return res;
+  }
+
+  static async updatePrimaryColumn(
+    context: NcContext,
+    tableId: string,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const model = await this.getWithInfo(context, { id: tableId }, ncMeta);
+    const newPvCol = model.columnsById[columnId];
+
+    if (!newPvCol) NcError.fieldNotFound(columnId);
+
+    // drop existing primary column/s
+    for (const col of model.columns?.filter((c) => c.pv) || []) {
+      // set meta
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COLUMNS,
+        {
+          pv: false,
+        },
+        col.id,
+      );
+
+      await NocoCache.update(context, `${CacheScope.COLUMN}:${col.id}`, {
+        pv: false,
+      });
+    }
+
+    // set meta
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        pv: true,
+      },
+      newPvCol.id,
+    );
+
+    await NocoCache.update(context, `${CacheScope.COLUMN}:${newPvCol.id}`, {
+      pv: true,
+    });
+
+    const grid_views_with_column = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.GRID_VIEW_COLUMNS,
+      {
+        condition: {
+          fk_column_id: newPvCol.id,
+        },
+      },
+    );
+
+    if (grid_views_with_column.length) {
+      for (const gv of grid_views_with_column) {
+        await View.fixPVColumnForView(context, gv.fk_view_id, ncMeta);
+      }
+    }
+
+    // use set to avoid duplicate
+    const relatedModelIds = new Set<string>();
+
+    // clear all single query cache of related views
+    for (const col of model.columns) {
+      if (!isLinksOrLTAR(col)) continue;
+      const colOptions = await col.getColOptions<
+        LinkToAnotherRecordColumn | LinksColumn
+      >(context);
+      relatedModelIds.add(colOptions?.fk_related_model_id);
+    }
+
+    await Promise.all(
+      Array.from(relatedModelIds).map(async (modelId: string) => {
+        await View.clearSingleQueryCache(context, modelId, null, ncMeta);
+      }),
+    );
+
+    return true;
+  }
+
+  static async setAsMm(context: NcContext, id: any, ncMeta = Noco.ncMeta) {
+    // set meta
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        mm: true,
+      },
+      id,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${id}`, {
+      mm: true,
+    });
+  }
+
+  @NcCache({
+    key: (args) =>
+      `${args[1].base_id}:${args[1].source_id}:${args[1].aliasOrId}`,
+  })
+  static async getByAliasOrId(
+    context: NcContext,
+    {
+      base_id,
+      source_id,
+      aliasOrId,
+    }: {
+      base_id: string;
+      source_id?: string;
+      aliasOrId: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cacheKey = source_id
+      ? `${CacheScope.MODEL_ALIAS}:${base_id}:${source_id}:${aliasOrId}`
+      : `${CacheScope.MODEL_ALIAS}:${base_id}:${aliasOrId}`;
+    const modelId =
+      base_id &&
+      aliasOrId &&
+      (await NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING));
+    if (!modelId) {
+      const model = source_id
+        ? await ncMeta.metaGet2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.MODELS,
+            { base_id, source_id },
+            null,
+            {
+              _and: [
+                modelOrViewNotDeletedXcCondition,
+                {
+                  _or: [
+                    {
+                      id: {
+                        eq: aliasOrId,
+                      },
+                    },
+                    {
+                      title: {
+                        eq: aliasOrId,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          )
+        : await ncMeta.metaGet2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.MODELS,
+            { base_id },
+            null,
+            {
+              _and: [
+                modelOrViewNotDeletedXcCondition,
+                {
+                  _or: [
+                    {
+                      id: {
+                        eq: aliasOrId,
+                      },
+                    },
+                    {
+                      title: {
+                        eq: aliasOrId,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          );
+      if (model) {
+        await NocoCache.set(context, cacheKey, model.id);
+        await NocoCache.set(context, `${CacheScope.MODEL}:${model.id}`, model);
+      }
+      return this.castType(model);
+    }
+    return modelId && this.get(context, modelId);
+  }
+
+  static async checkTitleAvailable(
+    context: NcContext,
+    {
+      table_name,
+      source_id,
+      exclude_id,
+    }: { table_name; base_id; source_id; exclude_id? },
+    ncMeta = Noco.ncMeta,
+  ) {
+    return !(await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        table_name,
+        ...(source_id ? { source_id } : {}),
+      },
+      null,
+      {
+        _and: [
+          modelOrViewNotDeletedXcCondition,
+          ...(exclude_id ? [{ id: { neq: exclude_id } }] : []),
+        ],
+      },
+    ));
+  }
+
+  static async checkAliasAvailable(
+    context: NcContext,
+    {
+      title,
+      source_id,
+      exclude_id,
+    }: { title; base_id; source_id; exclude_id? },
+    ncMeta = Noco.ncMeta,
+  ) {
+    return !(await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        title,
+        ...(source_id ? { source_id } : {}),
+      },
+      null,
+      {
+        _and: [
+          modelOrViewNotDeletedXcCondition,
+          ...(exclude_id ? [{ id: { neq: exclude_id } }] : []),
+        ],
+      },
+    ));
+  }
+
+  async getAliasColObjMap(context: NcContext, columns?: Column[]) {
+    const mapColumns = columns || (await this.getColumns(context));
+    const idReduce = mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.id]: c }),
+      {},
+    );
+
+    // 2nd reduce start by using idReduce props
+    // if title is same as column id, even if it's a different column, it'll take priority over id
+    return mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+      idReduce,
+    );
+  }
+
+  static async updateSynced(
+    context: NcContext,
+    modelId: string,
+    synced: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { synced },
+      modelId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
+      synced,
+    });
+  }
+
+  static async updateTrashSettings(
+    context: NcContext,
+    modelId: string,
+    settings: {
+      trash_disabled?: boolean | null;
+      trash_retention_days?: number | null;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(settings, [
+      'trash_disabled',
+      'trash_retention_days',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      updateObj,
+      modelId,
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.MODEL}:${modelId}`,
+      updateObj,
+    );
+  }
+
+  // For updating table meta
+  static async updateMeta(
+    context: NcContext,
+    tableId: string,
+    model: Pick<TableReqType, 'meta' | 'description'>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(model, ['description', 'meta']);
+
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      prepareForDb(updateObj),
+      tableId,
+      modelOrViewXcCondition,
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.MODEL}:${tableId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
+  }
+}

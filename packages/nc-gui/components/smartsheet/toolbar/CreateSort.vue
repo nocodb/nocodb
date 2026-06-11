@@ -1,0 +1,100 @@
+<script lang="ts" setup>
+import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isColumnInError, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+
+const props = defineProps<{
+  // As we need to focus search box when the parent is opened
+  isParentOpen: boolean
+  sorts: SortType[]
+}>()
+
+const emits = defineEmits(['created'])
+
+const { isParentOpen } = toRefs(props)
+
+const { t } = useI18n()
+
+const activeView = inject(ActiveViewInj, ref())
+
+const meta = inject(MetaInj, ref())
+
+const { isList } = useSmartsheetStoreOrThrow()
+
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(() => listViewStore?.isConfigured.value ?? false)
+
+const { getMetaByKey } = useMetas()
+
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
+
+const levelTableColumns = computed(() => {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevel.value) {
+    return meta.value?.columns || []
+  }
+  const level = listViewStore.selectedLevel.value
+  if (level.fk_model_id === meta.value?.id) {
+    return meta.value?.columns || []
+  }
+  const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
+  return tableMeta?.columns || []
+})
+
+const options = computed<ColumnType[]>(() =>
+  (
+    deepClone(levelTableColumns.value)
+      ?.filter((c: ColumnType) => {
+        if (c.uidt === UITypes.Links) {
+          return true
+        }
+        if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+          if (isHiddenCol(c, meta.value)) {
+            /** ignore mm relation column, created by and last modified by system field */
+            return false
+          }
+
+          return (
+            /** hide system columns if not enabled */
+            showSystemFields.value
+          )
+        } else {
+          /** ignore hasmany and manytomany relations if it's using within sort menu */
+          return !(
+            isLinksOrLTAR(c) &&
+            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+              (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+            )
+          )
+          /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
+        }
+      })
+      .filter((c: ColumnType) => !props.sorts?.find((s) => s.fk_column_id === c.id)) ?? []
+  ).map((c) => {
+    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt) || isColumnInError(c)
+
+    if (isDisabled) {
+      c.ncItemDisabled = true
+      c.ncItemTooltip = isColumnInError(c)
+        ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
+        : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
+    }
+
+    return c
+  }),
+)
+
+const onClick = (column: ColumnType) => {
+  emits('created', column)
+}
+</script>
+
+<template>
+  <div class="nc-sort-create-modal">
+    <SmartsheetToolbarFieldListWithSearch
+      :is-parent-open="isParentOpen"
+      :search-input-placeholder="$t('msg.selectFieldToSort')"
+      :options="options"
+      toolbar-menu="sort"
+      @selected="onClick"
+    />
+  </div>
+</template>

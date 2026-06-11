@@ -1,0 +1,58 @@
+export const precisionFormats = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
+
+export enum SeparatorType {
+  Locale = 'locale',
+  NonePeriod = 'none_period',
+  NoneComma = 'none_comma',
+  CommaPeriod = 'comma_period',
+  PeriodComma = 'period_comma',
+  SpacePeriod = 'space_period',
+  SpaceComma = 'space_comma',
+}
+
+export const supportedBarcodeFormats = [
+  { value: 'CODE128', label: 'CODE128' },
+  { value: 'upc', label: 'UPC' },
+  { value: 'EAN13', label: 'EAN-13' },
+  { value: 'EAN8', label: 'EAN-8' },
+  { value: 'EAN5', label: 'EAN-5' },
+  { value: 'EAN2', label: 'EAN-2' },
+  { value: 'CODE39', label: 'CODE39' },
+  { value: 'ITF14', label: 'ITF-14' },
+  { value: 'MSI', label: 'MSI' },
+  { value: 'PHARMACODE', label: 'PHARMACODE' },
+  { value: 'CODABAR', label: 'CODABAR' },
+] as const;
+
+export const checkboxTypeMap = {
+  checked: true,
+  x: true,
+  yes: true,
+  y: true,
+  '1': true,
+  '[x]': true,
+  '☑': true,
+  '✅': true,
+  '✓': true,
+  '✔': true,
+  enabled: true,
+  on: true,
+  done: true,
+  true: true,
+  unchecked: false,
+  '': false,
+  no: false,
+  n: false,
+  '0': false,
+  '[]': false,
+  '[ ]': false,
+  disabled: false,
+  off: false,
+  false: false,
+};
+
+export function isColumnInError(column: {
+  colOptions?: { error?: string };
+}): boolean {
+  return !!column?.colOptions?.error;
+}

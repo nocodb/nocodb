@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run::Backend" type="js.build_tools.npm" activateToolWindowBeforeRun="false">
+    <package-json value="$PROJECT_DIR$/packages/nocodb/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="watch:run" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="NC_DISABLE_CACHE1" value="true" />
+      <env name="NC_DISABLE_TELE" value="true" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

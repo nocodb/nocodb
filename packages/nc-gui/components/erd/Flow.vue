@@ -1,0 +1,151 @@
+<script setup lang="ts">
+import { Background, Controls, Panel, PanelPosition } from '@vue-flow/additional-components'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import type { TableType } from 'nocodb-sdk'
+import type { ERDConfig } from './utils'
+import { useErdElements } from './utils'
+
+interface Props {
+  tables: TableType[]
+  config: ERDConfig
+}
+
+const props = defineProps<Props>()
+
+const { tables, config } = toRefs(props)
+
+const {
+  $destroy,
+  fitView,
+  viewport,
+  setMaxZoom,
+  onNodeDoubleClick,
+  zoomIn: internalZoomIn,
+  zoomOut: internalZoomOut,
+} = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+
+const { layout, elements } = useErdElements(tables, config)
+
+const showSkeleton = computed(() => viewport.value.zoom < 0.15)
+
+async function init() {
+  await layout(showSkeleton.value)
+  // Center elements without changing zoom level
+  await nextTick()
+  setTimeout(() => {
+    fitView({
+      duration: 200,
+      padding: 0.1,
+      // Don't change zoom - keep current zoom level but center the content
+      minZoom: viewport.value.zoom || 1,
+      maxZoom: viewport.value.zoom || 1,
+    })
+  }, 100)
+}
+
+function zoomIn(nodeId?: string) {
+  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 200, minZoom: 0.2 })
+}
+
+onNodeDoubleClick(({ node }) => {
+  if (showSkeleton.value) zoomIn()
+
+  setTimeout(() => {
+    zoomIn(node.id)
+  }, 250)
+})
+
+watch(tables, init, { flush: 'post', immediate: true })
+watch(showSkeleton, async (isSkeleton) => {
+  layout(isSkeleton).then(() => {
+    if (!isSkeleton) return
+    // Center content without changing zoom level
+    fitView({
+      duration: 300,
+      padding: 0.1,
+      minZoom: viewport.value.zoom,
+      maxZoom: viewport.value.zoom,
+    })
+  })
+})
+
+watch(elements, (elements) => {
+  if (elements.length > 3) {
+    setMaxZoom(2)
+  } else {
+    setMaxZoom(1.25)
+  }
+})
+
+onScopeDispose($destroy)
+</script>
+
+<template>
+  <VueFlow v-model="elements" class="nc-erd-flow">
+    <Controls
+      class="bg-transparent rounded-lg shadow-md border-1 border-nc-border-gray-medium"
+      :position="PanelPosition.BottomLeft"
+      :show-fit-view="false"
+      :show-interactive="false"
+    >
+      <template #control-zoom-in>
+        <div class="nc-erd-zoom-btn rounded-t-md" @click="internalZoomIn">
+          <GeneralIcon icon="plus" />
+        </div>
+      </template>
+      <template #control-zoom-out>
+        <div class="nc-erd-zoom-btn border-t-1 border-nc-border-gray-medium rounded-b-lg" @click="internalZoomOut">
+          <GeneralIcon icon="minus" />
+        </div>
+      </template>
+    </Controls>
+
+    <template #node-custom="{ data, dragging }">
+      <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
+    </template>
+
+    <template #edge-custom="edgeProps">
+      <ErdRelationEdge v-bind="edgeProps" :show-skeleton="showSkeleton" />
+    </template>
+
+    <Background :size="showSkeleton ? 2 : undefined" :gap="showSkeleton ? 50 : undefined" />
+
+    <Transition name="layout">
+      <Panel
+        v-if="showSkeleton && config.showAllColumns"
+        :position="PanelPosition.BottomCenter"
+        class="color-transition z-5 cursor-pointer rounded shadow-sm text-nc-content-gray-muted font-semibold px-4 py-2 bg-nc-bg-gray-extralight hover:(text-nc-content-gray-emphasis ring ring-accent ring-opacity-100 bg-nc-bg-gray-light)"
+        @click="zoomIn"
+      >
+        {{ $t('labels.zoomInToViewColumns') }}
+      </Panel>
+    </Transition>
+
+    <slot />
+  </VueFlow>
+</template>
+
+<style>
+.vue-flow__controls {
+  @apply !bg-transparent;
+}
+
+.nc-erd-zoom-btn {
+  @apply bg-nc-bg-default px-1.5 py-1 hover:(bg-nc-bg-gray-light text-nc-content-gray) cursor-pointer text-nc-content-gray-subtle2;
+}
+
+.nc-erd-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.vue-flow__node-custom {
+  @apply border-nc-border-gray-medium;
+}
+
+.nc-erd-flow .vue-flow__viewport {
+  /* Ensure the viewport uses the full space for proper centering */
+  width: 100%;
+  height: 100%;
+}
+</style>

@@ -1,0 +1,309 @@
+import type { Editor } from '@tiptap/vue-3'
+import { ncIsArray } from 'nocodb-sdk'
+
+// refer - https://stackoverflow.com/a/11752084
+export const isMac = () => /Mac/i.test(navigator.platform)
+export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
+export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
+
+// EE side-panel is inline (sibling of the grid) — both surfaces can be active
+// simultaneously. The panel "blocks" grid-level keyboard handling only when the
+// user is actually interacting with the panel — meaning focus (or the most
+// recent click) is inside it. Once the user clicks a grid cell, they've
+// explicitly switched intent to the grid, so grid Tab/Enter/Arrows/Backspace
+// should resume working even while the panel is still visible.
+//
+// We track click intent in a module-level flag, set in the capture-phase click
+// listener below. Focus-only tracking isn't enough on its own because the
+// canvas grid isn't focusable — clicking a grid cell leaves activeElement on
+// BODY rather than inside the grid wrapper.
+let _lastClickInExpandedFormPanel = false
+if (typeof document !== 'undefined') {
+  document.addEventListener(
+    'click',
+    (e) => {
+      const t = e.target as HTMLElement | null
+      if (!t) return
+      // Ignore clicks on dropdowns/popovers that overlay the page — they
+      // can land outside the panel DOM but were triggered from within it.
+      if (t.closest('.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown')) return
+      const inPanel = !!t.closest('.nc-expanded-form-panel')
+      _lastClickInExpandedFormPanel = inPanel
+
+      // If the user clicked OUT of the panel (e.g. on a grid cell), but a
+      // panel descendant still holds keyboard focus from a prior interaction,
+      // explicitly blur it. Without this, subsequent keypresses (Enter,
+      // letter keys) still fire on the focused panel input — ant-select on a
+      // focused input would open its dropdown on Enter even though the user
+      // visually clicked away.
+      if (!inPanel) {
+        const panel = document.querySelector('.nc-expanded-form-panel')
+        const active = document.activeElement as HTMLElement | null
+        if (panel && active && panel.contains(active) && typeof active.blur === 'function') {
+          active.blur()
+        }
+      }
+    },
+    true,
+  )
+}
+
+// Reset to "intent on panel" when the panel mounts — so opening EFP via the
+// grid expand-row icon (which is technically a grid click) doesn't leave grid
+// keyboard active afterwards. Called from ExpandedFormPanel.vue on mount.
+export const markExpandedFormPanelFocus = () => {
+  _lastClickInExpandedFormPanel = true
+}
+
+const isFocusInsideExpandedFormPanel = () => {
+  const panel = document.querySelector('.nc-expanded-form-panel')
+  if (!panel) return false
+  const el = document.activeElement
+  return !!el && panel.contains(el)
+}
+
+// True when the user is currently interacting with the panel — either focus is
+// inside it, or their most recent click landed inside it. Grid keyboard
+// handlers check this and bail.
+export const isExpandedFormPanelOpen = () =>
+  !!document.querySelector('.nc-expanded-form-panel') && (isFocusInsideExpandedFormPanel() || _lastClickInExpandedFormPanel)
+
+export const isDrawerOrModalExist = () =>
+  !!document.querySelector('.ant-modal.active, .ant-drawer-open') || isExpandedFormPanelOpen()
+
+export const isExpandedFormOpenExist = () =>
+  !!document.querySelector('.nc-drawer-expanded-form.active') || isExpandedFormPanelOpen()
+export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
+export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
+export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')
+export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
+export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
+export const isSelectActive = () => {
+  const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
+  return Array.from(els).some((el) => {
+    const style = window.getComputedStyle(el)
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+  })
+}
+
+export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
+export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
+export const isActiveElementInsideExtension = () =>
+  ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
+    document.querySelector(selector)?.contains(document.activeElement),
+  )
+export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
+export const isActiveElementInsideSmartTextPanel = () =>
+  document.querySelector('.nc-smart-text-panel')?.contains(document.activeElement)
+export const isTiptapDropdownExistInsideEditor = () => {
+  return document.querySelector('.tippy-box')
+}
+
+export const ncIsIframe = () => window.self !== window.top
+
+export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
+export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
+  const classNames = ncIsArray(className) ? className : [className]
+
+  return classNames.some((c) => !!element.closest(`.${c}`))
+}
+export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
+export const isCmdJActive = () => document.querySelector('.DocSearch--active')
+export const isActiveInputElementExist = (e?: Event) => {
+  const activeElement = document.activeElement
+  const target = e?.target
+
+  // A rich text editor is a div with the contenteditable attribute set to true.
+  return (
+    activeElement instanceof HTMLInputElement ||
+    activeElement instanceof HTMLTextAreaElement ||
+    (activeElement instanceof HTMLElement && activeElement.isContentEditable) ||
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  )
+}
+export const isActiveButtonOrLinkElementExist = (e?: Event) => {
+  const activeElement = document.activeElement
+  const target = e?.target
+
+  // A rich text editor is a div with the contenteditable attribute set to true.
+  return (
+    activeElement instanceof HTMLButtonElement ||
+    activeElement instanceof HTMLAnchorElement ||
+    target instanceof HTMLButtonElement ||
+    target instanceof HTMLAnchorElement
+  )
+}
+
+export const isNcDropdownOpen = () => document.querySelector('.nc-dropdown.active')
+export const isDropdownActive = () => document.querySelector('.nc-dropdown')
+
+export const isFieldEditOrAddDropdownOpen = () => document.querySelector('.nc-dropdown-edit-column.active')
+export const getScrollbarWidth = () => {
+  const outer = document.createElement('div')
+  outer.style.visibility = 'hidden'
+  outer.style.width = '100px'
+  document.body.appendChild(outer)
+
+  const widthNoScroll = outer.offsetWidth
+  outer.style.overflow = 'scroll'
+
+  const inner = document.createElement('div')
+  inner.style.width = '100%'
+  outer.appendChild(inner)
+
+  const widthWithScroll = inner.offsetWidth
+  outer?.parentNode?.removeChild(outer)
+  return widthNoScroll - widthWithScroll
+}
+
+export function getElementAtMouse<T>(cssSelector: string, { clientX, clientY }: { clientX: number; clientY: number }) {
+  return document.elementsFromPoint(clientX, clientY).find((el) => el.matches(cssSelector)) as T | undefined
+}
+
+export function forcedNextTick(cb: () => void) {
+  // See https://github.com/vuejs/vue/issues/9200
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      cb()
+    })
+  })
+}
+
+export function isSinglePrintableKey(key: string) {
+  // handles other languages as well which key.length === 1 might not
+  return [...key].length === 1
+}
+
+export const isMousePointerType = (event: Event) => {
+  return (
+    // PointerEvent style with mouse
+    ('pointerType' in event && (event as PointerEvent).pointerType === 'mouse') ||
+    // Safari fallback to MouseEvent
+    event instanceof MouseEvent
+  )
+}
+
+export const isTouchEvent = (event: Event | TouchEvent) => !isMousePointerType(event)
+
+export const focusInputEl = (querySelector: string, target?: HTMLElement) => {
+  if (typeof window === 'undefined') return
+
+  querySelector = querySelector ? `${querySelector} ` : ''
+
+  const targetEl = target || document
+  const inputEl =
+    (targetEl.querySelector(`${querySelector}input`) as HTMLInputElement) ||
+    (targetEl.querySelector(`${querySelector}textarea`) as HTMLTextAreaElement) ||
+    (targetEl.querySelector(`${querySelector}[contenteditable="true"]`) as HTMLElement) ||
+    (targetEl.querySelector(`${querySelector}[tabindex="0"]`) as HTMLElement)
+
+  if (inputEl) {
+    inputEl?.select?.()
+    inputEl?.focus?.()
+  }
+
+  return inputEl
+}
+
+export const isExpandCellKey = (event: Event) => {
+  if (event instanceof KeyboardEvent) {
+    return event.key === ' ' && event.shiftKey
+  }
+
+  return false
+}
+
+/**
+ * Check if an element is line-clamped
+ *
+ * **Note:**
+ * The `Range#getBoundingClientRect()` technique works best when text is not deeply nested.
+ * This technique has performance overhead — avoid using it on large lists.
+ *
+ * @param el - The element to check
+ * @returns True if the element is line-clamped, false otherwise
+ */
+export const isLineClamped = (el: HTMLElement): boolean => {
+  if (!el) return false
+
+  const range = document.createRange()
+  range.selectNodeContents(el)
+
+  const fullHeight = range.getBoundingClientRect().height
+  const actualHeight = el.getBoundingClientRect().height
+
+  return fullHeight > actualHeight
+}
+
+export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor) => {
+  if (isTiptapDropdownExistInsideEditor()) {
+    event.stopPropagation()
+
+    if (editor && !editor.state.selection.empty) {
+      const pos = editor.state.selection.to
+      editor.commands.setTextSelection(pos)
+      editor.commands.focus()
+    }
+  }
+}
+
+export const estimateTagWidth = ({
+  text,
+  fontSize = 14,
+  fontWeight = 600,
+  paddingX = 16, // left + right padding
+  iconWidth = 0, // icon width (if you have icon)
+  border = 2,
+}: {
+  text: string
+  fontSize?: number
+  fontWeight?: number
+  paddingX?: number
+  iconWidth?: number
+  border?: number
+}) => {
+  // Dummy average char width per font-weight/font-size
+  const avgCharWidth = fontWeight >= 600 ? fontSize * 0.6 : fontSize * 0.5
+
+  const textWidth = text.length * avgCharWidth
+
+  const totalWidth = textWidth + paddingX + iconWidth + border
+
+  return totalWidth
+}
+
+/**
+ * Remove query params from the URL
+ * @param keysToRemove - The keys to remove from the URL
+ */
+export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
+  const url = new URL(window.location.href)
+  keysToRemove.forEach((key) => url.searchParams.delete(key))
+  window.history.replaceState({}, '', url.toString())
+}
+
+// Feature detection.
+export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)
+
+export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
+  const a = document.createElement('a')
+  a.href = `mailto:${email}`
+  a.target = '_blank'
+  a.click()
+}
+
+export const getValidSlotName = (name: string, prefix?: string, suffix?: string): string => {
+  let slotName = name.replace(/\./g, '__')
+
+  if (prefix) {
+    slotName = `${prefix}-${slotName}`
+  }
+
+  if (suffix) {
+    slotName = `${slotName}-${suffix}`
+  }
+
+  return slotName
+}

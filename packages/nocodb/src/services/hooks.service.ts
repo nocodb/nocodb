@@ -1,0 +1,548 @@
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  AppEvents,
+  EventType,
+  MetaEventType,
+  NcBaseError,
+  WebhookEvents,
+} from 'nocodb-sdk';
+import View from '../models/View';
+import type {
+  FilterReqType,
+  HookReqType,
+  HookTestReqType,
+  HookType,
+} from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import NocoSocket from '~/socket/NocoSocket';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
+import { validatePayload } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import {
+  populateSamplePayload,
+  populateSamplePayloadV2,
+  populateSamplePayloadView,
+} from '~/helpers/populateSamplePayload';
+import { invokeWebhook } from '~/helpers/webhookHelpers';
+import { ButtonColumn, Filter, Hook, HookLog, Model } from '~/models';
+import { DatasService } from '~/services/datas.service';
+import { JobTypes } from '~/interface/Jobs';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { isReplay } from '~/helpers/replayScope';
+
+const SUPPORTED_HOOK_VERSION = ['v3'];
+
+@Injectable()
+export class HooksService {
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly dataService: DatasService,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
+
+  validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
+    let notification: { type?: string } = {};
+    try {
+      notification =
+        typeof notificationJsonOrObject === 'string'
+          ? JSON.parse(notificationJsonOrObject)
+          : notificationJsonOrObject;
+    } catch {}
+
+    if (
+      notification.type !== 'URL' &&
+      notification.type !== 'Script' &&
+      process.env.NC_CLOUD === 'true'
+    ) {
+      NcError.badRequest('Only URL and Script notifications are supported');
+    }
+  }
+
+  async hookList(context: NcContext, param: { tableId: string }) {
+    return await Hook.list(context, { fk_model_id: param.tableId });
+  }
+
+  async hookLogList(context: NcContext, param: { query: any; hookId: string }) {
+    return await HookLog.list(
+      context,
+      { fk_hook_id: param.hookId },
+      param.query,
+    );
+  }
+
+  async hookCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      hook: HookReqType;
+      req: NcRequest;
+    },
+    option?: {
+      isTableDuplicate?: boolean;
+    },
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    // if isTableDuplicate, we let v2 to be created
+    if (
+      !option?.isTableDuplicate &&
+      !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+    ) {
+      NcError.get(context).badRequest(
+        'hook version is deprecated / not supported anymore',
+      );
+    }
+
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
+    if (!option?.isTableDuplicate) {
+      validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    }
+    this.validateHookPayload(param.hook.notification);
+
+    // if version is not in SUPPORTED_HOOK_VERSION, that means it's a duplicate table activity
+    // then we use v2 insert
+    // otherwise v3 insert
+    const hook = !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+      ? await Hook.insertV2(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any)
+      : await Hook.insert(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any);
+
+    const bundledFilters = (param.hook as any)?.filters as
+      | FilterReqType[]
+      | undefined;
+    if (bundledFilters?.length) {
+      for (const filter of bundledFilters) {
+        await Filter.insert(context, {
+          ...filter,
+          fk_hook_id: hook.id,
+        });
+      }
+
+      // Snapshot the inserted tree so `HookCreateContract.extraCommandMeta`
+      // can surface it as `meta.extra.filters` for downstream changelog
+      // ops. Skipped during replay — `recordCommand` early-exits when
+      // `isReplay()` is true, so this would just be wasted I/O.
+      if (!isReplay()) {
+        const roots = await Filter.rootFilterListByHook(context, {
+          hookId: hook.id,
+        });
+        const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+          const children = f.is_group
+            ? (await f.getChildren(context)) ?? []
+            : [];
+          const childNodes = await Promise.all(
+            children.map((c) => walk(c as Filter)),
+          );
+          return {
+            ...(f as unknown as Record<string, unknown>),
+            ...(childNodes.length ? { children: childNodes } : {}),
+          };
+        };
+        captureForTrace(
+          'filters',
+          await Promise.all(roots.map((r) => walk(r as Filter))),
+        );
+      }
+    }
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
+      hook,
+      req: param.req,
+      context,
+      tableId: hook.fk_model_id,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_create',
+          payload: hook,
+        },
+      },
+      context.socket_id,
+    );
+
+    return hook;
+  }
+
+  async hookDelete(
+    context: NcContext,
+    param: { hookId: string; req: NcRequest; skipTrash?: boolean },
+    ncMeta?: MetaService,
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    const hook = await Hook.get(context, param.hookId, false, ncMeta);
+
+    if (!hook) {
+      NcError.get(context).hookNotFound(param.hookId);
+    }
+
+    await Hook.delete(context, param.hookId, ncMeta);
+
+    // Button-column FK cleanup + single-query cache clear are handled by
+    // `HookDeleteButtonRefDependencyHandler` via the `HOOK_DELETED` meta event.
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.HOOK_DELETED,
+        oldEntity: hook,
+      },
+      ncMeta,
+    );
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
+      hook,
+      req: param.req,
+      context,
+      tableId: hook.fk_model_id,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_delete',
+          payload: { id: hook.id, fk_model_id: hook.fk_model_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return true;
+  }
+
+  async hookUpdate(
+    context: NcContext,
+    param: {
+      hookId: string;
+      hook: HookReqType;
+      req: NcRequest;
+    },
+  ) {
+    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+      NcError.get(context).badRequest(
+        'hook version is deprecated / not supported anymore',
+      );
+    }
+
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
+    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook) {
+      NcError.get(context).hookNotFound(param.hookId);
+    }
+
+    this.validateHookPayload(param.hook.notification);
+
+    // If the webhook is being changed to manual trigger, set it to active
+    if (param.hook.event === 'manual') {
+      param.hook.active = true;
+    }
+
+    if (
+      (hook.active && !param.hook.active) ||
+      hook.event !== param.hook.event
+    ) {
+      const buttonCols = await Hook.hookUsages(context, param.hookId);
+      if (buttonCols.length) {
+        for (const button of buttonCols) {
+          await ButtonColumn.update(context, button.fk_column_id, {
+            fk_webhook_id: null,
+          });
+        }
+      }
+      await View.clearSingleQueryCache(context, hook.fk_model_id);
+    }
+
+    const res = await Hook.update(context, param.hookId, param.hook);
+
+    const bundledFilters = (param.hook as any)?.filters as
+      | FilterReqType[]
+      | undefined;
+    if (bundledFilters !== undefined) {
+      const existing = await Filter.rootFilterListByHook(context, {
+        hookId: param.hookId,
+      });
+      for (const f of existing) {
+        await Filter.delete(context, f.id);
+      }
+      // Insert new tree. `Filter.insert` recurses through `children` and
+      // propagates `fk_hook_id`. Pre-set ids are honored only under
+      // `is_replay` (so undo→redo round-trips).
+      for (const filter of bundledFilters) {
+        await Filter.insert(context, {
+          ...filter,
+          fk_hook_id: param.hookId,
+        });
+      }
+    }
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_UPDATE, {
+      hook: {
+        ...hook,
+        ...param.hook,
+      },
+      oldHook: hook,
+      tableId: hook.fk_model_id,
+      req: param.req,
+      context,
+    });
+
+    const updatedHook = await Hook.get(context, param.hookId);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_update',
+          payload: {
+            ...updatedHook,
+            had_filters_replaced: bundledFilters !== undefined,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
+    return res;
+  }
+
+  async hookRestore(
+    _context: NcContext,
+    _param: { hookId: string; req: NcRequest },
+    _ncMeta?: MetaService,
+  ) {
+    return false;
+  }
+
+  async hookTrigger(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      hookId: string;
+      rowId: string;
+    },
+  ) {
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook && hook.event !== 'manual') {
+      NcError.get(context).badRequest('Hook not found');
+    }
+
+    const row = await this.dataService.dataRead(context, {
+      rowId: param.rowId,
+      query: {},
+      baseName: hook.base_id,
+      tableName: hook.fk_model_id,
+    });
+
+    if (!row) {
+      NcError.get(context).badRequest('Row not found');
+    }
+
+    const model = await Model.get(context, hook.fk_model_id);
+
+    try {
+      await this.jobsService.add(JobTypes.HandleWebhook, {
+        hookId: hook.id,
+        modelId: model.id,
+        viewId: null,
+        prevData: null,
+        newData: row,
+        user: param.req.user,
+        context,
+        hookName: 'manual.trigger',
+        ncSiteUrl: param.req.ncSiteUrl,
+      });
+    } catch (e) {
+      NcError.get(context).webhookError(
+        e?.message || 'Failed to trigger webhook',
+      );
+    } finally {
+      /*this.appHooksService.emit(AppEvents.WEBHOOK_TRIGGER, {
+        hook,
+        req: param.req,
+      });*/
+    }
+
+    return true;
+  }
+
+  async hookTest(
+    context: NcContext,
+    param: {
+      tableId: string;
+      hookTest: HookTestReqType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/HookTestReq',
+      param.hookTest,
+    );
+
+    this.validateHookPayload(param.hookTest.hook?.notification);
+
+    const model = await Model.getByIdOrName(context, { id: param.tableId });
+
+    const {
+      hook,
+      payload: { data, user },
+    } = param.hookTest;
+
+    let view = null;
+
+    if ((hook?.notification as any)?.trigger_form_id) {
+      view = await View.get(
+        context,
+        (hook.notification as any).trigger_form_id,
+      );
+    }
+    try {
+      await invokeWebhook(context, {
+        hook: new Hook(hook),
+        model: model,
+        view: view,
+        prevData: data?.previous_rows ?? null,
+        newData: data.rows,
+        user: user,
+        testFilters: (hook as any)?.filters,
+        throwErrorOnFailure: true,
+        testHook: true,
+        hookName: hook.event + '.' + hook.operation[0],
+        ncSiteUrl: param.req.ncSiteUrl,
+        addJob: this.jobsService.add.bind(this.jobsService),
+      });
+    } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).webhookError(
+        e?.message || 'Failed to trigger webhook',
+      );
+    } finally {
+      this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
+        hook,
+        req: param.req,
+        context,
+        tableId: hook.fk_model_id,
+      });
+    }
+
+    return true;
+  }
+
+  async hookSamplePayload(
+    context: NcContext,
+    param: {
+      tableId: string;
+      event: string;
+      operation: string;
+      version: string;
+      includeUser?: boolean;
+      user?: any;
+    },
+  ) {
+    const model = await Model.getByIdOrName(context, { id: param.tableId });
+
+    if (param.version === 'v1') {
+      return await populateSamplePayload(
+        context,
+        model,
+        false,
+        param.operation,
+      );
+    }
+    if (param.event === WebhookEvents.VIEW) {
+      return await populateSamplePayloadView(context, {
+        viewOrModel: model,
+        operation: param.operation,
+        includeUser: param.includeUser,
+        user: param.user,
+        version: param.version,
+      });
+    }
+
+    return await populateSamplePayloadV2(
+      context,
+      model,
+      false,
+      param.operation,
+      'records',
+      param.includeUser,
+      param.user,
+    );
+  }
+
+  async tableSampleData(
+    context: NcContext,
+    param: {
+      tableId: string;
+      event: HookType['event'][number];
+      operation: HookType['operation'][number];
+      version: any; // HookType['version'];
+      includeUser?: boolean;
+    },
+  ) {
+    const model = new Model(
+      await Model.getByIdOrName(context, { id: param.tableId }),
+    );
+
+    if (param.version === 'v1') {
+      return await populateSamplePayload(
+        context,
+        model,
+        false,
+        param.operation,
+      );
+    }
+    if (param.event === WebhookEvents.VIEW) {
+      return await populateSamplePayloadView(context, {
+        viewOrModel: model,
+        operation: param.operation,
+        includeUser: param.includeUser,
+        user: undefined,
+        version: param.version,
+      });
+    }
+
+    return await populateSamplePayloadV2(
+      context,
+      model,
+      false,
+      param.operation,
+      undefined,
+      param.includeUser,
+      undefined,
+      param.version,
+    );
+  }
+
+  async hookLogCount(context: NcContext, param: { hookId: string }) {
+    return await HookLog.count(context, { hookId: param.hookId });
+  }
+}

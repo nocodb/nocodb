@@ -1,0 +1,257 @@
+import {
+  convertMS2Duration,
+  LongTextAiMetaProp,
+  parseDecimalValue,
+  parseHelper,
+  parseIntValue,
+  parseProp,
+  roundUpToPrecision,
+  UITypes,
+} from 'nocodb-sdk';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import type LookupColumn from '~/models/LookupColumn';
+import type { NcContext } from '~/interface/config';
+import type Column from '~/models/Column';
+import { NcError } from '~/helpers/catchError';
+import { Model, View } from '~/models';
+import Base from '~/models/Base';
+import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
+
+export interface PathParams {
+  baseName: string;
+  tableName: string;
+  viewName?: string;
+}
+
+export interface OldPathParams {
+  baseId: string;
+  tableName: string;
+  viewName?: string;
+}
+
+export async function getViewAndModelByAliasOrId(
+  context: NcContext,
+  param: {
+    baseName: string;
+    tableName: string;
+    viewName?: string;
+  },
+) {
+  const base = await Base.getWithInfoByTitleOrId(context, param.baseName);
+
+  const model = await Model.getByAliasOrId(context, {
+    base_id: base.id,
+    aliasOrId: param.tableName,
+  });
+
+  if (!model) NcError.tableNotFound(param.tableName);
+
+  const view =
+    param.viewName &&
+    (await View.getByTitleOrId(context, {
+      titleOrId: param.viewName,
+      fk_model_id: model.id,
+    }));
+  if (param.viewName && !view) NcError.viewNotFound(param.viewName);
+
+  return { model, view };
+}
+
+export async function serializeCellValue(
+  context: NcContext,
+  {
+    value,
+    column,
+    siteUrl,
+    locale,
+  }: {
+    column?: Column;
+    value: any;
+    siteUrl: string;
+    locale?: string;
+  },
+) {
+  if (!column) {
+    return value;
+  }
+
+  if (!value) return value;
+
+  switch (column?.uidt) {
+    case UITypes.Attachment: {
+      let data = value;
+      try {
+        if (typeof value === 'string') {
+          data = JSON.parse(value);
+        }
+
+        if (!Array.isArray(data)) {
+          data = [data];
+        }
+      } catch {
+        data = undefined;
+      }
+
+      return (data || [])
+        .filter((attachment) => attachment)
+        .map(
+          (attachment) =>
+            `${attachment.title || 'Attachment'}(${
+              attachment.signedPath
+                ? encodeURI(`${siteUrl}/${attachment.signedPath}`)
+                : attachment.signedUrl
+            })`,
+        )
+        .join(', ');
+    }
+    case UITypes.User:
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy: {
+      let data = value;
+      try {
+        if (typeof value === 'string') {
+          data = JSON.parse(value);
+        }
+      } catch {}
+
+      return (data ? (Array.isArray(data) ? data : [data]) : [])
+        .map((user) => user.display_name || user.email || '')
+        .join(', ');
+    }
+    case UITypes.Lookup:
+      {
+        const colOptions = await column.getColOptions<LookupColumn>(context);
+        if (colOptions?.error) return value?.toString?.() ?? '';
+
+        const relationCol = await colOptions.getRelationColumn(context);
+        if (!relationCol) return value?.toString?.() ?? '';
+
+        const relationColOptions =
+          await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
+        const { refContext } = relationColOptions.getRelContext(context);
+
+        const lookupColumn = await colOptions.getLookupColumn(refContext);
+        if (!lookupColumn) return value?.toString?.() ?? '';
+        return (
+          await Promise.all(
+            [...(Array.isArray(value) ? value : [value])].map(async (v) =>
+              serializeCellValue(refContext, {
+                value: v,
+                column: lookupColumn,
+                siteUrl,
+                locale,
+              }),
+            ),
+          )
+        ).join(', ');
+      }
+      break;
+    case UITypes.LinkToAnotherRecord:
+      {
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>(context);
+        const { refContext } = await colOptions.getRelContext(context);
+        const relatedModel = await colOptions.getRelatedTable(refContext);
+        await relatedModel.getColumns(refContext);
+        return [...(Array.isArray(value) ? value : [value])]
+          .map((v) => {
+            return v[relatedModel.displayValue?.title];
+          })
+          .join(', ');
+      }
+      break;
+    case UITypes.Currency: {
+      if (isNaN(Number(value))) return null;
+
+      const currencyMeta = parseProp(column.meta);
+
+      try {
+        const roundedValue = roundUpToPrecision(
+          Number(value),
+          currencyMeta.precision ?? 2,
+        );
+
+        return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+          style: 'currency',
+          currency: currencyMeta.currency_code || 'USD',
+          minimumFractionDigits: currencyMeta.precision ?? 2,
+          maximumFractionDigits: currencyMeta.precision ?? 2,
+        }).format(+roundedValue);
+      } catch {
+        return value;
+      }
+    }
+    case UITypes.Decimal:
+      {
+        if (isNaN(Number(value))) return null;
+
+        return parseDecimalValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
+      }
+      break;
+    case UITypes.Number:
+      {
+        if (isNaN(Number(value))) return null;
+
+        return parseIntValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
+      }
+      break;
+    case UITypes.Duration: {
+      if (column.meta?.duration === undefined) {
+        return value;
+      }
+      return convertMS2Duration(value, column.meta.duration);
+    }
+    case UITypes.LongText: {
+      // If it is AI text field then just return value instead of whole json
+      if (column.meta?.[LongTextAiMetaProp] && value) {
+        const parsedValue = parseHelper(value);
+
+        if (parsedValue && typeof parsedValue === 'object') {
+          return parsedValue?.value?.toString() ?? '';
+        }
+      }
+      return value;
+    }
+    default:
+      if (value && typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      return value;
+  }
+}
+
+export async function getColumnByIdOrName(
+  context: NcContext,
+  columnNameOrId: string,
+  model: Model,
+) {
+  const column = (await model.getColumns(context)).find(
+    (c) =>
+      c.title === columnNameOrId ||
+      c.id === columnNameOrId ||
+      c.column_name === columnNameOrId,
+  );
+
+  if (!column) NcError.fieldNotFound(columnNameOrId);
+
+  return column;
+}
+
+export const validateV1V2DataPayloadLimit = (
+  context: NcContext,
+  param: { body: any },
+) => {
+  if (
+    context.is_api_token &&
+    Array.isArray(param.body) &&
+    param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
+  ) {
+    NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+  }
+};

@@ -1,0 +1,41 @@
+<script setup lang="ts">
+defineProps<{
+  /** Render in compact mode (flat cells, tight spacing, uppercase labels,
+   * blank-placeholder). Forwarded straight to Columns. */
+  compactMode?: boolean
+}>()
+
+const { fields, hiddenFields } = useExpandedFormStoreOrThrow()
+</script>
+
+<template>
+  <SmartsheetExpandedFormPresentorsFieldsColumns
+    :fields="fields"
+    :hidden-fields="hiddenFields"
+    :is-loading="false"
+    :compact-mode="compactMode"
+    force-vertical-mode
+    class="mini-columns-wrapper"
+  />
+</template>
+
+<style lang="scss">
+.mini-columns-wrapper {
+  .nc-expanded-cell-header {
+    @apply !bg-transparent;
+    .nc-cell-name-wrapper,
+    .nc-virtual-cell-name-wrapper {
+      @apply !px-0;
+      .name.truncate {
+        @apply flex items-center pl-2;
+        span {
+          @apply !text-xs font-weight-500 !leading-[14px];
+        }
+      }
+      svg.nc-icon:not(.invisible):not(.nc-column-context-menu):not(.nc-column-lock-icon) {
+        @apply !w-4 !h-4 !mx-0;
+      }
+    }
+  }
+}
+</style>

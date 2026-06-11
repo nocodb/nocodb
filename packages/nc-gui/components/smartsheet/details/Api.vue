@@ -1,0 +1,426 @@
+<script setup lang="ts">
+import { HTTPSnippet } from '@readme/httpsnippet'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
+const { t } = useI18n()
+
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
+
+const { appInfo } = useGlobal()
+
+const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
+
+const { xWhere } = useSmartsheetStoreOrThrow()
+
+const { queryParams } = useViewData(meta, view, xWhere)
+
+const { copy } = useCopy()
+
+const isCopied = ref(false)
+
+const langs = [
+  {
+    name: 'shell',
+    clients: ['curl', 'wget'],
+    icon: iconMap.langShell,
+  },
+  {
+    name: 'javascript',
+    clients: ['axios', 'fetch', 'jquery', 'xhr'],
+    icon: iconMap.langJavascript,
+  },
+  {
+    name: 'node',
+    clients: ['axios', 'fetch', 'native'],
+    icon: iconMap.langNode,
+  },
+  {
+    name: 'NocoDB-SDK',
+    clients: ['javascript', 'node'],
+    icon: iconMap.langNocodbSdk,
+  },
+  {
+    name: 'php',
+    icon: iconMap.langPhp,
+  },
+  {
+    name: 'python',
+    clients: ['requests'],
+    icon: iconMap.langPython,
+  },
+  {
+    name: 'ruby',
+    icon: iconMap.langRuby,
+  },
+  {
+    name: 'java',
+    icon: iconMap.langJava,
+  },
+  {
+    name: 'c',
+    icon: iconMap.langC,
+  },
+]
+
+const selectedClient = ref<string | undefined>(langs[0].clients && langs[0].clients[0])
+
+const selectedLangName = ref(langs[0].name)
+
+const apiUrl = computed(() => {
+  try {
+    return new URL(`/api/v3/data/${base.value?.id}/${meta.value?.id}/records`, (appInfo.value && appInfo.value.ncSiteUrl) || '/')
+      .href
+  } catch (e: any) {
+    console.log('Failed to construct API URL', e)
+    return ''
+  }
+})
+
+const v3QueryParams = computed(() => {
+  const params = queryParams.value || {}
+  const page = params.offset != null && params.limit ? Math.floor(params.offset / params.limit) + 1 : 1
+  const pageSize = params.limit
+
+  return {
+    ...(page > 1 ? { page } : {}),
+    ...(pageSize ? { pageSize } : {}),
+    ...(params.where ? { where: params.where } : {}),
+  }
+})
+
+const snippet = computed(
+  () =>
+    new HTTPSnippet({
+      method: 'GET',
+      headers: [
+        {
+          name: 'xc-token',
+          value: `CREATE_YOUR_API_TOKEN_FROM ${location.origin}/account/tokens`,
+          comment: 'API token',
+        },
+      ],
+      url: apiUrl.value,
+      queryString: [
+        ...Object.entries(v3QueryParams.value).map(([name, value]) => {
+          return {
+            name,
+            value: String(value),
+          }
+        }),
+        { name: 'viewId', value: view.value?.id },
+      ],
+    } as any),
+)
+
+const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
+
+const code = computed(() => {
+  if (activeLang.value?.name === 'NocoDB-SDK') {
+    return `${selectedClient.value === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+
+const api = new Api({
+    baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
+    headers: {
+      "xc-token": "CREATE_YOUR_API_TOKEN_FROM ${location.origin}/account/tokens"
+    }
+})
+
+api.dbDataTableRow.list(
+    ${JSON.stringify(base.value?.id)},
+    ${JSON.stringify(meta.value?.id)}, ${JSON.stringify(
+      {
+        ...v3QueryParams.value,
+        ...(view.value?.id ? { viewId: view.value.id } : {}),
+      },
+      null,
+      4,
+    )}).then(function (data) {
+    console.log(data);
+}).catch(function (error) {
+    console.error(error);
+});`
+  }
+  const result = snippet.value.convert(
+    activeLang.value?.name,
+    selectedClient.value || (activeLang.value?.clients && activeLang.value?.clients[0]),
+    { indent: '\t' },
+  )
+
+  if (result && result[0]) {
+    return result[0]
+  }
+  return ''
+})
+
+const onCopyToClipboard = async () => {
+  try {
+    await copy(code.value)
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
+
+    isCopied.value = true
+
+    setTimeout(() => {
+      isCopied.value = false
+    }, 5000)
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+watch(activeLang, (newLang) => {
+  selectedClient.value = newLang?.clients?.[0]
+})
+
+const supportedDocs = [
+  {
+    title: 'Data APIs',
+    href: 'https://nocodb.com/apis/v3/data',
+  },
+  {
+    title: 'Meta APIs',
+    href: 'https://nocodb.com/apis/v3/meta',
+  },
+  {
+    title: 'Create API Token',
+    href: 'https://nocodb.com/docs/product-docs/account-settings/api-tokens#create-api-token',
+  },
+  {
+    title: 'Swagger',
+    href: 'https://nocodb.com/docs/product-docs/bases/actions-on-base#rest-apis',
+  },
+] as {
+  title: string
+  href: string
+}[]
+</script>
+
+<template>
+  <div
+    class="p-6"
+    :style="{
+      height: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
+      maxHeight: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
+    }"
+  >
+    <div class="flex gap-4 max-w-[1000px] mx-auto h-full">
+      <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3 rtl:(!pl-3 !pr-0)">
+        <div
+          class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
+          :style="{
+            letterSpacing: '0.3px',
+          }"
+        >
+          {{ $t('general.languages') }}
+        </div>
+
+        <NcMenuItem
+          v-for="item in langs"
+          :key="item.name"
+          class="rounded-md capitalize select-none"
+          :class="{
+            'active-menu': selectedLangName === item.name,
+          }"
+          @click="selectedLangName = item.name"
+        >
+          <div class="flex gap-2 items-center">
+            <component :is="item.icon" class="!stroke-transparent h-5 w-5" />
+            {{ item.name }}
+          </div>
+        </NcMenuItem>
+
+        <NcDivider class="!my-3" />
+
+        <div class="flex flex-col gap-1">
+          <div
+            class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
+            :style="{
+              letterSpacing: '0.3px',
+            }"
+          >
+            {{ $t('labels.documentation') }}
+          </div>
+
+          <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-2 px-2 h-7">
+            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-subtle2" />
+
+            <a
+              :href="doc.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="!text-nc-content-gray-subtle text-small leading-[18px] !no-underline !hover:underline"
+            >
+              {{ doc.title }}
+            </a>
+          </div>
+        </div>
+      </NcMenu>
+      <div dir="ltr" class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
+        <div class="nc-api-clents-tab-wrapper h-[calc(100%_-_56px)] flex flex-col mt-2">
+          <NcTabs v-model:active-key="selectedClient" class="nc-api-clents-tab">
+            <template #rightExtra>
+              <NcButton
+                v-e="[
+                  'c:snippet:copy',
+                  { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
+                ]"
+                type="text"
+                size="small"
+                class="!hover:bg-nc-bg-gray-medium"
+                @click="onCopyToClipboard"
+              >
+                <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
+                  <GeneralIcon
+                    :icon="isCopied ? 'circleCheckSolid' : 'copy'"
+                    class="h-4 w-4"
+                    :class="{
+                      'text-nc-content-gray-subtle': !isCopied,
+                      'text-green-700': isCopied,
+                    }"
+                  />
+                  {{ isCopied ? $t('general.copied') : $t('general.copy') }}
+                </div>
+              </NcButton>
+            </template>
+
+            <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
+              <template #tab>
+                <div class="text-small leading-[18px] capitalize select-none">
+                  {{ client }}
+                </div>
+              </template>
+              <div></div>
+            </a-tab-pane>
+          </NcTabs>
+          <Suspense>
+            <template #default>
+              <MonacoEditor
+                class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
+                :model-value="code"
+                :read-only="true"
+                lang="typescript"
+                :validate="false"
+                :disable-deep-compare="true"
+                :monaco-config="{
+                  minimap: {
+                    enabled: false,
+                  },
+                  fontSize: 13,
+                  lineHeight: 18,
+                  padding: {
+                    top: 12,
+                    bottom: 12,
+                  },
+                  overviewRulerBorder: false,
+                  overviewRulerLanes: 0,
+                  hideCursorInOverviewRuler: true,
+                  lineDecorationsWidth: 12,
+                  lineNumbersMinChars: 0,
+                  roundedSelection: false,
+                  selectOnLineNumbers: false,
+                  scrollBeyondLastLine: false,
+                  contextmenu: false,
+                  glyphMargin: false,
+                  folding: false,
+                  bracketPairColorization: { enabled: false },
+                  wordWrap: 'on',
+                  scrollbar: {
+                    horizontal: 'hidden',
+                    verticalScrollbarSize: 6,
+                  },
+                  wrappingStrategy: 'advanced',
+                  renderLineHighlight: 'none',
+                  tabSize: 4,
+                  detectIndentation: false,
+                  insertSpaces: true,
+                  lineNumbers: 'off',
+                }"
+                hide-minimap
+              />
+            </template>
+            <template #fallback>
+              <MonacoLoading class="h-[calc(100%_-_36px)] w-full" />
+            </template>
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-api-snippets-menu {
+  @apply border-r-0 !py-0;
+
+  :deep(.ant-menu-item) {
+    @apply h-7 leading-5 my-1.5 px-2 text-nc-content-gray-subtle flex items-center;
+
+    .nc-menu-item-inner {
+      @apply text-small leading-[18px] text-current font-weight-500;
+    }
+    &:hover:not(.active-menu) {
+      @apply !bg-nc-bg-gray-light;
+    }
+
+    &.active-menu {
+      @apply bg-nc-bg-brand-inverted;
+      .nc-menu-item-inner {
+        @apply text-nc-content-brand-disabled font-semibold;
+      }
+    }
+  }
+}
+
+:deep(.nc-api-clents-tab.ant-tabs) {
+  .ant-tabs-nav {
+    @apply px-3;
+
+    .ant-tabs-tab {
+      @apply px-3 pt-2 pb-2.5;
+      & + .ant-tabs-tab {
+        @apply !ml-2;
+      }
+
+      &.ant-tabs-tab-active {
+        @apply font-semibold;
+      }
+    }
+  }
+  .ant-tabs-content {
+    @apply h-full;
+  }
+}
+</style>
+
+<style lang="scss">
+.rtl .nc-api-snippets-menu {
+  border-right: 0;
+  border-left: 0;
+}
+
+.nc-api-clents-tab-wrapper {
+  @apply bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg flex-1 overflow-hidden;
+
+  .monaco-editor {
+    @apply !border-0 !rounded-none pr-3;
+  }
+  .overflow-guard {
+    @apply !border-0 !rounded-none;
+  }
+  .monaco-editor,
+  .monaco-diff-editor,
+  .monaco-component {
+    --vscode-editor-background: var(--nc-bg-gray-extralight);
+    --vscode-editorGutter-background: var(--nc-bg-gray-extralight);
+    --vscode-editorStickyScroll-background: var(--nc-bg-gray-extralight);
+    --vscode-focusBorder: transparent;
+    --vscode-editorStickyScroll-shadow: var(--nc-border-gray-light);
+  }
+}
+</style>

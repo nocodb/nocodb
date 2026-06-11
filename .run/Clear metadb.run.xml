@@ -1,0 +1,5 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Drop metadb" type="NodeJSConfigurationType" path-to-js-file="$PROJECT_DIR$/packages/nocodb-legacy/src/run/deleteMetaDb.js" working-dir="$PROJECT_DIR$/packages/nocodb-legacy/src/run">
+    <method v="2" />
+  </configuration>
+</component>

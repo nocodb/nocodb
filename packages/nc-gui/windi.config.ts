@@ -1,0 +1,206 @@
+import { defineConfig } from 'windicss/helpers'
+import formsPlugin from 'windicss/plugin/forms'
+import typographyPlugin from 'windicss/plugin/typography'
+import aspectRatioPlugin from 'windicss/plugin/aspect-ratio'
+import lineClampPlugin from 'windicss/plugin/line-clamp'
+import windiColors from 'windicss/colors'
+// @ts-expect-error no types for plugin-scrollbar
+import scrollbar from '@windicss/plugin-scrollbar'
+// @ts-expect-error no types for plugin-animation
+import animations from '@windicss/plugin-animations'
+// @ts-expect-error no types for plugin-question-mark
+import questionMark from '@windicss/plugin-question-mark'
+
+import ncTypographyPlugin from './assets/nc-typography-plugin'
+
+import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
+
+import {
+  theme as colors,
+  ncBuildColorsWithOpacity,
+  themeColors,
+  themeV2Colors,
+  themeV3Colors,
+  themeV4Colors,
+  themeVariables,
+} from './utils/colorsUtils'
+
+const isEE = process.env.EE
+
+export default defineConfig({
+  extract: {
+    include: [
+      ...(isEE
+        ? [
+            '../**/*.{vue,html,jsx,tsx,css,scss}',
+            '../extensions/**/*.md',
+            '../composables/useColumnFilteredOrSorted.ts',
+            '../components/smartsheet/header/*.ts',
+            '../components/smartsheet/grid/canvas/cells/*.ts',
+            '../components/smartsheet/grid/canvas/cells/**/*.ts',
+            '../utils/cssUtils.ts',
+          ]
+        : [
+            '**/*.{vue,html,jsx,tsx,css,scss}',
+            'extensions/**/*.md',
+            'composables/useColumnFilteredOrSorted.ts',
+            'components/smartsheet/header/*.ts',
+            'components/smartsheet/grid/canvas/cells/*.ts',
+            'components/smartsheet/grid/canvas/cells/**/*.ts',
+            'utils/cssUtils.ts',
+          ]),
+    ],
+    exclude: ['node_modules', '.git'],
+  },
+
+  darkMode: 'class',
+  safelist: [
+    'text-yellow-500',
+    'text-sky-500',
+    'text-red-500',
+    'bg-primary-selected',
+    'text-pink-500',
+    'text-orange-500',
+    'text-blue-500',
+    'text-purple-500',
+    'text-grey',
+  ],
+  plugins: [
+    ncTypographyPlugin,
+    scrollbar,
+    animations,
+    questionMark,
+    formsPlugin,
+    typographyPlugin({
+      dark: true,
+    }),
+    aspectRatioPlugin,
+    lineClampPlugin,
+    ncWindicssShortcutsPlugin,
+  ],
+
+  preflight: {
+    alias: {
+      'nuxt-link': 'a',
+      'nuxt-img': 'img',
+    },
+  },
+
+  shortcuts: {
+    'color-transition': 'transition-colors duration-100 ease-in',
+    'scrollbar-thin-primary':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-base-white',
+    'scrollbar-thin-dull':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-nc-gray-100 scrollbar-track-base-white',
+    'nc-scrollbar-thin':
+      'scrollbar scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-500 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600 scrollbar-track-transparent',
+    'nc-content-max-w': 'max-w-[97.5rem]',
+  },
+
+  theme: {
+    fontFamily: {
+      inter: ['Inter', 'Manrope', 'sans-serif'],
+      sans: ['Vazirmatn', 'sans-serif'],
+      serif: ['Vazirmatn', 'serif'],
+      mono: ['Inter', 'mono'],
+      default: ['Inter', 'Manrope', 'sans-serif'],
+    },
+    extend: {
+      // Use simple string values (min-width) so that `<lg:`, `<md:` etc. variants work correctly.
+      // Object syntax `{ min: '...' }` breaks the `<` prefix variant in WindiCSS.
+      // Only `xs` uses object syntax since it's a max-width breakpoint.
+      screens: {
+        'xs': { max: '480px' },
+        'sm': '480px',
+        'md': '820px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1780px',
+        '3xl': '1920px',
+        '4xl': '2560px',
+        '5xl': '3200px',
+      },
+      fontSize: {
+        tiny: ['11px', '14px'],
+        small: ['13px', '16px'],
+        small1: ['13px', '18px'],
+      },
+      fontWeight: {
+        /**
+         * In `Inter` font multiple of 100 will point to -100
+         * @example
+         * 1. 500 is equal to 400
+         * 2. 600 is equal to 500
+         * 3. 700 is equal to 600
+         * 4. 800 is equal to 700
+         * 5. 900 is equal to 800
+         *
+         * But if it is multiples of 100 plus 50 (350,450,550,650,750) then it be standard one
+         * So while using it we have to use it like `Weight - 100`
+         */
+        thin: 200, // original 200
+        extraLight: 300, // original 300
+        light: 400, // original 400
+        normal: 500, // original 400
+        default: 500, // original 400
+        medium: 600, // original 500
+        semibold: 550, // original 550
+        bold: 700, // original 600
+        black: 800, // original 700
+        450: 400,
+        550: 450,
+        650: 550,
+        750: 650,
+        850: 750,
+        950: 850,
+      },
+      textColor: {
+        primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
+      },
+      borderColor: {
+        // Use the --color-primary var (like textColor/backgroundColor/ringColor)
+        // so `border-primary` follows the white-label brand. Defaults to the same
+        // 51,102,255 blue, so the default render is unchanged.
+        primary: 'rgba(var(--color-primary), var(--tw-border-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
+        error: 'var(--ant-error-color)',
+      },
+      backgroundColor: {
+        primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
+      },
+      ringColor: {
+        primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
+      },
+      boxShadow: {
+        'default': '0px 0px 4px 0px rgba(var(--rgb-base), 0.08)',
+        'hover': '0px 0px 4px 0px rgba(var(--rgb-base), 0.24)',
+        'selected': '0px 0px 0px 2px var(--ant-primary-color-outline)',
+        'selected-ai': '0px 0px 0px 2px rgba(125, 38, 205, 0.24)',
+        'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
+        'focus': '0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-fill-primary)',
+        'nc-sm': '0px 3px 1px -2px rgba(var(--rgb-base), 0.06), 0px 5px 3px -2px rgba(var(--rgb-base), 0.02)',
+        'disabled': '0 0 0 2px rgba(106, 113, 132, 0.24)',
+      },
+      colors: {
+        ...windiColors,
+        ...themeColors,
+        ...themeV2Colors,
+        ...themeV3Colors,
+        ...ncBuildColorsWithOpacity(themeV4Colors, 'nc'),
+        ...ncBuildColorsWithOpacity(themeVariables.content),
+        ...ncBuildColorsWithOpacity(themeVariables.border),
+        ...ncBuildColorsWithOpacity(themeVariables.background),
+        ...ncBuildColorsWithOpacity(themeVariables.fill),
+        ...ncBuildColorsWithOpacity({
+          primary: '--color-primary',
+          accent: '--color-accent',
+        }),
+        dark: colors.dark,
+        light: colors.light,
+      },
+    },
+  },
+})

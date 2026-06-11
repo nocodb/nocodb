@@ -1,0 +1,418 @@
+import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
+import type {
+  AttachmentReqType,
+  AttachmentResType,
+  ChatUIContext,
+  FileImportOptions,
+  FileImportParserConfig,
+  FileImportSheet,
+  FileImportType,
+  PublicAttachmentScope,
+  SnapshotType,
+  SupportedExportCharset,
+  SyncTrigger,
+  UserType,
+} from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+export const JOBS_QUEUE = 'jobs';
+
+export enum MigrationJobTypes {
+  Attachment = 'attachment',
+  Thumbnail = 'thumbnail',
+  RecoverLinks = 'recover-links',
+  CleanupDuplicateColumns = 'cleanup-duplicate-columns',
+  NoOpMigration = 'no-op-migration',
+  OrderColumnCreation = 'order-column-creation',
+  RecoverOrderColumnMigration = 'recover-order-column-migration',
+  RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
+  AuditMigration = 'audit-migration',
+  SoftDeleteColumnMigration = 'soft-delete-column-migration',
+  NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
+  RecordTrashBackfill = 'record-trash-backfill',
+}
+
+export enum JobTypes {
+  DuplicateBase = 'duplicate-base',
+  DuplicateModel = 'duplicate-model',
+  DuplicateColumn = 'duplicate-column',
+  DuplicateDashboard = 'duplicate-dashboard',
+  AtImport = 'at-import',
+  MetaSync = 'meta-sync',
+  MetaDiff = 'meta-diff',
+  SourceCreate = 'source-create',
+  SourceDelete = 'source-delete',
+  UpdateWsStat = 'update-ws-stats',
+  HealthCheck = 'health-check',
+  HandleWebhook = 'handle-webhook',
+  CleanUp = 'clean-up',
+  DataExport = 'data-export',
+  DataExportCleanUp = 'data-export-clean-up',
+  ThumbnailGenerator = 'thumbnail-generator',
+  AttachmentCleanUp = 'attachment-clean-up',
+  InitMigrationJobs = 'init-migration-jobs',
+  UseWorker = 'use-worker',
+  CreateSnapshot = 'create-snapshot',
+  RestoreSnapshot = 'restore-snapshot',
+  ListenImport = 'listen-import',
+  SyncModuleSyncData = 'sync-module-sync-data',
+  SyncModuleMigrateSync = 'sync-module-migrate-sync',
+  SyncModuleRefreshData = 'sync-module-refresh-data',
+  SyncModuleSchedule = 'sync-module-schedule',
+  TableSyncRun = 'table-sync-run',
+  UpdateUsageStats = 'update-usage-stats',
+  CloudDbMigrate = 'cloud-db-migrate',
+  AttachmentUrlUpload = 'attachment-url-upload',
+  ExecuteAction = 'execute-action',
+  ReseatSubscription = 'reseat-subscription',
+  ExecuteWorkflow = 'execute-workflow',
+  WorkflowCronSchedule = 'workflow-cron-schedule',
+  WorkflowResumeSchedule = 'workflow-resume-schedule',
+  ResumeWorkflow = 'resume-workflow',
+  TestWorkflowNode = 'test-workflow-node',
+  HeartbeatWorkflow = 'heartbeat-workflow',
+  PollWorkflow = 'poll-workflow',
+  WorkflowErrorNotification = 'workflow-error-notification',
+  HookErrorNotification = 'hook-error-notification',
+  WorkflowDraftReminder = 'workflow-draft-reminder',
+  ChatMessage = 'chat-message',
+  ChatApproval = 'chat-approval',
+  BaseTrashCleanUp = 'base-trash-clean-up',
+  DataImport = 'data-import',
+  SandboxMerge = 'sandbox-merge',
+  ManagedAppUpdate = 'managed-app-update',
+  MailDispatch = 'mail-dispatch',
+  MailOutboxRecovery = 'mail-outbox-recovery',
+  MailScanner = 'mail-scanner',
+  OperationCleanup = 'operation-cleanup',
+}
+
+export const SKIP_STORING_JOB_META = [
+  JobTypes.HealthCheck,
+  JobTypes.ThumbnailGenerator,
+  JobTypes.UseWorker,
+  JobTypes.HandleWebhook,
+  JobTypes.ExecuteWorkflow,
+  JobTypes.InitMigrationJobs,
+  JobTypes.UpdateWsStat,
+  JobTypes.UpdateUsageStats,
+  JobTypes.SyncModuleSchedule,
+  JobTypes.ReseatSubscription,
+  JobTypes.WorkflowCronSchedule,
+  JobTypes.WorkflowResumeSchedule,
+  JobTypes.BaseTrashCleanUp,
+  JobTypes.OperationCleanup,
+  JobTypes.ResumeWorkflow,
+  JobTypes.HeartbeatWorkflow,
+  JobTypes.PollWorkflow,
+  JobTypes.WorkflowErrorNotification,
+  JobTypes.HookErrorNotification,
+  JobTypes.WorkflowDraftReminder,
+  JobTypes.ChatMessage,
+  JobTypes.ChatApproval,
+  JobTypes.MailDispatch,
+  JobTypes.MailOutboxRecovery,
+  JobTypes.MailScanner,
+];
+
+export enum JobStatus {
+  COMPLETED = 'completed',
+  WAITING = 'waiting',
+  ACTIVE = 'active',
+  DELAYED = 'delayed',
+  FAILED = 'failed',
+  PAUSED = 'paused',
+  REFRESH = 'refresh',
+  REQUEUED = 'requeued',
+}
+
+export enum JobEvents {
+  STATUS = 'job.status',
+  LOG = 'job.log',
+}
+
+export const JobVersions: {
+  [key in JobTypes]?: number;
+} = {
+  [JobTypes.InitMigrationJobs]: 2,
+};
+
+export const JOB_REQUEUED = 'job.requeued';
+
+// Requeues exist for transient mismatches between primary and worker during
+// rolling deploys (new job type, renamed fn, version skew) and for local
+// concurrency back-pressure. Both want to wait patiently for the system to
+// settle. Exponential backoff (5s, 10s, 20s, 40s, capped at 60s) catches
+// fast-resolving blips quickly and settles into a steady 60s tail.
+// 60 attempts × max 60s ≈ 57 min total budget before the job is dropped.
+export const JOB_REQUEUE_LIMIT = 60;
+export const JOB_REQUEUE_BASE_DELAY_MS = 5_000;
+export const JOB_REQUEUE_MAX_DELAY_MS = 60_000;
+
+export function jobRequeueDelay(attempt: number): number {
+  const exp = JOB_REQUEUE_BASE_DELAY_MS * 2 ** Math.max(0, attempt - 1);
+  return Math.min(exp, JOB_REQUEUE_MAX_DELAY_MS);
+}
+
+export function parseWorkerConcurrency(value: string | undefined): number {
+  const parsed = parseInt(value ?? '10', 10);
+  return Math.max(1, Number.isFinite(parsed) ? parsed : 10);
+}
+
+export const InstanceTypes = {
+  PRIMARY: `${process.env.NC_ENV ?? 'default'}-primary`,
+  WORKER: `${process.env.NC_ENV ?? 'default'}-worker`,
+};
+
+export enum InstanceCommands {
+  RESUME_LOCAL = 'resumeLocal',
+  PAUSE_LOCAL = 'pauseLocal',
+  ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
+  STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
+  ABORT_CHAT_STREAM = 'abortChatStream',
+  ABORT_CHAT_STREAM_ACK = 'abortChatStreamAck',
+}
+
+export interface JobData {
+  // meta info
+  jobName: string;
+  _jobAttempt?: number;
+  _jobVersion?: number;
+  // context
+  context: NcContext;
+  user: Partial<UserType>;
+}
+
+export interface AtImportJobData extends JobData {
+  syncId: string;
+  baseId: string;
+  sourceId: string;
+  baseName: string;
+  authToken: string;
+  baseURL: string;
+  clientIp: string;
+  options?: {
+    syncViews?: boolean;
+    syncAttachment?: boolean;
+    syncLookup?: boolean;
+    syncRollup?: boolean;
+    syncUsers?: boolean;
+    syncData?: boolean;
+    syncFormula?: boolean;
+  };
+  user: any;
+}
+
+export interface DuplicateBaseJobData extends JobData {
+  sourceId: string;
+  dupWorkspaceId: string;
+  dupProjectId: string;
+  req: NcRequest;
+  options: {
+    excludeData?: boolean;
+    excludeViews?: boolean;
+    excludeHooks?: boolean;
+    excludeComments?: boolean;
+    excludeUsers?: boolean;
+    excludeScripts?: boolean;
+    excludeDashboards?: boolean;
+    excludeWorkflows?: boolean;
+    excludeDocuments?: boolean;
+    excludePersonalViews?: boolean;
+    excludePermissions?: boolean;
+    excludeRls?: boolean;
+  };
+}
+
+export interface DuplicateModelJobData extends JobData {
+  sourceId: string;
+  targetSourceId: string;
+  modelId: string;
+  title: string;
+  req: NcRequest;
+  options: {
+    excludeData?: boolean;
+    excludeViews?: boolean;
+    excludeHooks?: boolean;
+    excludeComments?: boolean;
+    targetBaseId?: string;
+    targetWorkspaceId?: string;
+  };
+}
+
+export interface DuplicateColumnJobData extends JobData {
+  sourceId: string;
+  columnId: string;
+  extra: Record<string, any>; // extra data
+  req: NcRequest;
+  options: {
+    excludeData?: boolean;
+  };
+}
+
+export interface DuplicateDashboardJobData extends JobData {
+  dashboardId: string;
+  req: NcRequest;
+  options: never;
+}
+
+export interface SandboxMergeJobData extends JobData {
+  sandboxBaseId: string;
+  productionBaseId: string;
+  sandboxId: string;
+  req: NcRequest;
+  selectedChangelogIds?: string[];
+}
+
+export interface ManagedAppUpdateJobData extends JobData {
+  managedAppId: string;
+  managedAppTitle: string;
+  masterBaseId: string;
+  masterWorkspaceId: string;
+  newVersionId: string;
+  newVersion: string;
+  req: NcRequest;
+}
+
+export interface HandleWebhookJobData extends JobData {
+  hookId: string;
+  modelId: string;
+  viewId: string;
+  hookName: string;
+  ncSiteUrl: string;
+  prevData;
+  newData;
+}
+
+export interface DataExportJobData extends JobData {
+  options?: {
+    delimiter?: string;
+    extension_id?: string;
+    encoding?: SupportedExportCharset;
+    // if true and encoding is utf-8, it'll add \ufeff (utf8 byte order mark) at start of the file
+    // false by default, only use when triggered from controller
+    includeByteOrderMark?: boolean;
+    filenameTimeZone?: string;
+    filterArrJson?: string;
+    sortArrJson?: string;
+  };
+  modelId: string;
+  viewId: string;
+  exportAs: 'csv' | 'json' | 'excel';
+  ncSiteUrl: string;
+  locale?: string;
+}
+
+export interface ThumbnailGeneratorJobData extends JobData {
+  attachments: AttachmentResType[];
+  scope?: PublicAttachmentScope;
+}
+
+export interface CreateSnapshotJobData extends JobData {
+  sourceId: string;
+  snapshotBaseId: string;
+  req: NcRequest;
+  snapshot: SnapshotType;
+}
+
+export interface RestoreSnapshotJobData extends JobData {
+  sourceId: string;
+  targetBaseId: string;
+  targetContext: {
+    workspace_id: string;
+    base_id: string;
+  };
+  snapshot: SnapshotType;
+  req: NcRequest;
+}
+
+export interface SyncDataSyncModuleJobData extends JobData {
+  syncConfigId: string;
+  targetTables?: string[];
+  trigger: SyncTrigger;
+  bulk?: boolean;
+  req: NcRequest;
+}
+
+export type TableSyncJobMode = 'full-create' | 'full-resync' | 'incremental';
+
+export interface TableSyncJobData extends JobData {
+  syncId: string;
+  mode?: TableSyncJobMode;
+  affectedIdsBySource?: Record<string, string[]>;
+  req: NcRequest;
+}
+
+export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
+
+export interface ExecuteActionJobData extends JobData {
+  req: NcRequest;
+  records?: any[];
+  hookPayload?: any;
+  modelId?: string;
+  viewId?: string;
+  scriptId: string;
+}
+
+export interface ReseatSubscriptionJobData extends JobData {
+  workspaceOrOrgId: string;
+  initiator?: string;
+  timestamp: number;
+}
+
+export interface ExecuteWorkflowJobData extends JobData {
+  workflowId: string;
+  triggerNodeId?: string; // Optional: specific trigger node to start from
+  triggerInputs: any; // Data passed to the trigger node
+}
+
+export interface ResumeWorkflowJobData extends JobData {
+  executionId: string; // Workflow execution to resume
+}
+
+export interface TestWorkflowNodeJobData extends JobData {
+  workflowId: string;
+  nodeId: string;
+  testTriggerData?: any;
+  testMode?: string; // Force specific test mode: SAMPLE_DATA, LISTEN_WEBHOOK, TRIGGER_EVENT
+  timeoutMs?: number;
+  req?: NcRequest;
+}
+
+export interface HeartbeatWorkflowJobData extends JobData {
+  workflowId: string;
+}
+
+export interface PollWorkflowJobData extends JobData {
+  workflowId: string;
+  triggerNodeId: string;
+  activationState: Record<string, any>;
+}
+
+export interface ChatMessageJobData extends JobData {
+  sessionId: string;
+  firstUserMessage?: string;
+  approvals?: Record<string, 'approved' | 'denied'>;
+  /** User's current UI navigation context (active table/view/dashboard/document). */
+  uiContext?: ChatUIContext;
+}
+
+export interface ChatApprovalJobData extends JobData {
+  sessionId: string;
+  messageId: string;
+  decisions: Record<string, 'approved' | 'denied'>;
+}
+
+export interface MailDispatchJobData extends JobData {
+  mailSendId: string;
+}
+
+export interface DataImportJobData extends JobData {
+  baseId: string;
+  sourceId: string;
+  importType: FileImportType;
+  attachment: AttachmentReqType;
+  sheets: FileImportSheet[];
+  parserConfig: FileImportParserConfig;
+  options: FileImportOptions;
+  req: NcRequest;
+}

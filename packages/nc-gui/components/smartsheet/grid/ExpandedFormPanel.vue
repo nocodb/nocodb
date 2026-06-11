@@ -1,0 +1,1126 @@
+<script setup lang="ts">
+import type { TableType, ViewType } from 'nocodb-sdk'
+import { ExpandedFormMode } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { useStorage } from '@vueuse/core'
+
+const panelStore = useExpandedFormPanelOrThrow()
+
+const { isOpen, activeRow, activeRowId, activeRowState, panelWidth, isLoading, isFullscreen, hasPrev, hasNext } = panelStore
+
+const { closePanel, setFullscreen, navigatePrev, navigateNext } = panelStore
+
+const { requestSwitch } = panelStore
+
+const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
+const { isUIAllowed } = useRoles()
+
+const { $e } = useNuxtApp()
+
+const { isMobileMode } = useGlobal()
+
+const panelRef = ref<HTMLElement>()
+
+const activeViewMode = ref(ExpandedFormMode.FIELD)
+
+const isResizing = ref(false)
+const resizeStartX = ref(0)
+const resizeStartWidth = ref(0)
+
+// Tuned so the header's icon row (prev / next, save, 3-tab mode selector,
+// sidebar toggle, more, fullscreen, close) all stay visible — the title
+// shrinks to zero before this floor is reached.
+const MIN_WIDTH = 360
+
+// Below this width the docked panel renders only the main pane (no sidebar);
+// at or above this width — or anytime fullscreen — the presenter's right-side
+// drawer (comments/audits/fields) is allowed to show. The docked panel uses a
+// vertical (label-above-value) field layout, which lets us split far earlier
+// than fullscreen's horizontal layout would allow — ~280 px main + ~280 px
+// sidebar + chrome.
+const DUAL_PANE_THRESHOLD = 600
+
+const useDualPane = computed(() => isFullscreen.value || panelWidth.value >= DUAL_PANE_THRESHOLD)
+
+// Manual toggle for the sidebar in docked mode — paired with the header's
+// show/hide-sidebar button. Click in single-pane bumps the panel up to the
+// dual-pane threshold so the sidebar becomes visible; click in dual-pane
+// collapses to a single-pane-friendly width. Honors the resize handle bounds.
+const SIDEBAR_COLLAPSED_WIDTH = 480
+
+const toggleSidebar = () => {
+  if (panelWidth.value >= DUAL_PANE_THRESHOLD) {
+    panelWidth.value = SIDEBAR_COLLAPSED_WIDTH
+  } else {
+    panelWidth.value = DUAL_PANE_THRESHOLD
+  }
+}
+// Resolved once on drag start and reused throughout the drag — avoids paying
+// for a parent-chain walk + getComputedStyle on every mousemove tick.
+const resizeMaxWidth = ref(0)
+
+const resolveMaxWidth = () => {
+  // The panel sits inside a `display: contents` wrapper in Smartsheet.vue
+  // (kept so toggling SmartText visibility doesn't remount the panel). Such
+  // a wrapper has clientWidth 0, which would clamp the panel to MIN_WIDTH
+  // on the first drag. Walk past contents-display ancestors to the real
+  // flex container.
+  let el = panelRef.value?.parentElement as HTMLElement | null
+  while (el && getComputedStyle(el).display === 'contents') {
+    el = el.parentElement
+  }
+  const containerWidth = el?.clientWidth ?? 0
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
+}
+
+const onResizeMove = (e: MouseEvent) => {
+  if (!isResizing.value) return
+  const delta = resizeStartX.value - e.clientX
+  panelWidth.value = Math.max(MIN_WIDTH, Math.min(resizeMaxWidth.value, resizeStartWidth.value + delta))
+}
+
+const onResizeEnd = () => {
+  isResizing.value = false
+  document.body.style.cursor = ''
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  $e('c:row-expand-panel:resize', { width: panelWidth.value })
+}
+
+const onResizeStart = (e: MouseEvent) => {
+  isResizing.value = true
+  resizeStartX.value = e.clientX
+  resizeStartWidth.value = panelWidth.value
+  resizeMaxWidth.value = resolveMaxWidth()
+  document.body.style.cursor = 'col-resize'
+
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', onResizeEnd)
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  document.removeEventListener('keydown', onDocumentKeydownCapture, true)
+  document.removeEventListener('keydown', onDocumentKeydown)
+  document.removeEventListener('focusin', trackPanelFocus, true)
+  document.body.style.cursor = ''
+})
+
+const rowRef = computed(() => activeRow.value ?? ({ row: {}, oldRow: {}, rowMeta: {} } as Row))
+
+const maintainDefaultViewOrder = ref(false)
+
+const expandedFormStore = useProvideExpandedFormStore(meta as Ref<TableType>, rowRef as Ref<Row>, maintainDefaultViewOrder, false)
+
+const {
+  commentsDrawer,
+  changedColumns,
+  displayValue,
+  state: rowState,
+  isNew,
+  isSaving,
+  loadRow: _loadRow,
+  primaryKey,
+  row: _row,
+  save: _save,
+  formatSaveError,
+  loadComments,
+  clearColumns,
+  baseRoles,
+  fields,
+  hiddenFields,
+} = expandedFormStore
+
+const { isSqlView } = useProvideSmartsheetStore(view as Ref<ViewType>, meta)
+
+useProvideSmartsheetLtarHelpers(meta)
+
+provide(CellClickHookInj, undefined)
+provide(CanvasSelectCellInj, undefined)
+
+const isExpanded = computed(() => isOpen.value)
+
+provide(IsExpandedFormOpenInj, isExpanded)
+
+const reloadHook = createEventHook()
+
+reloadHook.on(() => {
+  if (isNew.value) return
+  _loadRow(activeRowId.value ?? undefined, true)
+})
+
+provide(ReloadRowDataHookInj, reloadHook)
+
+commentsDrawer.value = true
+
+const route = useRoute()
+
+// Deep-links like ?rowId=2&commentId=… should open the sidebar's Comments tab
+// so the linked comment is visible. The sidebar reads `isExpandedFormCommentMode`
+// from the config store to decide its initial tab; SidebarComments handles the
+// scroll/highlight + URL cleanup itself once it mounts. In single-pane state the
+// sidebar isn't rendered — bump the panel to dual-pane width so it becomes
+// visible.
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
+watch(
+  [isOpen, () => route.query.commentId],
+  ([open, commentId]) => {
+    if (open && commentId) {
+      isExpandedFormCommentMode.value = true
+      if (!isFullscreen.value && panelWidth.value < DUAL_PANE_THRESHOLD) {
+        panelWidth.value = DUAL_PANE_THRESHOLD
+      }
+    }
+  },
+  { immediate: true },
+)
+
+const isSaveDisabled = computed(() => {
+  // Enable save whenever there's anything to commit: explicit cell edits OR
+  // a freshly duplicated row (`rowMeta.new` is set by MoreOptionsMenu's
+  // duplicate handler — it replaces the row wholesale, so `changedColumns`
+  // stays empty even though the form holds unsaved data).
+  return changedColumns.value.size === 0 && !isNew.value
+})
+
+const isInitialLoad = ref(true)
+
+const triggerRowLoad = async (rowId?: string) => {
+  if (isInitialLoad.value) {
+    isLoading.value = true
+  }
+  await Promise.allSettled([loadComments(rowId, false), _loadRow(rowId)])
+  isLoading.value = false
+  isInitialLoad.value = false
+}
+
+watch(
+  [activeRowId, () => panelStore.activeRowIndex.value],
+  async ([newRowId]) => {
+    if (!isOpen.value) return
+
+    const wasUserNavigating = panelStore.isUserNavigating.value
+    if (wasUserNavigating) {
+      clearColumns()
+      panelStore.isUserNavigating.value = false
+    }
+
+    if (activeRowState.value) {
+      rowState.value = activeRowState.value
+    } else {
+      rowState.value = {}
+    }
+
+    // Use rowId if available, otherwise let _loadRow extract PK from the row data
+    await triggerRowLoad(newRowId ?? undefined)
+
+    // Some cells emit update:model-value when their props re-bind to the
+    // freshly-loaded row (value normalization on rebind), which spuriously
+    // populates changedColumns and makes Save look enabled — also triggers
+    // the discard modal on the next nav. Re-clear after the load settles so
+    // a navigated-to row stays clean until the user actually edits.
+    if (wasUserNavigating) {
+      await nextTick()
+      clearColumns()
+    }
+  },
+  { immediate: true },
+)
+
+// Returns true on success, false on failure (error is surfaced via message.error).
+// saveAndContinue relies on the return value to decide whether to navigate.
+const save = async (): Promise<boolean> => {
+  isSaving.value = true
+
+  try {
+    if (isNew.value) {
+      await _save(rowState.value)
+    } else {
+      await _save()
+      await _loadRow()
+    }
+
+    await reloadViewDataTrigger?.trigger()
+    return true
+  } catch (e: any) {
+    message.error(await formatSaveError(e))
+    return false
+  } finally {
+    isSaving.value = false
+  }
+}
+
+// After duplicating a row, surface the fields view so the user can immediately
+// edit the new record. Without this the panel can stay parked on Comments /
+// Audits (side-panel) or Discussion / Attachments (fullscreen), where only the
+// Save button is visible — the user has to manually find the Fields tab before
+// they can change anything.
+const onAfterDuplicate = () => {
+  activeViewMode.value = ExpandedFormMode.FIELD
+}
+
+const showDiscardModal = ref(false)
+
+// Pending action when the discard modal is showing. `null` = close panel.
+// Each entry is a thunk so callers (canvas-driven row switch, keyboard prev/
+// next) own their own navigation logic — the panel only decides when to fire
+// it. Closures capture the target row/path at request time, which survives
+// save()'s cache wipe.
+const pendingAction = ref<(() => void) | null>(null)
+
+const runPending = () => {
+  const fn = pendingAction.value
+  pendingAction.value = null
+  if (fn) fn()
+  else closePanel()
+}
+
+const onClose = () => {
+  $e('c:row-expand-panel:close')
+  if (changedColumns.value.size > 0) {
+    pendingAction.value = null
+    showDiscardModal.value = true
+  } else {
+    closePanel()
+  }
+}
+
+const guardedNavigate = (direction: 'prev' | 'next') => {
+  $e(`c:row-expand-panel:nav:${direction}`)
+  if (changedColumns.value.size > 0) {
+    pendingAction.value = direction === 'prev' ? navigatePrev : navigateNext
+    showDiscardModal.value = true
+    return
+  }
+  if (direction === 'prev') navigatePrev()
+  else navigateNext()
+}
+
+const guardedSwitch = (perform: () => void) => {
+  if (changedColumns.value.size > 0) {
+    pendingAction.value = perform
+    showDiscardModal.value = true
+    return
+  }
+  perform()
+}
+
+// Register guarded variant so grid-driven row clicks surface the discard modal
+// instead of silently overwriting unsaved edits. Reset on unmount so a stale
+// closure isn't held by the store.
+requestSwitch.value = guardedSwitch
+
+onBeforeUnmount(() => {
+  requestSwitch.value = (perform) => perform()
+})
+
+// Dismissing the modal (X / Escape / overlay click) without choosing Discard
+// or Save & Continue clears the pending action — otherwise a later prompt
+// would reuse stale state.
+watch(showDiscardModal, (v) => {
+  if (!v) pendingAction.value = null
+})
+
+const discardAndNavigate = () => {
+  $e('c:row-expand-panel:discard')
+  clearColumns()
+  showDiscardModal.value = false
+  runPending()
+}
+
+const saveAndContinue = async () => {
+  $e('c:row-expand-panel:save-and-continue')
+  const ok = await save()
+  if (!ok) return // save failed — stay on current row so user can fix/retry
+  showDiscardModal.value = false
+  runPending()
+}
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (!e.altKey) return
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    guardedNavigate('prev')
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    guardedNavigate('next')
+  } else if (e.code === 'KeyS') {
+    e.preventDefault()
+    if (!isSaveDisabled.value) save()
+  }
+}
+
+// Document-level keydown handler — handles Escape (close panel) and Cmd/Ctrl+S
+// (save) regardless of which descendant has focus. The per-element `@keydown`
+// only fires when the EFP root has focus; ant-design inputs swallow Escape
+// (blurs the input but stops propagation) and the browser's save-page dialog
+// would steal Cmd+S without preventDefault — so a document-level listener is
+// required to make these work from any field.
+//
+// Open dropdowns/pickers get a chance to close Escape first via bubble-phase
+// ordering: by the time this handler fires, the picker has already closed and
+// is no longer in the DOM, so the next Escape closes the panel.
+function isPickerOrDropdownOpen() {
+  // ant-design dropdowns / pickers / modals stay in the DOM after their first
+  // open (Vue toggles them via display:none rather than unmount), so a class
+  // selector alone catches stale "closed" instances. Read computed style to
+  // determine if any are actually visible right now.
+  const candidates = document.querySelectorAll(
+    '.ant-picker-dropdown, .ant-select-dropdown, .ant-dropdown, .ant-modal-mask, .ant-popover',
+  )
+  for (const el of candidates) {
+    const cs = window.getComputedStyle(el as Element)
+    if (cs.display !== 'none' && cs.visibility !== 'hidden') return true
+  }
+  return false
+}
+
+// Visible, non-disabled focusables inside the panel — used by the Tab-trap fix
+// to recover from the two known broken transitions (rate UL traps forward Tab;
+// MultiSelect blur sends focus to BODY).
+function getPanelFocusables(): HTMLElement[] {
+  const panel = document.querySelector('.nc-expanded-form-panel') as HTMLElement | null
+  if (!panel) return []
+  const candidates = panel.querySelectorAll<HTMLElement>(
+    'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [contenteditable="true"]',
+  )
+  return Array.from(candidates).filter((el) => {
+    if (el.offsetParent === null) return false
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return false
+    return true
+  })
+}
+
+// Last focusable that held focus inside the panel — needed because some widgets
+// (ant-select, ant-rate) blur to document.body on Tab, losing the position
+// info the trap needs to advance correctly. We restore it from this snapshot.
+const lastFocusedInPanel = ref<HTMLElement | null>(null)
+function trackPanelFocus(e: FocusEvent) {
+  const panel = panelRef.value
+  const target = e.target as HTMLElement | null
+  if (!panel || !target) return
+  if (target === panel) return
+  if (!panel.contains(target)) return
+  lastFocusedInPanel.value = target
+}
+
+// Capture-phase shortcuts — these need to run BEFORE focused widgets get a
+// chance to stopPropagation(). Number inputs and ant-design widgets eat Alt
+// modifier events on bubble phase.
+function onDocumentKeydownCapture(e: KeyboardEvent) {
+  // Cmd+S / Ctrl+S — save the panel. Always preventDefault so the browser's
+  // save-page dialog never appears while the panel is open.
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl && e.code === 'KeyS') {
+    e.preventDefault()
+    if (!isSaveDisabled.value) save()
+    return
+  }
+
+  // Cmd+Enter / Ctrl+Enter — also save, regardless of focused field.
+  if (cmdOrCtrl && e.key === 'Enter') {
+    e.preventDefault()
+    if (!isSaveDisabled.value) save()
+    return
+  }
+
+  // Alt+ArrowUp / Alt+ArrowDown — navigate to prev/next row from any focused
+  // field. Caught in capture phase because number inputs and select widgets
+  // call stopPropagation on Alt-arrows during bubble.
+  //
+  // Only intervene when the user's interaction intent is on the panel — if
+  // they clicked a grid cell, Alt+Arrow may be a grid shortcut (e.g. Alt+R for
+  // add row) or just stray, but it's not EFP navigation.
+  if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    if (!isExpandedFormPanelOpen()) return
+    e.preventDefault()
+    guardedNavigate(e.key === 'ArrowUp' ? 'prev' : 'next')
+  }
+}
+
+// Bubble-phase handler — runs AFTER widgets have had a chance to handle the
+// event. Used for Escape (so open pickers/modals close first) and Tab-trap
+// recovery (so widgets do their own Tab handling before we intervene).
+function onDocumentKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    if (isPickerOrDropdownOpen()) return
+    // Only close the panel via Escape when the user's intent is on the panel.
+    // If they were interacting with the grid (clicked a cell), Escape belongs
+    // to grid — exits cell edit / clears selection.
+    if (!isExpandedFormPanelOpen()) return
+    if (isFullscreen.value) {
+      setFullscreen(false)
+      activeViewMode.value = ExpandedFormMode.FIELD
+      // Refocus panel root and reaffirm panel intent so the NEXT Escape
+      // closes the panel — without this, fullscreen exit can leave focus on
+      // a transient wrapper element with intent flag unclear, and the user
+      // has to click into the panel before the second Escape works.
+      panelRef.value?.focus()
+      markExpandedFormPanelFocus()
+    } else {
+      onClose()
+    }
+    return
+  }
+
+  // Tab-trap recovery — three distinct broken-transition cases:
+  // 1. Focus already on BODY (e.g. ant-select blur after MultiSelect already
+  //    fired) — pull focus back into the panel.
+  // 2. Focus on the rate UL (ant-rate consumes Tab without releasing) —
+  //    advance past it.
+  // 3. Forward Tab from the LAST focusable / backward Tab from the FIRST —
+  //    natural browser behavior would escape to BODY (or to elements outside
+  //    the panel) since there's no next/previous tab-stop in document order.
+  //    Preempt this and wrap within the panel.
+  //
+  // Only intervene when the user's interaction intent is on the panel. If they
+  // most recently clicked a grid cell (intent = grid), Tab belongs to grid
+  // navigation and we must not hijack it.
+  if (e.key !== 'Tab') return
+  if (!isExpandedFormPanelOpen()) return
+  const panel = panelRef.value
+  if (!panel) return
+  const active = document.activeElement as HTMLElement | null
+
+  const onBody = active === document.body
+  const onRateTrap = !!active && active.tagName === 'UL' && active.classList.contains('ant-rate')
+  const inPanel = !!active && panel.contains(active)
+
+  if (!onBody && !onRateTrap && !inPanel) return
+
+  const focusables = getPanelFocusables()
+  if (focusables.length === 0) return
+
+  if (onBody) {
+    e.preventDefault()
+    // Resume from the last focused element inside the panel, if we have one —
+    // forward Tab → next, Shift+Tab → previous. Falls back to first/last when
+    // we have no anchor (e.g. focus came from outside the page).
+    const last = lastFocusedInPanel.value
+    const lastIdx = last ? focusables.indexOf(last) : -1
+    if (lastIdx === -1) {
+      const fallback = e.shiftKey ? focusables[focusables.length - 1]! : focusables[0]!
+      fallback.focus()
+      return
+    }
+    const nextIdx = e.shiftKey
+      ? lastIdx > 0
+        ? lastIdx - 1
+        : focusables.length - 1
+      : lastIdx < focusables.length - 1
+      ? lastIdx + 1
+      : 0
+    focusables[nextIdx]!.focus()
+    return
+  }
+
+  // Find current focusable's index. For rate UL, it IS in the focusables list.
+  // For other in-panel elements, also find their index — needed to detect
+  // whether the next browser-tab-stop would escape the panel.
+  const currentIdx = focusables.indexOf(active!)
+  if (currentIdx === -1) return
+
+  const isLast = currentIdx === focusables.length - 1
+  const isFirst = currentIdx === 0
+
+  // Natural browser Tab from in-panel element only escapes when we're at the
+  // boundary (last for forward, first for backward). Otherwise let the browser
+  // handle it — except for the rate trap which always needs intervention.
+  const wouldEscape = (!e.shiftKey && isLast) || (e.shiftKey && isFirst)
+  if (!onRateTrap && !wouldEscape) return
+
+  e.preventDefault()
+  const nextIdx = e.shiftKey
+    ? currentIdx > 0
+      ? currentIdx - 1
+      : focusables.length - 1
+    : currentIdx < focusables.length - 1
+    ? currentIdx + 1
+    : 0
+  focusables[nextIdx]!.focus()
+}
+
+watch(
+  isOpen,
+  (open) => {
+    if (open) {
+      document.addEventListener('keydown', onDocumentKeydownCapture, true)
+      document.addEventListener('keydown', onDocumentKeydown)
+      document.addEventListener('focusin', trackPanelFocus, true)
+    } else {
+      document.removeEventListener('keydown', onDocumentKeydownCapture, true)
+      document.removeEventListener('keydown', onDocumentKeydown)
+      document.removeEventListener('focusin', trackPanelFocus, true)
+      lastFocusedInPanel.value = null
+    }
+  },
+  { immediate: true },
+)
+
+const panelStyle = computed(() => {
+  if (isFullscreen.value) return {}
+  return { width: `${panelWidth.value}px` }
+})
+
+const panelClasses = computed(() => {
+  const base = ['nc-expanded-form-panel', 'flex', 'flex-col', 'bg-nc-bg-default', 'border-l', 'border-nc-border-gray-medium']
+  if (isResizing.value) base.push('is-resizing')
+  if (isFullscreen.value) {
+    base.push('flex-1', 'h-full', 'z-50')
+  } else {
+    base.push('flex-shrink-0', 'h-full')
+  }
+  return base
+})
+
+// Every EE build (licensed + unlicensed on-prem + cloud) gets the unified
+// Fields / File / Discussion presenter — unlicensed users see the tabs and
+// hit the upgrade modal on click. CE has no File/Discussion modes and falls
+// through to the Fields-only body below. Kept in sync with ViewModeSelector's
+// own `isEeUI` gate so the tabs and the body unlock together.
+const useEePresenter = computed(() => isEeUI)
+
+const searchQuery = ref('')
+
+const hideBlankFields = ref(false)
+
+// Compact view — when on, fields render as label + plain text (no input box).
+// Persisted across sessions because it's a viewing preference, not transient
+// state.
+const isCompactMode = useStorage('nc-expanded-form-panel-compact', false)
+
+const showFieldFilters = computed(() => {
+  if (isLoading.value) return false
+  // New-record forms have no values to search or hide-blank against — the
+  // strip would just truncate the form to nothing or be a no-op.
+  if (isNew.value) return false
+  return activeViewMode.value === ExpandedFormMode.FIELD
+})
+
+watch(isOpen, (v) => {
+  if (!v) {
+    searchQuery.value = ''
+    hideBlankFields.value = false
+  }
+})
+
+// Row navigation resets the per-record search; hide-blank is a viewing
+// preference that persists across rows in the same panel session.
+watch(activeRowId, () => {
+  searchQuery.value = ''
+})
+</script>
+
+<template>
+  <Transition
+    name="nc-slide-right"
+    @after-enter="
+      () => {
+        panelRef?.focus()
+        markExpandedFormPanelFocus()
+      }
+    "
+  >
+    <div
+      v-if="isOpen && !isMobileMode"
+      ref="panelRef"
+      tabindex="-1"
+      :class="panelClasses"
+      :style="panelStyle"
+      data-testid="nc-expanded-form-panel"
+      @keydown="onKeydown"
+    >
+      <!-- Resize handle (left edge) -->
+      <div
+        v-if="!isFullscreen"
+        class="nc-expanded-form-panel-resize-handle"
+        data-testid="nc-expanded-form-panel-resize"
+        @mousedown.prevent="onResizeStart"
+      />
+
+      <!-- Header -->
+      <div
+        class="flex items-center h-[var(--toolbar-height)] gap-1 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
+      >
+        <!-- Display value (flex-1 pushes header controls to the right) -->
+        <NcTooltip v-if="displayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">
+          <template #title>{{ displayValue }}</template>
+          <span class="nc-expanded-form-panel-display-value truncate font-bold text-body text-nc-content-gray">
+            {{ displayValue }}
+          </span>
+        </NcTooltip>
+        <span v-else-if="isNew" class="truncate font-bold text-body text-nc-content-gray flex-1">
+          {{ $t('activity.newRecord') }}
+        </span>
+        <div v-else class="flex-1" />
+
+        <!-- Prev / Next — sits adjacent to the title since these navigate
+             which record the title refers to; grouping them avoids Save
+             interrupting the record-navigator cluster. -->
+        <div v-if="!isNew" class="flex items-center">
+          <NcTooltip :title="$t('labels.prevRow')">
+            <NcButton
+              size="xs"
+              type="text"
+              :disabled="!hasPrev"
+              class="!border-0 !px-1"
+              data-testid="nc-expanded-form-prev"
+              @click="guardedNavigate('prev')"
+            >
+              <GeneralIcon icon="arrowUp" class="w-3.5 h-3.5" />
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip :title="$t('labels.nextRow')">
+            <NcButton
+              size="xs"
+              type="text"
+              :disabled="!hasNext"
+              class="!border-0 !px-1"
+              data-testid="nc-expanded-form-next"
+              @click="guardedNavigate('next')"
+            >
+              <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
+            </NcButton>
+          </NcTooltip>
+        </div>
+
+        <!-- Save — boundary between record navigation and mode switcher.
+             Visually prominent (primary type, blue when there are unsaved
+             changes), so position is less load-bearing than visual state. -->
+        <NcTooltip
+          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+          :title="isNew ? $t('general.create') : $t('general.save')"
+        >
+          <NcButton
+            v-e="['c:row-expand-panel:save']"
+            :disabled="isSaveDisabled"
+            :loading="isSaving"
+            class="!px-1"
+            data-testid="nc-expanded-form-save"
+            type="primary"
+            size="xs"
+            @click="save"
+          >
+            <GeneralIcon icon="save" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
+
+        <!-- EE: Fields / File / Discussion mode selector — shown in both
+             side-panel and fullscreen. CE falls through to the legacy
+             fields-only body. -->
+        <SmartsheetExpandedFormViewModeSelector
+          v-if="useEePresenter"
+          v-model="activeViewMode"
+          :view="view"
+          class="nc-expanded-form-mode-switch"
+        />
+
+        <!-- Show / Hide sidebar — only meaningful in docked mode (fullscreen
+             always renders the dual pane). Single-pane state bumps to the
+             dual-pane threshold; dual-pane state collapses to a single-pane
+             width. Mirrors the left-sidebar toggle pattern. -->
+        <NcTooltip v-if="!isFullscreen" :title="useDualPane ? $t('title.hideSidebar') : $t('title.showSidebar')">
+          <NcButton
+            v-e="[`c:row-expand-panel:${useDualPane ? 'hide' : 'show'}-sidebar`]"
+            size="xs"
+            type="text"
+            data-testid="nc-expanded-form-panel-toggle-sidebar"
+            class="!px-1"
+            @click="(e) => { toggleSidebar(); (e.currentTarget as HTMLElement)?.blur?.() }"
+          >
+            <GeneralIcon
+              icon="sidebar"
+              class="w-3.5 h-3.5 transform scale-x-[-1]"
+              :class="useDualPane ? '!text-nc-content-brand' : ''"
+            />
+          </NcButton>
+        </NcTooltip>
+
+        <div class="flex items-center gap-1">
+          <SmartsheetExpandedFormMoreOptionsMenu
+            v-model:compact-mode="isCompactMode"
+            :is-loading="isLoading"
+            :view="view"
+            :row-id="activeRowId ?? undefined"
+            :show-compact-toggle="!isFullscreen"
+            compact
+            @after-delete="closePanel"
+            @duplicate-applied="onAfterDuplicate"
+          />
+          <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
+            <NcButton
+              v-e="[`c:row-expand-panel:${isFullscreen ? 'exit' : 'enter'}-fullscreen`]"
+              size="xs"
+              :type="isFullscreen ? 'primary' : 'text'"
+              data-testid="nc-expanded-form-panel-fullscreen"
+              class="!px-1"
+              @click="setFullscreen(!isFullscreen)"
+            >
+              <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-3.5 h-3.5" />
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip :title="$t('general.close')">
+            <NcButton
+              v-e="['c:row-expand-panel:close']"
+              size="xs"
+              type="text"
+              data-testid="nc-expanded-form-close"
+              class="!px-1"
+              @click="onClose"
+            >
+              <GeneralIcon icon="close" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </div>
+      </div>
+
+      <div class="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div v-if="isLoading" class="flex items-center justify-center h-full">
+          <GeneralLoader />
+        </div>
+
+        <template v-else>
+          <!-- Field filters strip — shown in Fields mode, above both EE & CE
+               branches. -->
+          <SmartsheetExpandedFormFieldFilters
+            v-if="showFieldFilters"
+            v-model:search-query="searchQuery"
+            v-model:hide-blank-fields="hideBlankFields"
+            :is-new="isNew"
+            telemetry-prefix="c:row-expand-panel"
+            compact
+          />
+
+          <!-- Presenter body wrapper. flex-1 + min-h-0 bounds the presenter's
+               own `h-full` so it doesn't add up against the strip and push the
+               comments composer past the panel's bottom. -->
+          <div class="flex-1 min-h-0 overflow-hidden">
+            <!-- EE: presentor-driven (Fields / File / Discussion) for both
+                 side-panel and fullscreen. Side-panel passes vertical / compact
+                 / hide-sidebar so the presenters fit the narrow layout. -->
+            <template v-if="useEePresenter">
+              <SmartsheetExpandedFormPresentorsFields
+                v-if="activeViewMode === ExpandedFormMode.FIELD"
+                :row-id="primaryKey"
+                :fields="fields ?? []"
+                :hidden-fields="hiddenFields"
+                :is-unsaved-duplicated-record-exist="false"
+                :is-unsaved-form-exist="false"
+                :is-loading="isLoading"
+                :is-saving="isSaving"
+                :search-query="searchQuery"
+                :hide-blank-fields="hideBlankFields"
+                :hide-sidebar="!useDualPane"
+                :force-vertical-mode="!isFullscreen"
+                :compact-mode="!isFullscreen && isCompactMode"
+              />
+              <SmartsheetExpandedFormPresentorsAttachments
+                v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
+                :row-id="primaryKey"
+                :view="view"
+                :fields="fields ?? []"
+                :hidden-fields="hiddenFields"
+                :is-unsaved-duplicated-record-exist="false"
+                :is-unsaved-form-exist="false"
+                :is-loading="isLoading"
+                :is-saving="isSaving"
+                :hide-sidebar="!useDualPane"
+                :compact-mode="!isFullscreen && isCompactMode"
+                compact-layout
+              />
+              <SmartsheetExpandedFormPresentorsDiscussion
+                v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
+                :is-unsaved-duplicated-record-exist="false"
+                :hide-sidebar="!useDualPane"
+                :compact-mode="!isFullscreen && isCompactMode"
+              />
+            </template>
+
+            <!-- CE: Fields only. The presenter renders its own sidebar with
+                 Comments + History tabs; in single-pane state the sidebar is
+                 hidden and reachable via the header's show-sidebar toggle. -->
+            <SmartsheetExpandedFormPresentorsFields
+              v-else
+              :row-id="primaryKey"
+              :fields="fields ?? []"
+              :hidden-fields="hiddenFields"
+              :is-unsaved-duplicated-record-exist="false"
+              :is-unsaved-form-exist="false"
+              :is-loading="isLoading"
+              :is-saving="isSaving"
+              :search-query="searchQuery"
+              :hide-blank-fields="hideBlankFields"
+              :hide-sidebar="!useDualPane"
+              :force-vertical-mode="!isFullscreen"
+              :compact-mode="!isFullscreen && isCompactMode"
+            />
+          </div>
+        </template>
+      </div>
+    </div>
+  </Transition>
+
+  <SmartsheetExpandedFormDiscardChangesModal
+    v-model="showDiscardModal"
+    :loading="isSaving"
+    @discard="discardAndNavigate"
+    @save-and-continue="saveAndContinue"
+  />
+</template>
+
+<style lang="scss" scoped>
+.nc-panel-mode-tab {
+  @apply flex flex-row items-center h-full justify-center px-2 border-1 border-t-0 border-b-0 border-nc-border-gray-medium text-nc-content-gray-subtle2 cursor-pointer transition-all duration-300 select-none;
+
+  &.active {
+    @apply bg-nc-bg-brand-inverted text-nc-content-brand-disabled;
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  &:not(.active) {
+    @apply hover:text-nc-content-gray-extreme;
+  }
+}
+
+.nc-expanded-form-search-input,
+.nc-expanded-form-search-input:focus,
+.nc-expanded-form-search-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Edge tabs need no side border. :first-child / :last-child on the tab itself
+   doesn't work — each tab is wrapped in an NcTooltip, so every tab is the
+   first-and-only child of its own wrapper. Target via the pill parent. */
+.nc-panel-mode-selector > :first-child .nc-panel-mode-tab,
+.nc-panel-mode-selector > :last-child .nc-panel-mode-tab {
+  @apply border-0;
+}
+
+.nc-panel-mode-tab-icon {
+  font-size: 0.875rem !important;
+  @apply w-3.5;
+}
+
+.nc-expanded-form-panel {
+  outline: none;
+  transition: width 0.2s ease;
+
+  &:not(.fixed) {
+    position: relative;
+  }
+
+  &.is-resizing {
+    user-select: none;
+    transition: none;
+  }
+}
+
+.nc-expanded-form-panel-resize-handle {
+  @apply absolute left-0 top-0 h-full transition-colors cursor-col-resize;
+  width: 4px;
+  z-index: 50;
+
+  &:hover {
+    @apply bg-nc-border-gray-medium;
+  }
+}
+
+.nc-expanded-form-panel.is-resizing .nc-expanded-form-panel-resize-handle {
+  @apply bg-nc-border-gray-medium;
+}
+
+.nc-expanded-form-panel-display-value {
+  @apply text-body font-bold text-nc-content-gray;
+}
+
+/* Slide-in from right */
+.nc-slide-right-enter-active {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.nc-slide-right-leave-active {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.15s ease;
+}
+
+.nc-slide-right-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.nc-slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+</style>
+
+<style lang="scss">
+/* Slightly smaller checkbox inside the field-filters strip — NcCheckbox's
+   `size` prop is unused, so override the hardcoded 16px (h-4/w-4) with 14px. */
+.nc-expanded-form-field-filters {
+  .nc-checkbox > .ant-checkbox,
+  .nc-checkbox > .ant-checkbox > .ant-checkbox-input,
+  .nc-checkbox > .ant-checkbox::after,
+  .nc-checkbox > .ant-checkbox > .ant-checkbox-inner {
+    @apply !h-3.5 !w-3.5;
+  }
+}
+
+/* Thinner, subtler grid scrollbar when panel is open (panel is sibling of grid's parent) */
+:has(> .nc-expanded-form-panel) .custom-scrollbar-track.vertical {
+  width: 4px;
+  background: transparent;
+}
+
+:has(> .nc-expanded-form-panel) .custom-scrollbar-thumb.vertical {
+  background: rgba(var(--rgb-base), 0.2);
+
+  &:hover {
+    background: rgba(var(--rgb-base), 0.4);
+  }
+}
+
+:has(> .nc-expanded-form-panel) .custom-scrollbar-track.horizontal {
+  height: 4px;
+  background: transparent;
+}
+
+:has(> .nc-expanded-form-panel) .custom-scrollbar-thumb.horizontal {
+  background: rgba(var(--rgb-base), 0.2);
+
+  &:hover {
+    background: rgba(var(--rgb-base), 0.4);
+  }
+}
+
+/* Compact field labels — matching MiniColumnsWrapper pattern */
+.nc-panel-fields-compact {
+  .nc-expanded-cell-header {
+    @apply !bg-transparent;
+
+    .nc-cell-name-wrapper,
+    .nc-virtual-cell-name-wrapper {
+      @apply !px-0;
+
+      .name.truncate {
+        @apply flex items-center pl-1;
+
+        span {
+          @apply !text-xs font-weight-500 !leading-[14px];
+        }
+      }
+
+      svg.nc-icon:not(.invisible):not(.nc-column-context-menu):not(.nc-column-lock-icon) {
+        @apply !w-3 !h-3 !mx-0;
+      }
+    }
+  }
+
+  /* Tighten label-to-input gap in vertical/compact mode (label container has mb-2 by default) */
+  .nc-expanded-form-row .nc-expanded-cell > :first-child {
+    @apply !mb-1;
+  }
+}
+
+/* Match grid canvas font (500 13px Inter) — needs high specificity to
+ * override scoped Cell.vue styles that use [data-v-*] + !important */
+.nc-expanded-form-panel .nc-expanded-form-row .nc-expanded-cell .nc-data-cell {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+
+  .nc-cell .nc-cell-field,
+  .nc-cell .nc-cell-field-link,
+  .nc-cell input,
+  .nc-cell textarea,
+  .nc-cell select,
+  .nc-cell .ant-tag,
+  .nc-cell .ant-select-selection-item,
+  .nc-virtual-cell .nc-cell-field,
+  .nc-virtual-cell .ant-tag,
+  .nc-virtual-cell .ant-select-selection-item,
+  .nc-virtual-cell input {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+  }
+}
+
+/* ViewModeSelector — match header icon size (14px) and reduce weight */
+.nc-expanded-form-panel .tab-wrapper .tab .tab-icon {
+  font-size: 0.875rem !important;
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+/* Match nc-panel-mode-selector pill height (28px) so the header tabs look
+   identical between fullscreen (ViewModeSelector) and side-panel (activity
+   selector) modes. ViewModeSelector defaults to h-7, but keep the rule for
+   defensiveness against upstream changes. */
+.nc-expanded-form-panel .tab-wrapper {
+  @apply !h-7;
+}
+
+/* Disable grey hover on audit items in panel */
+.nc-expanded-form-panel .group.hover\:bg-nc-bg-gray-light:hover {
+  background-color: transparent !important;
+}
+
+/* Sidebar tabs — smaller font for Comments / Revision History */
+.nc-expanded-form-panel .nc-comments-drawer .ant-tabs-tab {
+  .flex.items-center {
+    @apply !text-xs;
+
+    svg {
+      @apply !w-3.5 !h-3.5;
+    }
+  }
+}
+
+/* No shadow at rest, subtle shadow on hover */
+.nc-expanded-form-panel .nc-data-cell {
+  box-shadow: none !important;
+
+  /* Skip borderless cell types — these widgets render no input chrome (just
+     icons / buttons / barcodes / image strips), so the hover shadow ring
+     reads as wrong. Each :has() targets the actual descendant class set by
+     the cell component itself. */
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-data-cell-compact):not(:has(.form-attachment-cell)):not(
+      :has(.nc-cell-button)
+    ):not(:has(.barcode-wrapper)):not(:has(.nc-qrcode-container)):not(:has(.nc-cell-longtext-ai .nc-expanded-form-open)):hover {
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.12) !important;
+  }
+}
+
+/* Compact view — strip every visible chrome layer (border / background /
+   shadow) at all states. Cells stay editable; the inner widget shows its own
+   feedback (text cursor, picker overlay, dropdown). Uses `border: none` so
+   the 1px transparent border from `!border-1 !border-nc-border-brand` doesn't
+   eat layout space. */
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact,
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact:hover,
+.nc-expanded-form-panel .nc-data-cell.nc-data-cell-compact:focus-within {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Compact view — shrink the label text by 1px (12px -> 11px) and force
+   uppercase. The existing rule chains through .nc-panel-fields-compact >
+   .nc-expanded-cell-header > .nc-cell-name-wrapper > .name.truncate > span
+   (specificity 5 classes + 1 element), so beat it by adding .nc-row-compact
+   AND keeping the full chain. */
+.nc-panel-fields-compact .nc-row-compact .nc-expanded-cell-header .nc-cell-name-wrapper .name.truncate span,
+.nc-panel-fields-compact .nc-row-compact .nc-expanded-cell-header .nc-virtual-cell-name-wrapper .name.truncate span {
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+}
+</style>

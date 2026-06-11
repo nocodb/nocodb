@@ -1,0 +1,120 @@
+<script lang="ts" setup>
+import tinycolor from 'tinycolor2'
+
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
+    readonly?: boolean
+    iconClass?: string
+    managedApp?: {
+      managed_app_master?: boolean
+      managed_app_id?: string
+    }
+  }>(),
+  {
+    size: 'small',
+    iconClass: '',
+  },
+)
+
+const emit = defineEmits(['update:modelValue'])
+
+const { modelValue, readonly, managedApp } = toRefs(props)
+const { size } = props
+
+const isOpen = ref(false)
+
+const colorRef = ref(tinycolor(modelValue.value).isValid() ? modelValue.value : baseIconColors[0])
+
+const isMasterManagedApp = computed(() => {
+  return isEeUI && !!managedApp.value?.managed_app_id && !!managedApp.value?.managed_app_master
+})
+
+const updateIconColor = (color: string) => {
+  const tcolor = tinycolor(color)
+  if (tcolor.isValid()) {
+    colorRef.value = color
+  }
+}
+
+const onClick = (e: Event) => {
+  if (readonly.value || isMasterManagedApp.value) return
+
+  e.stopPropagation()
+
+  isOpen.value = !isOpen.value
+}
+
+watch(
+  isOpen,
+  (value) => {
+    if (!value && colorRef.value !== modelValue.value) {
+      emit('update:modelValue', colorRef.value)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+</script>
+
+<template>
+  <div>
+    <a-dropdown
+      v-model:visible="isOpen"
+      :trigger="['click']"
+      :disabled="readonly || isMasterManagedApp"
+      overlay-class-name="nc-base-icon-color-picker-dropdown overflow-hidden max-w-[342px] relative"
+    >
+      <div
+        class="flex flex-row justify-center items-center select-none rounded nc-base-icon-picker-trigger"
+        :class="{
+          'hover:bg-gray-500 dark:hover:bg-nc-bg-gray-dark hover:bg-opacity-15 cursor-pointer': !readonly && !isMasterManagedApp,
+          'bg-gray-500 dark:bg-nc-bg-gray-dark bg-opacity-15': isOpen,
+          'h-5 w-5 text-base': size === 'xsmall',
+          'h-6 w-6 text-lg': size === 'small',
+          'h-8 w-8 text-xl': size === 'medium',
+          'h-10 w-10 text-2xl': size === 'large',
+          'h-14 w-16 text-5xl': size === 'xlarge',
+        }"
+        @click="onClick"
+      >
+        <NcTooltip placement="topLeft" :disabled="readonly || isOpen">
+          <template #title>
+            {{
+              isMasterManagedApp ? $t('tooltip.changeIconColorNotSupportedForManagedMasterApp') : $t('tooltip.changeIconColour')
+            }}
+          </template>
+
+          <div class="flex items-center">
+            <GeneralProjectIcon :color="colorRef" :class="iconClass" :managed-app="managedApp" />
+          </div>
+        </NcTooltip>
+      </div>
+      <template #overlay>
+        <div class="flex justify-start">
+          <GeneralColorPicker
+            :model-value="colorRef"
+            :colors="baseIconColors"
+            :is-new-design="true"
+            class="nc-base-icon-color-picker"
+            @input="updateIconColor"
+          />
+        </div>
+      </template>
+    </a-dropdown>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-base-icon-color-picker-dropdown {
+  box-shadow: 0px 8px 8px -4px #0000000a, 0px 20px 24px -4px #0000001a;
+}
+</style>
+
+<style lang="scss">
+.nc-base-icon-color-picker-dropdown {
+  @apply rounded-lg border-1 border-nc-border-gray-medium;
+}
+</style>

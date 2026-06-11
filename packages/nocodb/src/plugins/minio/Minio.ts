@@ -1,0 +1,338 @@
+import fs from 'fs';
+import { Readable } from 'stream';
+import { Client as MinioClient } from 'minio';
+import axios from 'axios';
+import { OperationSource } from 'nocodb-sdk';
+import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
+import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+
+interface MinioObjectStorageInput {
+  bucket: string;
+  access_key: string;
+  access_secret: string;
+  useSSL?: boolean;
+  endPoint: string;
+  port: number;
+  ca?: string;
+}
+
+export default class Minio implements IStorageAdapterV2 {
+  name = 'Minio';
+
+  private minioClient: MinioClient;
+  private input: MinioObjectStorageInput;
+
+  constructor(input: unknown) {
+    this.input = this.normalizeInput(input as MinioObjectStorageInput);
+  }
+
+  private normalizeInput(input: MinioObjectStorageInput) {
+    let endPoint = input.endPoint;
+    let useSSL = input.useSSL;
+
+    if (endPoint.startsWith('http://')) {
+      endPoint = endPoint.replace('http://', '');
+      useSSL = false;
+    } else if (endPoint.startsWith('https://')) {
+      useSSL = true;
+      endPoint = endPoint.replace('https://', '');
+    }
+
+    endPoint = endPoint.trim().replace(/\/+$/, '');
+
+    return {
+      ...input,
+      endPoint,
+      useSSL,
+    };
+  }
+
+  public async init(): Promise<any> {
+    const minioOptions = {
+      port: +this.input.port || 9000,
+      endPoint: this.input.endPoint,
+      useSSL: this.input.useSSL === true,
+      accessKey: this.input.access_key,
+      secretKey: this.input.access_secret,
+    };
+
+    this.minioClient = new MinioClient(minioOptions);
+
+    if (this.input.useSSL && this.input.ca) {
+      this.minioClient.setRequestOptions({
+        ca: this.input.ca,
+      });
+    }
+  }
+
+  public async test(): Promise<boolean> {
+    try {
+      const stream = new Readable({
+        read() {
+          this.push('Hello from Minio, NocoDB');
+          this.push(null);
+        },
+      });
+      await this.fileCreateByStream('nc-test-file.txt', stream);
+      return true;
+    } catch (e) {
+      NcError._.pluginTestError(e?.message);
+    }
+  }
+
+  public async fileRead(key: string): Promise<any> {
+    try {
+      const data = await this.minioClient.getObject(this.input.bucket, key);
+
+      return await new Promise((resolve, reject) => {
+        const chunks: any[] = [];
+        data.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+
+        data.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          resolve(buffer);
+        });
+
+        data.on('error', (err) => {
+          reject(err);
+        });
+      });
+    } catch (error) {
+      NcError._.storageFileReadError(error?.message);
+    }
+  }
+
+  async fileCreate(key: string, file: XcFile): Promise<any> {
+    try {
+      const fileStream = fs.createReadStream(file.path);
+
+      return await this.fileCreateByStream(key, fileStream, {
+        mimetype: file?.mimetype,
+      });
+    } catch (error) {
+      NcError._.storageFileCreateError(error?.message);
+    }
+  }
+
+  async fileCreateByStream(
+    key: string,
+    stream: Readable,
+    options?: {
+      mimetype?: string;
+      size?: number;
+    },
+  ): Promise<any> {
+    try {
+      const streamError = new Promise<void>((_, reject) => {
+        stream.on('error', (err) => {
+          reject(err);
+        });
+      });
+
+      // Create a transform stream to ensure data is in Buffer format
+      const bufferStream = new Readable({
+        read() {},
+      });
+
+      stream.on('data', (chunk) => {
+        // Convert string chunks to Buffer if necessary
+        if (typeof chunk === 'string') {
+          bufferStream.push(Buffer.from(chunk, 'utf8'));
+        } else {
+          bufferStream.push(chunk);
+        }
+      });
+
+      stream.on('end', () => {
+        bufferStream.push(null);
+      });
+
+      stream.on('error', (err) => {
+        bufferStream.emit('error', err);
+      });
+
+      const uploadParams = {
+        Key: key,
+        Body: bufferStream,
+        metaData: {
+          ContentType: options?.mimetype,
+          size: options?.size,
+        },
+      };
+
+      const upload = this.upload(uploadParams);
+
+      return await Promise.race([upload, streamError]);
+    } catch (error) {
+      NcError._.storageFileStreamError(error?.message);
+    }
+  }
+
+  async fileCreateByUrl(
+    key: string,
+    url: string,
+    { fetchOptions: { buffer } = { buffer: false } },
+  ): Promise<any> {
+    try {
+      const response = await axios.get(url, {
+        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
+        responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
+      });
+
+      const uploadParams = {
+        ACL: 'public-read',
+        Key: key,
+        Body: response.data,
+        metaData: {
+          ContentType: response.headers['content-type'] as string,
+        },
+      };
+
+      const responseUrl = await this.upload(uploadParams);
+
+      return {
+        url: responseUrl,
+        data: response.data,
+      };
+    } catch (error) {
+      NcError._.storageFileCreateError(
+        `Failed to create file from URL: ${error?.message}`,
+      );
+    }
+  }
+
+  private async upload(uploadParams: {
+    Key: string;
+    Body: Readable;
+    metaData: { [key: string]: string | number };
+  }): Promise<any> {
+    try {
+      await this.minioClient.putObject(
+        this.input.bucket,
+        uploadParams.Key,
+        uploadParams.Body,
+        uploadParams.metaData as any,
+      );
+
+      if (this.input.useSSL && this.input.port === 443) {
+        return `https://${this.input.endPoint}/${uploadParams.Key}`;
+      } else if (!this.input.useSSL && this.input.port === 80) {
+        return `http://${this.input.endPoint}/${uploadParams.Key}`;
+      } else {
+        return `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
+          this.input.port
+        }/${uploadParams.Key}`;
+      }
+    } catch (error) {
+      NcError._.storageFileCreateError(error?.message);
+    }
+  }
+
+  public async getSignedUrl(
+    key,
+    expiresInSeconds = 7200,
+    pathParameters?: { [key: string]: string },
+  ) {
+    try {
+      if (
+        key.startsWith(`${this.input.bucket}/nc/uploads`) ||
+        key.startsWith(`${this.input.bucket}/nc/thumbnails`)
+      ) {
+        key = key.replace(`${this.input.bucket}/`, '');
+      }
+
+      return this.minioClient.presignedGetObject(
+        this.input.bucket,
+        key,
+        expiresInSeconds,
+        pathParameters,
+      );
+    } catch (error) {
+      NcError._.storageFileReadError(
+        `Failed to generate signed URL: ${error?.message}`,
+      );
+    }
+  }
+
+  // TODO - implement
+  fileReadByStream(_key: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  getDirectoryList(_path: string): Promise<string[]> {
+    return Promise.resolve(undefined);
+  }
+
+  public async fileDelete(path: string): Promise<any> {
+    try {
+      await this.minioClient.removeObject(this.input.bucket, path);
+      return true;
+    } catch (error) {
+      NcError._.storageFileDeleteError(error?.message);
+    }
+  }
+
+  public async scanFiles(globPattern: string): Promise<Readable> {
+    // Remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
+
+    // Remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // Make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    // Minio does not support glob so remove *
+    globPattern = globPattern.replace(/\*/g, '');
+
+    const stream = new Readable({
+      read() {},
+    });
+
+    stream.setEncoding('utf8');
+
+    const listObjects = async () => {
+      const objectStream = this.minioClient.listObjectsV2(
+        this.input.bucket,
+        globPattern,
+        true,
+      );
+
+      for await (const item of objectStream) {
+        stream.push(item.name);
+      }
+
+      stream.push(null);
+    };
+
+    listObjects().catch((error) => {
+      stream.destroy(error);
+    });
+
+    return stream;
+  }
+
+  getUploadedPath(path: string): { path?: string; url?: string } {
+    const protocol = this.input.useSSL ? 'https' : 'http';
+    const defaultPort = this.input.useSSL ? 443 : 80;
+
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+
+    let url: string;
+    if (this.input.port === defaultPort) {
+      url = `${protocol}://${this.input.endPoint}/${cleanPath}`;
+    } else {
+      url = `${protocol}://${this.input.endPoint}:${this.input.port}/${cleanPath}`;
+    }
+
+    return { path, url };
+  }
+}

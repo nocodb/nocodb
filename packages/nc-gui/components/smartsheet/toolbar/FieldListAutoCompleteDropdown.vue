@@ -1,0 +1,190 @@
+<script setup lang="ts">
+import type { SelectProps } from 'ant-design-vue'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+
+const { modelValue, isSort, allowEmpty, disableSmartsheet, ...restProps } = defineProps<{
+  modelValue?: string
+  isSort?: boolean
+  columns?: ColumnType[]
+  allowEmpty?: boolean
+  meta: TableType
+  disableSmartsheet?: boolean
+  showAllColumns?: boolean
+}>()
+
+const emit = defineEmits(['update:modelValue'])
+
+const customColumns = toRef(restProps, 'columns')
+
+const meta = toRef(restProps, 'meta')
+
+const fieldNameAlias = inject(FieldNameAlias, ref({} as Record<string, string>))
+
+const localValue = computed({
+  get: () => modelValue,
+  set: (val) => emit('update:modelValue', val),
+})
+
+const { showSystemFields, fieldsMap, isLocalMode } = disableSmartsheet
+  ? {
+      showSystemFields: ref(false),
+      fieldsMap: ref({}),
+      isLocalMode: ref(false),
+    }
+  : useViewColumnsOrThrow()
+
+const options = computed<SelectProps['options']>(() =>
+  (
+    customColumns.value?.filter((c: ColumnType) => {
+      if (restProps.showAllColumns) {
+        return true
+      }
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
+      ) {
+        return false
+      }
+
+      if (isSystemColumn(c)) {
+        if (isHiddenCol(c, meta.value)) {
+          /** ignore mm relation column, created by and last modified by system field */
+          return false
+        }
+      }
+      return true
+    }) ||
+    meta.value?.columns?.filter((c: ColumnType) => {
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
+      ) {
+        return false
+      }
+
+      if (c.uidt === UITypes.Links) {
+        return true
+      }
+      if (isSystemColumn(c)) {
+        if (isHiddenCol(c, meta.value)) {
+          /** ignore mm relation column, created by and last modified by system field */
+          return false
+        }
+
+        return (
+          /** if the field is used in filter, then show it anyway */
+          localValue.value === c.id ||
+          /** hide system columns if not enabled */
+          showSystemFields.value
+        )
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
+        return false
+      } else if (isSort) {
+        /** ignore hasmany and manytomany relations if it's using within sort menu */
+        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
+        /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
+      } else {
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
+      }
+    })
+  )
+    // sort by view column order and keep system columns at the end
+    ?.sort((field1, field2) => {
+      let orderVal1 = 0
+      let orderVal2 = 0
+      let sortByOrder = 0
+
+      if (isSystemColumn(field1)) {
+        orderVal1 = 1
+      }
+      if (isSystemColumn(field2)) {
+        orderVal2 = 1
+      }
+
+      if (
+        field1?.id &&
+        field2?.id &&
+        fieldsMap.value[field1.id]?.order !== undefined &&
+        fieldsMap.value[field2.id]?.order !== undefined
+      ) {
+        sortByOrder = fieldsMap.value[field1.id].order - fieldsMap.value[field2.id].order
+      }
+
+      return orderVal1 - orderVal2 || sortByOrder
+    })
+    ?.map((c: ColumnType) => ({
+      value: c.id,
+      label: fieldNameAlias.value[c.id!] || c.title,
+      icon: h(resolveComponent('SmartsheetHeaderIcon'), {
+        column: c,
+      }),
+      ncItemDisabled: c.ncItemDisabled,
+      ncItemTooltip: c.ncItemTooltip,
+      c,
+    })),
+)
+
+const filterOption = (input: string, option: any) => option.label?.toLowerCase()?.includes(input.toLowerCase())
+
+// when a new filter is created, select a field by default
+if (!localValue.value && allowEmpty !== true) {
+  localValue.value = (options.value?.[0]?.value as string) || ''
+}
+</script>
+
+<template>
+  <NcSelect
+    v-model:value="localValue"
+    :dropdown-match-select-width="false"
+    show-search
+    :placeholder="$t('placeholder.selectField')"
+    :filter-option="filterOption"
+    dropdown-class-name="nc-dropdown-toolbar-field-list"
+  >
+    <a-select-option
+      v-for="option in options"
+      :key="option.value"
+      :label="option.label"
+      :value="option.value"
+      :disabled="option.ncItemDisabled"
+    >
+      <NcTooltip :disabled="!option.ncItemDisabled" placement="right" class="w-full h-full max-w-50">
+        <template #title>
+          {{ option.ncItemTooltip }}
+        </template>
+
+        <div class="h-full flex items-center w-full justify-between gap-2">
+          <div class="flex gap-1.5 flex-1 items-center truncate h-full">
+            <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" color="text-nc-content-gray-muted" />
+            <NcTooltip
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              class="field-selection-tooltip-wrapper truncate select-none"
+              show-on-truncate-only
+            >
+              <template #title> {{ option.label }}</template>
+              {{ option.label }}
+            </NcTooltip>
+          </div>
+          <component
+            :is="iconMap.check"
+            v-if="localValue === option.value"
+            id="nc-selected-item-icon"
+            class="text-primary w-4 h-4"
+          />
+        </div>
+      </NcTooltip>
+    </a-select-option>
+  </NcSelect>
+</template>
+
+<style lang="scss">
+.ant-select-selection-search-input {
+  box-shadow: none !important;
+}
+</style>

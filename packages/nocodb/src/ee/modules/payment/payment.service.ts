@@ -373,16 +373,6 @@ export class PaymentService {
     return { message: 'All addons synced' };
   }
 
-  async disableAddon(addonId: string) {
-    const addon = await Addon.get(addonId);
-
-    if (!addon) {
-      NcError.genericNotFound('Addon', addonId);
-    }
-
-    return await Addon.update(addon.id, { is_active: false });
-  }
-
   /**
    * Resolve the add-on's active Stripe price for the subscription's billing
    * period. Amounts + flat/tiered structure live entirely in Stripe — we only

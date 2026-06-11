@@ -114,12 +114,6 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
-  @Delete('/api/internal/payment/addon/:addonId')
-  async disableAddon(@Param('addonId') addonId: string) {
-    return this.paymentService.disableAddon(addonId);
-  }
-
-  @UseGuards(AuthGuard('basic'))
   @Get('/api/internal/payment/addon')
   async getAllAddons() {
     return this.paymentService.getAddons();

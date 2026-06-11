@@ -4,6 +4,7 @@ import {
   isDeletedCol,
   isHiddenCol,
   isLinksOrLTAR,
+  isVirtualCol,
   isOrderCol,
   isSystemColumn,
   NcApiVersion,
@@ -43,6 +44,12 @@ const logger = new Logger('getAst');
 
 // Cap on recursive nested-LTAR expansion. See `_depth` param doc on getAst.
 const GET_AST_MAX_DEPTH = 8;
+const DELETE_SNAPSHOT_SAFE_VIRTUAL_TYPES = new Set<string>([
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+]);
 
 type Ast = {
   [key: string]: 1 | true | null | Ast;
@@ -69,6 +76,7 @@ const getAst = async (
     includeSortAndFilterColumns = false,
     includeRowColorColumns = false,
     includeButtonFilterColumns = false,
+    excludeVirtualColumns = false,
     skipSubstitutingColumnIds = false,
     fk_display_value_column_id,
     _depth = 0,
@@ -88,6 +96,7 @@ const getAst = async (
     includeSortAndFilterColumns?: boolean;
     includeRowColorColumns?: boolean;
     includeButtonFilterColumns?: boolean;
+    excludeVirtualColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
     fk_display_value_column_id?: string | null;
     // Internal: recursion depth for nested LTAR expansion. Bounded to
@@ -312,6 +321,15 @@ const getAst = async (
   const ast: Ast = {};
 
   for (const col of columns) {
+    if (
+      excludeVirtualColumns &&
+      isVirtualCol(col) &&
+      !DELETE_SNAPSHOT_SAFE_VIRTUAL_TYPES.has(col.uidt)
+    ) {
+      ast[getFieldKey(col)] = false;
+      continue;
+    }
+
     let value: number | boolean | { [key: string]: any } = 1;
     // TODO: also get from col.id
     const nestedFields =
@@ -452,7 +470,8 @@ const getAst = async (
     ) {
       isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
-      isRequested = false;
+      isRequested =
+        excludeVirtualColumns && DELETE_SNAPSHOT_SAFE_VIRTUAL_TYPES.has(col.uidt);
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
     } else if (isDeletedCol(col) && col.system) {

@@ -557,6 +557,7 @@ export class BaseModelDelete {
       {
         limitOverride: ids.length,
         ignoreViewFilterAndSort: true,
+        excludeVirtualColumns: true,
       },
     );
     const trx = await this.baseModel.dbDriver.transaction();
@@ -948,6 +949,7 @@ export class BaseModelDelete {
     const oldRecords = await this.baseModel.chunkList({
       pks: rowIds,
       deletedOnly: true,
+      excludeVirtualColumns: true,
     });
 
     // Strict-equality check (`oldRecords.length !== rowIds.length`) caused the

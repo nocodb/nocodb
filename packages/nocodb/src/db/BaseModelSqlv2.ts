@@ -178,6 +178,12 @@ const JSON_COLUMN_TYPES = [UITypes.Button];
 const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
+const DELETE_SNAPSHOT_SAFE_VIRTUAL_TYPES = new Set<string>([
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+]);
 
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
@@ -334,6 +340,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOrderColumn = false,
       ignoreRls = false,
       fk_display_value_column_id,
+      excludeVirtualColumns = false,
       skipPublicRedaction = false,
     }: {
       ignoreView?: boolean;
@@ -344,6 +351,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
       fk_display_value_column_id?: string | null;
+      excludeVirtualColumns?: boolean;
       skipPublicRedaction?: boolean;
     } = {},
   ): Promise<any> {
@@ -358,6 +366,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
       extractOnlyPrimaries,
       extractOrderColumn,
+      excludeVirtualColumns,
       apiVersion,
       fk_display_value_column_id,
       skipSubstitutingColumnIds:
@@ -418,7 +427,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throw e;
       logger.log(e);
       return this.readByPk(id, true, query, {
+        ignoreView,
+        getHiddenColumn,
+        throwErrorIfInvalidParams,
+        extractOnlyPrimaries,
         apiVersion,
+        extractOrderColumn,
+        ignoreRls,
+        fk_display_value_column_id,
+        excludeVirtualColumns,
         skipPublicRedaction,
       });
     }
@@ -777,6 +794,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipSortBasedOnOrderCol?: boolean;
       ignoreRls?: boolean;
       deletedOnly?: boolean;
+      excludeVirtualColumns?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -788,6 +806,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipSortBasedOnOrderCol = false,
       ignoreRls: ignoreRlsOpt = false,
       deletedOnly = false,
+      excludeVirtualColumns = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -799,12 +818,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const linksAsLtar =
       args.linksAsLtar === true || args.linksAsLtar === 'true';
 
+    const selectColumns = excludeVirtualColumns
+      ? columns.filter(
+          (c) =>
+            !isVirtualCol(c) || DELETE_SNAPSHOT_SAFE_VIRTUAL_TYPES.has(c.uidt),
+        )
+      : columns;
+
     await this.selectObject({
       qb,
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       validateFormula,
-      columns,
+      columns: selectColumns,
       linksAsLtar,
     });
     if (+rest?.shuffle) {
@@ -993,6 +1019,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ignoreViewFilterAndSort,
         ignorePagination,
         validateFormula: true,
+        throwErrorIfInvalidParams,
+        limitOverride,
+        skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
+        skipSortBasedOnOrderCol,
+        ignoreRls: ignoreRlsOpt,
+        deletedOnly,
+        excludeVirtualColumns,
       });
     }
 
@@ -2564,6 +2597,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         validateFormula: false,
         ignoreView: true,
         getHiddenColumn: true,
+        excludeVirtualColumns: true,
         source,
       });
       await this.beforeDelete(id, cookie);
@@ -3276,6 +3310,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     disableOptimization?: boolean;
     view?: View;
     ignoreRls?: boolean;
+    excludeVirtualColumns?: boolean;
     skipPublicRedaction?: boolean;
   }): Promise<any> {
     return this.readByPk(
@@ -3286,6 +3321,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ignoreView: params.ignoreView,
         getHiddenColumn: params.getHiddenColumn,
         ignoreRls: params.ignoreRls,
+        excludeVirtualColumns: params.excludeVirtualColumns,
         skipPublicRedaction: params.skipPublicRedaction,
       },
     );
@@ -4140,6 +4176,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
     extractOnlyPrimaries?: boolean;
+    excludeVirtualColumns?: boolean;
     deletedOnly?: boolean;
     fk_display_value_column_id?: string | null;
   }) {
@@ -4153,6 +4190,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       model: this.model,
       query: args.args || {},
       extractOnlyPrimaries: args.extractOnlyPrimaries,
+      excludeVirtualColumns: args.excludeVirtualColumns,
       fk_display_value_column_id: args.fk_display_value_column_id,
     });
 
@@ -4167,6 +4205,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           limitOverride: chunk.length,
           ignoreViewFilterAndSort: true,
           deletedOnly: args.deletedOnly,
+          excludeVirtualColumns: args.excludeVirtualColumns,
         },
       );
       chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
@@ -4801,6 +4840,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             {
               limitOverride: tempToRead.length,
               ignoreViewFilterAndSort: true,
+              excludeVirtualColumns: true,
             },
           );
 

@@ -23,6 +23,8 @@ export const useBrandingApply = createSharedComposable(() => {
 
   const { setTheme } = useAntDvTheme()
 
+  const { clearColorCache } = useTheme()
+
   const FAVICON_ID = 'nc-favicon'
   const STYLE_ID = 'nc-brand-color-override'
 
@@ -101,9 +103,18 @@ export const useBrandingApply = createSharedComposable(() => {
 
   watch(
     brandColor,
-    (v) => {
+    async (v) => {
       applyBrandColor(v)
       applyThemeColor(v)
+
+      // The brand-colour CSS vars (--color-brand-*, --rgb-color-brand-*, --nc-brand-accent*)
+      // just changed (or were removed on reset). Canvas surfaces can't read CSS vars, so
+      // useTheme.getColor() memoises getComputedStyle-resolved brand rgb in colorCache, keyed
+      // only by the var name — it stays stale until cleared (today only on dark-mode toggle).
+      // Clear it AFTER the override <style> has landed and styles recompute; clearing earlier
+      // lets the next getColor() re-cache the OLD value and silently reintroduce the bug.
+      await nextTick()
+      clearColorCache()
     },
     { immediate: true },
   )

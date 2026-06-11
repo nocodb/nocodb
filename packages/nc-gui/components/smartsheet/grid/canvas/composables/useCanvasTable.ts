@@ -179,6 +179,8 @@ export function useCanvasTable({
   const { getBaseRoles } = useBases()
   const { isAllowed } = usePermissions()
   const { getColor } = useTheme()
+
+  const { brandColor } = useBranding()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -1808,6 +1810,14 @@ export function useCanvasTable({
   })
 
   watch(isAiFillMode, () => {
+    triggerRefreshCanvas()
+  })
+
+  // White-label brand colour changed. The canvas isn't reactively bound to brandColor
+  // (it's read only inside _updateRowColors during a render), and useBrandingApply has
+  // cleared useTheme's colorCache — so force a repaint to re-resolve the new brand rgb
+  // for selection tints, the active-cell border and the fill handle.
+  watch(brandColor, () => {
     triggerRefreshCanvas()
   })
 

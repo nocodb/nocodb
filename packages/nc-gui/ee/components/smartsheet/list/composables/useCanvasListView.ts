@@ -65,6 +65,8 @@ export function useCanvasListView({
   mousePosition: { x: number; y: number }
 }) {
   const { getColor } = useTheme()
+
+  const { brandColor } = useBranding()
   const { $api, $ncSocket } = useNuxtApp()
   const { isMobileMode, user } = useGlobal()
 
@@ -978,7 +980,12 @@ export function useCanvasListView({
     })
   }
 
-  watch([scrollTop, scrollLeft, width, height, rowHeight, () => totalRows.value, columnsPerLevel], () => triggerRefreshCanvas())
+  // `brandColor` is included so a white-label brand change repaints the list canvas — it
+  // reads brand rgb via getColor (shared colorCache, cleared by useBrandingApply) but is
+  // otherwise not reactively bound to the brand colour.
+  watch([scrollTop, scrollLeft, width, height, rowHeight, () => totalRows.value, columnsPerLevel, brandColor], () =>
+    triggerRefreshCanvas(),
+  )
 
   watch(rowSlice, (slice) => updateVisibleRows(slice))
   // Only run resetAndReload when collapsedJson changes externally (not from handleToggleCollapse).

@@ -24,6 +24,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
+const { productName } = useBranding()
+
 const { $e, $api } = useNuxtApp()
 
 const {
@@ -268,7 +270,7 @@ watch(
   () => {
     if (activeTable.value?.title) return
 
-    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? productName.value ?? 'NocoDB'}`)
   },
   {
     immediate: true,

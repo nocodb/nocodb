@@ -302,8 +302,9 @@ export class WhiteLabelService {
   /**
    * Public-facing URL for a brand asset. Our own uploads (canonical
    * `download/whiteLabel/...`) route through the stable, never-expiring asset
-   * endpoint so they survive restarts and load from email clients; external/CDN
-   * URLs and same-origin paths pass through unchanged.
+   * endpoint so they survive restarts and load from email clients; same-origin
+   * paths are absolutized against the base URL (so email clients can resolve
+   * them) and external/CDN URLs pass through unchanged.
    */
   private publicAssetUrl(
     type: PublicAssetType,
@@ -315,6 +316,8 @@ export class WhiteLabelService {
         value,
       )}`;
     }
+    // Manually-pasted same-origin path — absolutize so email clients can resolve it.
+    if (value.startsWith('/')) return `${this.baseUrl()}${value}`;
     return value;
   }
 

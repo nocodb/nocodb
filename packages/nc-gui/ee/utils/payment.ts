@@ -1,3 +1,17 @@
+import { PlanAddonTypes } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
+
+// Human-readable label for an add-on key. Shared by the billing add-ons list
+// and the invoice table so both name add-ons identically.
+export function getAddonLabel(key: PlanAddonTypes): string {
+  const { t } = getI18n().global
+
+  if (key === PlanAddonTypes.ADDON_SCIM) return t('labels.scimProvisioning')
+  if (key === PlanAddonTypes.ADDON_WHITE_LABEL) return t('labels.whiteLabel.title')
+
+  return key
+}
+
 export interface PlanFeatureAndLimitsItemType {
   title: string
   free: string | boolean

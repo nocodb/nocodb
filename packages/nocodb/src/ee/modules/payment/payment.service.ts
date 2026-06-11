@@ -300,6 +300,10 @@ export class PaymentService {
     return await Addon.list();
   }
 
+  async getActiveAddons() {
+    return await Addon.listActive();
+  }
+
   async submitAddon(payload: {
     stripe_product_id: string;
     addon_key: PlanAddonTypes;

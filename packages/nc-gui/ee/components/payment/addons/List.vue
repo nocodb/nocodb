@@ -1,8 +1,4 @@
 <script lang="ts" setup>
-import { PlanAddonTypes } from 'nocodb-sdk'
-
-const { t } = useI18n()
-
 const route = useRoute()
 
 const workspaceStore = useWorkspace()
@@ -16,12 +12,6 @@ const activeWorkspace = computed(() =>
 )
 
 const addons = computed(() => (activeWorkspace.value?.payment?.addons ?? []).filter((a) => a.status === 'active'))
-
-function labelForAddon(key: PlanAddonTypes) {
-  if (key === PlanAddonTypes.ADDON_SCIM) return t('labels.scimProvisioning')
-  if (key === PlanAddonTypes.ADDON_WHITE_LABEL) return t('labels.whiteLabel.title')
-  return key
-}
 </script>
 
 <template>
@@ -33,7 +23,7 @@ function labelForAddon(key: PlanAddonTypes) {
       class="nc-billing-addon-row flex items-center gap-2 text-bodyDefault text-nc-content-gray"
     >
       <GeneralIcon icon="ncCheck" class="w-4 h-4 text-nc-content-green-dark" />
-      <span>{{ labelForAddon(addon.addon_key) }}</span>
+      <span>{{ getAddonLabel(addon.addon_key) }}</span>
     </div>
   </div>
 </template>

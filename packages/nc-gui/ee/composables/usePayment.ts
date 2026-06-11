@@ -1,13 +1,22 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
 import { LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles, ReturnToBillingPage } from 'nocodb-sdk'
-import type { OnPremPlanTitles, type PaginatedType } from 'nocodb-sdk'
+import type { OnPremPlanTitles, type PaginatedType, type PlanAddonTypes } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
   title: PlanTitles | OnPremPlanTitles
   descriptions?: string[]
   stripe_product_id?: string
+  prices?: any[]
+  is_active?: boolean
+}
+
+export interface PaymentAddon {
+  addon_key: PlanAddonTypes
+  title?: string
+  description?: string
+  stripe_product_id: string
   prices?: any[]
   is_active?: boolean
 }
@@ -65,6 +74,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const workspaceOrOrgSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
+
+  const addonsCatalog = ref<PaymentAddon[]>([])
 
   const returnToPage = ref<ReturnToBillingPage>(ReturnToBillingPage.WS)
 
@@ -144,6 +155,20 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       })
 
       return plan as PaymentPlan
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const loadAddons = async () => {
+    try {
+      const addons = await $fetch(`/api/public/payment/addon`, {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      })
+
+      addonsCatalog.value = (addons as PaymentAddon[]) ?? []
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -385,6 +410,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     plansAvailable,
     loadPlans,
     loadPlan,
+    addonsCatalog,
+    loadAddons,
     loadWorkspaceOrOrgSeatCount,
     getPlanPrice,
     onPaymentModeChange,

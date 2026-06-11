@@ -4,7 +4,15 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { defaultInvoicePaginationData, invoices, invoicePaginationData, loadInvoices, stripeCustomerId } = usePaymentStoreOrThrow()
+const {
+  addonsCatalog,
+  defaultInvoicePaginationData,
+  invoices,
+  invoicePaginationData,
+  loadAddons,
+  loadInvoices,
+  stripeCustomerId,
+} = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -13,6 +21,12 @@ const paginatedData = computed(() => {
 
   return invoices.value.slice(start, end)
 })
+
+// Map Stripe product id → add-on key so add-on invoice lines can be labeled by
+// their catalog name (e.g. "SCIM Provisioning") instead of Stripe's verbose
+// proration description. Covers historical invoices too, since every line
+// carries its product id regardless of current grant status.
+const productToAddonKey = computed(() => new Map(addonsCatalog.value.map((addon) => [addon.stripe_product_id, addon.addon_key])))
 
 // Build the branded "Plan (N seats billed annually/monthly)" label.
 const brandedPlanLabel = (planTitle: string, planPeriod: string, seatCount: number) => {
@@ -31,11 +45,19 @@ const getPlanTitle = (record: Stripe.Invoice) => {
   const lines = record?.lines?.data ?? []
 
   // Label per line so add-on / proration invoices aren't mislabeled as the base
-  // plan. Plan lines carry `plan_title` in their own metadata → branded format;
-  // add-on / proration lines don't → fall back to Stripe's own line description
-  // (e.g. "Remaining time on 3 × SCIM Provisioning (Add-on) ..."), which names them.
+  // plan. Priority per line:
+  //   1. Line product matches a catalog add-on → branded add-on label ("SCIM Provisioning (3 seats)")
+  //   2. Line carries `plan_title` in its own metadata → branded plan format
+  //   3. Fall back to Stripe's own line description (already names the line)
   const labels = lines
     .map((line) => {
+      const addonKey = productToAddonKey.value.get(line?.pricing?.price_details?.product ?? '')
+      if (addonKey) {
+        const qty = line.quantity ?? 0
+        const seats = qty === 1 ? '1 seat' : `${qty} seats`
+        return qty > 0 ? `${getAddonLabel(addonKey)} (${seats})` : getAddonLabel(addonKey)
+      }
+
       const linePlanTitle = (line?.metadata as Record<string, string> | undefined)?.plan_title
       if (linePlanTitle) return brandedPlanLabel(linePlanTitle, planPeriod, line.quantity ?? 0)
       return line.description || ''
@@ -122,6 +144,7 @@ const onUpdatePageSize = (pageSize: number) => {
 }
 
 onMounted(() => {
+  loadAddons()
   loadInvoices()
 })
 </script>

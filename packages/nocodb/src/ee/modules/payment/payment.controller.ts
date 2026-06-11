@@ -297,6 +297,23 @@ export class PaymentController {
     ]);
   }
 
+  @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/public/payment/addon')
+  async getPublicAddons() {
+    const addons = await this.paymentService.getActiveAddons();
+
+    return addons.map((addon) =>
+      extractProps(addon, [
+        'addon_key',
+        'title',
+        'description',
+        'stripe_product_id',
+        'prices',
+        'is_active',
+      ]),
+    );
+  }
+
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/seat-count')

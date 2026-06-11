@@ -51,15 +51,10 @@ export const getOnPremPlan = () => {
     // preInviteValidate and other plan-based checks enforce it.
     const seatLimit = NocoLicense.getSeatLimit();
     if (NocoLicense.isEE) {
-      if (seatLimit !== null && seatLimit > 0) {
-        const meta = {
-          ...EnterprisePlan.meta,
-          [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
-        };
-        applyAddons(meta, config?.addons);
-        return { ...EnterprisePlan, meta };
-      }
       const meta = { ...EnterprisePlan.meta };
+      if (seatLimit !== null && seatLimit > 0) {
+        meta[PlanLimitTypes.LIMIT_EDITOR] = seatLimit;
+      }
       applyAddons(meta, config?.addons);
       return { ...EnterprisePlan, meta };
     }

@@ -4,7 +4,7 @@
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 import {
-  AddonDefinitions,
+  getAddonMinPlan,
   OnPremFeatureToMinPlan,
   OnPremHigherPlan,
   OnPremLimitToMinPlan,
@@ -99,8 +99,7 @@ const effectivePlanTitle = computed(() => {
   // Add-on features: tier the badge by the add-on's minimum plan on the active ladder
   // (e.g. SCIM → Scale), not the plan-feature fallback which would mislabel it as Plus.
   if (featureAddon.value) {
-    const def = AddonDefinitions[featureAddon.value]
-    const addonMin = isOnPrem.value || isEEFeatureBlocked.value ? def?.minPlan?.onPrem : def?.minPlan?.cloud
+    const addonMin = getAddonMinPlan(featureAddon.value, isOnPrem.value || isEEFeatureBlocked.value)
     if (addonMin) return addonMin
   }
 

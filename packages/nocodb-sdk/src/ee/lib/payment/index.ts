@@ -875,3 +875,16 @@ export function applyAddons(
     if (def) Object.assign(meta, def.grants);
   }
 }
+
+/**
+ * The lowest plan an add-on may be held on for the given ladder (`onPrem` →
+ * self-hosted, else cloud). `null`/`undefined` when the add-on isn't sold on
+ * that ladder. Centralizes the cloud/on-prem ladder choice upgrade CTAs make.
+ */
+export const getAddonMinPlan = (
+  addonKey: PlanAddonTypes,
+  onPrem: boolean
+): PlanTitles | OnPremPlanTitles | null | undefined => {
+  const minPlan = AddonDefinitions[addonKey]?.minPlan;
+  return onPrem ? minPlan?.onPrem : minPlan?.cloud;
+};

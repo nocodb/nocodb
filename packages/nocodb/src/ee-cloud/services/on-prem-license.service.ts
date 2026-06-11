@@ -516,15 +516,11 @@ export class OnPremLicenseService {
         // Update Installation config with new plan metadata
         const inst = await Installation.getBySubscriptionId(subRec.id, ncMeta);
         if (inst) {
-          const activeAddons = await SubscriptionAddon.listActive(
+          const addonKeys = await SubscriptionAddon.listActiveKeys(
             subRec.id,
             ncMeta,
           );
-          const newConfig = buildConfigFromPlan(
-            newPlan,
-            undefined,
-            activeAddons.map((a) => a.addon_key),
-          );
+          const newConfig = buildConfigFromPlan(newPlan, undefined, addonKeys);
           const newLicenseType =
             PLAN_TO_LICENSE_TYPE[newPlan.title] || inst.license_type;
 
@@ -713,20 +709,16 @@ export class OnPremLicenseService {
     );
     if (!plan) return;
 
-    const activeAddons = await SubscriptionAddon.listActive(
+    const addonKeys = await SubscriptionAddon.listActiveKeys(
       subscriptionId,
       ncMeta,
     );
-    const config = buildConfigFromPlan(
-      plan,
-      undefined,
-      activeAddons.map((a) => a.addon_key),
-    );
+    const config = buildConfigFromPlan(plan, undefined, addonKeys);
 
     await Installation.update(installation.id, { config }, ncMeta);
 
     this.logger.log(
-      `Refreshed installation ${installation.id} config.addons (${activeAddons.length} active)`,
+      `Refreshed installation ${installation.id} config.addons (${addonKeys.length} active)`,
     );
   }
 

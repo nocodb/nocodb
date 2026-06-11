@@ -1,6 +1,6 @@
 import type { PlanAddonTypes, PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
-  AddonDefinitions,
+  getAddonMinPlan,
   GRACE_PERIOD_DURATION,
   HigherPlan,
   LOYALTY_GRACE_PERIOD_END_DATE,
@@ -949,8 +949,7 @@ export const useEeConfig = createSharedComposable(() => {
   ) => {
     const isOpen = ref(true)
 
-    const def = AddonDefinitions[addonKey]
-    const minPlan = isOnPrem.value ? def?.minPlan?.onPrem : def?.minPlan?.cloud
+    const minPlan = getAddonMinPlan(addonKey, isOnPrem.value)
     const addonLabel = getAddonLabel(addonKey)
 
     const modalTitle = ref(title || t('upgrade.addonFeatureTitle', { addon: addonLabel }))
@@ -1023,8 +1022,7 @@ export const useEeConfig = createSharedComposable(() => {
     // branches so the license-upgrade modals don't claim a tier that won't grant it.
     const addonKey = limitOrFeature ? PlanFeatureToAddon[limitOrFeature as PlanFeatureTypes] : undefined
     if (addonKey) {
-      const addonDef = AddonDefinitions[addonKey]
-      const addonMinPlan = isOnPrem.value ? addonDef?.minPlan?.onPrem : addonDef?.minPlan?.cloud
+      const addonMinPlan = getAddonMinPlan(addonKey, isOnPrem.value)
       if (addonMinPlan) {
         return showUpgradeForAddon(addonKey, { title, content, callback })
       }

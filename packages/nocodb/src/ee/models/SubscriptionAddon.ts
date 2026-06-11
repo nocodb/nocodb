@@ -171,6 +171,14 @@ export default class SubscriptionAddon {
     return cachedRows.map((row) => new SubscriptionAddon(this.prepare(row)));
   }
 
+  public static async listActiveKeys(
+    fk_subscription_id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<PlanAddonTypes[]> {
+    const active = await this.listActive(fk_subscription_id, ncMeta);
+    return active.map((a) => a.addon_key);
+  }
+
   public static async getActiveByKey(
     fk_subscription_id: string,
     addon_key: PlanAddonTypes,

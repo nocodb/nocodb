@@ -622,17 +622,7 @@ export class PaymentService {
       subscription.stripe_schedule_id &&
       opts.workspaceOrOrgId
     ) {
-      const schedulePrice = await stripe.prices.retrieve(
-        subscription.schedule_stripe_price_id,
-      );
-      await this.schedulePlanChange(
-        opts.workspaceOrOrgId,
-        schedulePrice,
-        await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
-        {
-          scheduleType: subscription.schedule_type,
-        },
-      );
+      await this.rebuildPendingSchedule(subscription, opts.workspaceOrOrgId);
     }
 
     // Cloud subscriptions clear the workspace/org base-list cache; on-prem
@@ -709,17 +699,7 @@ export class PaymentService {
       subscription.stripe_schedule_id &&
       opts.workspaceOrOrgId
     ) {
-      const schedulePrice = await stripe.prices.retrieve(
-        subscription.schedule_stripe_price_id,
-      );
-      await this.schedulePlanChange(
-        opts.workspaceOrOrgId,
-        schedulePrice,
-        await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
-        {
-          scheduleType: subscription.schedule_type,
-        },
-      );
+      await this.rebuildPendingSchedule(subscription, opts.workspaceOrOrgId);
     }
 
     if (opts.workspaceOrOrgId) {
@@ -741,6 +721,29 @@ export class PaymentService {
     });
 
     return { ok: true };
+  }
+
+  /**
+   * Rebuild a pending plan-change schedule so its phases reflect the current set
+   * of add-on items. Shared by grant (phases must carry the new add-on) and
+   * revoke (phases must drop the removed one) — both rebuild identically; the
+   * item-presence / schedule / workspace guards stay at the call sites.
+   */
+  private async rebuildPendingSchedule(
+    subscription: Subscription,
+    workspaceOrOrgId: string,
+  ): Promise<void> {
+    const schedulePrice = await stripe.prices.retrieve(
+      subscription.schedule_stripe_price_id,
+    );
+    await this.schedulePlanChange(
+      workspaceOrOrgId,
+      schedulePrice,
+      await Plan.get(subscription.schedule_fk_plan_id, Noco.ncMeta, true),
+      {
+        scheduleType: subscription.schedule_type,
+      },
+    );
   }
 
   /**

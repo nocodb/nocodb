@@ -269,7 +269,12 @@ export class MySqlDBQueryClient
           const nestedAst =
             customDisplayCol && (astAny === true || astAny === 1)
               ? {
-                  ...(pkColumn ? { [pkColumn.id]: 1 } : {}),
+                  // all PKs, not just the first — the selected-field filters
+                  // admit every pk-flagged column, so each must be extracted
+                  ...(relatedModel.primaryKeys ?? []).reduce(
+                    (o, pk) => ({ ...o, [pk.id]: 1 }),
+                    {},
+                  ),
                   ...(pvColumn ? { [pvColumn.id]: 1 } : {}),
                   [customDisplayCol.id]: 1,
                 }

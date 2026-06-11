@@ -331,10 +331,13 @@ export class MssqlDBQueryClient
           astAny === true || astAny === 1
             ? customDisplayCol
               ? {
-                  ...(pkColumn?.id ? { [pkColumn.id]: true } : {}),
-                  ...(pvColumn?.id && pvColumn.id !== pkColumn?.id
-                    ? { [pvColumn.id]: true }
-                    : {}),
+                  // all PKs, not just the first — composite-PK related tables
+                  // must keep every key column extractable
+                  ...(relatedModel.primaryKeys ?? []).reduce(
+                    (o, pk) => ({ ...o, [pk.id]: true }),
+                    {},
+                  ),
+                  ...(pvColumn?.id ? { [pvColumn.id]: true } : {}),
                   [customDisplayCol.id]: true,
                 }
               : ast

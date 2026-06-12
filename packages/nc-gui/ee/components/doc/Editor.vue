@@ -129,7 +129,7 @@ const collabEnabled =
 const collabUser = collabEnabled
   ? {
       id: user.value!.id,
-      name: user.value?.display_name || 'Anonymous',
+      name: user.value?.display_name || user.value?.email || 'Anonymous',
       // Same per-user color as the presence avatars (see usePresence).
       color: getConsistentColor(user.value!.id),
     }

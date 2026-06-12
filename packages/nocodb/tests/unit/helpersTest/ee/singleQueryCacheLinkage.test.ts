@@ -18,7 +18,7 @@ import { NC_REDIS_GRACE_TTL, NC_REDIS_TTL } from '~/helpers/redisHelpers';
 // Regression tests for the singleQuery cache parent/child linkage.
 //
 // Every entry is registered under a per-view parent SET
-// (`singleQuery_v2:{modelId}:{viewIdOrDefault}:list`); `View.clearSingleQueryCache`
+// (`{CacheScope.SINGLE_QUERY}:{modelId}:{viewIdOrDefault}:list`); `View.clearSingleQueryCache`
 // invalidates by `deepDel(listKey, PARENT_TO_CHILD)`. The production incident
 // (Postgres 42703 "column does not exist" after a column rename, fixed only by a
 // manual cache flush) happened because entries were registered with a bare

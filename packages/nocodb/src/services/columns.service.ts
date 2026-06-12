@@ -1593,7 +1593,9 @@ export class ColumnsService implements IColumnsService {
             ...colBody,
           });
         } else {
-          if (colBody.title !== column.title) {
+          // partial updates (e.g. only fk_display_value_column_id) omit title —
+          // writing the undefined through would null the column alias
+          if (colBody.title && colBody.title !== column.title) {
             await Column.updateAlias(context, param.columnId, {
               title: colBody.title,
             });

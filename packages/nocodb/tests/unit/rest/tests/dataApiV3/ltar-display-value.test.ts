@@ -331,6 +331,8 @@ describe('dataApiV3', () => {
         });
         const fetched = await getColumn((col as any).id);
         expect(fetched.colOptions.fk_display_value_column_id).to.be.null;
+        // a partial PATCH (no title in body) must not wipe the column alias
+        expect(fetched.title).to.equal('ClearHM');
       });
 
       it('PATCH swaps override between columns', async () => {

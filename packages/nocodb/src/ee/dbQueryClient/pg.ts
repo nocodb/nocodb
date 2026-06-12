@@ -116,7 +116,8 @@ export class PGDBQueryClient
     params?: any;
     getAlias: () => string;
     baseModel: IBaseModelSqlV2;
-    ast: Record<string, any>;
+    // runtime also passes the sentinels `true` / `1` (see extract-columns.ts)
+    ast: Record<string, any> | boolean | 0 | 1;
     throwErrorIfInvalidParams: boolean;
     validateFormula: boolean;
     columns?: Column[];
@@ -233,11 +234,8 @@ export class PGDBQueryClient
           // extractColumns call and the selected-field filters below admit
           // pk/pv only, dropping the custom display value column from the
           // nested JSON. Widen it into an object AST so the override survives.
-          // `ast` is typed Record<string, any> but at runtime extract-columns.ts
-          // also passes the sentinel values `true` / `1` to mean "pk/pv only".
-          const astAny = ast as unknown as true | 1 | Record<string, any>;
           const nestedAst =
-            customDisplayCol && (astAny === true || astAny === 1)
+            customDisplayCol && (ast === true || ast === 1)
               ? {
                   // all PKs, not just the first — the selected-field filters
                   // admit every pk-flagged column, so each must be extracted

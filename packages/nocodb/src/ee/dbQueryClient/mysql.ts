@@ -4,7 +4,6 @@ import {
   extractFilterFromXwhere,
   isBtLikeV2Junction,
   isMMOrMMLike,
-  isVirtualCol,
   NC_ERROR_SENTINEL,
   NcApiVersion,
   NcDataErrorCodes,
@@ -82,47 +81,6 @@ export class MySqlDBQueryClient
     );
   }
 
-  // Builds the BT/OO nested record `json_object` from the display value and
-  // primary key columns that actually exist. A related table without a primary
-  // key (e.g. an external DB table lacking a PK constraint) yields an undefined
-  // `pkColumn` — emit only the columns we have instead of dereferencing it.
-  buildBtOoJsonObject({
-    knex,
-    alias,
-    pkColumn,
-    pvColumn,
-    customDisplayCol,
-    title,
-  }: {
-    knex: XKnex;
-    alias: string;
-    pkColumn?: Column;
-    pvColumn?: Column;
-    customDisplayCol?: Column;
-    title: string;
-  }) {
-    const jsonFields = [
-      ...(pvColumn ? [pvColumn] : []),
-      ...(pkColumn && pkColumn.id !== pvColumn?.id ? [pkColumn] : []),
-      // Custom display value override (fk_display_value_column_id) — emitted
-      // from the raw table select, so only physical columns are supported here
-      // (a virtual column, e.g. Formula, has no column_name to reference).
-      ...(customDisplayCol &&
-      customDisplayCol.id !== pvColumn?.id &&
-      customDisplayCol.id !== pkColumn?.id &&
-      !isVirtualCol(customDisplayCol)
-        ? [customDisplayCol]
-        : []),
-    ];
-    const paramsString = jsonFields.map(() => `?,??.??`).join(', ');
-    const paramsValueArr = [
-      ...jsonFields.flatMap((c) => [c.id, alias, sanitize(c.column_name)]),
-      title,
-    ];
-
-    return knex.raw(`json_object(${paramsString}) as ??`, paramsValueArr);
-  }
-
   async extractColumns(param) {
     return extractColumns({ extractColumn: this.extractColumn.bind(this) })(
       param,
@@ -155,7 +113,8 @@ export class MySqlDBQueryClient
     getAlias: () => string;
     baseModel: IBaseModelSqlV2;
     // dependencyFields: DependantFields;
-    ast: Record<string, any>;
+    // runtime also passes the sentinels `true` / `1` (see extract-columns.ts)
+    ast: Record<string, any> | boolean | 0 | 1;
     throwErrorIfInvalidParams: boolean;
     validateFormula: boolean;
     columns?: Column[];
@@ -263,11 +222,8 @@ export class MySqlDBQueryClient
           // extractColumns call and the selected-field filters below admit
           // pk/pv only, dropping the custom display value column from the
           // nested JSON. Widen it into an object AST so the override survives.
-          // `ast` is typed Record<string, any> but at runtime extract-columns.ts
-          // also passes the sentinel values `true` / `1` to mean "pk/pv only".
-          const astAny = ast as unknown as true | 1 | Record<string, any>;
           const nestedAst =
-            customDisplayCol && (astAny === true || astAny === 1)
+            customDisplayCol && (ast === true || ast === 1)
               ? {
                   // all PKs, not just the first — the selected-field filters
                   // admit every pk-flagged column, so each must be extracted
@@ -521,27 +477,29 @@ export class MySqlDBQueryClient
                   apiVersion,
                 });
 
-                btAggQb
-                  .select('*')
-                  .where(
-                    sanitize(parentColumn.column_name),
-                    knex.raw('??.??', [
-                      rootAlias,
-                      sanitize(childColumn.column_name),
-                    ]),
-                  );
+                // Build the nested JSON from the extracted (aliased) columns —
+                // same as the MM/HM paths and the PG client — so virtual
+                // columns (e.g. a Formula display value override) resolve too.
+                const btSelectedFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (nestedAst &&
+                      typeof nestedAst === 'object' &&
+                      (nestedAst[f.title] || nestedAst[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL
                      (${knex
-                       .from(btQb.as(alias2))
+                       .from(btAggQb.as(alias2))
                        .select(
-                         this.buildBtOoJsonObject({
+                         this.generateNestedRowSelectQuery({
                            knex,
                            alias: alias2,
-                           pkColumn,
-                           pvColumn,
-                           customDisplayCol,
+                           columns: btSelectedFields,
                            title: getAs(column),
+                           isBtOrOo: true,
                          }),
                        )
                        .toQuery()}) as ?? ON true`,
@@ -616,27 +574,29 @@ export class MySqlDBQueryClient
                     apiVersion,
                   });
 
-                  btAggQb
-                    .select('*')
-                    .where(
-                      sanitize(parentColumn.column_name),
-                      knex.raw('??.??', [
-                        rootAlias,
-                        sanitize(childColumn.column_name),
-                      ]),
-                    );
+                  // Build the nested JSON from the extracted (aliased) columns
+                  // — same as the MM/HM paths and the PG client — so virtual
+                  // columns (e.g. a Formula display value override) resolve too.
+                  const ooBtSelectedFields = fields.filter(
+                    (f) =>
+                      f.pk ||
+                      f.pv ||
+                      (nestedAst &&
+                        typeof nestedAst === 'object' &&
+                        (nestedAst[f.title] || nestedAst[f.id])),
+                  );
+
                   qb.joinRaw(
                     `LEFT OUTER JOIN LATERAL
                      (${knex
-                       .from(btQb.as(alias2))
+                       .from(btAggQb.as(alias2))
                        .select(
-                         this.buildBtOoJsonObject({
+                         this.generateNestedRowSelectQuery({
                            knex,
                            alias: alias2,
-                           pkColumn,
-                           pvColumn,
-                           customDisplayCol,
+                           columns: ooBtSelectedFields,
                            title: getAs(column),
+                           isBtOrOo: true,
                          }),
                        )
                        .toQuery()}) as ?? ON true`,

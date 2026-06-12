@@ -26,6 +26,7 @@ let patResourceFilterTest = () => {};
 let dynamicFieldFilterTests = () => {};
 let onPremPlanResolutionTests = () => {};
 let modelStatTests = () => {};
+let singleQueryCacheLinkageTests = () => {};
 let tableSyncHelpersTests = () => {};
 let mssqlLookupFlattenTest = () => {};
 let dateTimeMssqlHandlerTest = () => {};
@@ -53,6 +54,8 @@ if (process.env.EE === 'true') {
   onPremPlanResolutionTests =
     require('./ee/onPremPlanResolution.test').onPremPlanResolutionTests;
   modelStatTests = require('./ee/modelStat.test').modelStatTests;
+  singleQueryCacheLinkageTests =
+    require('./ee/singleQueryCacheLinkage.test').singleQueryCacheLinkageTests;
   tableSyncHelpersTests =
     require('./ee/tableSyncHelpers.test').tableSyncHelpersTests;
 }
@@ -92,6 +95,7 @@ function _helperTests() {
   dynamicFieldFilterTests();
   mailAuditTests();
   modelStatTests();
+  singleQueryCacheLinkageTests();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

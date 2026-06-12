@@ -8,12 +8,42 @@ export { SINGLE_QUERY_DEFAULT_VIEW };
 
 /**
  * Read a cached singleQuery entry. Returns the SQL string or null.
+ *
+ * Serves the entry only while it is still registered under the
+ * `singleQuery:{modelId}:{viewIdOrDefault}:list` parent SET — i.e. while
+ * `clearSingleQueryCache` can still reach it. If the SET is gone (TTL expiry,
+ * eviction) the entry is an orphan that schema-change invalidation can never
+ * clear; serving it would keep executing SQL compiled against a stale schema
+ * (e.g. a renamed physical column → Postgres 42703 on every read). Drop the
+ * orphan and report a miss so the caller rebuilds and re-registers it.
  */
 export async function getSingleQueryCache(
   context: NcContext,
-  cacheKey: string,
+  params: {
+    modelId: string;
+    viewIdOrDefault: string;
+    cacheKey: string;
+  },
 ): Promise<string | null> {
-  return NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING);
+  const { modelId, viewIdOrDefault, cacheKey } = params;
+  const [isRegistered, cached] = await Promise.all([
+    NocoCache.isInList(
+      context,
+      CacheScope.SINGLE_QUERY,
+      [modelId, viewIdOrDefault],
+      cacheKey,
+    ),
+    NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING),
+  ]);
+
+  if (!isRegistered) {
+    if (cached) {
+      await NocoCache.del(context, cacheKey);
+    }
+    return null;
+  }
+
+  return cached;
 }
 
 /**

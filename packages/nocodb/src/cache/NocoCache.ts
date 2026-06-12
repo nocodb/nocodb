@@ -205,7 +205,8 @@ export default class NocoCache {
   // Additive list write: `sadd` the child key onto the parent SET without
   // touching siblings. Safe under concurrent writers — unlike `appendToList`
   // (destructive fallback when child is missing) and `setList` (deepDels the
-  // existing list before re-seeding).
+  // existing list before re-seeding). Also back-links the child's
+  // `parentKeys` to the SET so read-side TTL refresh keeps the SET alive.
   public static async addToList(
     context: CacheContext,
     scope: string,
@@ -213,12 +214,27 @@ export default class NocoCache {
     childKey: string,
   ): Promise<boolean> {
     if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
-    const subKeys = subListKeys.filter(Boolean);
-    const ns = `${this.prefix}:${cacheContext(context)}`;
-    const listKey = subKeys.length
-      ? `${ns}:${scope}:${subKeys.join(':')}:list`
-      : `${ns}:${scope}:list`;
-    return this.client.set(listKey, [`${ns}:${childKey}`]);
+    return this.client.addToList(
+      `${this.prefix}:${cacheContext(context)}:${scope}`,
+      subListKeys,
+      `${this.prefix}:${cacheContext(context)}:${childKey}`,
+    );
+  }
+
+  // True when `key` is registered under the parent SET — i.e. the entry is
+  // reachable by `deepDel(listKey, PARENT_TO_CHILD)` invalidation.
+  public static async isInList(
+    context: CacheContext,
+    scope: string,
+    subListKeys: string[],
+    key: string,
+  ): Promise<boolean> {
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(false);
+    return this.client.isInList(
+      `${this.prefix}:${cacheContext(context)}:${scope}`,
+      subListKeys,
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+    );
   }
 
   public static async update(

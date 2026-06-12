@@ -427,8 +427,14 @@ export const useEeConfig = createSharedComposable(() => {
     // into plan meta), so the same getFeature check gates both ladders.
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
   })
+  const blockMssql = computed(() => {
+    // MSSQL is sold as an add-on on both cloud and on-prem. FEATURE_MSSQL resolves
+    // true only when the MSSQL add-on is active (the backend merges add-on grants
+    // into plan meta), so the same getFeature check gates both ladders.
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MSSQL)
+  })
   const blockWhiteLabel = computed(() => {
-    // White Label is on-prem enterprise only — always blocked on cloud
+    // White Label is on-prem only (white-label add-on, Scale+) — always blocked on cloud
     if (isPaymentEnabled.value) return true
     return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_WHITE_LABEL)
   })
@@ -2386,6 +2392,16 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseMssql = () => {
+    if (!blockMssql.value) return
+
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_MSSQL,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseWhiteLabel = () => {
     if (!blockWhiteLabel.value) return
 
@@ -2668,6 +2684,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockSSO,
     blockScim,
     showUpgradeToUseScim,
+    blockMssql,
+    showUpgradeToUseMssql,
     blockWhiteLabel,
     showUpgradeToUseWhiteLabel,
     showUpgradeToUseAudit,

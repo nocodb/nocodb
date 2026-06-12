@@ -153,13 +153,13 @@ const ON_PREM_PLANS: PlanDef[] = [
 // PlanAddonTypes. Lookup keys are free-form — only `private_*` and `loyalty`
 // are reserved (the grant flow skips them when picking the default price).
 //
-// SCIM bills `per_seat` (Stripe quantity = billable seats), so it uses tiered
-// volume pricing like the plans. White-label bills `flat` (Stripe quantity 1),
-// so it uses a flat per-unit price. Both carry month + year prices so the
-// add-on can co-term with either a monthly or yearly subscription.
+// SCIM, white-label and MSSQL all bill `per_seat` (Stripe quantity = billable
+// seats), so they use tiered volume pricing like the plans. Each carries month
+// + year prices so the add-on can co-term with either a monthly or yearly
+// subscription.
 //
-// Min-plan gating (SCIM → Self-hosted Scale, White-label → Self-hosted
-// Enterprise) is enforced at grant time from AddonDefinitions, not here.
+// Min-plan gating (all three → Self-hosted Scale; white-label is on-prem only)
+// is enforced at grant time from AddonDefinitions, not here.
 const ON_PREM_ADDONS: AddonDef[] = [
   {
     addon_key: "addon_scim", // PlanAddonTypes.ADDON_SCIM
@@ -196,12 +196,34 @@ const ON_PREM_ADDONS: AddonDef[] = [
       {
         lookup_key: "addon_white_label_monthly",
         interval: "month",
-        unit_amount: 25000, // $250/month flat
+        tiers: [{ up_to: "inf", unit_amount: 2500 }], // $25/seat/month
       },
       {
         lookup_key: "addon_white_label_yearly",
         interval: "year",
-        unit_amount: 250000, // $2,500/year flat
+        tiers: [{ up_to: "inf", unit_amount: 25000 }], // $250/seat/year
+      },
+    ],
+  },
+  {
+    addon_key: "addon_mssql", // PlanAddonTypes.ADDON_MSSQL
+    name: "SQL Server Sources", // becomes Addon.title
+    description: "Connect Microsoft SQL Server databases as external sources",
+    metadata: {
+      description_1: "Connect Microsoft SQL Server",
+      description_2: "Sync & browse SQL Server data",
+      description_3: "Read/write external SQL Server tables",
+    },
+    prices: [
+      {
+        lookup_key: "addon_mssql_monthly",
+        interval: "month",
+        tiers: [{ up_to: "inf", unit_amount: 1000 }], // $10/seat/month
+      },
+      {
+        lookup_key: "addon_mssql_yearly",
+        interval: "year",
+        tiers: [{ up_to: "inf", unit_amount: 10000 }], // $100/seat/year
       },
     ],
   },

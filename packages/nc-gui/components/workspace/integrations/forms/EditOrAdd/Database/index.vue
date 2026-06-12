@@ -92,6 +92,8 @@ const isEnabledSaveChangesBtn = ref(false)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { blockMssql, showUpgradeToUseMssql } = useEeConfig()
+
 const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
@@ -188,6 +190,13 @@ const validators = computed(() => {
 const { validate, validateInfos } = useForm(formState, validators)
 
 const onClientChange = () => {
+  // MSSQL is sold as a paid add-on (FEATURE_MSSQL). The backend enforces it on
+  // source create; surface the upgrade prompt here so a blocked user isn't left
+  // to hit a 402 after filling the form. Edit mode is exempt — never nag an
+  // already-connected MSSQL source.
+  if (!isEditMode.value && formState.value.dataSource.client === ClientType.MSSQL && blockMssql.value) {
+    showUpgradeToUseMssql()
+  }
   formState.value.dataSource = { ..._getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 

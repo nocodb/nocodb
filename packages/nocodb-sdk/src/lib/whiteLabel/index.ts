@@ -13,7 +13,7 @@ export interface WhiteLabelEmailConfig {
 }
 
 /**
- * Instance-level white-label config for on-prem Enterprise deployments.
+ * Instance-level white-label config for on-prem deployments (white-label add-on, Scale+).
  * Stored as JSON in nc_store under key `nc_white_label_config`.
  * Exposed (sanitized) via /api/v1/meta/nocodb/info to allow pre-login branding.
  */

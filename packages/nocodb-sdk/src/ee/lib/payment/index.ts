@@ -145,6 +145,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
@@ -226,6 +227,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
@@ -261,6 +263,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
@@ -299,6 +302,7 @@ export const CloudPlanDefinitions: Record<
     features: {
       // Enterprise-only — reserved above Scale to match the pricing matrix.
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
@@ -334,6 +338,7 @@ export const CloudPlanDefinitions: Record<
     features: {
       // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       // On-prem-only features (always disabled on cloud)
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
@@ -563,6 +568,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
       [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
@@ -593,6 +599,7 @@ export const OnPremPlanDefinitions: Record<
     features: {
       // Enterprise-only
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
@@ -606,6 +613,7 @@ export const OnPremPlanDefinitions: Record<
     features: {
       // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       // White-label is unbundled — only the white-label add-on grants it (see AddonDefinitions).
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
@@ -841,9 +849,17 @@ export const AddonDefinitions: Record<
     grants: { [PlanFeatureTypes.FEATURE_WHITE_LABEL]: true },
     minPlan: {
       cloud: null,
-      onPrem: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_SCALE,
     },
-    quantityBasis: 'flat',
+    quantityBasis: 'per_seat',
+  },
+  [PlanAddonTypes.ADDON_MSSQL]: {
+    grants: { [PlanFeatureTypes.FEATURE_MSSQL]: true },
+    minPlan: {
+      cloud: PlanTitles.SCALE,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_SCALE,
+    },
+    quantityBasis: 'per_seat',
   },
 };
 

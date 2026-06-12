@@ -51,8 +51,8 @@ export function buildInvoicePlanLabel(
     .map((line) => {
       const addonKey = productToAddonKey.get(line?.pricing?.price_details?.product ?? '')
       if (addonKey) {
-        // Only per-seat add-ons (e.g. SCIM) carry a meaningful seat count; flat add-ons
-        // (white-label) are billed at quantity 1, so suffixing "(1 seat)" is misleading.
+        // Only per-seat add-ons (e.g. SCIM, white-label) carry a meaningful seat count;
+        // flat add-ons would be billed at quantity 1, so suffixing "(1 seat)" is misleading.
         const qty = line.quantity ?? 0
         const isPerSeat = AddonDefinitions[addonKey]?.quantityBasis === 'per_seat'
         return qty > 0 && isPerSeat

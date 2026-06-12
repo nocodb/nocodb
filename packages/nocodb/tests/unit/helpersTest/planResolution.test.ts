@@ -41,6 +41,7 @@ const onPremOnlyFeatures = new Set<PlanFeatureTypes>([
 // they are likewise exempt from the cloud plan-tier invariants below.
 const addonOnlyFeatures = new Set<PlanFeatureTypes>([
   PlanFeatureTypes.FEATURE_SCIM,
+  PlanFeatureTypes.FEATURE_MSSQL,
 ]);
 
 const cloudFeatures = allFeatures.filter(

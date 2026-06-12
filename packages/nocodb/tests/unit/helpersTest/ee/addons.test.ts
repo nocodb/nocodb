@@ -40,6 +40,14 @@ export function addonTests() {
       expect(meta[PlanFeatureTypes.FEATURE_WHITE_LABEL]).to.equal(true);
     });
 
+    it('grants MSSQL feature when ADDON_MSSQL is active', () => {
+      const meta: Record<string, number | boolean> = {
+        [PlanFeatureTypes.FEATURE_MSSQL]: false,
+      };
+      applyAddons(meta, [PlanAddonTypes.ADDON_MSSQL]);
+      expect(meta[PlanFeatureTypes.FEATURE_MSSQL]).to.equal(true);
+    });
+
     it('mutates in place and leaves unrelated features untouched', () => {
       const meta: Record<string, number | boolean> = {
         [PlanFeatureTypes.FEATURE_SCIM]: false,
@@ -75,6 +83,9 @@ export function addonTests() {
       expect(PlanFeatureToAddon[PlanFeatureTypes.FEATURE_WHITE_LABEL]).to.equal(
         PlanAddonTypes.ADDON_WHITE_LABEL,
       );
+      expect(PlanFeatureToAddon[PlanFeatureTypes.FEATURE_MSSQL]).to.equal(
+        PlanAddonTypes.ADDON_MSSQL,
+      );
     });
 
     it('is round-trip consistent with AddonDefinitions grants', () => {
@@ -95,13 +106,18 @@ export function addonTests() {
       expect(def.minPlan.onPrem).to.equal(OnPremPlanTitles.SELF_HOSTED_SCALE);
     });
 
-    it('pins white-label as a flat, on-prem-only Enterprise add-on', () => {
+    it('pins white-label as a per-seat, on-prem-only add-on sold from Scale upward', () => {
       const def = AddonDefinitions[PlanAddonTypes.ADDON_WHITE_LABEL];
-      expect(def.quantityBasis).to.equal('flat');
+      expect(def.quantityBasis).to.equal('per_seat');
       expect(def.minPlan.cloud).to.equal(null);
-      expect(def.minPlan.onPrem).to.equal(
-        OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
-      );
+      expect(def.minPlan.onPrem).to.equal(OnPremPlanTitles.SELF_HOSTED_SCALE);
+    });
+
+    it('pins MSSQL as a per-seat add-on sold from Scale upward on both ladders', () => {
+      const def = AddonDefinitions[PlanAddonTypes.ADDON_MSSQL];
+      expect(def.quantityBasis).to.equal('per_seat');
+      expect(def.minPlan.cloud).to.equal(PlanTitles.SCALE);
+      expect(def.minPlan.onPrem).to.equal(OnPremPlanTitles.SELF_HOSTED_SCALE);
     });
   });
 

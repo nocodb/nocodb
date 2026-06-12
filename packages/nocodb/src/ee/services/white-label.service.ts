@@ -144,7 +144,7 @@ export class WhiteLabelService {
 
   /**
    * True only when the current plan actually entitles white-label. On-prem,
-   * white-label is Enterprise-only; `getOnPremPlan()` returns null on
+   * white-label is granted by the white-label add-on (Scale+); `getOnPremPlan()` returns null on
    * cloud / local-EE (where the instance config is empty anyway), so we only
    * deny when there's a real on-prem plan that lacks the feature.
    */

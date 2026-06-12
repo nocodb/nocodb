@@ -1,6 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import {
+  AddonDefinitions,
   PlanFeatureTypes,
   PlanFeatureUpgradeMessages,
   PlanLimitTypes,
@@ -38,11 +39,14 @@ const onPremOnlyFeatures = new Set<PlanFeatureTypes>([
 // Features sold as add-ons (nc_addons) rather than bundled into a plan tier.
 // Entitlement comes from an active SubscriptionAddon merged into plan.meta at
 // runtime (see AddonDefinitions / applyAddons), so no cloud tier grants them —
-// they are likewise exempt from the cloud plan-tier invariants below.
-const addonOnlyFeatures = new Set<PlanFeatureTypes>([
-  PlanFeatureTypes.FEATURE_SCIM,
-  PlanFeatureTypes.FEATURE_MSSQL,
-]);
+// they are likewise exempt from the cloud plan-tier invariants below. Derived
+// from the registry so a new add-on is covered here automatically (the
+// dedicated unbundling invariant lives in ee/addonRegistry.test.ts).
+const addonOnlyFeatures = new Set<PlanFeatureTypes>(
+  Object.values(AddonDefinitions).flatMap(
+    (def) => Object.keys(def.grants) as PlanFeatureTypes[],
+  ),
+);
 
 const cloudFeatures = allFeatures.filter(
   (f) => !onPremOnlyFeatures.has(f) && !addonOnlyFeatures.has(f),

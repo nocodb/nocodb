@@ -1,16 +1,13 @@
 import 'mocha';
 import { expect } from 'chai';
-import {
-  AddonDefinitions,
-  OnPremPlanTitles,
-  PlanAddonTypes,
-  PlanFeatureToAddon,
-  PlanFeatureTypes,
-  PlanTitles,
-  applyAddons,
-} from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { pickBaseSubscriptionItem } from '~/helpers/paymentHelpers';
+
+// NOTE: this file imports `~/helpers/paymentHelpers` (backend), which pulls in
+// the model graph — so it only loads inside the full `test:unit:pg:ee`
+// bootstrap (a standalone load hits a `_BaseUser` init-order TDZ). The pure
+// add-on registry/entitlement invariants — which are the regression guards —
+// live in addonRegistry.test.ts and run standalone.
 
 type Item = Stripe.SubscriptionItem;
 
@@ -23,104 +20,6 @@ const mkItem = (
 ): Item => ({ id, price: { id: priceId, product } } as unknown as Item);
 
 export function addonTests() {
-  describe('addons: applyAddons', () => {
-    it('grants SCIM feature when ADDON_SCIM is active', () => {
-      const meta: Record<string, number | boolean> = {
-        [PlanFeatureTypes.FEATURE_SCIM]: false,
-      };
-      applyAddons(meta, [PlanAddonTypes.ADDON_SCIM]);
-      expect(meta[PlanFeatureTypes.FEATURE_SCIM]).to.equal(true);
-    });
-
-    it('grants white-label feature when ADDON_WHITE_LABEL is active', () => {
-      const meta: Record<string, number | boolean> = {
-        [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
-      };
-      applyAddons(meta, [PlanAddonTypes.ADDON_WHITE_LABEL]);
-      expect(meta[PlanFeatureTypes.FEATURE_WHITE_LABEL]).to.equal(true);
-    });
-
-    it('grants MSSQL feature when ADDON_MSSQL is active', () => {
-      const meta: Record<string, number | boolean> = {
-        [PlanFeatureTypes.FEATURE_MSSQL]: false,
-      };
-      applyAddons(meta, [PlanAddonTypes.ADDON_MSSQL]);
-      expect(meta[PlanFeatureTypes.FEATURE_MSSQL]).to.equal(true);
-    });
-
-    it('mutates in place and leaves unrelated features untouched', () => {
-      const meta: Record<string, number | boolean> = {
-        [PlanFeatureTypes.FEATURE_SCIM]: false,
-        [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
-      };
-      applyAddons(meta, [PlanAddonTypes.ADDON_SCIM]);
-      expect(meta[PlanFeatureTypes.FEATURE_SCIM]).to.equal(true);
-      expect(meta[PlanFeatureTypes.FEATURE_WHITE_LABEL]).to.equal(false);
-    });
-
-    it('is a no-op for undefined active keys', () => {
-      const meta: Record<string, number | boolean> = {
-        [PlanFeatureTypes.FEATURE_SCIM]: false,
-      };
-      applyAddons(meta, undefined);
-      expect(meta[PlanFeatureTypes.FEATURE_SCIM]).to.equal(false);
-    });
-
-    it('is a no-op for an empty array', () => {
-      const meta: Record<string, number | boolean> = {
-        [PlanFeatureTypes.FEATURE_SCIM]: false,
-      };
-      applyAddons(meta, []);
-      expect(meta[PlanFeatureTypes.FEATURE_SCIM]).to.equal(false);
-    });
-  });
-
-  describe('addons: PlanFeatureToAddon / AddonDefinitions invariants', () => {
-    it('maps each add-on grant back to its owning add-on', () => {
-      expect(PlanFeatureToAddon[PlanFeatureTypes.FEATURE_SCIM]).to.equal(
-        PlanAddonTypes.ADDON_SCIM,
-      );
-      expect(PlanFeatureToAddon[PlanFeatureTypes.FEATURE_WHITE_LABEL]).to.equal(
-        PlanAddonTypes.ADDON_WHITE_LABEL,
-      );
-      expect(PlanFeatureToAddon[PlanFeatureTypes.FEATURE_MSSQL]).to.equal(
-        PlanAddonTypes.ADDON_MSSQL,
-      );
-    });
-
-    it('is round-trip consistent with AddonDefinitions grants', () => {
-      for (const [feature, addonKey] of Object.entries(PlanFeatureToAddon)) {
-        const def = AddonDefinitions[addonKey as PlanAddonTypes];
-        expect(def, `no AddonDefinition for ${addonKey}`).to.exist;
-        expect(
-          def.grants[feature as PlanFeatureTypes],
-          `${addonKey} does not grant ${feature}`,
-        ).to.equal(true);
-      }
-    });
-
-    it('pins SCIM as a per-seat add-on sold from Scale upward', () => {
-      const def = AddonDefinitions[PlanAddonTypes.ADDON_SCIM];
-      expect(def.quantityBasis).to.equal('per_seat');
-      expect(def.minPlan.cloud).to.equal(PlanTitles.SCALE);
-      expect(def.minPlan.onPrem).to.equal(OnPremPlanTitles.SELF_HOSTED_SCALE);
-    });
-
-    it('pins white-label as a per-seat, on-prem-only add-on sold from Scale upward', () => {
-      const def = AddonDefinitions[PlanAddonTypes.ADDON_WHITE_LABEL];
-      expect(def.quantityBasis).to.equal('per_seat');
-      expect(def.minPlan.cloud).to.equal(null);
-      expect(def.minPlan.onPrem).to.equal(OnPremPlanTitles.SELF_HOSTED_SCALE);
-    });
-
-    it('pins MSSQL as a per-seat add-on sold from Scale upward on both ladders', () => {
-      const def = AddonDefinitions[PlanAddonTypes.ADDON_MSSQL];
-      expect(def.quantityBasis).to.equal('per_seat');
-      expect(def.minPlan.cloud).to.equal(PlanTitles.SCALE);
-      expect(def.minPlan.onPrem).to.equal(OnPremPlanTitles.SELF_HOSTED_SCALE);
-    });
-  });
-
   describe('addons: pickBaseSubscriptionItem', () => {
     const PLAN_PRODUCT = 'prod_plan';
     const ADDON_PRODUCT = 'prod_addon';

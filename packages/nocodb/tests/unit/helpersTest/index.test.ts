@@ -32,6 +32,7 @@ let mssqlLookupFlattenTest = () => {};
 let dateTimeMssqlHandlerTest = () => {};
 let jsonMssqlHandlerTest = () => {};
 let addonTests = () => {};
+let addonRegistryTests = () => {};
 if (process.env.EE === 'true') {
   mssqlLookupFlattenTest =
     require('./mssqlLookupFlatten.test').mssqlLookupFlattenTest;
@@ -59,6 +60,7 @@ if (process.env.EE === 'true') {
   tableSyncHelpersTests =
     require('./ee/tableSyncHelpers.test').tableSyncHelpersTests;
   addonTests = require('./ee/addons.test').addonTests;
+  addonRegistryTests = require('./ee/addonRegistry.test').addonRegistryTests;
 }
 
 function _helperTests() {
@@ -97,6 +99,7 @@ function _helperTests() {
   mailAuditTests();
   modelStatTests();
   singleQueryCacheLinkageTests();
+  addonRegistryTests();
   addonTests();
 }
 export const helperTests = runOnSet(1, function () {

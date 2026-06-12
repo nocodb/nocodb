@@ -6,8 +6,10 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
+  NOCO_SERVICE_USERS,
   parseProp,
   RelationTypes,
+  ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
 import { Injectable, NotImplementedException } from '@nestjs/common';
@@ -352,9 +354,13 @@ export class DuplicateProcessor {
 
     const baseId = context.base_id;
 
-    // workspace templates placeholder user
+    // Workspace-template seeding runs under a placeholder user (id '1') that
+    // has no real identity/email. Attribute the duplication's audits to the
+    // system service user instead of leaving them with a NULL actor.
     if (req.user?.id === '1') {
-      delete req.user;
+      req.user = {
+        ...NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER],
+      } as typeof req.user;
     }
 
     const excludeData = options?.excludeData || false;

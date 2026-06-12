@@ -221,6 +221,9 @@ export async function generateAuditV1Payload<T = any>(
     details: detailsWithOrigin,
     version: 1,
     fk_parent_id: id === req?.ncParentAuditId ? null : req?.ncParentAuditId,
+    // For anonymous public submissions, preserve which shared view/form the
+    // request came through so the (ANONYMOUS_USER) actor is still traceable.
+    fk_ref_id: req?.ncSharedViewId,
     id,
   };
 }

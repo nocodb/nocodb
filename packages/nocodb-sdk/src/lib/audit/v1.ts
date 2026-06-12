@@ -1544,6 +1544,9 @@ export interface AuditV1<T = any> {
   details: T;
   version: 1;
   fk_parent_id?: string;
+  // Reference id for the originating entity — e.g. the shared view / form id
+  // for anonymous (ANONYMOUS_USER) public submissions, for traceability.
+  fk_ref_id?: string | null;
 }
 
 const descriptionTemplates = {

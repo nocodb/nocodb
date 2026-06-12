@@ -1024,9 +1024,9 @@ export class PublicDatasService {
     // them to the anonymous service user and stamp the shared view/form id so
     // the submission stays traceable.
     if (!param.req.user?.id) {
-      param.req.user = NOCO_SERVICE_USERS[
-        ServiceUserType.ANONYMOUS_USER
-      ] as NcRequest['user'];
+      param.req.user = {
+        ...NOCO_SERVICE_USERS[ServiceUserType.ANONYMOUS_USER],
+      } as NcRequest['user'];
     }
     param.req.ncSharedViewId = view.id;
 

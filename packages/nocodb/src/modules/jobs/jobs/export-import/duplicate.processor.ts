@@ -358,9 +358,9 @@ export class DuplicateProcessor {
     // has no real identity/email. Attribute the duplication's audits to the
     // system service user instead of leaving them with a NULL actor.
     if (req.user?.id === '1') {
-      req.user = NOCO_SERVICE_USERS[
-        ServiceUserType.SYSTEM_USER
-      ] as typeof req.user;
+      req.user = {
+        ...NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER],
+      } as typeof req.user;
     }
 
     const excludeData = options?.excludeData || false;

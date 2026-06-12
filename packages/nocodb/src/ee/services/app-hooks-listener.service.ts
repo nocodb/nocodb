@@ -2,8 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditV1OperationTypes,
-  NOCO_SERVICE_USERS,
-  ServiceUserType,
   UITypes,
   viewTypeAlias,
 } from 'nocodb-sdk';
@@ -410,13 +408,16 @@ export class AppHooksListenerService
     event: AppEvents;
     data: any;
   }) {
-    // Fallback for events emitted without a req (programmatic/internal
-    // triggers): attribute to the system service user so the audit actor is
-    // never NULL.
-    const {
-      clientId,
-      req = { user: NOCO_SERVICE_USERS[ServiceUserType.SYSTEM_USER] },
-    } = data;
+    // No default actor here on purpose: a missing req means the emitter forgot
+    // to pass one (or to attribute a system op at the source) — keep the audit
+    // actor NULL so the gap stays visible, and log the offending event.
+    if (!data.req) {
+      this.logger.warn(
+        `AppEvent '${event}' emitted without a req — audit actor will be NULL`,
+      );
+    }
+
+    const { clientId, req = { user: {} } } = data;
 
     // skip audit if explicitly set, this is to bypass events for snapshot and any similar audits
     if ((<NcRequest>req)?.skipAudit) {

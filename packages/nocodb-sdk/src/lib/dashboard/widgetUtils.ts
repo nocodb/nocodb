@@ -9,7 +9,11 @@ import { ColumnType } from '~/lib/Api';
 import UITypes from '~/lib/UITypes';
 import { isSystemColumn } from '~/lib/helperFunctions';
 import { AllAggregations } from '~/lib/aggregationHelper';
-import { isBarcode, isLookup, isQrCode } from '~/lib/columnHelper/utils/virtualCell';
+import {
+  isBarcode,
+  isLookup,
+  isQrCode,
+} from '~/lib/columnHelper/utils/virtualCell';
 import { isButton } from '~/lib/columnHelper/utils/cell';
 
 export const calculateNextPosition = (

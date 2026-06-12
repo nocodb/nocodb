@@ -41,7 +41,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, xWhere, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus, xWhere, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
@@ -682,24 +682,29 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const activeDataListener = ref<string | null>(null)
 
+    // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
+    // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+    const recordPassesViewFilter = (data: DataPayload) => {
+      if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+        return false
+      }
+      return rowMatchesSearchAndUrl(data.payload)
+    }
+
     const handleDataEvent = (data: DataPayload) => {
       const { id, action, payload, before } = data
+
+      if (action === 'bulk') {
+        if (Array.isArray(data.rows)) {
+          for (const row of data.rows) handleDataEvent(row)
+        }
+        return
+      }
 
       // TODO: @mertmit handle filters and sort for newly added and updated records
       if (action === 'add') {
         try {
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...validFiltersFromUrlParams.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           if (isValidationFailed) {
             return
@@ -750,18 +755,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         }
       } else if (action === 'update') {
         try {
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...validFiltersFromUrlParams.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           if (isValidationFailed) {
             handleDataEvent({ ...data, action: 'delete' })

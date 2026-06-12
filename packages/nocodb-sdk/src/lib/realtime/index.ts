@@ -38,7 +38,11 @@ export const DocCollabClientEvents = {
 } as const;
 
 /** Room key for a doc's collaborative sync channel. */
-export function getDocSyncRoom(workspaceId: string, baseId: string, docId: string): string {
+export function getDocSyncRoom(
+  workspaceId: string,
+  baseId: string,
+  docId: string
+): string {
   return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
 }
 
@@ -67,9 +71,11 @@ export interface ConnectionErrorPayload extends BaseSocketPayload {
 
 export interface DataPayload extends BaseSocketPayload {
   id: string;
-  action: 'add' | 'update' | 'delete' | 'reorder';
+  action: 'add' | 'update' | 'delete' | 'reorder' | 'bulk';
   payload: Record<string, any>;
   before?: string;
+  matchedViewIds?: string[];
+  rows?: DataPayload[];
 }
 
 export interface CommentPayload extends BaseSocketPayload {

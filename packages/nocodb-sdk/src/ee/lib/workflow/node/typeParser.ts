@@ -1,7 +1,10 @@
 import type { VariableDefinition } from '~/lib/workflow/interface';
 import { workflowJsep } from '~/lib/formula/jsepInstances';
 import { WorkflowNodeFilterDataType } from '~/ee/lib/workflow/node/ifTypes';
-import { escapeVariableKey, unescapeVariableKey } from '~/ee/lib/workflow/variable-generator';
+import {
+  escapeVariableKey,
+  unescapeVariableKey,
+} from '~/ee/lib/workflow/variable-generator';
 
 /**
  * Maps VariableType to WorkflowNodeFilterDataType
@@ -499,7 +502,9 @@ export function extractDataTypeFromWorkflowNodeExpression(
 ): WorkflowNodeFilterDataType | undefined {
   if (!fieldExpression) return undefined;
 
-  // Plain text (no expression) — detect literal type
+  // No template expression present. A bare boolean/number literal still has an
+  // unambiguous type; any other plain text isn't a node expression, so there's
+  // no type to extract.
   if (!fieldExpression.includes('{{')) {
     const trimmed = fieldExpression.trim();
     if (trimmed === 'true' || trimmed === 'false') {
@@ -508,7 +513,7 @@ export function extractDataTypeFromWorkflowNodeExpression(
     if (trimmed !== '' && !isNaN(Number(trimmed))) {
       return WorkflowNodeFilterDataType.NUMBER;
     }
-    return WorkflowNodeFilterDataType.TEXT;
+    return undefined;
   }
 
   try {
@@ -567,25 +572,25 @@ export function findVariableForExpression(
   expression: string,
   flatVariables: VariableDefinition[]
 ): VariableDefinition | null {
-  if (!expression || !expression.includes('{{')) return null
+  if (!expression || !expression.includes('{{')) return null;
 
   try {
-    const trimmed = expression.trim()
-    const match = trimmed.match(/\{\{\s*([^}]+?)\s*}}/)
-    if (!match || !match[1]) return null
+    const trimmed = expression.trim();
+    const match = trimmed.match(/\{\{\s*([^}]+?)\s*}}/);
+    if (!match || !match[1]) return null;
 
-    const expr = match[1]
-    const parsed = workflowJsep(expr)
+    const expr = match[1];
+    const parsed = workflowJsep(expr);
 
     // Try to extract variable from the parsed expression
-    const varNode = parseWorkflowVariable(parsed, flatVariables)
+    const varNode = parseWorkflowVariable(parsed, flatVariables);
     if (varNode && varNode.name) {
-      return findVariable(varNode.name, flatVariables) || null
+      return findVariable(varNode.name, flatVariables) || null;
     }
 
-    return null
+    return null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -637,7 +642,9 @@ export function parseWorkflowVariableExpression(
 
   while (currentPos < remainder.length) {
     // Match dot notation: .propertyName
-    const dotMatch = remainder.substring(currentPos).match(/^\.([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+    const dotMatch = remainder
+      .substring(currentPos)
+      .match(/^\.([a-zA-Z_$][a-zA-Z0-9_$]*)/);
     if (dotMatch) {
       pathParts.push(dotMatch[1]);
       currentPos += dotMatch[0].length;
@@ -645,7 +652,8 @@ export function parseWorkflowVariableExpression(
     }
 
     // Match bracket notation: ['propertyName'] or ["propertyName"] (with escaped quotes)
-    const bracketMatch = remainder.substring(currentPos).match(/^\['((?:[^'\\]|\\.)*)'\]/) ||
+    const bracketMatch =
+      remainder.substring(currentPos).match(/^\['((?:[^'\\]|\\.)*)'\]/) ||
       remainder.substring(currentPos).match(/^\["((?:[^"\\]|\\.)*)"\]/);
     if (bracketMatch) {
       pathParts.push(unescapeVariableKey(bracketMatch[1]));

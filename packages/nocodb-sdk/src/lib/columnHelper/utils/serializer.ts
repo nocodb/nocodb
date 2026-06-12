@@ -16,7 +16,7 @@ import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
-import { resolveColumnSeparator, getSeparatorChars } from './separator';
+import { getSeparatorChars, resolveColumnSeparator } from './separator';
 
 /**
  * Remove outer quotes & unescape
@@ -80,20 +80,14 @@ export const serializeDecimalValue = (
       // Truncate at the second occurrence of the decimal separator
       const firstIdx = cleanedValue.indexOf(decimalSeparator);
       if (firstIdx !== -1) {
-        const secondIdx = cleanedValue.indexOf(
-          decimalSeparator,
-          firstIdx + 1
-        );
+        const secondIdx = cleanedValue.indexOf(decimalSeparator, firstIdx + 1);
         if (secondIdx !== -1) {
           cleanedValue = cleanedValue.substring(0, secondIdx);
         }
       }
       // Remove anything that's not digit, decimal separator, or leading minus
       cleanedValue = cleanedValue
-        .replace(
-          new RegExp(`(?!^-)[^\\d\\${decimalSeparator}-]`, 'g'),
-          ''
-        )
+        .replace(new RegExp(`(?!^-)[^\\d\\${decimalSeparator}-]`, 'g'), '')
         .trim();
       // Replace decimal separator with dot
       if (decimalSeparator !== '.') {
@@ -197,32 +191,36 @@ export const serializeCurrencyValue = (
     return params.clipboardItem.dbCellValue;
   }
 
-  return serializeDecimalValue(value, (value) => {
-    const columnMeta = parseProp(params.col.meta);
-    // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
-    const formatter = new Intl.NumberFormat(
-      columnMeta?.currency_locale || 'en-US'
-    );
+  return serializeDecimalValue(
+    value,
+    (value) => {
+      const columnMeta = parseProp(params.col.meta);
+      // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
+      const formatter = new Intl.NumberFormat(
+        columnMeta?.currency_locale || 'en-US'
+      );
 
-    // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
-    if (
-      !columnMeta?.currency_locale ||
-      columnMeta.currency_locale === 'en-US' ||
-      typeof (formatter as any).formatToParts !== 'function'
-    ) {
-      return value?.replace(/[^0-9.]/g, '')?.trim();
-    }
+      // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
+      if (
+        !columnMeta?.currency_locale ||
+        columnMeta.currency_locale === 'en-US' ||
+        typeof (formatter as any).formatToParts !== 'function'
+      ) {
+        return value?.replace(/[^0-9.]/g, '')?.trim();
+      }
 
-    const { group, decimal } = getGroupDecimalSymbolFromLocale(
-      columnMeta?.currency_locale
-    );
+      const { group, decimal } = getGroupDecimalSymbolFromLocale(
+        columnMeta?.currency_locale
+      );
 
-    return value
-      .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
-      .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
-      .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
-      .trim(); // 4. Trim whitespace from both ends of the string
-  }, params);
+      return value
+        .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
+        .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
+        .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
+        .trim(); // 4. Trim whitespace from both ends of the string
+    },
+    params
+  );
 };
 
 export const serializeTimeValue = (

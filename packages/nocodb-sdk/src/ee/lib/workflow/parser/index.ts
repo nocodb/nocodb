@@ -1146,15 +1146,13 @@ export class WorkflowExpressionParser {
       ];
 
       if (rootDangerous.includes(name)) {
-        throw new WorkflowSecurityError(`Root identifier "${name}" is not allowed`);
+        throw new WorkflowSecurityError(
+          `Root identifier "${name}" is not allowed`
+        );
       }
     } else {
       // Less restrictive validation for non-root property access
-      const nonRootDangerous = [
-        '__proto__',
-        'constructor',
-        'prototype',
-      ];
+      const nonRootDangerous = ['__proto__', 'constructor', 'prototype'];
 
       if (nonRootDangerous.includes(name)) {
         throw new WorkflowSecurityError(`Property "${name}" is not allowed`);

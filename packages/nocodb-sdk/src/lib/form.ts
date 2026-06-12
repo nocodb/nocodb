@@ -122,7 +122,7 @@ export function groupFormColumnsByRow<
     id?: string;
     row_id?: string | null;
     uidt?: UITypes | string;
-  },
+  }
 >(columns: T[]): T[][] {
   // Walk the list in order and maintain the "currently open" row — a new
   // row opens whenever row_id changes or we hit a full-width field (which
@@ -137,7 +137,7 @@ export function groupFormColumnsByRow<
     const isFullWidth =
       col.uidt != null &&
       (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(
-        col.uidt as string,
+        col.uidt as string
       );
 
     if (isFullWidth || rowId == null) {

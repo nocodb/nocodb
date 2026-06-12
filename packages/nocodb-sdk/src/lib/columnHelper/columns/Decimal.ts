@@ -1,5 +1,10 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseDecimalValue, precisionFormats, serializeDecimalValue, SeparatorType } from '..';
+import {
+  parseDecimalValue,
+  precisionFormats,
+  SeparatorType,
+  serializeDecimalValue,
+} from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';

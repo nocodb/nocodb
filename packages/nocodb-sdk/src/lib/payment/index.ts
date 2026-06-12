@@ -481,8 +481,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FIELD_VISIBILITY]:
     'to control field-level visibility.',
   [PlanFeatureTypes.FEATURE_BOOKMARKS]: 'to use bookmarks.',
-  [PlanFeatureTypes.FEATURE_MSSQL]:
-    'to connect Microsoft SQL Server sources.',
+  [PlanFeatureTypes.FEATURE_MSSQL]: 'to connect Microsoft SQL Server sources.',
   [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
     'to white-label this instance with your own logo, product name, and brand color.',
 };

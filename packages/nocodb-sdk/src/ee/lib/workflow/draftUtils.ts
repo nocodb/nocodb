@@ -50,8 +50,12 @@ export function hasWorkflowDraftChanges(
     });
   };
 
-  draftCleaned.nodes = cleanNodes(draftCleaned.nodes as Array<WorkflowGeneralNode>);
-  publishedCleaned.nodes = cleanNodes(publishedCleaned.nodes as Array<WorkflowGeneralNode>);
+  draftCleaned.nodes = cleanNodes(
+    draftCleaned.nodes as Array<WorkflowGeneralNode>
+  );
+  publishedCleaned.nodes = cleanNodes(
+    publishedCleaned.nodes as Array<WorkflowGeneralNode>
+  );
 
   // Compare the cleaned objects
   return !isEqual(draftCleaned, publishedCleaned);

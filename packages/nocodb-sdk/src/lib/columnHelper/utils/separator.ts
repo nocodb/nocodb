@@ -24,7 +24,10 @@ export function resolveColumnSeparator(
  * Get the actual thousand/decimal separator characters for a SeparatorType.
  * For Locale, uses Intl.NumberFormat to detect from runtime environment.
  */
-export function getSeparatorChars(separator: SeparatorType, locale?: string): {
+export function getSeparatorChars(
+  separator: SeparatorType,
+  locale?: string
+): {
   thousandSeparator: string | null;
   decimalSeparator: string;
 } {
@@ -32,10 +35,8 @@ export function getSeparatorChars(separator: SeparatorType, locale?: string): {
     case SeparatorType.Locale: {
       const formatter = new Intl.NumberFormat(locale);
       const parts = formatter.formatToParts(12345.6);
-      const group =
-        parts.find((p) => p.type === 'group')?.value || null;
-      const decimal =
-        parts.find((p) => p.type === 'decimal')?.value || '.';
+      const group = parts.find((p) => p.type === 'group')?.value || null;
+      const decimal = parts.find((p) => p.type === 'decimal')?.value || '.';
       return { thousandSeparator: group, decimalSeparator: decimal };
     }
     case SeparatorType.NonePeriod:

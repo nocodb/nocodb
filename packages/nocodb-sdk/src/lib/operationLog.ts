@@ -63,11 +63,7 @@ export interface OperationLogType {
   updated_at?: string;
 }
 
-export type OperationLogStatus =
-  | 'active'
-  | 'undone'
-  | 'errored'
-  | 'discarded';
+export type OperationLogStatus = 'active' | 'undone' | 'errored' | 'discarded';
 
 export type OperationLogScopeType =
   | 'base'

@@ -5,13 +5,17 @@ import {
   extractRolesObj,
   getDocSyncRoom,
   hasMinimumRoleAccess,
+  isLinksOrLTAR,
   type PayloadForEvent,
   PermissionKey,
   ProjectRoles,
+  UITypes,
   validateRowFilters,
+  ViewTypes,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import * as Y from 'yjs';
 import { sendConnectionError, sendWelcomeMessage } from './genericEvents';
 import { RlsSubscriptionRegistry } from './RlsSubscriptionRegistry';
 import type { ColumnType, FilterType } from 'nocodb-sdk';
@@ -19,7 +23,6 @@ import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
 import NocoPresence from '~/socket/NocoPresence';
-import * as Y from 'yjs';
 import { DocumentCollabManager } from '~/socket/DocumentCollabManager';
 import { DocCollabPubSub } from '~/socket/DocCollabPubSub';
 import {
@@ -29,7 +32,15 @@ import {
 import { isDocsRealtimeEnabled } from '~/helpers/dbHelpers';
 import { DocumentsService } from '~/services/documents.service';
 import { verifyJwt } from '~/services/users/helpers';
-import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
+import {
+  BaseUser,
+  ListViewLevel,
+  Model,
+  Source,
+  User,
+  View,
+  WorkspaceUser,
+} from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
 import Filter from '~/models/Filter';
 import RlsPolicy from '~/ee/models/RlsPolicy';
@@ -38,6 +49,7 @@ import {
   type RlsUserContext,
 } from '~/ee/utils/rls-resolver';
 import Noco from '~/Noco';
+import { chunkArray } from '~/utils/tsUtils';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { getProjectRolePower } from '~/utils/roleHelper';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
@@ -596,7 +608,7 @@ export default class NocoSocket {
    * access group's filters and only emits to matching rooms.
    * If no RLS, falls through to the standard broadcastEvent.
    */
-  public static broadcastDataEvent(
+  public static async broadcastDataEvent(
     context: NcContext,
     params: {
       payload: {
@@ -613,11 +625,30 @@ export default class NocoSocket {
       const { payload, tableId } = params;
       const eventKey = `${EventType.DATA_EVENT}:${context.workspace_id}:${context.base_id}:${tableId}`;
 
+      let matchedViewIds: string[] | undefined;
+      if (
+        (payload.action === 'add' || payload.action === 'update') &&
+        payload.payload
+      ) {
+        try {
+          matchedViewIds = await this.computeMatchedViewIds(
+            context,
+            tableId,
+            payload.payload,
+          );
+        } catch (err) {
+          this.logger.error('Error computing matchedViewIds for data event');
+          this.logger.error(err);
+          matchedViewIds = undefined;
+        }
+      }
+
       const finalPayload = {
         ...payload,
         event: EventType.DATA_EVENT,
         timestamp: Date.now(),
         socketId,
+        ...(matchedViewIds ? { matchedViewIds } : {}),
       };
 
       if (!this.ioServer) {
@@ -687,6 +718,226 @@ export default class NocoSocket {
       this.logger.error('Error in broadcastDataEvent');
       this.logger.error(error);
     }
+  }
+
+  public static async broadcastBulkDataEvent(
+    context: NcContext,
+    params: {
+      tableId: string;
+      rows: Array<{
+        id: string;
+        action: 'add' | 'update' | 'delete';
+        payload: Record<string, any> | null;
+      }>;
+    },
+    socketId?: string,
+  ) {
+    try {
+      const io = this.ioServer;
+      if (!io) return;
+
+      const { tableId, rows } = params;
+      if (!rows?.length) return;
+
+      const eventKey = `${EventType.DATA_EVENT}:${context.workspace_id}:${context.base_id}:${tableId}`;
+
+      const needMatch = rows.some(
+        (r) => r.action === 'add' || r.action === 'update',
+      );
+      const ctx = needMatch
+        ? await this.getViewFilterContext(context, tableId)
+        : null;
+      const enriched = rows.map((r) => ({
+        id: r.id,
+        action: r.action,
+        payload: r.payload,
+        ...(ctx && r.payload && (r.action === 'add' || r.action === 'update')
+          ? { matchedViewIds: this.matchRowToViews(ctx, r.payload) }
+          : {}),
+      }));
+
+      const emitBatch = (room: string, batch: typeof enriched) => {
+        for (const frame of chunkArray(batch, 200)) {
+          io.to(room).emit(eventKey, {
+            id: '',
+            action: 'bulk',
+            payload: null,
+            rows: frame,
+            event: EventType.DATA_EVENT,
+            timestamp: Date.now(),
+            socketId,
+          });
+        }
+      };
+
+      // Standard room (non-RLS subscribers) — all rows.
+      emitBatch(eventKey, enriched);
+
+      const groups = RlsSubscriptionRegistry.getGroups(tableId);
+      if (!groups || groups.size === 0) return;
+
+      for (const [hash, group] of groups) {
+        const rlsRoom = `${eventKey}:rls:${hash}`;
+
+        // "all" / no group filters → the room sees everything.
+        if (hash === 'all' || !group.resolvedFilters?.length) {
+          emitBatch(rlsRoom, enriched);
+          continue;
+        }
+
+        // Deletes are safe for everyone; adds/updates only if the row passes the group's
+        // filters — so an RLS room never receives rows its policy hides.
+        const visible = enriched.filter((r) =>
+          r.action === 'delete'
+            ? true
+            : !!r.payload &&
+              group.columns.length > 0 &&
+              validateRowFilters({
+                filters: group.resolvedFilters,
+                data: r.payload,
+                columns: group.columns,
+                client: group.client,
+                metas: {},
+              }),
+        );
+        emitBatch(rlsRoom, visible);
+      }
+    } catch (error) {
+      this.logger.error('Error in broadcastBulkDataEvent');
+      this.logger.error(error);
+    }
+  }
+
+  /**
+   * Return the ids of views whose filters this record matches (no filters → always matches),
+   * so realtime membership is decided server-side for all roles. Covers regular views (saved
+   * filters) and list views (per-level filters for the level mapped to this table).
+   */
+  private static async computeMatchedViewIds(
+    context: NcContext,
+    tableId: string,
+    rowData: Record<string, any>,
+  ): Promise<string[] | undefined> {
+    const ctx = await this.getViewFilterContext(context, tableId);
+    return this.matchRowToViews(ctx, rowData);
+  }
+
+  /**
+   * Load everything needed to evaluate rows of a table against its view filters, ONCE: columns,
+   * source client, related-table metas (so link/lookup filters resolve — same metadata the client
+   * used locally), and the flat filter list per regular view + per list-view level on this table.
+   * Reused to match many rows in a bulk broadcast without reloading metadata per row.
+   */
+  private static async getViewFilterContext(
+    context: NcContext,
+    tableId: string,
+  ): Promise<{
+    columns: ColumnType[];
+    client: string;
+    metas: Record<string, any>;
+    baseId?: string;
+    filterSets: Array<{ viewId: string; filters: FilterType[] }>;
+  }> {
+    const model = await Model.getWithInfo(context, { id: tableId });
+    const columns: ColumnType[] = model?.columns || [];
+    const source = model?.source_id
+      ? await Source.get(context, model.source_id)
+      : null;
+    const client = source?.type || 'pg';
+
+    const metas: Record<string, any> = {};
+    const addRelatedMeta = async (relatedModelId?: string) => {
+      if (!relatedModelId || metas[relatedModelId]) return;
+      try {
+        metas[relatedModelId] = await Model.getWithInfo(context, {
+          id: relatedModelId,
+        });
+      } catch {
+        // Missing related meta just makes that filter evaluate to no-match — safe.
+      }
+    };
+    for (const col of columns) {
+      const colOpt = col.colOptions as any;
+      if (!colOpt) continue;
+      if (isLinksOrLTAR(col.uidt)) {
+        await addRelatedMeta(colOpt.fk_related_model_id);
+      } else if (col.uidt === UITypes.Lookup) {
+        const relCol = columns.find(
+          (c) => c.id === colOpt.fk_relation_column_id,
+        );
+        await addRelatedMeta((relCol?.colOptions as any)?.fk_related_model_id);
+      }
+    }
+
+    const filterSets: Array<{ viewId: string; filters: FilterType[] }> = [];
+
+    // Regular views — saved filters. allViewFilterList returns the FLAT full list (parents +
+    // nested children) that validateRowFilters -> buildFilterTree needs.
+    const views = await View.list(context, tableId);
+    for (const view of views ?? []) {
+      // List views are handled per-level below (a list view spans multiple tables and isn't a
+      // "view of" its parent tables, so its membership is level-scoped).
+      if (view.type === ViewTypes.LIST) continue;
+      const filters = await Filter.allViewFilterList(context, {
+        viewId: view.id,
+      });
+      filterSets.push({ viewId: view.id, filters: filters ?? [] });
+    }
+
+    // List views: View.list(tableId) only surfaces a list view when tableId is its leaf, so look
+    // up every list-view level on this table (leaf or parent) and take that level's own
+    // (fk_level_id-scoped) filters.
+    const listLevels = await ListViewLevel.listByModelId(context, tableId);
+    for (const level of listLevels ?? []) {
+      if (
+        !level.fk_view_id ||
+        filterSets.some((s) => s.viewId === level.fk_view_id)
+      ) {
+        continue;
+      }
+      const viewFilters = await Filter.allViewFilterList(context, {
+        viewId: level.fk_view_id,
+      });
+      filterSets.push({
+        viewId: level.fk_view_id,
+        filters: (viewFilters ?? []).filter((f) => f.fk_level_id === level.id),
+      });
+    }
+
+    return { columns, client, metas, baseId: model?.base_id, filterSets };
+  }
+
+  /**
+   * Evaluate one row against a prebuilt view-filter context; returns the ids of matching views
+   * (a view with no filters always matches).
+   */
+  private static matchRowToViews(
+    ctx: {
+      columns: ColumnType[];
+      client: string;
+      metas: Record<string, any>;
+      baseId?: string;
+      filterSets: Array<{ viewId: string; filters: FilterType[] }>;
+    },
+    rowData: Record<string, any>,
+  ): string[] {
+    const matched: string[] = [];
+    for (const { viewId, filters } of ctx.filterSets) {
+      if (!filters.length) {
+        matched.push(viewId);
+        continue;
+      }
+      const passes = validateRowFilters({
+        filters,
+        data: rowData,
+        columns: ctx.columns,
+        client: ctx.client,
+        metas: ctx.metas,
+        baseId: ctx.baseId,
+      });
+      if (passes) matched.push(viewId);
+    }
+    return matched;
   }
 
   /**

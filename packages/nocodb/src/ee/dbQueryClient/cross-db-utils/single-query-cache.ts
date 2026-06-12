@@ -28,6 +28,13 @@ export async function getSingleQueryCache(
  * writers for the same (model, view) but different suffixes (e.g. `:queries`
  * and `:count` racing through `Promise.all` in `getDataWithCountCache`) each
  * add their own member without wiping siblings.
+ *
+ * `addToList` also back-links the entry to the parent SET via its `parentKeys`
+ * envelope, so read-side `refreshTTL` keeps the SET alive alongside its
+ * children. Without that link the SET would expire on hot tables while its
+ * children live on, orphaning entries that `clearSingleQueryCache` can never
+ * reach — the cause of stale compiled SQL surviving a column rename (Postgres
+ * 42703 "column does not exist" on every read until a manual cache flush).
  */
 export async function setSingleQueryCache(
   context: NcContext,

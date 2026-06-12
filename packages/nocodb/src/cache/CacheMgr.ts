@@ -558,6 +558,50 @@ export default abstract class CacheMgr {
     return this.set(listKey, list);
   }
 
+  /**
+   * Additive list write: `sadd` the child key onto the parent SET without
+   * touching siblings — safe under concurrent writers, unlike `appendToList`
+   * (destructive fallback when child is missing) and `setList` (deepDels the
+   * existing list before re-seeding).
+   *
+   * Also registers the list key in the child's `parentKeys` envelope. Without
+   * that back-link the read-side `refreshTTL` only ever touches the child, the
+   * parent SET silently expires after `NC_REDIS_TTL`, and from then on
+   * `deepDel(listKey, PARENT_TO_CHILD)` is a no-op — leaving orphaned children
+   * that invalidation can never reach.
+   */
+  async addToList(
+    scope: string,
+    subListKeys: string[],
+    key: string,
+  ): Promise<boolean> {
+    // remove null from arrays
+    subListKeys = subListKeys.filter((k) => k);
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
+    const listKey =
+      subListKeys.length === 0
+        ? `${scope}:list`
+        : `${scope}:${subListKeys.join(':')}:list`;
+    log(`${this.context}::addToList: add key ${key} to ${listKey}`);
+
+    // link child → parent so refreshTTL keeps the SET alive on reads and
+    // deepDel(CHILD_TO_PARENT) can reach the list
+    const rawValue = await this.getRaw(key, CacheGetType.TYPE_OBJECT);
+    if (rawValue) {
+      const preparedValue = this.prepareValue({
+        value: rawValue.value ?? rawValue,
+        parentKeys: this.getParents(rawValue),
+        newKey: listKey,
+      });
+      await this.set(key, preparedValue, {
+        skipPrepare: true,
+      });
+    }
+
+    // sadd onto the parent SET (also refreshes the SET's TTL)
+    return this.set(listKey, [key]);
+  }
+
   async update(key: string, value: any): Promise<boolean> {
     let o = await this.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {

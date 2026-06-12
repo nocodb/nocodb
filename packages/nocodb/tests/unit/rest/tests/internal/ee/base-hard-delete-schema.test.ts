@@ -95,6 +95,16 @@ export function baseHardDeleteSchemaTests() {
         dropSchemaCallsFor(metaRawSpy, schema),
         'DROP SCHEMA must not run on the meta connection',
       ).to.eq(0);
+
+      // The spy passes through, so the schema must actually be gone.
+      const after = await sourceKnex.raw(
+        `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
+        [schema],
+      );
+      expect(
+        after.rows?.length,
+        'schema must be absent after the base hard delete',
+      ).to.eq(0);
     });
   });
 }

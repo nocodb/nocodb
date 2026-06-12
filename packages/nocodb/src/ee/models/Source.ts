@@ -131,10 +131,10 @@ export default class Source extends SourceCE implements SourceType {
       process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true' &&
       this.isMeta(true, 1)
     ) {
-      const schema = this.getConfig()?.schema;
-      // Guard: only drop a real per-base schema, never `public`.
-      if (schema && schema !== 'public') {
-        try {
+      try {
+        const schema = this.getConfig()?.schema;
+        // Guard: only drop a real per-base schema, never `public`.
+        if (schema && schema !== 'public') {
           // The base schema lives in the workspace DB on the assigned
           // db_server (falls back to NC_DATA_DB / meta when none is set).
           // NcConnectionMgrv2.get resolves that connection for the is_local
@@ -142,14 +142,15 @@ export default class Source extends SourceCE implements SourceType {
           // the workspace schema orphaned.
           const knex = await NcConnectionMgrv2.get(this);
           await knex.raw(`DROP SCHEMA IF EXISTS ?? CASCADE`, [schema]);
-        } catch (e) {
-          // Best-effort: a db_server outage must not abort the meta delete.
-          logger.warn(
-            `Best-effort schema drop failed for base ${
-              this.base_id
-            } (schema ${schema}): ${(e as Error)?.message}`,
-          );
         }
+      } catch (e) {
+        // Best-effort: neither a config decrypt failure nor a db_server
+        // outage may abort the meta delete.
+        logger.warn(
+          `Best-effort schema drop failed for base ${this.base_id}: ${
+            (e as Error)?.message
+          }`,
+        );
       }
     }
 

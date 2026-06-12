@@ -2,7 +2,9 @@ import BaseCE from 'src/models/Base';
 import {
   BaseVersion,
   extractRolesObj,
+  isLinksOrLTAR,
   ManagedAppVersionStatus,
+  MetaEventType,
   OrgUserRoles,
   ProjectRoles,
   WorkspaceUserRoles,
@@ -27,6 +29,7 @@ import {
   BaseTrash,
   BaseUser,
   BaseVariable,
+  Column,
   CustomUrl,
   Dashboard,
   DataReflection,
@@ -36,8 +39,10 @@ import {
   FileReference,
   HookLog,
   IntegrationLink,
+  LinkToAnotherRecordColumn,
   ManagedAppVersion,
   MCPToken,
+  Model,
   ModelRoleVisibility,
   ModelStat,
   OperationLog,
@@ -62,6 +67,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
@@ -601,6 +607,10 @@ export default class Base extends BaseCE {
       );
     }
 
+    // Remove cross-base link columns in OTHER bases that point into this base
+    // before its own sources are torn down, so no dangling link is left behind.
+    await this.cleanupCrossBaseLinksInto(context, baseId, ncMeta);
+
     const sources = await Source.list(
       context,
       { baseId, includeDeleted: true },
@@ -686,6 +696,341 @@ export default class Base extends BaseCE {
     await ApiTokenScope.deleteByResourceId(baseId, ncMeta);
 
     return res;
+  }
+
+  /**
+   * Tear down cross-base link columns that live in OTHER bases but point INTO
+   * the base being hard-deleted. Their relation rows are owned by the other
+   * base (`base_id` != this base) yet reference this base via
+   * `fk_related_base_id` / `fk_mm_base_id`. Without this, hard-deleting a base
+   * leaves a dangling link column behind — a broken link if still active, and
+   * a restorable one if it was moved to field trash (restoring it would
+   * resurrect a link to a base that no longer exists).
+   *
+   * Each inbound link goes through the canonical `Column.delete2` path (so
+   * relation row, view columns, caches, file references and display-value
+   * refs are swept), followed by the column-delete dependency pipeline (so
+   * dependents in the surviving base — lookups, rollups, filters, view refs —
+   * are swept or error-marked), the field-trash entry, and any auto-created
+   * mm junction left orphaned in the surviving base.
+   *
+   * Best-effort per link: outside a caller-owned transaction a failure is
+   * swallowed so it never aborts the base delete. Inside one, a failed meta
+   * statement has already poisoned the shared trx, so the failure is
+   * propagated instead — see `propagateIfTransactionAborted`.
+   */
+  private static async cleanupCrossBaseLinksInto(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    let inboundLinks: Record<string, any>[];
+    try {
+      // Relation rows span bases, so query the workspace directly rather than
+      // through the base-scoped meta helpers.
+      inboundLinks = await ncMeta
+        .knex(MetaTable.COL_RELATIONS)
+        .where('fk_workspace_id', context.workspace_id)
+        .whereNot('base_id', baseId)
+        .where((qb) => {
+          qb.where('fk_related_base_id', baseId).orWhere(
+            'fk_mm_base_id',
+            baseId,
+          );
+        });
+    } catch (e) {
+      logger.warn(
+        `Best-effort cross-base link cleanup failed for base ${baseId}: ${
+          (e as Error)?.message
+        }`,
+      );
+      this.propagateIfTransactionAborted(ncMeta, e);
+      return;
+    }
+
+    if (!inboundLinks.length) return;
+
+    // The column-delete dependency pipeline lives in the service layer —
+    // resolve it via the app container. Without it the columns are still
+    // deleted, only the dependent sweep is skipped.
+    let metaDependencyEventHandler: MetaDependencyEventHandler | null = null;
+    try {
+      metaDependencyEventHandler = Noco.nestApp.get(MetaDependencyEventHandler);
+    } catch (e) {
+      logger.warn(
+        `MetaDependencyEventHandler unavailable during cross-base link cleanup: ${
+          (e as Error)?.message
+        }`,
+      );
+    }
+
+    for (const link of inboundLinks) {
+      const linkBaseId = link.base_id;
+      const columnId = link.fk_column_id;
+      if (!linkBaseId || !columnId) continue;
+
+      try {
+        const linkContext = {
+          workspace_id: context.workspace_id,
+          base_id: linkBaseId,
+        };
+
+        const colRow = await ncMeta.metaGet2(
+          context.workspace_id,
+          linkBaseId,
+          MetaTable.COLUMNS,
+          columnId,
+        );
+
+        if (colRow) {
+          await this.deleteCrossBaseColumn(
+            linkContext,
+            colRow,
+            metaDependencyEventHandler,
+            ncMeta,
+          );
+        } else {
+          // Column row already gone — drop the dangling relation row + cache.
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            linkBaseId,
+            MetaTable.COL_RELATIONS,
+            { fk_column_id: columnId },
+          );
+          await NocoCache.deepDel(
+            linkContext,
+            `${CacheScope.COL_RELATION}:${columnId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
+
+        // Drop any field-trash entry so the now-targetless link can't be
+        // restored from the owning base's trash.
+        await BaseTrash.deleteByResourceId(
+          linkContext,
+          'field',
+          columnId,
+          ncMeta,
+        );
+
+        // The auto-created junction of an mm link lives in the link-owning
+        // base — when that base survives, tear the junction down too. Custom
+        // links borrow user tables as junctions and are never torn down —
+        // same gate as ColumnsService.columnDelete.
+        if (
+          link.fk_mm_model_id &&
+          link.fk_mm_base_id &&
+          link.fk_mm_base_id !== baseId &&
+          colRow &&
+          !parseMetaProp(colRow)?.custom
+        ) {
+          await this.cleanupOrphanedJunction(
+            {
+              workspace_id: context.workspace_id,
+              base_id: link.fk_mm_base_id,
+            },
+            link.fk_mm_model_id,
+            baseId,
+            metaDependencyEventHandler,
+            ncMeta,
+          );
+        }
+      } catch (e) {
+        logger.warn(
+          `Best-effort cross-base link cleanup failed for base ${baseId} (column ${columnId}): ${
+            (e as Error)?.message
+          }`,
+        );
+        this.propagateIfTransactionAborted(ncMeta, e);
+      }
+    }
+  }
+
+  /**
+   * Cross-base cleanup is best-effort — but only outside a caller-owned
+   * transaction. Inside one, a failed meta statement has already aborted the
+   * shared trx (a thrown dependency handler even rolls it back), so any
+   * further statement would just error on a dead connection. Propagate instead
+   * so the owner rolls back once, cleanly. Note this only covers meta-DB
+   * failures: work on a separate connection (e.g. dropping a junction's
+   * physical table on the workspace DB) does not poison the meta trx and is
+   * swallowed at its own call site rather than reaching here. Callers log
+   * before invoking this.
+   */
+  private static propagateIfTransactionAborted(
+    ncMeta: typeof Noco.ncMeta,
+    e: unknown,
+  ): void {
+    if (ncMeta.connection?.isTransaction) {
+      throw e;
+    }
+  }
+
+  /**
+   * Delete a (possibly trashed) column through the canonical model path, then
+   * replay the column-delete dependency pipeline so dependents in the owning
+   * base (lookups, rollups, filters, view refs) are swept or error-marked —
+   * the same pipeline ColumnsService.columnDelete runs after a user-initiated
+   * delete.
+   */
+  private static async deleteCrossBaseColumn(
+    colContext: NcContext,
+    colRow: Record<string, any>,
+    metaDependencyEventHandler: MetaDependencyEventHandler | null,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    // Column.delete2 no-ops on trashed columns — reactivate first, the same
+    // dance the field trash handler does on permanent delete.
+    const wasTrashed = !!colRow.deleted;
+    if (wasTrashed) {
+      await ncMeta.metaUpdate(
+        colContext.workspace_id,
+        colContext.base_id,
+        MetaTable.COLUMNS,
+        { deleted: false },
+        colRow.id,
+      );
+      await NocoCache.set(colContext, `${CacheScope.COLUMN}:${colRow.id}`, {
+        ...colRow,
+        deleted: false,
+      });
+    }
+
+    try {
+      await Column.delete2(colContext, { id: colRow.id }, ncMeta);
+    } catch (e) {
+      // Don't leave a previously-trashed column re-activated when its delete
+      // fails — restore the trash flag before bubbling to the per-link guard.
+      if (wasTrashed) {
+        try {
+          await ncMeta.metaUpdate(
+            colContext.workspace_id,
+            colContext.base_id,
+            MetaTable.COLUMNS,
+            { deleted: true },
+            colRow.id,
+          );
+          await NocoCache.set(
+            colContext,
+            `${CacheScope.COLUMN}:${colRow.id}`,
+            colRow,
+          );
+        } catch {
+          // best-effort restore — the original failure is what matters
+        }
+      }
+      throw e;
+    }
+
+    if (metaDependencyEventHandler) {
+      await metaDependencyEventHandler.handleEvent(
+        colContext,
+        {
+          eventType: MetaEventType.COLUMN_DELETED,
+          oldEntity: colRow,
+        },
+        ncMeta,
+      );
+    }
+  }
+
+  /**
+   * Tear down an auto-created mm junction left orphaned in a surviving base:
+   * the system links still referencing it, its metadata and its physical
+   * table. Mirrors the junction teardown in ColumnsService.columnDelete,
+   * which is not reachable from a base hard delete.
+   */
+  private static async cleanupOrphanedJunction(
+    mmContext: NcContext,
+    junctionModelId: string,
+    deletedBaseId: string,
+    metaDependencyEventHandler: MetaDependencyEventHandler | null,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const junction = await Model.get(mmContext, junctionModelId, false, ncMeta);
+    // Only auto-created junction tables are torn down.
+    if (!junction?.mm) return;
+
+    // The junction's own system bt link columns (mirrors the "delete bt
+    // columns in m2m table" sweep in ColumnsService.columnDelete). The bt
+    // pointing into the deleted base is usually gone already via the inbound
+    // sweep — this catches the surviving-side bt.
+    await junction.getColumns(mmContext, ncMeta);
+    for (const junctionColumn of junction.columns) {
+      if (!isLinksOrLTAR(junctionColumn.uidt)) continue;
+      const colOpt =
+        await junctionColumn.getColOptions<LinkToAnotherRecordColumn>(
+          mmContext,
+          ncMeta,
+        );
+      if (colOpt?.type === 'bt') {
+        await Column.delete2(mmContext, { id: junctionColumn.id }, ncMeta);
+      }
+    }
+
+    // System links in surviving bases that still point at the junction (the
+    // deleted base's own rows go down with its sources).
+    const junctionLinks = await ncMeta
+      .knex(MetaTable.COL_RELATIONS)
+      .where('fk_workspace_id', mmContext.workspace_id)
+      .where('fk_related_model_id', junctionModelId)
+      .whereNot('base_id', deletedBaseId);
+
+    for (const junctionLink of junctionLinks) {
+      if (!junctionLink.base_id || !junctionLink.fk_column_id) continue;
+      const sysColRow = await ncMeta.metaGet2(
+        mmContext.workspace_id,
+        junctionLink.base_id,
+        MetaTable.COLUMNS,
+        junctionLink.fk_column_id,
+      );
+      if (!sysColRow) continue;
+      await this.deleteCrossBaseColumn(
+        {
+          workspace_id: mmContext.workspace_id,
+          base_id: junctionLink.base_id,
+        },
+        sysColRow,
+        metaDependencyEventHandler,
+        ncMeta,
+      );
+    }
+
+    // Match ColumnsService.columnDelete: only drop the junction while it has
+    // just its two FK columns — user-extended junctions are left alone.
+    const junctionColumns = await junction.getColumns(mmContext, ncMeta);
+    if (junctionColumns.length !== 2) return;
+
+    const mmSource = await Source.get(
+      mmContext,
+      junction.source_id,
+      false,
+      ncMeta,
+    );
+    if (mmSource) {
+      // The physical junction table lives in the surviving base's workspace DB
+      // (a separate connection), not the meta DB — same routing as the schema
+      // drop in Source.sourceCleanup. Best-effort: a workspace-DB failure here
+      // does not poison the meta trx, so swallow it rather than aborting the
+      // whole base delete; the meta-side junction.delete below still runs.
+      try {
+        const sourceKnex = await NcConnectionMgrv2.get(mmSource);
+        const schema = mmSource.getConfig()?.schema;
+        const schemaBuilder =
+          schema && schema !== 'public'
+            ? sourceKnex.schema.withSchema(schema)
+            : sourceKnex.schema;
+        await schemaBuilder.dropTableIfExists(junction.table_name);
+      } catch (e) {
+        logger.warn(
+          `Best-effort junction table drop failed for base ${deletedBaseId} (junction ${junctionModelId}): ${
+            (e as Error)?.message
+          }`,
+        );
+      }
+    }
+
+    await junction.delete(mmContext, ncMeta, true);
   }
 
   // @ts-ignore

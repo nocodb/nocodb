@@ -15,6 +15,8 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/base-hard-delete-orphans.test').baseHardDeleteOrphansTests();
         require('./ee/meta-satellite-trx-guard.test').metaSatelliteTrxGuardTests();
         require('./ee/clean-up-processor.test').cleanUpProcessorTests();
+        require('./ee/base-hard-delete-schema.test').baseHardDeleteSchemaTests();
+        require('./ee/base-hard-delete-cross-base-link.test').baseHardDeleteCrossBaseLinkTests();
         require('./ee/base-trash-field.test').baseTrashFieldTests();
         require('./ee/base-trash-table.test').baseTrashTableTests();
         require('./ee/date-dependency.test').dateDependencyTests();

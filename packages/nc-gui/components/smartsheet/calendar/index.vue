@@ -16,6 +16,12 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// Calendar date cells render lookup fields through the flat PlainCell path,
+// which only reads the metas cache. Preload the related-table metas for every
+// visible lookup chain so a lookup-of-a-lookup resolves on a direct URL /
+// refresh — without it those cells render empty or as "[object Object]".
+useLoadLookupMetas(meta, { enabled: computed(() => !isPublic.value) })
+
 provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))

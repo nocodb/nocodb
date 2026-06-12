@@ -106,18 +106,11 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${viewIdOrDefault}:count${cacheKeySuffix}`;
 
     if (!skipCache) {
-      const [cachedQuery, cachedCountQuery] = await Promise.all([
-        getSingleQueryCache(context, {
-          modelId: ctx.model.id,
-          viewIdOrDefault,
-          cacheKey,
-        }),
-        getSingleQueryCache(context, {
-          modelId: ctx.model.id,
-          viewIdOrDefault,
-          cacheKey: countCacheKey,
-        }),
-      ]);
+      const cachedQuery = await getSingleQueryCache(context, cacheKey);
+      const cachedCountQuery = await getSingleQueryCache(
+        context,
+        countCacheKey,
+      );
       if (cachedQuery && cachedCountQuery) {
         profiler.log('get data using cache');
         debugSingleQueryList(cachedQuery);

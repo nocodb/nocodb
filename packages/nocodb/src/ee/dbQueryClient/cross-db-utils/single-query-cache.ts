@@ -8,42 +8,12 @@ export { SINGLE_QUERY_DEFAULT_VIEW };
 
 /**
  * Read a cached singleQuery entry. Returns the SQL string or null.
- *
- * Serves the entry only while it is still registered under the
- * `singleQuery:{modelId}:{viewIdOrDefault}:list` parent SET — i.e. while
- * `clearSingleQueryCache` can still reach it. If the SET is gone (TTL expiry,
- * eviction) the entry is an orphan that schema-change invalidation can never
- * clear; serving it would keep executing SQL compiled against a stale schema
- * (e.g. a renamed physical column → Postgres 42703 on every read). Drop the
- * orphan and report a miss so the caller rebuilds and re-registers it.
  */
 export async function getSingleQueryCache(
   context: NcContext,
-  params: {
-    modelId: string;
-    viewIdOrDefault: string;
-    cacheKey: string;
-  },
+  cacheKey: string,
 ): Promise<string | null> {
-  const { modelId, viewIdOrDefault, cacheKey } = params;
-  const [isRegistered, cached] = await Promise.all([
-    NocoCache.isInList(
-      context,
-      CacheScope.SINGLE_QUERY,
-      [modelId, viewIdOrDefault],
-      cacheKey,
-    ),
-    NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING),
-  ]);
-
-  if (!isRegistered) {
-    if (cached) {
-      await NocoCache.del(context, cacheKey);
-    }
-    return null;
-  }
-
-  return cached;
+  return NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING);
 }
 
 /**
@@ -58,6 +28,13 @@ export async function getSingleQueryCache(
  * writers for the same (model, view) but different suffixes (e.g. `:queries`
  * and `:count` racing through `Promise.all` in `getDataWithCountCache`) each
  * add their own member without wiping siblings.
+ *
+ * `addToList` also back-links the entry to the parent SET via its `parentKeys`
+ * envelope, so read-side `refreshTTL` keeps the SET alive alongside its
+ * children. Without that link the SET would expire on hot tables while its
+ * children live on, orphaning entries that `clearSingleQueryCache` can never
+ * reach — the cause of stale compiled SQL surviving a column rename (Postgres
+ * 42703 "column does not exist" on every read until a manual cache flush).
  */
 export async function setSingleQueryCache(
   context: NcContext,

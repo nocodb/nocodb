@@ -1,59 +1,88 @@
 import 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import type { NcContext } from '~/interface/config';
+import type CacheMgr from '~/cache/CacheMgr';
 import {
   getSingleQueryCache,
   setSingleQueryCache,
   SINGLE_QUERY_DEFAULT_VIEW,
 } from '~/dbQueryClient/cross-db-utils/single-query-cache';
-import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
+import RedisMockCacheMgr from '~/cache/RedisMockCacheMgr';
 import Noco from '~/Noco';
 import View from '~/models/View';
-import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheScope } from '~/utils/globals';
+import { NC_REDIS_GRACE_TTL, NC_REDIS_TTL } from '~/helpers/redisHelpers';
 
 // Regression tests for the singleQuery cache parent/child linkage.
 //
-// `setSingleQueryCache` registers every entry under the
-// `singleQuery:{modelId}:{viewIdOrDefault}:list` parent SET, and
-// `View.clearSingleQueryCache` invalidates by deepDel-ing that SET. If the
-// SET is ever lost while its children survive (TTL expiry — reads only
-// refreshed the child's TTL when its `parentKeys` didn't include the SET —
-// or Redis eviction), the children become orphans that invalidation can
-// never reach: schema changes (e.g. a physical column rename) stop clearing
-// the compiled SQL and every read fails with "column does not exist" until
-// the cache is flushed manually. These tests pin the two defenses:
-// the child→parent back-link, and refusing to serve unregistered entries.
+// Every entry is registered under a per-view parent SET
+// (`singleQuery_v2:{modelId}:{viewIdOrDefault}:list`); `View.clearSingleQueryCache`
+// invalidates by `deepDel(listKey, PARENT_TO_CHILD)`. The production incident
+// (Postgres 42703 "column does not exist" after a column rename, fixed only by a
+// manual cache flush) happened because entries were registered with a bare
+// `sadd` that left the child's `parentKeys` empty:
+//
+//   - reads refresh the CHILD's TTL (via `getRaw` -> `execRefreshTTL`),
+//   - but `refreshTTL` walks `parentKeys` to reach the SET, so nothing ever
+//     refreshed the parent SET's TTL on a fully-warm cache,
+//   - the SET expired after NC_REDIS_TTL while its children lived on -> the
+//     children became orphans `clearSingleQueryCache` could never reach, so
+//     schema changes silently stopped clearing the compiled SQL.
+//
+// The fix back-links the child to its parent SET, so a read refreshes both in
+// lockstep. These tests drive the real cache helpers against an isolated
+// ioredis-mock so the back-link and the SET's TTL can be inspected directly.
 function _singleQueryCacheLinkageTests() {
+  const PREFIX = 'nc:noco';
+  const context: NcContext = {
+    workspace_id: 'w_sq_linkage_test',
+    base_id: 'p_sq_linkage_test',
+  };
+
   const modelId = 'm_sq_linkage_test';
   const viewIdOrDefault = SINGLE_QUERY_DEFAULT_VIEW;
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${modelId}:${viewIdOrDefault}:read:1`;
-  const listKey = `${CacheScope.SINGLE_QUERY}:${modelId}:${viewIdOrDefault}:list`;
   const query = 'select 1 as "c_sq_linkage_test"';
 
-  const context = {
-    workspace_id: 'w_sq_linkage_test',
-    base_id: 'p_sq_linkage_test',
-  } as NcContext;
+  const ns = `${PREFIX}:${context.workspace_id}:${context.base_id}`;
+  const childFull = `${ns}:${cacheKey}`;
+  const listFull = `${ns}:${CacheScope.SINGLE_QUERY}:${modelId}:${viewIdOrDefault}:list`;
 
-  // The helpers ride NocoCache — init the in-memory mock (used when no
-  // Redis is configured). Skip if the cache is explicitly disabled.
-  // `View.clearSingleQueryCache` short-circuits outside EE, so force it on.
+  const internals = NocoCache as unknown as {
+    client: CacheMgr;
+    prefix: string;
+    cacheDisabled: boolean;
+  };
+
+  let prevClient: CacheMgr;
+  let prevPrefix: string;
+  let prevDisabled: boolean;
+  let mock: RedisMockCacheMgr;
   let isEEStub: sinon.SinonStub;
 
-  before(function () {
-    NocoCache.init();
-    if (NocoCache.isCacheDisabled) this.skip();
+  beforeEach(() => {
+    prevClient = internals.client;
+    prevPrefix = internals.prefix;
+    prevDisabled = internals.cacheDisabled;
+
+    mock = new RedisMockCacheMgr();
+    internals.client = mock;
+    internals.prefix = PREFIX;
+    internals.cacheDisabled = false;
+
+    // View.clearSingleQueryCache short-circuits outside EE
     isEEStub = sinon.stub(Noco, 'isEE').returns(true);
   });
 
-  after(function () {
+  afterEach(async () => {
     isEEStub?.restore();
-  });
-
-  beforeEach(async () => {
-    await NocoCache.deepDel(context, listKey, CacheDelDirection.PARENT_TO_CHILD);
-    await NocoCache.del(context, cacheKey);
+    await mock.client.flushall();
+    mock.client.disconnect();
+    internals.client = prevClient;
+    internals.prefix = prevPrefix;
+    internals.cacheDisabled = prevDisabled;
   });
 
   it('serves a registered entry', async () => {
@@ -64,12 +93,7 @@ function _singleQueryCacheLinkageTests() {
       query,
     });
 
-    const cached = await getSingleQueryCache(context, {
-      modelId,
-      viewIdOrDefault,
-      cacheKey,
-    });
-    expect(cached).to.equal(query);
+    expect(await getSingleQueryCache(context, cacheKey)).to.equal(query);
   });
 
   it('clearSingleQueryCache removes the entry', async () => {
@@ -82,88 +106,56 @@ function _singleQueryCacheLinkageTests() {
 
     await View.clearSingleQueryCache(context, modelId, []);
 
-    const cached = await getSingleQueryCache(context, {
-      modelId,
-      viewIdOrDefault,
-      cacheKey,
-    });
-    expect(cached).to.equal(null);
-    expect(
-      await NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING),
-    ).to.equal(null);
+    expect(await getSingleQueryCache(context, cacheKey)).to.equal(null);
   });
 
-  it('back-links the child to the parent SET so child-side deletes reach the list', async () => {
+  it('back-links the plan key to its :list SET via parentKeys', async () => {
     await setSingleQueryCache(context, {
       modelId,
       viewIdOrDefault,
       cacheKey,
       query,
     });
-    expect(
-      await NocoCache.isInList(
-        context,
-        CacheScope.SINGLE_QUERY,
-        [modelId, viewIdOrDefault],
-        cacheKey,
-      ),
-    ).to.equal(true);
 
-    // CHILD_TO_PARENT walks the child's parentKeys — only works if
-    // setSingleQueryCache wrote the back-link
-    await NocoCache.deepDel(
-      context,
+    // the entry is a member of the registry SET (additive membership)
+    const members = await mock.client.smembers(listFull);
+    expect(members).to.include(childFull);
+
+    // and it links back to that SET so the refreshTTL cascade can keep the SET
+    // alive whenever the entry is read — the absence of this was the bug
+    const stored = JSON.parse(await mock.client.get(childFull));
+    expect(stored.parentKeys).to.include(listFull);
+  });
+
+  it('refreshes the :list SET TTL when a plan key is read (prevents orphaning)', async () => {
+    await setSingleQueryCache(context, {
+      modelId,
+      viewIdOrDefault,
       cacheKey,
-      CacheDelDirection.CHILD_TO_PARENT,
+      query,
+    });
+
+    // simulate the registry SET being close to expiry while the busy plan key
+    // keeps getting read
+    await mock.client.expire(listFull, 100);
+
+    // age the plan key's stored timestamp past the grace TTL so the next read
+    // triggers execRefreshTTL (reads only refresh when older than the grace)
+    const stored = JSON.parse(await mock.client.get(childFull));
+    stored.timestamp = Date.now() - (NC_REDIS_GRACE_TTL * 1000 + 60_000);
+    await mock.client.set(
+      childFull,
+      JSON.stringify(stored),
+      'EX',
+      NC_REDIS_TTL,
     );
 
-    expect(
-      await NocoCache.isInList(
-        context,
-        CacheScope.SINGLE_QUERY,
-        [modelId, viewIdOrDefault],
-        cacheKey,
-      ),
-    ).to.equal(false);
-  });
+    // reading the plan key must cascade a TTL refresh up to the :list SET
+    await getSingleQueryCache(context, cacheKey);
 
-  it('refuses to serve an orphan whose parent SET is gone and drops it', async () => {
-    await setSingleQueryCache(context, {
-      modelId,
-      viewIdOrDefault,
-      cacheKey,
-      query,
-    });
-
-    // simulate parent SET loss (TTL expiry / eviction) — child survives
-    await NocoCache.del(context, listKey);
-
-    const cached = await getSingleQueryCache(context, {
-      modelId,
-      viewIdOrDefault,
-      cacheKey,
-    });
-    expect(cached).to.equal(null);
-
-    // the orphan itself must be dropped so a later write re-registers cleanly
-    expect(
-      await NocoCache.get(context, cacheKey, CacheGetType.TYPE_STRING),
-    ).to.equal(null);
-
-    // and the normal write→read cycle recovers
-    await setSingleQueryCache(context, {
-      modelId,
-      viewIdOrDefault,
-      cacheKey,
-      query,
-    });
-    expect(
-      await getSingleQueryCache(context, {
-        modelId,
-        viewIdOrDefault,
-        cacheKey,
-      }),
-    ).to.equal(query);
+    // without the parentKeys back-link this stays ~100 (orphaning the entry);
+    // with the fix it is bumped back to ~NC_REDIS_TTL - 60
+    expect(await mock.client.ttl(listFull)).to.be.greaterThan(1000);
   });
 }
 

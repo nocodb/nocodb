@@ -221,22 +221,6 @@ export default class NocoCache {
     );
   }
 
-  // True when `key` is registered under the parent SET — i.e. the entry is
-  // reachable by `deepDel(listKey, PARENT_TO_CHILD)` invalidation.
-  public static async isInList(
-    context: CacheContext,
-    scope: string,
-    subListKeys: string[],
-    key: string,
-  ): Promise<boolean> {
-    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(false);
-    return this.client.isInList(
-      `${this.prefix}:${cacheContext(context)}:${scope}`,
-      subListKeys,
-      `${this.prefix}:${cacheContext(context)}:${key}`,
-    );
-  }
-
   public static async update(
     context: CacheContext,
     key: string,

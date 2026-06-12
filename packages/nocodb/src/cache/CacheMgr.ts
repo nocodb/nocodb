@@ -602,23 +602,6 @@ export default abstract class CacheMgr {
     return this.set(listKey, [key]);
   }
 
-  /**
-   * Membership check against a parent SET — true when `key` is registered
-   * under the list, i.e. reachable by `deepDel(listKey, PARENT_TO_CHILD)`.
-   */
-  async isInList(
-    scope: string,
-    subListKeys: string[],
-    key: string,
-  ): Promise<boolean> {
-    subListKeys = subListKeys.filter((k) => k);
-    const listKey =
-      subListKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subListKeys.join(':')}:list`;
-    return !!(await this.client.sismember(listKey, key));
-  }
-
   async update(key: string, value: any): Promise<boolean> {
     let o = await this.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {

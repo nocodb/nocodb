@@ -105,11 +105,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
     const viewIdOrDefault = ctx.view?.id ?? SINGLE_QUERY_DEFAULT_VIEW;
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${viewIdOrDefault}:read:${flags}${rlsCacheSegment}${displayColSegment}`;
     if (!skipCache) {
-      const cachedQuery = await getSingleQueryCache(context, {
-        modelId: ctx.model.id,
-        viewIdOrDefault,
-        cacheKey,
-      });
+      const cachedQuery = await getSingleQueryCache(context, cacheKey);
       if (cachedQuery) {
         const res = await baseModel.execAndParse(
           knex.raw(cachedQuery, normalizedIdValues).toQuery(),

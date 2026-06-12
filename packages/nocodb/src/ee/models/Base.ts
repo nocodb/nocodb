@@ -713,7 +713,11 @@ export default class Base extends BaseCE {
    * dependents in the surviving base — lookups, rollups, filters, view refs —
    * are swept or error-marked), the field-trash entry, and any auto-created
    * mm junction left orphaned in the surviving base.
-   * Best-effort per link: a cleanup failure must never abort the base delete.
+   *
+   * Best-effort per link: outside a caller-owned transaction a failure is
+   * swallowed so it never aborts the base delete. Inside one, a failed meta
+   * statement has already poisoned the shared trx, so the failure is
+   * propagated instead — see `propagateIfTransactionAborted`.
    */
   private static async cleanupCrossBaseLinksInto(
     context: NcContext,
@@ -740,11 +744,7 @@ export default class Base extends BaseCE {
           (e as Error)?.message
         }`,
       );
-      // Inside a caller-owned transaction the failed statement has already
-      // aborted the trx — propagate so the owner rolls back once, cleanly.
-      if (ncMeta.connection?.isTransaction) {
-        throw e;
-      }
+      this.propagateIfTransactionAborted(ncMeta, e);
       return;
     }
 
@@ -841,14 +841,28 @@ export default class Base extends BaseCE {
             (e as Error)?.message
           }`,
         );
-        // Inside a caller-owned transaction the failure has already aborted
-        // the shared trx (a thrown dependency handler even rolls it back) —
-        // continuing would only issue statements on a dead connection.
-        // Propagate so the owner rolls back once, cleanly.
-        if (ncMeta.connection?.isTransaction) {
-          throw e;
-        }
+        this.propagateIfTransactionAborted(ncMeta, e);
       }
+    }
+  }
+
+  /**
+   * Cross-base cleanup is best-effort — but only outside a caller-owned
+   * transaction. Inside one, a failed meta statement has already aborted the
+   * shared trx (a thrown dependency handler even rolls it back), so any
+   * further statement would just error on a dead connection. Propagate instead
+   * so the owner rolls back once, cleanly. Note this only covers meta-DB
+   * failures: work on a separate connection (e.g. dropping a junction's
+   * physical table on the workspace DB) does not poison the meta trx and is
+   * swallowed at its own call site rather than reaching here. Callers log
+   * before invoking this.
+   */
+  private static propagateIfTransactionAborted(
+    ncMeta: typeof Noco.ncMeta,
+    e: unknown,
+  ): void {
+    if (ncMeta.connection?.isTransaction) {
+      throw e;
     }
   }
 
@@ -994,17 +1008,25 @@ export default class Base extends BaseCE {
       ncMeta,
     );
     if (mmSource) {
-      // Same connection routing as the schema drop in Source.sourceCleanup:
-      // the physical junction table lives in the surviving base's workspace
-      // DB, not the meta DB.
-      const sourceKnex = await NcConnectionMgrv2.get(mmSource);
-      const schema = mmSource.getConfig()?.schema;
-      if (schema && schema !== 'public') {
-        await sourceKnex.schema
-          .withSchema(schema)
-          .dropTableIfExists(junction.table_name);
-      } else {
-        await sourceKnex.schema.dropTableIfExists(junction.table_name);
+      // The physical junction table lives in the surviving base's workspace DB
+      // (a separate connection), not the meta DB — same routing as the schema
+      // drop in Source.sourceCleanup. Best-effort: a workspace-DB failure here
+      // does not poison the meta trx, so swallow it rather than aborting the
+      // whole base delete; the meta-side junction.delete below still runs.
+      try {
+        const sourceKnex = await NcConnectionMgrv2.get(mmSource);
+        const schema = mmSource.getConfig()?.schema;
+        const schemaBuilder =
+          schema && schema !== 'public'
+            ? sourceKnex.schema.withSchema(schema)
+            : sourceKnex.schema;
+        await schemaBuilder.dropTableIfExists(junction.table_name);
+      } catch (e) {
+        logger.warn(
+          `Best-effort junction table drop failed for base ${deletedBaseId} (junction ${junctionModelId}): ${
+            (e as Error)?.message
+          }`,
+        );
       }
     }
 

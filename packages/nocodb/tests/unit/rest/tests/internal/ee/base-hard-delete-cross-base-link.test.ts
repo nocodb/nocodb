@@ -360,6 +360,68 @@ export function baseHardDeleteCrossBaseLinkTests() {
       }
     });
 
+    it('completes the base delete when the physical junction drop fails (best-effort)', async () => {
+      const link = await createColumn(context, tableB, {
+        title: 'MMToAFail',
+        column_name: 'MMToAFail',
+        uidt: UITypes.Links,
+        parentId: tableB.id,
+        childId: tableA.id,
+        ref_base_id: baseA.id,
+        type: 'mm',
+      });
+
+      const rel = await relationRowFor(link.id);
+      const junction = await Model.get(ctxB, rel.fk_mm_model_id);
+      const junctionSource = await Source.get(ctxB, junction.source_id);
+
+      // The physical junction drop runs on the workspace DB — a separate
+      // connection that does NOT poison the meta transaction. A failure there
+      // must be swallowed so the base delete still completes; only the
+      // physical table is left orphaned, the metadata is still swept.
+      const originalGet = NcConnectionMgrv2.get.bind(NcConnectionMgrv2);
+      sinon.stub(NcConnectionMgrv2, 'get').callsFake(async (src: any) => {
+        if (src?.id === junctionSource.id) {
+          const reject = () =>
+            Promise.reject(new Error('simulated junction drop failure'));
+          return {
+            schema: {
+              withSchema: () => ({ dropTableIfExists: reject }),
+              dropTableIfExists: reject,
+            },
+          } as any;
+        }
+        return originalGet(src);
+      });
+
+      let error: Error | null = null;
+      try {
+        await Base.delete(ctxA, baseA.id);
+      } catch (e: any) {
+        error = e;
+      }
+      expect(
+        error,
+        'a workspace-DB junction drop failure must not abort the base delete',
+      ).to.be.null;
+
+      // Metadata is still swept even though the physical drop was swallowed.
+      const junctionRow = await Noco.ncMeta.metaGet2(
+        ctxB.workspace_id,
+        ctxB.base_id,
+        MetaTable.MODELS,
+        junction.id,
+      );
+      expect(
+        junctionRow,
+        'junction metadata must still be removed after a swallowed physical drop',
+      ).to.not.exist;
+
+      const relAfter = await relationRowFor(link.id);
+      expect(relAfter, 'mm link relation row must still be removed').to.be
+        .undefined;
+    });
+
     it('leaves a trashed link trashed when the canonical delete fails', async () => {
       const link = await createCrossBaseLink();
 

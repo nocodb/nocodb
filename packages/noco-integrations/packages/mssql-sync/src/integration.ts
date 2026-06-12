@@ -1,5 +1,6 @@
 import {
   DataObjectStream,
+  detectUpdatedAtColumn,
   SyncIntegration,
   UITypes,
 } from '@noco-integrations/core';
@@ -80,6 +81,7 @@ class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         relations: [],
         systemFields: {
           primaryKey: primaryKeys.map((pk) => pk.COLUMN_NAME),
+          updatedAt: detectUpdatedAtColumn(columns),
         },
       };
     }
@@ -101,19 +103,28 @@ class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
     void (async () => {
       try {
-        const schema = this.config.custom_schema;
+        let schema = this.config.custom_schema;
         if (!schema) {
           throw new Error(
             'SQL Server sync is missing its schema mapping (custom_schema). ' +
               'Re-open the sync configuration to map the source schema before syncing.',
           );
         }
+        let reIntrospected = false;
 
         const targetTables = args.targetTables || [];
         const incrementalValues = args.targetTableIncrementalValues || {};
 
         for (const tableName of targetTables) {
-          const tableSchema = schema[tableName as string];
+          let tableSchema = schema[tableName as string];
+
+          if (!tableSchema && !reIntrospected) {
+            schema = await this.getDestinationSchema(auth);
+            reIntrospected = true;
+            this._config = { ...this._config, custom_schema: schema };
+            tableSchema = schema[tableName as string];
+          }
+
           if (!tableSchema) {
             console.warn(`Schema not found for table: ${tableName}`);
             continue;
@@ -271,7 +282,14 @@ class MssqlSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       const systemFields = schema[targetTable].systemFields;
 
       if (systemFields && systemFields.updatedAt) {
-        return systemFields.updatedAt;
+        const updatedAtColumn = schema[targetTable].columns?.find(
+          (column) => column.title === systemFields.updatedAt,
+        );
+
+        // An excluded column has no destination counterpart to read the cursor from
+        if (updatedAtColumn && !updatedAtColumn.exclude) {
+          return systemFields.updatedAt;
+        }
       }
     }
 

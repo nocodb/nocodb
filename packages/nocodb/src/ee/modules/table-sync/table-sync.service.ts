@@ -338,7 +338,6 @@ export class TableSyncService {
             : oldSync.selected_fields ?? null,
         linkViewByColumn: patch.link_view_by_column ?? {},
         dropHiddenInView: sourceViewChanged,
-        undoable: true,
         req,
       });
     }
@@ -599,11 +598,6 @@ export class TableSyncService {
        *  to `show: false` in shared views, so without this override a new
        *  LTAR would never auto-mirror in sync-all mode. */
       includeColIds?: Set<string>;
-      /** Soft-delete dropped columns/tables to trash (undoable) instead of
-       *  hard-deleting. Forwarded to `removeSyncedField`. The macro update path
-       *  (`updateSync`) passes `true`; reactive source-side callers omit it and
-       *  get the default hard delete. */
-      undoable?: boolean;
       req: NcRequest;
     },
   ): Promise<{ added: boolean; removed: boolean }> {
@@ -725,7 +719,6 @@ export class TableSyncService {
               mainDest as Model,
               existingDest,
               patch.req,
-              { undoable: patch.undoable },
             );
             if (existingDest.id) removedDestColIds.add(existingDest.id);
             await this.addSyncedField(
@@ -833,7 +826,6 @@ export class TableSyncService {
           mainDest as Model,
           destCol,
           patch.req,
-          { undoable: patch.undoable },
         );
         if (destCol.id) removedDestColIds.add(destCol.id);
         anyRemoved = true;
@@ -871,7 +863,6 @@ export class TableSyncService {
           mainDest as Model,
           destCol,
           patch.req,
-          { undoable: patch.undoable },
         );
         anyRemoved = true;
       }
@@ -1388,15 +1379,9 @@ export class TableSyncService {
        *  but the shadow KEPT as a regular (now-unsynced) table — the
        *  user's data still lives in it. */
       keepShadow?: boolean;
-      /** When `false` (the default), the dropped column / junction / shadow are
-       *  hard-deleted — no trash, not undoable. When `true`, they're
-       *  soft-deleted to trash so the macro can restore them id-stable via
-       *  `trashRestore` on undo. The update/macro path passes `true`; reactive
-       *  source-side handlers omit it and get the hard-delete default. */
-      undoable?: boolean;
     } = {},
   ): Promise<void> {
-    const skipTrash = !(opts.undoable ?? false);
+    const skipTrash = true;
     // Soft path stamps dropped tables with the sync so the trash handler admits
     // a junction (mm) into trash (its `isSyncDrop` allowance) and groups them.
     const trashParent = skipTrash

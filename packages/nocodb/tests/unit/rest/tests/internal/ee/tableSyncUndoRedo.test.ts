@@ -833,78 +833,38 @@ export function tableSyncUndoRedoTests() {
     // table-trash handler must ADMIT it (not "Synced tables cannot be deleted"),
     // SUSPEND its mapping while it sits in trash, and REACTIVATE on restore —
     // bringing the table back with its mapping intact ("full mapping back").
-    it('trash synced dest table directly → mapping suspended → restore → mapping reactivated', async function () {
+    it('deleting a synced dest table directly is blocked until detached', async function () {
       this.timeout(120000);
       const created = await tableSyncCreate(
         untracedCtx(context),
         destEnv,
-        syncBody({ title: 'TrashRestoreMapping' }),
+        syncBody({ title: 'BlockedDelete' }),
       ).expect(200);
       const syncId: string = created.body.id;
       await waitForSyncSettled(destEnv, syncId);
 
-      const before = await getSync(syncId);
-      const mainBefore = (before!.mappings ?? []).find(
-        (m: any) => m.role === 'main',
-      );
-      expect(mainBefore, 'main mapping exists').to.exist;
-      expect(mainBefore!.status, 'mapping active before trash').to.equal(
-        SyncMappingStatus.Active,
-      );
-      const destTableId: string = mainBefore!.dest_table_id;
-      expect(
-        await destTableExists(destTableId),
-        'dest table live before trash',
-      ).to.eq(true);
+      const sync = await getSync(syncId);
+      const main = (sync!.mappings ?? []).find((m: any) => m.role === 'main');
+      expect(main, 'main mapping exists').to.exist;
+      const destTableId: string = main!.dest_table_id;
 
-      // Delete the synced dest table directly via the tableDelete (trash) path.
+      // Synced dest tables never enter trash — deleting one directly is
+      // blocked until it's converted to a regular table (for table sync:
+      // delete the sync keeping the table).
       await internalPost(untracedCtx(context), destEnv, {
         operation: 'tableDelete',
         tableId: destTableId,
-      }).expect(200);
+      }).expect(400);
 
       expect(
         await destTableExists(destTableId),
-        'dest table trashed',
-      ).to.eq(false);
-      const afterTrash = await getSync(syncId);
-      expect(
-        (afterTrash!.mappings ?? []).find((m: any) => m.role === 'main')!.status,
-        'mapping suspended while table in trash',
-      ).to.equal(SyncMappingStatus.Suspended);
-
-      // Restore the table from trash → mapping reactivated, table still synced.
-      const trashList = await internalGet(untracedCtx(context), destEnv, {
-        operation: 'baseTrashList',
-      }).expect(200);
-      const entry = (trashList.body.list ?? []).find(
-        (t: any) => t.resource_id === destTableId,
-      );
-      expect(entry, 'dest table has a trash entry').to.exist;
-
-      await internalPost(
-        untracedCtx(context),
-        destEnv,
-        { operation: 'baseTrashRestore' },
-        { trashId: entry.id },
-      ).expect(200);
-
-      expect(
-        await destTableExists(destTableId),
-        'dest table restored',
+        'dest table still live after blocked delete',
       ).to.eq(true);
-      const afterRestore = await getSync(syncId);
+      const after = await getSync(syncId);
       expect(
-        (afterRestore!.mappings ?? []).find((m: any) => m.role === 'main')!
-          .status,
-        'mapping reactivated after restore',
+        (after!.mappings ?? []).find((m: any) => m.role === 'main')!.status,
+        'mapping untouched by the blocked delete',
       ).to.equal(SyncMappingStatus.Active);
-
-      const destModel = await Model.get(
-        { workspace_id: workspaceId, base_id: destBase.id },
-        destTableId,
-      );
-      expect(destModel!.synced, 'restored dest table still synced').to.eq(true);
     });
   });
 }

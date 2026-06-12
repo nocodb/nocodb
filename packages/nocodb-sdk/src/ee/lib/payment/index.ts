@@ -208,7 +208,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_SSO]: false,
       // Sync (app sync + manual table sync) is available from the first paid
       // plan; the automatic/real-time table-sync trigger is Business+ and custom
-      // sync is Enterprise-only.
+      // sync is Scale+.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
@@ -269,7 +269,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
-      // Custom sync is Enterprise-only
+      // Custom sync requires Scale or above on cloud
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       // On-prem-only features (always disabled on cloud)
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,

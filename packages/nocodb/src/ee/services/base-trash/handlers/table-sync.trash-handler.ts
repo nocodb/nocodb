@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  EventType,
-  SyncMappingStatus,
-  TableSyncMappingRole,
-  TableSyncStatus,
-} from 'nocodb-sdk';
+import { EventType, TableSyncMappingRole, TableSyncStatus } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
@@ -115,6 +110,7 @@ export class TableSyncTrashHandler extends BaseTrashHandler<TableSync> {
             tableId: m.dest_table_id,
             req: param.req,
             parent,
+            forceDeleteSyncs: true,
           },
           ncMeta,
         );
@@ -219,10 +215,9 @@ export class TableSyncTrashHandler extends BaseTrashHandler<TableSync> {
           ncMeta,
         );
         for (const m of orphaned) {
-          await TableSyncMapping.markStatus(
+          await TableSyncMapping.deleteById(
             { ...ctx, base_id: m.base_id },
             m.id,
-            SyncMappingStatus.Suspended,
             ncMeta,
           );
         }
@@ -231,6 +226,9 @@ export class TableSyncTrashHandler extends BaseTrashHandler<TableSync> {
 
       await Model.updateSynced(destCtx, t.tableId, true, ncMeta);
       for (const colId of t.readonlyColIds ?? []) {
+        const column = await Column.get(destCtx, { colId }, ncMeta);
+        if (!column) continue;
+
         await Column.update2(
           destCtx,
           { colId, column: { readonly: true }, isSimpleUpdate: true },

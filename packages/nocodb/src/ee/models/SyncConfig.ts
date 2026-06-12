@@ -4,6 +4,7 @@ import {
   type NcContext,
   type OnDeleteAction,
   type SyncCategory,
+  type SyncMappingType,
   SyncTrigger,
   type SyncType,
 } from 'nocodb-sdk';
@@ -12,7 +13,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
-import { Integration } from '~/models';
+import { Integration, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/ncError';
 
 export default class SyncConfig {
@@ -48,10 +49,35 @@ export default class SyncConfig {
 
   children?: SyncConfig[];
 
+  /** Table mappings of the (root) sync config — populated by `listSync`. */
+  mappings?: SyncMappingType[];
+
   meta?: MetaType;
 
   constructor(syncConfig: Partial<SyncConfig>) {
     Object.assign(this, syncConfig);
+  }
+
+  /**
+   * Load and attach this sync config's table mappings. Mappings are always
+   * recorded against the ROOT sync config, so child configs resolve through
+   * their parent. The frontend relies on `mappings` to resolve a synced
+   * table back to its owning sync config (e.g. sidebar context-menu
+   * shortcuts) — attach them on every response that gets cached there.
+   */
+  public async getMappings(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<SyncMappingType[]> {
+    this.mappings = await SyncMapping.list(
+      context,
+      {
+        fk_sync_config_id: this.fk_parent_sync_config_id || this.id,
+      },
+      ncMeta,
+    );
+
+    return this.mappings;
   }
 
   public static async get(
@@ -109,7 +135,11 @@ export default class SyncConfig {
       );
     }
 
-    return new SyncConfig(syncConfig);
+    const result = new SyncConfig(syncConfig);
+
+    await result.getMappings(context, ncMeta);
+
+    return result;
   }
 
   public static async insert(
@@ -293,9 +323,15 @@ export default class SyncConfig {
       (syncConfig) => !syncConfig.fk_parent_sync_config_id,
     );
 
-    return rootSyncConfigs.map((syncConfig) => {
+    const result = rootSyncConfigs.map((syncConfig) => {
       return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
+
+    for (const syncConfig of result) {
+      await syncConfig.getMappings(context, ncMeta);
+    }
+
+    return result;
   }
 
   async listChildren(

@@ -439,6 +439,14 @@ export class InternalController extends InternalControllerCE {
           payload,
           req,
         });
+      case 'detachSyncTable':
+        if (!payload.modelId) {
+          NcError.get(context).tableNotFound(payload.modelId);
+        }
+        return await this.syncService.detachSyncTable(context, {
+          modelId: payload.modelId,
+          req,
+        });
       case 'deleteSync':
         if (!payload.id) {
           NcError.get(context).syncConfigNotFound(payload.id);

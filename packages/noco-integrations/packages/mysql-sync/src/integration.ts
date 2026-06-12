@@ -1,5 +1,6 @@
 import {
   DataObjectStream,
+  detectUpdatedAtColumn,
   SyncIntegration,
   UITypes,
 } from '@noco-integrations/core';
@@ -73,6 +74,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         relations: [],
         systemFields: {
           primaryKey: primaryKeys.map((pk) => pk.COLUMN_NAME),
+          updatedAt: detectUpdatedAtColumn(columns),
         },
       };
     }
@@ -95,8 +97,9 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     void (async () => {
       try {
         // Ensure we have schema information
-        const schema =
+        let schema =
           this.config.custom_schema || (await this.getDestinationSchema(auth));
+        let reIntrospected = false;
 
         // Get tables to sync
         const targetTables = args.targetTables || [];
@@ -104,7 +107,23 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
         // Process each table
         for (const tableName of targetTables) {
-          const tableSchema = schema[tableName as string];
+          let tableSchema = schema[tableName as string];
+
+          if (!tableSchema && !reIntrospected) {
+            // The persisted schema can lag behind the sync mappings (e.g. a
+            // destination table restored from trash is re-added to
+            // `config.tables` but not to the stored `custom_schema`) —
+            // re-introspect once before giving up on the table.
+            schema = await this.getDestinationSchema(auth);
+            reIntrospected = true;
+            // generateRecordId/formatData/getIncrementalKey read
+            // `this.config.custom_schema` — refresh the wrapper's config
+            // in-memory (this run only, never persisted) so the
+            // re-introspected tables resolve there too.
+            this._config = { ...this._config, custom_schema: schema };
+            tableSchema = schema[tableName as string];
+          }
+
           if (!tableSchema) {
             console.warn(`Schema not found for table: ${tableName}`);
             continue;
@@ -269,7 +288,14 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
       // If systemFields defines an updatedAt field, use it for incremental sync
       if (systemFields && systemFields.updatedAt) {
-        return systemFields.updatedAt;
+        const updatedAtColumn = tableSchema.columns?.find(
+          (column) => column.title === systemFields.updatedAt,
+        );
+
+        // An excluded column has no destination counterpart to read the cursor from
+        if (updatedAtColumn && !updatedAtColumn.exclude) {
+          return systemFields.updatedAt;
+        }
       }
     }
 

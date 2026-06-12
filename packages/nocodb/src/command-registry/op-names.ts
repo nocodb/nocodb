@@ -146,6 +146,8 @@ export const OperationName = {
   appSyncCreate: 'appSyncCreate',
   appSyncUpdate: 'appSyncUpdate',
   appSyncDelete: 'appSyncDelete',
+  appSyncDetachTable: 'appSyncDetachTable',
+  appSyncAttachTable: 'appSyncAttachTable',
   appSyncConfigUpdate: 'appSyncConfigUpdate',
 
   // Date dependency

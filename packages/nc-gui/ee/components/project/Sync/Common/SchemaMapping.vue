@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { SyncType, UITypes } from 'nocodb-sdk'
 import { useSyncFormOrThrow } from '../useSyncForm'
 
-const { integrationConfigs, integrationFetchDestinationSchema } = useSyncFormOrThrow()
+const { integrationConfigs, isLoadingSchema, loadDestinationSchema, syncConfigForm } = useSyncFormOrThrow()
 
 const { t } = useI18n()
 
 const mainIntegration = computed(() => integrationConfigs.value[0])
-
-const isLoadingSchema = ref(false)
 
 if (mainIntegration.value) {
   if (!mainIntegration.value.config) {
@@ -255,84 +253,7 @@ const currentUpdatedAtColumn = computed(() => {
   return currentTable?.systemFields?.updatedAt
 })
 
-// Apply the sensible defaults for a freshly-fetched table (system fields, primary key,
-// exclude flags). Only used for tables we haven't configured yet.
-function buildTableDefaults(table?: CustomSyncSchema[string] | null) {
-  if (!table?.columns) return
-
-  if (!table.relations) {
-    table.relations = []
-  }
-
-  if (!table.systemFields) {
-    table.systemFields = { primaryKey: [] }
-  }
-
-  table.columns.forEach((column) => {
-    column.exclude = !!column.exclude
-  })
-
-  if (table.systemFields.primaryKey.length === 0 && table.columns.length > 0) {
-    const firstColumn = table.columns[0]
-    if (firstColumn) {
-      table.systemFields.primaryKey = [firstColumn.title]
-    }
-  }
-
-  table.systemFields.primaryKey.forEach((pkColumn) => {
-    const column = table.columns!.find((col) => col.title === pkColumn)
-    if (column) {
-      column.exclude = false
-    }
-  })
-}
-
-// Fetch the destination schema for the currently-selected source tables. We re-fetch
-// whenever the cached schema no longer matches the selected tables (e.g. the user went
-// back and (de)selected tables), but preserve any mapping already configured for tables
-// that are still selected — only newly-added tables get fresh defaults.
-async function loadDestinationSchema() {
-  if (!mainIntegration.value) return
-
-  if (!mainIntegration.value.config) {
-    mainIntegration.value.config = {}
-  }
-
-  const existingSchema: CustomSyncSchema = mainIntegration.value.config.custom_schema || {}
-  const existingKeys = Object.keys(existingSchema)
-
-  // SQL sources expose an explicit table selection via `config.tables`. When present, the
-  // cached schema is only valid if it covers exactly that selection.
-  const hasTableSelection = Array.isArray(mainIntegration.value.config.tables)
-  const selectedTables: string[] = hasTableSelection ? mainIntegration.value.config.tables : []
-  const schemaMatchesSelection =
-    selectedTables.length === existingKeys.length && existingKeys.every((key) => selectedTables.includes(key))
-
-  if (hasTableSelection ? schemaMatchesSelection && existingKeys.length > 0 : existingKeys.length > 0) {
-    return
-  }
-
-  isLoadingSchema.value = true
-  try {
-    const fetchedSchema: CustomSyncSchema = (await integrationFetchDestinationSchema(mainIntegration.value)) || {}
-
-    const mergedSchema: CustomSyncSchema = {}
-    for (const tableName of Object.keys(fetchedSchema)) {
-      if (existingSchema[tableName]) {
-        mergedSchema[tableName] = existingSchema[tableName]
-      } else {
-        buildTableDefaults(fetchedSchema[tableName])
-        mergedSchema[tableName] = fetchedSchema[tableName]
-      }
-    }
-
-    mainIntegration.value.config.custom_schema = mergedSchema
-  } catch (error) {
-    message.error(await extractSdkResponseErrorMsgv2(error as any))
-  } finally {
-    isLoadingSchema.value = false
-  }
-}
+const debouncedLoadDestinationSchema = useDebounceFn(loadDestinationSchema, 500)
 
 // Keep the active tab valid: select the first table initially, and reset when the
 // currently-selected table is no longer part of the schema.
@@ -346,6 +267,17 @@ watch(
     }
   },
   { immediate: true },
+)
+
+// Re-derive the schema when the source table selection changes — the edit modal keeps this
+// component mounted across tabs (`v-show`), so the schema computed on mount goes stale when
+// tables are (de)selected in the Sources tab.
+watch(
+  () => mainIntegration.value?.config?.tables,
+  () => {
+    debouncedLoadDestinationSchema()
+  },
+  { deep: true },
 )
 
 onMounted(loadDestinationSchema)
@@ -370,6 +302,14 @@ onMounted(loadDestinationSchema)
       </div>
 
       <div v-if="selectedTable && destinationSchema[selectedTable]" class="flex flex-col gap-4">
+        <NcAlert
+          v-if="syncConfigForm.sync_type === SyncType.Incremental && !currentUpdatedAtColumn"
+          type="warning"
+          :message="$t('msg.warning.syncNoUpdatedAtColumn.title')"
+          :description="$t('msg.warning.syncNoUpdatedAtColumn.description')"
+          :show-icon="true"
+        />
+
         <!-- Table Header with Select All -->
         <div class="flex items-center justify-between">
           <div class="text-bodyDefaultSmBold text-nc-content-gray">

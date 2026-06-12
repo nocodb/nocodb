@@ -2338,15 +2338,17 @@ export const useEeConfig = createSharedComposable(() => {
       return
     }
 
+    const requiredPlan = PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_CUSTOM_SYNC] ?? PlanTitles.ENTERPRISE
+
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseCustomSync'),
       content: t('upgrade.upgradeToUseCustomSyncSubtitle', {
-        plan: PlanTitles.ENTERPRISE,
+        plan: requiredPlan,
       }),
       callback,
       triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_CUSTOM_SYNC,
-      requiredPlan: PlanTitles.ENTERPRISE,
+      requiredPlan,
     })
 
     return true

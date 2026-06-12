@@ -18,6 +18,7 @@ import type { Job } from 'bull';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import type { Column } from '~/models';
 import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
+import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
 import { DataTableService } from '~/services/data-table.service';
@@ -152,13 +153,29 @@ export class SyncModuleSyncDataProcessor {
     model: Model,
     syncRunId: string,
     req: NcRequest,
-    mmColumn?: Column,
+    options: {
+      mmColumn?: Column;
+      /**
+       * The table was fetched in full this run, so any record not stamped with
+       * the current SyncRunId is stale. Partial (cursor-based) fetches can't be
+       * diffed this way.
+       */
+      fullyFetched?: boolean;
+      /**
+       * Delete semantics live on the root sync config — child configs never
+       * carry on_delete_action, so callers pass the parent's value here.
+       */
+      onDeleteAction?: OnDeleteAction;
+    } = {},
   ) {
+    const { mmColumn, fullyFetched, onDeleteAction } = options;
+
     let preserveDeleted = true;
 
-    if (syncConfig.on_delete_action) {
-      preserveDeleted =
-        syncConfig.on_delete_action === OnDeleteAction.MarkDeleted;
+    const deleteAction = onDeleteAction ?? syncConfig.on_delete_action;
+
+    if (deleteAction) {
+      preserveDeleted = deleteAction === OnDeleteAction.MarkDeleted;
     }
 
     // If the model is a junction table need to always delete
@@ -166,8 +183,8 @@ export class SyncModuleSyncDataProcessor {
       preserveDeleted = false;
     }
 
-    // For full sync remove all the records that are not found in this run
-    if (syncConfig.sync_type === SyncType.Full) {
+    // For fully-fetched tables remove all the records that are not found in this run
+    if (fullyFetched) {
       if (preserveDeleted) {
         // Mark records as deleted instead of actually deleting them
         await this.bulkDataAliasService.bulkDataUpdateAll(context, {
@@ -176,7 +193,7 @@ export class SyncModuleSyncDataProcessor {
           cookie: req,
           body: {
             RemoteDeleted: true,
-            RemoteDeletedAt: dayjs().utc().toISOString(),
+            RemoteDeletedTime: dayjs().utc().toISOString(),
           },
           internalFlags: {
             skipHooks: true,
@@ -239,24 +256,75 @@ export class SyncModuleSyncDataProcessor {
           },
         });
       }
-    } else if (SyncType.Incremental) {
-      // For incremental we need to still clear junction table records
-      // We will delete the records that are not updated in this run for updated parent records
-      if (model.mm && mmColumn) {
-        // first get records that are updated in this run BATCH_SIZE at a time
-        const deletedParentIds = new Map<string, boolean>();
+    } else if (model.mm && mmColumn) {
+      // For partially-fetched (incremental) runs we still need to clear junction
+      // table records: delete the rows that were not re-pushed in this run for
+      // the parent records that WERE updated in this run.
+      // first get records that are updated in this run BATCH_SIZE at a time
+      const deletedParentIds = new Map<string, boolean>();
 
-        let completedRun = false;
-        let offset = 0;
+      let completedRun = false;
+      let offset = 0;
 
-        while (!completedRun) {
-          const updatedRecords = await this.dataTableService.dataList(context, {
-            baseId: model.base_id,
-            modelId: model.id,
+      while (!completedRun) {
+        const updatedRecords = await this.dataTableService.dataList(context, {
+          baseId: model.base_id,
+          modelId: model.id,
+          query: {
+            filterArr: [
+              {
+                comparison_op: 'eq',
+                value: syncRunId,
+                logical_op: 'and',
+                fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
+                  ?.id,
+              },
+            ],
+            limit: BATCH_SIZE,
+            offset,
+          },
+        });
+
+        for (const record of updatedRecords.list) {
+          const parentId = record[mmColumn.title];
+
+          if (deletedParentIds.has(parentId)) {
+            continue;
+          }
+
+          deletedParentIds.set(parentId, true);
+        }
+
+        if (updatedRecords.list.length < BATCH_SIZE) {
+          completedRun = true;
+        }
+
+        offset += BATCH_SIZE;
+      }
+
+      if (deletedParentIds.size > 0) {
+        const deletedParentIdsArray = Array.from(deletedParentIds.keys());
+
+        while (deletedParentIdsArray.length > 0) {
+          const parentIds = deletedParentIdsArray.splice(0, BATCH_SIZE);
+
+          await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+            baseName: model.base_id,
+            tableName: model.id,
+            req,
+            internalFlags: {
+              skipHooks: true,
+            },
             query: {
               filterArr: [
                 {
-                  comparison_op: 'eq',
+                  comparison_op: 'in',
+                  value: parentIds,
+                  logical_op: 'and',
+                  fk_column_id: mmColumn.id,
+                },
+                {
+                  comparison_op: 'neq',
                   value: syncRunId,
                   logical_op: 'and',
                   fk_column_id: model.columns.find(
@@ -264,61 +332,8 @@ export class SyncModuleSyncDataProcessor {
                   )?.id,
                 },
               ],
-              limit: BATCH_SIZE,
-              offset,
             },
           });
-
-          for (const record of updatedRecords.list) {
-            const parentId = record[mmColumn.title];
-
-            if (deletedParentIds.has(parentId)) {
-              continue;
-            }
-
-            deletedParentIds.set(parentId, true);
-          }
-
-          if (updatedRecords.list.length < BATCH_SIZE) {
-            completedRun = true;
-          }
-
-          offset += BATCH_SIZE;
-        }
-
-        if (deletedParentIds.size > 0) {
-          const deletedParentIdsArray = Array.from(deletedParentIds.keys());
-
-          while (deletedParentIdsArray.length > 0) {
-            const parentIds = deletedParentIdsArray.splice(0, BATCH_SIZE);
-
-            await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-              baseName: model.base_id,
-              tableName: model.id,
-              req,
-              internalFlags: {
-                skipHooks: true,
-              },
-              query: {
-                filterArr: [
-                  {
-                    comparison_op: 'in',
-                    value: parentIds,
-                    logical_op: 'and',
-                    fk_column_id: mmColumn.id,
-                  },
-                  {
-                    comparison_op: 'neq',
-                    value: syncRunId,
-                    logical_op: 'and',
-                    fk_column_id: model.columns.find(
-                      (c) => c.title === 'SyncRunId',
-                    )?.id,
-                  },
-                ],
-              },
-            });
-          }
         }
       }
     }
@@ -330,6 +345,7 @@ export class SyncModuleSyncDataProcessor {
       syncConfigId,
       trigger: _trigger,
       bulk = false,
+      fullResync = false,
       req,
     } = job.data;
 
@@ -380,7 +396,6 @@ export class SyncModuleSyncDataProcessor {
 
     const syncMappings = await SyncMapping.list(context, {
       fk_sync_config_id: parentSyncConfig.id,
-      activeOnly: true,
     });
 
     let recordCounter = 0;
@@ -396,6 +411,11 @@ export class SyncModuleSyncDataProcessor {
     const targetTableIncrementalValues:
       | Record<string, string>
       | Record<string, Record<string, string>> = {};
+    // Tables for which an incremental cursor was actually applied this run.
+    // Tables NOT in this set were fetched in full (no incremental key, or an
+    // empty/unstamped destination), so stale records CAN be diffed for them
+    // even on an Incremental sync.
+    const cursorAppliedTargets = new Set<string>();
 
     for (const syncMap of syncMappings) {
       const model = await Model.get(context, syncMap.fk_model_id);
@@ -442,7 +462,10 @@ export class SyncModuleSyncDataProcessor {
           await integration.getIntegrationWrapper<SyncIntegration>(logBasic);
 
         const BATCH_SIZE = wrapper.batchSize;
-        if (parentSyncConfig.sync_type === SyncType.Incremental) {
+        if (
+          !fullResync &&
+          parentSyncConfig.sync_type === SyncType.Incremental
+        ) {
           for (const syncMap of syncMappings) {
             const model = modelSyncTargetMap.get(syncMap.target_table);
 
@@ -501,6 +524,10 @@ export class SyncModuleSyncDataProcessor {
                     incrementalKey && lastRecord.list[0][incrementalKey]
                       ? lastRecord.list[0][incrementalKey]
                       : undefined;
+
+                  if (incrementalKey && lastRecord.list[0][incrementalKey]) {
+                    cursorAppliedTargets.add(syncMap.target_table);
+                  }
                 }
               }
             } else {
@@ -533,6 +560,10 @@ export class SyncModuleSyncDataProcessor {
                   incrementalKey && lastRecord.list[0][incrementalKey]
                     ? lastRecord.list[0][incrementalKey]
                     : undefined;
+
+                if (incrementalKey && lastRecord.list[0][incrementalKey]) {
+                  cursorAppliedTargets.add(syncMap.target_table);
+                }
               }
             }
           }
@@ -620,6 +651,10 @@ export class SyncModuleSyncDataProcessor {
                     );
 
                     if (!mmTable) {
+                      continue;
+                    }
+
+                    if (!mmTable.synced) {
                       continue;
                     }
 
@@ -777,24 +812,39 @@ export class SyncModuleSyncDataProcessor {
                 }
               }
 
-              // Process deletions for records that no longer exist in the source
-              // Use the syncRunId to identify records that weren't updated in this sync
-              // Only delete records for full syncs as we can't do diff for incremental syncs
-              if (syncConfig.sync_type === SyncType.Full) {
-                for (const [modelId, _] of modelSyncTargetMap.entries()) {
-                  const model = modelSyncTargetMap.get(modelId);
+              // Process deletions for records that no longer exist in the source,
+              // identified via SyncRunId (anything not stamped in this run). The
+              // diff is only valid for tables that were FULLY fetched this run:
+              // every table on a Full sync, or — on an Incremental sync — the
+              // tables that had no incremental cursor applied (no incremental
+              // key designated, or an empty destination), since those fetches
+              // are full scans anyway. Junction tables are instead cleaned per
+              // updated parent record inside deleteStaleRecords. Sync type and
+              // delete action live on the ROOT sync config — child configs
+              // never carry them.
+              if (!streamError) {
+                for (const model of modelSyncTargetMap.values()) {
+                  if (!model) continue;
 
-                  // If there was an error, skip deleting records
-                  if (model && !streamError) {
-                    await this.deleteStaleRecords(
-                      context,
-                      syncConfig,
-                      model,
-                      syncRunId,
-                      req,
-                      model.mmChildColumn,
-                    );
-                  }
+                  const targetTable = modelIdSyncTargetMap.get(model.id);
+
+                  const fullyFetched =
+                    fullResync ||
+                    parentSyncConfig.sync_type === SyncType.Full ||
+                    (!model.mm && !cursorAppliedTargets.has(targetTable));
+
+                  await this.deleteStaleRecords(
+                    context,
+                    syncConfig,
+                    model,
+                    syncRunId,
+                    req,
+                    {
+                      mmColumn: model.mmChildColumn,
+                      fullyFetched,
+                      onDeleteAction: parentSyncConfig.on_delete_action,
+                    },
+                  );
                 }
               }
 
@@ -856,7 +906,6 @@ export class SyncModuleSyncDataProcessor {
     // Get sync mappings for non-mm tables
     const syncMappings = await SyncMapping.list(context, {
       fk_sync_config_id: syncConfig.id,
-      activeOnly: true,
     });
 
     for (const syncMapping of syncMappings) {
@@ -946,7 +995,32 @@ export class SyncModuleSyncDataProcessor {
   ) {
     const { context, syncConfigId, req } = job.data;
 
-    const syncConfig = await SyncConfig.get(context, syncConfigId);
+    return this.reconcileSyncSchema(context, syncConfigId, req);
+  }
+
+  /**
+   * Reconcile every mapped (non-junction) table against the destination
+   * schema — canonical for app syncs, the persisted custom_schema for custom
+   * syncs. Adds missing sync columns, removes readonly columns that left the
+   * schema, recreates retyped ones. With `skipDataBackfill` the added columns
+   * stay empty and data catches up on the next sync run (used by the trash
+   * restore path, where re-fetching/RemoteRaw replay would be overkill).
+   */
+  async reconcileSyncSchema(
+    context: NcContext,
+    syncConfigId: string,
+    req: NcRequest,
+    options: { skipDataBackfill?: boolean } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
+    const { skipDataBackfill = false } = options;
+
+    const syncConfig = await SyncConfig.get(
+      context,
+      syncConfigId,
+      false,
+      ncMeta,
+    );
 
     if (!syncConfig) {
       NcError.get(context).syncConfigNotFound(syncConfigId);
@@ -955,6 +1029,8 @@ export class SyncModuleSyncDataProcessor {
     const integration = await Integration.get(
       context,
       syncConfig.fk_integration_id,
+      false,
+      ncMeta,
     );
     const wrapper = await integration.getIntegrationWrapper<SyncIntegration>();
     const authIntegration = await Integration.get(
@@ -971,16 +1047,24 @@ export class SyncModuleSyncDataProcessor {
     const newSchema = await wrapper.getDestinationSchema(authWrapper);
 
     // Get sync mappings for non-mm tables
-    const syncMappings = await SyncMapping.list(context, {
-      fk_sync_config_id: syncConfig.id,
-      activeOnly: true,
-    });
+    const syncMappings = await SyncMapping.list(
+      context,
+      {
+        fk_sync_config_id: syncConfig.id,
+      },
+      ncMeta,
+    );
 
     for (const syncMapping of syncMappings) {
-      const model = await Model.get(context, syncMapping.fk_model_id);
+      const model = await Model.get(
+        context,
+        syncMapping.fk_model_id,
+        false,
+        ncMeta,
+      );
       if (!model || model.mm) continue;
 
-      await model.getColumns(context);
+      await model.getColumns(context, ncMeta);
 
       // Get existing readonly columns
       const existingColumns = model.columns.filter(
@@ -1020,32 +1104,40 @@ export class SyncModuleSyncDataProcessor {
 
       // Remove columns
       for (const column of columnsToRemove) {
-        await this.columnsService.columnDelete(context, {
-          columnId: column.id,
-          forceDeleteSystem: true,
-          req,
-        });
+        await this.columnsService.columnDelete(
+          context,
+          {
+            columnId: column.id,
+            forceDeleteSystem: true,
+            req,
+          },
+          ncMeta,
+        );
       }
 
       // Add new columns
       for (const column of columnsToAdd) {
-        await this.columnsService.columnAdd(context, {
-          tableId: model.id,
-          column: {
-            title: column.title,
-            column_name: column.column_name || column.title,
-            uidt: column.uidt,
-            readonly: true,
-            pv: column.pv,
+        await this.columnsService.columnAdd(
+          context,
+          {
+            tableId: model.id,
+            column: {
+              title: column.title,
+              column_name: column.column_name || column.title,
+              uidt: column.uidt,
+              readonly: true,
+              pv: column.pv,
+            },
+            user: req.user,
+            req,
+            apiVersion: NcApiVersion.V3,
           },
-          user: req.user,
-          req,
-          apiVersion: NcApiVersion.V3,
-        });
+          ncMeta,
+        );
       }
 
       // If we have new columns, we need to update existing records
-      if (columnsToAdd.length > 0) {
+      if (columnsToAdd.length > 0 && !skipDataBackfill) {
         let completed = false;
         let offset = 0;
 

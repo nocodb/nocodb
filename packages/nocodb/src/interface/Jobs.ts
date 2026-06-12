@@ -331,6 +331,9 @@ export interface SyncDataSyncModuleJobData extends JobData {
   targetTables?: string[];
   trigger: SyncTrigger;
   bulk?: boolean;
+  /** Force a full fetch this run regardless of the config's sync_type —
+   *  set after a config update so added tables/columns backfill. */
+  fullResync?: boolean;
   req: NcRequest;
 }
 

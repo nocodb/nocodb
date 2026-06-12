@@ -1,5 +1,5 @@
 import { UITypes, SyncCategory, TARGET_TABLES } from 'nocodb-sdk';
-import { SyncColumnDefinition } from './types';
+import { SyncAbstractType, SyncColumnDefinition } from './types';
 
 export { SyncCategory, TARGET_TABLES };
 
@@ -70,3 +70,45 @@ export const syncSystemFieldsMap = syncSystemFields.reduce((acc, field) => {
   acc[field.title] = field;
   return acc;
 }, {} as Record<string, SyncColumnDefinition>);
+
+/**
+ * Column names commonly used as a row's last-modified timestamp, checked in
+ * order. Used to default `systemFields.updatedAt` for custom DB syncs so
+ * incremental sync has a cursor without the user manually designating one.
+ */
+const UPDATED_AT_COLUMN_CANDIDATES = [
+  'updated_at',
+  'updatedat',
+  'last_update',
+  'last_updated',
+  'last_updated_at',
+  'last_modified',
+  'last_modified_at',
+  'modified_at',
+  'updated_on',
+  'modified_on',
+];
+
+/**
+ * Pick the column to use as the incremental-sync cursor (`systemFields.updatedAt`)
+ * from a table's columns: the first date/datetime column whose name matches a
+ * well-known last-modified pattern. Returns `undefined` when there is no obvious
+ * candidate — the user can still designate one manually in the schema mapping.
+ */
+export function detectUpdatedAtColumn(
+  columns: { title: string; abstractType?: SyncAbstractType }[],
+): string | undefined {
+  for (const candidate of UPDATED_AT_COLUMN_CANDIDATES) {
+    const match = columns.find(
+      (column) =>
+        column.title.toLowerCase() === candidate &&
+        (column.abstractType === 'datetime' || column.abstractType === 'date'),
+    );
+
+    if (match) {
+      return match.title;
+    }
+  }
+
+  return undefined;
+}

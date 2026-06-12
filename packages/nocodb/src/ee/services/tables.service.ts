@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, SyncMappingStatus } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { NcApiVersion, OperationSource } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
@@ -15,7 +15,7 @@ import {
 } from '~/decorators/trace-command.decorator';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
-import { Base, Model, SyncMapping, TableSyncMapping } from '~/models';
+import { Base, Model } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -221,48 +221,13 @@ export class TablesService extends TableServiceCE {
       NcError.get(context).tableNotFound(param.tableId);
     }
 
+    if (table.synced && !param.forceDeleteSyncs) {
+      NcError.get(context).invalidRequestBody(
+        'This table is managed by a sync. Convert it to a regular table before deleting it.',
+      );
+    }
+
     if (param.skipTrash) {
-      if (table.synced && !param.forceDeleteSyncs) {
-        const appSyncMappings = await SyncMapping.listByModelId(
-          context,
-          table.id,
-          ncMeta,
-        );
-        if (appSyncMappings.length) {
-          for (const m of appSyncMappings) {
-            await SyncMapping.markStatus(
-              context,
-              m.id,
-              SyncMappingStatus.Suspended,
-              ncMeta,
-            );
-          }
-        } else {
-          const tableSyncMappings = await TableSyncMapping.listByDestTable(
-            context.base_id,
-            table.id,
-            ncMeta,
-          );
-          if (!tableSyncMappings.length) {
-            NcError.get(context).invalidRequestBody(
-              'Synced tables cannot be deleted',
-            );
-          }
-          for (const m of tableSyncMappings) {
-            await TableSyncMapping.markStatus(
-              { ...context, base_id: m.base_id },
-              m.id,
-              SyncMappingStatus.Suspended,
-              ncMeta,
-            );
-          }
-        }
-        return super.tableDelete(
-          context,
-          { ...param, forceDeleteSyncs: true },
-          ncMeta,
-        );
-      }
       return super.tableDelete(context, param, ncMeta);
     }
 

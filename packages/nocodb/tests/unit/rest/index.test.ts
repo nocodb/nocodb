@@ -47,6 +47,7 @@ let patResourceFilterTest = () => {};
 let tableSyncTest = () => {};
 let tableSyncDataTest = () => {};
 let tableSyncHandlerTest = () => {};
+let customSyncDataTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -66,6 +67,7 @@ if (process.env.EE === 'true') {
   tableSyncTest = require('./tests/ee/tableSync.test').default;
   tableSyncDataTest = require('./tests/ee/tableSyncData.test').default;
   tableSyncHandlerTest = require('./tests/ee/tableSyncHandlers.test').default;
+  customSyncDataTest = require('./tests/ee/customSyncData.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -107,6 +109,7 @@ function restTests() {
     tableSyncTest();
     tableSyncDataTest();
     tableSyncHandlerTest();
+    customSyncDataTest();
     oauthTests();
     bulkV1Test();
     oauthDCRTest();

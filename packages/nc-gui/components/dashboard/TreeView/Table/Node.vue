@@ -766,7 +766,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                     :table="table"
                     @close="isOptionsOpen = false"
                   />
-                  <template v-if="enabledOptions.tableDelete">
+                  <template v-if="enabledOptions.tableDelete && !table.synced">
                     <NcDivider />
                     <NcTooltip :disabled="!isMmTable" :title="$t('tooltip.deleteNotSupportedOnJunctionTable')" placement="right">
                       <NcMenuItem

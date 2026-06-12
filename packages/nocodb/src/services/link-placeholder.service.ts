@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   isMMOrMMLike,
+  isSupportedDisplayValueColumn,
   RelationTypes,
   SqlUiFactory,
   UITypes,
@@ -301,7 +302,18 @@ export class LinkPlaceholderService {
       true,
     );
 
+    // Honor the link's custom display value override — the chips showed that
+    // column, and this materialized text is permanent. PV/PK fallback when
+    // no override or it's stale/unsupported.
+    const overrideCol = colOpt.fk_display_value_column_id
+      ? relatedTable.columns?.find(
+          (c) =>
+            c.id === colOpt.fk_display_value_column_id &&
+            isSupportedDisplayValueColumn(c),
+        )
+      : undefined;
     const pvCol =
+      overrideCol ??
       relatedTable.columns?.find((c) => c.pv) ??
       relatedTable.columns?.find((c) => c.pk);
     if (!pvCol) {

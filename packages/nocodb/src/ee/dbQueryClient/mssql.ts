@@ -208,7 +208,8 @@ export class MssqlDBQueryClient
     params?: any;
     getAlias: () => string;
     baseModel: IBaseModelSqlV2;
-    ast: Record<string, any>;
+    // runtime also passes the sentinels `true` / `1` (see extract-columns.ts)
+    ast: Record<string, any> | boolean | 0 | 1;
     throwErrorIfInvalidParams: boolean;
     validateFormula: boolean;
     columns?: Column[];
@@ -320,14 +321,26 @@ export class MssqlDBQueryClient
         // Inner ast — ensure pk/pv get selected even when the outer ast is an
         // object that omits them. Without these the resulting JSON is missing
         // identity and substituteColumnIdsWithColumnTitles can't map it.
-        // `ast` is typed Record<string, any> but at runtime extract-columns.ts
-        // also passes the sentinel values `true` / `1` to mean "all columns".
-        const astAny = ast as unknown as true | 1 | Record<string, any>;
+        // For the scalar sentinels (a Lookup targeting this LTAR recurses here
+        // with the lookup column's own scalar AST) the pk/pv-only gate in
+        // extract-columns would drop the custom display value column — widen
+        // the scalar into an object AST so the override survives.
         const innerAst =
-          astAny === true || astAny === 1
-            ? ast
+          ast === true || ast === 1
+            ? customDisplayCol
+              ? {
+                  // all PKs, not just the first — composite-PK related tables
+                  // must keep every key column extractable
+                  ...(relatedModel.primaryKeys ?? []).reduce(
+                    (o, pk) => ({ ...o, [pk.id]: true }),
+                    {},
+                  ),
+                  ...(pvColumn?.id ? { [pvColumn.id]: true } : {}),
+                  [customDisplayCol.id]: true,
+                }
+              : ast
             : {
-                ...(typeof astAny === 'object' && astAny ? astAny : {}),
+                ...(typeof ast === 'object' && ast ? ast : {}),
                 ...(pkColumn?.id ? { [pkColumn.id]: true } : {}),
                 ...(pvColumn?.id && pvColumn.id !== pkColumn?.id
                   ? { [pvColumn.id]: true }

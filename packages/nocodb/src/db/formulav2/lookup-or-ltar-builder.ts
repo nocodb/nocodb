@@ -488,15 +488,20 @@ export const lookupOrLtarBuilder =
               : relation.type;
 
             if (relationType === RelationTypes.ONE_TO_ONE) {
-              relationType = relationCol.meta?.bt
+              // direction comes from the terminal LTAR being resolved, not
+              // the first-hop relation column
+              relationType = lookupColumn.meta?.bt
                 ? RelationTypes.BELONGS_TO
                 : RelationTypes.HAS_MANY;
             }
 
-            // Resolve display column once — honors fk_display_value_column_id
+            // Resolve display column once — honors fk_display_value_column_id.
+            // Must be resolved from the terminal LTAR (lookupColumn), whose
+            // related table the joins below read from — resolving from the
+            // first-hop relationCol picked a column of the wrong table.
             const nestedDisplayCol = await getDisplayValueOfRefTable(
               context,
-              relationCol,
+              lookupColumn,
             );
 
             switch (relationType) {

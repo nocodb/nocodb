@@ -4,7 +4,7 @@ import {
   LinkToAnotherRecordType,
   LookupType,
 } from '~/lib/Api';
-import UITypes from '~/lib/UITypes';
+import UITypes, { isSupportedDisplayValueColumn } from '~/lib/UITypes';
 import {
   FormulaDataTypes,
   FormulaErrorType,
@@ -276,9 +276,18 @@ async function extractColumnIdentifierType({
           model: relatedTable,
         }
       );
-      const relatedTableDisplayColumn = relatedTableColumns.find(
-        (col) => col.pv
-      );
+      // Honor the per-LTAR custom display value override — the generated SQL
+      // resolves that column, so the derived formula type must match it.
+      // Defensive PV fallback when the override is stale/unsupported.
+      const displayOverrideCol = colOptions.fk_display_value_column_id
+        ? relatedTableColumns.find(
+            (col) =>
+              col.id === colOptions.fk_display_value_column_id &&
+              isSupportedDisplayValueColumn(col)
+          )
+        : undefined;
+      const relatedTableDisplayColumn =
+        displayOverrideCol ?? relatedTableColumns.find((col) => col.pv);
       const relatedColumnIdentifierType = await extractColumnIdentifierType({
         col: relatedTableDisplayColumn,
         clientOrSqlUi,
@@ -627,14 +636,26 @@ async function checkForCircularFormulaRef(
           getMeta,
         }
       );
-      const lookupTarget = (
-        await unifiedMeta.getColumns(
-          unifiedMeta.getContextFromObject(relatedTableMeta),
-          {
-            model: relatedTableMeta,
-          }
-        )
-      ).find(lookupFilterFn);
+      const relatedTableColumns = await unifiedMeta.getColumns(
+        unifiedMeta.getContextFromObject(relatedTableMeta),
+        {
+          model: relatedTableMeta,
+        }
+      );
+      // A direct LTAR reference resolves the related table's display value —
+      // honor the per-LTAR override (with PV fallback when stale/unsupported)
+      // so cycle detection walks the column the SQL actually reads.
+      const displayOverrideCol =
+        lookupOrLTARCol.uidt === UITypes.LinkToAnotherRecord &&
+        ltarColOptions.fk_display_value_column_id
+          ? relatedTableColumns.find(
+              (c) =>
+                c.id === ltarColOptions.fk_display_value_column_id &&
+                isSupportedDisplayValueColumn(c)
+            )
+          : undefined;
+      const lookupTarget =
+        displayOverrideCol ?? relatedTableColumns.find(lookupFilterFn);
 
       if (lookupTarget) {
         if (lookupTarget.uidt === UITypes.Formula) {

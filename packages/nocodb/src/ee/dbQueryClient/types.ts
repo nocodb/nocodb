@@ -20,7 +20,8 @@ export interface ExtractColumnParam {
   getAlias: () => string;
   baseModel: IBaseModelSqlV2;
   // dependencyFields: DependantFields;
-  ast: Record<string, any>;
+  // runtime also passes the sentinels `true` / `1` (see extract-columns.ts)
+  ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
   columns?: Column[];

@@ -256,6 +256,96 @@ function resolveDisplayValueColumnOrThrow(
   return col.id;
 }
 
+// Changing an LTAR's custom display value column also changes the SQL
+// generated for every Lookup that surfaces that LTAR — including chains of
+// lookups — and those live on OTHER models, whose compiled single-query
+// caches would otherwise keep serving the old nested JSON shape. Walk the
+// dependents over COL_LOOKUP.fk_lookup_column_id, re-discovering cross-base
+// link contexts per BFS node (same as
+// ColumnDeleteTransitiveDependentsDependencyHandler), and clear each
+// affected model's cache.
+async function clearDependentLookupModelCaches(
+  context: NcContext,
+  ltarColumn: Column,
+  ncMeta = Noco.ncMeta,
+) {
+  // The compiled single-query cache is EE-only (clearSingleQueryCache no-ops
+  // in CE) — skip the dependency walk entirely there.
+  if (!Noco.isEE()) return;
+
+  const contexts: NcContext[] = [context];
+  const discoveredModels = new Set<string>();
+
+  // Bases reachable through cross-base links on a model can host lookups
+  // that target that model's columns. Called for the LTAR's own model and
+  // for every dependent lookup's model found by the BFS, so chains that
+  // cross a base boundary at hop ≥ 2 are still invalidated.
+  const addLinkedBaseContexts = async (modelId: string, ctx: NcContext) => {
+    const key = `${ctx.base_id}:${modelId}`;
+    if (discoveredModels.has(key)) return;
+    discoveredModels.add(key);
+    for (const col of await Column.list(
+      ctx,
+      { fk_model_id: modelId },
+      ncMeta,
+    )) {
+      if (!isLinksOrLTAR(col.uidt)) continue;
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+        ctx,
+        ncMeta,
+      );
+      const relatedBaseId = colOptions?.fk_related_base_id;
+      if (relatedBaseId && !contexts.some((c) => c.base_id === relatedBaseId)) {
+        contexts.push({
+          ...ctx,
+          base_id: relatedBaseId,
+          workspace_id: col.fk_workspace_id || ctx.workspace_id,
+        });
+      }
+    }
+  };
+
+  await addLinkedBaseContexts(ltarColumn.fk_model_id, context);
+
+  const visited = new Set<string>();
+  const affectedModels = new Map<string, NcContext>();
+
+  let frontier = [ltarColumn.id];
+  while (frontier.length) {
+    const next: string[] = [];
+    for (const targetColId of frontier) {
+      // snapshot — addLinkedBaseContexts may grow `contexts` mid-iteration
+      for (const ctx of [...contexts]) {
+        const lookupRows = await ncMeta.metaList2(
+          ctx.workspace_id,
+          ctx.base_id,
+          MetaTable.COL_LOOKUP,
+          { condition: { fk_lookup_column_id: targetColId } },
+        );
+        for (const row of lookupRows) {
+          if (visited.has(row.fk_column_id)) continue;
+          visited.add(row.fk_column_id);
+          const lookupCol = await Column.get(
+            ctx,
+            { colId: row.fk_column_id },
+            ncMeta,
+          );
+          if (!lookupCol) continue;
+          affectedModels.set(lookupCol.fk_model_id, ctx);
+          next.push(lookupCol.id);
+          // the next hop's lookups may live in bases linked to THIS model
+          await addLinkedBaseContexts(lookupCol.fk_model_id, ctx);
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  for (const [modelId, ctx] of affectedModels) {
+    await View.clearSingleQueryCache(ctx, modelId, null, ncMeta);
+  }
+}
+
 // todo: move
 export enum Altered {
   NEW_COLUMN = 1,
@@ -1503,7 +1593,9 @@ export class ColumnsService implements IColumnsService {
             ...colBody,
           });
         } else {
-          if (colBody.title !== column.title) {
+          // partial updates (e.g. only fk_display_value_column_id) omit title —
+          // writing the undefined through would null the column alias
+          if (colBody.title && colBody.title !== column.title) {
             await Column.updateAlias(context, param.columnId, {
               title: colBody.title,
             });
@@ -1618,6 +1710,11 @@ export class ColumnsService implements IColumnsService {
                 column.fk_model_id,
                 null,
               );
+
+              // Lookups (possibly chained) that surface this LTAR embed the
+              // override in their own models' compiled queries — clear those
+              // caches too or they keep serving the old nested JSON shape.
+              await clearDependentLookupModelCaches(context, column);
             }
           }
           // handle reorder column

@@ -498,7 +498,9 @@ export enum CacheScope {
   // _v3: v2 entries written without the parentKeys back-link may be orphaned
   // (unreachable by clearSingleQueryCache); never read them again — they stop
   // getting TTL-refreshed and expire on their own.
-  SINGLE_QUERY = 'singleQuery_v3',
+  // _v4: lookup-of-LTAR payloads now include the custom display value column —
+  // queries compiled before that fix would keep serving pk+pv-only JSON.
+  SINGLE_QUERY = 'singleQuery_v4',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',

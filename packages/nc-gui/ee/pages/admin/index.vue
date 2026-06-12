@@ -21,11 +21,8 @@ const {
   showUpgradeToUseWhiteLabel,
   isWsAuditEnabled,
   showUpgradeToUseAudit,
+  isOnPrem,
 } = useEeConfig()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isWhiteLabelBetaEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.WHITE_LABEL))
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -137,9 +134,9 @@ watch(
 // dashboard. `immediate` runs during setup so a direct load is corrected before
 // the gated tab content mounts (no flash, no leave-guard registration).
 watch(
-  [activeTab, blockWhiteLabel, isWhiteLabelBetaEnabled],
+  [activeTab, blockWhiteLabel],
   () => {
-    if (activeTab.value === 'white-label' && (blockWhiteLabel.value || !isWhiteLabelBetaEnabled.value)) {
+    if (activeTab.value === 'white-label' && blockWhiteLabel.value) {
       activeTab.value = 'dashboard'
     }
   },
@@ -388,7 +385,7 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="showEEFeatures && isWhiteLabelBetaEnabled"
+              v-if="showEEFeatures && isOnPrem"
               key="white-label"
               v-e="['c:white-label:open']"
               :class="{ active: activeTab === 'white-label' }"

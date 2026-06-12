@@ -1,9 +1,10 @@
 /**
- * Seed On-Prem Plans via Stripe + NocoDB Backend
+ * Seed On-Prem Plans & Add-ons via Stripe + NocoDB Backend
  *
- * Creates or updates Stripe products/prices for on-prem plans and registers
- * them in the NocoDB database via the internal payment API. Fully idempotent —
- * safe to re-run at any time to update metadata, descriptions, or pricing.
+ * Creates or updates Stripe products/prices for on-prem plans and add-ons and
+ * registers them in the NocoDB database via the internal payment API. Fully
+ * idempotent — safe to re-run at any time to update metadata, descriptions, or
+ * pricing.
  *
  * Pricing uses tiered per-unit (volume) pricing — one tier applies based on
  * total seat count, matching the cloud plan pricing model.
@@ -65,10 +66,13 @@ interface TierDef {
   flat_amount?: number;
 }
 
+// A price is either tiered volume (per-seat — `tiers`) or a flat per-unit fee
+// (`unit_amount`, billed at quantity 1). Add-ons billed `flat` use the latter.
 interface PriceDef {
   lookup_key: string;
   interval: "month" | "year";
-  tiers: TierDef[];
+  tiers?: TierDef[];
+  unit_amount?: number; // cents — flat per-unit price (when `tiers` omitted)
 }
 
 interface PlanDef {
@@ -76,6 +80,13 @@ interface PlanDef {
   description: string;
   metadata: Record<string, string>;
   prices: PriceDef[];
+}
+
+// An add-on is a separately-purchasable SKU (PlanAddonTypes) registered in the
+// catalog alongside plans. Same Stripe product/price shape as a plan; the
+// `addon_key` ties the Stripe product to the backend add-on definition.
+interface AddonDef extends PlanDef {
+  addon_key: string; // matches PlanAddonTypes in nocodb-sdk
 }
 
 // Note: only `description_*` keys in product metadata are stored on the plan
@@ -133,6 +144,89 @@ const ON_PREM_PLANS: PlanDef[] = [
   // Licenses are created manually by admin via internal API.
   // The plan definition still exists in OnPremPlanDefinitions (SDK)
   // so feature gating works once a license is issued.
+];
+
+// ─── Add-on definitions ──────────────────────────────────────────────────────
+// Add-ons are separately-purchasable SKUs that unlock a capability on top of a
+// plan (see AddonDefinitions in nocodb-sdk). Registered in the same catalog as
+// plans via POST /api/internal/payment/addon. `addon_key` must match
+// PlanAddonTypes. Lookup keys are free-form — only `private_*` and `loyalty`
+// are reserved (the grant flow skips them when picking the default price).
+//
+// SCIM, white-label and MSSQL all bill `per_seat` (Stripe quantity = billable
+// seats), so they use tiered volume pricing like the plans. Each carries month
+// + year prices so the add-on can co-term with either a monthly or yearly
+// subscription.
+//
+// Min-plan gating (all three → Self-hosted Scale; white-label is on-prem only)
+// is enforced at grant time from AddonDefinitions, not here.
+const ON_PREM_ADDONS: AddonDef[] = [
+  {
+    addon_key: "addon_scim", // PlanAddonTypes.ADDON_SCIM
+    name: "SCIM Provisioning", // becomes Addon.title
+    description: "Automated user provisioning & deprovisioning via SCIM 2.0",
+    metadata: {
+      description_1: "Automated user provisioning",
+      description_2: "Directory sync (Okta, Entra ID, …)",
+      description_3: "Group-based access management",
+    },
+    prices: [
+      {
+        lookup_key: "addon_scim_monthly",
+        interval: "month",
+        tiers: [{ up_to: "inf", unit_amount: 800 }], // $8/seat/month
+      },
+      {
+        lookup_key: "addon_scim_yearly",
+        interval: "year",
+        tiers: [{ up_to: "inf", unit_amount: 8400 }], // $7/seat/month × 12
+      },
+    ],
+  },
+  {
+    addon_key: "addon_white_label", // PlanAddonTypes.ADDON_WHITE_LABEL
+    name: "White Labeling", // becomes Addon.title
+    description: "Remove NocoDB branding and apply your own",
+    metadata: {
+      description_1: "Custom logo & branding",
+      description_2: "Custom email sender",
+      description_3: "Remove NocoDB branding",
+    },
+    prices: [
+      {
+        lookup_key: "addon_white_label_monthly",
+        interval: "month",
+        tiers: [{ up_to: "inf", unit_amount: 2500 }], // $25/seat/month
+      },
+      {
+        lookup_key: "addon_white_label_yearly",
+        interval: "year",
+        tiers: [{ up_to: "inf", unit_amount: 25000 }], // $250/seat/year
+      },
+    ],
+  },
+  {
+    addon_key: "addon_mssql", // PlanAddonTypes.ADDON_MSSQL
+    name: "SQL Server Sources", // becomes Addon.title
+    description: "Connect Microsoft SQL Server databases as external sources",
+    metadata: {
+      description_1: "Connect Microsoft SQL Server",
+      description_2: "Sync & browse SQL Server data",
+      description_3: "Read/write external SQL Server tables",
+    },
+    prices: [
+      {
+        lookup_key: "addon_mssql_monthly",
+        interval: "month",
+        tiers: [{ up_to: "inf", unit_amount: 1000 }], // $10/seat/month
+      },
+      {
+        lookup_key: "addon_mssql_yearly",
+        interval: "year",
+        tiers: [{ up_to: "inf", unit_amount: 10000 }], // $100/seat/year
+      },
+    ],
+  },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -234,11 +328,104 @@ function formatTierPrice(tier: TierDef, interval: string): string {
   return `up_to=${upTo} → $${perSeat}/seat/${interval}`;
 }
 
+/**
+ * Idempotently upsert a Stripe product (matched by exact name) and its prices.
+ * Shared by plan and add-on seeding — both use the same product/price shape.
+ * Supports tiered volume prices (per-seat) and flat per-unit prices (add-ons
+ * billed `flat`, charged at quantity 1).
+ */
+async function ensureStripeProduct(def: {
+  name: string;
+  description: string;
+  metadata: Record<string, string>;
+  prices: PriceDef[];
+}): Promise<Stripe.Product> {
+  // Find or create the Stripe product (by exact name match)
+  let product = await findExistingProduct(def.name);
+
+  if (product && FORCE_MODE) {
+    await forceRemoveProduct(product);
+    product = null;
+  }
+
+  if (product) {
+    product = await stripe.products.update(product.id, {
+      name: def.name,
+      description: def.description,
+      metadata: def.metadata,
+    });
+    ok(`Updated Stripe product: ${product.id}`);
+  } else {
+    product = await stripe.products.create({
+      name: def.name,
+      description: def.description,
+      metadata: def.metadata,
+    });
+    ok(`Created Stripe product: ${product.id}`);
+  }
+
+  // Create prices (skip if lookup_key already exists, unless --force)
+  for (const priceDef of def.prices) {
+    if (!FORCE_MODE) {
+      const existing = await stripe.prices.list({
+        lookup_keys: [priceDef.lookup_key],
+        limit: 1,
+      });
+
+      if (existing.data.length > 0) {
+        skip(
+          `Price ${priceDef.lookup_key} already exists: ${existing.data[0].id}`,
+        );
+        continue;
+      }
+    }
+
+    const common: Stripe.PriceCreateParams = {
+      product: product.id,
+      currency: "usd",
+      recurring: { interval: priceDef.interval, usage_type: "licensed" },
+      lookup_key: priceDef.lookup_key,
+      // In force mode, transfer the lookup key from any existing price
+      ...(FORCE_MODE ? { transfer_lookup_key: true } : {}),
+    };
+
+    const price = priceDef.tiers
+      ? await stripe.prices.create({
+          ...common,
+          billing_scheme: "tiered",
+          tiers_mode: "volume",
+          tiers: priceDef.tiers.map((t) => ({
+            up_to: t.up_to === "inf" ? "inf" : t.up_to,
+            unit_amount: t.unit_amount,
+            flat_amount: t.flat_amount ?? 0,
+          })),
+        })
+      : await stripe.prices.create({
+          ...common,
+          billing_scheme: "per_unit",
+          unit_amount: priceDef.unit_amount!,
+        });
+
+    ok(`Created price ${priceDef.lookup_key}: ${price.id}`);
+    if (priceDef.tiers) {
+      for (const tier of priceDef.tiers) {
+        console.log(`      ${formatTierPrice(tier, priceDef.interval)}`);
+      }
+    } else {
+      console.log(
+        `      flat → $${priceDef.unit_amount! / 100}/${priceDef.interval}`,
+      );
+    }
+  }
+
+  return product;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
   console.log(
-    `\n=== Seed On-Prem Plans${FORCE_MODE ? " (--force)" : ""} ===\n`,
+    `\n=== Seed On-Prem Plans & Add-ons${FORCE_MODE ? " (--force)" : ""} ===\n`,
   );
 
   // 1. Verify Stripe connection
@@ -269,74 +456,8 @@ async function main() {
   for (const planDef of ON_PREM_PLANS) {
     console.log(`[${planDef.name}]`);
 
-    // 3a. Find or create Stripe product (by exact name match)
-    let product = await findExistingProduct(planDef.name);
-
-    if (product && FORCE_MODE) {
-      await forceRemoveProduct(product);
-      product = null;
-    }
-
-    if (product) {
-      product = await stripe.products.update(product.id, {
-        name: planDef.name,
-        description: planDef.description,
-        metadata: planDef.metadata,
-      });
-      ok(`Updated Stripe product: ${product.id}`);
-    } else {
-      product = await stripe.products.create({
-        name: planDef.name,
-        description: planDef.description,
-        metadata: planDef.metadata,
-      });
-      ok(`Created Stripe product: ${product.id}`);
-    }
-
-    // 3b. Create tiered prices (skip if lookup_key already exists)
-    for (const priceDef of planDef.prices) {
-      if (!FORCE_MODE) {
-        const existing = await stripe.prices.list({
-          lookup_keys: [priceDef.lookup_key],
-          limit: 1,
-        });
-
-        if (existing.data.length > 0) {
-          skip(
-            `Price ${priceDef.lookup_key} already exists: ${existing.data[0].id}`,
-          );
-          continue;
-        }
-      }
-
-      const stripeTiers: Stripe.PriceCreateParams.Tier[] = priceDef.tiers.map(
-        (t) => ({
-          up_to: t.up_to === "inf" ? "inf" : t.up_to,
-          unit_amount: t.unit_amount,
-          flat_amount: t.flat_amount ?? 0,
-        }),
-      );
-
-      const price = await stripe.prices.create({
-        product: product.id,
-        currency: "usd",
-        billing_scheme: "tiered",
-        tiers_mode: "volume",
-        tiers: stripeTiers,
-        recurring: {
-          interval: priceDef.interval,
-          usage_type: "licensed",
-        },
-        lookup_key: priceDef.lookup_key,
-        // In force mode, transfer the lookup key from any existing price
-        ...(FORCE_MODE ? { transfer_lookup_key: true } : {}),
-      });
-
-      ok(`Created tiered price ${priceDef.lookup_key}: ${price.id}`);
-      for (const tier of priceDef.tiers) {
-        console.log(`      ${formatTierPrice(tier, priceDef.interval)}`);
-      }
-    }
+    // 3a/3b. Upsert Stripe product + prices
+    const product = await ensureStripeProduct(planDef);
 
     // 3c. Register or sync plan in backend DB
     const createResult = await backendRequest(
@@ -365,6 +486,46 @@ async function main() {
       }
     } else {
       fail(`Failed to register plan: ${JSON.stringify(createResult.data)}`);
+    }
+
+    console.log("");
+  }
+
+  // 4. Process each add-on (registered in the same catalog as plans)
+  for (const addonDef of ON_PREM_ADDONS) {
+    console.log(`[${addonDef.name}]`);
+
+    // 4a/4b. Upsert Stripe product + prices
+    const product = await ensureStripeProduct(addonDef);
+
+    // 4c. Register or sync add-on in backend DB
+    const createResult = await backendRequest(
+      "POST",
+      "/api/internal/payment/addon",
+      {
+        stripe_product_id: product.id,
+        addon_key: addonDef.addon_key,
+      },
+    );
+
+    if (createResult.ok) {
+      ok("Registered add-on in database");
+    } else if (
+      createResult.data?.msg?.includes("already registered") ||
+      createResult.status === 409
+    ) {
+      // Add-on exists — sync all to pick up metadata/price changes
+      const syncResult = await backendRequest(
+        "PATCH",
+        "/api/internal/payment/addon",
+      );
+      if (syncResult.ok) {
+        ok("Synced all add-ons from Stripe");
+      } else {
+        fail(`Failed to sync add-ons: ${JSON.stringify(syncResult.data)}`);
+      }
+    } else {
+      fail(`Failed to register add-on: ${JSON.stringify(createResult.data)}`);
     }
 
     console.log("");

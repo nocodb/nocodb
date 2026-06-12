@@ -4,11 +4,13 @@
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 import {
+  getAddonMinPlan,
   OnPremFeatureToMinPlan,
   OnPremHigherPlan,
   OnPremLimitToMinPlan,
   OnPremPlanMeta,
   OnPremPlanTitles,
+  PlanFeatureToAddon,
   PlanFeatureTypesToPlanTitles,
   PlanMeta,
   PlanTitles,
@@ -70,6 +72,11 @@ const isFeatureEnabled = computed(() => {
   return props.feature && getFeature(props.feature)
 })
 
+// Add-on-only features (SCIM, white-label) aren't unlocked by any plan tier — only by
+// purchasing the separate add-on. When set, the badge advertises the add-on instead of
+// a plan upgrade, while still colouring by the add-on's minimum required plan tier.
+const featureAddon = computed(() => (props.feature ? PlanFeatureToAddon[props.feature] : undefined))
+
 // Cloud plans don't exist on on-prem — translate cloud titles passed via :plan-title
 // (PLUS / BUSINESS / TEAM / ENTERPRISE) to their on-prem equivalent so badges never
 // show "Plus" or "Business" cloud labels in an on-prem deployment.
@@ -89,6 +96,13 @@ const cloudToOnPremTitle = (title: PlanTitles | OnPremPlanTitles | string): OnPr
 }
 
 const effectivePlanTitle = computed(() => {
+  // Add-on features: tier the badge by the add-on's minimum plan on the active ladder
+  // (e.g. SCIM → Scale), not the plan-feature fallback which would mislabel it as Plus.
+  if (featureAddon.value) {
+    const addonMin = getAddonMinPlan(featureAddon.value, isOnPrem.value || isEEFeatureBlocked.value)
+    if (addonMin) return addonMin
+  }
+
   if (props.planTitle) {
     return isOnPrem.value || isEEFeatureBlocked.value ? cloudToOnPremTitle(props.planTitle) : props.planTitle
   }
@@ -123,6 +137,9 @@ const effectivePlanTitle = computed(() => {
 // tier (Free, Plus, Business, Enterprise, Self-hosted Business → "Business",
 // Self-hosted Enterprise → "Enterprise") via the `objects.paymentPlan` i18n map.
 const lockTooltipText = computed(() => {
+  if (featureAddon.value) {
+    return t('upgrade.addonFeatureTitle', { addon: getAddonLabel(featureAddon.value) })
+  }
   return t('upgrade.planFeatureTitle', { plan: getPlanTitle(effectivePlanTitle.value) })
 })
 
@@ -192,7 +209,7 @@ onBeforeUnmount(() => {
     @click="showUpgradeModal"
   >
     <GeneralIcon icon="ncUpgradeSparkle" class="nc-upgrade-badge-sparkle" />
-    {{ getPlanTitle(effectivePlanTitle) }}
+    {{ featureAddon ? t('general.addOn') : getPlanTitle(effectivePlanTitle) }}
   </NcBadge>
 </template>
 

@@ -2,6 +2,7 @@ import type {
   Api,
   BaseType,
   IntegrationType,
+  PlanAddonTypes,
   PlanFeatureTypes,
   TeamDetailV3V3Type,
   TeamMemberV3ResponseV3Type,
@@ -32,6 +33,7 @@ export interface NcWorkspace extends WorkspaceType {
         [key in PlanFeatureTypes]: boolean
       }
     }
+    addons?: { addon_key: PlanAddonTypes; status: string }[]
   }
   stats?: { [key in PlanLimitTypes]: number }
   grace_period_start_at?: string | null

@@ -1,5 +1,6 @@
-import type { PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { PlanAddonTypes, PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
+  getAddonMinPlan,
   GRACE_PERIOD_DURATION,
   HigherPlan,
   LOYALTY_GRACE_PERIOD_END_DATE,
@@ -8,6 +9,7 @@ import {
   OnPremHigherPlan,
   OnPremLimitToMinPlan,
   OnPremPlanTitles,
+  PlanFeatureToAddon,
   PlanFeatureTypes,
   PlanFeatureTypesToPlanTitles,
   PlanLimitTypes,
@@ -420,12 +422,19 @@ export const useEeConfig = createSharedComposable(() => {
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
   const blockSSO = computed(() => isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO))
   const blockScim = computed(() => {
-    // SCIM is on-prem enterprise only — always blocked on cloud
-    if (isPaymentEnabled.value) return true
-    return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
+    // SCIM is sold as an add-on on both cloud and on-prem. FEATURE_SCIM resolves
+    // true only when the SCIM add-on is active (the backend merges add-on grants
+    // into plan meta), so the same getFeature check gates both ladders.
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
+  })
+  const blockMssql = computed(() => {
+    // MSSQL is sold as an add-on on both cloud and on-prem. FEATURE_MSSQL resolves
+    // true only when the MSSQL add-on is active (the backend merges add-on grants
+    // into plan meta), so the same getFeature check gates both ladders.
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MSSQL)
   })
   const blockWhiteLabel = computed(() => {
-    // White Label is on-prem enterprise only — always blocked on cloud
+    // White Label is on-prem only (white-label add-on, Scale+) — always blocked on cloud
     if (isPaymentEnabled.value) return true
     return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_WHITE_LABEL)
   })
@@ -928,6 +937,60 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  // Add-on-only features (SCIM, white-label) are NOT unlocked by upgrading the plan
+  // tier — they require purchasing the separate add-on SKU. A plan-upgrade modal would
+  // advertise a tier that wouldn't grant the feature, so route these to add-on copy
+  // with a "Contact Sales" CTA instead. Works on every deployment (cloud + on-prem).
+  const showUpgradeForAddon = (
+    addonKey: PlanAddonTypes,
+    {
+      title,
+      content,
+      callback,
+    }: {
+      title?: string
+      content?: string
+      callback?: (type: 'ok' | 'cancel') => void
+    } = {},
+  ) => {
+    const isOpen = ref(true)
+
+    const minPlan = getAddonMinPlan(addonKey, isOnPrem.value)
+    const addonLabel = getAddonLabel(addonKey)
+
+    const modalTitle = ref(title || t('upgrade.addonFeatureTitle', { addon: addonLabel }))
+    const modalContent = ref(
+      content || t('upgrade.addonFeatureSubtitle', { addon: addonLabel, plan: minPlan ? getPlanTitle(minPlan) : '' }),
+    )
+
+    const { close } = useDialog(NcModalConfirm, {
+      'visible': isOpen,
+      'title': modalTitle,
+      'content': modalContent,
+      'okText': t('labels.contactSales'),
+      'onOk': () => {
+        window.open('mailto:support@nocodb.com', '_blank')
+        callback?.('ok')
+        toggleDialog()
+      },
+      'cancelText': t('general.close'),
+      'onCancel': () => {
+        callback?.('cancel')
+        toggleDialog()
+      },
+      'update:visible': toggleDialog,
+      'showIcon': false,
+      'maskClosable': true,
+    })
+
+    function toggleDialog(show = false) {
+      isOpen.value = show
+      close(1000)
+    }
+
+    return true
+  }
+
   const handleUpgradePlan = ({
     currentPlanTitle,
     newPlanTitle,
@@ -960,6 +1023,17 @@ export const useEeConfig = createSharedComposable(() => {
     isSharedFormView?: boolean
     requiredPlan?: PlanTitles
   } = {}) => {
+    // Add-on-only features can't be unlocked by any plan upgrade — advertise the
+    // add-on (Contact Sales) regardless of deployment. Resolve before the on-prem
+    // branches so the license-upgrade modals don't claim a tier that won't grant it.
+    const addonKey = limitOrFeature ? PlanFeatureToAddon[limitOrFeature as PlanFeatureTypes] : undefined
+    if (addonKey) {
+      const addonMinPlan = getAddonMinPlan(addonKey, isOnPrem.value)
+      if (addonMinPlan) {
+        return showUpgradeForAddon(addonKey, { title, content, callback })
+      }
+    }
+
     // On-prem without license: show license upgrade modal instead of cloud pricing
     // Don't pass content — it contains cloud-specific plan names (e.g. "Business");
     // pass limitOrFeature so handleOnPremUpgrade can generate enterprise-appropriate content
@@ -2318,6 +2392,16 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseMssql = () => {
+    if (!blockMssql.value) return
+
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_MSSQL,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseWhiteLabel = () => {
     if (!blockWhiteLabel.value) return
 
@@ -2600,6 +2684,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockSSO,
     blockScim,
     showUpgradeToUseScim,
+    blockMssql,
+    showUpgradeToUseMssql,
     blockWhiteLabel,
     showUpgradeToUseWhiteLabel,
     showUpgradeToUseAudit,

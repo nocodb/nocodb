@@ -1,8 +1,10 @@
 import {
+  AddonDefinitions,
   GRACE_PERIOD_DURATION,
   NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
+  applyAddons,
   resolvePlanMeta,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
@@ -13,7 +15,14 @@ import type {
 } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
-import { Domain, Org, Subscription, Workspace } from '~/models';
+import {
+  Addon,
+  Domain,
+  Org,
+  Subscription,
+  SubscriptionAddon,
+  Workspace,
+} from '~/models';
 import Noco from '~/Noco';
 import Plan, { CommonLimits, FreePlan, GraceLimits } from '~/models/Plan';
 import { isCloud, isOnPrem } from '~/utils';
@@ -364,7 +373,24 @@ async function getActivePlanAndSubscription(
     Object.assign(plan.meta, subscription.meta.plan_meta);
   }
 
-  return { plan, subscription };
+  // Add-on entitlements: expand active add-ons into plan meta (same expansion as on-prem).
+  const activeAddons = await SubscriptionAddon.listActive(
+    subscription.id,
+    ncMeta,
+  );
+  applyAddons(
+    plan.meta as Record<string, number | boolean>,
+    activeAddons.map((a) => a.addon_key),
+  );
+
+  return {
+    plan,
+    subscription,
+    addons: activeAddons.map((a) => ({
+      addon_key: a.addon_key,
+      status: a.status,
+    })),
+  };
 }
 
 // if Cloud, then check if sso is available for the workspace/org
@@ -493,6 +519,125 @@ const checkIfEmailAllowedNonSSOForOrg = async (
 
 async function checkGlobalSeatHeadroom(_additionalSeats = 1) {
   // No-op on cloud — seat limits are handled by reseatSubscription
+}
+
+/**
+ * Pick the base plan item from a Stripe subscription's items. Add-on grants
+ * make subscriptions multi-item, and Stripe does not guarantee item ordering
+ * (a scheduled phase change mints fresh ids for every item), so
+ * `items.data[0]` is NOT necessarily the base plan item.
+ *
+ * Resolution order:
+ *   1. Single item → that item.
+ *   2. Exactly one item whose product is not a known add-on product.
+ *   3. The item whose product is a known plan product.
+ *   4. The item matching the locally stored base price id.
+ *   5. `items[0]` (legacy fallback).
+ */
+export function pickBaseSubscriptionItem(
+  items: Stripe.SubscriptionItem[],
+  opts: {
+    addonProductIds?: Set<string>;
+    planProductIds?: Set<string>;
+    localPriceId?: string | null;
+  } = {},
+): Stripe.SubscriptionItem | undefined {
+  if (!items?.length) return undefined;
+  if (items.length === 1) return items[0];
+
+  const productOf = (item: Stripe.SubscriptionItem): string | undefined => {
+    const product = item.price?.product;
+    return typeof product === 'string' ? product : product?.id;
+  };
+
+  const { addonProductIds, planProductIds, localPriceId } = opts;
+
+  const nonAddonItems = addonProductIds?.size
+    ? items.filter((i) => !addonProductIds.has(productOf(i) ?? ''))
+    : items;
+  if (nonAddonItems.length === 1) return nonAddonItems[0];
+
+  const candidates = nonAddonItems.length ? nonAddonItems : items;
+
+  if (planProductIds?.size) {
+    const byPlanProduct = candidates.find((i) =>
+      planProductIds.has(productOf(i) ?? ''),
+    );
+    if (byPlanProduct) return byPlanProduct;
+  }
+
+  if (localPriceId) {
+    const byPrice = candidates.find((i) => i.price?.id === localPriceId);
+    if (byPrice) return byPrice;
+  }
+
+  return items[0];
+}
+
+/**
+ * Resolve the base plan item of a live Stripe subscription. Add-on items are
+ * identified by the add-on catalog's product ids and the base item by the
+ * known plan product ids (see pickBaseSubscriptionItem for the full order).
+ */
+export async function getBaseSubscriptionItem(
+  stripeSub: Stripe.Subscription,
+  localPriceId?: string | null,
+  ncMeta = Noco.ncMeta,
+): Promise<Stripe.SubscriptionItem | undefined> {
+  const items = stripeSub?.items?.data ?? [];
+  if (items.length <= 1) return items[0];
+
+  const [plans, addons] = await Promise.all([
+    Plan.list(ncMeta),
+    Addon.list(ncMeta),
+  ]);
+
+  return pickBaseSubscriptionItem(items, {
+    addonProductIds: new Set(
+      addons.map((a) => a.stripe_product_id).filter(Boolean),
+    ),
+    planProductIds: new Set(
+      plans.map((p) => p.stripe_product_id).filter(Boolean),
+    ),
+    localPriceId,
+  });
+}
+
+/**
+ * Build the Stripe `items` payload for a seat change: the base subscription
+ * item plus every active, Stripe-backed, per-seat add-on item — all at
+ * `newSeatCount` (forced match). Flat add-ons keep their quantity; comped
+ * add-ons (no Stripe item) carry nothing.
+ */
+export async function buildSeatSyncItems(
+  subscription: Subscription,
+  stripeSub: Stripe.Subscription,
+  newSeatCount: number,
+  ncMeta = Noco.ncMeta,
+): Promise<{ id: string; price?: string; quantity: number }[]> {
+  const baseItem = await getBaseSubscriptionItem(
+    stripeSub,
+    subscription.stripe_price_id,
+    ncMeta,
+  );
+  const items: { id: string; price?: string; quantity: number }[] = [
+    {
+      id: baseItem.id,
+      price: subscription.stripe_price_id,
+      quantity: newSeatCount,
+    },
+  ];
+  const addons = await SubscriptionAddon.listActive(subscription.id, ncMeta);
+  for (const sa of addons) {
+    if (!sa.stripe_subscription_item_id) continue; // comped → not billed
+    const def = AddonDefinitions[sa.addon_key];
+    if (def?.quantityBasis !== 'per_seat') continue; // flat → leave as-is
+    items.push({
+      id: sa.stripe_subscription_item_id,
+      quantity: newSeatCount,
+    });
+  }
+  return items;
 }
 
 /**

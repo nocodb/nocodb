@@ -15,6 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import Ajv from 'ajv';
 import {
   NcRequest,
+  type PlanAddonTypes,
   type PlanFeatureTypes,
   type PlanLimitTypes,
 } from 'nocodb-sdk';
@@ -79,6 +80,64 @@ export class PaymentController {
   @Delete('/api/internal/payment/plan/:planId')
   async disablePlan(@Param('planId') planId: string) {
     return this.paymentService.disablePlan(planId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/addon')
+  async submitAddon(
+    @Body()
+    payload: {
+      stripe_product_id: string;
+      addon_key: PlanAddonTypes;
+      is_active?: boolean;
+    },
+  ) {
+    return this.paymentService.submitAddon(payload);
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Patch('/api/internal/payment/addon/:addonId')
+  async syncAddon(
+    @Param('addonId') addonId: string,
+    @Body()
+    payload: {
+      is_active?: boolean;
+    },
+  ) {
+    return this.paymentService.syncAddon(addonId, payload);
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Patch('/api/internal/payment/addon')
+  async syncAllAddons() {
+    return this.paymentService.syncAllAddons();
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Get('/api/internal/payment/addon')
+  async getAllAddons() {
+    return this.paymentService.getAddons();
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/addon')
+  async grantAddon(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body()
+    payload: { addon_key: PlanAddonTypes; comped?: boolean; price_id?: string },
+    @Req() req: NcRequest,
+  ) {
+    return this.paymentService.grantAddon(workspaceOrOrgId, payload, req);
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Delete('/api/internal/payment/:workspaceOrOrgId/addon/:addonKey')
+  async revokeAddon(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('addonKey') addonKey: PlanAddonTypes,
+    @Req() req: NcRequest,
+  ) {
+    return this.paymentService.revokeAddon(workspaceOrOrgId, addonKey, req);
   }
 
   @UseGuards(AuthGuard('basic'))
@@ -231,6 +290,23 @@ export class PaymentController {
       'descriptions',
       'is_active',
     ]);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/public/payment/addon')
+  async getPublicAddons() {
+    const addons = await this.paymentService.getActiveAddons();
+
+    return addons.map((addon) =>
+      extractProps(addon, [
+        'addon_key',
+        'title',
+        'description',
+        'stripe_product_id',
+        'prices',
+        'is_active',
+      ]),
+    );
   }
 
   @UseGuards(GlobalGuard)

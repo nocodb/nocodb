@@ -44,4 +44,14 @@ export class PaymentService extends PaymentServiceEE {
   ): Promise<void> {
     await this.onPremLicenseService.handleInvoicePaymentFailed(invoice);
   }
+
+  protected async syncOnPremAddons(subscriptionId: string): Promise<void> {
+    try {
+      await this.onPremLicenseService.syncInstallationAddons(subscriptionId);
+    } catch (e) {
+      this.onPremLogger.warn(
+        `on-prem addon config sync skipped: ${(e as Error)?.message}`,
+      );
+    }
+  }
 }

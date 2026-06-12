@@ -129,8 +129,14 @@ export enum PlanFeatureTypes {
   FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
-  /** On-prem Enterprise: instance-wide white-labeling (logo, product name, brand color, favicon) */
+  /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
+}
+
+export enum PlanAddonTypes {
+  ADDON_SCIM = 'addon_scim',
+  ADDON_WHITE_LABEL = 'addon_white_label',
+  ADDON_MSSQL = 'addon_mssql',
 }
 
 export enum PlanTitles {

@@ -10,6 +10,7 @@ import type {
   DocumentType,
   IntegrationType,
   OrgType,
+  PlanAddonTypes,
   PlanFeatureTypes,
   PlanLimitTypes,
   ScriptType,
@@ -108,6 +109,17 @@ export interface WorkspaceRequestUpgradeEvent extends NcBaseEvent {
     display_name?: string;
   };
   limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
+}
+
+export interface AddonGrantedEvent extends NcBaseEvent {
+  workspaceOrOrgId: string;
+  addonKey: PlanAddonTypes;
+  comped?: boolean;
+}
+
+export interface AddonRevokedEvent extends NcBaseEvent {
+  workspaceOrOrgId: string;
+  addonKey: PlanAddonTypes;
 }
 
 export interface ScriptCreateEvent extends NcBaseEvent {

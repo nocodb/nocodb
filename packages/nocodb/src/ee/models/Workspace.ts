@@ -3,6 +3,7 @@ import {
   AutomationTypes,
   ModelTypes,
   NON_SEAT_ROLES,
+  PlanAddonTypes,
   PlanLimitTypes,
   type WorkspacePlan,
   type WorkspaceStatus,
@@ -66,6 +67,7 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
   payment?: {
     subscription?: Subscription;
     plan: Partial<Plan>;
+    addons?: { addon_key: PlanAddonTypes; status: string }[];
   };
 
   stats?: {

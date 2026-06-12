@@ -5,7 +5,15 @@ import type { OnPremInvoice } from '~/composables/useOnPremLicense'
 
 const { t } = useI18n()
 
-const { defaultInvoicePaginationData, invoices, invoicePaginationData, loadInvoices, hasAnySubscription } = useOnPremLicense()
+const {
+  defaultInvoicePaginationData,
+  invoices,
+  invoicePaginationData,
+  loadInvoices,
+  hasAnySubscription,
+  addonsCatalog,
+  loadAddons,
+} = useOnPremLicense()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -15,33 +23,10 @@ const paginatedData = computed(() => {
   return invoices.value.slice(start, end)
 })
 
-const getPlanTitle = (record: OnPremInvoice) => {
-  const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
-  const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
-
-  const invoiceLines = record?.lines?.data
-  const seatCount = invoiceLines?.length > 0 ? invoiceLines[invoiceLines.length - 1].quantity : 0
-
-  if (!planTitle) return ''
-
-  const seatLabel =
-    seatCount > 0 ? `${seatCount} ${seatCount === 1 ? t('general.seat').toLowerCase() : t('general.seats').toLowerCase()}` : ''
-
-  const billedLabel = planPeriod ? t(planPeriod === 'month' ? 'labels.billedMonthly' : 'labels.billedAnnuallyLower') : ''
-
-  const periodLabel = planPeriod ? t(planPeriod === 'month' ? 'general.monthly' : 'labels.annual') : ''
-
-  if (seatLabel && billedLabel) {
-    return `${planTitle} (${seatLabel} ${billedLabel})`
-  }
-  if (periodLabel) {
-    return `${planTitle} (${periodLabel})`
-  }
-  if (seatLabel) {
-    return `${planTitle} (${seatLabel})`
-  }
-  return planTitle
-}
+// Map Stripe product id → add-on key so add-on invoice lines are labeled by their
+// catalog name (e.g. "SCIM Provisioning") instead of the base plan — matching the
+// cloud billing invoice table.
+const productToAddonKey = computed(() => new Map(addonsCatalog.value.map((addon) => [addon.stripe_product_id, addon.addon_key])))
 
 const columns: NcTableColumnProps<OnPremInvoice>[] = [
   {
@@ -122,6 +107,7 @@ const onUpdatePageSize = (pageSize: number) => {
 }
 
 onMounted(() => {
+  loadAddons()
   loadInvoices()
 })
 </script>
@@ -146,7 +132,7 @@ onMounted(() => {
             </NcTooltip>
             <span v-else>-</span>
           </template>
-          <template v-if="column.key === 'plan'"> {{ getPlanTitle(record) }}</template>
+          <template v-if="column.key === 'plan'"> {{ buildInvoicePlanLabel(record, productToAddonKey) }}</template>
           <template v-if="column.key === 'license'">
             <code v-if="record.license_key_masked" class="nc-license-key-mono text-xs text-nc-content-gray">
               {{ record.license_key_masked }}

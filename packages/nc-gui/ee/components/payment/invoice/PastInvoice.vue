@@ -4,7 +4,15 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { defaultInvoicePaginationData, invoices, invoicePaginationData, loadInvoices, stripeCustomerId } = usePaymentStoreOrThrow()
+const {
+  addonsCatalog,
+  defaultInvoicePaginationData,
+  invoices,
+  invoicePaginationData,
+  loadAddons,
+  loadInvoices,
+  stripeCustomerId,
+} = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -14,36 +22,11 @@ const paginatedData = computed(() => {
   return invoices.value.slice(start, end)
 })
 
-const getPlanTitle = (record: Stripe.Invoice) => {
-  const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
-  const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
-
-  const invoiceLines = record?.lines?.data
-  // get last line quantity if it exists
-  const seatCount = invoiceLines?.length > 0 ? invoiceLines[invoiceLines.length - 1].quantity : 0
-
-  let returnPlan = ''
-
-  // if seats available
-  // Plan (N seats billed annually/monthly)
-  if (planTitle && planPeriod) {
-    if (seatCount > 0) {
-      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`} billed ${
-        planPeriod === 'month' ? 'monthly' : 'annually'
-      })`
-    } else {
-      returnPlan = `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})`
-    }
-  } else if (planTitle) {
-    if (seatCount > 0) {
-      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`})`
-    } else {
-      returnPlan = planTitle
-    }
-  }
-
-  return returnPlan
-}
+// Map Stripe product id → add-on key so add-on invoice lines can be labeled by
+// their catalog name (e.g. "SCIM Provisioning") instead of Stripe's verbose
+// proration description. Covers historical invoices too, since every line
+// carries its product id regardless of current grant status.
+const productToAddonKey = computed(() => new Map(addonsCatalog.value.map((addon) => [addon.stripe_product_id, addon.addon_key])))
 
 const columns: NcTableColumnProps<Stripe.Invoice>[] = [
   {
@@ -117,6 +100,7 @@ const onUpdatePageSize = (pageSize: number) => {
 }
 
 onMounted(() => {
+  loadAddons()
   loadInvoices()
 })
 </script>
@@ -138,7 +122,7 @@ onMounted(() => {
           <template v-if="column.key === 'created'">
             {{ record.created ? dayjs(record.created * 1000).format('D MMMM YYYY hh:mm A') : '-' }}
           </template>
-          <template v-if="column.key === 'plan'"> {{ getPlanTitle(record) }}</template>
+          <template v-if="column.key === 'plan'"> {{ buildInvoicePlanLabel(record, productToAddonKey) }}</template>
           <template v-if="column.key === 'invoiceTotal'"> {{ column.format?.(record.amount_paid, record) }}</template>
           <template v-if="column.key === 'status'">
             <span

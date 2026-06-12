@@ -1,7 +1,12 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Logger } from '@nestjs/common';
-import { NON_SEAT_ROLES, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  NON_SEAT_ROLES,
+  PlanAddonTypes,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
@@ -32,6 +37,7 @@ interface LicenseData {
   config?: {
     limit_workspace?: number;
     limit_seat?: number;
+    addons?: PlanAddonTypes[];
   };
   instance_id?: string;
   db_fingerprint?: string;

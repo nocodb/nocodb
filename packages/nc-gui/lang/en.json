@@ -283,6 +283,8 @@
     "upgradeToEnterprise": "Upgrade {detail}",
     "upgradeToOnPremPlanTitle": "Upgrade to {plan}",
     "upgradeToOnPremPlan": "Upgrade your license {detail}",
+    "addonFeatureTitle": "Available as the {addon} add-on",
+    "addonFeatureSubtitle": "{addon} is available as a paid add-on on the {plan} plan or higher. Contact us to enable it.",
     "upgradeLicense": "Upgrade License",
     "purchaseLicense": "Purchase License",
     "licenseRefreshed": "License refreshed successfully",
@@ -654,6 +656,7 @@
     "left": "left",
     "seat": "Seat",
     "seats": "Seats",
+    "addOn": "Add-on",
     "automation": "Automation",
     "resources": "Resources",
     "community": "Community",
@@ -689,6 +692,8 @@
     "updated": "Updated"
   },
   "objects": {
+    "addons": "Add-ons",
+    "seatCount": "1 seat | {count} seats",
     "script": "Script",
     "scripts": "Scripts",
     "automation": "Automation",

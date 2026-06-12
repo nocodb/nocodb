@@ -10,22 +10,29 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { ScimConfigService } from '~/ee/services/scim/scim-config.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ScimConfigController {
   constructor(private readonly scimConfigService: ScimConfigService) {}
 
-  private async checkScimFeature(_context: NcContext) {
-    // SCIM is available on licensed on-prem (license checked by LicenseGuard)
-    // and on cloud enterprise orgs. No workspace-level plan check needed
-    // since SCIM is now org-scoped.
+  private async checkScimFeature(context: NcContext, orgId: string) {
+    // SCIM is a paid add-on on both ladders — FEATURE_SCIM resolves true only
+    // when the add-on is active (merged into plan meta from the junction on
+    // cloud / the license `config.addons` claim on-prem). Enforce it here so
+    // the entitlement isn't client-side-only.
+    await checkForFeature(
+      { ...context, workspace_id: orgId },
+      PlanFeatureTypes.FEATURE_SCIM,
+    );
   }
 
   @Get('/api/v3/meta/orgs/:orgId/scim/config')
@@ -37,7 +44,7 @@ export class ScimConfigController {
     @Param('orgId') orgId: string,
     @Req() req: any,
   ) {
-    await this.checkScimFeature(context);
+    await this.checkScimFeature(context, orgId);
     return this.scimConfigService.getConfig(context, orgId, {
       ncSiteUrl: req.ncSiteUrl,
     });
@@ -53,7 +60,7 @@ export class ScimConfigController {
     @Param('orgId') orgId: string,
     @Req() req: any,
   ) {
-    await this.checkScimFeature(context);
+    await this.checkScimFeature(context, orgId);
     return this.scimConfigService.initializeConfig(context, {
       orgId,
       ncSiteUrl: req.ncSiteUrl,
@@ -71,7 +78,7 @@ export class ScimConfigController {
     @Param('orgId') orgId: string,
     @Req() req: any,
   ) {
-    await this.checkScimFeature(context);
+    await this.checkScimFeature(context, orgId);
     return this.scimConfigService.regenerateToken(context, orgId, req);
   }
 
@@ -90,7 +97,7 @@ export class ScimConfigController {
     },
     @Req() req: any,
   ) {
-    await this.checkScimFeature(context);
+    await this.checkScimFeature(context, orgId);
     return this.scimConfigService.updateConfig(context, {
       orgId,
       ncSiteUrl: req.ncSiteUrl,
@@ -108,7 +115,7 @@ export class ScimConfigController {
     @Param('orgId') orgId: string,
     @Req() req: any,
   ) {
-    await this.checkScimFeature(context);
+    await this.checkScimFeature(context, orgId);
     return this.scimConfigService.deleteConfig(context, orgId, req);
   }
 }

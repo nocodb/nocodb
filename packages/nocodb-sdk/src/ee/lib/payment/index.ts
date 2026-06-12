@@ -1,5 +1,6 @@
 import {
   OnPremPlanTitles,
+  PlanAddonTypes,
   PlanFeatureTypes,
   PlanLimitTypes,
   PlanOrder,
@@ -144,6 +145,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
@@ -225,6 +227,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
@@ -260,6 +263,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
@@ -298,6 +302,7 @@ export const CloudPlanDefinitions: Record<
     features: {
       // Enterprise-only — reserved above Scale to match the pricing matrix.
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
@@ -331,6 +336,9 @@ export const CloudPlanDefinitions: Record<
   // -------------------------------------------------------------------------
   [PlanTitles.ENTERPRISE]: {
     features: {
+      // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       // On-prem-only features (always disabled on cloud)
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
@@ -560,6 +568,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
       [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
@@ -590,6 +599,7 @@ export const OnPremPlanDefinitions: Record<
     features: {
       // Enterprise-only
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
@@ -601,6 +611,11 @@ export const OnPremPlanDefinitions: Record<
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     features: {
+      // SCIM is unbundled — only the SCIM add-on grants it (see AddonDefinitions).
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_MSSQL]: false,
+      // White-label is unbundled — only the white-label add-on grants it (see AddonDefinitions).
+      [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
     },
@@ -800,4 +815,92 @@ export const InternalOpToOnPremPlanFeature: Record<
   // Audit
   workspaceAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
   baseAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+};
+
+// ---------------------------------------------------------------------------
+// Add-on definitions — sellable SKUs distinct from the capability they grant
+// ---------------------------------------------------------------------------
+// An add-on (PlanAddonTypes) is a separately-purchasable SKU that unlocks one
+// or more PlanFeatureTypes when active. The capability stays disabled in the
+// plan definitions above; only the add-on grants it. `minPlan` enforces the
+// lowest tier a workspace/instance may hold the add-on on, per ladder.
+// ---------------------------------------------------------------------------
+
+export const AddonDefinitions: Record<
+  PlanAddonTypes,
+  {
+    /** Features unlocked when this add-on is active. */
+    grants: Partial<Record<PlanFeatureTypes, boolean>>;
+    /** Lowest plan that may hold the add-on, per ladder. null = not sold on that ladder. */
+    minPlan: { cloud: PlanTitles | null; onPrem: OnPremPlanTitles | null };
+    /** flat → Stripe quantity 1; per_seat → quantity = billable seats (forced-match). */
+    quantityBasis: 'flat' | 'per_seat';
+  }
+> = {
+  [PlanAddonTypes.ADDON_SCIM]: {
+    grants: { [PlanFeatureTypes.FEATURE_SCIM]: true },
+    minPlan: {
+      cloud: PlanTitles.SCALE,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_SCALE,
+    },
+    quantityBasis: 'per_seat',
+  },
+  [PlanAddonTypes.ADDON_WHITE_LABEL]: {
+    grants: { [PlanFeatureTypes.FEATURE_WHITE_LABEL]: true },
+    minPlan: {
+      cloud: null,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_SCALE,
+    },
+    quantityBasis: 'per_seat',
+  },
+  [PlanAddonTypes.ADDON_MSSQL]: {
+    grants: { [PlanFeatureTypes.FEATURE_MSSQL]: true },
+    minPlan: {
+      cloud: PlanTitles.SCALE,
+      onPrem: OnPremPlanTitles.SELF_HOSTED_SCALE,
+    },
+    quantityBasis: 'per_seat',
+  },
+};
+
+/**
+ * Auto-generated: feature → add-on that grants it. Used by upgrade CTAs to
+ * recognize add-on-only features (no plan tier unlocks them) and advertise
+ * the add-on instead of a plan upgrade that wouldn't grant the feature.
+ */
+export const PlanFeatureToAddon: Partial<
+  Record<PlanFeatureTypes, PlanAddonTypes>
+> = (() => {
+  const result: Partial<Record<PlanFeatureTypes, PlanAddonTypes>> = {};
+  for (const [addonKey, def] of Object.entries(AddonDefinitions)) {
+    for (const feature of Object.keys(def.grants)) {
+      result[feature as PlanFeatureTypes] = addonKey as PlanAddonTypes;
+    }
+  }
+  return result;
+})();
+
+/** Merge each active add-on's granted features into a resolved plan-meta object (mutates `meta`). */
+export function applyAddons(
+  meta: Record<string, unknown>,
+  activeKeys: PlanAddonTypes[] | undefined | null
+): void {
+  if (!activeKeys?.length) return;
+  for (const key of activeKeys) {
+    const def = AddonDefinitions[key];
+    if (def) Object.assign(meta, def.grants);
+  }
+}
+
+/**
+ * The lowest plan an add-on may be held on for the given ladder (`onPrem` →
+ * self-hosted, else cloud). `null`/`undefined` when the add-on isn't sold on
+ * that ladder. Centralizes the cloud/on-prem ladder choice upgrade CTAs make.
+ */
+export const getAddonMinPlan = (
+  addonKey: PlanAddonTypes,
+  onPrem: boolean
+): PlanTitles | OnPremPlanTitles | null | undefined => {
+  const minPlan = AddonDefinitions[addonKey]?.minPlan;
+  return onPrem ? minPlan?.onPrem : minPlan?.cloud;
 };

@@ -1,4 +1,4 @@
-import type { AttachmentResType, OrgType } from 'nocodb-sdk';
+import type { AttachmentResType, OrgType, PlanAddonTypes } from 'nocodb-sdk';
 import type { Plan, Subscription } from '~/models';
 import {
   prepareForDb,
@@ -40,6 +40,7 @@ export default class Org implements OrganizationType {
   payment?: {
     subscription?: Subscription;
     plan: Partial<Plan>;
+    addons?: { addon_key: PlanAddonTypes; status: string }[];
   };
 
   constructor(org: Partial<OrgType>) {

@@ -106,6 +106,9 @@ export enum AppEvents {
 
   WHITE_LABEL_UPDATE = 'white.label.update',
 
+  ADDON_GRANTED = 'addon.granted',
+  ADDON_REVOKED = 'addon.revoked',
+
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
   USER_SIGNIN_FAILED = 'user.signin.failed',

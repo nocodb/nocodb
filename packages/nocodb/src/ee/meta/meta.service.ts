@@ -114,6 +114,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.TABLE_SYNC_COLUMN_MAPPINGS]: 'tscm',
       [MetaTable.PLANS]: 'pl',
       [MetaTable.SUBSCRIPTIONS]: 'sub',
+      [MetaTable.ADDONS]: 'adn',
+      [MetaTable.SUBSCRIPTION_ADDONS]: 'sadn',
       [MetaTable.ROW_COLOR_CONDITIONS]: 'rc',
       [MetaTable.DB_SERVERS]: 'db',
       [MetaTable.PERMISSIONS]: 'perm',

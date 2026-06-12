@@ -98,6 +98,8 @@ import type {
   BookmarkDeleteEvent,
 } from '~/services/app-hooks/interfaces';
 import type {
+  AddonGrantedEvent,
+  AddonRevokedEvent,
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
@@ -386,6 +388,16 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.WORKSPACE_UPGRADE_REQUEST,
     listener: (data: WorkspaceRequestUpgradeEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.ADDON_GRANTED,
+    listener: (data: AddonGrantedEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.ADDON_REVOKED,
+    listener: (data: AddonRevokedEvent) => void,
   ): () => void;
 
   on(
@@ -767,6 +779,8 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.WORKSPACE_UPGRADE_REQUEST,
     data: WorkspaceRequestUpgradeEvent,
   ): void;
+  emit(event: AppEvents.ADDON_GRANTED, data: AddonGrantedEvent): void;
+  emit(event: AppEvents.ADDON_REVOKED, data: AddonRevokedEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
   emit(
     event: AppEvents.PROJECT_USER_UPDATE,

@@ -2,11 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { customAlphabet } from 'nanoid';
 import { OnPremPlanTitles, ReturnToBillingPage } from 'nocodb-sdk';
+import type { PlanAddonTypes } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MailParams } from '~/interface/Mail';
-import { Plan, Subscription, User } from '~/models';
+import { Plan, Subscription, SubscriptionAddon, User } from '~/models';
 import Installation from '~/models/Installation';
 import { NcError } from '~/helpers/catchError';
+import {
+  buildSeatSyncItems,
+  getBaseSubscriptionItem,
+} from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { InstallationStatus, LicenseType } from '~/utils/license';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -34,6 +39,7 @@ const PLAN_TO_LICENSE_TYPE: Record<string, LicenseType> = {
 function buildConfigFromPlan(
   plan: Plan,
   subscription?: { meta?: { plan_meta?: Record<string, any> } },
+  addonKeys?: PlanAddonTypes[],
 ): Record<string, any> {
   const config: Record<string, any> = {
     plan_title: plan.title,
@@ -46,6 +52,11 @@ function buildConfigFromPlan(
   // Per-subscription overrides (addons, custom limits)
   if (subscription?.meta?.plan_meta) {
     Object.assign(config, subscription.meta.plan_meta);
+  }
+
+  // Structured add-on entitlements — consumed on-prem by applyAddons(config.addons).
+  if (addonKeys?.length) {
+    config.addons = addonKeys;
   }
 
   return config;
@@ -353,20 +364,21 @@ export class OnPremLicenseService {
       return;
     }
 
+    // No add-ons at creation: the Subscription row (and thus any SubscriptionAddon
+    // rows keyed by it) doesn't exist yet — they're attached later via grantAddon,
+    // which calls syncInstallationAddons to refresh this config.
     const config = buildConfigFromPlan(plan);
-    const price = stripeSub.items.data[0].price;
+    const baseItem = await getBaseSubscriptionItem(stripeSub, null, ncMeta);
+    const price = baseItem.price;
     const period = price.recurring.interval;
 
     // Read min_seats from metadata (fallback: Stripe item quantity, then 1)
     const minSeats = stripeSub.metadata.min_seats
       ? parseInt(stripeSub.metadata.min_seats, 10)
-      : stripeSub.items.data[0].quantity || 1;
+      : baseItem.quantity || 1;
 
     // Create Subscription record (no workspace/org, just user)
-    const stripeQuantity = Math.max(
-      minSeats,
-      stripeSub.items.data[0].quantity || 1,
-    );
+    const stripeQuantity = Math.max(minSeats, baseItem.quantity || 1);
     const subRec = await Subscription.insert({
       fk_user_id: userId,
       fk_workspace_id: null,
@@ -504,7 +516,11 @@ export class OnPremLicenseService {
         // Update Installation config with new plan metadata
         const inst = await Installation.getBySubscriptionId(subRec.id, ncMeta);
         if (inst) {
-          const newConfig = buildConfigFromPlan(newPlan);
+          const addonKeys = await SubscriptionAddon.listActiveKeys(
+            subRec.id,
+            ncMeta,
+          );
+          const newConfig = buildConfigFromPlan(newPlan, undefined, addonKeys);
           const newLicenseType =
             PLAN_TO_LICENSE_TYPE[newPlan.title] || inst.license_type;
 
@@ -668,6 +684,98 @@ export class OnPremLicenseService {
   }
 
   /**
+   * Refresh an on-prem installation's license `config.addons` from the
+   * subscription's currently-active add-ons. No-op for cloud subscriptions
+   * (no linked Installation). The running instance picks up the change at its
+   * next heartbeat (≤6h) — no re-activation needed.
+   */
+  async syncInstallationAddons(
+    subscriptionId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const installation = await Installation.getBySubscriptionId(
+      subscriptionId,
+      ncMeta,
+    );
+    if (!installation) return;
+
+    const subscription = await Subscription.get(subscriptionId, ncMeta).catch(
+      () => null,
+    );
+    if (!subscription?.fk_plan_id) return;
+
+    const plan = await Plan.get(subscription.fk_plan_id, ncMeta).catch(
+      () => null,
+    );
+    if (!plan) return;
+
+    const addonKeys = await SubscriptionAddon.listActiveKeys(
+      subscriptionId,
+      ncMeta,
+    );
+    const config = buildConfigFromPlan(plan, undefined, addonKeys);
+
+    await Installation.update(installation.id, { config }, ncMeta);
+
+    this.logger.log(
+      `Refreshed installation ${installation.id} config.addons (${addonKeys.length} active)`,
+    );
+  }
+
+  /**
+   * Resolve an Installation for an internal add-on operation by its license key
+   * OR its installation id — both are unique and identify the same installation,
+   * so a single value is enough. Tries the id lookup first, then the key.
+   * License-server side only.
+   */
+  async getInstallationForAddon(licenseKeyOrId: string): Promise<Installation> {
+    const installation =
+      (await Installation.get(licenseKeyOrId)) ??
+      (await Installation.getByLicenseKey(licenseKeyOrId));
+    if (!installation) {
+      NcError.badRequest(
+        `No on-prem installation found for '${licenseKeyOrId}' (expected a license key or installation id)`,
+      );
+    }
+    return installation;
+  }
+
+  /**
+   * Resolve the Subscription backing an installation's add-ons. Add-ons require
+   * an existing subscription (created at license purchase, or linked via
+   * link-subscription); internally-minted licenses without one are rejected
+   * with a clear, actionable message rather than silently creating billing.
+   */
+  async getInstallationSubscriptionForAddon(
+    installation: Installation,
+  ): Promise<Subscription> {
+    if (!installation.fk_subscription_id) {
+      NcError.badRequest(
+        `License '${installation.license_key}' has no subscription. Add-ons require an active subscription — purchase a license or link one via POST /api/internal/on-premise/license/link-subscription first.`,
+      );
+    }
+    const subscription = await Subscription.get(
+      installation.fk_subscription_id,
+    );
+    if (!subscription) {
+      NcError.genericNotFound('Subscription', installation.fk_subscription_id);
+    }
+    return subscription;
+  }
+
+  /**
+   * List the active add-ons on an installation's subscription. Empty when the
+   * installation has no subscription (and therefore no add-ons).
+   */
+  async listInstallationAddons(
+    licenseKeyOrId: string,
+  ): Promise<SubscriptionAddon[]> {
+    const installation = await this.getInstallationForAddon(licenseKeyOrId);
+    if (!installation.fk_subscription_id) return [];
+    return SubscriptionAddon.listActive(installation.fk_subscription_id);
+  }
+
+  /**
    * Link an existing Installation to a Stripe subscription by creating the
    * missing Subscription DB record.  Use when the webhook that normally
    * creates the Subscription was missed or the Installation was provisioned
@@ -725,7 +833,8 @@ export class OnPremLicenseService {
       );
     }
 
-    const price = stripeSub.items.data[0]?.price;
+    const baseItem = await getBaseSubscriptionItem(stripeSub, null, ncMeta);
+    const price = baseItem?.price;
     if (!price) {
       NcError.badRequest('Stripe subscription has no price item');
     }
@@ -754,11 +863,8 @@ export class OnPremLicenseService {
     // which is at least min_seats, but may be higher if already reseated.
     const minSeats = stripeSub.metadata.min_seats
       ? parseInt(stripeSub.metadata.min_seats, 10)
-      : stripeSub.items.data[0].quantity || 1;
-    const stripeQuantity = Math.max(
-      minSeats,
-      stripeSub.items.data[0].quantity || 1,
-    );
+      : baseItem.quantity || 1;
+    const stripeQuantity = Math.max(minSeats, baseItem.quantity || 1);
 
     // Ensure Stripe subscription metadata is complete for webhook routing
     // and future syncLicenses calls
@@ -876,11 +982,16 @@ export class OnPremLicenseService {
     const billedSeats = Math.max(minSeats, reportedSeats);
 
     try {
-      // Get current Stripe quantity
+      // Get current Stripe quantity from the BASE plan item — installation
+      // subscriptions may carry add-on items as second line items.
       const stripeSub = await stripe.subscriptions.retrieve(
         subscription.stripe_subscription_id,
       );
-      const item = stripeSub.items.data[0];
+      const item = await getBaseSubscriptionItem(
+        stripeSub,
+        subscription.stripe_price_id,
+        ncMeta,
+      );
       if (!item) return;
       const previousSeatCount = item.quantity || 1;
       if (billedSeats === previousSeatCount) return;
@@ -904,15 +1015,15 @@ export class OnPremLicenseService {
           billedSeats,
         );
       } else {
-        // Monthly — prorate to next invoice (no separate invoice)
+        // Monthly — prorate to next invoice (no separate invoice). Per-seat
+        // add-on items are forced-matched to the base seat count.
         await stripe.subscriptions.update(stripeSub.id, {
-          items: [
-            {
-              id: item.id,
-              price: subscription.stripe_price_id,
-              quantity: billedSeats,
-            },
-          ],
+          items: await buildSeatSyncItems(
+            subscription,
+            stripeSub,
+            billedSeats,
+            ncMeta,
+          ),
         });
       }
 
@@ -992,13 +1103,7 @@ export class OnPremLicenseService {
 
     if (problematicInvoices.length === 0) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: subscription.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await buildSeatSyncItems(subscription, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
       return;
@@ -1015,13 +1120,7 @@ export class OnPremLicenseService {
 
     if (prorationInvoices.length === 0) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: subscription.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await buildSeatSyncItems(subscription, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
       return;
@@ -1030,9 +1129,14 @@ export class OnPremLicenseService {
     const lastPaidSeatCount =
       subscription.last_paid_seat_count ?? subscription.seat_count;
 
+    const baseItem = await getBaseSubscriptionItem(
+      stripeSub,
+      subscription.stripe_price_id,
+    );
+
     this.logger.warn(
       `Consolidating ${prorationInvoices.length} unpaid proration invoices for installation subscription ${subscription.id}. ` +
-        `Resetting from ${stripeSub.items.data[0].quantity} seats to last paid state (${lastPaidSeatCount}), ` +
+        `Resetting from ${baseItem?.quantity} seats to last paid state (${lastPaidSeatCount}), ` +
         `then updating to ${newSeatCount} seats.`,
     );
 
@@ -1047,26 +1151,18 @@ export class OnPremLicenseService {
 
     // Step 2: Reset subscription to last paid seat count (no proration)
     await stripe.subscriptions.update(stripeSub.id, {
-      items: [
-        {
-          id: stripeSub.items.data[0].id,
-          price: subscription.stripe_price_id,
-          quantity: lastPaidSeatCount,
-        },
-      ],
+      items: await buildSeatSyncItems(
+        subscription,
+        stripeSub,
+        lastPaidSeatCount,
+      ),
       proration_behavior: 'none',
     });
 
     // Step 3: Update to the new desired seat count (with proration)
     if (newSeatCount !== lastPaidSeatCount) {
       await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: subscription.stripe_price_id,
-            quantity: newSeatCount,
-          },
-        ],
+        items: await buildSeatSyncItems(subscription, stripeSub, newSeatCount),
         proration_behavior: 'always_invoice',
       });
     }
@@ -1075,7 +1171,7 @@ export class OnPremLicenseService {
       payment_type: 'proration_consolidated',
       message:
         `Consolidated ${prorationInvoices.length} unpaid proration invoices for on-prem subscription ${subscription.id}. ` +
-        `Reset from ${stripeSub.items.data[0].quantity} to ${lastPaidSeatCount} (last paid), ` +
+        `Reset from ${baseItem?.quantity} to ${lastPaidSeatCount} (last paid), ` +
         `then updated to ${newSeatCount} seats.`,
       subscription: {
         id: subscription.id,

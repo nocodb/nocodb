@@ -571,11 +571,19 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
     return v
   }
 
+  // The child column belongs to the related table, so resolution must continue
+  // against that table's meta — not the current table's. Without this, a nested
+  // lookup (Lookup → Lookup) re-enters getLookupValue with the wrong `meta`, the
+  // nested relation column isn't found, and the value renders empty (arrays) or
+  // as "[object Object]" (scalar objects). Falls back to the current meta when
+  // the related meta isn't loaded (childColumn would then be undefined anyway).
+  const childMeta = relatedTableMeta ?? meta
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: childColumn! })
+        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: childColumn!, meta: childMeta })
       })
       .join(', ')
   }
@@ -590,7 +598,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   }
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: childColumn })
+  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: childColumn, meta: childMeta })
 }
 
 export function getLookupColumnType(

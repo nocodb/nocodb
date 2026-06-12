@@ -236,18 +236,24 @@ export class DateDependencyService {
 
     if (body.fk_start_date_field_id) {
       const col = colById.get(body.fk_start_date_field_id);
-      if (!col || col.uidt !== UITypes.Date) {
+      if (
+        !col ||
+        ![UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)
+      ) {
         NcError.get(context).badRequest(
-          'Start date field must be a Date type column belonging to this table',
+          'Start date field must be a Date or DateTime type column belonging to this table',
         );
       }
     }
 
     if (body.fk_end_date_field_id) {
       const col = colById.get(body.fk_end_date_field_id);
-      if (!col || col.uidt !== UITypes.Date) {
+      if (
+        !col ||
+        ![UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)
+      ) {
         NcError.get(context).badRequest(
-          'End date field must be a Date type column belonging to this table',
+          'End date field must be a Date or DateTime type column belonging to this table',
         );
       }
     }

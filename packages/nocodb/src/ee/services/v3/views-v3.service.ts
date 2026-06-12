@@ -1301,14 +1301,14 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     checkType(
       dd.dates?.start_field_id,
       'Start date field',
-      (c) => c.uidt === UITypes.Date,
-      'Date',
+      (c) => [UITypes.Date, UITypes.DateTime].includes(c.uidt as UITypes),
+      'Date or DateTime',
     );
     checkType(
       dd.dates?.end_field_id,
       'End date field',
-      (c) => c.uidt === UITypes.Date,
-      'Date',
+      (c) => [UITypes.Date, UITypes.DateTime].includes(c.uidt as UITypes),
+      'Date or DateTime',
     );
     checkType(
       dd.duration_field_id,

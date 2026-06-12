@@ -83,13 +83,13 @@ const tableColumns = computed<ColumnType[]>(() => tableMeta.value?.columns ?? []
 
 const startDateOptions = computed(() =>
   tableColumns.value
-    .filter((c) => c.uidt === UITypes.Date && c.id !== form.fk_end_date_field_id)
+    .filter((c) => [UITypes.Date, UITypes.DateTime].includes(c.uidt as UITypes) && c.id !== form.fk_end_date_field_id)
     .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
 const endDateOptions = computed(() =>
   tableColumns.value
-    .filter((c) => c.uidt === UITypes.Date && c.id !== form.fk_start_date_field_id)
+    .filter((c) => [UITypes.Date, UITypes.DateTime].includes(c.uidt as UITypes) && c.id !== form.fk_start_date_field_id)
     .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 

@@ -899,7 +899,7 @@ export function baseTrashTableTests() {
         const res = await trashTable(context, workspaceId, baseId, table.id);
         expect(res.status).to.be.gte(400);
         expect(JSON.stringify(res.body ?? {}).toLowerCase()).to.include(
-          'synced',
+          'managed by a sync',
         );
 
         // Table should still be live

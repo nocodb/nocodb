@@ -1,5 +1,4 @@
 import { MetaType } from '../Api';
-import type { SyncMappingStatus } from './table-sync';
 
 export * from './table-sync';
 
@@ -56,8 +55,6 @@ export interface SyncMappingType {
   fk_sync_config_id: string;
   fk_model_id: string;
   target_table: string | null;
-  /** `Suspended` while the destination table sits in trash — restore re-activates. */
-  status?: SyncMappingStatus;
 }
 
 export interface SyncConfig {

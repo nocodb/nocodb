@@ -7,10 +7,21 @@ import { MetaTable } from '~/utils/globals';
  * were suspended under the old model (their dest table sits in trash):
  * detach the table (clear `synced`, make columns editable) and delete the
  * mapping — restoring such a table now yields a plain, regular table.
+ *
+ * With the sweep done, nothing reads or writes mapping `status` anymore
+ * (mapping exists ⟺ table live + synced) — drop the column from both
+ * mapping tables.
  */
 const up = async (knex: Knex) => {
   await detachSuspendedMappings(knex);
   await detachSuspendedTableSyncMappings(knex);
+
+  await knex.schema.alterTable(MetaTable.SYNC_MAPPINGS, (table) => {
+    table.dropColumn('status');
+  });
+  await knex.schema.alterTable(MetaTable.TABLE_SYNC_MAPPINGS, (table) => {
+    table.dropColumn('status');
+  });
 };
 
 async function detachSuspendedMappings(knex: Knex) {
@@ -107,8 +118,14 @@ async function detachSuspendedTableSyncMappings(knex: Knex) {
     .delete();
 }
 
-const down = async (_knex: Knex) => {
-  // Data sweep — not reversible.
+const down = async (knex: Knex) => {
+  // The data sweep is not reversible — only the column drops are undone.
+  await knex.schema.alterTable(MetaTable.SYNC_MAPPINGS, (table) => {
+    table.string('status', 20).defaultTo('active');
+  });
+  await knex.schema.alterTable(MetaTable.TABLE_SYNC_MAPPINGS, (table) => {
+    table.string('status', 20).defaultTo('active');
+  });
 };
 
 export { up, down };

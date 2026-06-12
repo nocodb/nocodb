@@ -21,6 +21,7 @@ export class TableSyncPostOperations
     'tableSyncFreeze' as const,
     'tableSyncResume' as const,
     'tableSyncResolveLink' as const,
+    'tableSyncDetachTable' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -81,6 +82,12 @@ export class TableSyncPostOperations
 
       case 'tableSyncResolveLink':
         return await this.tableSyncService.resolveLink(context, payload);
+
+      case 'tableSyncDetachTable':
+        return await this.tableSyncService.detachTable(context, {
+          modelId: payload?.modelId,
+          req,
+        });
     }
   }
 }

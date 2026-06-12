@@ -59,7 +59,6 @@ const tableSyncMappingRowSchema = z.object({
   dest_base_id: z.string().nullable().optional(),
   dest_table_id: z.string().nullable().optional(),
   role: z.string().nullable().optional(),
-  status: z.string().nullable().optional(),
 });
 
 const tableSyncColumnMappingRowSchema = z.object({
@@ -97,6 +96,57 @@ export const tableSyncConfigUpdateSchema = z
   .object({
     syncId: z.string(),
     payload: tableSyncConfigUpdatePayloadSchema,
+  })
+  .strict();
+
+export const tableSyncDetachTableSchema = z
+  .object({
+    modelId: z.string(),
+  })
+  .strict();
+
+export const tableSyncAttachTableSchema = z
+  .object({
+    modelId: z.string(),
+    syncId: z.string(),
+    /** Base the sync row (and its mapping rows) live in — can differ from the
+     *  base the detach ran in when dest tables live in another base. */
+    syncBaseId: z.string(),
+    /** The dropped field cluster's mapping rows (the named table plus its
+     *  junction/shadow counterpart), each with its column-mapping rows —
+     *  re-inserted on attach (fresh mapping ids; parent refs follow). */
+    mappings: z.array(
+      z.object({
+        mapping: tableSyncMappingRowSchema,
+        columnMappings: z.array(tableSyncColumnMappingRowSchema),
+      }),
+    ),
+    /** The cluster's dest tables to re-flag `synced` + `readonly`. */
+    tables: z.array(
+      z.object({
+        tableId: z.string(),
+        destBaseId: z.string(),
+        readonlyColIds: z.array(z.string()),
+      }),
+    ),
+    /** Handed-over LTAR columns on the sync's remaining dest tables,
+     *  re-locked on attach. */
+    linkCols: z
+      .array(
+        z.object({
+          colId: z.string(),
+          baseId: z.string(),
+          tableId: z.string().optional(),
+        }),
+      )
+      .optional(),
+    /** `selected_fields` before the detach (which drops the affected LTAR
+     *  field titles) — restored verbatim on attach. */
+    prevSelectedFields: z.array(z.string()).nullable().optional(),
+    /** Column-mapping rows of the de-registered LTAR field(s) that were
+     *  parented to OTHER (still-live) mappings — re-inserted with their
+     *  original parent ids on attach. */
+    fieldColumnMappings: z.array(tableSyncColumnMappingRowSchema).optional(),
   })
   .strict();
 

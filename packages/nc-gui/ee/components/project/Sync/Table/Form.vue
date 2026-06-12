@@ -93,6 +93,14 @@ const excludedFieldTitles = ref<Set<string>>(new Set())
 
 const linkViewByColumn = ref<Record<string, string>>({})
 
+// Views of each linked source table, keyed by table id — served by the
+// sync/share-authorized source-schema reads. When present, the per-link view
+// picker uses these instead of self-fetching: the linked tables aren't in the
+// user's stores (the modal lives in the dest base) and may not be readable
+// via their own ACL at all. Empty in browse-mode create, where the user picked
+// their own base and the picker's store fetch works.
+const linkedViewsByTableId = ref<Record<string, ViewType[]>>({})
+
 type SourceInputMode = 'browse' | 'paste'
 
 const inputMode = ref<SourceInputMode>('browse')
@@ -310,6 +318,9 @@ const loadSourceColumns = async (tableId: string) => {
   }
   const token = ++loadColumnsToken
   isLoadingSourceColumns.value = true
+  // Browse mode reads via the user's own ACL — the link-view picker self-fetches
+  // there, so drop any sync-authorized lists from a previous resolve/edit load.
+  linkedViewsByTableId.value = {}
   try {
     const res: TableType = await $api.internal.getOperation(activeWorkspaceId.value, form.sourceBaseId, {
       operation: 'tableGet',
@@ -378,6 +389,7 @@ const loadSourceSchema = async (syncId: string) => {
       sourceSchemaLoadFailed.value = true
       sourceTable.value = null
       visibleSourceColIds.value = null
+      linkedViewsByTableId.value = {}
       return
     }
     if (res.source_table_missing) {
@@ -387,6 +399,7 @@ const loadSourceSchema = async (syncId: string) => {
       sourceTableMissing.value = true
       sourceTable.value = null
       visibleSourceColIds.value = null
+      linkedViewsByTableId.value = {}
       return
     }
     sourceTableMissing.value = false
@@ -398,10 +411,12 @@ const loadSourceSchema = async (syncId: string) => {
       views: res.views,
     } as TableType
     visibleSourceColIds.value = new Set(res.visible_source_column_ids ?? [])
+    linkedViewsByTableId.value = res.linked_views ?? {}
   } catch (e: any) {
     sourceSchemaLoadFailed.value = true
     sourceTable.value = null
     visibleSourceColIds.value = null
+    linkedViewsByTableId.value = {}
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoadingSourceColumns.value = false
@@ -591,6 +606,7 @@ const resolvePastedLink = async () => {
           views: res.views,
         } as TableType)
     visibleSourceColIds.value = res.source_table_missing ? null : new Set(res.visible_source_column_ids ?? [])
+    linkedViewsByTableId.value = res.source_table_missing ? {} : res.linked_views ?? {}
   } catch (e: any) {
     // Backend's allow_sync=false rejection bubbles up verbatim — guides the user to fix it source-side.
     const errMsg = (await extractSdkResponseErrorMsg(e)) || t('msg.error.failedToResolveLink')
@@ -1234,6 +1250,7 @@ onMounted(async () => {
                         :value="linkViewByColumn[field.title] || ''"
                         :table-id="field.linkedTableId"
                         :base-id="form.sourceBaseId || undefined"
+                        :views="linkedViewsByTableId[field.linkedTableId]"
                         :filter-view="filterSourceView"
                         :item-flags="sourceViewItemFlags"
                         force-layout="vertical"

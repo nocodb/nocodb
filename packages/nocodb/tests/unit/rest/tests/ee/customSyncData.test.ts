@@ -34,6 +34,8 @@ import View from '~/models/View';
  *
  * PG-only: custom DB sync introspects/queries a postgres source.
  */
+const TAB_ID = '44444444-4444-4444-8444-444444444444';
+
 function customSyncDataTests() {
   if (!isEE()) {
     return;
@@ -779,6 +781,110 @@ function customSyncDataTests() {
         await Model.get(ctx, dropModelId),
         'dropped table is gone',
       ).to.not.exist;
+    });
+
+    it('detachSyncTable → undo (re-attach) → redo', async () => {
+      const schema = await createSourceSchema();
+
+      await db.schema.withSchema(schema).createTable('suppliers', (t) => {
+        t.integer('supplier_id').primary();
+        t.text('supplier_name');
+      });
+      await db
+        .withSchema(schema)
+        .table('suppliers')
+        .insert([{ supplier_id: 1, supplier_name: 'S1' }]);
+
+      const { sync } = await setupSync({
+        schema,
+        tables: ['suppliers'],
+        sync_type: SyncType.Full,
+        on_delete_action: OnDeleteAction.MarkDeleted,
+        title: 'CS detach undo',
+      });
+
+      const modelId = mappingFor(sync, 'suppliers').fk_model_id;
+      const ctx = { workspace_id: workspaceId, base_id: base.id };
+
+      // Per-(user, tab) undo stack — the detach and the undo/redo calls must
+      // share the tab id. Setup above ran untraced (no tabId on `context`).
+      const tracedCtx = { ...context, tabId: TAB_ID };
+      const scopes = [{ type: 'base' as const, id: base.id }];
+
+      const beforeModel = await destModel(modelId);
+      const readonlyBefore = beforeModel.columns.filter(
+        (c) => c.readonly,
+      ).length;
+      expect(readonlyBefore, 'synced table has readonly cols').to.be.gte(1);
+
+      // Detach (traced) — "convert to regular table".
+      await internalPost(
+        tracedCtx,
+        env,
+        { operation: 'detachSyncTable' },
+        { modelId },
+      ).expect(200);
+
+      let model = await Model.get(ctx, modelId);
+      expect(!!model!.synced, 'un-synced after detach').to.eq(false);
+
+      let integration = await Integration.get(ctx, sync.fk_integration_id);
+      let config = await integration.getConfig();
+      expect(config.tables).to.not.include('suppliers');
+
+      // Undo → re-attach: mapping recreated, flags re-applied, the
+      // integration's selection + custom_schema entry restored.
+      const undoRes = await internalPost(
+        tracedCtx,
+        env,
+        { operation: 'undo' },
+        { scopes },
+      ).expect(200);
+      expect(undoRes.body.status, 'undo result').to.equal('ok');
+
+      model = await Model.get(ctx, modelId);
+      expect(!!model!.synced, 'synced again after undo').to.eq(true);
+      await model!.getColumns(ctx);
+      expect(
+        model!.columns.filter((c) => c.readonly).length,
+        'readonly cols restored after undo',
+      ).to.eq(readonlyBefore);
+
+      const afterUndo = await readSyncConfig(context, env, sync.id);
+      expect(
+        (afterUndo.mappings ?? []).filter(
+          (m: any) => m.target_table === 'suppliers',
+        ),
+        'mapping recreated after undo',
+      ).to.have.length(1);
+
+      integration = await Integration.get(ctx, sync.fk_integration_id);
+      config = await integration.getConfig();
+      expect(config.tables, 'table back in selection').to.include('suppliers');
+      expect(
+        Object.keys(config.custom_schema ?? {}),
+        'custom_schema entry restored',
+      ).to.include('suppliers');
+
+      // Redo → detached again.
+      const redoRes = await internalPost(
+        tracedCtx,
+        env,
+        { operation: 'redo' },
+        { scopes },
+      ).expect(200);
+      expect(redoRes.body.status, 'redo result').to.equal('ok');
+
+      model = await Model.get(ctx, modelId);
+      expect(!!model!.synced, 'regular again after redo').to.eq(false);
+
+      const afterRedo = await readSyncConfig(context, env, sync.id);
+      expect(
+        (afterRedo.mappings ?? []).filter(
+          (m: any) => m.target_table === 'suppliers',
+        ),
+        'mapping dropped again after redo',
+      ).to.have.length(0);
     });
   });
 }

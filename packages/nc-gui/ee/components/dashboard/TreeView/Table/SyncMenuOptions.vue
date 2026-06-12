@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SyncConfig, TableSyncType, TableType } from 'nocodb-sdk'
+import { TableSyncMappingRole } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId: string
@@ -26,7 +27,7 @@ const tableSyncStore = useTableSyncStore()
 
 const { baseSyncs } = storeToRefs(tableSyncStore)
 
-const { loadSyncs, resync, openTableSyncEditModal, deleteSync: deleteTableSync } = tableSyncStore
+const { loadSyncs, resync, openTableSyncEditModal, deleteSync: deleteTableSync, detachTable } = tableSyncStore
 
 const syncStore = useSyncStore()
 
@@ -53,6 +54,13 @@ const appSync = computed<SyncConfig | undefined>(() => {
 const isTableSync = computed(() => !!tableSync.value)
 
 const isAppSync = computed(() => !!appSync.value)
+
+// Converting the sync's MAIN table removes the sync itself (keep tables);
+// shadow/junction tables detach individually and the sync keeps running.
+const isTableSyncMainTable = computed(() => {
+  const mapping = tableSync.value?.mappings?.find((m) => m.dest_table_id === props.table.id)
+  return mapping?.role === TableSyncMappingRole.Main
+})
 
 async function handleSyncNow() {
   emits('close')
@@ -81,7 +89,10 @@ function handleConvertToRegularTable() {
 
   showWarningModal({
     title: t('labels.convertToRegularTable'),
-    content: t('msg.warning.syncDetachTable'),
+    content:
+      isTableSync.value && isTableSyncMainTable.value
+        ? t('msg.warning.tableSyncConvertMainTable')
+        : t('msg.warning.syncDetachTable'),
     okText: t('labels.convertToRegularTable'),
     showCancelBtn: true,
     okCallback: async () => {
@@ -89,10 +100,16 @@ function handleConvertToRegularTable() {
 
       try {
         if (tableSync.value) {
-          // For table sync, deleting the sync keeping the table IS the
-          // convert — the sync (with its mappings) goes to trash, the table
-          // becomes a regular editable table; undo restores + re-attaches.
-          await deleteTableSync(props.baseId, tableSync.value.id, { dropTables: false })
+          if (isTableSyncMainTable.value) {
+            // Converting the synced (main) table drops the sync itself — the
+            // sync (with its mappings) goes to trash and every dest table
+            // becomes a regular editable table; undo restores + re-attaches.
+            await deleteTableSync(props.baseId, tableSync.value.id, { dropTables: false })
+          } else {
+            // Shadow/junction: drop just this table's mapping from the sync
+            // config; the rest of the sync keeps running.
+            await detachTable(props.baseId, props.table.id!)
+          }
         } else if (appSync.value) {
           await $api.internal.postOperation(
             activeWorkspaceId.value,

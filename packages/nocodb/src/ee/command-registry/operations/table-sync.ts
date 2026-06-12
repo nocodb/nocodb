@@ -2,19 +2,22 @@ import { isLinksOrLTAR, TableSyncMappingRole } from 'nocodb-sdk';
 import type { OperationContract } from '~/command-registry/types';
 import type { TableSyncService } from '~/modules/table-sync/table-sync.service';
 import type { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
+import { computeTableSyncDetachPlan } from '~/modules/table-sync/table-sync.service';
 import { OperationName } from '~/command-registry/op-names';
 import { OperationRegistry } from '~/command-registry/registry';
 import { makeReplayReq } from '~/command-registry/replay-context';
 import { scopeBase } from '~/command-registry/scope';
 import { isReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
-import { Model, TableSync } from '~/models';
+import { Model, TableSync, TableSyncColumnMapping } from '~/models';
 import BaseTrash from '~/ee/models/BaseTrash';
 import { NcError } from '~/helpers/catchError';
 import {
+  tableSyncAttachTableSchema,
   tableSyncConfigUpdateSchema,
   tableSyncCreateSchema,
   tableSyncDeleteSchema,
+  tableSyncDetachTableSchema,
   tableSyncFreezeSchema,
   tableSyncResumeSchema,
   tableSyncUpdateSchema,
@@ -287,6 +290,140 @@ export const TableSyncCreateContract: OperationContract<
   },
 };
 
+interface TableSyncDetachExtra {
+  attachParams?: Record<string, unknown>;
+}
+
+// "Convert to regular table" on a single shadow/junction dest table: the
+// whole field cluster (the named table + its junction/shadow counterpart,
+// see computeTableSyncDetachPlan) leaves the sync config together — mapping
+// rows dropped (incl. the link-view pick riding the shadow's source_view_id),
+// the affected field titles removed from selected_fields, the cluster's
+// tables gone plain, and the remaining tables' LTAR columns handed over. The
+// inverse re-ATTACHES all of it. `before` captures everything attach needs,
+// since detach destroys it. Converting the MAIN dest table is NOT this op:
+// that drops the sync itself via tableSyncDelete (keep tables), with its own
+// trash-restore undo.
+export const TableSyncDetachTableContract: OperationContract<
+  typeof tableSyncDetachTableSchema,
+  TableSyncDetachExtra
+> = {
+  name: OperationName.tableSyncDetachTable,
+  entity: MetaTable.TABLE_SYNC_MAPPINGS,
+  schema: tableSyncDetachTableSchema,
+  entry: {
+    entity_id: (params) => params.modelId,
+    description: () => 'Convert synced table to regular table',
+    before: async (context, params) => {
+      const plan = await computeTableSyncDetachPlan(context, params.modelId);
+      if (!plan) return {};
+
+      const destCtx = { ...context, base_id: plan.mapping.dest_base_id };
+      const model = await Model.get(destCtx, params.modelId);
+
+      const columnMappingRow = (c: {
+        fk_table_sync_id?: string | null;
+        fk_table_sync_mapping_id?: string | null;
+        source_workspace_id?: string | null;
+        source_base_id?: string | null;
+        source_table_id?: string | null;
+        source_column_id?: string | null;
+        dest_base_id?: string | null;
+        dest_table_id?: string | null;
+        dest_column_id?: string | null;
+      }) => ({
+        fk_table_sync_id: c.fk_table_sync_id,
+        fk_table_sync_mapping_id: c.fk_table_sync_mapping_id,
+        source_workspace_id: c.source_workspace_id,
+        source_base_id: c.source_base_id,
+        source_table_id: c.source_table_id,
+        source_column_id: c.source_column_id,
+        dest_base_id: c.dest_base_id,
+        dest_table_id: c.dest_table_id,
+        dest_column_id: c.dest_column_id,
+      });
+
+      const mappings = [];
+      for (const m of plan.detachMappings) {
+        const columnMappings =
+          await TableSyncColumnMapping.listByTableSyncMapping(
+            plan.syncCtx,
+            m.id,
+          );
+        mappings.push({
+          mapping: {
+            id: m.id,
+            fk_table_sync_id: m.fk_table_sync_id,
+            source_workspace_id: m.source_workspace_id,
+            source_base_id: m.source_base_id,
+            source_table_id: m.source_table_id,
+            source_view_id: m.source_view_id,
+            source_uuid: m.source_uuid,
+            source_password_hash: m.source_password_hash,
+            dest_base_id: m.dest_base_id,
+            dest_table_id: m.dest_table_id,
+            role: m.role,
+          },
+          columnMappings: columnMappings.map(columnMappingRow),
+        });
+      }
+
+      return {
+        entityTitle: model?.title,
+        extra: {
+          attachParams: {
+            modelId: params.modelId,
+            syncId: plan.sync.id,
+            syncBaseId: plan.mapping.base_id,
+            mappings,
+            tables: plan.tables,
+            ...(plan.linkCols.length ? { linkCols: plan.linkCols } : {}),
+            prevSelectedFields: plan.sync.selected_fields ?? null,
+            ...(plan.fieldColumnMappings.length
+              ? {
+                  fieldColumnMappings:
+                    plan.fieldColumnMappings.map(columnMappingRow),
+                }
+              : {}),
+          },
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, _params, _result, resolved) => {
+      const attachParams = resolved?.extra?.attachParams;
+      if (!attachParams) return null;
+      return {
+        name: OperationName.tableSyncAttachTable,
+        params: attachParams,
+      };
+    },
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
+};
+
+// Replay-only inverse of detach — never invoked over HTTP. Its own inverse is
+// detach again, so undo→redo round-trips.
+export const TableSyncAttachTableContract: OperationContract<
+  typeof tableSyncAttachTableSchema
+> = {
+  name: OperationName.tableSyncAttachTable,
+  entity: MetaTable.TABLE_SYNC_MAPPINGS,
+  schema: tableSyncAttachTableSchema,
+  entry: {
+    entity_id: (params) => params.modelId,
+    description: () => 'Re-attach table to sync',
+  },
+  undo: {
+    inverse: (_context, params) => ({
+      name: OperationName.tableSyncDetachTable,
+      params: { modelId: params.modelId },
+    }),
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
+};
+
 export function registerTableSyncHandlers(
   svc: TableSyncService,
   baseTrashSvc: BaseTrashService,
@@ -372,6 +509,23 @@ export function registerTableSyncHandlers(
         payload: params.payload,
         req,
       } as unknown as Parameters<typeof svc.tableSyncConfigUpdate>[1]);
+    },
+  );
+  OperationRegistry.register(
+    TableSyncDetachTableContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.detachTable(context, { modelId: params.modelId, req });
+    },
+  );
+  OperationRegistry.register(
+    TableSyncAttachTableContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.attachTable(context, {
+        ...(params as unknown as Parameters<typeof svc.attachTable>[1]),
+        req,
+      });
     },
   );
 }

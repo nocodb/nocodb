@@ -1,5 +1,4 @@
 import { type NcContext } from 'nocodb-sdk';
-import type { SyncMappingStatus } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -15,8 +14,6 @@ export default class SyncMapping {
   fk_sync_config_id: string;
   target_table: string;
   fk_model_id: string;
-
-  status?: SyncMappingStatus;
 
   created_at: string;
   updated_at: string;

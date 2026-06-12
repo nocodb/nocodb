@@ -2,7 +2,6 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import {
-  SyncMappingStatus,
   TableSyncOnDeleteAction,
   TableSyncStatus,
   TableSyncTrigger,
@@ -263,7 +262,17 @@ export function tableSyncUndoRedoTests() {
         syncBody({ title: 'DeleteRT' }),
       ).expect(200);
       const syncId: string = created.body.id;
-      await waitForSyncSettled(destEnv, syncId);
+      const settled = await waitForSyncSettled(destEnv, syncId);
+
+      // The keep-tables delete is the "convert to regular table" path for the
+      // main dest table — its synced/readonly flags must flip with each leg.
+      const main = (settled.mappings ?? []).find((m: any) => m.role === 'main');
+      expect(main, 'main mapping exists').to.exist;
+      const destTableId: string = main!.dest_table_id;
+      const destCtx = { workspace_id: workspaceId, base_id: destBase.id };
+
+      const beforeModel = await Model.get(destCtx, destTableId);
+      expect(!!beforeModel!.synced, 'dest synced before delete').to.eq(true);
 
       await tableSyncDelete(context, destEnv, syncId).expect(200);
       expect(await getSync(syncId), 'sync trashed after delete').to.be.null;
@@ -272,14 +281,28 @@ export function tableSyncUndoRedoTests() {
       expect(row!.forward_op).to.equal('tableSyncDelete');
       expect(row!.entity_id).to.equal(syncId);
 
+      const afterDelete = await Model.get(destCtx, destTableId);
+      expect(!!afterDelete!.synced, 'dest un-synced after delete').to.eq(false);
+      const afterDeleteCols = await afterDelete!.getColumns(destCtx);
+      expect(
+        afterDeleteCols.some((c: any) => c.readonly),
+        'no readonly cols after delete',
+      ).to.eq(false);
+
       expect((await undo()).body.status, 'undo result').to.equal('ok');
       await waitForSyncSettled(destEnv, syncId);
       const restored = await getSync(syncId);
       expect(restored, 'sync restored on undo').to.not.be.null;
       expect(restored!.id, 'id preserved across restore').to.equal(syncId);
 
+      const afterUndo = await Model.get(destCtx, destTableId);
+      expect(!!afterUndo!.synced, 'dest synced again on undo').to.eq(true);
+
       expect((await redo()).body.status, 'redo result').to.equal('ok');
       expect(await getSync(syncId), 'sync trashed again on redo').to.be.null;
+
+      const afterRedo = await Model.get(destCtx, destTableId);
+      expect(!!afterRedo!.synced, 'dest un-synced again on redo').to.eq(false);
     });
 
     it('tableSyncFreeze → undo (resume) → redo (freeze)', async function () {
@@ -753,14 +776,30 @@ export function tableSyncUndoRedoTests() {
       // Undo → the glue op restores the prior mapping snapshot (original view)
       // AND re-triggers a full resync so the dest DATA matches the restored
       // view — otherwise the rows from `altView` would linger. The resync runs
-      // as an async job, so right after the undo request the sync sits in
-      // `Syncing` (the glue flips it before enqueuing) — that proves the resync
-      // fired, not just a mapping swap.
+      // as an async job: normally we catch it mid-flight (`Syncing` — the glue
+      // flips it before enqueuing), but on a fast run it can settle before the
+      // read, in which case a bumped `last_synced_at` equally proves the
+      // resync fired (the processor stamps it on completion).
+      function expectResyncFired(
+        sync: TableSync,
+        syncedAtBefore: string | null,
+        label: string,
+      ) {
+        expect(
+          sync.status === TableSyncStatus.Syncing ||
+            (sync.status === TableSyncStatus.Active &&
+              sync.last_synced_at !== syncedAtBefore),
+          `${label} (status: ${sync.status}, last_synced_at: ${sync.last_synced_at} vs ${syncedAtBefore})`,
+        ).to.eq(true);
+      }
+
+      const syncedAtBeforeUndo = (await getSync(syncId))!.last_synced_at;
       expect((await undo()).body.status, 'undo result').to.equal('ok');
-      expect(
-        (await getSync(syncId))!.status,
+      expectResyncFired(
+        (await getSync(syncId))!,
+        syncedAtBeforeUndo,
         'undo re-triggered a resync',
-      ).to.equal(TableSyncStatus.Syncing);
+      );
       await waitForSyncSettled(destEnv, syncId);
       expect(
         mainSourceView(await getSync(syncId)),
@@ -768,11 +807,13 @@ export function tableSyncUndoRedoTests() {
       ).to.equal(sourceView.id);
 
       // Redo → rebinds to the alt view again, resyncing once more.
+      const syncedAtBeforeRedo = (await getSync(syncId))!.last_synced_at;
       expect((await redo()).body.status, 'redo result').to.equal('ok');
-      expect(
-        (await getSync(syncId))!.status,
+      expectResyncFired(
+        (await getSync(syncId))!,
+        syncedAtBeforeRedo,
         'redo re-triggered a resync',
-      ).to.equal(TableSyncStatus.Syncing);
+      );
       await waitForSyncSettled(destEnv, syncId);
       expect(
         mainSourceView(await getSync(syncId)),
@@ -828,11 +869,260 @@ export function tableSyncUndoRedoTests() {
       );
     });
 
-    // Manual counterpart to the undo-based delete: the user trashes the synced
-    // dest table directly (Trash UI / tableDelete), not via a sync op. The
-    // table-trash handler must ADMIT it (not "Synced tables cannot be deleted"),
-    // SUSPEND its mapping while it sits in trash, and REACTIVATE on restore —
-    // bringing the table back with its mapping intact ("full mapping back").
+    // ── Per-table detach ("convert to regular table" on shadow/junction) ──
+
+    it('tableSyncDetachTable (shadow) → undo (re-attach, mapping rebuilt) → redo', async function () {
+      this.timeout(120000);
+      const fx = await setupLtarSource();
+
+      const created = await tableSyncCreate(
+        untracedCtx(context),
+        destEnv,
+        syncBody({
+          title: 'ShadowDetachRT',
+          source_view_id: fx.mainViewId,
+          selected_fields: ['Title', fx.ltarTitle],
+          link_view_by_column: { [fx.ltarTitle]: fx.ordersViewId },
+        }),
+      ).expect(200);
+      const syncId: string = created.body.id;
+      const settled = await waitForSyncSettled(destEnv, syncId);
+
+      const shadow = (settled.mappings ?? []).find(
+        (m: any) => m.role === 'linked_shadow',
+      );
+      expect(shadow, 'shadow mapping exists').to.exist;
+      const shadowTableId: string = shadow!.dest_table_id;
+      const mappingCountBefore = (settled.mappings ?? []).length;
+      const destCtx = { workspace_id: workspaceId, base_id: destBase.id };
+
+      // The MAIN dest table can't go through the per-table detach — its
+      // convert drops the sync itself (tableSyncDelete keep-tables).
+      const main = (settled.mappings ?? []).find((m: any) => m.role === 'main');
+      await internalPost(
+        untracedCtx(context),
+        destEnv,
+        { operation: 'tableSyncDetachTable' },
+        { modelId: main!.dest_table_id },
+      ).expect(400);
+
+      const beforeModel = await Model.get(destCtx, shadowTableId);
+      expect(!!beforeModel!.synced, 'shadow synced before detach').to.eq(true);
+      const beforeCols = await beforeModel!.getColumns(destCtx);
+      const readonlyBefore = beforeCols.filter((c: any) => c.readonly).length;
+      expect(readonlyBefore, 'shadow has readonly cols').to.be.gte(1);
+
+      // Detach the shadow — drops its mapping, converts the table; the rest
+      // of the sync keeps running.
+      await internalPost(
+        context,
+        destEnv,
+        { operation: 'tableSyncDetachTable' },
+        { modelId: shadowTableId },
+      ).expect(200);
+
+      const afterDetach = await getSync(syncId);
+      expect(
+        (afterDetach!.mappings ?? []).some(
+          (m: any) => m.dest_table_id === shadowTableId,
+        ),
+        'shadow mapping dropped from the sync config',
+      ).to.eq(false);
+      // The junction routing to the shadow cascades with it — the whole field
+      // cluster (incl. the link-view pick riding the shadow mapping) leaves.
+      expect(
+        (afterDetach!.mappings ?? []).some((m: any) => m.role === 'junction'),
+        'junction mapping cascades out with the shadow',
+      ).to.eq(false);
+      expect((afterDetach!.mappings ?? []).length).to.eq(
+        mappingCountBefore - 2,
+      );
+      expect(
+        afterDetach!.selected_fields,
+        'LTAR field dropped from selected_fields',
+      ).to.not.include(fx.ltarTitle);
+
+      const detachedModel = await Model.get(destCtx, shadowTableId);
+      expect(!!detachedModel!.synced, 'shadow un-synced').to.eq(false);
+      const detachedCols = await detachedModel!.getColumns(destCtx);
+      expect(
+        detachedCols.some((c: any) => c.readonly),
+        'no readonly cols after detach',
+      ).to.eq(false);
+
+      const row = await topLog();
+      expect(row!.forward_op).to.equal('tableSyncDetachTable');
+      expect(row!.entity_id).to.equal(shadowTableId);
+
+      // Undo → mapping re-inserted, table re-flagged synced/readonly.
+      expect((await undo()).body.status, 'undo result').to.equal('ok');
+      const afterUndo = await getSync(syncId);
+      const restoredMapping = (afterUndo!.mappings ?? []).find(
+        (m: any) => m.dest_table_id === shadowTableId,
+      );
+      expect(restoredMapping, 'shadow mapping restored on undo').to.exist;
+      expect(restoredMapping!.role).to.eq('linked_shadow');
+      expect(
+        (afterUndo!.mappings ?? []).some((m: any) => m.role === 'junction'),
+        'junction mapping restored on undo',
+      ).to.eq(true);
+      expect((afterUndo!.mappings ?? []).length).to.eq(mappingCountBefore);
+      expect(
+        afterUndo!.selected_fields,
+        'LTAR field back in selected_fields on undo',
+      ).to.include(fx.ltarTitle);
+      const restoredModel = await Model.get(destCtx, shadowTableId);
+      expect(!!restoredModel!.synced, 'shadow synced again on undo').to.eq(
+        true,
+      );
+      const restoredCols = await restoredModel!.getColumns(destCtx);
+      expect(
+        restoredCols.filter((c: any) => c.readonly).length,
+        'readonly cols restored on undo',
+      ).to.eq(readonlyBefore);
+
+      // Redo → detached again.
+      expect((await redo()).body.status, 'redo result').to.equal('ok');
+      expect(
+        ((await getSync(syncId))!.mappings ?? []).some(
+          (m: any) => m.dest_table_id === shadowTableId,
+        ),
+        'mapping dropped again on redo',
+      ).to.eq(false);
+      const redoneModel = await Model.get(destCtx, shadowTableId);
+      expect(!!redoneModel!.synced, 'shadow regular again on redo').to.eq(
+        false,
+      );
+
+      // Now a regular table — deleting it directly is allowed.
+      await internalPost(untracedCtx(context), destEnv, {
+        operation: 'tableDelete',
+        tableId: shadowTableId,
+      }).expect(200);
+    });
+
+    it('tableSyncDetachTable (junction) → links handed over → undo re-locks → redo', async function () {
+      this.timeout(120000);
+      const fx = await setupLtarSource();
+
+      const created = await tableSyncCreate(
+        untracedCtx(context),
+        destEnv,
+        syncBody({
+          title: 'JunctionDetachRT',
+          source_view_id: fx.mainViewId,
+          selected_fields: ['Title', fx.ltarTitle],
+          link_view_by_column: { [fx.ltarTitle]: fx.ordersViewId },
+        }),
+      ).expect(200);
+      const syncId: string = created.body.id;
+      const settled = await waitForSyncSettled(destEnv, syncId);
+
+      const junction = (settled.mappings ?? []).find(
+        (m: any) => m.role === 'junction',
+      );
+      expect(junction, 'junction mapping exists').to.exist;
+      const junctionTableId: string = junction!.dest_table_id;
+      const main = (settled.mappings ?? []).find((m: any) => m.role === 'main');
+      const mainTableId: string = main!.dest_table_id;
+      const destCtx = { workspace_id: workspaceId, base_id: destBase.id };
+
+      /** The mirrored LTAR column on the main dest table. */
+      async function mainLtarCol() {
+        const mainModel = await Model.get(destCtx, mainTableId);
+        const cols = await mainModel!.getColumns(destCtx);
+        return cols.find((c: any) => c.title === fx.ltarTitle);
+      }
+
+      expect(
+        (await mainLtarCol())!.readonly,
+        'main LTAR readonly before detach',
+      ).to.eq(true);
+
+      // Detach the junction — the LINKS hand over with it: the junction's FK
+      // columns and the main mirror's LTAR column all become editable.
+      await internalPost(
+        context,
+        destEnv,
+        { operation: 'tableSyncDetachTable' },
+        { modelId: junctionTableId },
+      ).expect(200);
+
+      const afterDetach = await getSync(syncId);
+      expect(
+        (afterDetach!.mappings ?? []).some(
+          (m: any) => m.dest_table_id === junctionTableId,
+        ),
+        'junction mapping dropped',
+      ).to.eq(false);
+      // The shadow only existed for this link — it cascades out with the
+      // junction, taking the link-view pick (its source_view_id) along.
+      expect(
+        (afterDetach!.mappings ?? []).some(
+          (m: any) => m.role === 'linked_shadow',
+        ),
+        'shadow mapping cascades out with the junction',
+      ).to.eq(false);
+      expect(
+        afterDetach!.selected_fields,
+        'LTAR field dropped from selected_fields',
+      ).to.not.include(fx.ltarTitle);
+
+      const junctionModel = await Model.get(destCtx, junctionTableId);
+      expect(!!junctionModel!.synced, 'junction un-synced').to.eq(false);
+      const junctionCols = await junctionModel!.getColumns(destCtx);
+      expect(
+        junctionCols.some((c: any) => c.readonly),
+        'junction FK cols editable after detach',
+      ).to.eq(false);
+      expect(
+        !!(await mainLtarCol())!.readonly,
+        'main LTAR editable after detach',
+      ).to.eq(false);
+
+      // Undo → mapping back, junction + LTAR re-locked.
+      expect((await undo()).body.status, 'undo result').to.equal('ok');
+      const afterUndo = await getSync(syncId);
+      const restoredMapping = (afterUndo!.mappings ?? []).find(
+        (m: any) => m.dest_table_id === junctionTableId,
+      );
+      expect(restoredMapping, 'junction mapping restored on undo').to.exist;
+      expect(restoredMapping!.role).to.eq('junction');
+      expect(
+        (afterUndo!.mappings ?? []).some(
+          (m: any) => m.role === 'linked_shadow',
+        ),
+        'shadow mapping restored on undo',
+      ).to.eq(true);
+      expect(
+        afterUndo!.selected_fields,
+        'LTAR field back in selected_fields on undo',
+      ).to.include(fx.ltarTitle);
+      expect(
+        !!(await Model.get(destCtx, junctionTableId))!.synced,
+        'junction synced again on undo',
+      ).to.eq(true);
+      expect(
+        (await mainLtarCol())!.readonly,
+        'main LTAR re-locked on undo',
+      ).to.eq(true);
+
+      // Redo → handed over again.
+      expect((await redo()).body.status, 'redo result').to.equal('ok');
+      expect(
+        !!(await Model.get(destCtx, junctionTableId))!.synced,
+        'junction regular again on redo',
+      ).to.eq(false);
+      expect(
+        !!(await mainLtarCol())!.readonly,
+        'main LTAR editable again on redo',
+      ).to.eq(false);
+    });
+
+    // Manual counterpart to the convert flows: the user tries to trash a
+    // synced dest table directly (Trash UI / tableDelete). Synced tables
+    // never enter trash — the delete is blocked with a "convert it first"
+    // error and the table + its mapping stay untouched.
     it('deleting a synced dest table directly is blocked until detached', async function () {
       this.timeout(120000);
       const created = await tableSyncCreate(
@@ -862,9 +1152,9 @@ export function tableSyncUndoRedoTests() {
       ).to.eq(true);
       const after = await getSync(syncId);
       expect(
-        (after!.mappings ?? []).find((m: any) => m.role === 'main')!.status,
+        (after!.mappings ?? []).find((m: any) => m.role === 'main'),
         'mapping untouched by the blocked delete',
-      ).to.equal(SyncMappingStatus.Active);
+      ).to.exist;
     });
   });
 }

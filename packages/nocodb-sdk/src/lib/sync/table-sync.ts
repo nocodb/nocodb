@@ -24,11 +24,6 @@ export enum TableSyncInputMode {
   Paste = 'paste',
 }
 
-export enum SyncMappingStatus {
-  Active = 'active',
-  Suspended = 'suspended',
-}
-
 export enum TableSyncMappingRole {
   /** The main source table for the sync. Exactly one row per sync. */
   Main = 'main',
@@ -57,9 +52,6 @@ export interface TableSyncMappingType {
   dest_table_id: string;
 
   role: TableSyncMappingRole;
-
-  /** Active by default; Suspended while its dest table sits in trash. */
-  status?: SyncMappingStatus;
 
   created_at: string;
   updated_at: string;

@@ -46,6 +46,22 @@ const {
 
 const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
+// 3-day mode anchors on a single day; the picker selects the first visible day
+// and the window spans that day + 2. Mirrors the calendar toolbar header so the
+// side-panel selector navigates the same canonical cursors.
+const threeDayDate = computed<dayjs.Dayjs>({
+  get: () => timezoneDayjs.timezonize(selectedDateRange.value.start),
+  set: (date: dayjs.Dayjs) => {
+    const start = date.startOf('day')
+    selectedDate.value = start
+    if (pageDate.value.month() !== start.month()) pageDate.value = start
+    selectedDateRange.value = {
+      start,
+      end: start.add(2, 'day').endOf('day'),
+    }
+  },
+})
+
 const sideBarListRef = ref<VNodeRef | null>(null)
 
 const pushToArray = (arr: Array<Row>, record: Row, range) => {
@@ -436,7 +452,21 @@ const selectOption = (option) => {
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
-        v-else-if="activeCalendarView === ('week' as const)"
+        v-else-if="activeCalendarView === ('3day' as const)"
+        v-model:active-dates="activeDates"
+        v-model:page-date="pageDate"
+        v-model:selected-date="threeDayDate"
+        :timezone="timezone"
+        size="medium"
+        header="v2"
+        :hide-calendar="height < 700"
+      />
+      <NcDateWeekSelector
+        v-else-if="
+          activeCalendarView === ('week' as const) ||
+          activeCalendarView === ('2week' as const) ||
+          activeCalendarView === ('6week' as const)
+        "
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"

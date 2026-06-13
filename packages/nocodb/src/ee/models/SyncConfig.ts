@@ -4,6 +4,7 @@ import {
   type NcContext,
   type OnDeleteAction,
   type SyncCategory,
+  type SyncMappingType,
   SyncTrigger,
   type SyncType,
 } from 'nocodb-sdk';
@@ -12,7 +13,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
-import { Integration } from '~/models';
+import { Integration, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/ncError';
 
 export default class SyncConfig {
@@ -48,10 +49,52 @@ export default class SyncConfig {
 
   children?: SyncConfig[];
 
+  /** Table mappings of the (root) sync config — populated by `listSync`. */
+  mappings?: SyncMappingType[];
+
   meta?: MetaType;
 
   constructor(syncConfig: Partial<SyncConfig>) {
     Object.assign(this, syncConfig);
+  }
+
+  /**
+   * Load and attach this sync config's table mappings. Mappings are always
+   * recorded against the ROOT sync config, so child configs resolve through
+   * their parent. The frontend relies on `mappings` to resolve a synced
+   * table back to its owning sync config (e.g. sidebar context-menu
+   * shortcuts) — attach them on the responses that get cached there.
+   */
+  public async getMappings(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<SyncMappingType[]> {
+    this.mappings = await SyncMapping.list(
+      context,
+      {
+        fk_sync_config_id: this.fk_parent_sync_config_id || this.id,
+      },
+      ncMeta,
+    );
+
+    return this.mappings;
+  }
+
+  /**
+   * `get` plus its table mappings — for the few response paths the frontend
+   * reads `mappings` off (readSync / createSync / updateSync). Kept separate
+   * from `get` so the hot paths (processor, triggerSync, detach guards) don't
+   * pay for an extra uncached `SyncMapping.list` query they never read.
+   */
+  public static async getWithMappings(
+    context: NcContext,
+    id: string,
+    includeDeleted = false,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const syncConfig = await this.get(context, id, includeDeleted, ncMeta);
+    if (syncConfig) await syncConfig.getMappings(context, ncMeta);
+    return syncConfig;
   }
 
   public static async get(
@@ -293,9 +336,30 @@ export default class SyncConfig {
       (syncConfig) => !syncConfig.fk_parent_sync_config_id,
     );
 
-    return rootSyncConfigs.map((syncConfig) => {
+    const result = rootSyncConfigs.map((syncConfig) => {
       return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
+
+    // Attach mappings for every root config in ONE query (mappings are always
+    // recorded against the root) instead of an N+1 over `getMappings`.
+    if (result.length) {
+      const allMappings = await SyncMapping.listByConfigIds(
+        context,
+        result.map((syncConfig) => syncConfig.id),
+        ncMeta,
+      );
+      const byConfigId = new Map<string, SyncMappingType[]>();
+      for (const mapping of allMappings) {
+        const list = byConfigId.get(mapping.fk_sync_config_id) ?? [];
+        list.push(mapping);
+        byConfigId.set(mapping.fk_sync_config_id, list);
+      }
+      for (const syncConfig of result) {
+        syncConfig.mappings = byConfigId.get(syncConfig.id) ?? [];
+      }
+    }
+
+    return result;
   }
 
   async listChildren(

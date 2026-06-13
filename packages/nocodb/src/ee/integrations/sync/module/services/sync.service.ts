@@ -3,16 +3,17 @@ import {
   EventType,
   type IntegrationReqType,
   IntegrationsType,
+  isLinksOrLTAR,
   type MetaType,
   NcApiVersion,
   NcBaseError,
   type NcContext,
   type NcRequest,
+  OperationSource,
   parseProp,
   PlanFeatureTypes,
   RelationTypes,
   SyncCategory,
-  SyncMappingStatus,
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
@@ -22,6 +23,7 @@ import {
   syncSystemFieldsMap,
 } from '@noco-local-integrations/core';
 import type { OnModuleInit } from '@nestjs/common';
+import type { MetaService } from '~/meta/meta.service';
 import type { OnDeleteAction, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
@@ -39,6 +41,7 @@ import {
   Workspace,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { IntegrationsService } from '~/services/integrations.service';
@@ -350,10 +353,12 @@ export class SyncModuleService implements OnModuleInit {
                     readonly: true,
                     pv: column.pv,
                     meta: column.meta,
+                    system: !!syncSystemFieldsMap[column.title],
                   })),
               },
               apiVersion: NcApiVersion.V3,
               synced: true,
+              operationSource: OperationSource.SYNC,
               user: req.user,
               req,
             },
@@ -365,18 +370,24 @@ export class SyncModuleService implements OnModuleInit {
             model.id,
           );
 
-          await this.viewColumnsService.columnsUpdate(context, {
-            viewId: defaultView.id,
-            columns: model.columns
-              .filter((column) => !!syncSystemFieldsMap[column.title])
-              .map((column) => {
-                return {
-                  id: column.id,
-                  show: false,
-                };
-              }),
-            req,
-          });
+          await this.viewColumnsService.columnsUpdate(
+            {
+              ...context,
+              socket_id: null,
+            },
+            {
+              viewId: defaultView.id,
+              columns: model.columns
+                .filter((column) => !!syncSystemFieldsMap[column.title])
+                .map((column) => {
+                  return {
+                    id: column.id,
+                    show: false,
+                  };
+                }),
+              req,
+            },
+          );
 
           schemaKeyTableMap.set(tableKey, model);
           tablesToDelete.push(model);
@@ -417,7 +428,10 @@ export class SyncModuleService implements OnModuleInit {
 
             // create junction table
             const junctionTable = await this.tablesService.tableCreate(
-              context,
+              {
+                ...context,
+                socket_id: null,
+              },
               {
                 baseId: base.id,
                 user: req.user,
@@ -438,11 +452,16 @@ export class SyncModuleService implements OnModuleInit {
                       uidt: 'SingleLineText',
                       readonly: true,
                     },
-                    ...syncSystemFields,
+                    ...syncSystemFields.map((field) => ({
+                      ...field,
+                      readonly: true,
+                      system: true,
+                    })),
                   ],
                 },
                 synced: true,
                 mm: true,
+                operationSource: OperationSource.SYNC,
               },
             );
 
@@ -604,7 +623,7 @@ export class SyncModuleService implements OnModuleInit {
         req,
       });
 
-      const config = await SyncConfig.get(context, syncConfig.id);
+      const config = await SyncConfig.getWithMappings(context, syncConfig.id);
 
       NocoSocket.broadcastEvent(
         context,
@@ -652,10 +671,17 @@ export class SyncModuleService implements OnModuleInit {
       syncConfigId: string;
       bulk?: boolean;
       trigger?: SyncTrigger;
+      fullResync?: boolean;
       req?: NcRequest;
     },
   ) {
-    const { syncConfigId, bulk, trigger = SyncTrigger.Manual, req } = args;
+    const {
+      syncConfigId,
+      bulk,
+      trigger = SyncTrigger.Manual,
+      fullResync,
+      req,
+    } = args;
 
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
@@ -672,6 +698,21 @@ export class SyncModuleService implements OnModuleInit {
         if (
           ![JobStatus.COMPLETED, JobStatus.FAILED].includes(status as JobStatus)
         ) {
+          // A run is already in flight and the processor rejects concurrent
+          // runs, so we can't enqueue a second job now. If this trigger asked
+          // for a full resync (e.g. a schema change added/changed columns),
+          // park the intent so the running job promotes itself to a full
+          // resync on completion — otherwise the schema delta is silently
+          // dropped and the new columns never get backfilled.
+          if (fullResync) {
+            await SyncConfig.update(context, syncConfig.id, {
+              meta: {
+                ...(parseProp(syncConfig.meta) || {}),
+                pending_full_resync: true,
+              },
+            });
+          }
+
           return {
             id: job.id,
           };
@@ -688,6 +729,7 @@ export class SyncModuleService implements OnModuleInit {
       syncConfigId: syncConfig.id,
       trigger,
       bulk,
+      fullResync,
       req,
     });
 
@@ -722,12 +764,388 @@ export class SyncModuleService implements OnModuleInit {
     };
   }
 
+  private async detachTableFromSync(
+    context: NcContext,
+    args: { mapping?: SyncMapping; model: Model },
+  ) {
+    const { mapping, model } = args;
+
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    try {
+      if (mapping) {
+        await SyncMapping.delete(context, mapping.id, ncMeta);
+      }
+
+      const columns = await model.getColumns(context, ncMeta);
+      for (const column of columns ?? []) {
+        if (column.readonly && column.id) {
+          await Column.update2(
+            context,
+            {
+              colId: column.id,
+              column: { readonly: false },
+              isSimpleUpdate: true,
+            },
+            ncMeta,
+          );
+        }
+      }
+
+      await Model.updateSynced(context, model.id, false, ncMeta);
+
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback(e);
+      throw e;
+    }
+  }
+
+  /** One `table_update` so live clients refresh the tree/grid after a
+   *  table's `synced` flag + column `readonly` flags flip (detach/attach). */
+  private async broadcastTableUpdate(context: NcContext, tableId: string) {
+    const table = await Model.getWithInfo(context, { id: tableId });
+    if (!table) return;
+
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.META_EVENT,
+      payload: { action: 'table_update', payload: table },
+    });
+  }
+
+  /**
+   * "Convert to regular table" — the only way an app-sync destination table
+   * leaves its sync. After this the table is a plain editable table: delete,
+   * trash, restore and undo/redo need no sync awareness (synced tables are
+   * blocked from deletion/trash entirely).
+   */
+  @TraceCommand(OperationName.appSyncDetachTable)
+  async detachSyncTable(
+    context: NcContext,
+    param: { modelId: string; req: NcRequest },
+  ) {
+    const { modelId } = param;
+
+    const mappings = await SyncMapping.listByModelId(context, modelId);
+    const mapping = mappings[0];
+
+    if (!mapping) {
+      NcError.get(context).invalidRequestBody('Table is not managed by a sync');
+    }
+
+    const model = await Model.get(context, modelId);
+
+    if (!model) {
+      NcError.get(context).tableNotFound(modelId);
+    }
+
+    if (model.mm || !mapping.target_table) {
+      NcError.get(context).invalidRequestBody(
+        'Junction tables cannot be converted on their own — convert the linked table instead',
+      );
+    }
+
+    // Guard before any mutation: detaching while a run is in flight can corrupt
+    // the run or leave a half-detached table. The app-sync tracks its live run
+    // via `sync_job_id` on the (root) sync config the mapping belongs to.
+    const owningSyncConfig = await SyncConfig.get(
+      context,
+      mapping.fk_sync_config_id,
+    );
+    if (owningSyncConfig?.sync_job_id) {
+      const job = await this.nocoJobsService.getJob(
+        owningSyncConfig.sync_job_id,
+      );
+      if (job) {
+        const status = await job.getState();
+        if (
+          ![JobStatus.COMPLETED, JobStatus.FAILED].includes(status as JobStatus)
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Cannot convert while "${owningSyncConfig.title}" is syncing — wait for the run to finish`,
+          );
+        }
+      }
+    }
+
+    // Sync-managed M2M links span a junction table the sync also owns.
+    // Converting this table hands those LINKS over to the user as well: the
+    // junction detaches with it and the mirrored link column on the (still
+    // synced) related table becomes editable. The data processor skips link
+    // pushes whose junction is no longer synced, so the sync never fights
+    // the user's manual link edits afterwards.
+    const touchedRelatedModelIds = new Set<string>();
+    const columns = await model.getColumns(context);
+    for (const column of columns ?? []) {
+      if (!isLinksOrLTAR(column)) continue;
+
+      const colOptions = await column.getColOptions<{
+        fk_mm_model_id?: string;
+        fk_related_model_id?: string;
+      }>(context);
+
+      if (!colOptions?.fk_mm_model_id) continue;
+
+      const junction = await Model.get(context, colOptions.fk_mm_model_id);
+      if (!junction?.mm || !junction?.synced) continue;
+
+      const junctionMappings = await SyncMapping.listByModelId(
+        context,
+        junction.id,
+      );
+
+      await this.detachTableFromSync(context, {
+        mapping: junctionMappings[0],
+        model: junction,
+      });
+
+      // The mirrored link column on the related table becomes a normal,
+      // user-editable link too.
+      if (colOptions.fk_related_model_id) {
+        const related = await Model.get(
+          context,
+          colOptions.fk_related_model_id,
+        );
+        const relatedColumns = await related?.getColumns(context);
+
+        for (const relatedColumn of relatedColumns ?? []) {
+          if (!isLinksOrLTAR(relatedColumn) || !relatedColumn.readonly) {
+            continue;
+          }
+
+          const relatedColOptions = await relatedColumn.getColOptions<{
+            fk_mm_model_id?: string;
+          }>(context);
+
+          if (
+            relatedColOptions?.fk_mm_model_id === junction.id &&
+            relatedColumn.id
+          ) {
+            await Column.update2(context, {
+              colId: relatedColumn.id,
+              column: { readonly: false },
+              isSimpleUpdate: true,
+            });
+            touchedRelatedModelIds.add(colOptions.fk_related_model_id);
+          }
+        }
+      }
+    }
+
+    await this.detachTableFromSync(context, { mapping, model });
+
+    // Realtime: the converted table (and any related table whose mirrored
+    // link column became editable) changed shape for every client.
+    await this.broadcastTableUpdate(context, model.id);
+    for (const relatedId of touchedRelatedModelIds) {
+      await this.broadcastTableUpdate(context, relatedId);
+    }
+
+    // Drop the table from the owning integration's selection so the sync
+    // config no longer references it.
+    const syncConfig = await SyncConfig.get(context, mapping.fk_sync_config_id);
+    const integration = syncConfig?.fk_integration_id
+      ? await Integration.get(context, syncConfig.fk_integration_id)
+      : null;
+
+    if (integration) {
+      const config = await integration.getConfig();
+      const newConfig = { ...config };
+      let configChanged = false;
+
+      if (Array.isArray(config?.tables)) {
+        newConfig.tables = config.tables.filter(
+          (table: string) => table !== mapping.target_table,
+        );
+        configChanged ||= newConfig.tables.length !== config.tables.length;
+      }
+
+      if (config?.custom_schema?.[mapping.target_table]) {
+        newConfig.custom_schema = { ...config.custom_schema };
+        delete newConfig.custom_schema[mapping.target_table];
+        configChanged = true;
+      }
+
+      if (configChanged) {
+        await Integration.updateIntegration(context, integration.id, {
+          config: newConfig,
+        });
+      }
+    }
+
+    const updated = await SyncConfig.getWithMappings(
+      context,
+      mapping.fk_sync_config_id,
+    );
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'app_sync_update',
+          payload: { ...updated, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return updated;
+  }
+
+  /**
+   * Replay-only inverse of `detachSyncTable` (undo of "convert to regular
+   * table"): recreate the mapping, re-flag synced/readonly — incl. handed-over
+   * junctions and the mirrored link columns — and put the table back into the
+   * integration's `tables`/`custom_schema`. Best-effort guards throughout:
+   * anything deleted since the detach is skipped.
+   */
+  async attachSyncTable(
+    context: NcContext,
+    param: {
+      modelId: string;
+      syncConfigId: string;
+      targetTable: string;
+      readonlyColIds: string[];
+      customSchemaEntry?: unknown;
+      junctions?: Array<{
+        junctionId: string;
+        relatedReadonlyColIds: string[];
+      }>;
+      req: NcRequest;
+    },
+  ) {
+    const {
+      modelId,
+      syncConfigId,
+      targetTable,
+      readonlyColIds,
+      customSchemaEntry,
+      junctions,
+    } = param;
+
+    const model = await Model.get(context, modelId);
+    if (!model) {
+      NcError.get(context).tableNotFound(modelId);
+    }
+
+    const syncConfig = await SyncConfig.get(context, syncConfigId);
+    if (!syncConfig) {
+      NcError.get(context).syncConfigNotFound(syncConfigId);
+    }
+
+    const reAttachedRelatedModelIds = new Set<string>();
+
+    const existing = await SyncMapping.listByModelId(context, modelId);
+    if (!existing.length) {
+      await SyncMapping.insert(context, {
+        fk_sync_config_id: syncConfigId,
+        target_table: targetTable,
+        fk_model_id: modelId,
+      });
+    }
+
+    await Model.updateSynced(context, modelId, true);
+
+    for (const colId of readonlyColIds ?? []) {
+      const column = await Column.get(context, { colId });
+      if (!column) continue;
+      await Column.update2(context, {
+        colId,
+        column: { readonly: true },
+        isSimpleUpdate: true,
+      });
+    }
+
+    for (const junction of junctions ?? []) {
+      const junctionModel = await Model.get(context, junction.junctionId);
+      if (!junctionModel) continue;
+
+      await Model.updateSynced(context, junction.junctionId, true);
+
+      const junctionMappings = await SyncMapping.listByModelId(
+        context,
+        junction.junctionId,
+      );
+      if (!junctionMappings.length) {
+        await SyncMapping.insert(context, {
+          fk_sync_config_id: syncConfigId,
+          target_table: null,
+          fk_model_id: junction.junctionId,
+        });
+      }
+
+      for (const colId of junction.relatedReadonlyColIds ?? []) {
+        const column = await Column.get(context, { colId });
+        if (!column) continue;
+        await Column.update2(context, {
+          colId,
+          column: { readonly: true },
+          isSimpleUpdate: true,
+        });
+        if (column.fk_model_id) {
+          reAttachedRelatedModelIds.add(column.fk_model_id);
+        }
+      }
+    }
+
+    await this.broadcastTableUpdate(context, modelId);
+    for (const relatedId of reAttachedRelatedModelIds) {
+      await this.broadcastTableUpdate(context, relatedId);
+    }
+
+    // Put the table back into the owning integration's selection.
+    const integration = syncConfig.fk_integration_id
+      ? await Integration.get(context, syncConfig.fk_integration_id)
+      : null;
+    if (integration) {
+      const config = await integration.getConfig();
+      const newConfig = { ...config };
+      let configChanged = false;
+
+      if (
+        Array.isArray(config?.tables) &&
+        !config.tables.includes(targetTable)
+      ) {
+        newConfig.tables = [...config.tables, targetTable];
+        configChanged = true;
+      }
+      if (customSchemaEntry && !config?.custom_schema?.[targetTable]) {
+        newConfig.custom_schema = {
+          ...(config?.custom_schema ?? {}),
+          [targetTable]: customSchemaEntry,
+        };
+        configChanged = true;
+      }
+      if (configChanged) {
+        await Integration.updateIntegration(context, integration.id, {
+          config: newConfig,
+        });
+      }
+    }
+
+    const updated = await SyncConfig.getWithMappings(context, syncConfigId);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'app_sync_update',
+          payload: { ...updated, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return updated;
+  }
+
   async listSync(context: NcContext, _req: NcRequest) {
     return await SyncConfig.list(context);
   }
 
   async readSync(context: NcContext, syncConfigId: string) {
-    const syncConfig = await SyncConfig.get(context, syncConfigId);
+    const syncConfig = await SyncConfig.getWithMappings(context, syncConfigId);
 
     if (!syncConfig) {
       NcError.get(context).syncConfigNotFound(syncConfigId);
@@ -852,7 +1270,7 @@ export class SyncModuleService implements OnModuleInit {
       }
     }
 
-    const updated = await SyncConfig.get(context, syncConfigId);
+    const updated = await SyncConfig.getWithMappings(context, syncConfigId);
     NocoSocket.broadcastEvent(
       context,
       {
@@ -896,6 +1314,7 @@ export class SyncModuleService implements OnModuleInit {
     const configsToProcess = [payload.config].flat().filter(Boolean);
 
     const updatedIntegrations: Integration[] = [];
+    let schemaChanged = false;
 
     const scalarProps = extractProps(payload, [
       'title',
@@ -981,31 +1400,21 @@ export class SyncModuleService implements OnModuleInit {
           );
 
           for (const tableKey of tablesToCreate) {
-            const staleMapping = syncMappings.find(
-              (m) =>
-                m.target_table === tableKey &&
-                m.status === SyncMappingStatus.Suspended,
+            const activeMapping = syncMappings.find(
+              (m) => m.target_table === tableKey,
             );
-            if (staleMapping) {
-              const abandoned = await Model.get(
+
+            if (activeMapping) {
+              const existingModel = await Model.get(
                 context,
-                staleMapping.fk_model_id,
-                true,
+                activeMapping.fk_model_id,
               );
-              if (abandoned) {
-                await Model.updateSynced(context, abandoned.id, false);
-                const cols = await abandoned.getColumns(context);
-                for (const col of cols ?? []) {
-                  if (col.readonly && col.id) {
-                    await Column.update2(context, {
-                      colId: col.id,
-                      column: { readonly: false },
-                      isSimpleUpdate: true,
-                    });
-                  }
-                }
+
+              if (existingModel) {
+                continue;
               }
-              await SyncMapping.delete(context, staleMapping.id);
+
+              await SyncMapping.delete(context, activeMapping.id);
             }
 
             const table = newCustomSchema[tableKey];
@@ -1022,6 +1431,16 @@ export class SyncModuleService implements OnModuleInit {
               }
             }
 
+            const base = await Base.getWithInfo(context, context.base_id);
+            const source = base?.sources?.find((s) => s.isMeta());
+            const { title: tableTitle, table_name: tableNameSafe } =
+              await this.resolveAvailableTableTitle(
+                context,
+                base,
+                source,
+                table.title,
+              );
+
             const model = await this.tablesService.tableCreate(
               {
                 ...context,
@@ -1030,7 +1449,8 @@ export class SyncModuleService implements OnModuleInit {
               {
                 baseId: context.base_id,
                 table: {
-                  title: table.title,
+                  title: tableTitle,
+                  table_name: tableNameSafe,
                   columns: columns
                     .filter((column) => !column.exclude)
                     .map((column) => ({
@@ -1040,10 +1460,12 @@ export class SyncModuleService implements OnModuleInit {
                       readonly: true,
                       pv: column.pv,
                       meta: column.meta,
+                      system: !!syncSystemFieldsMap[column.title],
                     })),
                 },
                 apiVersion: NcApiVersion.V3,
                 synced: true,
+                operationSource: OperationSource.SYNC,
                 user: req.user,
                 req,
               },
@@ -1092,14 +1514,23 @@ export class SyncModuleService implements OnModuleInit {
             const model = await Model.get(context, mapping.fk_model_id);
 
             if (model) {
-              await this.tablesService.tableDelete(context, {
-                tableId: model.id,
-                skipTrash: false,
-                req,
-              });
-            } else {
-              await SyncMapping.delete(context, mapping.id);
+              if (model.mm) {
+                await Model.markAsMmTable(context, model.id, false);
+              }
+
+              await this.tablesService.tableDelete(
+                { ...context, socket_id: null },
+                {
+                  tableId: model.id,
+                  forceDeleteSyncs: true,
+                  forceDeleteRelations: true,
+                  skipTrash: true,
+                  req,
+                },
+              );
             }
+
+            await SyncMapping.delete(context, mapping.id);
           }
 
           for (const tableKey of tablesToModify) {
@@ -1185,6 +1616,7 @@ export class SyncModuleService implements OnModuleInit {
                     {
                       columnId: existingColumn.id,
                       forceDeleteSystem: true,
+                      skipTrash: true,
                       req,
                     },
                   );
@@ -1193,11 +1625,7 @@ export class SyncModuleService implements OnModuleInit {
             }
           }
 
-          await this.nocoJobsService.add(JobTypes.SyncModuleRefreshData, {
-            context,
-            syncConfigId: syncConfig.id,
-            req,
-          });
+          schemaChanged = true;
         }
 
         const { integrations: persisted } = await this.appSyncConfigUpdate(
@@ -1254,7 +1682,19 @@ export class SyncModuleService implements OnModuleInit {
       }
     }
 
-    const updatedSyncConfig = await SyncConfig.get(context, syncConfigId);
+    if (schemaChanged) {
+      await this.triggerSync(context, {
+        syncConfigId,
+        bulk: true,
+        fullResync: true,
+        req,
+      });
+    }
+
+    const updatedSyncConfig = await SyncConfig.getWithMappings(
+      context,
+      syncConfigId,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -1292,14 +1732,25 @@ export class SyncModuleService implements OnModuleInit {
       NcError.get(context).syncConfigNotFound(syncConfigId);
     }
 
+    // Default: deleting a sync moves it to trash (restorable):
+    //  - keep tables → dest tables are detached now (regular, editable
+    //    tables) and re-attached if the sync is restored;
+    //  - drop tables → dest tables move to trash with the sync as parent
+    //    and come back with it on restore.
     if (!skipTrash) {
-      await this.baseTrashService.trashResource(context, {
-        resourceId: syncConfigId,
-        resourceType: 'appSync',
-        user: req.user,
-        req,
-        options: { dropTables },
-      });
+      await this.baseTrashService.trashResource(
+        {
+          ...context,
+          socket_id: null,
+        },
+        {
+          resourceId: syncConfigId,
+          resourceType: 'appSync',
+          user: req.user,
+          req,
+          options: { dropTables },
+        },
+      );
 
       NocoSocket.broadcastEvent(
         context,
@@ -1316,9 +1767,6 @@ export class SyncModuleService implements OnModuleInit {
       return true;
     }
 
-    // Hard delete (skipTrash) — the normal flow: no trash entry, not
-    // restorable. Child syncs only wipe their rows; top-level syncs drop every
-    // dest table (junction included). The config (+ its integration) is purged.
     try {
       if (syncConfig.fk_parent_sync_config_id) {
         const parentSyncMapping = await SyncMapping.list(context, {

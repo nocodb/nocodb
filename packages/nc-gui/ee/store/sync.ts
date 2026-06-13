@@ -1,6 +1,6 @@
 import { acceptHMRUpdate } from 'pinia'
 import type { IntegrationsType, SyncConfig } from 'nocodb-sdk'
-import { ProjectSyncCreate, ProjectSyncProgressModal } from '#components'
+import { ProjectSyncCreate, ProjectSyncEdit, ProjectSyncProgressModal } from '#components'
 
 export interface SyncIntegrationConfig {
   id?: string
@@ -70,21 +70,23 @@ export const useSyncStore = defineStore('sync', () => {
     }
   }
 
-  const readSync = async (syncConfigId: string) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value || !syncConfigId) {
+  const readSync = async (syncConfigId: string, baseId?: string) => {
+    const bsId = baseId ?? activeProjectId.value
+
+    if (!bsId || !activeWorkspaceId.value || !syncConfigId) {
       return null
     }
 
     let syncConfig: null | SyncConfig = null
 
-    if (baseSyncs.value.get(activeProjectId.value)?.find((sync) => sync.id === syncConfigId)) {
-      syncConfig = baseSyncs.value.get(activeProjectId.value)?.find((sync) => sync.id === syncConfigId) || null
+    if (baseSyncs.value.get(bsId)?.find((sync) => sync.id === syncConfigId)) {
+      syncConfig = baseSyncs.value.get(bsId)?.find((sync) => sync.id === syncConfigId) || null
     }
 
     try {
       syncConfig =
         syncConfig ||
-        (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        (await $api.internal.getOperation(activeWorkspaceId.value, bsId, {
           operation: 'readSync',
           id: syncConfigId,
         }))
@@ -142,13 +144,16 @@ export const useSyncStore = defineStore('sync', () => {
     data: Partial<SyncConfig> & {
       config?: SyncIntegrationConfig[]
     },
+    baseId?: string,
   ) => {
-    if (!activeWorkspaceId.value || !activeProjectId.value) return null
+    const bsId = baseId ?? activeProjectId.value
+
+    if (!activeWorkspaceId.value || !bsId) return null
 
     try {
       const result = await $api.internal.postOperation(
         activeWorkspaceId.value,
-        activeProjectId.value,
+        bsId,
         {
           operation: 'updateSync',
         },
@@ -156,11 +161,11 @@ export const useSyncStore = defineStore('sync', () => {
       )
 
       if (result.syncConfig && result.syncConfig.id) {
-        const curentBaseSyncs = baseSyncs.value.get(activeProjectId.value) || []
+        const curentBaseSyncs = baseSyncs.value.get(bsId) || []
         const index = curentBaseSyncs.findIndex((sync) => sync.id === id)
         if (index !== -1) {
           curentBaseSyncs[index] = result.syncConfig
-          baseSyncs.value.set(activeProjectId.value, curentBaseSyncs)
+          baseSyncs.value.set(bsId, curentBaseSyncs)
         }
       }
 
@@ -261,6 +266,26 @@ export const useSyncStore = defineStore('sync', () => {
     }
   }
 
+  async function openSyncEditModal({ baseId, syncId }: { baseId?: string; syncId?: string }) {
+    if (!baseId || !syncId || showUpgradeToUseSync()) return
+
+    $e('c:sync:open-edit-modal')
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(ProjectSyncEdit, {
+      'value': isDlgOpen,
+      'baseId': baseId,
+      'syncId': syncId,
+      'onUpdate:value': () => closeDialog(),
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   async function openSyncProgressModal({ baseId, jobId }: { baseId: string; jobId: string }) {
     if (!baseId || !jobId) return
 
@@ -297,6 +322,7 @@ export const useSyncStore = defineStore('sync', () => {
     deleteSync,
     triggerSync,
     openNewSyncCreateModal,
+    openSyncEditModal,
     openSyncProgressModal,
   }
 })

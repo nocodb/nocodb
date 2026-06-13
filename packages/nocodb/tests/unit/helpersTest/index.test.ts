@@ -29,6 +29,7 @@ let onPremPlanResolutionTests = () => {};
 let modelStatTests = () => {};
 let singleQueryCacheLinkageTests = () => {};
 let tableSyncHelpersTests = () => {};
+let detectUpdatedAtColumnTests = () => {};
 let mssqlLookupFlattenTest = () => {};
 let dateTimeMssqlHandlerTest = () => {};
 let jsonMssqlHandlerTest = () => {};
@@ -62,6 +63,8 @@ if (process.env.EE === 'true') {
     require('./ee/tableSyncHelpers.test').tableSyncHelpersTests;
   addonTests = require('./ee/addons.test').addonTests;
   addonRegistryTests = require('./ee/addonRegistry.test').addonRegistryTests;
+  detectUpdatedAtColumnTests =
+    require('./ee/detectUpdatedAtColumn.test').detectUpdatedAtColumnTests;
 }
 
 function _helperTests() {
@@ -74,6 +77,7 @@ function _helperTests() {
   attachmentHelpersTest();
   emailUtilsTest();
   tableSyncHelpersTests();
+  detectUpdatedAtColumnTests();
   jobsProcessorTest();
   dateTimeFilterHandlerTest();
   dateTimeMssqlHandlerTest();

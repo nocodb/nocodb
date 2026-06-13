@@ -1,22 +1,23 @@
+import { isLinksOrLTAR, TableSyncMappingRole } from 'nocodb-sdk';
 import type { OperationContract } from '~/command-registry/types';
 import type { TableSyncService } from '~/modules/table-sync/table-sync.service';
 import type { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
+import { computeTableSyncDetachPlan } from '~/modules/table-sync/table-sync.service';
 import { OperationName } from '~/command-registry/op-names';
 import { OperationRegistry } from '~/command-registry/registry';
-import {
-  makeReplayReq,
-  registerMacro,
-} from '~/command-registry/replay-context';
+import { makeReplayReq } from '~/command-registry/replay-context';
 import { scopeBase } from '~/command-registry/scope';
 import { isReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
-import { TableSync } from '~/models';
+import { Model, TableSync, TableSyncColumnMapping } from '~/models';
 import BaseTrash from '~/ee/models/BaseTrash';
 import { NcError } from '~/helpers/catchError';
 import {
+  tableSyncAttachTableSchema,
   tableSyncConfigUpdateSchema,
   tableSyncCreateSchema,
   tableSyncDeleteSchema,
+  tableSyncDetachTableSchema,
   tableSyncFreezeSchema,
   tableSyncResumeSchema,
   tableSyncUpdateSchema,
@@ -161,17 +162,16 @@ export const TableSyncConfigUpdateContract: OperationContract<
   },
 };
 
-// Update → a macro. `updateSync` fans out to traced child ops (columnAdd/
-// columnDelete/columnUpdate for the field diff, tableCreate/tableDelete for
-// MM junction + linked-shadow tables, and tableSyncConfigUpdate for the
-// scalars + mapping rows); the decorator records them into a transcript and
-// `macroUndo` replays each child's own inverse in reverse — restoring dropped
-// columns/tables from trash and rebuilding the mapping set. NOTE: a field
-// change triggers a full resync (a job) in the macro body, which isn't part of
-// the transcript — undo can't un-run a sync already completed.
+// Update → a macro so the fanned-out child ops stay grouped under one undo
+// entry. The inverse is NOT a transcript replay: `before` snapshots the
+// pre-update values of every field the forward body touches (incl. the
+// link-view picks derived from LinkedShadow mappings) and undo simply RE-RUNS
+// updateSync with that snapshot — its own reconcile recreates hard-dropped
+// fields/shadow tables and drops added ones. Redo re-runs the forward body.
+// Recreated shadow tables/columns get fresh ids (regenerated sync artifacts).
 export const TableSyncUpdateContract: OperationContract<
   typeof tableSyncUpdateSchema,
-  Record<string, any>
+  { prevBody?: Record<string, unknown> }
 > = {
   name: OperationName.tableSyncUpdate,
   entity: MetaTable.TABLE_SYNCS,
@@ -183,18 +183,81 @@ export const TableSyncUpdateContract: OperationContract<
     description: () => 'Update sync',
     before: async (context, params) => {
       const sync = await TableSync.get(context, params.syncId);
-      return { entityTitle: sync?.title };
+      if (!sync) return {};
+
+      const forwardBody = (params.body ?? {}) as Record<string, unknown>;
+      const prevBody: Record<string, unknown> = {};
+
+      if ('title' in forwardBody) prevBody.title = sync.title;
+      if ('sync_trigger' in forwardBody)
+        prevBody.sync_trigger = sync.sync_trigger;
+      if ('on_delete_action' in forwardBody)
+        prevBody.on_delete_action = sync.on_delete_action;
+
+      const mainMapping = (sync.mappings ?? []).find(
+        (m) => m.role === TableSyncMappingRole.Main,
+      );
+      if ('source_view_id' in forwardBody && mainMapping?.source_view_id) {
+        prevBody.source_view_id = mainMapping.source_view_id;
+      }
+
+      // Field changes: snapshot BOTH selected_fields and the link-view picks —
+      // re-running with selected_fields but without the picks would wipe the
+      // MM-link bindings (reconcileFields treats absent picks as "unpicked").
+      if (
+        'selected_fields' in forwardBody ||
+        'link_view_by_column' in forwardBody
+      ) {
+        prevBody.selected_fields = sync.selected_fields ?? null;
+
+        const linkViewByColumn: Record<string, string> = {};
+        const shadowViewByTableId = new Map<string, string>();
+        for (const m of sync.mappings ?? []) {
+          if (
+            m.role === TableSyncMappingRole.LinkedShadow &&
+            m.source_table_id &&
+            m.source_view_id
+          ) {
+            shadowViewByTableId.set(m.source_table_id, m.source_view_id);
+          }
+        }
+
+        if (shadowViewByTableId.size && mainMapping?.source_table_id) {
+          const sourceCtx = {
+            workspace_id:
+              mainMapping.source_workspace_id ?? context.workspace_id,
+            base_id: mainMapping.source_base_id ?? context.base_id,
+          };
+          const sourceModel = await Model.get(
+            sourceCtx,
+            mainMapping.source_table_id,
+          );
+          const sourceColumns = await sourceModel?.getColumns(sourceCtx);
+          for (const col of sourceColumns ?? []) {
+            if (!col.title || !isLinksOrLTAR(col)) continue;
+            const relatedId = (
+              col.colOptions as { fk_related_model_id?: string }
+            )?.fk_related_model_id;
+            if (!relatedId) continue;
+            const viewId = shadowViewByTableId.get(relatedId);
+            if (viewId) linkViewByColumn[col.title] = viewId;
+          }
+        }
+
+        prevBody.link_view_by_column = linkViewByColumn;
+      }
+
+      return { entityTitle: sync.title, extra: { prevBody } };
     },
   },
   undo: {
-    inverse: (_context, _params, _result, resolved) => {
-      const transcript = (
-        resolved?.extra as
-          | { macroTranscript?: ReadonlyArray<unknown> }
-          | undefined
-      )?.macroTranscript;
-      if (!transcript || !transcript.length) return null;
-      return { name: OperationName.macroUndo, params: { transcript } };
+    inverse: (_context, params, _result, resolved) => {
+      const prevBody = resolved?.extra?.prevBody;
+      if (!prevBody || !Object.keys(prevBody).length) return null;
+      return {
+        name: OperationName.tableSyncUpdate,
+        params: { syncId: params.syncId, body: prevBody },
+      };
     },
     scope: (_p, _r, _c, context) => scopeBase(context),
   },
@@ -223,6 +286,140 @@ export const TableSyncCreateContract: OperationContract<
         params: { syncId: result.id, dropTables: true },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
+};
+
+interface TableSyncDetachExtra {
+  attachParams?: Record<string, unknown>;
+}
+
+// "Convert to regular table" on a single shadow/junction dest table: the
+// whole field cluster (the named table + its junction/shadow counterpart,
+// see computeTableSyncDetachPlan) leaves the sync config together — mapping
+// rows dropped (incl. the link-view pick riding the shadow's source_view_id),
+// the affected field titles removed from selected_fields, the cluster's
+// tables gone plain, and the remaining tables' LTAR columns handed over. The
+// inverse re-ATTACHES all of it. `before` captures everything attach needs,
+// since detach destroys it. Converting the MAIN dest table is NOT this op:
+// that drops the sync itself via tableSyncDelete (keep tables), with its own
+// trash-restore undo.
+export const TableSyncDetachTableContract: OperationContract<
+  typeof tableSyncDetachTableSchema,
+  TableSyncDetachExtra
+> = {
+  name: OperationName.tableSyncDetachTable,
+  entity: MetaTable.TABLE_SYNC_MAPPINGS,
+  schema: tableSyncDetachTableSchema,
+  entry: {
+    entity_id: (params) => params.modelId,
+    description: () => 'Convert synced table to regular table',
+    before: async (context, params) => {
+      const plan = await computeTableSyncDetachPlan(context, params.modelId);
+      if (!plan) return {};
+
+      const destCtx = { ...context, base_id: plan.mapping.dest_base_id };
+      const model = await Model.get(destCtx, params.modelId);
+
+      const columnMappingRow = (c: {
+        fk_table_sync_id?: string | null;
+        fk_table_sync_mapping_id?: string | null;
+        source_workspace_id?: string | null;
+        source_base_id?: string | null;
+        source_table_id?: string | null;
+        source_column_id?: string | null;
+        dest_base_id?: string | null;
+        dest_table_id?: string | null;
+        dest_column_id?: string | null;
+      }) => ({
+        fk_table_sync_id: c.fk_table_sync_id,
+        fk_table_sync_mapping_id: c.fk_table_sync_mapping_id,
+        source_workspace_id: c.source_workspace_id,
+        source_base_id: c.source_base_id,
+        source_table_id: c.source_table_id,
+        source_column_id: c.source_column_id,
+        dest_base_id: c.dest_base_id,
+        dest_table_id: c.dest_table_id,
+        dest_column_id: c.dest_column_id,
+      });
+
+      const mappings = [];
+      for (const m of plan.detachMappings) {
+        const columnMappings =
+          await TableSyncColumnMapping.listByTableSyncMapping(
+            plan.syncCtx,
+            m.id,
+          );
+        mappings.push({
+          mapping: {
+            id: m.id,
+            fk_table_sync_id: m.fk_table_sync_id,
+            source_workspace_id: m.source_workspace_id,
+            source_base_id: m.source_base_id,
+            source_table_id: m.source_table_id,
+            source_view_id: m.source_view_id,
+            source_uuid: m.source_uuid,
+            source_password_hash: m.source_password_hash,
+            dest_base_id: m.dest_base_id,
+            dest_table_id: m.dest_table_id,
+            role: m.role,
+          },
+          columnMappings: columnMappings.map(columnMappingRow),
+        });
+      }
+
+      return {
+        entityTitle: model?.title,
+        extra: {
+          attachParams: {
+            modelId: params.modelId,
+            syncId: plan.sync.id,
+            syncBaseId: plan.mapping.base_id,
+            mappings,
+            tables: plan.tables,
+            ...(plan.linkCols.length ? { linkCols: plan.linkCols } : {}),
+            prevSelectedFields: plan.sync.selected_fields ?? null,
+            ...(plan.fieldColumnMappings.length
+              ? {
+                  fieldColumnMappings:
+                    plan.fieldColumnMappings.map(columnMappingRow),
+                }
+              : {}),
+          },
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, _params, _result, resolved) => {
+      const attachParams = resolved?.extra?.attachParams;
+      if (!attachParams) return null;
+      return {
+        name: OperationName.tableSyncAttachTable,
+        params: attachParams,
+      };
+    },
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
+};
+
+// Replay-only inverse of detach — never invoked over HTTP. Its own inverse is
+// detach again, so undo→redo round-trips.
+export const TableSyncAttachTableContract: OperationContract<
+  typeof tableSyncAttachTableSchema
+> = {
+  name: OperationName.tableSyncAttachTable,
+  entity: MetaTable.TABLE_SYNC_MAPPINGS,
+  schema: tableSyncAttachTableSchema,
+  entry: {
+    entity_id: (params) => params.modelId,
+    description: () => 'Re-attach table to sync',
+  },
+  undo: {
+    inverse: (_context, params) => ({
+      name: OperationName.tableSyncDetachTable,
+      params: { modelId: params.modelId },
+    }),
     scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
@@ -291,12 +488,16 @@ export function registerTableSyncHandlers(
       });
     },
   );
-  registerMacro(TableSyncUpdateContract, (context, params, req) =>
-    svc.updateSync(context, {
-      syncId: params.syncId,
-      body: params.body,
-      req,
-    } as unknown as Parameters<typeof svc.updateSync>[1]),
+  OperationRegistry.register(
+    TableSyncUpdateContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.updateSync(context, {
+        syncId: params.syncId,
+        body: params.body,
+        req,
+      } as unknown as Parameters<typeof svc.updateSync>[1]);
+    },
   );
   // Glue child of the tableSyncUpdate macro — scalars + mapping-row rebuild.
   OperationRegistry.register(
@@ -308,6 +509,23 @@ export function registerTableSyncHandlers(
         payload: params.payload,
         req,
       } as unknown as Parameters<typeof svc.tableSyncConfigUpdate>[1]);
+    },
+  );
+  OperationRegistry.register(
+    TableSyncDetachTableContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.detachTable(context, { modelId: params.modelId, req });
+    },
+  );
+  OperationRegistry.register(
+    TableSyncAttachTableContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.attachTable(context, {
+        ...(params as unknown as Parameters<typeof svc.attachTable>[1]),
+        req,
+      });
     },
   );
 }

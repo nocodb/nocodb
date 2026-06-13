@@ -1482,6 +1482,7 @@
     "noSyncsYet": "No syncs yet",
     "syncNow": "Sync now",
     "updateSyncConfiguration": "Update sync configuration",
+    "convertToRegularTable": "Convert to regular table",
     "freezeSync": "Pause sync",
     "resumeSync": "Resume sync",
     "retrySync": "Retry sync",
@@ -3748,6 +3749,12 @@
       "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
       "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Ensure database validity to prevent schema loss",
+      "syncNoUpdatedAtColumn": {
+        "title": "No Updated At field set",
+        "description": "Every sync run will re-fetch all records of this table. Mark a date field as Updated At to enable incremental sync."
+      },
+      "syncDetachTable": "The sync will stop updating this table. Its data is kept and all fields become editable. Re-adding the source table to the sync later creates a new table.",
+      "tableSyncConvertMainTable": "This is the synced table of this sync — converting it removes the sync itself. All tables created by the sync are kept as regular, editable tables and stop syncing.",
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"
       },

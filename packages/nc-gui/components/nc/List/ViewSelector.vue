@@ -15,6 +15,10 @@ interface Props {
   autoSelect?: boolean
   disabled?: boolean
   allowClear?: boolean
+  /** Pre-fetched views — skips the store fetch entirely. For tables the
+   *  current user can't list via their own ACL / aren't in the tables store
+   *  (e.g. a sync's source base read through a share-view-authorized call). */
+  views?: ViewType[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,31 +53,37 @@ const handleValueUpdate = (value: any) => {
 }
 
 const viewList = computedAsync(async () => {
-  if (!props.tableId) return []
+  let viewsList: ViewType[]
 
-  try {
-    const effectiveBaseId = props.baseId || activeProjectId.value
-    if (!effectiveBaseId) {
-      console.error('[ViewSelector] baseId is required but was not provided')
+  if (props.views) {
+    viewsList = props.views
+  } else {
+    if (!props.tableId) return []
+
+    try {
+      const effectiveBaseId = props.baseId || activeProjectId.value
+      if (!effectiveBaseId) {
+        console.error('[ViewSelector] baseId is required but was not provided')
+        return []
+      }
+
+      await viewsStore.loadViews({
+        tableId: props.tableId,
+        baseId: effectiveBaseId,
+        ignoreLoading: props.ignoreLoading,
+        force: props.forceFetchViews,
+      })
+    } catch (e) {
+      console.error(e)
       return []
     }
 
-    await viewsStore.loadViews({
-      tableId: props.tableId,
-      baseId: effectiveBaseId,
-      ignoreLoading: props.ignoreLoading,
-      force: props.forceFetchViews,
-    })
-  } catch (e) {
-    console.error(e)
-    return []
+    // Use composite key (baseId:tableId) to get views
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    const key = `${effectiveBaseId}:${props.tableId}`
+
+    viewsList = viewsByTable.value.get(key) || []
   }
-
-  // Use composite key (baseId:tableId) to get views
-  const effectiveBaseId = props.baseId || activeProjectId.value
-  const key = `${effectiveBaseId}:${props.tableId}`
-
-  let viewsList: ViewType[] = viewsByTable.value.get(key) || []
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)

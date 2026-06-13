@@ -64,7 +64,6 @@ export class TableDeleteTableSyncHandler implements MetaEventHandler {
       context.workspace_id,
       context.base_id,
       table.id,
-      false, // see suspended mappings too — source delete must react even while the dest sits in trash
       ncMeta,
     );
     if (!mappings.length) return undefined;

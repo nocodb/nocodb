@@ -388,10 +388,6 @@ export default class BaseTrash implements BaseTrashType {
     T extends object = {
       columns?: Array<{ id: string; placeholder_id: string; table_id: string }>;
       dependents?: Array<{ id: string; type: string }>;
-      /** Sync mappings suspended when a synced table is trashed (App Sync). */
-      appSyncMappingIds?: string[];
-      /** Sync mappings suspended when a synced table is trashed (Table Sync). */
-      tableSyncMappings?: Array<{ id: string; baseId: string }>;
       /**
        * System hm-links on the junction model, soft-deleted alongside a
        * junction-backed link so restore/purge can reactivate them.

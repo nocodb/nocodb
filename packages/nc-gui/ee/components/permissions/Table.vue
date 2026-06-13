@@ -24,17 +24,15 @@ const isBaseOwner = computed(() => {
   return !!baseRoles.value?.[ProjectRoles.OWNER]
 })
 
-// Permission configuration for table visibility - only owners can configure
+// Permission configuration for table visibility - only owners can configure.
+// Visibility (who can see the table) applies to synced tables too — only the
+// record add/delete permissions below are moot on synced (read-only) data.
 const tableVisibilityConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: PermissionKey.TABLE_VISIBILITY,
-  disabled: (props.table.synced as boolean) || !isBaseOwner.value,
-  tooltip: props.table.synced
-    ? t('msg.info.permissionsNotAvailableForSyncedTable')
-    : !isBaseOwner.value
-    ? t('msg.info.onlyBaseOwnersCanConfigureTableVisibility')
-    : undefined,
+  disabled: !isBaseOwner.value,
+  tooltip: !isBaseOwner.value ? t('msg.info.onlyBaseOwnersCanConfigureTableVisibility') : undefined,
 }
 
 // Permission configurations for create and delete

@@ -25,6 +25,7 @@ import missingPrimaryKeyTests from './tests/meta-apis/missingPrimaryKey.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
 import { tableSyncGatingTests } from './tests/payment/tableSyncGating.test';
+import { customSyncGatingTests } from './tests/payment/customSyncGating.test';
 import convertDateFormatTests from './tests/convertDateFormat.test';
 import linkPlaceholderTests from './tests/linkPlaceholder.test';
 import pgEnumTests from './tests/pg-enum.test';
@@ -47,6 +48,7 @@ let patResourceFilterTest = () => {};
 let tableSyncTest = () => {};
 let tableSyncDataTest = () => {};
 let tableSyncHandlerTest = () => {};
+let customSyncDataTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -66,6 +68,7 @@ if (process.env.EE === 'true') {
   tableSyncTest = require('./tests/ee/tableSync.test').default;
   tableSyncDataTest = require('./tests/ee/tableSyncData.test').default;
   tableSyncHandlerTest = require('./tests/ee/tableSyncHandlers.test').default;
+  customSyncDataTest = require('./tests/ee/customSyncData.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -104,9 +107,11 @@ function restTests() {
     paymentTest();
     planGatingTests();
     tableSyncGatingTests();
+    customSyncGatingTests();
     tableSyncTest();
     tableSyncDataTest();
     tableSyncHandlerTest();
+    customSyncDataTest();
     oauthTests();
     bulkV1Test();
     oauthDCRTest();

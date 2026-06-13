@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EventType, SyncMappingStatus, SyncTrigger } from 'nocodb-sdk';
+import { EventType, SyncTrigger } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
@@ -11,6 +11,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { TablesService } from '~/services/tables.service';
+import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 import { JobTypes } from '~/interface/Jobs';
 
 /**
@@ -67,6 +68,7 @@ export class AppSyncTrashHandler extends BaseTrashHandler<SyncConfig> {
     private readonly tableTrashHandler: TableTrashHandler,
     private readonly bulkDataAliasService: BulkDataAliasService,
     private readonly tablesService: TablesService,
+    private readonly syncDataProcessor: SyncModuleSyncDataProcessor,
   ) {
     super();
   }
@@ -192,7 +194,12 @@ export class AppSyncTrashHandler extends BaseTrashHandler<SyncConfig> {
       for (const t of targets) {
         await this.tablesService.tableDelete(
           { ...ctx, socket_id: null },
-          { tableId: t.id, req: param.req, parent: tableParent },
+          {
+            tableId: t.id,
+            req: param.req,
+            parent: tableParent,
+            forceDeleteSyncs: true,
+          },
           ncMeta,
         );
         droppedTables.push({ baseId: ctx.base_id, tableId: t.id });
@@ -305,18 +312,16 @@ export class AppSyncTrashHandler extends BaseTrashHandler<SyncConfig> {
           ncMeta,
         );
         for (const m of orphaned) {
-          await SyncMapping.markStatus(
-            ctx,
-            m.id,
-            SyncMappingStatus.Suspended,
-            ncMeta,
-          );
+          await SyncMapping.delete(ctx, m.id, ncMeta);
         }
         continue;
       }
 
       await Model.updateSynced(ctx, t.tableId, true, ncMeta);
       for (const colId of t.readonlyColIds ?? []) {
+        const column = await Column.get(ctx, { colId }, ncMeta);
+        if (!column) continue;
+
         await Column.update2(
           ctx,
           { colId, column: { readonly: true }, isSimpleUpdate: true },
@@ -342,6 +347,23 @@ export class AppSyncTrashHandler extends BaseTrashHandler<SyncConfig> {
     await SyncConfig.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
     for (const childId of childSyncIds) {
       await SyncConfig.softDelete(ctx, childId, false, ncMeta);
+    }
+
+    try {
+      await this.syncDataProcessor.reconcileSyncSchema(
+        ctx,
+        trashEntry.resource_id,
+        param.req,
+        { skipDataBackfill: true },
+        ncMeta,
+      );
+    } catch (e) {
+      this.logger.warn(
+        `Restore: schema reconcile failed for sync ${trashEntry.resource_id}: ${
+          (e as Error)?.message ?? e
+        }`,
+        e.stack
+      );
     }
 
     await this.broadcastRestored(

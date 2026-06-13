@@ -8,7 +8,7 @@ import { isEE } from '~test/utils/helpers';
 import { createProject } from '~test/factory/base';
 import { createTable } from '~test/factory/table';
 import { createView } from '~test/factory/view';
-import { createColumn } from '~test/factory/column';
+import { createColumn, createLtarColumn2 } from '~test/factory/column';
 import { createRow } from '~test/factory/row';
 import {
   tableSyncCreate,
@@ -262,6 +262,67 @@ function tableSyncTests() {
       it('404s when the sync id is unknown in this base', async () => {
         await tableSyncSourceSchema(context, destEnv, 'tsy_does_not_exist')
           .expect(404);
+      });
+
+      // The per-link view picker in the edit form can't read the linked
+      // tables' views via the user's own ACL — the modal lives in the dest
+      // base and the source may not even be readable by the importing user.
+      // The source schema must carry them, keyed by linked table id.
+      it('returns the linked tables’ views for link fields', async function () {
+        this.timeout(120000);
+        const ordersTable = await createTable(context, sourceBase, {
+          table_name: 'SchemaOrders',
+          title: 'SchemaOrders',
+        });
+        await createLtarColumn2(context, {
+          title: 'SchemaOrders',
+          parentTable: sourceTable,
+          childTable: ordersTable,
+          type: 'mm',
+        });
+        const ordersView = await createView(context, {
+          title: 'OrdersFeed',
+          table: ordersTable,
+          type: ViewTypes.GRID,
+        });
+
+        // Fresh main view that includes the new LTAR column (the suite's
+        // default view predates it).
+        const ltarSource = (await Model.getWithInfo(
+          { workspace_id: workspaceId, base_id: sourceBase.id },
+          { id: sourceTable.id },
+        ))!;
+        let mainView = await createView(context, {
+          title: `LinkedFeed-${Date.now()}`,
+          table: ltarSource,
+          type: ViewTypes.GRID,
+        });
+        mainView = (await enableAllowSync(mainView.id))!;
+
+        const created = await tableSyncCreate(
+          context,
+          destEnv,
+          syncBody({ title: 'LinkedViewsSync', source_view_id: mainView.id }),
+        ).expect(200);
+        await waitForSyncSettled(destEnv, created.body.id);
+
+        const res = await tableSyncSourceSchema(
+          context,
+          destEnv,
+          created.body.id,
+        ).expect(200);
+
+        const linkedViews = res.body.linked_views ?? {};
+        expect(
+          linkedViews[ordersTable.id],
+          'linked table views returned, keyed by table id',
+        ).to.be.an('array').that.is.not.empty;
+        expect(
+          (linkedViews[ordersTable.id] as any[]).some(
+            (v: any) => v.id === ordersView.id,
+          ),
+          'includes the linked table grid view',
+        ).to.eq(true);
       });
 
       it('updates the sync title', async () => {

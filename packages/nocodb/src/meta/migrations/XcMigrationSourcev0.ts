@@ -70,6 +70,7 @@ import * as nc_202605200000_table_sync_column_mappings from './v0/nc_20260520000
 import * as nc_202606021300_doc_yjs_state from './v0/nc_202606021300_doc_yjs_state';
 import * as nc_202606040000_soft_delete_syncs from './v0/nc_202606040000_soft_delete_syncs';
 import * as nc_202606091200_addons from './v0/nc_202606091200_addons';
+import * as nc_202606121400_detach_suspended_sync_mappings from './v0/nc_202606121400_detach_suspended_sync_mappings';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -151,6 +152,7 @@ export default class XcMigrationSourcev0 {
       'nc_202606021300_doc_yjs_state',
       'nc_202606040000_soft_delete_syncs',
       'nc_202606091200_addons',
+      'nc_202606121400_detach_suspended_sync_mappings',
     ]);
   }
 
@@ -304,6 +306,8 @@ export default class XcMigrationSourcev0 {
         return nc_202606040000_soft_delete_syncs;
       case 'nc_202606091200_addons':
         return nc_202606091200_addons;
+      case 'nc_202606121400_detach_suspended_sync_mappings':
+        return nc_202606121400_detach_suspended_sync_mappings;
     }
   }
 }

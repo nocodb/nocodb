@@ -4,7 +4,7 @@ import { useSyncFormOrThrow } from '../useSyncForm'
 
 const categories = Object.values(SyncCategoryMeta)
 
-const { syncConfigForm, mode, syncCategoryIntegrationMap, activeBaseSyncs } = useSyncFormOrThrow()
+const { syncConfigForm, mode, syncCategoryIntegrationMap, activeBaseSyncs, closeForm } = useSyncFormOrThrow()
 
 const { blockCustomSync, showUpgradeToUseCustomSync } = useEeConfig()
 
@@ -41,9 +41,15 @@ const selectCategory = (category: (typeof SyncCategoryMeta)[keyof typeof SyncCat
     return
   }
 
-  // Custom sync is an Enterprise-only feature
+  // Custom sync is a paid feature (Business+). Clicking "Upgrade" in the
+  // prompt navigates to the upgrade page, so close the create modal behind it.
   if (category.value === SyncCategory.CUSTOM && blockCustomSync.value) {
-    showUpgradeToUseCustomSync({ triggerSource: 'sync-custom-sync' })
+    showUpgradeToUseCustomSync({
+      callback: (type) => {
+        if (type === 'ok') closeForm.trigger()
+      },
+      triggerSource: 'sync-custom-sync'
+    })
     return
   }
 

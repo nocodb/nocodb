@@ -1,6 +1,5 @@
 import {
   type NcContext,
-  SyncMappingStatus,
   type TableSyncMappingRole,
   type TableSyncMappingType,
 } from 'nocodb-sdk';
@@ -37,8 +36,6 @@ export default class TableSyncMapping implements TableSyncMappingType {
   dest_table_id: string;
 
   role: TableSyncMappingRole;
-
-  status?: SyncMappingStatus;
 
   created_at: string;
   updated_at: string;
@@ -161,7 +158,6 @@ export default class TableSyncMapping implements TableSyncMappingType {
     source_workspace_id: string,
     source_base_id: string,
     source_table_id: string,
-    activeOnly = false,
     ncMeta = Noco.ncMeta,
   ): Promise<TableSyncMapping[]> {
     const subKeys = [
@@ -190,10 +186,7 @@ export default class TableSyncMapping implements TableSyncMappingType {
         rows,
       );
     }
-    const mappings = rows.map((r) => new TableSyncMapping(r));
-    return activeOnly
-      ? mappings.filter((m) => m.status !== SyncMappingStatus.Suspended)
-      : mappings;
+    return rows.map((r) => new TableSyncMapping(r));
   }
 
   /** All mappings whose destination table is the given table. Used when a
@@ -271,45 +264,6 @@ export default class TableSyncMapping implements TableSyncMappingType {
       `${CacheScope.TABLE_SYNC_MAPPING}:${id}`,
       updateObj,
     );
-
-    return this.get(context, id, ncMeta);
-  }
-
-  /** Set a mapping's status — `Suspended` when its dest table is trashed,
-   *  `Active` again on restore. Invalidates both the per-mapping cache and the
-   *  root-scoped source-table index, since the dispatch hot path
-   *  (`listBySourceTable`) caches full rows including `status`. */
-  public static async markStatus(
-    context: NcContext,
-    id: string,
-    status: SyncMappingStatus,
-    ncMeta = Noco.ncMeta,
-  ): Promise<TableSyncMapping | null> {
-    const existing = await this.get(context, id, ncMeta);
-    if (!existing) return null;
-
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TABLE_SYNC_MAPPINGS,
-      { status },
-      id,
-    );
-
-    await NocoCache.update(context, `${CacheScope.TABLE_SYNC_MAPPING}:${id}`, {
-      status,
-    });
-
-    if (existing.source_table_id) {
-      await NocoCache.del(
-        'root',
-        srcTableListKey(
-          existing.source_workspace_id,
-          existing.source_base_id,
-          existing.source_table_id,
-        ),
-      );
-    }
 
     return this.get(context, id, ncMeta);
   }

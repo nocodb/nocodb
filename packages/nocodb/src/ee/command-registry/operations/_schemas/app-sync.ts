@@ -40,3 +40,27 @@ export const appSyncCreateSchema = z.object({
   sync_trigger_cron: z.string().nullable().optional(),
   on_delete_action: z.nativeEnum(OnDeleteAction).optional(),
 });
+
+export const appSyncDetachTableSchema = z
+  .object({
+    modelId: z.string(),
+  })
+  .strict();
+
+export const appSyncAttachTableSchema = z
+  .object({
+    modelId: z.string(),
+    syncConfigId: z.string(),
+    targetTable: z.string(),
+    readonlyColIds: z.array(z.string()),
+    customSchemaEntry: z.unknown().optional(),
+    junctions: z
+      .array(
+        z.object({
+          junctionId: z.string(),
+          relatedReadonlyColIds: z.array(z.string()),
+        }),
+      )
+      .optional(),
+  })
+  .strict();

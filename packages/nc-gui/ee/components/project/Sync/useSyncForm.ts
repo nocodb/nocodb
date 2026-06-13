@@ -8,7 +8,14 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration, loadIntegrations } = useIntegrationStore()
+    const {
+      integrationsRefreshKey,
+      getIntegrationForm,
+      integrations,
+      getIntegration,
+      loadIntegrations,
+      loadDynamicIntegrations,
+    } = useIntegrationStore()
 
     const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -55,6 +62,17 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
     const isSaving = ref(false)
 
     const isUpdating = ref(false)
+
+    const isLoadingSchema = ref(false)
+
+    // Lets nested steps (e.g. the Category step's "upgrade to use Custom Sync"
+    // flow) request the whole create/edit modal to close. The owning modal
+    // component subscribes via `closeForm.on(...)`.
+    const closeForm = createEventHook<void>()
+
+    // Serializes schema reloads so a call issued while one is in flight re-checks staleness
+    // after it settles — the latest table selection always wins.
+    let pendingSchemaLoad: Promise<void> = Promise.resolve()
 
     const availableIntegrations = computed(() => {
       // eslint-disable-next-line no-unused-expressions
@@ -196,6 +214,10 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
       isUpdating.value = true
       try {
+        if (ncIsArray(integrationConfigs.value[0]?.config?.tables)) {
+          await loadDestinationSchema()
+        }
+
         // First, delete any child syncs that were marked for deletion
         if (deletedSyncConfigIds.value.length > 0) {
           await Promise.all(deletedSyncConfigIds.value.map((syncConfigId) => deleteSync(bsId, syncConfigId)))
@@ -225,7 +247,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           },
         }
 
-        const result = await updateSyncStore(_syncId, updateData)
+        const result = await updateSyncStore(_syncId, updateData, bsId)
 
         if (result?.syncConfig) {
           syncConfigForm.value = {
@@ -263,6 +285,91 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       )
     }
 
+    // Apply the sensible defaults for a freshly-fetched table (system fields, primary key,
+    // exclude flags). Only used for tables we haven't configured yet.
+    function buildTableDefaults(table?: CustomSyncSchema[string] | null) {
+      if (!table?.columns) return
+
+      if (!table.relations) {
+        table.relations = []
+      }
+
+      if (!table.systemFields) {
+        table.systemFields = { primaryKey: [] }
+      }
+
+      table.columns.forEach((column) => {
+        column.exclude = !!column.exclude
+      })
+
+      if (table.systemFields.primaryKey.length === 0 && table.columns.length > 0) {
+        const firstColumn = table.columns[0]
+        if (firstColumn) {
+          table.systemFields.primaryKey = [firstColumn.title]
+        }
+      }
+
+      table.systemFields.primaryKey.forEach((pkColumn) => {
+        const column = table.columns!.find((col) => col.title === pkColumn)
+        if (column) {
+          column.exclude = false
+        }
+      })
+    }
+
+    // Fetch the destination schema for the currently-selected source tables. We re-fetch
+    // whenever the cached schema no longer matches the selected tables (e.g. the user went
+    // back and (de)selected tables), but preserve any mapping already configured for tables
+    // that are still selected — only newly-added tables get fresh defaults.
+    async function reloadDestinationSchemaIfStale() {
+      const mainIntegration = integrationConfigs.value[0]
+      if (!mainIntegration) return
+
+      if (!mainIntegration.config) {
+        mainIntegration.config = {}
+      }
+
+      const existingSchema: CustomSyncSchema = mainIntegration.config.custom_schema || {}
+      const existingKeys = Object.keys(existingSchema)
+
+      // SQL sources expose an explicit table selection via `config.tables`. When present, the
+      // cached schema is only valid if it covers exactly that selection.
+      const hasTableSelection = Array.isArray(mainIntegration.config.tables)
+      const selectedTables: string[] = hasTableSelection ? mainIntegration.config.tables : []
+      const schemaMatchesSelection =
+        selectedTables.length === existingKeys.length && existingKeys.every((key) => selectedTables.includes(key))
+
+      if (hasTableSelection ? schemaMatchesSelection && existingKeys.length > 0 : existingKeys.length > 0) {
+        return
+      }
+
+      isLoadingSchema.value = true
+      try {
+        const fetchedSchema: CustomSyncSchema = (await integrationFetchDestinationSchema(mainIntegration)) || {}
+
+        const mergedSchema: CustomSyncSchema = {}
+        for (const tableName of Object.keys(fetchedSchema)) {
+          if (existingSchema[tableName]) {
+            mergedSchema[tableName] = existingSchema[tableName]
+          } else {
+            buildTableDefaults(fetchedSchema[tableName])
+            mergedSchema[tableName] = fetchedSchema[tableName]
+          }
+        }
+
+        mainIntegration.config.custom_schema = mergedSchema
+      } catch (error) {
+        message.error(await extractSdkResponseErrorMsgv2(error as any))
+      } finally {
+        isLoadingSchema.value = false
+      }
+    }
+
+    function loadDestinationSchema() {
+      pendingSchemaLoad = pendingSchemaLoad.then(reloadDestinationSchemaIfStale)
+      return pendingSchemaLoad
+    }
+
     const supportedDocs = [
       {
         title: 'How syncs work',
@@ -285,6 +392,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
     onMounted(async () => {
       const bsId = unref(baseId)
 
+      await Promise.all([loadDynamicIntegrations(), loadIntegrations(null, bsId)])
+
       // Load existing syncs for validation
       if (bsId) {
         await loadSyncs(bsId)
@@ -296,7 +405,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
         try {
           deletedSyncConfigIds.value = []
-          const sync = await readSync(_syncId)
+          const sync = await readSync(_syncId, bsId)
           if (!sync) return
           syncConfigForm.value = {
             ...(sync as SyncConfig),
@@ -346,6 +455,30 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       }
     })
 
+    // Keep the edit form in sync with external changes (undo/redo, another
+    // client) — the realtime `app_sync_update` handler updates the store
+    // entry; mirror its scalar fields into the open form so the user never
+    // saves from a stale snapshot.
+    if (mode === 'edit') {
+      const { baseSyncs } = storeToRefs(syncStore)
+
+      watch(
+        () => (baseSyncs.value.get(unref(baseId)) ?? []).find((sync) => sync.id === unref(syncId)),
+        (updated) => {
+          if (!updated) return
+          syncConfigForm.value = {
+            ...syncConfigForm.value,
+            title: updated.title,
+            sync_type: updated.sync_type,
+            sync_trigger: updated.sync_trigger,
+            sync_trigger_cron: updated.sync_trigger_cron,
+            on_delete_action: updated.on_delete_action,
+          }
+        },
+        { deep: true },
+      )
+    }
+
     return {
       mode,
       step,
@@ -368,8 +501,11 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       updateSyncConfig,
       isSaving,
       isUpdating,
+      isLoadingSchema,
+      loadDestinationSchema,
       supportedDocs,
       isSyncCategoryAlreadyAddedOrBlank,
+      closeForm,
     }
   },
 )

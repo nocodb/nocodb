@@ -11,7 +11,6 @@ import {
   OperationSource,
   PlanFeatureTypes,
   RelationTypes,
-  SyncMappingStatus,
   TableSyncInputMode,
   TableSyncMappingRole,
   TableSyncOnDeleteAction,
@@ -22,6 +21,8 @@ import {
 } from 'nocodb-sdk';
 import { syncSystemFields } from '@noco-local-integrations/core';
 import type { ColumnType, NcRequest, TableSyncCreateReqType } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
@@ -76,7 +77,6 @@ interface TableSyncMappingSnapshot {
     dest_base_id?: string | null;
     dest_table_id?: string | null;
     role?: string | null;
-    status?: string | null;
   }>;
   columnMappings: Array<{
     fk_table_sync_id?: string | null;
@@ -89,6 +89,197 @@ interface TableSyncMappingSnapshot {
     dest_table_id?: string | null;
     dest_column_id?: string | null;
   }>;
+}
+
+/** Everything a per-table detach ("convert to regular table" on a
+ *  shadow/junction dest table) must touch. Computed up-front so the
+ *  contract's `before` (undo capture) and the service forward path act on
+ *  the identical set. */
+export interface TableSyncDetachPlan {
+  /** The named table's own mapping. */
+  mapping: TableSyncMapping;
+  sync: TableSync;
+  syncCtx: NcContext;
+  /** The field cluster to drop: the named table's mapping plus its
+   *  counterpart(s) — a junction pulls in its (otherwise-unreferenced)
+   *  shadow, a shadow pulls in every junction routing to it. */
+  detachMappings: TableSyncMapping[];
+  /** Dest tables of the cluster — converted to plain tables. */
+  tables: Array<{
+    tableId: string;
+    destBaseId: string;
+    readonlyColIds: string[];
+  }>;
+  /** Handed-over readonly LTAR columns on the REMAINING dest tables that
+   *  route through a junction in the cluster — flipped editable. */
+  linkCols: Array<{ colId: string; baseId: string; tableId: string }>;
+  /** Field titles leaving `selected_fields`. */
+  fieldTitles: string[];
+  /** Their column-mapping registrations parented OUTSIDE the cluster (rows
+   *  under cluster mappings die with the cascade anyway). */
+  fieldColumnMappings: TableSyncColumnMapping[];
+}
+
+/** Resolve the full detach plan for a dest table. Returns null when the
+ *  table has no mapping or is the sync's MAIN table (those convert via
+ *  `tableSyncDelete` keep-tables instead) — callers raise their own errors. */
+export async function computeTableSyncDetachPlan(
+  context: NcContext,
+  modelId: string,
+): Promise<TableSyncDetachPlan | null> {
+  // Root-scoped lookup — the mapping rows live in the sync's base, which can
+  // differ from the dest table's base the request ran against.
+  const destMappings = await TableSyncMapping.listByDestTable(
+    context.base_id,
+    modelId,
+  );
+  const mapping = destMappings[0];
+  if (!mapping || mapping.role === TableSyncMappingRole.Main) return null;
+
+  const syncCtx: NcContext = { ...context, base_id: mapping.base_id };
+  const sync = await TableSync.get(syncCtx, mapping.fk_table_sync_id);
+  if (!sync) return null;
+
+  const all = sync.mappings ?? [];
+  const byDest = new Map(all.map((m) => [m.dest_table_id, m]));
+  const mainMapping = all.find((m) => m.role === TableSyncMappingRole.Main);
+
+  // One scan of the main dest table's LTAR columns: which junction + shadow
+  // each link field routes through. Drives both the cluster closure and the
+  // field-level config cleanup.
+  const fieldLinks: Array<{
+    colId: string;
+    title: string;
+    junctionId?: string;
+    shadowId?: string;
+  }> = [];
+  if (mainMapping) {
+    const mainCtx: NcContext = {
+      ...context,
+      base_id: mainMapping.dest_base_id,
+    };
+    const mainModel = await Model.get(mainCtx, mainMapping.dest_table_id);
+    const mainColumns = (await mainModel?.getColumns(mainCtx)) ?? [];
+    for (const col of mainColumns) {
+      if (!isLinksOrLTAR(col) || !col.id || !col.title) continue;
+      const colOptions = await col.getColOptions<{
+        fk_mm_model_id?: string;
+        fk_related_model_id?: string;
+      }>(mainCtx);
+      if (!colOptions) continue;
+      fieldLinks.push({
+        colId: col.id,
+        title: col.title,
+        junctionId: colOptions.fk_mm_model_id,
+        shadowId: colOptions.fk_related_model_id,
+      });
+    }
+  }
+
+  // Close over the field cluster. The link-view pick rides the SHADOW
+  // mapping (`source_view_id`), so it must leave the config with the field —
+  // a junction therefore pulls in its shadow unless another still-mapped
+  // field references the same shadow; a shadow pulls in every junction
+  // routing to it (each backs exactly one field).
+  const detachIds = new Set<string>([modelId]);
+  if (mapping.role === TableSyncMappingRole.Junction) {
+    for (const fl of fieldLinks) {
+      if (fl.junctionId !== modelId || !fl.shadowId) continue;
+      const shadowStillUsed = fieldLinks.some(
+        (other) =>
+          other.colId !== fl.colId &&
+          other.shadowId === fl.shadowId &&
+          other.junctionId &&
+          other.junctionId !== modelId &&
+          byDest.has(other.junctionId),
+      );
+      if (!shadowStillUsed && byDest.has(fl.shadowId)) {
+        detachIds.add(fl.shadowId);
+      }
+    }
+  } else {
+    for (const fl of fieldLinks) {
+      if (fl.shadowId !== modelId) continue;
+      if (fl.junctionId && byDest.has(fl.junctionId)) {
+        detachIds.add(fl.junctionId);
+      }
+    }
+  }
+
+  const detachMappings = all.filter((m) => detachIds.has(m.dest_table_id));
+
+  const affectedFields = fieldLinks.filter(
+    (fl) =>
+      (fl.junctionId && detachIds.has(fl.junctionId)) ||
+      (fl.shadowId && detachIds.has(fl.shadowId)),
+  );
+  const fieldTitles = [...new Set(affectedFields.map((fl) => fl.title))];
+
+  const tables: TableSyncDetachPlan['tables'] = [];
+  for (const m of detachMappings) {
+    const destCtx: NcContext = { ...context, base_id: m.dest_base_id };
+    const model = await Model.get(destCtx, m.dest_table_id);
+    if (!model) continue;
+    const columns = await model.getColumns(destCtx);
+    tables.push({
+      tableId: m.dest_table_id,
+      destBaseId: m.dest_base_id,
+      readonlyColIds: (columns ?? [])
+        .filter((c) => c.readonly && c.id)
+        .map((c) => c.id),
+    });
+  }
+
+  const linkCols: TableSyncDetachPlan['linkCols'] = [];
+  for (const m of all) {
+    if (
+      detachIds.has(m.dest_table_id) ||
+      m.role === TableSyncMappingRole.Junction
+    ) {
+      continue;
+    }
+    const otherCtx: NcContext = { ...context, base_id: m.dest_base_id };
+    const other = await Model.get(otherCtx, m.dest_table_id);
+    if (!other) continue;
+    const otherColumns = await other.getColumns(otherCtx);
+    for (const col of otherColumns ?? []) {
+      if (!isLinksOrLTAR(col) || !col.readonly || !col.id) continue;
+      const colOptions = await col.getColOptions<{
+        fk_mm_model_id?: string;
+      }>(otherCtx);
+      if (
+        !colOptions?.fk_mm_model_id ||
+        !detachIds.has(colOptions.fk_mm_model_id)
+      ) {
+        continue;
+      }
+      linkCols.push({
+        colId: col.id,
+        baseId: m.dest_base_id,
+        tableId: m.dest_table_id,
+      });
+    }
+  }
+
+  const clusterMappingIds = new Set(detachMappings.map((m) => m.id));
+  const fieldColumnMappings: TableSyncColumnMapping[] = [];
+  for (const fl of affectedFields) {
+    const cm = await TableSyncColumnMapping.getByDestColumn(syncCtx, fl.colId);
+    if (cm && !clusterMappingIds.has(cm.fk_table_sync_mapping_id)) {
+      fieldColumnMappings.push(cm);
+    }
+  }
+
+  return {
+    mapping,
+    sync,
+    syncCtx,
+    detachMappings,
+    tables,
+    linkCols,
+    fieldTitles,
+    fieldColumnMappings,
+  };
 }
 
 @Injectable()
@@ -131,12 +322,14 @@ export class TableSyncService {
     columns: Column[];
     views: View[];
     visible_source_column_ids: string[];
+    linked_views: Record<string, View[]>;
   }> {
     const empty = {
       source_table_missing: false,
       columns: [] as Column[],
       views: [] as View[],
       visible_source_column_ids: [] as string[],
+      linked_views: {} as Record<string, View[]>,
     };
 
     const sourceTable = await Model.getWithInfo(sourceCtx, { id: tableId });
@@ -159,11 +352,42 @@ export class TableSyncService {
         .filter((id): id is string => !!id);
     }
 
+    // Views of every linked source table, keyed by table id — the form's
+    // per-link view picker can't fetch these itself: the importing user
+    // reaches the source through the share view (this call), not their own
+    // base ACL, and the linked tables aren't in their stores either.
+    const linkedViews: Record<string, View[]> = {};
+    for (const col of sourceTable.columns ?? []) {
+      if (!isLinksOrLTAR(col) || col.system) continue;
+      const colOptions = await col.getColOptions<{
+        fk_related_model_id?: string;
+        fk_related_base_id?: string;
+      }>(sourceCtx);
+      const relatedId = colOptions?.fk_related_model_id;
+      if (!relatedId || linkedViews[relatedId]) continue;
+
+      // Self-referential links reuse the main table's (already masked) views.
+      if (relatedId === tableId) {
+        linkedViews[relatedId] = views;
+        continue;
+      }
+
+      const relatedCtx: NcContext = {
+        ...sourceCtx,
+        base_id: colOptions?.fk_related_base_id ?? sourceCtx.base_id,
+      };
+      const relatedViews = await View.list(relatedCtx, relatedId);
+      linkedViews[relatedId] = relatedViews.map((v) =>
+        View.maskPasswordForResponse(v),
+      );
+    }
+
     return {
       source_table_missing: false,
       columns: sourceTable.columns ?? [],
       views,
       visible_source_column_ids: visibleSourceColumnIds,
+      linked_views: linkedViews,
     };
   }
 
@@ -175,12 +399,14 @@ export class TableSyncService {
     columns: Column[];
     views: View[];
     visible_source_column_ids: string[];
+    linked_views: Record<string, View[]>;
   }> {
     const empty = {
       source_table_missing: false,
       columns: [] as Column[],
       views: [] as View[],
       visible_source_column_ids: [] as string[],
+      linked_views: {} as Record<string, View[]>,
     };
 
     const sync = await TableSync.get(context, params.syncId);
@@ -338,7 +564,6 @@ export class TableSyncService {
             : oldSync.selected_fields ?? null,
         linkViewByColumn: patch.link_view_by_column ?? {},
         dropHiddenInView: sourceViewChanged,
-        undoable: true,
         req,
       });
     }
@@ -503,7 +728,6 @@ export class TableSyncService {
         dest_base_id: m.dest_base_id,
         dest_table_id: m.dest_table_id,
         role: m.role,
-        status: m.status,
       })),
       columnMappings: columnMappings.map((c) => ({
         fk_table_sync_id: c.fk_table_sync_id,
@@ -546,13 +770,6 @@ export class TableSyncService {
         role: (tm.role ?? undefined) as TableSyncMappingRole | undefined,
       });
       idMap.set(tm.id, inserted.id);
-      if (tm.status && tm.status !== SyncMappingStatus.Active) {
-        await TableSyncMapping.markStatus(
-          context,
-          inserted.id,
-          tm.status as SyncMappingStatus,
-        );
-      }
     }
 
     for (const cm of snapshot.columnMappings) {
@@ -599,11 +816,6 @@ export class TableSyncService {
        *  to `show: false` in shared views, so without this override a new
        *  LTAR would never auto-mirror in sync-all mode. */
       includeColIds?: Set<string>;
-      /** Soft-delete dropped columns/tables to trash (undoable) instead of
-       *  hard-deleting. Forwarded to `removeSyncedField`. The macro update path
-       *  (`updateSync`) passes `true`; reactive source-side callers omit it and
-       *  get the default hard delete. */
-      undoable?: boolean;
       req: NcRequest;
     },
   ): Promise<{ added: boolean; removed: boolean }> {
@@ -725,7 +937,6 @@ export class TableSyncService {
               mainDest as Model,
               existingDest,
               patch.req,
-              { undoable: patch.undoable },
             );
             if (existingDest.id) removedDestColIds.add(existingDest.id);
             await this.addSyncedField(
@@ -833,7 +1044,6 @@ export class TableSyncService {
           mainDest as Model,
           destCol,
           patch.req,
-          { undoable: patch.undoable },
         );
         if (destCol.id) removedDestColIds.add(destCol.id);
         anyRemoved = true;
@@ -871,7 +1081,6 @@ export class TableSyncService {
           mainDest as Model,
           destCol,
           patch.req,
-          { undoable: patch.undoable },
         );
         anyRemoved = true;
       }
@@ -1388,15 +1597,9 @@ export class TableSyncService {
        *  but the shadow KEPT as a regular (now-unsynced) table — the
        *  user's data still lives in it. */
       keepShadow?: boolean;
-      /** When `false` (the default), the dropped column / junction / shadow are
-       *  hard-deleted — no trash, not undoable. When `true`, they're
-       *  soft-deleted to trash so the macro can restore them id-stable via
-       *  `trashRestore` on undo. The update/macro path passes `true`; reactive
-       *  source-side handlers omit it and get the hard-delete default. */
-      undoable?: boolean;
     } = {},
   ): Promise<void> {
-    const skipTrash = !(opts.undoable ?? false);
+    const skipTrash = true;
     // Soft path stamps dropped tables with the sync so the trash handler admits
     // a junction (mm) into trash (its `isSyncDrop` allowance) and groups them.
     const trashParent = skipTrash
@@ -1680,6 +1883,335 @@ export class TableSyncService {
     );
 
     return sync;
+  }
+
+  /** One `table_update` so live clients refresh the tree/grid after a dest
+   *  table's `synced` flag + column `readonly` flags flip (detach/attach). */
+  private async broadcastTableUpdate(context: NcContext, tableId: string) {
+    const table = await Model.getWithInfo(context, { id: tableId });
+    if (!table) return;
+
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.META_EVENT,
+      payload: { action: 'table_update', payload: table },
+    });
+  }
+
+  /**
+   * "Convert to regular table" for a single shadow/junction dest table — the
+   * per-table counterpart of app sync's `detachSyncTable`. The whole FIELD
+   * CLUSTER leaves the sync config together (see `computeTableSyncDetachPlan`):
+   * the cluster's mapping rows are dropped (which also removes the link-view
+   * pick riding the shadow mapping's `source_view_id`), the affected LTAR
+   * field titles leave `selected_fields`, their column-mapping registrations
+   * go, the cluster's dest tables become plain editable tables, and the LTAR
+   * columns on the remaining tables are handed over. The rest of the sync
+   * keeps running.
+   *
+   * The MAIN dest table can't be detached this way: converting it means
+   * dropping the sync itself (`tableSyncDelete` keeping tables) — the UI
+   * routes there and warns accordingly.
+   */
+  @TraceCommand(OperationName.tableSyncDetachTable)
+  async detachTable(
+    context: NcContext,
+    param: { modelId: string; req: NcRequest },
+  ): Promise<TableSync> {
+    const { modelId } = param;
+
+    const plan = await computeTableSyncDetachPlan(context, modelId);
+
+    if (!plan) {
+      const destMappings = await TableSyncMapping.listByDestTable(
+        context.base_id,
+        modelId,
+      );
+      if (destMappings[0]?.role === TableSyncMappingRole.Main) {
+        NcError.get(context).invalidRequestBody(
+          'Converting the synced table removes the sync itself — delete the sync keeping its tables instead',
+        );
+      }
+      NcError.get(context).invalidRequestBody(
+        'Table is not managed by a table sync',
+      );
+    }
+
+    const { sync, syncCtx } = plan;
+
+    if (sync.status === TableSyncStatus.Syncing) {
+      NcError.get(context).invalidRequestBody(
+        `Cannot convert while "${sync.title}" is syncing — wait for the run to finish`,
+      );
+    }
+
+    const broadcastKeys = new Set<string>();
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    try {
+      // Field-level config cleanup: the affected LTAR field titles leave
+      // `selected_fields` and their column-mapping registrations go, so a later
+      // reconcile neither recreates the cluster nor tears down what the user
+      // now owns.
+      for (const cm of plan.fieldColumnMappings) {
+        await TableSyncColumnMapping.deleteById(syncCtx, cm.id, ncMeta);
+      }
+
+      if (plan.fieldTitles.length && sync.selected_fields?.length) {
+        const nextSelected = sync.selected_fields.filter(
+          (title) => !plan.fieldTitles.includes(title),
+        );
+        if (nextSelected.length !== sync.selected_fields.length) {
+          await TableSync.update(
+            syncCtx,
+            sync.id,
+            { selected_fields: nextSelected },
+            ncMeta,
+          );
+        }
+      }
+
+      // Drop the cluster's mapping rows — the sync config no longer references
+      // these tables (nor, via the shadow's `source_view_id`, the picked view).
+      // After this the processor leaves the cluster alone.
+      for (const m of plan.detachMappings) {
+        await TableSyncColumnMapping.deleteByTableSyncMapping(
+          syncCtx,
+          m.id,
+          ncMeta,
+        );
+        await TableSyncMapping.deleteById(syncCtx, m.id, ncMeta);
+      }
+
+      // Hand the LINKS over: the readonly LTAR columns on the remaining dest
+      // tables that route through the cluster's junction(s) become editable.
+      // The junction's mapping is already gone, so the sync never fights the
+      // user's manual link edits afterwards.
+      for (const lc of plan.linkCols) {
+        const colCtx: NcContext = { ...context, base_id: lc.baseId };
+        await Column.update2(
+          colCtx,
+          {
+            colId: lc.colId,
+            column: { readonly: false },
+            isSimpleUpdate: true,
+          },
+          ncMeta,
+        );
+        broadcastKeys.add(`${lc.baseId}:${lc.tableId}`);
+      }
+
+      // Convert the cluster's tables LAST: clear every column's `readonly`,
+      // then flip `synced` off as the final mutation per table.
+      for (const t of plan.tables) {
+        const destCtx: NcContext = { ...context, base_id: t.destBaseId };
+
+        for (const colId of t.readonlyColIds) {
+          await Column.update2(
+            destCtx,
+            {
+              colId,
+              column: { readonly: false },
+              isSimpleUpdate: true,
+            },
+            ncMeta,
+          );
+        }
+
+        await Model.updateSynced(destCtx, t.tableId, false, ncMeta);
+
+        broadcastKeys.add(`${t.destBaseId}:${t.tableId}`);
+      }
+
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback(e);
+      throw e;
+    }
+
+    for (const key of broadcastKeys) {
+      const [baseId, tableId] = key.split(':');
+      await this.broadcastTableUpdate({ ...context, base_id: baseId }, tableId);
+    }
+
+    const updated = await TableSync.get(syncCtx, sync.id);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_sync_update',
+          payload: { ...updated, base_id: syncCtx.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return updated;
+  }
+
+  /**
+   * Replay-only inverse of `detachTable` (undo of "convert to regular table"
+   * on a shadow/junction dest table): re-insert the dropped field cluster's
+   * mapping rows (fresh mapping ids, column-mapping parent refs follow),
+   * restore `selected_fields` + the field registrations, and re-flag every
+   * cluster table — plus the handed-over LTAR columns — back to
+   * synced/readonly. Best-effort guards: anything deleted since is skipped.
+   */
+  async attachTable(
+    context: NcContext,
+    param: {
+      modelId: string;
+      syncId: string;
+      syncBaseId: string;
+      mappings: Array<{
+        mapping: TableSyncMappingSnapshot['tableMappings'][number];
+        columnMappings: TableSyncMappingSnapshot['columnMappings'];
+      }>;
+      tables: Array<{
+        tableId: string;
+        destBaseId: string;
+        readonlyColIds: string[];
+      }>;
+      linkCols?: Array<{ colId: string; baseId: string; tableId?: string }>;
+      prevSelectedFields?: string[] | null;
+      fieldColumnMappings?: TableSyncMappingSnapshot['columnMappings'];
+      req: NcRequest;
+    },
+  ): Promise<TableSync> {
+    const syncCtx: NcContext = { ...context, base_id: param.syncBaseId };
+    const sync = await TableSync.get(syncCtx, param.syncId);
+
+    if (!sync) NcError.get(context).tableSyncNotFound(param.syncId);
+
+    // Re-insert the cluster's mapping rows + their column mappings, unless
+    // something already re-created a mapping for that dest table since.
+    for (const entry of param.mappings ?? []) {
+      const destTableId = entry.mapping.dest_table_id;
+      if (!destTableId) continue;
+
+      const existing = await TableSyncMapping.listByDestTable(
+        entry.mapping.dest_base_id ?? context.base_id,
+        destTableId,
+      );
+      if (existing.length) continue;
+
+      const inserted = await TableSyncMapping.insert(syncCtx, {
+        ...(extractProps(entry.mapping as Record<string, unknown>, [
+          'source_workspace_id',
+          'source_base_id',
+          'source_table_id',
+          'source_view_id',
+          'source_uuid',
+          'source_password_hash',
+          'dest_base_id',
+          'dest_table_id',
+          'role',
+        ]) as Partial<TableSyncMapping>),
+        fk_table_sync_id: param.syncId,
+      });
+
+      for (const cm of entry.columnMappings ?? []) {
+        await TableSyncColumnMapping.insert(syncCtx, {
+          ...(extractProps(cm as Record<string, unknown>, [
+            'source_workspace_id',
+            'source_base_id',
+            'source_table_id',
+            'source_column_id',
+            'dest_base_id',
+            'dest_table_id',
+            'dest_column_id',
+          ]) as Partial<TableSyncColumnMapping>),
+          fk_table_sync_id: param.syncId,
+          fk_table_sync_mapping_id: inserted.id,
+        });
+      }
+    }
+
+    // Re-register the LTAR field(s) the detach de-registered: column-mapping
+    // rows parented to OTHER (still-live) mappings, restored with their
+    // original parent ids.
+    for (const cm of param.fieldColumnMappings ?? []) {
+      if (!cm.fk_table_sync_mapping_id || !cm.dest_column_id) continue;
+      const parent = await TableSyncMapping.get(
+        syncCtx,
+        cm.fk_table_sync_mapping_id,
+      );
+      if (!parent) continue; // parent mapping gone since — skip
+      const already = await TableSyncColumnMapping.getByDestColumn(
+        syncCtx,
+        cm.dest_column_id,
+      );
+      if (already) continue;
+      await TableSyncColumnMapping.insert(syncCtx, {
+        ...(extractProps(cm as Record<string, unknown>, [
+          'fk_table_sync_mapping_id',
+          'source_workspace_id',
+          'source_base_id',
+          'source_table_id',
+          'source_column_id',
+          'dest_base_id',
+          'dest_table_id',
+          'dest_column_id',
+        ]) as Partial<TableSyncColumnMapping>),
+        fk_table_sync_id: param.syncId,
+      });
+    }
+
+    // Restore the pre-detach field selection.
+    if (param.prevSelectedFields !== undefined) {
+      await TableSync.update(syncCtx, param.syncId, {
+        selected_fields: param.prevSelectedFields,
+      });
+    }
+
+    // Re-flag the cluster's tables + their previously-readonly columns.
+    for (const t of param.tables ?? []) {
+      const destCtx: NcContext = { ...context, base_id: t.destBaseId };
+      const model = await Model.get(destCtx, t.tableId);
+      if (!model) continue; // deleted since the detach — skip
+
+      await Model.updateSynced(destCtx, t.tableId, true);
+
+      for (const colId of t.readonlyColIds ?? []) {
+        const column = await Column.get(destCtx, { colId });
+        if (!column) continue;
+        await Column.update2(destCtx, {
+          colId,
+          column: { readonly: true },
+          isSimpleUpdate: true,
+        });
+      }
+
+      await this.broadcastTableUpdate(destCtx, t.tableId);
+    }
+
+    // Re-lock the handed-over LTAR columns on the remaining dest tables.
+    for (const lc of param.linkCols ?? []) {
+      const colCtx: NcContext = { ...context, base_id: lc.baseId };
+      const column = await Column.get(colCtx, { colId: lc.colId });
+      if (!column) continue;
+      await Column.update2(colCtx, {
+        colId: lc.colId,
+        column: { readonly: true },
+        isSimpleUpdate: true,
+      });
+    }
+
+    const updated = await TableSync.get(syncCtx, param.syncId);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_sync_update',
+          payload: { ...updated, base_id: syncCtx.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return updated;
   }
 
   @TraceCommand(OperationName.tableSyncCreate)

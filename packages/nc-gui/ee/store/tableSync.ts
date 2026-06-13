@@ -7,6 +7,9 @@ export interface TableSyncSourceSchema {
   columns: ColumnType[]
   views: ViewType[]
   visible_source_column_ids: string[]
+  /** Views of every linked source table, keyed by table id — feeds the
+   *  per-link view picker, which can't fetch them via the user's own ACL. */
+  linked_views?: Record<string, ViewType[]>
 }
 
 export const useTableSyncStore = defineStore('tableSync', () => {
@@ -86,6 +89,21 @@ export const useTableSyncStore = defineStore('tableSync', () => {
       { dropTables: !!options.dropTables },
     )
     removeSync(baseId, syncId)
+  }
+
+  /** Convert a single shadow/junction dest table to a regular table — drops
+   *  its mapping from the sync config; the rest of the sync keeps running.
+   *  The main dest table converts via `deleteSync` (keep tables) instead. */
+  const detachTable = async (baseId: string, modelId: string): Promise<TableSyncType | null> => {
+    if (!activeWorkspaceId.value) return null
+    const updated = (await $api.internal.postOperation(
+      activeWorkspaceId.value,
+      baseId,
+      { operation: 'tableSyncDetachTable' },
+      { modelId },
+    )) as TableSyncType
+    upsertSync(baseId, updated)
+    return updated
   }
 
   const resync = async (baseId: string, syncId: string): Promise<TableSyncType | null> => {
@@ -241,6 +259,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
     createSync,
     updateSync,
     deleteSync,
+    detachTable,
     resync,
     freezeSync,
     resumeSync,

@@ -1,4 +1,4 @@
-import { type NcContext, SyncMappingStatus } from 'nocodb-sdk';
+import { type NcContext } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -14,8 +14,6 @@ export default class SyncMapping {
   fk_sync_config_id: string;
   target_table: string;
   fk_model_id: string;
-
-  status?: SyncMappingStatus;
 
   created_at: string;
   updated_at: string;
@@ -128,7 +126,6 @@ export default class SyncMapping {
     param: {
       fk_sync_config_id: string;
       force?: boolean;
-      activeOnly?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -143,14 +140,6 @@ export default class SyncMapping {
 
     return syncMappings
       .filter((syncMapping) => {
-        // Suspended mappings (dest table is in trash) are skipped by the
-        // sync processors but kept for cleanup/restore — opt in via activeOnly.
-        if (
-          param.activeOnly &&
-          syncMapping.status === SyncMappingStatus.Suspended
-        ) {
-          return false;
-        }
         if (param.force) return true;
         return syncMapping.target_table !== null;
       })
@@ -159,8 +148,31 @@ export default class SyncMapping {
       });
   }
 
-  /** All mappings that target a given synced table (`fk_model_id`). Used when a
-   *  synced table is trashed to find + suspend the owning mapping(s). App Sync
+  /** Batch variant of `list` — every mapping for many sync configs in a single
+   *  query. Used by `SyncConfig.list` to attach mappings without an N+1 over
+   *  each root config. */
+  static async listByConfigIds(
+    context: NcContext,
+    fkSyncConfigIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!fkSyncConfigIds.length) return [];
+
+    const syncMappings = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SYNC_MAPPINGS,
+      {
+        xcCondition: { fk_sync_config_id: { in: fkSyncConfigIds } },
+      },
+    );
+
+    return syncMappings
+      .filter((syncMapping) => syncMapping.target_table !== null)
+      .map((syncMapping) => new SyncMapping(syncMapping));
+  }
+
+  /** All mappings that target a given synced table (`fk_model_id`). App Sync
    *  dest tables live in the sync's base, so a base-scoped lookup is correct. */
   static async listByModelId(
     context: NcContext,
@@ -175,28 +187,5 @@ export default class SyncMapping {
     );
 
     return rows.map((syncMapping) => new SyncMapping(syncMapping));
-  }
-
-  /** Set a mapping's status — `Suspended` when its dest table is trashed,
-   *  `Active` again on restore. */
-  public static async markStatus(
-    context: NcContext,
-    id: string,
-    status: SyncMappingStatus,
-    ncMeta = Noco.ncMeta,
-  ) {
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SYNC_MAPPINGS,
-      { status },
-      id,
-    );
-
-    await NocoCache.update(context, `${CacheScope.SYNC_MAPPINGS}:${id}`, {
-      status,
-    });
-
-    return true;
   }
 }

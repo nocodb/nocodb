@@ -115,9 +115,26 @@ const visibleMoreOptions = computed(() => {
 const displayField = computed(() => (meta.value?.columns ?? []).find((c: ColumnType) => c.pv) ?? null)
 
 const copyRecordUrl = async () => {
-  const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
-    view.value ? `/${view.value.id}` : ''
-  }?rowId=${props.rowId}${route.query?.path ? `&path=${route.query?.path}` : ''}`
+  let baseId = route.params.baseId as string
+  let viewId = view.value?.id
+  let pathQuery = route.query?.path ? `&path=${route.query?.path}` : ''
+
+  // When the record is opened from a linked-record pill it belongs to a
+  // different table than the one the current route/view points at (and possibly
+  // a different base). The active view id, base and group `path` all describe
+  // the parent table, so reusing them yields a URL whose view doesn't exist and
+  // redirects to home. Point at the record's own base and omit the view + path —
+  // a view-less URL falls back to the table's default view (see
+  // `activeViewTitleOrId` in store/views.ts), which also works across bases.
+  if (view.value && meta.value?.id && view.value.fk_model_id !== meta.value.id) {
+    baseId = meta.value.base_id || baseId
+    viewId = undefined
+    pathQuery = ''
+  }
+
+  const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${baseId}/${meta.value?.id}${viewId ? `/${viewId}` : ''}?rowId=${
+    props.rowId
+  }${pathQuery}`
 
   await copy(encodeURI(url))
 

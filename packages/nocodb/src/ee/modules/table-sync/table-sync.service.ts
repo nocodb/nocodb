@@ -21,6 +21,8 @@ import {
 } from 'nocodb-sdk';
 import { syncSystemFields } from '@noco-local-integrations/core';
 import type { ColumnType, NcRequest, TableSyncCreateReqType } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
@@ -1942,66 +1944,92 @@ export class TableSyncService {
       );
     }
 
-    // Convert the cluster's tables: clear `synced` + every column's `readonly`.
-    for (const t of plan.tables) {
-      const destCtx: NcContext = { ...context, base_id: t.destBaseId };
-
-      await Model.updateSynced(destCtx, t.tableId, false);
-
-      for (const colId of t.readonlyColIds) {
-        await Column.update2(destCtx, {
-          colId,
-          column: { readonly: false },
-          isSimpleUpdate: true,
-        });
+    const broadcastKeys = new Set<string>();
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    try {
+      // Field-level config cleanup: the affected LTAR field titles leave
+      // `selected_fields` and their column-mapping registrations go, so a later
+      // reconcile neither recreates the cluster nor tears down what the user
+      // now owns.
+      for (const cm of plan.fieldColumnMappings) {
+        await TableSyncColumnMapping.deleteById(syncCtx, cm.id, ncMeta);
       }
 
-      await this.broadcastTableUpdate(destCtx, t.tableId);
+      if (plan.fieldTitles.length && sync.selected_fields?.length) {
+        const nextSelected = sync.selected_fields.filter(
+          (title) => !plan.fieldTitles.includes(title),
+        );
+        if (nextSelected.length !== sync.selected_fields.length) {
+          await TableSync.update(
+            syncCtx,
+            sync.id,
+            { selected_fields: nextSelected },
+            ncMeta,
+          );
+        }
+      }
+
+      // Drop the cluster's mapping rows — the sync config no longer references
+      // these tables (nor, via the shadow's `source_view_id`, the picked view).
+      // After this the processor leaves the cluster alone.
+      for (const m of plan.detachMappings) {
+        await TableSyncColumnMapping.deleteByTableSyncMapping(
+          syncCtx,
+          m.id,
+          ncMeta,
+        );
+        await TableSyncMapping.deleteById(syncCtx, m.id, ncMeta);
+      }
+
+      // Hand the LINKS over: the readonly LTAR columns on the remaining dest
+      // tables that route through the cluster's junction(s) become editable.
+      // The junction's mapping is already gone, so the sync never fights the
+      // user's manual link edits afterwards.
+      for (const lc of plan.linkCols) {
+        const colCtx: NcContext = { ...context, base_id: lc.baseId };
+        await Column.update2(
+          colCtx,
+          {
+            colId: lc.colId,
+            column: { readonly: false },
+            isSimpleUpdate: true,
+          },
+          ncMeta,
+        );
+        broadcastKeys.add(`${lc.baseId}:${lc.tableId}`);
+      }
+
+      // Convert the cluster's tables LAST: clear every column's `readonly`,
+      // then flip `synced` off as the final mutation per table.
+      for (const t of plan.tables) {
+        const destCtx: NcContext = { ...context, base_id: t.destBaseId };
+
+        for (const colId of t.readonlyColIds) {
+          await Column.update2(
+            destCtx,
+            {
+              colId,
+              column: { readonly: false },
+              isSimpleUpdate: true,
+            },
+            ncMeta,
+          );
+        }
+
+        await Model.updateSynced(destCtx, t.tableId, false, ncMeta);
+
+        broadcastKeys.add(`${t.destBaseId}:${t.tableId}`);
+      }
+
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback(e);
+      throw e;
     }
 
-    // Hand the LINKS over: the readonly LTAR columns on the remaining dest
-    // tables that route through the cluster's junction(s) become editable.
-    // Link pushes stop once the mappings are gone, so the sync never fights
-    // the user's manual link edits afterwards.
-    const handedOverTables = new Set<string>();
-    for (const lc of plan.linkCols) {
-      const colCtx: NcContext = { ...context, base_id: lc.baseId };
-      await Column.update2(colCtx, {
-        colId: lc.colId,
-        column: { readonly: false },
-        isSimpleUpdate: true,
-      });
-      handedOverTables.add(`${lc.baseId}:${lc.tableId}`);
-    }
-    for (const key of handedOverTables) {
+    for (const key of broadcastKeys) {
       const [baseId, tableId] = key.split(':');
       await this.broadcastTableUpdate({ ...context, base_id: baseId }, tableId);
-    }
-
-    // Field-level config cleanup: the affected LTAR field titles leave
-    // `selected_fields` and their column-mapping registrations go, so a later
-    // reconcile neither recreates the cluster nor tears down what the user
-    // now owns.
-    for (const cm of plan.fieldColumnMappings) {
-      await TableSyncColumnMapping.deleteById(syncCtx, cm.id);
-    }
-
-    if (plan.fieldTitles.length && sync.selected_fields?.length) {
-      const nextSelected = sync.selected_fields.filter(
-        (title) => !plan.fieldTitles.includes(title),
-      );
-      if (nextSelected.length !== sync.selected_fields.length) {
-        await TableSync.update(syncCtx, sync.id, {
-          selected_fields: nextSelected,
-        });
-      }
-    }
-
-    // Drop the cluster's mapping rows — the sync config no longer references
-    // these tables (nor, via the shadow's `source_view_id`, the picked view).
-    for (const m of plan.detachMappings) {
-      await TableSyncColumnMapping.deleteByTableSyncMapping(syncCtx, m.id);
-      await TableSyncMapping.deleteById(syncCtx, m.id);
     }
 
     const updated = await TableSync.get(syncCtx, sync.id);

@@ -460,6 +460,7 @@ const permissionScopes = {
 
     'createSync',
     'triggerSync',
+    'detachSyncTable',
 
     'tableSyncCreate',
     'tableSyncUpdate',
@@ -1654,6 +1655,7 @@ const permissionDescriptions: Record<string, string> = {
   tableSyncResolveLink: 'resolve a source share link for a table sync',
   tableSyncDetachTable:
     'convert a table-sync destination table to a regular table',
+  detachSyncTable: 'convert an app-sync destination table to a regular table',
   baseVariableList: 'list base variables',
   baseVariableCreate: 'create a base variable',
   baseVariableUpdate: 'update a base variable',

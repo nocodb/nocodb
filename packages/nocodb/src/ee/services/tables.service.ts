@@ -227,6 +227,10 @@ export class TablesService extends TableServiceCE {
       );
     }
 
+    if (table.mm && !param.forceDeleteSyncs) {
+      return super.tableDelete(context, param, ncMeta);
+    }
+
     if (param.skipTrash) {
       return super.tableDelete(context, param, ncMeta);
     }

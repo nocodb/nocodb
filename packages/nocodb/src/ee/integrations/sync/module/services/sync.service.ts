@@ -23,6 +23,7 @@ import {
   syncSystemFieldsMap,
 } from '@noco-local-integrations/core';
 import type { OnModuleInit } from '@nestjs/common';
+import type { MetaService } from '~/meta/meta.service';
 import type { OnDeleteAction, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
@@ -40,6 +41,7 @@ import {
   Workspace,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { IntegrationsService } from '~/services/integrations.service';
@@ -621,7 +623,7 @@ export class SyncModuleService implements OnModuleInit {
         req,
       });
 
-      const config = await SyncConfig.get(context, syncConfig.id);
+      const config = await SyncConfig.getWithMappings(context, syncConfig.id);
 
       NocoSocket.broadcastEvent(
         context,
@@ -768,21 +770,33 @@ export class SyncModuleService implements OnModuleInit {
   ) {
     const { mapping, model } = args;
 
-    if (mapping) {
-      await SyncMapping.delete(context, mapping.id);
-    }
-
-    await Model.updateSynced(context, model.id, false);
-
-    const columns = await model.getColumns(context);
-    for (const column of columns ?? []) {
-      if (column.readonly && column.id) {
-        await Column.update2(context, {
-          colId: column.id,
-          column: { readonly: false },
-          isSimpleUpdate: true,
-        });
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    try {
+      if (mapping) {
+        await SyncMapping.delete(context, mapping.id, ncMeta);
       }
+
+      const columns = await model.getColumns(context, ncMeta);
+      for (const column of columns ?? []) {
+        if (column.readonly && column.id) {
+          await Column.update2(
+            context,
+            {
+              colId: column.id,
+              column: { readonly: false },
+              isSimpleUpdate: true,
+            },
+            ncMeta,
+          );
+        }
+      }
+
+      await Model.updateSynced(context, model.id, false, ncMeta);
+
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback(e);
+      throw e;
     }
   }
 
@@ -958,7 +972,10 @@ export class SyncModuleService implements OnModuleInit {
       }
     }
 
-    const updated = await SyncConfig.get(context, mapping.fk_sync_config_id);
+    const updated = await SyncConfig.getWithMappings(
+      context,
+      mapping.fk_sync_config_id,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -1106,7 +1123,7 @@ export class SyncModuleService implements OnModuleInit {
       }
     }
 
-    const updated = await SyncConfig.get(context, syncConfigId);
+    const updated = await SyncConfig.getWithMappings(context, syncConfigId);
 
     NocoSocket.broadcastEvent(
       context,
@@ -1128,7 +1145,7 @@ export class SyncModuleService implements OnModuleInit {
   }
 
   async readSync(context: NcContext, syncConfigId: string) {
-    const syncConfig = await SyncConfig.get(context, syncConfigId);
+    const syncConfig = await SyncConfig.getWithMappings(context, syncConfigId);
 
     if (!syncConfig) {
       NcError.get(context).syncConfigNotFound(syncConfigId);
@@ -1253,7 +1270,7 @@ export class SyncModuleService implements OnModuleInit {
       }
     }
 
-    const updated = await SyncConfig.get(context, syncConfigId);
+    const updated = await SyncConfig.getWithMappings(context, syncConfigId);
     NocoSocket.broadcastEvent(
       context,
       {
@@ -1674,7 +1691,10 @@ export class SyncModuleService implements OnModuleInit {
       });
     }
 
-    const updatedSyncConfig = await SyncConfig.get(context, syncConfigId);
+    const updatedSyncConfig = await SyncConfig.getWithMappings(
+      context,
+      syncConfigId,
+    );
 
     NocoSocket.broadcastEvent(
       context,

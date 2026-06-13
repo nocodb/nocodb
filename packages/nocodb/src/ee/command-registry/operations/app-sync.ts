@@ -7,6 +7,7 @@ import { OperationRegistry } from '~/command-registry/registry';
 import { makeReplayReq } from '~/command-registry/replay-context';
 import { scopeBase } from '~/command-registry/scope';
 import { isReplay } from '~/helpers/replayScope';
+import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
 import { BaseTrash, Integration, SyncConfig } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -211,7 +212,12 @@ export const AppSyncUpdateContract: OperationContract<
           sub_type: c.sub_type,
           title: integration.title,
           syncConfigId: c.syncConfigId,
-          config: cfg,
+          config: extractProps(cfg, [
+            'authIntegrationId',
+            'schema',
+            'tables',
+            'custom_schema',
+          ]),
         });
       }
       if (prevConfigs.length) prevPayload.config = prevConfigs;

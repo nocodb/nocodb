@@ -17,6 +17,7 @@ export const OPERATION_SCOPES = {
   triggerSync: 'base',
   migrateSync: 'base',
   addChildSync: 'base',
+  detachSyncTable: 'base',
   authIntegrationTestConnection: 'workspace',
   baseAuthIntegrationTestConnection: 'base',
   syncIntegrationFetchOptions: 'base',

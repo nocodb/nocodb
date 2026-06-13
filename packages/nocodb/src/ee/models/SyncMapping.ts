@@ -148,6 +148,30 @@ export default class SyncMapping {
       });
   }
 
+  /** Batch variant of `list` — every mapping for many sync configs in a single
+   *  query. Used by `SyncConfig.list` to attach mappings without an N+1 over
+   *  each root config. */
+  static async listByConfigIds(
+    context: NcContext,
+    fkSyncConfigIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!fkSyncConfigIds.length) return [];
+
+    const syncMappings = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SYNC_MAPPINGS,
+      {
+        xcCondition: { fk_sync_config_id: { in: fkSyncConfigIds } },
+      },
+    );
+
+    return syncMappings
+      .filter((syncMapping) => syncMapping.target_table !== null)
+      .map((syncMapping) => new SyncMapping(syncMapping));
+  }
+
   /** All mappings that target a given synced table (`fk_model_id`). App Sync
    *  dest tables live in the sync's base, so a base-scoped lookup is correct. */
   static async listByModelId(

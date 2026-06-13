@@ -63,7 +63,7 @@ export default class SyncConfig {
    * recorded against the ROOT sync config, so child configs resolve through
    * their parent. The frontend relies on `mappings` to resolve a synced
    * table back to its owning sync config (e.g. sidebar context-menu
-   * shortcuts) — attach them on every response that gets cached there.
+   * shortcuts) — attach them on the responses that get cached there.
    */
   public async getMappings(
     context: NcContext,
@@ -78,6 +78,23 @@ export default class SyncConfig {
     );
 
     return this.mappings;
+  }
+
+  /**
+   * `get` plus its table mappings — for the few response paths the frontend
+   * reads `mappings` off (readSync / createSync / updateSync). Kept separate
+   * from `get` so the hot paths (processor, triggerSync, detach guards) don't
+   * pay for an extra uncached `SyncMapping.list` query they never read.
+   */
+  public static async getWithMappings(
+    context: NcContext,
+    id: string,
+    includeDeleted = false,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const syncConfig = await this.get(context, id, includeDeleted, ncMeta);
+    if (syncConfig) await syncConfig.getMappings(context, ncMeta);
+    return syncConfig;
   }
 
   public static async get(
@@ -135,11 +152,7 @@ export default class SyncConfig {
       );
     }
 
-    const result = new SyncConfig(syncConfig);
-
-    await result.getMappings(context, ncMeta);
-
-    return result;
+    return new SyncConfig(syncConfig);
   }
 
   public static async insert(
@@ -327,8 +340,23 @@ export default class SyncConfig {
       return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
 
-    for (const syncConfig of result) {
-      await syncConfig.getMappings(context, ncMeta);
+    // Attach mappings for every root config in ONE query (mappings are always
+    // recorded against the root) instead of an N+1 over `getMappings`.
+    if (result.length) {
+      const allMappings = await SyncMapping.listByConfigIds(
+        context,
+        result.map((syncConfig) => syncConfig.id),
+        ncMeta,
+      );
+      const byConfigId = new Map<string, SyncMappingType[]>();
+      for (const mapping of allMappings) {
+        const list = byConfigId.get(mapping.fk_sync_config_id) ?? [];
+        list.push(mapping);
+        byConfigId.set(mapping.fk_sync_config_id, list);
+      }
+      for (const syncConfig of result) {
+        syncConfig.mappings = byConfigId.get(syncConfig.id) ?? [];
+      }
     }
 
     return result;

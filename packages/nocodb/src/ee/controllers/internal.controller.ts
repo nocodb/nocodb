@@ -441,7 +441,7 @@ export class InternalController extends InternalControllerCE {
         });
       case 'detachSyncTable':
         if (!payload.modelId) {
-          NcError.get(context).tableNotFound(payload.modelId);
+          NcError.get(context).invalidRequestBody('modelId is required');
         }
         return await this.syncService.detachSyncTable(context, {
           modelId: payload.modelId,

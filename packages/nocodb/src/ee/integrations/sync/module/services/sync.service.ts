@@ -830,6 +830,29 @@ export class SyncModuleService implements OnModuleInit {
       );
     }
 
+    // Guard before any mutation: detaching while a run is in flight can corrupt
+    // the run or leave a half-detached table. The app-sync tracks its live run
+    // via `sync_job_id` on the (root) sync config the mapping belongs to.
+    const owningSyncConfig = await SyncConfig.get(
+      context,
+      mapping.fk_sync_config_id,
+    );
+    if (owningSyncConfig?.sync_job_id) {
+      const job = await this.nocoJobsService.getJob(
+        owningSyncConfig.sync_job_id,
+      );
+      if (job) {
+        const status = await job.getState();
+        if (
+          ![JobStatus.COMPLETED, JobStatus.FAILED].includes(status as JobStatus)
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Cannot convert while "${owningSyncConfig.title}" is syncing — wait for the run to finish`,
+          );
+        }
+      }
+    }
+
     // Sync-managed M2M links span a junction table the sync also owns.
     // Converting this table hands those LINKS over to the user as well: the
     // junction detaches with it and the mirrored link column on the (still

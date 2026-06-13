@@ -1936,6 +1936,12 @@ export class TableSyncService {
 
     const { sync, syncCtx } = plan;
 
+    if (sync.status === TableSyncStatus.Syncing) {
+      NcError.get(context).invalidRequestBody(
+        `Cannot convert while "${sync.title}" is syncing — wait for the run to finish`,
+      );
+    }
+
     // Convert the cluster's tables: clear `synced` + every column's `readonly`.
     for (const t of plan.tables) {
       const destCtx: NcContext = { ...context, base_id: t.destBaseId };

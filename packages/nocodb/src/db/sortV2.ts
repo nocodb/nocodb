@@ -1,8 +1,18 @@
-import { isAIPromptCol, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
+import {
+  isAIPromptCol,
+  isBtLikeV2Junction,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
+import type {
+  ButtonColumn,
+  FormulaColumn,
+  LinkToAnotherRecordColumn,
+  RollupColumn,
+} from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import { Base, BaseUser, Sort } from '~/models';
+import { Base, BaseUser, LinksColumn, Sort } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -121,6 +131,38 @@ export default async function sortV2(
       case UITypes.LinkToAnotherRecord:
         {
           const rootAlias = alias;
+
+          // V2 one-to-many (OM) LinkToAnotherRecord columns can hold multiple
+          // linked records. generateLookupSelectQuery would order them by a
+          // stringified json_agg of display values (e.g. ["T1","T2"]), which
+          // is meaningless. Sort by the COUNT of linked records instead — the
+          // same count rollup used for the Links column. Lookup columns and
+          // every other relation type (HM/MM multi-record display sort, and
+          // MO/OO/BT single-record display sort) keep display-value sorting.
+          if (column.uidt === UITypes.LinkToAnotherRecord) {
+            const colOptions =
+              await column.getColOptions<LinkToAnotherRecordColumn>(context);
+
+            // OM (one-to-many) is a V2-only relation type, so the type check
+            // alone is sufficient to detect it.
+            if (colOptions?.type === RelationTypes.ONE_TO_MANY) {
+              const builder = (
+                await genRollupSelectv2({
+                  baseModelSqlv2,
+                  knex,
+                  columnOptions: (await LinksColumn.read(
+                    context,
+                    column.id,
+                  )) as RollupColumn,
+                  alias: rootAlias,
+                })
+              ).builder;
+
+              qb.orderBy(builder, sort.direction || 'asc', nulls);
+              break;
+            }
+          }
+
           {
             const selectQb = await generateLookupSelectQuery({
               baseModelSqlv2,

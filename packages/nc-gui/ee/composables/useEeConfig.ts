@@ -1305,7 +1305,6 @@ export const useEeConfig = createSharedComposable(() => {
       requestUpgrade: isSharedFormView,
       isSharedFormView,
       limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      triggerSource,
     })
 
     return true

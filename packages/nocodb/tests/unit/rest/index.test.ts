@@ -25,6 +25,7 @@ import missingPrimaryKeyTests from './tests/meta-apis/missingPrimaryKey.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
 import { tableSyncGatingTests } from './tests/payment/tableSyncGating.test';
+import { customSyncGatingTests } from './tests/payment/customSyncGating.test';
 import convertDateFormatTests from './tests/convertDateFormat.test';
 import linkPlaceholderTests from './tests/linkPlaceholder.test';
 import pgEnumTests from './tests/pg-enum.test';
@@ -106,6 +107,7 @@ function restTests() {
     paymentTest();
     planGatingTests();
     tableSyncGatingTests();
+    customSyncGatingTests();
     tableSyncTest();
     tableSyncDataTest();
     tableSyncHandlerTest();

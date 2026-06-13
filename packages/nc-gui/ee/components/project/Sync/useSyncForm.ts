@@ -65,6 +65,11 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const isLoadingSchema = ref(false)
 
+    // Lets nested steps (e.g. the Category step's "upgrade to use Custom Sync"
+    // flow) request the whole create/edit modal to close. The owning modal
+    // component subscribes via `closeForm.on(...)`.
+    const closeForm = createEventHook<void>()
+
     // Serializes schema reloads so a call issued while one is in flight re-checks staleness
     // after it settles — the latest table selection always wins.
     let pendingSchemaLoad: Promise<void> = Promise.resolve()
@@ -500,6 +505,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       loadDestinationSchema,
       supportedDocs,
       isSyncCategoryAlreadyAddedOrBlank,
+      closeForm,
     }
   },
 )

@@ -207,8 +207,8 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_SSO]: false,
       // Sync (app sync + manual table sync) is available from the first paid
-      // plan; the automatic/real-time table-sync trigger is Business+ and custom
-      // sync is Scale+.
+      // plan; the automatic/real-time table-sync trigger and custom sync are
+      // both Business+.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
       [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
@@ -269,8 +269,6 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
-      // Custom sync requires Scale or above on cloud
-      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       // On-prem-only features (always disabled on cloud)
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
     },
@@ -581,8 +579,6 @@ export const OnPremPlanDefinitions: Record<
       // Table sync (manual) is available on the first paid plan; automatic
       // real-time sync is gated to Scale+.
       [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: false,
-      // Custom sync is Enterprise-only
-      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
@@ -600,7 +596,6 @@ export const OnPremPlanDefinitions: Record<
       // Enterprise-only
       [PlanFeatureTypes.FEATURE_SCIM]: false,
       [PlanFeatureTypes.FEATURE_MSSQL]: false,
-      [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: false,
       [PlanFeatureTypes.FEATURE_WHITE_LABEL]: false,
       // Not yet available on any on-prem plan
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,

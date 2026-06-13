@@ -31,9 +31,16 @@ const {
   isSaving,
   supportedDocs,
   isSyncCategoryAlreadyAddedOrBlank,
+  closeForm,
 } = useProvideSyncForm(props.baseId, 'create')
 
 const saveError = ref<string | null>(null)
+
+// A nested step (Category → "upgrade to use Custom Sync") can ask the modal
+// to close — e.g. when the user clicks Upgrade and navigates to the plan page.
+closeForm.on(() => {
+  vOpen.value = false
+})
 
 const isContinueDisabled = computed(() => {
   return (

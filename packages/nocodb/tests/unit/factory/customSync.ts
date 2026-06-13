@@ -190,16 +190,45 @@ export async function waitForSyncRun(
   );
 }
 
+/**
+ * Wait until the sync config has no in-flight job (`sync_job_id` cleared on
+ * both success and failure by the processor). `updateSync` auto-triggers a
+ * `fullResync` whenever the schema changes, so a test that calls
+ * `triggerSyncAndWait` right after must first let that background job drain —
+ * otherwise the explicit run races it, and two concurrent full syncs sweep
+ * each other's rows (stale-record deletion keys on `SyncRunId`), leaving the
+ * just-added table empty. This is the source of the intermittent
+ * "expected [] to deeply equal [...]" failures under load.
+ */
+export async function waitForSyncIdle(
+  env: Env,
+  syncConfigId: string,
+  { timeoutMs = 60_000, pollMs = 100 }: { timeoutMs?: number; pollMs?: number } = {},
+): Promise<SyncConfig> {
+  const ctx = { workspace_id: env.workspaceId, base_id: env.baseId };
+  const deadline = Date.now() + timeoutMs;
+  let last: SyncConfig | null = null;
+  while (Date.now() < deadline) {
+    last = await SyncConfig.get(ctx, syncConfigId);
+    if (last && !last.sync_job_id) return last;
+    await new Promise((r) => setTimeout(r, pollMs));
+  }
+  throw new Error(
+    `Custom sync ${syncConfigId} still has an in-flight job after ${timeoutMs}ms ` +
+      `(sync_job_id=${last?.sync_job_id})`,
+  );
+}
+
 /** Trigger a manual sync run and wait for it to complete. */
 export async function triggerSyncAndWait(
   ctx: Ctx,
   env: Env,
   syncConfigId: string,
 ) {
-  const before = await SyncConfig.get(
-    { workspace_id: env.workspaceId, base_id: env.baseId },
-    syncConfigId,
-  );
+  // Drain any background job first (e.g. updateSync's auto fullResync) so our
+  // explicit run executes alone — see waitForSyncIdle for why concurrency
+  // corrupts the result.
+  const before = await waitForSyncIdle(env, syncConfigId);
 
   await internalPost(
     ctx,

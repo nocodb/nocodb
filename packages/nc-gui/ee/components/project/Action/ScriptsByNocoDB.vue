@@ -11,7 +11,7 @@ const { isEEFeatureBlocked, blockScripts, showUpgradeToUseScripts } = useEeConfi
 
 const openMarketPlace = () => {
   if (blockScripts.value) {
-    showUpgradeToUseScripts()
+    showUpgradeToUseScripts({ triggerSource: 'create-scripts' })
     return
   }
 

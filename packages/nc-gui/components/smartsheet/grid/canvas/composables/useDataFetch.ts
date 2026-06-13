@@ -59,6 +59,7 @@ export function useDataFetch({
       upgradeModalTimer = setTimeout(() => {
         showUpgradeToSeeMoreRecordsModal({
           isExternalSource: isExternalSource.value,
+          triggerSource: 'grid-records',
         })
         clearTimeout(upgradeModalTimer)
       }, 1000)

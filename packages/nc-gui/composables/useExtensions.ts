@@ -152,7 +152,7 @@ export const useExtensions = createSharedComposable(() => {
 
   const addExtension = async (extension: any) => {
     if (blockExtensions.value) {
-      showUpgradeToUseExtensions()
+      showUpgradeToUseExtensions({ triggerSource: 'extensions-extensions' })
       return
     }
 

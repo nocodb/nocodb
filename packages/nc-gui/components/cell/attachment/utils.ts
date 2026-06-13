@@ -160,6 +160,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           if (
             showUpgradeToAddMoreAttachmentsInCell({
               totalAttachments: visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0),
+              triggerSource: 'cell-attachments',
             })
           ) {
             return

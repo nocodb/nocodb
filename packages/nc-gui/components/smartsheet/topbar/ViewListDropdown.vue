@@ -270,6 +270,7 @@ async function onOpenModal({
                       isPgSource &&
                         showUpgradeToUseListView({
                           successCallback: () => onOpenModal({ type: ViewTypes.LIST }),
+                          triggerSource: 'viewlist-list',
                         })
                     "
                   >
@@ -291,7 +292,12 @@ async function onOpenModal({
                 <a-menu-item
                   v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-timeline"
-                  @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+                  @click="
+                    showUpgradeToUseTimelineView({
+                      successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }),
+                      triggerSource: 'viewlist-timeline',
+                    })
+                  "
                 >
                   <div class="nc-viewlist-submenu-popup-item justify-between">
                     <div class="flex items-center gap-2">
@@ -310,7 +316,12 @@ async function onOpenModal({
                 <a-menu-item
                   v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-gantt"
-                  @click="showUpgradeToUseGanttView({ successCallback: () => onOpenModal({ type: ViewTypes.GANTT }) })"
+                  @click="
+                    showUpgradeToUseGanttView({
+                      successCallback: () => onOpenModal({ type: ViewTypes.GANTT }),
+                      triggerSource: 'viewlist-gantt',
+                    })
+                  "
                 >
                   <div class="nc-viewlist-submenu-popup-item justify-between">
                     <div class="flex items-center gap-2">

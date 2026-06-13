@@ -23,7 +23,7 @@ const { appInfo } = useGlobal()
           @click="
             () => {
               if (!appInfo?.ee) {
-                showUpgradeToUseSync()
+                showUpgradeToUseSync({ triggerSource: 'create-sync' })
                 return
               }
               createSyncClick()

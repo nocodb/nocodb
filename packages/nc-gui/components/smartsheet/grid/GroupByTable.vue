@@ -256,7 +256,7 @@ const navigateToSiblingRow = async (dir: NavigateDir) => {
 const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
   if (
     (vGroup.value.paginationData?.pageSize ?? 10) * page > 100 &&
-    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value, triggerSource: 'grid-records' })
   ) {
     return true
   }

@@ -213,7 +213,7 @@ const customRow = (record: Record<string, any>) => ({
 })
 
 const handleCreateTeam = (parentId?: string | null) => {
-  if (showUpgradeToAddMoreTeams()) return
+  if (showUpgradeToAddMoreTeams({ triggerSource: 'teams-add-teams' })) return
 
   createTeamParentId.value = parentId || null
   isCreateTeamModalVisible.value = true
@@ -564,6 +564,7 @@ onMounted(async () => {
                       @click="
                         showUpgradeToUseTeamHierarchy({
                           successCallback: () => handleCreateSubTeam(record as TeamV3V3Type),
+                          triggerSource: 'teams-team-hierarchy',
                         })
                       "
                     >

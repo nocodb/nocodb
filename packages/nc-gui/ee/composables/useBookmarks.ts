@@ -164,8 +164,8 @@ export const useBookmarks = createSharedComposable(() => {
     // that workspace's plan. Other target types are gated upstream by the
     // active-workspace badge in BookmarksMenuAction (target ws == active ws).
     if (data.target_type === 'workspace') {
-      if (showUpgradeToUseBookmarks({ workspaceId: data.target_id })) return
-    } else if (showUpgradeToUseBookmarks()) return
+      if (showUpgradeToUseBookmarks({ workspaceId: data.target_id, triggerSource: 'bookmarks-bookmarks' })) return
+    } else if (showUpgradeToUseBookmarks({ triggerSource: 'bookmarks-bookmarks' })) return
 
     try {
       const bm = (await $api.bookmark.create(data)) as BookmarkType

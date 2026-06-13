@@ -51,25 +51,25 @@ const isDisabledUIType = (type: UITypes) => {
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
-  if (uidt === AIPrompt && showUpgradeToUseAiPromptField()) {
+  if (uidt === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
     return
   }
 
-  if (uidt === AIButton && showUpgradeToUseAiButtonField()) {
+  if (uidt === AIButton && showUpgradeToUseAiButtonField({ triggerSource: 'field-menu-ai-button' })) {
     return
   }
 
-  if (uidt === UITypes.Colour && showUpgradeToUseColourField()) {
+  if (uidt === UITypes.Colour && showUpgradeToUseColourField({ triggerSource: 'field-menu-colour-field' })) {
     return
   }
 
   // EE-only: gate UUID field type behind plan feature flag
-  if (uidt === UITypes.UUID && showUpgradeToUseUuidField()) {
+  if (uidt === UITypes.UUID && showUpgradeToUseUuidField({ triggerSource: 'field-menu-uuid-field' })) {
     return
   }
 
   // EE-only: gate AutoNumber field type behind plan feature flag
-  if (uidt === UITypes.AutoNumber && showUpgradeToUseAutoNumberField()) {
+  if (uidt === UITypes.AutoNumber && showUpgradeToUseAutoNumberField({ triggerSource: 'field-menu-autonumber-field' })) {
     return
   }
 

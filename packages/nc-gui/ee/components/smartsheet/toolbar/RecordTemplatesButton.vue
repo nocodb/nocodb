@@ -332,7 +332,7 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
 // ──────────────────────────────────────────────────────────────────────────────
 
 const openManager = () => {
-  if (showUpgradeToUseRecordTemplates()) return
+  if (showUpgradeToUseRecordTemplates({ triggerSource: 'toolbar-record-templates' })) return
 
   showManager.value = true
 }

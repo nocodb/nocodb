@@ -39,7 +39,7 @@ onMounted(async () => {
 })
 
 const handleCreatePolicy = async () => {
-  if (showUpgradeToUseRls()) return
+  if (showUpgradeToUseRls({ triggerSource: 'rls-add-policy' })) return
 
   try {
     const result = await createPolicy({
@@ -57,7 +57,7 @@ const handleCreatePolicy = async () => {
 }
 
 const handleCreateDefaultPolicy = async () => {
-  if (showUpgradeToUseRls()) return
+  if (showUpgradeToUseRls({ triggerSource: 'rls-add-default-policy' })) return
 
   try {
     await createPolicy({

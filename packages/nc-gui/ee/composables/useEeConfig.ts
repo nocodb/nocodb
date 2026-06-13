@@ -1,6 +1,5 @@
 import type { PlanAddonTypes, PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
-  getAddonMinPlan,
   GRACE_PERIOD_DURATION,
   HigherPlan,
   LOYALTY_GRACE_PERIOD_END_DATE,
@@ -14,6 +13,7 @@ import {
   PlanFeatureTypesToPlanTitles,
   PlanLimitTypes,
   PlanTitles,
+  getAddonMinPlan,
   getUpgradeMessage,
   resolveOnPremPlanMeta as sdkResolveOnPremPlanMeta,
   resolvePlanMeta as sdkResolvePlanMeta,
@@ -816,18 +816,26 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   // Fire a unique telemetry event whenever an upgrade modal is shown, so each
-  // gated feature's prompt can be tracked individually (e.g. `c:upgrade:sso`).
-  // The slug is derived from the feature/limit/add-on that triggered the modal;
-  // anything else (e.g. ad-hoc copy) falls back to `c:upgrade:other`.
-  function emitUpgradeModalEvent(limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | PlanAddonTypes | string) {
+  // trigger can be tracked individually (e.g. `c:upgrade:admin-sso-tab`).
+  //
+  // The slug identifies *where* the modal was triggered: callers pass an explicit
+  // `triggerSource` describing the call site. When none is supplied we fall back
+  // to a slug derived from the gated feature/limit/add-on, and finally to `other`.
+  // The feature/limit and source are always included in the payload too.
+  function emitUpgradeModalEvent(
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | PlanAddonTypes | string,
+    triggerSource?: string,
+  ) {
     const slug =
-      typeof limitOrFeature === 'string' && /^(feature|limit|addon)_/.test(limitOrFeature)
+      triggerSource ||
+      (typeof limitOrFeature === 'string' && /^(feature|limit|addon)_/.test(limitOrFeature)
         ? limitOrFeature.replace(/^(feature|limit|addon)_/, '').replace(/_/g, '-')
-        : 'other'
+        : 'other')
 
     $e(`c:upgrade:${slug}`, {
       activePlan: activePlanTitle.value,
       limitOrFeature,
+      source: triggerSource,
     })
   }
 
@@ -835,14 +843,16 @@ export const useEeConfig = createSharedComposable(() => {
     title,
     content,
     limitOrFeature,
+    triggerSource,
   }: {
     title?: string
     content?: string
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
+    triggerSource?: string
   } = {}) => {
     const isOpen = ref(true)
 
-    emitUpgradeModalEvent(limitOrFeature)
+    emitUpgradeModalEvent(limitOrFeature, triggerSource)
 
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
@@ -906,14 +916,16 @@ export const useEeConfig = createSharedComposable(() => {
     title,
     content,
     limitOrFeature,
+    triggerSource,
   }: {
     title?: string
     content?: string
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
+    triggerSource?: string
   } = {}) => {
     const isOpen = ref(true)
 
-    emitUpgradeModalEvent(limitOrFeature)
+    emitUpgradeModalEvent(limitOrFeature, triggerSource)
 
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
@@ -967,15 +979,17 @@ export const useEeConfig = createSharedComposable(() => {
       title,
       content,
       callback,
+      triggerSource,
     }: {
       title?: string
       content?: string
       callback?: (type: 'ok' | 'cancel') => void
+      triggerSource?: string
     } = {},
   ) => {
     const isOpen = ref(true)
 
-    emitUpgradeModalEvent(addonKey)
+    emitUpgradeModalEvent(addonKey, triggerSource)
 
     const minPlan = getAddonMinPlan(addonKey, isOnPrem.value)
     const addonLabel = getAddonLabel(addonKey)
@@ -1031,6 +1045,7 @@ export const useEeConfig = createSharedComposable(() => {
     limitOrFeature,
     isSharedFormView,
     requiredPlan,
+    triggerSource,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
     currentPlanTitle?: PlanTitles | OnPremPlanTitles
@@ -1044,6 +1059,7 @@ export const useEeConfig = createSharedComposable(() => {
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
     isSharedFormView?: boolean
     requiredPlan?: PlanTitles
+    triggerSource?: string
   } = {}) => {
     // Add-on-only features can't be unlocked by any plan upgrade — advertise the
     // add-on (Contact Sales) regardless of deployment. Resolve before the on-prem
@@ -1052,7 +1068,7 @@ export const useEeConfig = createSharedComposable(() => {
     if (addonKey) {
       const addonMinPlan = getAddonMinPlan(addonKey, isOnPrem.value)
       if (addonMinPlan) {
-        return showUpgradeForAddon(addonKey, { title, content, callback })
+        return showUpgradeForAddon(addonKey, { title, content, callback, triggerSource })
       }
     }
 
@@ -1060,13 +1076,13 @@ export const useEeConfig = createSharedComposable(() => {
     // Don't pass content — it contains cloud-specific plan names (e.g. "Business");
     // pass limitOrFeature so handleOnPremUpgrade can generate enterprise-appropriate content
     if (isEEFeatureBlocked.value) {
-      return handleOnPremUpgrade({ limitOrFeature })
+      return handleOnPremUpgrade({ limitOrFeature, triggerSource })
     }
 
     // Licensed on-prem with plan-blocked feature: show upgrade license modal
     // Don't pass content — it contains cloud-specific plan names; the handler generates its own
     if (isOnPrem.value) {
-      return handleOnPremLicensedUpgrade({ title, limitOrFeature })
+      return handleOnPremLicensedUpgrade({ title, limitOrFeature, triggerSource })
     }
 
     // if already on required plan it means we hit the limit so show higher plan
@@ -1100,7 +1116,7 @@ export const useEeConfig = createSharedComposable(() => {
     const okBtnText = ref(okText)
     const isOpen = ref(true)
 
-    emitUpgradeModalEvent(limitOrFeature)
+    emitUpgradeModalEvent(limitOrFeature, triggerSource)
 
     const okProps = ref({ loading: false })
 
@@ -1230,12 +1246,14 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     isAdminPanel,
     callback,
+    triggerSource,
   }: {
     details: PlanLimitExceededDetailsType
     role: WorkspaceUserRoles | ProjectRoles
     workspaceId?: string
     isAdminPanel?: boolean
     callback?: (type: 'ok' | 'cancel') => void
+    triggerSource?: string
   }) => {
     if (!isPaymentEnabled.value) return
 
@@ -1255,6 +1273,7 @@ export const useEeConfig = createSharedComposable(() => {
       redirectToWorkspace: !isAdminPanel,
       limitOrFeature,
       callback,
+      triggerSource,
     })
   }
 
@@ -1262,7 +1281,12 @@ export const useEeConfig = createSharedComposable(() => {
     callback,
     focusBtn,
     isSharedFormView,
-  }: Pick<NcConfirmModalProps, 'focusBtn'> & { isSharedFormView?: boolean; callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    triggerSource,
+  }: Pick<NcConfirmModalProps, 'focusBtn'> & {
+    isSharedFormView?: boolean
+    callback?: (type: 'ok' | 'cancel') => void
+    triggerSource?: string
+  } = {}) => {
     if (!blockAddNewRecord.value) return
 
     handleUpgradePlan({
@@ -1275,17 +1299,22 @@ export const useEeConfig = createSharedComposable(() => {
             plan: HigherPlan[activePlanTitle.value],
           }),
       callback,
+      triggerSource,
       focusBtn,
       disableClose: isSharedFormView,
       requestUpgrade: isSharedFormView,
       isSharedFormView,
       limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      triggerSource,
     })
 
     return true
   }
 
-  const showStoragePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showStoragePlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAddNewAttachment.value) return
 
     handleUpgradePlan({
@@ -1296,13 +1325,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE,
     })
 
     return true
   }
 
-  const showExternalSourcePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showExternalSourcePlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAddNewExternalSource.value) return
 
     handleUpgradePlan({
@@ -1313,6 +1346,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: activePlanTitle.value === PlanTitles.BUSINESS ? HigherPlan[activePlanTitle.value] : PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
       requiredPlan: PlanTitles.BUSINESS,
     })
@@ -1320,7 +1354,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showDashboardPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showDashboardPlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAddNewDashboard.value) return
 
     handleUpgradePlan({
@@ -1331,13 +1368,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
     })
 
     return true
   }
 
-  const showDocumentPagePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showDocumentPagePlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToAddMoreDocumentPages'),
       content: t('upgrade.upgradeToAddMoreDocumentPagesSubtitle', {
@@ -1346,24 +1387,32 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE,
     })
 
     return true
   }
 
-  const showUpgradeToUseDocs = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseDocs = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockDocs.value) return
 
     handleUpgradePlan({
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_DOCS,
     })
 
     return true
   }
 
-  const showUpgradeToUseDocsInlineComments = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseDocsInlineComments = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockDocsInlineComments.value) return
 
     handleUpgradePlan({
@@ -1372,13 +1421,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS,
     })
 
     return true
   }
 
-  const showUpgradeToUseDocsResolveComments = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseDocsResolveComments = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockDocsResolveComments.value) return
 
     handleUpgradePlan({
@@ -1387,13 +1440,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_COMMENT_RESOLVE,
     })
 
     return true
   }
 
-  const showUpgradeToUseDocsExportPdf = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseDocsExportPdf = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockDocsExportPdf.value) return
 
     handleUpgradePlan({
@@ -1402,6 +1459,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF,
     })
 
@@ -1436,7 +1494,10 @@ export const useEeConfig = createSharedComposable(() => {
     return revisionRetentionLadder.value.find((p) => p.days >= ageDays)?.title ?? null
   }
 
-  const showScriptPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showScriptPlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAddNewScript.value) return
 
     handleUpgradePlan({
@@ -1447,13 +1508,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
     })
 
     return true
   }
 
-  const showWebhookPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showWebhookPlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAddNewWebhook.value) return
 
     handleUpgradePlan({
@@ -1464,13 +1529,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE,
     })
 
     return true
   }
 
-  const showWebhookLogsFeatureAccessModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showWebhookLogsFeatureAccessModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!isPaymentEnabled.value || activePlanTitle.value !== PlanTitles.FREE) return
 
     handleUpgradePlan({
@@ -1478,6 +1547,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      triggerSource,
       limitOrFeature: 'to access webhook logs' as PlanLimitTypes,
     })
 
@@ -1503,7 +1573,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToSeeMoreRecordsModal = ({
     isExternalSource,
     callback,
-  }: { isExternalSource?: boolean; callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    triggerSource,
+  }: { isExternalSource?: boolean; callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockExternalSourceRecordVisibility(isExternalSource)) return
 
     handleUpgradePlan({
@@ -1512,6 +1583,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       maskClosable: false,
       keyboard: false,
       limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
@@ -1521,7 +1593,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUploadWsImage = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUploadWsImage = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockWsImageLogoUpload.value) return
 
     handleUpgradePlan({
@@ -1531,13 +1606,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO,
     })
 
     return true
   }
 
-  const showUpgradeToUseCurrentUserFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseCurrentUserFilter = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockCurrentUserFilter.value) return
 
     handleUpgradePlan({
@@ -1546,6 +1625,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER,
     })
@@ -1553,7 +1633,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseCalendarRange = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseCalendarRange = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockCalendarRange.value) return
 
     handleUpgradePlan({
@@ -1562,6 +1645,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.PLUS,
       limitOrFeature: PlanFeatureTypes.FEATURE_CALENDAR_RANGE,
     })
@@ -1572,7 +1656,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTimelineView = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockTimelineView.value) {
       successCallback?.()
 
@@ -1585,6 +1670,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
     })
@@ -1595,7 +1681,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseGanttView = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockGanttView.value) {
       successCallback?.()
 
@@ -1608,6 +1695,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_GANTT_VIEW,
     })
@@ -1615,7 +1703,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseRowColoring = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockRowColoring.value) return
 
     handleUpgradePlan({
@@ -1624,13 +1715,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
     })
 
     return true
   }
 
-  const showUpgradeToUseToggleFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseToggleFilter = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockToggleFilter.value) return
 
     handleUpgradePlan({
@@ -1639,6 +1734,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.PLUS,
       limitOrFeature: PlanFeatureTypes.FEATURE_TOGGLE_FILTER,
     })
@@ -1646,7 +1742,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseToggleGroupBy = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseToggleGroupBy = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockToggleGroupBy.value) return
 
     handleUpgradePlan({
@@ -1655,6 +1754,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.PLUS,
       limitOrFeature: PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY,
     })
@@ -1662,7 +1762,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUsePinnedFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUsePinnedFilter = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockPinnedFilter.value) return
 
     handleUpgradePlan({
@@ -1671,6 +1774,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.PLUS,
       limitOrFeature: PlanFeatureTypes.FEATURE_PINNED_FILTER,
     })
@@ -1678,7 +1782,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseCellColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseCellColoring = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockCellColoring.value) return
 
     handleUpgradePlan({
@@ -1688,13 +1795,17 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       newPlanTitle: PlanTitles.BUSINESS,
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_CELL_COLOUR,
     })
 
     return true
   }
 
-  const showUpgradeToUseTableAndFieldPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseTableAndFieldPermissions = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockTableAndFieldPermissions.value) return
 
     handleUpgradePlan({
@@ -1703,18 +1814,23 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
     })
 
     return true
   }
 
-  const showUpgradeToUseDocumentPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseDocumentPermissions = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockDocumentPermissions.value) return
 
     if (isEEFeatureBlocked.value) {
       handleOnPremUpgrade({
         limitOrFeature: PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
+        triggerSource,
       })
     } else {
       handleUpgradePlan({
@@ -1724,6 +1840,7 @@ export const useEeConfig = createSharedComposable(() => {
         }),
         newPlanTitle: PlanTitles.BUSINESS,
         callback,
+        triggerSource,
         limitOrFeature: PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
       })
     }
@@ -1731,33 +1848,44 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToDuplicateTableToOtherWs = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToDuplicateTableToOtherWs = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToDuplicateTableToOtherWs'),
       content: t('upgrade.upgradeToDuplicateTableToOtherWs', {
         plan: PlanTitles.ENTERPRISE,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS,
     })
 
     return true
   }
 
-  const showUpgradeToDuplicateTableToOtherBase = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToDuplicateTableToOtherBase = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToDuplicateTableToOtherBase'),
       content: t('upgrade.upgradeToDuplicateTableToOtherBase', {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE,
     })
 
     return true
   }
 
-  const showUpgradeToUsePrivateBases = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUsePrivateBases = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockPrivateBases.value) return
 
     handleUpgradePlan({
@@ -1766,6 +1894,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
     })
@@ -1782,6 +1911,7 @@ export const useEeConfig = createSharedComposable(() => {
     totalAttachments,
     forceShowToastMessage = false,
     avoidShowError = false,
+    triggerSource,
   }: {
     callback?: (type: 'ok' | 'cancel') => void
     totalAttachments: number
@@ -1793,6 +1923,7 @@ export const useEeConfig = createSharedComposable(() => {
      * avoidShowError is used to avoid multiple error messages for same column cell
      */
     avoidShowError?: boolean
+    triggerSource?: string
   }) => {
     if (!getIsAttachmentsInCellLimitReached(totalAttachments)) return
 
@@ -1827,13 +1958,17 @@ export const useEeConfig = createSharedComposable(() => {
         filePlural: maxAttachmentsAllowedInCell.value === 1 ? t('objects.file') : t('objects.files'),
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL,
     })
 
     return true
   }
 
-  const showUpgradeToUseAiPromptField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseAiPromptField = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAiPromptField.value) return
 
     handleUpgradePlan({
@@ -1842,13 +1977,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD,
     })
 
     return true
   }
 
-  const showUpgradeToUseAiButtonField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseAiButtonField = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAiButtonField.value) return
 
     handleUpgradePlan({
@@ -1857,13 +1996,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD,
     })
 
     return true
   }
 
-  const showUpgradeToUseAiChat = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseAiChat = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAiChat.value) return
 
     handleUpgradePlan({
@@ -1872,13 +2015,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_AI_CHAT,
     })
 
     return true
   }
 
-  const showUpgradeToUseAiIntegrations = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseAiIntegrations = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAiIntegrations.value) return
 
     handleUpgradePlan({
@@ -1887,46 +2034,62 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_AI_INTEGRATIONS,
     })
 
     return true
   }
 
-  const showUpgradeToAddAiIntegration = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToAddAiIntegration = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAiIntegrationsLimit.value) return
 
     handleUpgradePlan({
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_AI_INTEGRATIONS,
     })
 
     return true
   }
 
-  const showUpgradeToUseTableVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseTableVisibility = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockTableVisibility.value) return
 
     handleUpgradePlan({
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_VISIBILITY,
     })
 
     return true
   }
 
-  const showUpgradeToUseFieldVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseFieldVisibility = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockFieldVisibility.value) return
 
     handleUpgradePlan({
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_FIELD_VISIBILITY,
     })
 
     return true
   }
 
-  const showUpgradeToUseDocAi = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseDocAi = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockDocAi.value) return
 
     handleUpgradePlan({
@@ -1935,13 +2098,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_DOC_AI,
     })
 
     return true
   }
 
-  const showUpgradeToUseButtonVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseButtonVisibility = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockButtonVisibility.value) return
 
     handleUpgradePlan({
@@ -1951,12 +2118,16 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       limitOrFeature: PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY,
       callback,
+      triggerSource,
     })
 
     return true
   }
 
-  const showUpgradeToUseColourField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseColourField = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockColourField.value) return
 
     handleUpgradePlan({
@@ -1965,6 +2136,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_COLOUR_FIELD,
     })
 
@@ -1974,7 +2146,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTeamHierarchy = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockTeamHierarchy.value) {
       successCallback?.()
 
@@ -1987,6 +2160,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.ENTERPRISE,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.ENTERPRISE,
       limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
     })
@@ -1997,7 +2171,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTeams = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockTeamsManagement.value) {
       successCallback?.()
 
@@ -2010,6 +2185,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
       requiredPlan: PlanTitles.BUSINESS,
     })
@@ -2020,7 +2196,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToAddMoreTeams = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockAddNewTeamToWs.value) {
       successCallback?.()
 
@@ -2033,6 +2210,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: getHigherPlan(),
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
     })
 
@@ -2041,7 +2219,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseUnique = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockUnique.value) {
       successCallback?.()
       return
@@ -2053,6 +2232,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_UNIQUE,
       requiredPlan: PlanTitles.BUSINESS,
     })
@@ -2060,7 +2240,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseUuidField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseUuidField = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockUuidField.value) return
 
     handleUpgradePlan({
@@ -2069,13 +2252,17 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_UUID_FIELD,
     })
 
     return true
   }
 
-  const showUpgradeToUseAutoNumberField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showUpgradeToUseAutoNumberField = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAutoNumberField.value) return
 
     handleUpgradePlan({
@@ -2084,6 +2271,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD,
     })
 
@@ -2093,7 +2281,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseSync = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockSync.value) {
       successCallback?.()
 
@@ -2106,6 +2295,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_SYNC,
       requiredPlan: PlanTitles.PLUS,
     })
@@ -2116,7 +2306,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTableSync = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockTableSync.value) {
       successCallback?.()
 
@@ -2129,6 +2320,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_SYNC,
       requiredPlan: PlanTitles.PLUS,
     })
@@ -2139,7 +2331,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseCustomSync = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockCustomSync.value) {
       successCallback?.()
 
@@ -2152,6 +2345,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.ENTERPRISE,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_CUSTOM_SYNC,
       requiredPlan: PlanTitles.ENTERPRISE,
     })
@@ -2162,7 +2356,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseRecordTemplates = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockRecordTemplates.value) {
       successCallback?.()
 
@@ -2175,6 +2370,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
       requiredPlan: PlanTitles.PLUS,
     })
@@ -2182,7 +2378,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showSandboxPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showSandboxPlanLimitExceededModal = ({
+    callback,
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; triggerSource?: string } = {}) => {
     if (!blockAddNewSandbox.value) return
 
     handleUpgradePlan({
@@ -2191,6 +2390,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanLimitTypes.LIMIT_SANDBOX_PER_BASE,
       requiredPlan: PlanTitles.BUSINESS,
     })
@@ -2201,7 +2401,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseRls = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockRls.value) {
       successCallback?.()
 
@@ -2214,6 +2415,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.ENTERPRISE,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_RLS,
       requiredPlan: PlanTitles.ENTERPRISE,
     })
@@ -2224,7 +2426,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseFormScheduling = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockFormScheduling.value) {
       successCallback?.()
 
@@ -2237,6 +2440,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_FORM_SCHEDULING,
       requiredPlan: PlanTitles.PLUS,
     })
@@ -2247,7 +2451,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseViewSections = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockViewSections.value) {
       successCallback?.()
 
@@ -2260,6 +2465,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_VIEW_SECTIONS,
       requiredPlan: PlanTitles.BUSINESS,
     })
@@ -2270,7 +2476,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseBaseVariables = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockBaseVariables.value) {
       successCallback?.()
 
@@ -2283,6 +2490,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.PLUS,
       }),
       callback,
+      triggerSource,
       limitOrFeature: PlanFeatureTypes.FEATURE_BASE_VARIABLES,
       requiredPlan: PlanTitles.PLUS,
     })
@@ -2293,7 +2501,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseListView = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockListView.value) {
       successCallback?.()
 
@@ -2306,6 +2515,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_LIST_VIEW,
     })
@@ -2316,7 +2526,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseMapView = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockMapView.value) {
       successCallback?.()
 
@@ -2329,6 +2540,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_MAP_VIEW,
     })
@@ -2339,7 +2551,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseDateDependency = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    triggerSource,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void; triggerSource?: string } = {}) => {
     if (!blockDateDependency.value) {
       successCallback?.()
       return
@@ -2349,6 +2562,7 @@ export const useEeConfig = createSharedComposable(() => {
       title: t('upgrade.upgradeToUseDateDependency'),
       content: t('upgrade.upgradeToUseDateDependencySubtitle'),
       callback,
+      triggerSource,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
     })
@@ -2357,7 +2571,11 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   /** EE-only upgrade prompts for self-hosted CE mode / licensed Starter */
-  const showUpgradeForEEFeature = (featureTitle: string, limitOrFeature?: PlanLimitTypes | PlanFeatureTypes) => {
+  const showUpgradeForEEFeature = (
+    featureTitle: string,
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes,
+    triggerSource?: string,
+  ) => {
     const minPlan =
       (limitOrFeature &&
         (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] || OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
@@ -2382,6 +2600,7 @@ export const useEeConfig = createSharedComposable(() => {
         title: t(titleKey),
         content: t(subtitleKey, { feature: featureTitle }),
         limitOrFeature,
+        triggerSource,
       })
     } else {
       handleOnPremLicensedUpgrade({
@@ -2390,63 +2609,68 @@ export const useEeConfig = createSharedComposable(() => {
           : t('upgrade.upgradeToEnterpriseTitle'),
         content: t(subtitleKey, { feature: featureTitle }),
         limitOrFeature,
+        triggerSource,
       })
     }
 
     return true
   }
 
-  const showUpgradeToUseSSO = () => {
+  const showUpgradeToUseSSO = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockSSO.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.sso'), PlanFeatureTypes.FEATURE_SSO)
+    return showUpgradeForEEFeature(t('upgrade.features.sso'), PlanFeatureTypes.FEATURE_SSO, triggerSource)
   }
 
-  const showUpgradeToShareDoc = () => {
+  const showUpgradeToShareDoc = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockDocShare.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.publicDocShare'))
+    return showUpgradeForEEFeature(t('upgrade.features.publicDocShare'), undefined, triggerSource)
   }
 
-  const showUpgradeToUseScim = () => {
+  const showUpgradeToUseScim = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockScim.value) return
 
     handleUpgradePlan({
       limitOrFeature: PlanFeatureTypes.FEATURE_SCIM,
+      triggerSource,
     })
 
     return true
   }
 
-  const showUpgradeToUseMssql = () => {
+  const showUpgradeToUseMssql = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockMssql.value) return
 
     handleUpgradePlan({
       limitOrFeature: PlanFeatureTypes.FEATURE_MSSQL,
+      triggerSource,
     })
 
     return true
   }
 
-  const showUpgradeToUseWhiteLabel = () => {
+  const showUpgradeToUseWhiteLabel = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockWhiteLabel.value) return
 
     handleUpgradePlan({
       limitOrFeature: PlanFeatureTypes.FEATURE_WHITE_LABEL,
+      triggerSource,
     })
 
     return true
   }
 
-  const showUpgradeToUseAudit = () => {
+  const showUpgradeToUseAudit = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (isWsAuditEnabled.value) return
 
     handleUpgradePlan({
       limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      triggerSource,
     })
 
     return true
   }
 
-  const showUpgradeToUseMfa = () => {
+  const showUpgradeToUseMfa = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockMfa.value) return
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseMfa'),
@@ -2454,10 +2678,11 @@ export const useEeConfig = createSharedComposable(() => {
         plan: getPlanTitle(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_MFA] ?? PlanTitles.ENTERPRISE),
       }),
       limitOrFeature: PlanFeatureTypes.FEATURE_MFA,
+      triggerSource,
     })
   }
 
-  const showUpgradeToUseForce2fa = () => {
+  const showUpgradeToUseForce2fa = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockForce2fa.value) return
     handleUpgradePlan({
       title: t('upgrade.upgradeToRequireTwoFactor'),
@@ -2465,37 +2690,38 @@ export const useEeConfig = createSharedComposable(() => {
         plan: getPlanTitle(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_FORCE_2FA] ?? PlanTitles.ENTERPRISE),
       }),
       limitOrFeature: PlanFeatureTypes.FEATURE_FORCE_2FA,
+      triggerSource,
     })
   }
 
-  const showUpgradeToUseSnapshots = () => {
+  const showUpgradeToUseSnapshots = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockSnapshots.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.snapshots'), PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
+    return showUpgradeForEEFeature(t('upgrade.features.snapshots'), PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE, triggerSource)
   }
 
-  const showUpgradeToUseTrashSettings = () => {
+  const showUpgradeToUseTrashSettings = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockTrashSettings.value) return
-    return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS })
+    return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS, triggerSource })
   }
 
-  const showUpgradeToUseFormGridLayout = () => {
+  const showUpgradeToUseFormGridLayout = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockFormGridLayout.value) return
-    return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT })
+    return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT, triggerSource })
   }
 
-  const showUpgradeToUseCustomUrls = () => {
+  const showUpgradeToUseCustomUrls = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockCustomUrls.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.customUrls'))
+    return showUpgradeForEEFeature(t('upgrade.features.customUrls'), undefined, triggerSource)
   }
 
-  const showUpgradeToUseScripts = () => {
+  const showUpgradeToUseScripts = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockScripts.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.scripts'))
+    return showUpgradeForEEFeature(t('upgrade.features.scripts'), undefined, triggerSource)
   }
 
-  const showUpgradeToUseWorkflows = () => {
+  const showUpgradeToUseWorkflows = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockWorkflows.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.workflows'))
+    return showUpgradeForEEFeature(t('upgrade.features.workflows'), undefined, triggerSource)
   }
 
   /**
@@ -2505,7 +2731,7 @@ export const useEeConfig = createSharedComposable(() => {
    * the active one (e.g. workspace bookmarks in the home sidebar) — the
    * gate then evaluates that workspace's plan rather than the active one.
    */
-  const showUpgradeToUseBookmarks = ({ workspaceId }: { workspaceId?: string } = {}) => {
+  const showUpgradeToUseBookmarks = ({ workspaceId, triggerSource }: { workspaceId?: string; triggerSource?: string } = {}) => {
     // No explicit workspace — fall back to active-workspace block check.
     if (!workspaceId) {
       if (!blockBookmarks.value) return
@@ -2523,31 +2749,33 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       limitOrFeature: PlanFeatureTypes.FEATURE_BOOKMARKS,
+      triggerSource,
     })
     return true
   }
 
-  const showUpgradeToUseExtensions = () => {
+  const showUpgradeToUseExtensions = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockExtensions.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.extensions'))
+    return showUpgradeForEEFeature(t('upgrade.features.extensions'), undefined, triggerSource)
   }
 
-  const showUpgradeToCreateWorkspace = () => {
+  const showUpgradeToCreateWorkspace = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockWorkspaceCreate.value) return
 
     // Licensed on-prem hitting workspace limit: show "Upgrade to higher tier" modal
     if (isOnPrem.value && !isEEFeatureBlocked.value) {
       return handleOnPremLicensedUpgrade({
         limitOrFeature: PlanLimitTypes.LIMIT_WORKSPACE,
+        triggerSource,
       })
     }
 
-    return showUpgradeForEEFeature(t('upgrade.features.multipleWorkspaces'))
+    return showUpgradeForEEFeature(t('upgrade.features.multipleWorkspaces'), undefined, triggerSource)
   }
 
-  const showUpgradeToManageWorkspaceMembers = () => {
+  const showUpgradeToManageWorkspaceMembers = ({ triggerSource }: { triggerSource?: string } = {}) => {
     if (!blockWorkspaceMembers.value) return
-    return showUpgradeForEEFeature(t('upgrade.features.workspaceMembers'))
+    return showUpgradeForEEFeature(t('upgrade.features.workspaceMembers'), undefined, triggerSource)
   }
 
   return {

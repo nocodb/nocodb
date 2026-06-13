@@ -182,15 +182,15 @@ const columnUidt = computed({
     return formState.value.uidt
   },
   set: (value: UITypes) => {
-    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
       return
     }
 
-    if (value === AIButton && showUpgradeToUseAiButtonField()) {
+    if (value === AIButton && showUpgradeToUseAiButtonField({ triggerSource: 'field-menu-ai-button' })) {
       return
     }
 
-    if (value === UITypes.Colour && showUpgradeToUseColourField()) {
+    if (value === UITypes.Colour && showUpgradeToUseColourField({ triggerSource: 'field-menu-colour-field' })) {
       return
     }
 
@@ -852,7 +852,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 const unique = computed({
   get: () => formState.value?.unique,
   set: (value) => {
-    if (!!value && showUpgradeToUseUnique()) {
+    if (!!value && showUpgradeToUseUnique({ triggerSource: 'field-menu-unique' })) {
       return
     }
 

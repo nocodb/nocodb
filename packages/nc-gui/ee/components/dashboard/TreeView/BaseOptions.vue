@@ -87,7 +87,7 @@ function openSchemaMagicDialog(sourceId?: string) {
 function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
-  if (showRecordPlanLimitExceededModal()) return
+  if (showRecordPlanLimitExceededModal({ triggerSource: 'treeview-records' })) return
 
   $e('a:actions:import-airtable')
 
@@ -111,7 +111,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
 function openQuickImportDialog(type: string) {
   if (!source.value?.id || !base.value?.id) return
 
-  if (showRecordPlanLimitExceededModal()) return
+  if (showRecordPlanLimitExceededModal({ triggerSource: 'treeview-records' })) return
 
   $e(`a:actions:import-${type}`)
 
@@ -167,7 +167,7 @@ const isTableSyncAllowed = computed(() => {
 
 function handleCreateTableSync() {
   if (blockTableSync.value) {
-    showUpgradeToUseTableSync()
+    showUpgradeToUseTableSync({ triggerSource: 'treeview-table-sync' })
     return
   }
   if (!base.value?.id) return

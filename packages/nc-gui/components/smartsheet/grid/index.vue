@@ -798,7 +798,7 @@ const updateRowCommentCount = (count: number) => {
 const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
   if (
     (pPaginationData.value?.pageSize ?? 25) * page > 100 &&
-    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value, triggerSource: 'grid-records' })
   ) {
     return true
   }

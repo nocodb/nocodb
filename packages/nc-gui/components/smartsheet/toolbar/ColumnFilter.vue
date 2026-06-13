@@ -801,7 +801,7 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
 
 const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
   if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+    showUpgradeToUseToggleFilter({ triggerSource: 'toolbar-toggle-filter' })
     return
   }
   onEnabledChange(filter, index)
@@ -1723,7 +1723,9 @@ defineExpose({
                     :disabled="!canPinFilter(filter) || isLockedView"
                     class="nc-filter-item-pin-btn self-center"
                     @click.stop="
-                      blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))
+                      blockPinnedFilter
+                        ? showUpgradeToUsePinnedFilter({ triggerSource: 'toolbar-pinned-filter' })
+                        : togglePinFilter(filter, getFilterIndex(filter))
                     "
                   >
                     <GeneralIcon

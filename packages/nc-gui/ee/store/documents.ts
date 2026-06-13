@@ -225,7 +225,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     if (!activeWorkspaceId.value) return null
 
     if (blockDocs.value) {
-      showUpgradeToUseDocs()
+      showUpgradeToUseDocs({ triggerSource: 'doc-docs' })
       return null
     }
 
@@ -286,7 +286,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       const { isPaymentEnabled, showDocumentPagePlanLimitExceededModal } = useEeConfig()
 
       if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
-        showDocumentPagePlanLimitExceededModal()
+        showDocumentPagePlanLimitExceededModal({ triggerSource: 'doc-docs' })
       } else {
         ncMessage.error(errorInfo.message)
       }

@@ -69,7 +69,7 @@ const items = computed(() => {
 
 const onTabClick = (item: ItemType) => {
   if (item.locked) {
-    handleUpgradePlan()
+    handleUpgradePlan({ triggerSource: 'record-view-mode' })
     return
   }
   modelValue.value = item.value

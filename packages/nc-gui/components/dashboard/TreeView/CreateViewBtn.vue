@@ -241,6 +241,7 @@ async function onOpenModal({
                   successCallback: () => {
                     onOpenModal({ type: ViewTypes.LIST })
                   },
+                  triggerSource: 'treeview-list',
                 })
             "
           >
@@ -275,6 +276,7 @@ async function onOpenModal({
                 successCallback: () => {
                   onOpenModal({ type: ViewTypes.TIMELINE })
                 },
+                triggerSource: 'treeview-timeline',
               })
             }
           "
@@ -309,6 +311,7 @@ async function onOpenModal({
                 successCallback: () => {
                   onOpenModal({ type: ViewTypes.GANTT })
                 },
+                triggerSource: 'treeview-gantt',
               })
             }
           "

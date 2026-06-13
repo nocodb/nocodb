@@ -80,11 +80,13 @@ const activeTab = computed({
         title: t('upgrade.upgradeToAccessWsAudit'),
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+        triggerSource: 'ws-tabs-audit',
       })
       return
     }
 
-    if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+    if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-tabs-teams' }))
+      return
 
     if (['collaborators', 'teams'].includes(tabKey) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({}, activeWorkspaceId.value)

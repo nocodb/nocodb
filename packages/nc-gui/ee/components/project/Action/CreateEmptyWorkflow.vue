@@ -19,7 +19,7 @@ const label = computed(() => {
 
 async function openNewWorkflowModal() {
   if (blockWorkflows.value) {
-    showUpgradeToUseWorkflows()
+    showUpgradeToUseWorkflows({ triggerSource: 'create-workflows' })
     return
   }
 

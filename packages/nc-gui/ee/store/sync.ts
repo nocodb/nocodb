@@ -236,7 +236,7 @@ export const useSyncStore = defineStore('sync', () => {
   }
 
   async function openNewSyncCreateModal({ baseId }: { baseId?: string }) {
-    if (!baseId || showUpgradeToUseSync()) return
+    if (!baseId || showUpgradeToUseSync({ triggerSource: 'sync-sync' })) return
 
     $e('c:sync:open-create-modal')
 

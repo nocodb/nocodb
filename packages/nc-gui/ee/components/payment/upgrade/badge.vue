@@ -40,6 +40,8 @@ interface Props {
   showAsLock?: boolean
   /** When true, always renders a lock icon (any deployment) when the feature is blocked */
   iconOnly?: boolean
+  /** Identifies where in the UI this badge is placed, forwarded as triggerSource to the upgrade modal */
+  source?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -172,6 +174,7 @@ const showUpgradeModal = (e?: MouseEvent) => {
     newPlanTitle: effectivePlanTitle.value,
     callback: props.callback,
     limitOrFeature: props.limitOrFeature || props.feature,
+    triggerSource: props.source,
   })
 }
 

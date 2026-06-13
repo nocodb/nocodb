@@ -24,7 +24,7 @@ const baseTypeValue = computed({
   get: () => base.value?.default_role === ProjectRoles.NO_ACCESS,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
-    if (value && showUpgradeToUsePrivateBases()) return
+    if (value && showUpgradeToUsePrivateBases({ triggerSource: 'base-settings-private-bases' })) return
 
     base.value.default_role = value ? ProjectRoles.NO_ACCESS : ''
 

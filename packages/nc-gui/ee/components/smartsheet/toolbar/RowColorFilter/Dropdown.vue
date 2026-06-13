@@ -58,7 +58,7 @@ const open = computed({
     return openLocal.value
   },
   set: (value) => {
-    if (value && showUpgradeToUseRowColoring()) return
+    if (value && showUpgradeToUseRowColoring({ triggerSource: 'toolbar-row-colour' })) return
 
     openLocal.value = value
   },

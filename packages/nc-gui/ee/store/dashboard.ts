@@ -382,10 +382,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     scrollOnCreate?: boolean
     navigateToNewDashboard?: boolean
   }) {
-    if (!baseId || showDashboardPlanLimitExceededModal()) return
+    if (!baseId || showDashboardPlanLimitExceededModal({ triggerSource: 'dashboard-dashboard' })) return
 
     if (isEEFeatureBlocked.value) {
-      showUpgradeForEEFeature('Dashboards')
+      showUpgradeForEEFeature('Dashboards', undefined, 'dashboard-dashboard')
       return
     }
     const isDlgOpen = ref(true)

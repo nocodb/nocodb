@@ -110,7 +110,11 @@ const topbarBreadcrumbItemWidth = computed(() => {
             class="nc-topbar-extension-btn"
             :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isPanelExpanded }"
             data-testid="nc-topbar-extension-btn"
-            @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
+            @click="
+              blockExtensions && !isPanelExpanded
+                ? showUpgradeToUseExtensions({ triggerSource: 'toolbar-extensions' })
+                : toggleExtensionPanel()
+            "
           >
             <GeneralIcon :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'" class="w-4 h-4 !stroke-transparent" />
           </NcButton>

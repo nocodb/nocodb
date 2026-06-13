@@ -173,7 +173,7 @@ const openShareModal = () => {
   // Gate public-share behind license/plan: unlicensed On-Prem (and CE,
   // which never reaches this since the button is hidden) routes to the
   // upgrade modal instead of opening the share dialog.
-  if (showUpgradeToShareDoc()) return
+  if (showUpgradeToShareDoc({ triggerSource: 'doc-share' })) return
   showShareModal.value = true
 }
 
@@ -716,7 +716,7 @@ const showAiSuggestion = async (
   aiFn: () => Promise<string | undefined>,
 ) => {
   if (blockDocAi.value) {
-    showUpgradeToUseDocAi()
+    showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
     return
   }
   if (!editor.value) return
@@ -779,7 +779,7 @@ const showAiSuggestionAtCursor = async (
   aiFn: () => Promise<string | undefined>,
 ) => {
   if (blockDocAi.value) {
-    showUpgradeToUseDocAi()
+    showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
     return
   }
   if (!editor.value || !editorContentRef.value) return
@@ -1018,7 +1018,7 @@ const wireDocAiStorage = () => {
   editor.value.storage.docAi = {
     write: async (instruction: string) => {
       if (blockDocAi.value) {
-        showUpgradeToUseDocAi()
+        showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
         return
       }
       $e('a:doc:ai:write')
@@ -1030,7 +1030,7 @@ const wireDocAiStorage = () => {
     },
     continueWriting: async () => {
       if (blockDocAi.value) {
-        showUpgradeToUseDocAi()
+        showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
         return
       }
       $e('a:doc:ai:continue')
@@ -1045,7 +1045,7 @@ const wireDocAiStorage = () => {
     },
     summarize: async () => {
       if (blockDocAi.value) {
-        showUpgradeToUseDocAi()
+        showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
         return
       }
       $e('a:doc:ai:summarize')
@@ -1055,7 +1055,7 @@ const wireDocAiStorage = () => {
     },
     improve: (mode: string) => {
       if (blockDocAi.value) {
-        showUpgradeToUseDocAi()
+        showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
         return
       }
       $e('a:doc:ai:improve', { mode })
@@ -1063,7 +1063,7 @@ const wireDocAiStorage = () => {
     },
     translate: (targetLanguage: string) => {
       if (blockDocAi.value) {
-        showUpgradeToUseDocAi()
+        showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
         return
       }
       $e('a:doc:ai:translate', { targetLanguage })
@@ -1079,7 +1079,7 @@ const wireDocAiStorage = () => {
 /** Summarize just the selected text (bubble menu action) — routes through popup. */
 const onAiSummarizeSelection = () => {
   if (blockDocAi.value) {
-    showUpgradeToUseDocAi()
+    showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })
     return
   }
   $e('a:doc:ai:summarize:selection')
@@ -1166,7 +1166,7 @@ const onOpenHistory = () => {
 const { showUpgradeToUseDocsInlineComments, showUpgradeToUseDocsExportPdf } = useEeConfig()
 
 const onAddInlineComment = () => {
-  if (showUpgradeToUseDocsInlineComments()) {
+  if (showUpgradeToUseDocsInlineComments({ triggerSource: 'doc-inline-comments' })) {
     // Collapse selection to dismiss the BubbleMenu behind the upgrade modal
     if (editor.value) {
       const { to } = editor.value.state.selection
@@ -2286,7 +2286,7 @@ const onPagePermissions = () => {
 
   if (!base.value?.id) return
 
-  if (showUpgradeToUseDocumentPermissions()) return
+  if (showUpgradeToUseDocumentPermissions({ triggerSource: 'doc-permissions' })) return
 
   const wsId = route.params.typeOrId
   navigateTo(`/${wsId}/${base.value.id}/settings/docs-permissions`)
@@ -2552,7 +2552,7 @@ const onDownloadHTML = async () => {
 const onDownloadPDF = async () => {
   isPageMenuOpen.value = false
 
-  if (showUpgradeToUseDocsExportPdf()) {
+  if (showUpgradeToUseDocsExportPdf({ triggerSource: 'doc-export-pdf' })) {
     return
   }
 
@@ -3207,7 +3207,7 @@ defineExpose({ editor, headings: docHeadings, activeHeadingId, scrollToHeading }
                           class="nc-doc-ai-btn"
                           data-testid="nc-doc-ai-menu-btn"
                           @mousedown.prevent
-                          @click="blockDocAi && showUpgradeToUseDocAi()"
+                          @click="blockDocAi && showUpgradeToUseDocAi({ triggerSource: 'doc-ai' })"
                         >
                           <GeneralIcon icon="ncAutoAwesome" />
                         </NcButton>

@@ -45,7 +45,7 @@ const openMarketPlace = () => {
   vVisible.value = false
 
   if (blockScripts.value) {
-    showUpgradeToUseScripts()
+    showUpgradeToUseScripts({ triggerSource: 'treeview-scripts' })
     return
   }
 
@@ -54,7 +54,7 @@ const openMarketPlace = () => {
 
 const handleCreateSync = (createSyncClick: () => void) => {
   if (blockSync.value) {
-    showUpgradeToUseSync()
+    showUpgradeToUseSync({ triggerSource: 'treeview-sync' })
     return
   }
   createSyncClick()

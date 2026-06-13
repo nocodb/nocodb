@@ -201,6 +201,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
         role: roles,
         workspaceId: currentWorkspace.value.id,
         isAdminPanel: isAdminPanel.value,
+        triggerSource: 'collaborators-members',
       })
     }
   }
@@ -514,6 +515,7 @@ watch(inviteDlg, (newVal) => {
                     isInviteTeamDlg = true
                     inviteDlg = true
                   },
+                  triggerSource: 'collaborators-teams',
                 })
               "
             >
@@ -528,7 +530,11 @@ watch(inviteDlg, (newVal) => {
               type="primary"
               :disabled="isCollaboratorsLoading"
               data-testid="nc-add-member-btn"
-              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
+              @click="
+                blockWorkspaceMembers
+                  ? showUpgradeToManageWorkspaceMembers({ triggerSource: 'collaborators-members' })
+                  : (inviteDlg = true)
+              "
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />

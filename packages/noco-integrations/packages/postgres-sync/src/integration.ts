@@ -67,16 +67,24 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
           .select('kcu.column_name')
           .from('information_schema.key_column_usage as kcu')
           .join('information_schema.table_constraints as tc', function () {
-            this.on('kcu.constraint_name', '=', 'tc.constraint_name').andOn(
-              'kcu.table_name',
-              '=',
-              'tc.table_name',
-            );
+            // Scope the join by schema too — PK constraint names are only
+            // unique per schema (`<table>_pkey`), so joining on
+            // constraint_name + table_name alone cross-matches every schema
+            // that has a same-named table, duplicating and cross-contaminating
+            // the PK columns (and producing an ORDER BY on a column that
+            // doesn't exist in this schema).
+            this.on('kcu.constraint_name', '=', 'tc.constraint_name')
+              .andOn('kcu.constraint_schema', '=', 'tc.constraint_schema')
+              .andOn('kcu.table_name', '=', 'tc.table_name');
           })
           .where({
+            'kcu.table_schema': this.config.schema,
             'kcu.table_name': table,
+            'tc.table_schema': this.config.schema,
             'tc.constraint_type': 'PRIMARY KEY',
-          });
+          })
+          // Stable column order for composite PKs (drives fetch pagination).
+          .orderBy('kcu.ordinal_position', 'asc');
       });
 
       schema[table] = {

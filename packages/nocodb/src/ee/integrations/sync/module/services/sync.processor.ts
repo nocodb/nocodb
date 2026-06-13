@@ -5,6 +5,7 @@ import {
   type NcContext,
   type NcRequest,
   OnDeleteAction,
+  parseProp,
   SyncType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,6 +16,7 @@ import type {
   TARGET_TABLES,
 } from '@noco-local-integrations/core';
 import type { Job } from 'bull';
+import { JobTypes } from '~/interface/Jobs';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import type { Column } from '~/models';
 import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
@@ -343,7 +345,7 @@ export class SyncModuleSyncDataProcessor {
     const {
       context,
       syncConfigId,
-      trigger: _trigger,
+      trigger,
       bulk = false,
       fullResync = false,
       req,
@@ -883,6 +885,39 @@ export class SyncModuleSyncDataProcessor {
 
         throw error;
       }
+    }
+
+    // A schema change requested a full resync while this run was in flight;
+    // triggerSync couldn't enqueue a concurrent job, so it parked the intent on
+    // the config. Now that the run is done, honor it: enqueue a fresh full
+    // resync so the newly-added/changed columns get backfilled. The flag is
+    // cleared before enqueuing so a single schema change yields exactly one
+    // follow-up (no loop). Only reached on success — if the run threw, the flag
+    // stays and the next completing run promotes it.
+    const finalSyncConfig = await SyncConfig.get(context, syncConfigId);
+    if (parseProp(finalSyncConfig?.meta)?.pending_full_resync) {
+      await SyncConfig.update(context, syncConfigId, {
+        meta: {
+          ...(parseProp(finalSyncConfig.meta) || {}),
+          pending_full_resync: false,
+        },
+      });
+
+      const followUpJob = await this.nocoJobsService.add(
+        JobTypes.SyncModuleSyncData,
+        {
+          context,
+          syncConfigId,
+          trigger,
+          bulk: true,
+          fullResync: true,
+          req,
+        },
+      );
+
+      await SyncConfig.update(context, syncConfigId, {
+        sync_job_id: `${followUpJob.id}`,
+      });
     }
   }
 

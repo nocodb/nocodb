@@ -696,6 +696,21 @@ export class SyncModuleService implements OnModuleInit {
         if (
           ![JobStatus.COMPLETED, JobStatus.FAILED].includes(status as JobStatus)
         ) {
+          // A run is already in flight and the processor rejects concurrent
+          // runs, so we can't enqueue a second job now. If this trigger asked
+          // for a full resync (e.g. a schema change added/changed columns),
+          // park the intent so the running job promotes itself to a full
+          // resync on completion — otherwise the schema delta is silently
+          // dropped and the new columns never get backfilled.
+          if (fullResync) {
+            await SyncConfig.update(context, syncConfig.id, {
+              meta: {
+                ...(parseProp(syncConfig.meta) || {}),
+                pending_full_resync: true,
+              },
+            });
+          }
+
           return {
             id: job.id,
           };

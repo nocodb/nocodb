@@ -1,8 +1,14 @@
 import type { MaybeRef } from '@vueuse/core'
+import type { PendingLtarOp } from '~/utils/ltarDeferredOps'
 
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
   (row: MaybeRef<Row>, changedColumns: Ref<Set<string>> = ref(new Set<string>())) => {
     const currentRow = ref(row)
+
+    // Existing-row relation edits deferred by the expanded form until Save (#14013). Shares a
+    // home with changedColumns + addLTARRef/removeLTARRef so all relation-deferral state lives
+    // in one place. Empty (and unused) in grid / new-row / public contexts.
+    const pendingLtarOps = ref<PendingLtarOp[]>([])
 
     // state
     const state = computed({
@@ -38,6 +44,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       pk,
       row,
       changedColumns,
+      pendingLtarOps,
       state,
       isNew,
       displayValue,

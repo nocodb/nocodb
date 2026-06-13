@@ -81,6 +81,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     }
     const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
 
+    // Deferred relation (LTAR) edits queued by useLTARStore.link()/unlink() while this form is
+    // open for an existing record; replayed on Save by applyPendingLtarOps(). See #14013.
+    const { pendingLtarOps } = rowStore
+
     const activeView = inject(ActiveViewInj, ref())
     const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
       useProvideRowComments(meta, row)
@@ -336,6 +340,42 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       return $state.user?.value?.email === email
     }
 
+    /**
+     * Replay queued relation (LTAR) edits against the backend using the existing nested
+     * link/unlink API — the deferred counterpart of the immediate calls in `useLTARStore`.
+     * Ops are drained one-by-one so a mid-way failure leaves the remaining ops queued (and
+     * the record dirty) for retry, while already-applied ops are not re-sent. See #14013.
+     */
+    const applyPendingLtarOps = async () => {
+      while (pendingLtarOps.value.length) {
+        const op = pendingLtarOps.value[0]
+
+        if (op.op === 'link') {
+          await $api.dbTableRow.nestedAdd(
+            NOCO,
+            op.baseId,
+            op.tableId,
+            encodeURIComponent(op.rowId),
+            op.type,
+            op.columnId,
+            encodeURIComponent(op.relatedRowId),
+          )
+        } else {
+          await $api.dbTableRow.nestedRemove(
+            NOCO,
+            op.baseId,
+            op.tableId,
+            encodeURIComponent(op.rowId),
+            op.type,
+            op.columnId,
+            encodeURIComponent(op.relatedRowId),
+          )
+        }
+
+        pendingLtarOps.value.shift()
+      }
+    }
+
     const save = async (
       ltarState: Record<string, any> = {},
       // TODO: Hack. Remove this when kanban injection store issue is resolved
@@ -379,18 +419,34 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           oldRow: { ...data },
         })
       } else {
+        // Build the scalar update payload from changedColumns, excluding virtual/LTAR
+        // columns. Relation edits made inside the expanded form are deferred into
+        // pendingLtarOps and applied separately below — their row value is a rollup
+        // count / nested object, not a writable scalar, so they must never be sent as a
+        // column PATCH. See #14013.
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
+          const column = (meta.value.columns ?? []).find((c) => c.title === col)
+          if (column && isVirtualCol(column)) return obj
           obj[col] = row.value.row[col]
           return obj
         }, {} as Record<string, any>)
 
-        if (Object.keys(updateOrInsertObj).length) {
-          const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+        const hasScalarChanges = Object.keys(updateOrInsertObj).length > 0
+        const hasPendingLtarOps = pendingLtarOps.value.length > 0
 
-          if (!id) {
-            return message.info(t('msg.info.updateNotAllowedWithoutPK'))
-          }
+        if (!hasScalarChanges && !hasPendingLtarOps) {
+          // No columns to update
+          message.info(t('msg.info.noColumnsToUpdate'))
+          return
+        }
 
+        const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
+        if (!id) {
+          return message.info(t('msg.info.updateNotAllowedWithoutPK'))
+        }
+
+        if (hasScalarChanges) {
           const updatedData = await $api.dbTableRow.update(
             NOCO,
             meta.value.base_id ?? (base.value.id as string),
@@ -403,14 +459,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           if (updatedData?.__nc_rls_hidden) {
             row.value.row.__nc_rls_hidden = true
           }
+        }
 
-          if (commentsDrawer.value) {
-            await Promise.all([loadComments()])
-          }
-        } else {
-          // No columns to update
-          message.info(t('msg.info.noColumnsToUpdate'))
-          return
+        // Replay deferred relation edits after the scalar update so single-target
+        // replaces resolve against fresh state.
+        if (hasPendingLtarOps) {
+          await applyPendingLtarOps()
+        }
+
+        if (commentsDrawer.value) {
+          await Promise.all([loadComments()])
         }
       }
 
@@ -434,6 +492,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const clearColumns = () => {
       changedColumns.value = new Set()
+      // Drop deferred relation edits on discard — they were never written to the backend.
+      pendingLtarOps.value = []
     }
 
     const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {

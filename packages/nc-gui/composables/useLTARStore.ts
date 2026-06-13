@@ -13,6 +13,12 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import {
+  columnHasPendingLtarOps,
+  reconcilePendingLtarOp,
+  resolveDeferredLtarCount,
+  resolveDeferredSingleTargetValue,
+} from '~/utils/ltarDeferredOps'
 
 interface DataApiResponse {
   list: Record<string, any>[]
@@ -774,6 +780,68 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const addLTARRef = smartsheetRowStore?.addLTARRef
     const removeLTARRef = smartsheetRowStore?.removeLTARRef
     const rowStoreCurrentRow = smartsheetRowStore?.currentRow
+    const changedColumns = smartsheetRowStore?.changedColumns
+
+    // --- Expanded-form deferred relation edits (#14013) ---
+    // Inside the expanded form, link/unlink for an EXISTING record must not write to the
+    // backend immediately. Instead we queue the op on the row store (alongside changedColumns),
+    // mark the column dirty and update the cell optimistically, so relation edits join the
+    // standard Save/Discard workflow. Grid, new-row, shared/public form and read-only
+    // (page-designer) contexts are all excluded and keep their current immediate-commit behaviour.
+    const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+    const pendingLtarOps = smartsheetRowStore?.pendingLtarOps
+
+    const shouldDeferLtarEdit = computed(
+      () => isExpandedFormOpen.value && !!pendingLtarOps && !isNewRow?.value && !isPublic.value && !isForm.value && !!rowId.value,
+    )
+
+    /** Re-derive the cell's optimistic value from the original server value + queued ops. */
+    const refreshDeferredDisplay = () => {
+      if (!rowStoreCurrentRow || !pendingLtarOps) return
+
+      const cur = rowStoreCurrentRow.value
+      const colTitle = column.value.title!
+      const colId = column.value.id as string
+      const queue = pendingLtarOps.value
+
+      if (isSingleTargetRelation.value) {
+        cur.row[colTitle] = resolveDeferredSingleTargetValue(queue, colId, cur.oldRow?.[colTitle] ?? null)
+      } else {
+        const next = resolveDeferredLtarCount(queue, colId, +(cur.oldRow?.[colTitle] ?? 0) || 0)
+        cur.row[colTitle] = next
+        childrenListCount.value = next
+      }
+
+      triggerRef(rowStoreCurrentRow as Ref)
+    }
+
+    const enqueueLtarOp = (op: 'link' | 'unlink', relatedRow: Record<string, any>) => {
+      if (!pendingLtarOps) return
+
+      const queue = pendingLtarOps.value
+      const colTitle = column.value.title!
+      const colId = column.value.id as string
+
+      reconcilePendingLtarOp(queue, {
+        op,
+        columnId: colId,
+        baseId: (meta.value?.base_id ?? base.value.id) as string,
+        tableId: meta.value!.id as string,
+        rowId: rowId.value as string,
+        type: type.value as RelationTypes,
+        relatedRowId: `${getRelatedTableRowId(relatedRow)}`,
+        record: relatedRow,
+      })
+
+      // Mirror dirty-state to the queue: dirty iff this column still has queued ops.
+      if (columnHasPendingLtarOps(queue, colId)) {
+        changedColumns?.value.add(colTitle)
+      } else {
+        changedColumns?.value.delete(colTitle)
+      }
+
+      refreshDeferredDisplay()
+    }
 
     const unlink = async (
       row: Record<string, any>,
@@ -803,6 +871,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         childrenCachedLinkedState.value.set(index, false)
         return
       }
+
+      // Expanded-form deferred edit (#14013): queue the unlink + update UI optimistically,
+      // skip the immediate API call. The op is replayed on Save.
+      if (shouldDeferLtarEdit.value) {
+        enqueueLtarOp('unlink', row)
+        isChildrenExcludedListLinked.value[index] = false
+        isChildrenListLinked.value[index] = false
+        excludedLinkedState.value.set(index, false)
+        childrenCachedLinkedState.value.set(index, false)
+        return
+      }
+
       try {
         // todo: audit
 
@@ -883,6 +963,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         childrenCachedLinkedState.value.set(index, true)
         return
       }
+
+      // Expanded-form deferred edit (#14013): queue the link + update UI optimistically,
+      // skip the immediate API call. The op is replayed on Save.
+      if (shouldDeferLtarEdit.value) {
+        enqueueLtarOp('link', row)
+        isChildrenExcludedListLinked.value[index] = true
+        isChildrenListLinked.value[index] = true
+        excludedLinkedState.value.set(index, true)
+        childrenCachedLinkedState.value.set(index, true)
+        return
+      }
+
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true

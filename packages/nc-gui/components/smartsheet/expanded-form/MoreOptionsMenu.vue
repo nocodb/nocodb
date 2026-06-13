@@ -115,9 +115,19 @@ const visibleMoreOptions = computed(() => {
 const displayField = computed(() => (meta.value?.columns ?? []).find((c: ColumnType) => c.pv) ?? null)
 
 const copyRecordUrl = async () => {
-  const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
-    view.value ? `/${view.value.id}` : ''
-  }?rowId=${props.rowId}${route.query?.path ? `&path=${route.query?.path}` : ''}`
+  // A record opened detached (e.g. expanded from a linked-record cell in another table)
+  // carries the *origin* table's active view via injection, not this record's table.
+  // Pairing that view id with this record's table id yields a URL that can't resolve the
+  // record. Only keep the view segment — and the origin view's group `path` — when the
+  // resolved view actually belongs to the record's table; otherwise link to the record's
+  // own table and let the route fall back to its default view.
+  const recordView = view.value?.fk_model_id === meta.value?.id ? view.value : undefined
+
+  const baseId = meta.value?.base_id ?? route.params.baseId
+
+  const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${baseId}/${meta.value?.id}${
+    recordView ? `/${recordView.id}` : ''
+  }?rowId=${props.rowId}${recordView && route.query?.path ? `&path=${route.query?.path}` : ''}`
 
   await copy(encodeURI(url))
 

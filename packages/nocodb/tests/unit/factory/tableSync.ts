@@ -85,11 +85,16 @@ export const tableSyncDelete = (
  * Poll the TableSync row until its status leaves `syncing` — the processor
  * flips it to `active` on success and `error` on failure. Returns the final
  * sync. Throws after `timeoutMs` to avoid hanging tests on a stuck job.
+ *
+ * Default ceiling is generous (60s): the resync is a real async job, and a
+ * loaded box (parallel suites, shared Postgres) routinely pushes a healthy
+ * job past 30s. A genuinely stuck job still fails — just later — and every
+ * caller carries a >=120s mocha timeout to absorb it.
  */
 export const waitForSyncSettled = async (
   env: Env,
   syncId: string,
-  { timeoutMs = 30_000, pollMs = 50 }: { timeoutMs?: number; pollMs?: number } = {},
+  { timeoutMs = 60_000, pollMs = 50 }: { timeoutMs?: number; pollMs?: number } = {},
 ): Promise<TableSync> => {
   const ctx = { workspace_id: env.workspaceId, base_id: env.baseId };
   const deadline = Date.now() + timeoutMs;

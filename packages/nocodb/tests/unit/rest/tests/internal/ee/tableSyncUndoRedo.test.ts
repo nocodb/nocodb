@@ -737,7 +737,10 @@ export function tableSyncUndoRedoTests() {
     });
 
     it('tableSyncUpdate (source_view rebind) → undo reverts the source view → redo', async function () {
-      this.timeout(120000);
+      // Four sequential full-resync settles (create, rebind, undo, redo) — the
+      // most in the suite. Give it headroom above the 60s-per-settle ceiling so
+      // a loaded box can't trip the per-test deadline mid-resync.
+      this.timeout(300000);
       // A second sync-enabled grid view on the SAME source table.
       let altView = await createView(untracedCtx(context), {
         title: `AltFeed-${Date.now()}`,

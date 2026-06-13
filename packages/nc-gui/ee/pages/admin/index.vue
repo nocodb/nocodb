@@ -270,7 +270,7 @@ watch(
               key="authentication"
               :class="{ active: activeTab === 'authentication' }"
               class="item"
-              @click="blockSSO ? showUpgradeToUseSSO() : (activeTab = 'authentication')"
+              @click="blockSSO ? showUpgradeToUseSSO({ triggerSource: 'admin-sso' }) : (activeTab = 'authentication')"
             >
               <div class="w-full flex items-center space-x-2">
                 <component :is="iconMap.ncLock" />
@@ -288,7 +288,7 @@ watch(
               key="teams"
               :class="{ active: activeTab === 'teams' }"
               class="item"
-              @click="blockTeamsManagement ? showUpgradeToUseTeams({}) : (activeTab = 'teams')"
+              @click="blockTeamsManagement ? showUpgradeToUseTeams({ triggerSource: 'admin-teams' }) : (activeTab = 'teams')"
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="ncBuilding" class="!h-4 !w-4" />
@@ -306,7 +306,7 @@ watch(
               key="scim"
               :class="{ active: activeTab === 'scim' }"
               class="item"
-              @click="blockScim ? showUpgradeToUseScim() : (activeTab = 'scim')"
+              @click="blockScim ? showUpgradeToUseScim({ triggerSource: 'admin-scim' }) : (activeTab = 'scim')"
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="sync" class="!h-4 !w-4" />
@@ -324,7 +324,7 @@ watch(
               key="audit"
               :class="{ active: activeTab === 'audit' }"
               class="item"
-              @click="isWsAuditEnabled ? (activeTab = 'audit') : showUpgradeToUseAudit()"
+              @click="isWsAuditEnabled ? (activeTab = 'audit') : showUpgradeToUseAudit({ triggerSource: 'admin-audit' })"
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon class="!h-4 !w-4" icon="ncFileText" />
@@ -391,7 +391,9 @@ watch(
               :class="{ active: activeTab === 'white-label' }"
               class="item"
               data-testid="nc-admin-white-label-nav"
-              @click="blockWhiteLabel ? showUpgradeToUseWhiteLabel() : (activeTab = 'white-label')"
+              @click="
+                blockWhiteLabel ? showUpgradeToUseWhiteLabel({ triggerSource: 'admin-white-label' }) : (activeTab = 'white-label')
+              "
             >
               <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="ncImage" class="!h-4 !w-4" />

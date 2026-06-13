@@ -115,7 +115,7 @@ const ineligibleTooltip = computed(() => {
 
 function startSetup() {
   if (blockMfa.value) {
-    showUpgradeToUseMfa()
+    showUpgradeToUseMfa({ triggerSource: 'account-security-mfa' })
     return
   }
 

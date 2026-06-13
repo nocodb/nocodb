@@ -195,7 +195,7 @@ const onClientChange = () => {
   // to hit a 402 after filling the form. Edit mode is exempt — never nag an
   // already-connected MSSQL source.
   if (!isEditMode.value && formState.value.dataSource.client === ClientType.MSSQL && blockMssql.value) {
-    showUpgradeToUseMssql()
+    showUpgradeToUseMssql({ triggerSource: 'integrations-mssql' })
   }
   formState.value.dataSource = { ..._getDefaultConnectionConfig(formState.value.dataSource.client) }
 }

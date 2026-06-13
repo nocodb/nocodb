@@ -108,7 +108,7 @@ const updateColorPendingPayload = ref({})
 const debouncedUpdateColor = useDebounceFn(() => props.handler.conditionUpdate(updateColorPendingPayload.value), 200)
 const updateColor = (index: number, field: string, value: string) => {
   if (field === 'type' && value === 'cell' && blockCellColoring.value) {
-    showUpgradeToUseCellColoring()
+    showUpgradeToUseCellColoring({ triggerSource: 'toolbar-cell-colour' })
     return
   }
 

@@ -234,7 +234,7 @@ const addFieldToGroupBy = (column: ColumnType) => {
 // Toggle a group-by on/off without removing it.
 const onToggleGroupByEnabled = (group: Group) => {
   if (blockToggleGroupBy.value) {
-    showUpgradeToUseToggleGroupBy()
+    showUpgradeToUseToggleGroupBy({ triggerSource: 'toolbar-toggle-groupby' })
     return
   }
 

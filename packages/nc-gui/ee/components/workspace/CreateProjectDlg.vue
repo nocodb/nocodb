@@ -208,6 +208,7 @@ const baseAccessValue = computed({
             dialogShow.value = false
           }
         },
+        triggerSource: 'ws-private-bases',
       })
     )
       return

@@ -125,7 +125,12 @@ const vModel = computed({
   },
   set: (val) => {
     // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
-    if (isEeUI && val.includes(CURRENT_USER_TOKEN) && showUpgradeToUseCurrentUserFilter()) return
+    if (
+      isEeUI &&
+      val.includes(CURRENT_USER_TOKEN) &&
+      showUpgradeToUseCurrentUserFilter({ triggerSource: 'cell-user-current-user-filter' })
+    )
+      return
 
     // Clear search query after selection is made
     searchVal.value = ''

@@ -270,6 +270,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       showUserPlanLimitExceededModal({
         details,
         role: roles,
+        triggerSource: 'project-members',
       })
     } else {
       message.error(errorInfo.message)
@@ -649,6 +650,7 @@ onBeforeUnmount(() => {
                     isInviteTeamDlg = true
                     isInviteModalVisible = true
                   },
+                  triggerSource: 'project-teams',
                 })
               "
             >

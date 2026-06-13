@@ -20,7 +20,7 @@ const isActionVisible = computed(() => {
 
 async function onCreateDocument() {
   if (blockDocs.value) {
-    showUpgradeToUseDocs()
+    showUpgradeToUseDocs({ triggerSource: 'create-docs' })
     return
   }
 

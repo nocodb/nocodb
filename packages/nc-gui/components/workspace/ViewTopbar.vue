@@ -12,6 +12,7 @@ const { t } = useI18n()
 const showUpgrade = () => {
   handleUpgradePlan({
     content: t('upgrade.upgradeGenericSubtitle'),
+    triggerSource: 'ws-topbar',
   })
 }
 

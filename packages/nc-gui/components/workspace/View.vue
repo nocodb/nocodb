@@ -87,10 +87,12 @@ const tab = computed({
           plan: PlanTitles.ENTERPRISE,
         }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+        triggerSource: 'ws-home-audit',
       })
     }
 
-    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-home-teams' }))
+      return
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)

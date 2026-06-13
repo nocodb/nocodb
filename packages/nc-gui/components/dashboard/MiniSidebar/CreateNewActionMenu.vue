@@ -319,7 +319,12 @@ const hasDocumentCreateAccess = computed(() => {
                 v-if="isListViewEnabled"
                 data-testid="mini-sidebar-view-create-list"
                 inner-class="w-full"
-                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
+                @click="
+                  showUpgradeToUseListView({
+                    successCallback: () => onOpenModal({ type: ViewTypes.LIST }),
+                    triggerSource: 'minisidebar-list',
+                  })
+                "
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
                 <div class="flex-1">{{ $t('objects.viewType.list') }}</div>
@@ -336,7 +341,12 @@ const hasDocumentCreateAccess = computed(() => {
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 inner-class="w-full"
-                @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+                @click="
+                  showUpgradeToUseTimelineView({
+                    successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }),
+                    triggerSource: 'minisidebar-timeline',
+                  })
+                "
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                 <div class="flex-1">{{ $t('objects.viewType.timeline') }}</div>
@@ -353,7 +363,12 @@ const hasDocumentCreateAccess = computed(() => {
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-gantt"
                 inner-class="w-full"
-                @click="showUpgradeToUseGanttView({ successCallback: () => onOpenModal({ type: ViewTypes.GANTT }) })"
+                @click="
+                  showUpgradeToUseGanttView({
+                    successCallback: () => onOpenModal({ type: ViewTypes.GANTT }),
+                    triggerSource: 'minisidebar-gantt',
+                  })
+                "
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
                 <div class="flex-1">{{ $t('objects.viewType.gantt') }}</div>

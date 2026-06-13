@@ -298,7 +298,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
 const handleOpenBookmarkPanel = () => {
   if (isEEFeatureBlocked.value) {
-    showUpgradeToUseBookmarks()
+    showUpgradeToUseBookmarks({ triggerSource: 'minisidebar-bookmarks' })
   } else {
     isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
   }

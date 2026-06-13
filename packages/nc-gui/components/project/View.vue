@@ -116,11 +116,15 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (value === 'permissions' && showEEFeatures.value && showUpgradeToUseTableAndFieldPermissions()) {
+    if (
+      value === 'permissions' &&
+      showEEFeatures.value &&
+      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'project-table-field-permissions' })
+    ) {
       return
     }
 
-    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync()) {
+    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync({ triggerSource: 'project-sync' })) {
       return
     }
 

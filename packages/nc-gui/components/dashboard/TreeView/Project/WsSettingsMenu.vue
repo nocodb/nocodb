@@ -32,13 +32,14 @@ const isWorkspaceSsoAvail = computed(() => {
 })
 
 const navigateToWsSettings = (page: string) => {
-  if (page === 'ws-teams' && showUpgradeToUseTeams()) return
+  if (page === 'ws-teams' && showUpgradeToUseTeams({ triggerSource: 'ws-settings-teams' })) return
 
   if (page === 'ws-audits' && !isWsAuditEnabled.value) {
     handleUpgradePlan({
       title: t('upgrade.upgradeToAccessWsAudit'),
       content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
       limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      triggerSource: 'ws-settings-audit',
     })
     return
   }

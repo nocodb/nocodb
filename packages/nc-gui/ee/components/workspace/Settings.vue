@@ -301,7 +301,7 @@ const handleDelete = () => {
 }
 
 const handleOnBeforeTabChange = (tab: IconType) => {
-  if (tab === IconType.IMAGE && showUpgradeToUploadWsImage()) {
+  if (tab === IconType.IMAGE && showUpgradeToUploadWsImage({ triggerSource: 'ws-ws-image' })) {
     return false
   } else {
     return true
@@ -378,7 +378,7 @@ async function toggleForce2fa(enabled: boolean) {
   if (!currentWorkspace.value?.id) return
 
   if (blockForce2fa.value) {
-    showUpgradeToUseForce2fa()
+    showUpgradeToUseForce2fa({ triggerSource: 'ws-force-2fa' })
     return
   }
 
@@ -521,7 +521,7 @@ async function toggleForce2fa(enabled: boolean) {
         <div
           class="nc-settings-item-card flex flex-col"
           :class="{ 'cursor-pointer': blockForce2fa }"
-          @click="blockForce2fa && showUpgradeToUseForce2fa()"
+          @click="blockForce2fa && showUpgradeToUseForce2fa({ triggerSource: 'ws-force-2fa' })"
         >
           <div class="nc-settings-item">
             <div class="nc-settings-item-content">

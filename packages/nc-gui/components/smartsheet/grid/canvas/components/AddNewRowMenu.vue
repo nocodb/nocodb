@@ -114,7 +114,7 @@ const templatesList = computed(() => {
       reset-hover-effect-on-mouse-leave
       @change="
         () => {
-          if (showUpgradeToUseRecordTemplates()) return
+          if (showUpgradeToUseRecordTemplates({ triggerSource: 'grid-record-templates' })) return
 
           onOpenTemplateManager?.()
         }

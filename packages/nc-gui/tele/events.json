@@ -463,7 +463,8 @@
     "c:payment:request-upgrade": "Request workspace upgrade",
     "c:payment:sidebar:upgrade": "Click upgrade from sidebar",
     "c:payment:upgrade": "Click upgrade",
-    "c:payment:upgrade:modal:learn-more": "Click learn more in upgrade modal"
+    "c:payment:upgrade:modal:learn-more": "Click learn more in upgrade modal",
+    "c:upgrade:<source>": "Show upgrade modal (dynamic). Slug = the call-site source '<area>-<feature>', e.g. c:upgrade:admin-sso-tab, c:upgrade:field-menu-unique, c:upgrade:treeview-gantt. Payload carries { source, limitOrFeature, activePlan }"
   },
   "permissions": {
     "a:permissions:reset": "Reset permissions to default",

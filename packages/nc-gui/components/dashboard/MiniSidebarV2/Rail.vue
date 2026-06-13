@@ -221,7 +221,7 @@ const mainItems = computed<NavItem[]>(() => [
 
 const handleOpenBookmarkPanel = () => {
   if (isEEFeatureBlocked.value) {
-    showUpgradeToUseBookmarks()
+    showUpgradeToUseBookmarks({ triggerSource: 'minisidebar-bookmarks' })
   } else {
     isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
   }

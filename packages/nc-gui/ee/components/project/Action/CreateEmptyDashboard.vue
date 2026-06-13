@@ -19,7 +19,7 @@ const label = computed(() => {
 
 async function openNewDashboardModal() {
   if (isEEFeatureBlocked.value) {
-    showUpgradeForEEFeature(t('objects.dashboards'))
+    showUpgradeForEEFeature(t('objects.dashboards'), undefined, 'create-dashboard')
     return
   }
 

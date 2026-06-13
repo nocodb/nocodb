@@ -119,7 +119,7 @@ const handleOpenModal = (variable?: BaseVariableType) => {
   if (!requiredPerm) return
 
   if (blockBaseVariables.value) {
-    showUpgradeToUseBaseVariables()
+    showUpgradeToUseBaseVariables({ triggerSource: 'base-settings-base-variables' })
     return
   }
   isFixedReadonly.value = !!(isDerivedBase.value && variable?.inheritance === BaseVariableInheritance.FIXED)
@@ -136,7 +136,7 @@ const handleCloseModal = async () => {
 const handleRevert = async (variable: BaseVariableType) => {
   if (!canRevertVariable.value) return
   if (blockBaseVariables.value) {
-    showUpgradeToUseBaseVariables()
+    showUpgradeToUseBaseVariables({ triggerSource: 'base-settings-base-variables' })
     return
   }
   if (variable.id) {
@@ -149,7 +149,7 @@ const { showWarningModal } = useNcConfirmModal()
 const confirmDelete = (variable: BaseVariableType) => {
   if (!canDeleteVariable.value) return
   if (blockBaseVariables.value) {
-    showUpgradeToUseBaseVariables()
+    showUpgradeToUseBaseVariables({ triggerSource: 'base-settings-base-variables' })
     return
   }
   showWarningModal({

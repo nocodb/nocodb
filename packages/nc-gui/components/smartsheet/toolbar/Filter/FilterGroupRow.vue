@@ -183,7 +183,7 @@ const onEnabledChange = (val: boolean | Event) => {
 
 const onToggleFilterChange = (val: boolean | Event) => {
   if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+    showUpgradeToUseToggleFilter({ triggerSource: 'toolbar-toggle-filter' })
     return
   }
   onEnabledChange(val)

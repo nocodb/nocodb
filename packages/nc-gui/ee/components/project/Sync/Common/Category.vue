@@ -43,7 +43,7 @@ const selectCategory = (category: (typeof SyncCategoryMeta)[keyof typeof SyncCat
 
   // Custom sync is an Enterprise-only feature
   if (category.value === SyncCategory.CUSTOM && blockCustomSync.value) {
-    showUpgradeToUseCustomSync()
+    showUpgradeToUseCustomSync({ triggerSource: 'sync-custom-sync' })
     return
   }
 

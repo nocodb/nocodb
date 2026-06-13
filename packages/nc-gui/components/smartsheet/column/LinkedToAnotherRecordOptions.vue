@@ -155,7 +155,7 @@ watch(useCustomDisplayField, (val) => {
 // Starter → Enterprise upgrade modal. CE: no-op (the section is hidden).
 const onToggleCustomDisplayField = (val: boolean) => {
   if (val && isEEFeatureBlocked.value) {
-    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'))
+    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'), undefined, 'field-ltar-custom-display')
     return
   }
   useCustomDisplayField.value = val

@@ -35,19 +35,24 @@ const {
 } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
-  if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
-  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions()) return
-  if (page === 'syncs' && showUpgradeToUseSync()) return
+  if (
+    page === 'permissions' &&
+    showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'base-settings-table-field-permissions' })
+  )
+    return
+  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions({ triggerSource: 'base-settings-doc-permissions' }))
+    return
+  if (page === 'syncs' && showUpgradeToUseSync({ triggerSource: 'base-settings-sync' })) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
-    showUpgradeToUseSnapshots()
+    showUpgradeToUseSnapshots({ triggerSource: 'base-settings-snapshots' })
     return
   }
   if (page === 'record-trash' && blockTrashSettings.value) {
-    showUpgradeToUseTrashSettings()
+    showUpgradeToUseTrashSettings({ triggerSource: 'base-settings-trash' })
     return
   }
   if (page === 'variables' && blockBaseVariables.value) {
-    showUpgradeToUseBaseVariables()
+    showUpgradeToUseBaseVariables({ triggerSource: 'base-settings-base-variables' })
     return
   }
 

@@ -19,7 +19,7 @@ const label = computed(() => {
 
 async function openNewScriptModal() {
   if (blockScripts.value) {
-    showUpgradeToUseScripts()
+    showUpgradeToUseScripts({ triggerSource: 'create-scripts' })
     return
   }
 

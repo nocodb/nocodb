@@ -248,7 +248,7 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
   }
 
   if (category === IntegrationCategoryType.AI && blockAiIntegrations.value) {
-    showUpgradeToUseAiIntegrations({})
+    showUpgradeToUseAiIntegrations({ triggerSource: 'integrations-ai-integrations' })
     return
   }
 

@@ -382,7 +382,7 @@ const createDlg = ref(false)
 
 const onCreateWorkspace = () => {
   if (blockWorkspaceCreate.value) {
-    showUpgradeToCreateWorkspace()
+    showUpgradeToCreateWorkspace({ triggerSource: 'ws-create-workspace' })
     return
   }
 

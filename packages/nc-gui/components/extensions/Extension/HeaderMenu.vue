@@ -25,6 +25,7 @@ const onDuplicate = () => {
       content: t('upgrade.upgradeToAddMoreExtensions'),
       limitOrFeature: PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
       newPlanTitle: PlanTitles.PLUS,
+      triggerSource: 'extensions-duplicate',
     })
     return
   }

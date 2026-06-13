@@ -42,6 +42,46 @@ export class SyncModuleSyncDataProcessor {
     protected readonly nocoJobsService: NocoJobsService,
   ) {}
 
+  /**
+   * Guard against a synced source field shadowing the destination PK on
+   * update.
+   *
+   * The destination's autoincrement PK is stored under column_name `id`
+   * (title `Id`). A synced source column literally named `id` lands as a
+   * *data* column with title `id` but column_name `id1`. Sync update payloads
+   * are title-keyed, and update value-resolution is column_name-first
+   * (getByColumnNameTitleOrId), so a title-keyed `id` in the payload (the
+   * source's remote id) overrides the real PK column. While source ids stay
+   * contiguous they coincidentally equal the destination PK and the update
+   * still hits the right row; once a deletion makes them non-contiguous the
+   * update targets a non-existent PK and fails with
+   * "Record '<remoteId>' not found".
+   *
+   * Re-key any such collider onto its own column_name so it only ever
+   * populates its data column, never the PK. Mutates and returns `record`.
+   */
+  protected remapPkShadowingField(
+    model: Model,
+    record: Record<string, any>,
+  ): Record<string, any> {
+    const pkColumn = model.primaryKey;
+    if (!pkColumn || !record) return record;
+
+    const shadowingColumn = model.columns.find(
+      (c) => !c.pk && c.title === pkColumn.column_name,
+    );
+
+    if (
+      shadowingColumn &&
+      Object.prototype.hasOwnProperty.call(record, pkColumn.column_name)
+    ) {
+      record[shadowingColumn.column_name] = record[pkColumn.column_name];
+      delete record[pkColumn.column_name];
+    }
+
+    return record;
+  }
+
   async pushData(
     context: NcContext,
     syncConfig: SyncConfig,
@@ -90,7 +130,10 @@ export class SyncModuleSyncDataProcessor {
     }
 
     for (const record of data) {
-      const dataRecord = dataMap.get(record.RemoteId);
+      const dataRecord = this.remapPkShadowingField(
+        model,
+        dataMap.get(record.RemoteId),
+      );
       const existingRecord = existingMap.get(record.RemoteId);
 
       if (!existingRecord) {
@@ -990,10 +1033,12 @@ export class SyncModuleSyncDataProcessor {
             }
 
             if (Object.keys(updateData).length > 0) {
-              dataToUpdate.push({
-                Id: record.Id,
-                ...updateData,
-              });
+              dataToUpdate.push(
+                this.remapPkShadowingField(model, {
+                  Id: record.Id,
+                  ...updateData,
+                }),
+              );
             }
           }
         }
@@ -1215,10 +1260,10 @@ export class SyncModuleSyncDataProcessor {
                 await this.dataTableService.dataUpdate(context, {
                   baseId: model.base_id,
                   modelId: model.id,
-                  body: {
+                  body: this.remapPkShadowingField(model, {
                     Id: record.Id,
                     ...updateData,
-                  },
+                  }),
                   cookie: req,
                   apiVersion: NcApiVersion.V3,
                   internalFlags: {

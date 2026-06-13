@@ -421,7 +421,7 @@ const selectOption = (option) => {
       '!min-w-[100svw]': props.visible && isMobileMode,
       'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
+    class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div class="flex min-w-[288px] flex-col">
@@ -471,7 +471,7 @@ const selectOption = (option) => {
         '!border-t-0 ': height < 700,
         'pt-6': height >= 700,
       }"
-      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-col gap-y-3"
+      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-1 min-h-0 flex-col gap-y-3"
     >
       <div class="flex px-4 h-8 items-center gap-3">
         <NcDropdown v-model:visible="isDropdownOpen">
@@ -585,25 +585,7 @@ const selectOption = (option) => {
       <div
         v-if="calendarRange?.length"
         :ref="sideBarListRef"
-        :class="{
-          '!h-[calc(100svh-22.15rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-24.9rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-13.85rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-16.61rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-30.15rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          ' !h-[calc(100svh-32.9rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          '!h-[calc(100svh-13.8rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          '!h-[calc(100svh-16.6rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-        }"
-        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto"
+        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto flex-1 min-h-0"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >

@@ -396,7 +396,7 @@ export const useScriptStore = defineStore('script', () => {
     if (!baseId || showScriptPlanLimitExceededModal()) return
 
     if (blockScripts.value) {
-      showUpgradeToUseScripts({ triggerSource: 'script-scripts' })
+      showUpgradeToUseScripts({ triggerSource: 'script' })
       return
     }
 

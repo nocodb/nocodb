@@ -572,7 +572,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (!baseId) return
 
     if (blockWorkflows.value) {
-      showUpgradeToUseWorkflows({ triggerSource: 'workflow-workflows' })
+      showUpgradeToUseWorkflows({ triggerSource: 'workflow' })
       return
     }
 

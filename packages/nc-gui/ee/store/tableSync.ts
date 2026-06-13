@@ -187,7 +187,7 @@ export const useTableSyncStore = defineStore('tableSync', () => {
   }
 
   async function openTableSyncCreateModal({ baseId }: { baseId?: string }) {
-    if (!baseId || showUpgradeToUseTableSync({ triggerSource: 'table-sync-table-sync' })) return
+    if (!baseId || showUpgradeToUseTableSync({ triggerSource: 'table-sync' })) return
 
     $e('c:sync:open-internal-create-modal')
 

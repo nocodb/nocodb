@@ -815,6 +815,22 @@ export const useEeConfig = createSharedComposable(() => {
     navigateTo(pricingPath)
   }
 
+  // Fire a unique telemetry event whenever an upgrade modal is shown, so each
+  // gated feature's prompt can be tracked individually (e.g. `c:upgrade:sso`).
+  // The slug is derived from the feature/limit/add-on that triggered the modal;
+  // anything else (e.g. ad-hoc copy) falls back to `c:upgrade:other`.
+  function emitUpgradeModalEvent(limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | PlanAddonTypes | string) {
+    const slug =
+      typeof limitOrFeature === 'string' && /^(feature|limit|addon)_/.test(limitOrFeature)
+        ? limitOrFeature.replace(/^(feature|limit|addon)_/, '').replace(/_/g, '-')
+        : 'other'
+
+    $e(`c:upgrade:${slug}`, {
+      activePlan: activePlanTitle.value,
+      limitOrFeature,
+    })
+  }
+
   const handleOnPremUpgrade = ({
     title,
     content,
@@ -825,6 +841,8 @@ export const useEeConfig = createSharedComposable(() => {
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
   } = {}) => {
     const isOpen = ref(true)
+
+    emitUpgradeModalEvent(limitOrFeature)
 
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
@@ -895,6 +913,8 @@ export const useEeConfig = createSharedComposable(() => {
   } = {}) => {
     const isOpen = ref(true)
 
+    emitUpgradeModalEvent(limitOrFeature)
+
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
     // Use OnPremHigherPlan to determine the correct next tier
@@ -954,6 +974,8 @@ export const useEeConfig = createSharedComposable(() => {
     } = {},
   ) => {
     const isOpen = ref(true)
+
+    emitUpgradeModalEvent(addonKey)
 
     const minPlan = getAddonMinPlan(addonKey, isOnPrem.value)
     const addonLabel = getAddonLabel(addonKey)
@@ -1077,6 +1099,8 @@ export const useEeConfig = createSharedComposable(() => {
 
     const okBtnText = ref(okText)
     const isOpen = ref(true)
+
+    emitUpgradeModalEvent(limitOrFeature)
 
     const okProps = ref({ loading: false })
 

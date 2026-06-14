@@ -1,11 +1,11 @@
 <h1 align="center" style="border-bottom: none">
-    <div>
-        <a style="color:#36f" href="https://www.nocodb.com">
-            <img src="/packages/nc-gui/assets/img/brand/nocodb-full.png" height="80" />
-            <br>
-        </a>
-        <br>
-    </div>
+  <div>
+    <a style="color:#36f" href="https://www.nocodb.com">
+      <img src="/packages/nc-gui/assets/img/brand/nocodb-full.png" height="80" />
+      <br>
+    </a>
+    <br>
+  </div>
 </h1>
 
 <p align="center">
@@ -14,12 +14,12 @@ NocoDB is the fastest and easiest way to build databases online.
 
 
 <p align="center">
-    <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
-    <a href="https://community.nocodb.com/"><b>Community</b></a> •
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
-    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
-    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+  <a href="http://www.nocodb.com"><b>Website</b></a> •
+  <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
+  <a href="https://community.nocodb.com/"><b>Community</b></a> •
+  <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
+  <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+  <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>
 
 ![video avi](https://github.com/nocodb/nocodb/assets/86527202/e2fad786-f211-4dcb-9bd3-aaece83a6783)
@@ -57,21 +57,21 @@ NocoDB is the fastest and easiest way to build databases online.
 
 ```bash 
 docker run -d \
-  --name noco \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \
-  -p 8080:8080 \
-  nocodb/nocodb:latest
-  ```
+ --name noco \
+ -v "$(pwd)"/nocodb:/usr/app/data/ \
+ -p 8080:8080 \
+ nocodb/nocodb:latest
+ ```
 
 ## Docker with PG
 ```bash
 docker run -d \
-  --name noco \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \
-  -p 8080:8080 \
-  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
-  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-  nocodb/nocodb:latest
+ --name noco \
+ -v "$(pwd)"/nocodb:/usr/app/data/ \
+ -p 8080:8080 \
+ -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+ -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+ nocodb/nocodb:latest
 ```
 
 ## Auto-upstall
@@ -94,14 +94,14 @@ Auto-upstall does the following: 🕊
 
 > Binaries are only for quick testing locally.
 
-| Install Method                | Command to install                                                                                                                                                                                                                                                                                                                                                         |
+| Install Method        | Command to install                                                                                                                                                                             |
 |-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 🍏 MacOS arm64 <br>(Binary)   | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
-| 🍏 MacOS x64 <br>(Binary)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
-| 🐧 Linux arm64 <br>(Binary)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
-| 🐧 Linux x64 <br>(Binary)     | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
-| 🪟 Windows arm64 <br>(Binary) | `iwr http://get.nocodb.com/win-arm64.exe -OutFile Noco-win-arm64.exe && .\Noco-win-arm64.exe`                                                                                                                                                                                                                                                                              |
-| 🪟 Windows x64 <br>(Binary)   | `iwr http://get.nocodb.com/win-x64.exe -OutFile Noco-win-x64.exe && .\Noco-win-x64.exe`                                                                                                                                                                                                                                                                                    |
+| 🍏 MacOS arm64 <br>(Binary)  | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                            |
+| 🍏 MacOS x64 <br>(Binary)   | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                             |
+| 🐧 Linux arm64 <br>(Binary)  | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                            |
+| 🐧 Linux x64 <br>(Binary)   | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                             |
+| 🪟 Windows arm64 <br>(Binary) | `iwr http://get.nocodb.com/win-arm64.exe -OutFile Noco-win-arm64.exe && .\Noco-win-arm64.exe`                                                                                                                                       |
+| 🪟 Windows x64 <br>(Binary)  | `iwr http://get.nocodb.com/win-x64.exe -OutFile Noco-win-x64.exe && .\Noco-win-x64.exe`                                                                                                                                          |
 
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
@@ -175,5 +175,5 @@ This project is licensed under <a href="./LICENSE.md">Sustainable Use License</a
 Thank you for your contributions! We appreciate all the contributions from the community.
 
 <a href="https://github.com/nocodb/nocodb/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
+ <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
 </a>

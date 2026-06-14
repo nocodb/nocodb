@@ -2272,8 +2272,9 @@ export interface FieldOptionsLinkToAnotherRecordV3Type {
    * Type of relationship.
    *
    * Supported options are listed below
+   * - `om` one-to-many
+   * - `mo` many-to-one
    * - `mm` many-to-many
-   * - `hm` has-many
    * - `oo` one-to-one
    */
   relation_type: string;
@@ -2286,8 +2287,9 @@ export interface FieldOptionsLinksV3Type {
    * Type of relationship.
    *
    * Supported options are listed below
+   * - `om` one-to-many
+   * - `mo` many-to-one
    * - `mm` many-to-many
-   * - `hm` has-many
    * - `oo` one-to-one
    */
   relation_type: string;
@@ -2847,7 +2849,7 @@ export interface FieldBaseV3Type {
   /** Unique identifier for the field. */
   id?: string;
   /** Title of the field. */
-  title: string;
+  title?: string;
   /** Field data type. */
   type?:
     | 'SingleLineText'
@@ -3912,6 +3914,33 @@ export interface BaseV3Type {
   }[];
 }
 
+export interface DataUpsertResponseV3Type {
+  records?: DataUpsertRecordResponseV3Type[];
+}
+
+export interface DataUpsertRecordResponseV3Type {
+  /** Primary key value */
+  id?: string | number;
+  /** Composite PK values (when table has multi-column PK) */
+  id_fields?: object;
+  /** Full record fields after upsert */
+  fields?: object;
+  /** Whether this record was inserted or updated */
+  status?: 'inserted' | 'updated';
+}
+
+export interface DataUpsertRequestV3Type {
+  /** Field titles or IDs to match on (max 3). If a matching record exists it is updated; otherwise a new record is created. When multiple records match the same combination, the request is rejected. */
+  fieldsToMergeOn: string[];
+  /** Records to upsert — single object or array */
+  records: DataUpsertRecordRequestV3Type | DataUpsertRecordRequestV3Type[];
+}
+
+export interface DataUpsertRecordRequestV3Type {
+  /** Field title → value map */
+  fields: object;
+}
+
 /**
  * Model for API Token
  */
@@ -4481,7 +4510,8 @@ export interface ColumnType {
     | 'Order'
     | 'Meta'
     | 'Colour'
-    | 'UUID';
+    | 'UUID'
+    | 'Deleted';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -6122,6 +6152,7 @@ export interface NormalColumnRequestType {
     | 'LastModifiedBy'
     | 'AI'
     | 'Order'
+    | 'Deleted'
     | 'Meta'
     | 'Colour'
     | 'UUID';
@@ -6796,6 +6827,10 @@ export interface TableType {
   type?: string;
   /** Is this table synced? */
   synced?: BoolType;
+  /** Is record trash disabled for this table? */
+  trash_disabled?: BoolType;
+  /** Custom trash retention period in days. null = use default. */
+  trash_retention_days?: number | null;
 }
 
 /**
@@ -6994,6 +7029,11 @@ export interface ViewCreateReqType {
    * @example This is a grid view.
    */
   description?: TextOrNullType;
+  /**
+   * Lock type of View. Applied as the initial mode on create.
+   * @example collaborative
+   */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 /**
@@ -7172,6 +7212,12 @@ export type NestedListCopyPasteOrDeleteAllReqType = {
   rowId: string;
   columnId: string;
   fk_related_model_id: string;
+}[];
+
+export type NestedBulkLinkByDisplayValueReqType = {
+  columnId: string;
+  rowId: string;
+  displayValues: string[];
 }[];
 
 /**
@@ -17687,54 +17733,6 @@ export class Api<
   };
   integration = {
     /**
-     * @description List integrations
-     *
-     * @tags Integration
-     * @name List
-     * @summary List integrations
-     * @request GET:/api/v2/meta/integrations
-     * @response `200` `IntegrationListType` OK
-     */
-    list: (
-      query?: {
-        /** Integration Type */
-        type?: IntegrationsType;
-        includeDatabaseInfo?: boolean;
-        limit?: number;
-        offset?: number;
-        baseId?: string;
-        query?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<IntegrationListType, any>({
-        path: `/api/v2/meta/integrations`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Create integration
-     *
-     * @tags Integration
-     * @name Create
-     * @summary Create integration
-     * @request POST:/api/v2/meta/integrations
-     * @response `200` `IntegrationType` OK
-     */
-    create: (data: IntegrationReqType, params: RequestParams = {}) =>
-      this.request<IntegrationType, any>({
-        path: `/api/v2/meta/integrations`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Read integration
      *
      * @tags Integration
@@ -17851,12 +17849,12 @@ export class Api<
      * @description List integrations
      *
      * @tags Integration
-     * @name WorkspaceList
+     * @name List
      * @summary List integrations
      * @request GET:/api/v2/meta/workspaces/{workspaceId}/integrations
      * @response `200` `IntegrationListType` OK
      */
-    workspaceList: (
+    list: (
       workspaceId: string,
       query?: {
         /** Integration Type */
@@ -17881,12 +17879,12 @@ export class Api<
      * @description Create integration
      *
      * @tags Integration
-     * @name WorkspaceCreate
+     * @name Create
      * @summary Create integration
      * @request POST:/api/v2/meta/workspaces/{workspaceId}/integrations
      * @response `200` `IntegrationType` OK
      */
-    workspaceCreate: (
+    create: (
       workspaceId: string,
       data: IntegrationReqType,
       params: RequestParams = {}

@@ -80,6 +80,8 @@ const { t } = useI18n()
 
 const { $api } = useNuxtApp()
 
+const { internalGet } = useInternalBatch()
+
 const { getMeta } = useMetas()
 
 const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
@@ -1111,7 +1113,7 @@ const saveChanges = async () => {
     })
 
     columnsHash.value = (
-      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+      await internalGet(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
         operation: 'columnsHash',
         tableId: meta.value?.id as string,
       })
@@ -1273,7 +1275,7 @@ watch(
   async (newMeta) => {
     if (newMeta?.id) {
       columnsHash.value = (
-        await $api.internal.getOperation(newMeta.fk_workspace_id!, newMeta.base_id!, {
+        await internalGet(newMeta.fk_workspace_id!, newMeta.base_id!, {
           operation: 'columnsHash',
           tableId: newMeta.id!,
         })
@@ -1288,7 +1290,7 @@ onMounted(async () => {
 
   if (meta.value && meta.value.id) {
     columnsHash.value = (
-      await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+      await internalGet(meta.value.fk_workspace_id!, meta.value.base_id!, {
         operation: 'columnsHash',
         tableId: meta.value.id!,
       })

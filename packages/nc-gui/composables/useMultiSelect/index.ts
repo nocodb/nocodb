@@ -85,6 +85,8 @@ export function useMultiSelect(
 
   const { $api } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { fillRows } = useNocoAi()
 
   const { isDataReadOnly } = useRoles()
@@ -1175,7 +1177,7 @@ export function useMultiSelect(
 
           if (newColsNeeded > 0) {
             const columnsHash = (
-              await $api.internal.getOperation(
+              await internalGet(
                 (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
                 meta.value!.base_id!,
                 {

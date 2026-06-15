@@ -28,6 +28,8 @@ export const usePredictFields = createSharedComposable(
 
     const { $api } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const aiMode = ref(false)
 
     const localIsFromFieldModal = ref<boolean>(false)
@@ -572,7 +574,7 @@ export const usePredictFields = createSharedComposable(
       async (newMeta) => {
         if (newMeta?.id) {
           columnsHash.value = (
-            await $api.internal.getOperation(newMeta.fk_workspace_id!, newMeta.base_id!, {
+            await internalGet(newMeta.fk_workspace_id!, newMeta.base_id!, {
               operation: 'columnsHash',
               tableId: newMeta.id,
             })

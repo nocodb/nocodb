@@ -136,6 +136,7 @@ export function useCopyPaste({
   actionManager: ActionManager
 }) {
   const { $api } = useNuxtApp()
+  const { internalGet } = useInternalBatch()
   const { isDataReadOnly } = useRoles()
   const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
@@ -358,7 +359,7 @@ export function useCopyPaste({
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
           if (newColsNeeded > 0) {
             const columnsHash = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await internalGet(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
                 operation: 'columnsHash',
                 tableId: meta.value?.id as string,
               })

@@ -53,10 +53,13 @@ export const BATCHABLE_INTERNAL_OPERATIONS: ReadonlySet<string> = new Set([
   // View-type detail reads — one of these fires on view mount.
   // Gallery/Kanban/Calendar live in their own REST controllers
   // (controllers/galleries.controller.ts etc.) and aren't reachable via
-  // the internal API, so only Form / Map / Timeline appear here.
+  // the internal API. Timeline is also REST-only today — no internal
+  // dispatcher and no frontend caller — so it's deliberately excluded
+  // until/unless it migrates to UiGet.operations.ts. Form / Map have
+  // inline switch cases in UiGet so both batched and non-batched dispatch
+  // resolve to the same service call.
   'formViewGet',
   'mapViewGet',
-  'timelineViewGet',
 
   // Dashboard widgets fan-out (16+ calls on dashboard mount)
   'widgetDataGet',

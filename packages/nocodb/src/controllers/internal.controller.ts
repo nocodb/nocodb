@@ -47,10 +47,27 @@ export class InternalController {
     if (!this.internalApiModuleMap) {
       this.internalApiModuleMap = {};
     }
+    // Enforce one HTTP method per operation name. `runBatchedOp` falls back
+    // from POST → GET when looking up the dispatcher, so an operation
+    // accidentally registered under both methods would resolve to the POST
+    // module in batched mode and the GET module in non-batched mode —
+    // silently splitting one logical operation into two code paths.
+    // Failing loud at startup is cheaper than chasing that drift later.
+    const opToMethod = new Map<string, string>();
     for (const each of internalApiModules) {
       this.internalApiModuleMap[each.httpMethod] =
         this.internalApiModuleMap[each.httpMethod] ?? {};
       for (const operation of each.operations) {
+        const prevMethod = opToMethod.get(operation);
+        if (prevMethod && prevMethod !== each.httpMethod) {
+          throw new Error(
+            `Internal operation "${operation}" is registered for both ` +
+              `${prevMethod} and ${each.httpMethod}. Each operation must ` +
+              `be bound to exactly one HTTP method so batched and ` +
+              `non-batched dispatch resolve to the same handler.`,
+          );
+        }
+        opToMethod.set(operation, each.httpMethod);
         this.internalApiModuleMap[each.httpMethod][operation] = each;
       }
     }
@@ -329,8 +346,23 @@ export class InternalController {
    * Run a single sub-op as if it were an independent request. We don't
    * mutate the incoming `req` — sub-ops execute concurrently, so each one
    * gets a thin clone with the sub-op's `query`/`body` merged in. The
-   * original `req`'s prototype, headers, user, context, etc. flow through
-   * unchanged.
+   * original `req`'s prototype, headers, user, etc. flow through unchanged.
+   *
+   * IMPORTANT — concurrency contract for batchable operations:
+   *
+   *   Sub-ops run via `Promise.allSettled`, so anything _not_ defensively
+   *   copied below is observed concurrently across siblings. We make
+   *   shallow copies of `context` and `req` here, which means:
+   *
+   *     • Re-assigning `subContext.foo = ...` / `subReq.foo = ...` is
+   *       safe (only the local copy is affected).
+   *     • Mutating nested shared state — `subContext.user.x = ...`,
+   *       `subReq.headers[k] = ...`, `subReq.context.x = ...` — still
+   *       leaks across siblings.
+   *
+   *   The batchable allowlist is read-only by contract (see
+   *   `BATCHABLE_INTERNAL_OPERATIONS` in nocodb-sdk). Handlers that need
+   *   to write to `context` / `req` MUST NOT be added to that list.
    */
   protected async runBatchedOp(
     context: NcContext,
@@ -345,8 +377,12 @@ export class InternalController {
       NcError.notFound(`Unknown internal operation "${operation}"`);
     }
 
+    // Per-sub-op defensive copies. Shallow is enough for the current
+    // read-only allowlist — see the concurrency contract above.
+    const subContext: NcContext = { ...context };
     // Object.create keeps the Express request prototype + own props intact;
-    // we only shadow `query` / `body` for the sub-op.
+    // we shadow `query` / `body` for the sub-op and rely on the prototype
+    // chain for everything else (user, headers, route, etc.).
     const subReq: NcRequest = Object.create(req);
     subReq.query = { ...(req.query ?? {}), ...(subOp.query ?? {}), operation };
     subReq.body = subOp.payload ?? {};
@@ -363,7 +399,7 @@ export class InternalController {
       NcError.notFound(`Operation "${operation}" not registered`);
     }
 
-    return module.handle(context, {
+    return module.handle(subContext, {
       workspaceId,
       baseId,
       operation,

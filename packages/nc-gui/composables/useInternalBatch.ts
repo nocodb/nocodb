@@ -27,11 +27,17 @@ import { BATCHABLE_INTERNAL_OPERATIONS, INTERNAL_BATCH_MAX_SIZE } from 'nocodb-s
 
 // Leading-edge debounce: the timer starts on the first queued call and
 // flushes after this window, regardless of how many more calls arrive.
-// Long enough to catch fan-outs that span multiple Vue effect ticks,
-// async `await until(...)` hops in composables, and the gap between
-// sibling components mounting on the same page — short enough that
-// single-request flows (clicks, navigation) don't feel laggy.
-const FLUSH_WINDOW_MS = 50
+//
+// Sized to catch synchronous fan-outs (Vue mount cycles fire all child
+// `onMounted` hooks within one render flush) and short async hops
+// without materially delaying post-mutation refresh paths. Playwright
+// tests that do action+assert sequences are especially sensitive to
+// longer windows — a 50ms window was enough to make multiFieldEditor /
+// webhook / viewKanban specs fail intermittently because the grid
+// hadn't reloaded by the time the next assertion ran. 10ms keeps the
+// page-load wins (5-16 calls within one Vue mount fire well inside
+// 10ms) while keeping the post-mutation delay invisible.
+const FLUSH_WINDOW_MS = 10
 
 interface SubOp {
   operation: string

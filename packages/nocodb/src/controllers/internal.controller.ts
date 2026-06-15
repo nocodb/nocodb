@@ -19,6 +19,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
+import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import {
   InternalGETResponseType,
@@ -293,16 +294,30 @@ export class InternalController {
       ops.map((op) => this.runBatchedOp(context, workspaceId, baseId, op, req)),
     );
 
+    // Route each sub-op rejection through the same mapper the global
+    // exception filter uses. V1 errors (Forbidden, NotFound, BadRequestV2,
+    // Unauthorized, UnprocessableEntity) don't carry a numeric `code` so a
+    // naive `err.code ?? 500` collapses them all to 500 — which silently
+    // breaks status-aware branches on the frontend (e.g. `e.response.status
+    // === 403` upgrade prompts) for any batched call. Delegating to the
+    // shared mapper keeps the envelope's per-sub-op statuses identical to
+    // what the same op would return through the non-batched HTTP path.
+    const apiVersion = (req as any).ncApiVersion;
     const results: BatchSubOpResult[] = settled.map((r) => {
       if (r.status === 'fulfilled') {
         return { status: 200, data: r.value ?? null };
       }
-      const err = r.reason ?? {};
+      const err = r.reason;
+      const mapped = mapExceptionToResponse(err, apiVersion);
+      const body = mapped.body ?? {};
+      const message =
+        body.message ?? body.msg ?? err?.message ?? 'Internal error';
+      const errorCode = typeof body.error === 'string' ? body.error : undefined;
       return {
-        status: typeof err.code === 'number' ? err.code : 500,
+        status: mapped.status,
         error: {
-          message: err.message ?? 'Internal error',
-          ...(err.error ? { error: err.error } : {}),
+          message,
+          ...(errorCode ? { error: errorCode } : {}),
         },
       };
     });

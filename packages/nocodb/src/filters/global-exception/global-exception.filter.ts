@@ -12,6 +12,7 @@ import {
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { throttlerLogger } from '~/helpers/throttlerLogger';
+import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import {
   AjvError,
   BadRequest,
@@ -22,11 +23,9 @@ import {
   NcBaseErrorv2,
   NcError,
   NotFound,
-  OptionsNotExistsError,
   SsoError,
   TestConnectionError,
   Unauthorized,
-  UniqueConstraintViolationError,
   UnprocessableEntity,
 } from '~/helpers/catchError';
 
@@ -55,7 +54,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
     }
 
-    // try to extract db error for unknown errors
+    // try to extract db error for unknown errors — kept here (in addition
+    // to the mapper) so logging / SSO branches below can branch on it.
     const dbError =
       exception instanceof NcBaseError ? null : extractDBError(exception);
 
@@ -113,133 +113,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.redirect(redirectUrl);
     }
 
-    // API not found
     if (exception instanceof NotFoundException) {
+      // debug-level log instead of error-level (a 404 from a wrong URL
+      // isn't a server bug). The mapper still returns the 404 body below.
       this.logger.debug(exception.message, exception.stack);
-
-      return response.status(404).json({ msg: exception.message });
     }
 
-    if (dbError) {
-      const { httpStatus: httpStatus, ...responsePayload } = dbError;
-      if (apiVersion === NcApiVersion.V3) {
-        return response.status(httpStatus).json(responsePayload);
-      } else {
-        return response.status(400).json(responsePayload);
-      }
-    }
+    const mapped = mapExceptionToResponse(exception, apiVersion);
 
-    if (
-      exception instanceof OptionsNotExistsError &&
-      apiVersion === NcApiVersion.V3
-    ) {
-      return response.status(422).json({
-        message: `Invalid option(s) "${exception.options.join(
-          ', ',
-        )}" provided for column "${exception.columnTitle}"`,
-        error: 'ERR_INVALID_VALUE_FOR_FIELD',
-      });
-    } else if (
-      UniqueConstraintViolationError &&
-      typeof UniqueConstraintViolationError === 'function' &&
-      exception instanceof UniqueConstraintViolationError
-    ) {
-      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
-      return response.status(httpStatus).json({
-        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
-        message: exception.message,
-        fieldName: exception.fieldName,
-        value: exception.value,
-      });
-    } else if (
-      exception &&
-      typeof exception === 'object' &&
-      'fieldName' in exception &&
-      'value' in exception &&
-      exception.constructor?.name === 'UniqueConstraintViolationError'
-    ) {
-      // Fallback check in case the class is not properly imported
-      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
-      return response.status(httpStatus).json({
-        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
-        message: exception.message,
-        fieldName: (exception as any).fieldName,
-        value: (exception as any).value,
-      });
-    } else if (
-      exception instanceof BadRequest ||
-      exception.getStatus?.() === 400
-    ) {
-      return response.status(400).json({ msg: exception.message });
-    } else if (
-      exception instanceof Unauthorized ||
-      (exception.getStatus?.() === 401 && !(exception instanceof NcBaseErrorv2))
-    ) {
-      return response.status(401).json({ msg: exception.message });
-    } else if (
-      exception instanceof Forbidden ||
-      (exception.getStatus?.() === 403 && !(exception instanceof NcBaseErrorv2))
-    ) {
-      return response.status(403).json({ msg: exception.message });
-    } else if (
-      exception instanceof NotFound ||
-      (exception.getStatus?.() === 404 && !(exception instanceof NcBaseErrorv2))
-    ) {
-      return response.status(404).json({ msg: exception.message });
-    } else if (exception instanceof AjvError) {
-      if (exception.humanReadableError) {
-        return response
-          .status(400)
-          .json({ msg: exception.message, errors: exception.errors });
-      }
-
-      return response
-        .status(400)
-        .json({ msg: exception.message, errors: exception.errors });
-    } else if (
-      exception instanceof UnprocessableEntity ||
-      exception instanceof SdkBadRequest ||
-      exception instanceof NcSDKError
-    ) {
-      return response.status(422).json({ msg: exception.message });
-    } else if (exception instanceof NcSDKErrorV2) {
-      return response.status(exception.getStatus?.() ?? 422).json({
-        error: exception.errorType,
-        message: exception.message,
-      });
-    } else if (exception instanceof TestConnectionError) {
-      return response
-        .status(422)
-        .json({ msg: exception.message, sql_code: exception.sql_code });
-    } else if (exception instanceof NcBaseErrorv2) {
-      return response.status(exception.code).json({
-        error: exception.error,
-        message: exception.message,
-        details: exception.details,
-      });
-    }
-
-    // handle different types of exceptions
-    if (exception.getStatus?.()) {
-      response.status(exception.getStatus()).json(exception.getResponse());
-    } else {
+    if (mapped.unhandled) {
       this.captureException(exception, request);
-
-      const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
-      const responsePayload: any = {
-        [msgProp]: `Something didn't work as expected. Please try again. If the problem persists, contact support.`,
-      };
 
       // Include actual error message only in development
       if (process.env.NODE_ENV !== 'production') {
-        responsePayload.innerError = {
+        const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
+        mapped.body.innerError = {
           [msgProp]: exception?.message || 'An unexpected error occurred',
           stack: exception?.stack,
         };
       }
-
-      response.status(500).json(responsePayload);
     }
+
+    return response.status(mapped.status).json(mapped.body);
   }
 
   protected captureException(exception: any, _request: any) {

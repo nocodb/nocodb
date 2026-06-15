@@ -158,6 +158,10 @@ function getBatcher(api: any, workspaceId: string, baseId: string): Batcher {
   return b
 }
 
+// Memoised per (operation) so a fan-out from a misconfigured caller doesn't
+// spam the console with the same line N times per page mount.
+const warnedDowngradeOps = new Set<string>()
+
 function shouldBatch(
   workspaceId: string | undefined | null,
   baseId: string | undefined | null,
@@ -165,7 +169,31 @@ function shouldBatch(
   requestParams: any,
 ): boolean {
   if (!workspaceId || !baseId) return false
-  if (requestParams) return false
+  if (requestParams) {
+    // Allowlisted op + caller-supplied requestParams (custom headers,
+    // AbortSignal, response type, etc.) → silent fall through to the
+    // single-shot SDK call, losing batching. Surface this in dev so
+    // someone adding an AbortSignal to an otherwise-batched call notices
+    // they've opted out. Production builds stay quiet — this is a hint to
+    // the implementer, not an error.
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      params?.operation &&
+      params._batch !== false &&
+      BATCHABLE_INTERNAL_OPERATIONS.has(params.operation) &&
+      !warnedDowngradeOps.has(params.operation)
+    ) {
+      warnedDowngradeOps.add(params.operation)
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[useInternalBatch] '${params.operation}' is on the batch allowlist ` +
+          `but was called with requestParams; the call won't be batched. ` +
+          `Move custom headers / AbortSignal / responseType onto the op's ` +
+          `query/payload, or pass _batch: false to silence this warning.`,
+      )
+    }
+    return false
+  }
   if (!params?.operation) return false
   if (params.operation === 'batch') return false
   if (params._batch === false) return false

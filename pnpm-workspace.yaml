@@ -21,3 +21,9 @@ minimumReleaseAge: 10080
 # Prevent transitive dependencies from pulling code via git+ssh, https tarballs,
 # or other non-registry protocols. Only direct dependencies may use exotic sources.
 blockExoticSubdeps: true
+
+# ts-checker-rspack-plugin@1.4.0 (published 2026-06-08) adds tsgo
+# (@typescript/native-preview) support needed by the rspack 2 upgrade.
+# Remove this exclusion once the release is older than 7 days.
+minimumReleaseAgeExclude:
+  - ts-checker-rspack-plugin

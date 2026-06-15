@@ -91,8 +91,9 @@ const baseDevConfig = {
     }),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: resolve('tsconfig.json'),
-      },
+        tsgo: true,
+        configFile: resolve('tsconfig.json')
+        }
     }),
   ],
   output: {

@@ -4526,7 +4526,14 @@ export interface SourceType {
    * DB Type
    * @example mysql2
    */
-  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'mssql'
+    | 'pg'
+    | 'snowflake'
+    | 'sqlite3'
+    | 'databricks';
 }
 
 /**
@@ -4608,7 +4615,14 @@ export interface BaseReqType {
   /** Is the data source data readonly */
   is_data_readonly?: BoolType;
   /** DB Type */
-  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'mssql'
+    | 'pg'
+    | 'snowflake'
+    | 'sqlite3'
+    | 'databricks';
   fk_integration_id?: string;
 }
 
@@ -14660,45 +14674,6 @@ export class Api<
       }),
 
     /**
- * @description Read bulk group data from a given table with provided filters
- * 
- * @tags Public
- * @name DataTableBulkGroup
- * @summary Read Shared View Bulk Group Data
- * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/group
- * @response `200` `object` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    dataTableBulkGroup: (
-      sharedViewUuid: string,
-      data: object[],
-      query?: {
-        /** Extra filtering */
-        where?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        object,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/group`,
-        method: 'POST',
-        query: query,
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description Read aggregated data from a given table
  * 
  * @tags Public
@@ -15389,46 +15364,6 @@ export class Api<
         ...params,
       }),
   };
-  dbDataTableBulkGroupList = {
-    /**
- * @description Read bulk group data from a given table with given filters
- * 
- * @tags DB Data Table Bulk Group List
- * @name DbDataTableBulkGroupList
- * @summary Read Bulk Group Data
- * @request POST:/api/v2/tables/{tableId}/bulk/group
- * @response `200` `object` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    dbDataTableBulkGroupList: (
-      tableId: string,
-      query: {
-        /** View ID is required */
-        viewId: string;
-      },
-      data: object[],
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        object,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v2/tables/${tableId}/bulk/group`,
-        method: 'POST',
-        query: query,
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-  };
   oAuth = {
     /**
  * @description Retrieve public information about an OAuth client for authorization display
@@ -15903,7 +15838,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mysql" | "mysql2" | "pg" | "snowflake" | "sqlite3" | "databricks",
+  client?: "mysql" | "mysql2" | "mssql" | "pg" | "snowflake" | "sqlite3" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -15945,6 +15880,7 @@ export class Api<
           client?:
             | 'mysql'
             | 'mysql2'
+            | 'mssql'
             | 'pg'
             | 'snowflake'
             | 'sqlite3'

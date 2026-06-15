@@ -1,33 +1,36 @@
 /**
- * installInternalApiBatch — coalesce calls to `$api.internal.{get,post}Operation`
- * into a single backend `batch` envelope.
+ * installInternalApiBatch — coalesce a curated set of `$api.internal.*`
+ * calls into a single backend `batch` envelope.
  *
  * Page-load traces show the same (workspaceId, baseId) target receiving
- * 5-16 sequential internal-API requests in tight windows (dashboard
- * widgets, view metadata, view tabs). Each one re-runs auth + context
- * resolution server-side; in aggregate that dominated LCP. Bundling them
- * into one HTTP request collapses that overhead.
+ * 5-16 sequential internal-API requests for view-metadata reads and
+ * dashboard widgets. Each one re-runs auth + context resolution
+ * server-side; in aggregate that dominated LCP. Bundling them into one
+ * HTTP request collapses that overhead.
  *
- * This installer monkey-patches `api.internal.getOperation` and
- * `api.internal.postOperation` on the SDK instance so **every existing
- * call site** is batched transparently — no migration work in the rest
- * of the codebase. Two opt-outs to keep behaviour safe:
+ * Scope: only the operations listed in `BATCHABLE_OPERATIONS` below are
+ * routed through the batcher. Everything else goes straight to the
+ * original SDK method. The list is intentionally narrow — read-only,
+ * view-mount / dashboard-mount side-effect calls that fire as a fan-out
+ * on the same page render. Writes, mutations, navigation-critical
+ * reads, and large-response operations are deliberately excluded so
+ * batching never adds latency to those paths.
  *
- *  1. **Custom axios config** — if a caller passes a 4th/5th argument
- *     (RequestParams: custom headers, AbortSignal, response type, etc.)
- *     we can't faithfully reflect it inside the batch envelope, so the
- *     call short-circuits to the original SDK method.
- *  2. **The `batch` envelope itself** — the batcher uses
- *     `originalPost(..., {operation:'batch'}, ...)` to send the bundle.
- *     Wrapping that would loop, so we detect `operation === 'batch'`
- *     and bypass the wrapper.
+ * Two automatic bypass conditions apply even for allowlisted ops:
+ *   1. **Custom axios config** — if a caller passes a trailing
+ *      RequestParams (custom headers, AbortSignal, response type, etc.)
+ *      we can't reflect those inside the envelope, so the call falls
+ *      through to the original SDK method.
+ *   2. **The `batch` envelope itself** — the batcher uses
+ *      `originalPost(..., {operation:'batch'}, ...)` to ship the bundle.
+ *      Detected and bypassed to avoid an infinite loop.
  *
- * Sites that need *immediate* dispatch for UX reasons (e.g. navigation
- * clicks where the ~50ms debounce is visible, or one-off calls with
- * large responses) can opt out by passing any RequestParams object as
- * the trailing axios-config arg — even `{}` is enough to trigger the
- * fast path.
+ * Adding more ops later: append to `BATCHABLE_OPERATIONS`. Each entry
+ * should be a read operation that (a) frequently fires alongside its
+ * siblings within ~50ms, (b) returns a small payload, and (c) doesn't
+ * gate first-paint UX.
  */
+
 
 // Leading-edge debounce: the timer starts on the first queued call and
 // flushes after this window, regardless of how many more calls arrive.
@@ -38,6 +41,44 @@
 const FLUSH_WINDOW_MS = 50
 
 const MAX_BATCH_SIZE = 25 // mirrors BATCH_MAX_SIZE on the backend
+
+/**
+ * Operations the wrapper coalesces into a `batch` envelope. Every other
+ * `$api.internal.*` call passes through to the original SDK method.
+ *
+ * Keep this list narrow: read-only, view-mount / dashboard-mount
+ * side-effect fetches that fire as a fan-out within one render. Don't
+ * add writes, mutations, or anything UX-critical here — the ~50ms
+ * debounce window would add visible latency to those.
+ */
+const BATCHABLE_OPERATIONS = new Set<string>([
+  // View metadata fan-out (5+ calls on every view mount)
+  'viewColumnList',
+  'filterList',
+  'filterChildrenList',
+  'sortList',
+  'viewRowColorInfo',
+  'viewList',
+
+  // Sibling filter lists fired alongside the above
+  'buttonFilterList',
+  'linkFilterList',
+  'widgetFilterList',
+  'hookFilterList',
+
+  // View-type detail reads (gallery/kanban/etc fire one of these on mount)
+  'formViewGet',
+  'galleryViewGet',
+  'kanbanViewGet',
+  'mapViewGet',
+  'calendarViewGet',
+  'timelineViewGet',
+
+  // Dashboard widgets fan-out (16+ calls on dashboard mount)
+  'widgetDataGet',
+  'widgetList',
+  'widgetGet',
+])
 
 interface SubOp {
   operation: string
@@ -174,21 +215,54 @@ export function installInternalApiBatch(api: any): void {
     return b
   }
 
+  /**
+   * Decide whether a single call should be queued into a batch. Three
+   * inputs feed in:
+   *   • the operation name (matched against the allowlist),
+   *   • the explicit `_batch` marker on `params` — `true` forces batching
+   *     of a non-allowlisted op, `false` forces an immediate call for
+   *     an allowlisted op,
+   *   • the trailing axios-config arg — if present, always immediate
+   *     because the envelope can't carry it faithfully.
+   */
+  function shouldBatch(
+    workspaceId: string,
+    baseId: string,
+    params: { operation?: string; _batch?: boolean } | null | undefined,
+    requestParams: any,
+  ): boolean {
+    if (!workspaceId || !baseId) return false
+    if (requestParams) return false
+    if (!params?.operation) return false
+    if (params.operation === 'batch') return false
+    if (params._batch === false) return false // explicit opt-out
+    if (params._batch === true) return true // explicit opt-in
+    return BATCHABLE_OPERATIONS.has(params.operation)
+  }
+
+  // The `_batch` marker is a client-side hint — strip it before the
+  // request leaves so the backend doesn't see `_batch=true` in its
+  // query/body.
+  function stripBatchMarker<T extends Record<string, any>>(p: T): T {
+    if (p && '_batch' in p) {
+      const { _batch: _, ...rest } = p
+      return rest as T
+    }
+    return p
+  }
+
   api.internal.getOperation = function batchedGet(
     workspaceId: string,
     baseId: string,
     params: { operation: string; [k: string]: any },
     requestParams?: any,
   ) {
-    if (
-      requestParams || // caller passed axios config — can't batch
-      !workspaceId ||
-      !baseId ||
-      params?.operation === 'batch' // never re-wrap the envelope
-    ) {
-      return originalGet(workspaceId, baseId, params, requestParams)
+    const queued = shouldBatch(workspaceId, baseId, params, requestParams)
+    const clean = stripBatchMarker(params)
+    if (!queued) {
+      return originalGet(workspaceId, baseId, clean, requestParams)
     }
-    const { operation, ...query } = params
+    const { operation, ...query } = clean
     return getBatcher(workspaceId, baseId).call({ operation, query })
   }
 
@@ -199,15 +273,12 @@ export function installInternalApiBatch(api: any): void {
     data?: any,
     requestParams?: any,
   ) {
-    if (
-      requestParams ||
-      !workspaceId ||
-      !baseId ||
-      params?.operation === 'batch'
-    ) {
-      return originalPost(workspaceId, baseId, params, data, requestParams)
+    const queued = shouldBatch(workspaceId, baseId, params, requestParams)
+    const clean = stripBatchMarker(params)
+    if (!queued) {
+      return originalPost(workspaceId, baseId, clean, data, requestParams)
     }
-    const { operation, ...query } = params
+    const { operation, ...query } = clean
     return getBatcher(workspaceId, baseId).call({
       operation,
       query,

@@ -26,7 +26,14 @@
  *     wait for the surrounding batch.
  */
 
-const FLUSH_WINDOW_MS = 8 // matches Vue's mount-tick burst window
+// Leading-edge debounce: the timer starts on the first queued call and
+// flushes after this window, regardless of how many more calls arrive.
+// Long enough to catch fan-outs that span multiple Vue effect ticks,
+// async `await until(...)` hops in composables, and the gap between
+// sibling components mounting on the same page — short enough that
+// single-request flows (clicks, navigation) don't feel laggy.
+const FLUSH_WINDOW_MS = 50
+
 const MAX_BATCH_SIZE = 25 // mirrors BATCH_MAX_SIZE on the backend
 
 interface SubOp {

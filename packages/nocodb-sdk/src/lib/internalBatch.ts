@@ -50,12 +50,12 @@ export const BATCHABLE_INTERNAL_OPERATIONS: ReadonlySet<string> = new Set([
   'hookFilterList',
   'rlsPolicyFilterList',
 
-  // View-type detail reads — one of these fires on view mount
+  // View-type detail reads — one of these fires on view mount.
+  // Gallery/Kanban/Calendar live in their own REST controllers
+  // (controllers/galleries.controller.ts etc.) and aren't reachable via
+  // the internal API, so only Form / Map / Timeline appear here.
   'formViewGet',
-  'galleryViewGet',
-  'kanbanViewGet',
   'mapViewGet',
-  'calendarViewGet',
   'timelineViewGet',
 
   // Dashboard widgets fan-out (16+ calls on dashboard mount)

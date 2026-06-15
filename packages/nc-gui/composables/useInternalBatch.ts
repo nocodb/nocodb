@@ -59,12 +59,16 @@ const BATCHABLE_OPERATIONS = new Set<string>([
   'sortList',
   'viewRowColorInfo',
   'viewList',
+  'viewSectionList', // fires alongside the view metadata cluster
 
-  // Sibling filter lists fired alongside the above
+  // Sibling filter lists fired alongside the above. Each renders a
+  // different scope of filters (column-button, link, widget, hook, RLS
+  // policy) but all are read-only fan-out reads.
   'buttonFilterList',
   'linkFilterList',
   'widgetFilterList',
   'hookFilterList',
+  'rlsPolicyFilterList',
 
   // View-type detail reads (gallery/kanban/etc fire one of these on mount)
   'formViewGet',
@@ -78,6 +82,27 @@ const BATCHABLE_OPERATIONS = new Set<string>([
   'widgetDataGet',
   'widgetList',
   'widgetGet',
+  'dashboardGet', // sibling read on dashboard mount
+
+  // Per-row reads that fan out across a visible viewport
+  //   - commentCount: useInfiniteData fires one per row that needs a
+  //     comment-count badge; commonly 25-50 in flight on view scroll
+  //   - recordAuditList: row-detail panel; small fan-out but cheap
+  'commentCount',
+  'recordAuditList',
+
+  // Schema-hash polling — useGridViewData, useMultiSelect, Fields.vue,
+  // useCopyPaste, usePredictFields all poll this independently to detect
+  // schema drift. Payload is a single hash string; perfect to coalesce.
+  'columnsHash',
+
+  // Aggregate fan-out: dataAggregate fires once per field with an
+  // aggregation configured on grid views. Excluded `bulkAggregate`
+  // intentionally — its response can be large enough to balloon a batch.
+  'dataAggregate',
+
+  // Base-load reads that frequently coincide
+  'baseVariableList',
 ])
 
 interface SubOp {

@@ -346,11 +346,10 @@ export function useViewFilters(
       // Check if the filter is a group
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
-        const childFilterPromise = $api.internal
-          .getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
-            operation: 'filterChildrenList',
-            filterId: filter.id,
-          })
+        const childFilterPromise = internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
+          operation: 'filterChildrenList',
+          filterId: filter.id,
+        })
           .then((response) => {
             const childFilters = (response.list as ColumnFilterType[]).sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
             allChildFilters.push(...childFilters)

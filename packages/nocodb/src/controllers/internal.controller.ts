@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
+import { INTERNAL_BATCH_MAX_SIZE, NcContext, NcRequest } from 'nocodb-sdk';
 import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -270,8 +270,8 @@ export class InternalController {
     if (!Array.isArray(ops) || ops.length === 0) {
       NcError.badRequest('`operations` array is required');
     }
-    if (ops.length > BATCH_MAX_SIZE) {
-      NcError.badRequest(`Batch too large (max ${BATCH_MAX_SIZE} operations)`);
+    if (ops.length > INTERNAL_BATCH_MAX_SIZE) {
+      NcError.badRequest(`Batch too large (max ${INTERNAL_BATCH_MAX_SIZE} operations)`);
     }
 
     for (const op of ops) {
@@ -357,14 +357,6 @@ export class InternalController {
     });
   }
 }
-
-/**
- * Public batch envelope cap. Keep this small enough that one slow sub-op
- * can't hold the others hostage for too long, and large enough that the
- * common page-load case (dashboards with ~16 widgets, view metadata with
- * ~5 ops) fits in a single round-trip.
- */
-const BATCH_MAX_SIZE = 25;
 
 interface BatchSubOp {
   operation: string;

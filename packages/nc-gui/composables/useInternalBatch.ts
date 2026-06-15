@@ -1,36 +1,29 @@
 /**
- * installInternalApiBatch — coalesce a curated set of `$api.internal.*`
- * calls into a single backend `batch` envelope.
+ * useInternalBatch — explicit helpers that coalesce internal-API calls
+ * into a single backend `batch` envelope.
  *
- * Page-load traces show the same (workspaceId, baseId) target receiving
- * 5-16 sequential internal-API requests for view-metadata reads and
- * dashboard widgets. Each one re-runs auth + context resolution
- * server-side; in aggregate that dominated LCP. Bundling them into one
- * HTTP request collapses that overhead.
+ *   const { internalGet, internalPost } = useInternalBatch()
+ *   const cols = await internalGet(ws, base, { operation: 'viewColumnList', viewId })
+ *   const res  = await internalPost(ws, base, { operation: 'columnAdd', tableId }, payload)
  *
- * Scope: only the operations listed in `BATCHABLE_OPERATIONS` below are
- * routed through the batcher. Everything else goes straight to the
- * original SDK method. The list is intentionally narrow — read-only,
- * view-mount / dashboard-mount side-effect calls that fire as a fan-out
- * on the same page render. Writes, mutations, navigation-critical
- * reads, and large-response operations are deliberately excluded so
- * batching never adds latency to those paths.
+ * Callers explicitly route through these helpers when they want
+ * batching — no SDK monkey-patching, no implicit interception of every
+ * `$api.internal.*` call. Behaviour:
  *
- * Two automatic bypass conditions apply even for allowlisted ops:
- *   1. **Custom axios config** — if a caller passes a trailing
- *      RequestParams (custom headers, AbortSignal, response type, etc.)
- *      we can't reflect those inside the envelope, so the call falls
- *      through to the original SDK method.
- *   2. **The `batch` envelope itself** — the batcher uses
- *      `originalPost(..., {operation:'batch'}, ...)` to ship the bundle.
- *      Detected and bypassed to avoid an infinite loop.
- *
- * Adding more ops later: append to `BATCHABLE_OPERATIONS`. Each entry
- * should be a read operation that (a) frequently fires alongside its
- * siblings within ~50ms, (b) returns a small payload, and (c) doesn't
- * gate first-paint UX.
+ *   • If `operation` is in `BATCHABLE_INTERNAL_OPERATIONS` (defined in
+ *     nocodb-sdk so both ends stay in sync), the call is queued into a
+ *     per-(workspaceId, baseId) batcher with a ~50ms leading-edge
+ *     debounce. Up to `INTERNAL_BATCH_MAX_SIZE` ops per envelope.
+ *   • Otherwise the call falls through to the original SDK method.
+ *   • Pass `_batch: true` on `params` to force-batch a non-allowlisted
+ *     op; `_batch: false` to force-immediate for an allowlisted one.
+ *     The marker is stripped before the request leaves.
+ *   • Pass a trailing axios `RequestParams` (custom headers,
+ *     AbortSignal, response type, etc.) to bypass batching — the
+ *     envelope can't carry those faithfully.
  */
 
+import { BATCHABLE_INTERNAL_OPERATIONS, INTERNAL_BATCH_MAX_SIZE } from 'nocodb-sdk'
 
 // Leading-edge debounce: the timer starts on the first queued call and
 // flushes after this window, regardless of how many more calls arrive.
@@ -39,71 +32,6 @@
 // sibling components mounting on the same page — short enough that
 // single-request flows (clicks, navigation) don't feel laggy.
 const FLUSH_WINDOW_MS = 50
-
-const MAX_BATCH_SIZE = 25 // mirrors BATCH_MAX_SIZE on the backend
-
-/**
- * Operations the wrapper coalesces into a `batch` envelope. Every other
- * `$api.internal.*` call passes through to the original SDK method.
- *
- * Keep this list narrow: read-only, view-mount / dashboard-mount
- * side-effect fetches that fire as a fan-out within one render. Don't
- * add writes, mutations, or anything UX-critical here — the ~50ms
- * debounce window would add visible latency to those.
- */
-const BATCHABLE_OPERATIONS = new Set<string>([
-  // View metadata fan-out (5+ calls on every view mount)
-  'viewColumnList',
-  'filterList',
-  'filterChildrenList',
-  'sortList',
-  'viewRowColorInfo',
-  'viewList',
-  'viewSectionList', // fires alongside the view metadata cluster
-
-  // Sibling filter lists fired alongside the above. Each renders a
-  // different scope of filters (column-button, link, widget, hook, RLS
-  // policy) but all are read-only fan-out reads.
-  'buttonFilterList',
-  'linkFilterList',
-  'widgetFilterList',
-  'hookFilterList',
-  'rlsPolicyFilterList',
-
-  // View-type detail reads (gallery/kanban/etc fire one of these on mount)
-  'formViewGet',
-  'galleryViewGet',
-  'kanbanViewGet',
-  'mapViewGet',
-  'calendarViewGet',
-  'timelineViewGet',
-
-  // Dashboard widgets fan-out (16+ calls on dashboard mount)
-  'widgetDataGet',
-  'widgetList',
-  'widgetGet',
-  'dashboardGet', // sibling read on dashboard mount
-
-  // Per-row reads that fan out across a visible viewport
-  //   - commentCount: useInfiniteData fires one per row that needs a
-  //     comment-count badge; commonly 25-50 in flight on view scroll
-  //   - recordAuditList: row-detail panel; small fan-out but cheap
-  'commentCount',
-  'recordAuditList',
-
-  // Schema-hash polling — useGridViewData, useMultiSelect, Fields.vue,
-  // useCopyPaste, usePredictFields all poll this independently to detect
-  // schema drift. Payload is a single hash string; perfect to coalesce.
-  'columnsHash',
-
-  // Aggregate fan-out: dataAggregate fires once per field with an
-  // aggregation configured on grid views. Excluded `bulkAggregate`
-  // intentionally — its response can be large enough to balloon a batch.
-  'dataAggregate',
-
-  // Base-load reads that frequently coincide
-  'baseVariableList',
-])
 
 interface SubOp {
   operation: string
@@ -133,7 +61,7 @@ class Batcher {
     return new Promise((resolve, reject) => {
       this.queue.push({ op, resolve, reject })
 
-      if (this.queue.length >= MAX_BATCH_SIZE) {
+      if (this.queue.length >= INTERNAL_BATCH_MAX_SIZE) {
         // Flush synchronously on cap — don't wait for the debounce window.
         this.flush().catch(() => {
           /* per-call rejections already dispatched */
@@ -188,8 +116,9 @@ class Batcher {
       if (r && r.status >= 200 && r.status < 300) {
         b.resolve(r.data)
       } else {
-        // Mimic the shape the SDK produces for individual failed calls so
-        // existing `extractSdkResponseErrorMsg(e)` call sites still work.
+        // Mimic the shape the SDK produces for individual failed calls
+        // so existing `extractSdkResponseErrorMsg(e)` call sites still
+        // work.
         const err: any = new Error(r?.error?.message ?? 'Internal error')
         err.response = {
           status: r?.status ?? 500,
@@ -202,112 +131,104 @@ class Batcher {
   }
 }
 
-/**
- * Install the batcher onto an SDK `Api` instance. Called once from the
- * api plugin. Safe to call repeatedly — guarded by a marker so we don't
- * double-wrap.
- */
-export function installInternalApiBatch(api: any): void {
-  if (!api?.internal?.getOperation || !api?.internal?.postOperation) return
-  if (api.internal.__nc_batched__) return
-  api.internal.__nc_batched__ = true
+// One batcher per (workspaceId, baseId, $api instance). Cross-target
+// requests can't be merged because the URL itself encodes ws and base.
+const batchers = new WeakMap<object, Map<string, Batcher>>()
 
-  const originalGet = api.internal.getOperation.bind(api.internal)
-  const originalPost = api.internal.postOperation.bind(api.internal)
-
-  // One batcher per (workspaceId, baseId). Cross-target requests can't be
-  // merged because the URL itself encodes both — keyed map keeps them apart.
-  const batchers = new Map<string, Batcher>()
-
-  function getBatcher(workspaceId: string, baseId: string): Batcher {
-    const key = `${workspaceId}::${baseId}`
-    let b = batchers.get(key)
-    if (!b) {
-      b = new Batcher(async (ops) => {
-        // Important: use the ORIGINAL post, not the wrapped one. Sending
-        // the batch envelope through the wrapper would re-queue it into
-        // a new batch and loop indefinitely.
-        const res: any = await originalPost(
-          workspaceId,
-          baseId,
-          { operation: 'batch' as any },
-          { operations: ops } as any,
-        )
-        return (res?.results as BatchResult[]) ?? []
-      })
-      batchers.set(key, b)
-    }
-    return b
+function getBatcher(api: any, workspaceId: string, baseId: string): Batcher {
+  let perApi = batchers.get(api)
+  if (!perApi) {
+    perApi = new Map()
+    batchers.set(api, perApi)
   }
+  const key = `${workspaceId}::${baseId}`
+  let b = perApi.get(key)
+  if (!b) {
+    b = new Batcher(async (ops) => {
+      const res: any = await api.internal.postOperation(
+        workspaceId,
+        baseId,
+        { operation: 'batch' as any },
+        { operations: ops } as any,
+      )
+      return (res?.results as BatchResult[]) ?? []
+    })
+    perApi.set(key, b)
+  }
+  return b
+}
 
-  /**
-   * Decide whether a single call should be queued into a batch. Three
-   * inputs feed in:
-   *   • the operation name (matched against the allowlist),
-   *   • the explicit `_batch` marker on `params` — `true` forces batching
-   *     of a non-allowlisted op, `false` forces an immediate call for
-   *     an allowlisted op,
-   *   • the trailing axios-config arg — if present, always immediate
-   *     because the envelope can't carry it faithfully.
-   */
-  function shouldBatch(
+function shouldBatch(
+  workspaceId: string | undefined | null,
+  baseId: string | undefined | null,
+  params: { operation?: string; _batch?: boolean } | null | undefined,
+  requestParams: any,
+): boolean {
+  if (!workspaceId || !baseId) return false
+  if (requestParams) return false
+  if (!params?.operation) return false
+  if (params.operation === 'batch') return false
+  if (params._batch === false) return false
+  if (params._batch === true) return true
+  return BATCHABLE_INTERNAL_OPERATIONS.has(params.operation)
+}
+
+function stripBatchMarker<T extends Record<string, any>>(p: T): T {
+  if (p && '_batch' in p) {
+    const { _batch: _, ...rest } = p
+    return rest as T
+  }
+  return p
+}
+
+export function useInternalBatch() {
+  const { $api } = useNuxtApp()
+
+  function internalGet<T = any>(
     workspaceId: string,
     baseId: string,
-    params: { operation?: string; _batch?: boolean } | null | undefined,
-    requestParams: any,
-  ): boolean {
-    if (!workspaceId || !baseId) return false
-    if (requestParams) return false
-    if (!params?.operation) return false
-    if (params.operation === 'batch') return false
-    if (params._batch === false) return false // explicit opt-out
-    if (params._batch === true) return true // explicit opt-in
-    return BATCHABLE_OPERATIONS.has(params.operation)
-  }
-
-  // The `_batch` marker is a client-side hint — strip it before the
-  // request leaves so the backend doesn't see `_batch=true` in its
-  // query/body.
-  function stripBatchMarker<T extends Record<string, any>>(p: T): T {
-    if (p && '_batch' in p) {
-      const { _batch: _, ...rest } = p
-      return rest as T
-    }
-    return p
-  }
-
-  api.internal.getOperation = function batchedGet(
-    workspaceId: string,
-    baseId: string,
-    params: { operation: string; [k: string]: any },
+    params: { operation: string; _batch?: boolean; [k: string]: any },
     requestParams?: any,
-  ) {
+  ): Promise<T> {
     const queued = shouldBatch(workspaceId, baseId, params, requestParams)
     const clean = stripBatchMarker(params)
     if (!queued) {
-      return originalGet(workspaceId, baseId, clean, requestParams)
+      return $api.internal.getOperation(
+        workspaceId,
+        baseId,
+        clean as any,
+        requestParams,
+      ) as Promise<T>
     }
     const { operation, ...query } = clean
-    return getBatcher(workspaceId, baseId).call({ operation, query })
+    return getBatcher($api, workspaceId, baseId).call({ operation, query })
   }
 
-  api.internal.postOperation = function batchedPost(
+  function internalPost<T = any>(
     workspaceId: string,
     baseId: string,
-    params: { operation: string; [k: string]: any },
+    params: { operation: string; _batch?: boolean; [k: string]: any },
     data?: any,
     requestParams?: any,
-  ) {
+  ): Promise<T> {
     const queued = shouldBatch(workspaceId, baseId, params, requestParams)
     const clean = stripBatchMarker(params)
     if (!queued) {
-      return originalPost(workspaceId, baseId, clean, data, requestParams)
+      return $api.internal.postOperation(
+        workspaceId,
+        baseId,
+        clean as any,
+        data,
+        requestParams,
+      ) as Promise<T>
     }
     const { operation, ...query } = clean
-    return getBatcher(workspaceId, baseId).call({
+    return getBatcher($api, workspaceId, baseId).call({
       operation,
       query,
       payload: data,
     })
   }
+
+  return { internalGet, internalPost }
 }

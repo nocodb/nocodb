@@ -35,6 +35,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { $api, $e, $eventBus } = useNuxtApp()
 
+    // Coalesce the on-mount view-metadata reads (viewColumnList et al.)
+    // into a single `batch` envelope — view-init used to fire 5+ separate
+    // HTTP requests.
+    const { internalGet } = useInternalBatch()
+
     const { getMeta: _getMeta, getMetaByKey: _getMetaByKey } = useMetas()
 
     const { t } = useI18n()
@@ -114,7 +119,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         ((isPublic
           ? meta.value?.columns
           : (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await internalGet(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
                 operation: 'viewColumnList',
                 viewId: view.value.id,
               })

@@ -1,6 +1,7 @@
 export * from '~/lib/XcUIBuilder';
 export * from '~/lib/XcNotification';
 export * from '~/lib/Api';
+export * from '~/lib/internalBatch';
 export * from '~/lib/timelineTypes';
 export * from '~/lib/ganttTypes';
 export * from '~/lib/columnRules';

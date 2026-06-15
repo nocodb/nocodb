@@ -7,6 +7,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { isSharedBase } = storeToRefs(useBase())
 
   const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
@@ -39,7 +41,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       if (!view?.value || !meta.value) return
 
       sorts.value = (
-        await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+        await internalGet(meta.value.fk_workspace_id!, meta.value.base_id!, {
           operation: 'sortList',
           viewId: view.value!.id!,
         })

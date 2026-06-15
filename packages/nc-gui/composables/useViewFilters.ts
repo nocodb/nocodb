@@ -71,6 +71,10 @@ export function useViewFilters(
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
+  // Coalesce the on-mount filter reads (filterList, filterChildrenList,
+  // hook/link/button/widget/rls filter lists) into one `batch` envelope.
+  const { internalGet } = useInternalBatch()
+
   const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
 
   const { getMeta, getMetaByKey } = useMetas()
@@ -406,14 +410,14 @@ export function useViewFilters(
       if (rlsPolicyId) {
         if (parentId.value) {
           filters.value = (
-            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+            await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'filterChildrenList',
               filterId: parentId.value,
             })
           ).list as ColumnFilterType[]
         } else if (!isNestedRoot) {
           filters.value = (
-            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+            await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'rlsPolicyFilterList',
               rlsPolicyId,
             })
@@ -422,14 +426,14 @@ export function useViewFilters(
       } else if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (
-            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+            await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'filterChildrenList',
               filterId: parentId.value,
             })
           ).list as ColumnFilterType[]
         } else if (hookId && !isNestedRoot) {
           filters.value = (
-            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+            await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'hookFilterList',
               hookId,
             })
@@ -439,14 +443,14 @@ export function useViewFilters(
         if (isLink || linkColId?.value) {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
           } else if (linkColId?.value && !isNestedRoot) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'linkFilterList',
                 columnId: linkColId.value,
               })
@@ -455,14 +459,14 @@ export function useViewFilters(
         } else if (isButton || buttonColId?.value) {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
           } else if (buttonColId?.value && !isNestedRoot) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'buttonFilterList',
                 buttonColId: buttonColId.value,
               })
@@ -471,14 +475,14 @@ export function useViewFilters(
         } else if (isWidget || widgetId) {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
           } else if (widgetId && !isNestedRoot) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'widgetFilterList',
                 widgetId,
               })
@@ -487,7 +491,7 @@ export function useViewFilters(
         } else {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
@@ -498,7 +502,7 @@ export function useViewFilters(
             }
 
             filters.value = (
-              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              await internalGet(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterList',
                 viewId: view.value!.id!,
               })

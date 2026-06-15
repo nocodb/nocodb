@@ -91,13 +91,8 @@ const baseDevConfig = {
     }),
     new TsCheckerRspackPlugin({
       typescript: {
+        tsgo: true,
         configFile: resolve('tsconfig.json'),
-        mode: 'write-tsbuildinfo',
-        configOverwrite: {
-          compilerOptions: {
-            tsBuildInfoFile: resolve('node_modules/.cache/ce.tsbuildinfo'),
-          },
-        },
       },
     }),
   ],
@@ -111,10 +106,6 @@ const baseDevConfig = {
       type: 'commonjs2',
     },
     clean: true,
-  },
-  devServer: {
-    // Uncomment the below line when enabling HMR
-    //  hot: true,
   },
   cache: true,
   watch: true,

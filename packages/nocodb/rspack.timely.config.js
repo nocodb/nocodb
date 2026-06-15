@@ -81,8 +81,10 @@ module.exports = {
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'docker'),
-    library: 'libs',
-    libraryTarget: 'umd',
+    library: {
+      name: 'libs',
+      type: 'umd',
+    },
     globalObject: "typeof self !== 'undefined' ? self : this",
   },
   node: {

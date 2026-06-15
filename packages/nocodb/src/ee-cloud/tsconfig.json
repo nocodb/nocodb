@@ -3,26 +3,25 @@
   "compilerOptions": {
     "outDir": "../../dist",
     "rootDir": "../../src",
-    "baseUrl": "../../",
     "paths": {
       "src/*": [
-        "./src/*"
+        "../../src/*"
       ],
       "~/*": [
-        "./src/ee-cloud/*",
-        "./src/ee/*",
-        "./src/*"
+        "../../src/ee-cloud/*",
+        "../../src/ee/*",
+        "../../src/*"
       ],
       "@/*": [
-        "./src/ee-cloud/*",
-        "./src/ee/*",
-        "./src/*"
+        "../../src/ee-cloud/*",
+        "../../src/ee/*",
+        "../../src/*"
       ],
       "@noco-local-integrations/*": [
-        "../noco-integrations/packages/*"
+        "../../../noco-integrations/packages/*"
       ],
       "@noco-local-integrations/core": [
-        "../noco-integrations/core"
+        "../../../noco-integrations/core"
       ]
     }
   },

@@ -14,13 +14,8 @@ module.exports = {
     ...baseConfig.plugins.slice(0, -1),
     new TsCheckerRspackPlugin({
       typescript: {
+        tsgo: true,
         configFile: join('tsconfig.json'),
-        mode: 'write-tsbuildinfo',
-        configOverwrite: {
-          compilerOptions: {
-            tsBuildInfoFile: resolve('node_modules/.cache/ce.tsbuildinfo'),
-          },
-        },
       },
     }),
   ],

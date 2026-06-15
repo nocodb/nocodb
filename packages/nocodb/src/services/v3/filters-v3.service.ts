@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type {
+  FilterCreateUpdateV3Type,
   FilterCreateV3Type,
   FilterGroupV3Type,
   FilterReqType,
@@ -107,7 +108,7 @@ export class FiltersV3Service {
       | { hookId: string }
       | { linkColumnId: string }
       | { rowColorConditionId: string };
-    groupOrFilter: FilterCreateV3Type;
+    groupOrFilter: FilterCreateV3Type | FilterCreateUpdateV3Type;
     parentId?: string | null;
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;

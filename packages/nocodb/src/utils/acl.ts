@@ -317,6 +317,9 @@ const permissionScopes = {
     'baseIntegrationUpdate',
     'baseIntegrationLink',
     'baseIntegrationUnlink',
+
+    // Generic batch envelope (per-sub-op ACL runs inside the handler).
+    'batch',
   ],
 };
 
@@ -429,6 +432,10 @@ const rolePermissions:
   // ── Base roles (unchanged) ──
   [ProjectRoles.VIEWER]: {
     include: {
+      // batch envelope — per-sub-op ACL is enforced inside the handler,
+      // so the envelope itself is granted to everyone with base access.
+      batch: true,
+
       formViewGet: true,
       // base
       baseGet: true,
@@ -902,6 +909,8 @@ const permissionDescriptions: Record<string, string> = {
   baseIntegrationUpdate: 'update an integration from a base',
   baseIntegrationLink: 'link an integration to a base',
   baseIntegrationUnlink: 'unlink an integration from a base',
+
+  batch: 'bundle multiple internal-API operations into a single request',
 
   // base permissions
   formViewGet: 'view forms',

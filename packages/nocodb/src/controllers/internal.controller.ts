@@ -214,6 +214,16 @@ export class InternalController {
   ): InternalPOSTResponseType {
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
+    if (operation === 'batch') {
+      return this.handleBatch(
+        context,
+        workspaceId,
+        baseId,
+        payload,
+        req,
+      ) as InternalPOSTResponseType;
+    }
+
     const module = this.internalApiModuleMap['POST'][operation];
 
     if (module) {
@@ -227,4 +237,136 @@ export class InternalController {
     }
     return NcError.notFound('Operation');
   }
+
+  /**
+   * Generic batch envelope — runs many internal-API operations as a single
+   * HTTP request. The envelope itself passes one outer ACL check (the
+   * `batch` permission, granted to every base member). Each sub-op then
+   * re-enters `checkAcl` with its own operation name so authorization is
+   * enforced on a per-op basis. Sub-ops run concurrently via
+   * `Promise.allSettled`, so one failure doesn't poison the rest of the
+   * batch — failed entries surface as `{ status, error }` in the response.
+   *
+   * Response is an array in the same order as the input `operations`
+   * array. Position-indexed mapping is simpler on both sides (no id
+   * generation, smaller payload) and matches how the frontend batcher
+   * tracks pending promises.
+   */
+  protected async handleBatch(
+    context: NcContext,
+    workspaceId: string,
+    baseId: string,
+    payload: { operations?: BatchSubOp[] } | null | undefined,
+    req: NcRequest,
+  ): Promise<{ results: BatchSubOpResult[] }> {
+    const ops = payload?.operations;
+    if (!Array.isArray(ops) || ops.length === 0) {
+      NcError.badRequest('`operations` array is required');
+    }
+    if (ops.length > BATCH_MAX_SIZE) {
+      NcError.badRequest(`Batch too large (max ${BATCH_MAX_SIZE} operations)`);
+    }
+
+    for (const op of ops) {
+      if (!op || typeof op !== 'object') {
+        NcError.badRequest('Each batched operation must be an object');
+      }
+      if (!op.operation || typeof op.operation !== 'string') {
+        NcError.badRequest(
+          'Each batched operation must have a string `operation`',
+        );
+      }
+      // No recursive batching — keeps the failure model and timing simple.
+      if (op.operation === 'batch') {
+        NcError.badRequest('Nested batch is not allowed');
+      }
+    }
+
+    const settled = await Promise.allSettled(
+      ops.map((op) => this.runBatchedOp(context, workspaceId, baseId, op, req)),
+    );
+
+    const results: BatchSubOpResult[] = settled.map((r) => {
+      if (r.status === 'fulfilled') {
+        return { status: 200, data: r.value ?? null };
+      }
+      const err = r.reason ?? {};
+      return {
+        status: typeof err.code === 'number' ? err.code : 500,
+        error: {
+          message: err.message ?? 'Internal error',
+          ...(err.error ? { error: err.error } : {}),
+        },
+      };
+    });
+
+    return { results };
+  }
+
+  /**
+   * Run a single sub-op as if it were an independent request. We don't
+   * mutate the incoming `req` — sub-ops execute concurrently, so each one
+   * gets a thin clone with the sub-op's `query`/`body` merged in. The
+   * original `req`'s prototype, headers, user, context, etc. flow through
+   * unchanged.
+   */
+  protected async runBatchedOp(
+    context: NcContext,
+    workspaceId: string,
+    baseId: string,
+    subOp: BatchSubOp,
+    req: NcRequest,
+  ): Promise<any> {
+    const operation = subOp.operation as keyof typeof OPERATION_SCOPES;
+    const scope = OPERATION_SCOPES[operation];
+    if (!scope) {
+      NcError.notFound(`Unknown internal operation "${operation}"`);
+    }
+
+    // Object.create keeps the Express request prototype + own props intact;
+    // we only shadow `query` / `body` for the sub-op.
+    const subReq: NcRequest = Object.create(req);
+    subReq.query = { ...(req.query ?? {}), ...(subOp.query ?? {}), operation };
+    subReq.body = subOp.payload ?? {};
+
+    // Per-sub-op authorization. `this.checkAcl` is overridable in EE so
+    // license checks etc. layer on automatically through prototype dispatch.
+    await this.checkAcl(operation, subReq, scope);
+
+    const module =
+      this.internalApiModuleMap['POST']?.[operation] ??
+      this.internalApiModuleMap['GET']?.[operation];
+
+    if (!module) {
+      NcError.notFound(`Operation "${operation}" not registered`);
+    }
+
+    return module.handle(context, {
+      workspaceId,
+      baseId,
+      operation,
+      payload: subOp.payload,
+      req: subReq,
+    });
+  }
+}
+
+/**
+ * Public batch envelope cap. Keep this small enough that one slow sub-op
+ * can't hold the others hostage for too long, and large enough that the
+ * common page-load case (dashboards with ~16 widgets, view metadata with
+ * ~5 ops) fits in a single round-trip.
+ */
+const BATCH_MAX_SIZE = 25;
+
+interface BatchSubOp {
+  operation: string;
+  query?: Record<string, any>;
+  payload?: any;
+}
+
+interface BatchSubOpResult {
+  status: number;
+  data?: any;
+  error?: { message: string; error?: string };
 }

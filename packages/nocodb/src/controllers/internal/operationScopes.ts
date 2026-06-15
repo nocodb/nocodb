@@ -197,4 +197,11 @@ export const OPERATION_SCOPES = {
   // Workspace integration link management
   integrationLinkedBaseList: 'workspace',
   integrationUpdateLinkedBases: 'workspace',
+
+  // Generic batch envelope — bundles multiple internal-API operations into
+  // a single request. Each sub-op re-enters checkAcl with its own operation
+  // name, so authorization is enforced per sub-op rather than at the
+  // envelope level. The envelope itself is base-scoped so it inherits the
+  // same workspace/base context resolution as the sub-ops it carries.
+  batch: 'base',
 } as const;

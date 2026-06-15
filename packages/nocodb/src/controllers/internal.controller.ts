@@ -212,8 +212,13 @@ export class InternalController {
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
-    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
-
+    // batch carries sub-ops with their own scopes — base, workspace,
+    // org — including workspace-scope routes with the `baseId='nc'`
+    // sentinel. Enforcing a single fixed scope on the envelope itself
+    // rejects valid mixed-scope batches, so short-circuit before
+    // checkAcl. The per-sub-op `checkAcl` call inside handleBatch is the
+    // real authorization gate; authentication is already enforced by
+    // GlobalGuard above this controller.
     if (operation === 'batch') {
       return this.handleBatch(
         context,
@@ -223,6 +228,8 @@ export class InternalController {
         req,
       ) as InternalPOSTResponseType;
     }
+
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     const module = this.internalApiModuleMap['POST'][operation];
 

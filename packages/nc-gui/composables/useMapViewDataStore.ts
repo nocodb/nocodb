@@ -34,6 +34,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
@@ -67,7 +69,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
       mapMetaData.value = isPublic.value
         ? (sharedView.value?.view as MapType)
-        : await $api.internal.getOperation(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
+        : await internalGet(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
             operation: 'mapViewGet',
             mapViewId: viewMeta.value.id,
           })

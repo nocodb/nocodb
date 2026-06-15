@@ -373,7 +373,7 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+      const { columns, ...view } = await internalGet(base.value!.fk_workspace_id!, base.value!.id!, {
         operation: 'formViewGet',
         formViewId: viewMeta.value.id,
       })

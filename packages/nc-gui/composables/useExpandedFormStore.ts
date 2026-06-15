@@ -39,6 +39,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
@@ -239,7 +241,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           isAuditLoading.value = true
         }
 
-        const response = await $api.internal.getOperation(
+        const response = await internalGet(
           base.value.fk_workspace_id ?? NO_SCOPE,
           (meta.value.base_id as string) ?? (base.value.id as string),
           {

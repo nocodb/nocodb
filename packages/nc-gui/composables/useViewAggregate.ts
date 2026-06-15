@@ -20,6 +20,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   ) => {
     const { $api: api, $eventBus } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const fields = inject(FieldsInj, ref([]))
 
     const isPublic = inject(IsPublicInj, ref(false))
@@ -94,7 +96,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
           try {
             const data = !isPublic.value
-              ? await api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+              ? await internalGet(meta.value.fk_workspace_id!, meta.value.base_id!, {
                   operation: 'dataAggregate',
                   tableId: meta.value.id,
                   viewId: view.value.id,

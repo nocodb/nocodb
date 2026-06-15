@@ -96,6 +96,8 @@ export function useInfiniteData(args: {
 
   const { $api, $ncSocket } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { t } = useI18n()
 
   const router = useRouter()
@@ -408,7 +410,7 @@ export function useInfiniteData(args: {
     if (allIds.length === 0) return
 
     try {
-      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
         ids: allIds,
@@ -670,7 +672,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     try {
-      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
         ids,

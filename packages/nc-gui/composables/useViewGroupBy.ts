@@ -30,6 +30,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { api } = useApi()
     const { $api } = useNuxtApp()
+    const { internalGet } = useInternalBatch()
 
     const { appInfo } = useGlobal()
 
@@ -765,7 +766,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (!ids.length) return
 
       try {
-        const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
           operation: 'commentCount',
           fk_model_id: meta.value!.id as string,
           ids,

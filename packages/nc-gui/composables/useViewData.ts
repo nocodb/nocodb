@@ -61,6 +61,8 @@ export function useViewData(
 
   const { $api } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const {
     sorts,
     nestedFilters,
@@ -160,7 +162,7 @@ export function useViewData(
     if (!ids?.length || ids?.some((id) => !id)) return
 
     try {
-      aggCommentCount.value = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      aggCommentCount.value = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: metaId.value as string,
         ids,

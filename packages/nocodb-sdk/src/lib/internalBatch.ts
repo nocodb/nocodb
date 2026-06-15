@@ -81,4 +81,10 @@ export const BATCHABLE_INTERNAL_OPERATIONS: ReadonlySet<string> = new Set([
 
   // Base-load reads that coincide with other base-load fetches
   'baseVariableList',
+  'extensionList',
+  'tableSyncList',
+  'listScripts',
+  'dashboardList',
+  'workflowList',
+  'listSync',
 ]);

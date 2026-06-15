@@ -21,6 +21,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { $api, $eventBus } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const router = useRouter()
     const route = router.currentRoute
 
@@ -255,7 +257,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
             throw new Error('Workspace ID not found')
           }
           // Always use internal API for consistency and cross-base support
-          const result = await $api.internal.getOperation(workspaceId, baseId, {
+          const result = await internalGet(workspaceId, baseId, {
             operation: 'viewColumnList',
             viewId,
           })

@@ -1,29 +1,32 @@
 /**
- * useInternalBatch — coalesce calls to `$api.internal.{get,post}Operation`
- * into a single backend batch envelope.
+ * installInternalApiBatch — coalesce calls to `$api.internal.{get,post}Operation`
+ * into a single backend `batch` envelope.
  *
- * Why: page-load traces show the same (workspaceId, baseId) target receiving
- * 5-16 sequential internal-API requests in a tight window (dashboard widgets,
- * view metadata, view tabs). Each one re-runs auth/context resolution on the
- * server, multiplying latency. Bundling them into one HTTP request collapses
- * that overhead and lets the server fan out via `Promise.allSettled`.
+ * Page-load traces show the same (workspaceId, baseId) target receiving
+ * 5-16 sequential internal-API requests in tight windows (dashboard
+ * widgets, view metadata, view tabs). Each one re-runs auth + context
+ * resolution server-side; in aggregate that dominated LCP. Bundling them
+ * into one HTTP request collapses that overhead.
  *
- * Contract — drop-in compatible with `$api.internal`:
+ * This installer monkey-patches `api.internal.getOperation` and
+ * `api.internal.postOperation` on the SDK instance so **every existing
+ * call site** is batched transparently — no migration work in the rest
+ * of the codebase. Two opt-outs to keep behaviour safe:
  *
- *   const batch = useInternalBatch()
- *   const cols = await batch.get(wsId, baseId, { operation: 'viewColumnList', viewId })
- *   const out  = await batch.post(wsId, baseId, { operation: 'columnAdd', tableId }, payload)
+ *  1. **Custom axios config** — if a caller passes a 4th/5th argument
+ *     (RequestParams: custom headers, AbortSignal, response type, etc.)
+ *     we can't faithfully reflect it inside the batch envelope, so the
+ *     call short-circuits to the original SDK method.
+ *  2. **The `batch` envelope itself** — the batcher uses
+ *     `originalPost(..., {operation:'batch'}, ...)` to send the bundle.
+ *     Wrapping that would loop, so we detect `operation === 'batch'`
+ *     and bypass the wrapper.
  *
- * Opting out (immediate, do-not-batch) — pass `{ immediate: true }`:
- *
- *   const tbl = await batch.get(wsId, baseId, { operation: 'tableGet', tableId }, { immediate: true })
- *
- * Use `immediate` for calls that:
- *   • run on a code path where waiting an extra ~8ms is visible (e.g. cursor
- *     interactions, drag-drop), or
- *   • return a payload that would balloon a batch (large list responses), or
- *   • the caller wants to surface the network error immediately rather than
- *     wait for the surrounding batch.
+ * Sites that need *immediate* dispatch for UX reasons (e.g. navigation
+ * clicks where the ~50ms debounce is visible, or one-off calls with
+ * large responses) can opt out by passing any RequestParams object as
+ * the trailing axios-config arg — even `{}` is enough to trigger the
+ * fast path.
  */
 
 // Leading-edge debounce: the timer starts on the first queued call and
@@ -58,9 +61,7 @@ class Batcher {
   private queue: PendingCall[] = []
   private timer: ReturnType<typeof setTimeout> | null = null
 
-  constructor(
-    private readonly send: (ops: SubOp[]) => Promise<BatchResult[]>,
-  ) {}
+  constructor(private readonly send: (ops: SubOp[]) => Promise<BatchResult[]>) {}
 
   call(op: SubOp): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -96,15 +97,16 @@ class Batcher {
     try {
       results = await this.send(batch.map((b) => b.op))
     } catch (e) {
-      // Transport-level failure: reject every caller — the whole batch never
-      // reached the server, so we can't tell which sub-ops would have succeeded.
+      // Transport-level failure: reject every caller — the whole batch
+      // never reached the server, so we can't tell which sub-ops would
+      // have succeeded.
       for (const b of batch) b.reject(e)
       return
     }
 
-    // Server contract: `results[i]` corresponds to `operations[i]` from the
-    // request. Length mismatch would mean the contract is broken — reject
-    // every caller rather than silently misalign successes to failures.
+    // Server contract: `results[i]` corresponds to `operations[i]` from
+    // the request. Length mismatch would mean the contract is broken —
+    // reject every caller rather than silently misalign success/failure.
     if (!Array.isArray(results) || results.length !== batch.length) {
       const mismatch = new Error(
         `Batch response length ${Array.isArray(results) ? results.length : 'n/a'} ` +
@@ -134,28 +136,32 @@ class Batcher {
   }
 }
 
-// One batcher per (workspaceId, baseId). Cross-target requests can't be
-// merged because the URL itself encodes both — keyed map keeps them apart.
-const batchers = new Map<string, Batcher>()
+/**
+ * Install the batcher onto an SDK `Api` instance. Called once from the
+ * api plugin. Safe to call repeatedly — guarded by a marker so we don't
+ * double-wrap.
+ */
+export function installInternalApiBatch(api: any): void {
+  if (!api?.internal?.getOperation || !api?.internal?.postOperation) return
+  if (api.internal.__nc_batched__) return
+  api.internal.__nc_batched__ = true
 
-export interface BatchOpts {
-  /**
-   * If true, send this call as a standalone request instead of queueing it
-   * into the next batch. Use for cases where the ~8ms debounce is visible,
-   * the response is large, or the caller wants synchronous error surfacing.
-   */
-  immediate?: boolean
-}
+  const originalGet = api.internal.getOperation.bind(api.internal)
+  const originalPost = api.internal.postOperation.bind(api.internal)
 
-export function useInternalBatch() {
-  const { $api } = useNuxtApp()
+  // One batcher per (workspaceId, baseId). Cross-target requests can't be
+  // merged because the URL itself encodes both — keyed map keeps them apart.
+  const batchers = new Map<string, Batcher>()
 
   function getBatcher(workspaceId: string, baseId: string): Batcher {
     const key = `${workspaceId}::${baseId}`
     let b = batchers.get(key)
     if (!b) {
       b = new Batcher(async (ops) => {
-        const res: any = await $api.internal.postOperation(
+        // Important: use the ORIGINAL post, not the wrapped one. Sending
+        // the batch envelope through the wrapper would re-queue it into
+        // a new batch and loop indefinitely.
+        const res: any = await originalPost(
           workspaceId,
           baseId,
           { operation: 'batch' as any },
@@ -168,47 +174,44 @@ export function useInternalBatch() {
     return b
   }
 
-  /**
-   * Batched equivalent of `$api.internal.getOperation`. The `operation`
-   * field is required; everything else in `params` flows through as the
-   * sub-op's `query` payload.
-   */
-  function get<T = any>(
+  api.internal.getOperation = function batchedGet(
     workspaceId: string,
     baseId: string,
     params: { operation: string; [k: string]: any },
-    opts: BatchOpts = {},
-  ): Promise<T> {
-    if (opts.immediate) {
-      return $api.internal.getOperation(workspaceId, baseId, params as any) as Promise<T>
+    requestParams?: any,
+  ) {
+    if (
+      requestParams || // caller passed axios config — can't batch
+      !workspaceId ||
+      !baseId ||
+      params?.operation === 'batch' // never re-wrap the envelope
+    ) {
+      return originalGet(workspaceId, baseId, params, requestParams)
     }
     const { operation, ...query } = params
     return getBatcher(workspaceId, baseId).call({ operation, query })
   }
 
-  /**
-   * Batched equivalent of `$api.internal.postOperation`. `body` becomes the
-   * sub-op's `payload`; the rest of `params` (minus `operation`) becomes
-   * its `query`.
-   */
-  function post<T = any>(
+  api.internal.postOperation = function batchedPost(
     workspaceId: string,
     baseId: string,
     params: { operation: string; [k: string]: any },
-    body?: any,
-    opts: BatchOpts = {},
-  ): Promise<T> {
-    if (opts.immediate) {
-      return $api.internal.postOperation(
-        workspaceId,
-        baseId,
-        params as any,
-        body,
-      ) as Promise<T>
+    data?: any,
+    requestParams?: any,
+  ) {
+    if (
+      requestParams ||
+      !workspaceId ||
+      !baseId ||
+      params?.operation === 'batch'
+    ) {
+      return originalPost(workspaceId, baseId, params, data, requestParams)
     }
     const { operation, ...query } = params
-    return getBatcher(workspaceId, baseId).call({ operation, query, payload: body })
+    return getBatcher(workspaceId, baseId).call({
+      operation,
+      query,
+      payload: data,
+    })
   }
-
-  return { get, post }
 }

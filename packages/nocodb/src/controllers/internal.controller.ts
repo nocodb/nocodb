@@ -4,12 +4,14 @@ import {
   Get,
   HttpCode,
   Inject,
+  Logger,
   Param,
   Post,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { INTERNAL_BATCH_MAX_SIZE, NcContext, NcRequest } from 'nocodb-sdk';
 import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { InternalApiModule } from '~/utils/internal-type';
@@ -326,6 +328,17 @@ export class InternalController {
       }
       const err = r.reason;
       const mapped = mapExceptionToResponse(err, apiVersion);
+
+      // Unhandled (default-500) sub-op errors must follow the same
+      // observability path as the non-batched route — otherwise the
+      // highest-frequency fan-out reads (filterList, viewColumnList,
+      // columnsHash, widgetDataGet, dataAggregate…) lose Sentry capture +
+      // structured logs the moment they start flowing through the batch
+      // envelope. Mirror `GlobalExceptionFilter`'s side effects.
+      if (mapped.unhandled) {
+        this.reportSubOpException(err, req);
+      }
+
       const body = mapped.body ?? {};
       const message =
         body.message ?? body.msg ?? err?.message ?? 'Internal error';
@@ -341,6 +354,20 @@ export class InternalController {
 
     return { results };
   }
+
+  /**
+   * Side-effect hook for unhandled (default-500) sub-op rejections inside
+   * the batch envelope. Mirrors `GlobalExceptionFilter`'s
+   * `captureException` + `logError` so monitoring stays at parity with
+   * the non-batched route. Override in EE to add workspace/user context
+   * and paid-workspace telemetry, matching the EE filter.
+   */
+  protected reportSubOpException(exception: any, _req: NcRequest) {
+    Sentry.captureException(exception);
+    this.logger.error(exception?.message, exception?.stack);
+  }
+
+  protected logger = new Logger(InternalController.name);
 
   /**
    * Run a single sub-op as if it were an independent request. We don't

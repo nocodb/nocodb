@@ -523,19 +523,52 @@ const onCrossBaseToggle = () => {
   }
 }
 
-// check user have creator or above role to create cross base link to the base
-const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
-  if (base.project_role) {
-    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
-      return true
-    }
-  } else if (base.workspace_role) {
-    if ([WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(base.workspace_role)) {
-      return true
-    }
-  }
+// Roles that allow creating a cross-base link (creator or above), covering both
+// base-level (ProjectRoles) and workspace-level (WorkspaceUserRoles) role families.
+const crossBaseLinkRoles = new Set<string>([
+  ProjectRoles.OWNER,
+  ProjectRoles.CREATOR,
+  WorkspaceUserRoles.OWNER,
+  WorkspaceUserRoles.CREATOR,
+])
 
-  return false
+// A role source only counts if it actually grants access — empty, no-access and
+// inherit placeholders are skipped so resolution falls through to the next source.
+const isMeaningfulRole = (role?: string) =>
+  !!role &&
+  role !== ProjectRoles.NO_ACCESS &&
+  role !== ProjectRoles.INHERIT &&
+  role !== WorkspaceUserRoles.NO_ACCESS &&
+  role !== WorkspaceUserRoles.INHERIT
+
+// Resolve the effective role on a base the same way the backend does
+// (see Base.getPriorityLevel): base_role > team_base_role > workspace_role > team_workspace_role.
+const resolveEffectiveBaseRole = (base: {
+  project_role?: string
+  team_base_role?: string
+  workspace_role?: string
+  team_workspace_role?: string
+}) => {
+  if (isMeaningfulRole(base.project_role)) return base.project_role
+  if (isMeaningfulRole(base.team_base_role)) return base.team_base_role
+  if (isMeaningfulRole(base.workspace_role)) return base.workspace_role
+  if (isMeaningfulRole(base.team_workspace_role)) return base.team_workspace_role
+
+  return undefined
+}
+
+// User can create a cross base link only when their effective role on the target
+// base is creator or above — mirroring the backend access resolution so workspace
+// owners and team-granted owners/creators are no longer blocked.
+const canCreateCrossBaseLink = (base: {
+  project_role?: string
+  team_base_role?: string
+  workspace_role?: string
+  team_workspace_role?: string
+}) => {
+  const effectiveRole = resolveEffectiveBaseRole(base)
+
+  return !!effectiveRole && crossBaseLinkRoles.has(effectiveRole)
 }
 
 const toggleCrossBase = () => {

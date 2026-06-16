@@ -614,6 +614,8 @@ export class TablesService {
     param: {
       tableId: string;
       user: User | UserType;
+      includeRelatedMetas?: boolean;
+      slimRelatedMetas?: boolean;
     },
   ) {
     const table = await Model.getWithInfo(context, {
@@ -665,7 +667,192 @@ export class TablesService {
       });
     }
 
+    if (param.includeRelatedMetas) {
+      const relatedMetas = await this.getRelatedMetas(context, table);
+      table.relatedMetas = param.slimRelatedMetas
+        ? this.slimRelatedMetas(relatedMetas)
+        : relatedMetas;
+    }
+
     return table;
+  }
+
+  /**
+   * Collect metadata for all tables referenced by LTAR/Links/Lookup/Rollup
+   * columns in the given table. Recursively follows nested lookups/rollups.
+   * Result is grouped by base ID for cross-base link support.
+   */
+  protected async getRelatedMetas(
+    context: NcContext,
+    table: Model,
+  ): Promise<Record<string, Record<string, TableType>>> {
+    const result: Record<string, Record<string, TableType>> = {};
+    const seen = new Set<string>();
+
+    // Skip self — we don't need the source table in relatedMetas
+    seen.add(`${table.base_id}:${table.id}`);
+
+    const addTable = async (
+      baseId: string,
+      tableId: string,
+      ctx: NcContext,
+    ) => {
+      const key = `${baseId}:${tableId}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      try {
+        const relatedContext = { ...ctx, base_id: baseId };
+        const related = await Model.getWithInfo(relatedContext, {
+          id: tableId,
+        });
+        if (related) {
+          (result[baseId] ??= {})[tableId] = related as unknown as TableType;
+        }
+      } catch {
+        // User may lack access to the related table — skip silently.
+        // Frontend falls back to getPartialMeta for these cases.
+      }
+    };
+
+    const collect = async (
+      cols: Column[],
+      colContext: NcContext,
+      colBaseId: string,
+      depth = 0,
+    ) => {
+      if (depth > 10) return; // safety cap — circular lookups rejected at creation
+
+      for (const col of cols) {
+        const opts = col.colOptions as any;
+        if (!opts) continue;
+
+        if (isLinksOrLTAR(col) && opts.fk_related_model_id) {
+          // LTAR/Links — direct relation
+          const baseId = opts.fk_related_base_id || colBaseId;
+          await addTable(baseId, opts.fk_related_model_id, colContext);
+
+          // MM junction table
+          if (opts.fk_mm_model_id) {
+            const mmBaseId = opts.fk_mm_base_id || colBaseId;
+            await addTable(mmBaseId, opts.fk_mm_model_id, colContext);
+          }
+        } else if (col.uidt === UITypes.Lookup || col.uidt === UITypes.Rollup) {
+          // Lookup/Rollup — resolve through the relation column
+          const relationCol = cols.find(
+            (c) => c.id === opts.fk_relation_column_id,
+          );
+          const relOpts = relationCol?.colOptions as any;
+          if (!relOpts?.fk_related_model_id) continue;
+
+          const baseId = relOpts.fk_related_base_id || colBaseId;
+          const relatedContext = { ...colContext, base_id: baseId };
+          await addTable(baseId, relOpts.fk_related_model_id, relatedContext);
+
+          // Recurse: if the lookup/rollup target column is itself virtual, follow it
+          const targetMeta = result[baseId]?.[relOpts.fk_related_model_id];
+          if (targetMeta?.columns) {
+            const targetCol = (targetMeta.columns as Column[]).find(
+              (c) => c.id === opts.fk_lookup_column_id,
+            );
+            if (
+              targetCol &&
+              (targetCol.uidt === UITypes.Lookup ||
+                targetCol.uidt === UITypes.Rollup ||
+                isLinksOrLTAR(targetCol))
+            ) {
+              await collect(
+                targetMeta.columns as Column[],
+                relatedContext,
+                baseId,
+                depth + 1,
+              );
+            }
+          }
+        }
+      }
+    };
+
+    await collect(table.columns ?? [], context, table.base_id);
+
+    return result;
+  }
+
+  /**
+   * Strip related table metas to only the properties needed by the frontend
+   * for LTAR display, Lookup/Rollup type resolution, and column rendering.
+   */
+  protected slimRelatedMetas(
+    metas: Record<string, Record<string, TableType>>,
+  ): Record<string, Record<string, TableType>> {
+    const result: Record<string, Record<string, TableType>> = {};
+
+    for (const [baseId, tables] of Object.entries(metas)) {
+      result[baseId] = {};
+      for (const [tableId, table] of Object.entries(tables)) {
+        const slim: Record<string, any> = {
+          id: table.id,
+          base_id: table.base_id,
+          title: table.title,
+        };
+
+        // Preserve first view id — useLTARStore needs it for view column ordering
+        const firstView = (table as any).views?.[0];
+        if (firstView?.id) {
+          slim.views = [{ id: firstView.id }];
+        }
+
+        if (table.columns) {
+          slim.columns = (table.columns as ColumnType[]).map((col) => {
+            const slimCol: Record<string, any> = {
+              id: col.id,
+              fk_model_id: (col as any).fk_model_id,
+              title: col.title,
+              uidt: col.uidt,
+            };
+
+            if (col.pk) slimCol.pk = col.pk;
+            if (col.pv) slimCol.pv = col.pv;
+            if (col.meta) slimCol.meta = col.meta;
+            if (col.dtxp) slimCol.dtxp = col.dtxp;
+            if (col.dtxs) slimCol.dtxs = col.dtxs;
+            if (col.dt) slimCol.dt = col.dt;
+            if (col.system) slimCol.system = col.system;
+
+            if (col.colOptions) {
+              const opts = col.colOptions as Record<string, any>;
+              const slimOpts: Record<string, any> = {};
+              let hasOpt = false;
+
+              for (const k of [
+                'fk_relation_column_id',
+                'fk_related_model_id',
+                'fk_related_base_id',
+                'fk_lookup_column_id',
+                'fk_rollup_column_id',
+                'fk_mm_model_id',
+                'fk_mm_base_id',
+                'type',
+                'version',
+              ]) {
+                if (opts[k] != null) {
+                  slimOpts[k] = opts[k];
+                  hasOpt = true;
+                }
+              }
+
+              if (hasOpt) slimCol.colOptions = slimOpts;
+            }
+
+            return slimCol;
+          });
+        }
+
+        result[baseId][tableId] = slim as TableType;
+      }
+    }
+
+    return result;
   }
 
   async xcVisibilityMetaGet(

@@ -71,6 +71,7 @@ import * as nc_202606021300_doc_yjs_state from './v0/nc_202606021300_doc_yjs_sta
 import * as nc_202606040000_soft_delete_syncs from './v0/nc_202606040000_soft_delete_syncs';
 import * as nc_202606091200_addons from './v0/nc_202606091200_addons';
 import * as nc_202606121400_detach_suspended_sync_mappings from './v0/nc_202606121400_detach_suspended_sync_mappings';
+import * as nc_202606161200_missing_uuid_indexes from './v0/nc_202606161200_missing_uuid_indexes';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -153,6 +154,7 @@ export default class XcMigrationSourcev0 {
       'nc_202606040000_soft_delete_syncs',
       'nc_202606091200_addons',
       'nc_202606121400_detach_suspended_sync_mappings',
+      'nc_202606161200_missing_uuid_indexes',
     ]);
   }
 
@@ -308,6 +310,8 @@ export default class XcMigrationSourcev0 {
         return nc_202606091200_addons;
       case 'nc_202606121400_detach_suspended_sync_mappings':
         return nc_202606121400_detach_suspended_sync_mappings;
+      case 'nc_202606161200_missing_uuid_indexes':
+        return nc_202606161200_missing_uuid_indexes;
     }
   }
 }

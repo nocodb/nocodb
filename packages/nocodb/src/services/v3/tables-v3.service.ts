@@ -12,7 +12,8 @@ import type {
 import type { Model, User } from '~/models';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
-import { Base } from '~/models';
+import { Base, Column } from '~/models';
+import { NcError } from '~/helpers/ncError';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -58,24 +59,66 @@ export class TablesV3Service {
       true,
     );
 
-    const tableUpdateReq: Partial<TableReqType> = { ...param.table };
+    // `display_field_id` is applied via the column "set as primary" path, not
+    // the generic table update (which only handles title/description/meta).
+    // Split it out so the remaining payload can flow to the underlying service.
+    const { display_field_id, ...table } = param.table;
+
+    const tableUpdateReq: Partial<TableReqType> = { ...table };
 
     // if title includes then add table_name as well
     if (tableUpdateReq.title) {
       tableUpdateReq.table_name = tableUpdateReq.title;
     }
 
-    await this.tablesService.tableUpdate(context, {
-      tableId: param.tableId,
-      table: tableUpdateReq,
-      baseId: param.baseId,
-      user: param.user,
-      req: param.req,
-    });
+    // Only call the underlying table update when there is a non-display-field
+    // change — on a display-field-only request the underlying service would
+    // reject the payload for a missing table name.
+    if (Object.keys(tableUpdateReq).length) {
+      await this.tablesService.tableUpdate(context, {
+        tableId: param.tableId,
+        table: tableUpdateReq,
+        baseId: param.baseId,
+        user: param.user,
+        req: param.req,
+      });
+    }
+
+    if (display_field_id) {
+      await this.setDisplayField(context, {
+        tableId: param.tableId,
+        columnId: display_field_id,
+        req: param.req,
+      });
+    }
 
     return await this.getTableWithAccessibleViews(context, {
       tableId: param.tableId,
       user: param.user,
+    });
+  }
+
+  // Apply `display_field_id` by marking the target column as the table's primary
+  // value. The column is verified to belong to the table before delegating to
+  // columnSetAsPrimary (which owns type validation, e.g. rejecting Long Text):
+  // the route ACL only guards `tableId`, so this ownership check prevents
+  // setting the display field on a table reached via a foreign column id.
+  protected async setDisplayField(
+    context: NcContext,
+    param: { tableId: string; columnId: string; req: NcRequest },
+  ) {
+    const column = await Column.get(context, { colId: param.columnId });
+
+    if (!column || column.fk_model_id !== param.tableId) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    // already the display field — nothing to do
+    if (column.pv) return;
+
+    await this.columnsService.columnSetAsPrimary(context, {
+      columnId: param.columnId,
+      req: param.req,
     });
   }
 

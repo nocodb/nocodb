@@ -284,7 +284,12 @@ export class AuthController {
           {
             ncPublicUrl: ncSiteUrl || '',
             token: tokenId,
-            baseUrl: `/`,
+            // Honor the configured site URL so the in-page API calls resolve
+            // correctly when NocoDB is served from a sub-path / behind a
+            // reverse proxy (e.g. https://example.com/noco). Falling back to
+            // `/` keeps root deployments working. Used as `<%= baseUrl %>api/..`
+            // so it must carry a single trailing slash.
+            baseUrl: ncSiteUrl ? `${ncSiteUrl.replace(/\/+$/, '')}/` : `/`,
           },
         ),
       );

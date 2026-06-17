@@ -484,7 +484,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       for (const col of formMeta?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
           if (col.title && data[col.title]) {
-            attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+            const cellValue = data[col.title] as Array<Record<string, any>>
+
+            // Locally-selected files are sent as separate multipart file parts (`_<col>`).
+            attachment[`_${col.title}`] = cellValue.map((item) => item.file).filter(Boolean)
+
+            // Strip those local files (and their heavy base64 preview `data`) from the JSON
+            // `data` field. Otherwise every image is duplicated inside a single multipart
+            // text field, which overflows the server field-size limit (NC_FORM_FIELD_MAX_SIZE)
+            // and fails with "Field value too long" once a few images are attached.
+            // Keep URL-based entries so server-side upload-by-URL still works.
+            data[col.title] = cellValue.filter((item) => item?.url && !item?.file)
           }
         }
       }

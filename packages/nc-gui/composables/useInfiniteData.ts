@@ -1094,7 +1094,23 @@ export function useInfiniteData(args: {
     // Sorts the sort columns by the order property
     const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-    const inputRows = Array.isArray(rows) ? rows : [rows]
+    const inputRowsAll = Array.isArray(rows) ? rows : [rows]
+
+    // Deferred sort-anchor rows: the backend already told us exactly where they
+    // belong under the view's order (computed sorts included). Commit those via
+    // the anchor (correct even when the target is off-window) and clear the flag.
+    // The rest fall through to the client-side in-range re-sort below.
+    const anchorRows = inputRowsAll.filter((r) => r?.rowMeta && r.rowMeta.pendingSortAnchor !== undefined)
+    for (const r of anchorRows) {
+      const pk = extractPkFromRow(r.row, meta.value?.columns as ColumnType[])
+      const anchor = r.rowMeta.pendingSortAnchor ?? null
+      r.rowMeta.pendingSortAnchor = undefined
+      r.rowMeta.isRowOrderUpdated = false
+      if (pk != null) repositionRowByAnchor(dataCache, pk, r.row, anchor, path)
+    }
+
+    const inputRows = inputRowsAll.filter((r) => !anchorRows.includes(r))
+    if (!inputRows.length) return
 
     // TBC: sometimes the map of records can have skipped index, like 0,1,2,5,7,8
     // this will group consecutive indexes
@@ -1208,6 +1224,51 @@ export function useInfiniteData(args: {
     })
 
     // Notifies UI to update based on sorted data.
+    callbacks?.syncVisibleData?.()
+  }
+
+  // ── Realtime sort-anchor reposition (non-group-by) ──────────────────────
+  // The backend ships `beforeByView[viewId]` = the pk the changed row should sit
+  // BEFORE under this view's order (null = sorts last). The index/chunk
+  // bookkeeping lives in pure, unit-tested helpers in `utils/infiniteScrollCacheOps`
+  // (cacheFindRowIndexByPk / cacheRemoveRowAt / cacheInsertRowAt /
+  // cacheRepositionByAnchor). These thin wrappers unwrap the refs and perform the
+  // chunk refetch a reposition reports.
+  const pkOf = (r: Row) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[])
+
+  function findCachedIndexByPk(dataCache: ReturnType<typeof getDataCache>, pkVal: string | number) {
+    return cacheFindRowIndexByPk(dataCache.cachedRows.value, pkVal, pkOf)
+  }
+
+  // Move an already-counted row to before `anchorPk` (count-neutral). Delegates
+  // to the pure helper, then force-refetches any chunk it reports (the row left
+  // or entered the loaded window) and re-syncs the visible rows.
+  function repositionRowByAnchor(
+    dataCache: ReturnType<typeof getDataCache>,
+    pkVal: string | number,
+    payload: Record<string, any>,
+    anchorPk: string | null,
+    path: Array<number> = [],
+  ) {
+    const { forceRefetchChunks } = cacheRepositionByAnchor(
+      {
+        cachedRows: dataCache.cachedRows.value,
+        chunkStates: dataCache.chunkStates.value,
+        totalRows: dataCache.totalRows.value,
+      },
+      {
+        pkVal,
+        payload,
+        anchorPk,
+        pkOf,
+        makeRow: (p) => ({
+          row: p,
+          oldRow: { ...p },
+          rowMeta: { new: false, rowIndex: 0, path: [], ...getEvaluatedRowMetaRowColorInfo(p) },
+        }),
+      },
+    )
+    for (const chunkId of forceRefetchChunks) fetchChunk(chunkId, path, true)
     callbacks?.syncVisibleData?.()
   }
 
@@ -1372,7 +1433,12 @@ export function useInfiniteData(args: {
         metaValue?.id as string,
         viewMetaValue?.id as string,
         { ...insertObj, ...(ltarState || {}) },
-        { before: beforeRowID },
+        // In a sorted grid, ask for the new row's sort anchor so the caller can
+        // position it correctly (computed sorts included) without a reload.
+        {
+          before: beforeRowID,
+          ...(!isGroupBy.value && sorts.value.length ? { sortAnchor: 'true' } : {}),
+        },
       )
 
       currentRow.rowMeta.new = false
@@ -1459,7 +1525,13 @@ export function useInfiniteData(args: {
         {
           [property]: toUpdate.row[property] ?? null,
         },
-        { typecast: 'true' },
+        // In a sorted grid, ask the backend for this row's post-update sort
+        // anchor (`__nc_sortBefore`) so we can reposition it locally — the actor
+        // skips their own realtime echo. Computed-column sorts included.
+        {
+          typecast: 'true',
+          ...(!isGroupBy.value && sorts.value.length ? { sortAnchor: 'true' } : {}),
+        },
       )
 
       // Update specific columns based on their types.
@@ -1672,7 +1744,39 @@ export function useInfiniteData(args: {
         .map((c) => c.title!) || []),
     )
 
-    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
+    // Sort-anchor (actor's own edit): the backend returned `__nc_sortBefore`, the
+    // pk this row should sit before under the view's order (computed columns
+    // included). Instead of moving the row out from under the user, DEFER it:
+    // mark it "Row moved" and stash the anchor. `onActiveCellChanged` (click-away
+    // / arrow / blur) flushes it via applySorting → repositionRowByAnchor.
+    // Realtime edits from OTHER users still reposition immediately (socket path).
+    const hasSortAnchor = !isGroupBy.value && data && typeof data === 'object' && '__nc_sortBefore' in data
+
+    if (hasSortAnchor) {
+      const pkVal = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+      const anchorPk = (data as Record<string, any>).__nc_sortBefore ?? null
+      const curIdx = pkVal != null ? findCachedIndexByPk(dataCache, pkVal) : -1
+
+      // Only flag when the row actually changes position (no false badge on a
+      // no-op edit that keeps the row in the same slot).
+      let willMove = curIdx !== -1
+      if (curIdx !== -1) {
+        if (anchorPk == null) {
+          const keys = Array.from(dataCache.cachedRows.value.keys())
+          const maxIdx = keys.length ? Math.max(...keys) : -1
+          willMove = !(curIdx === maxIdx && maxIdx === dataCache.totalRows.value - 1)
+        } else {
+          const aIdx = findCachedIndexByPk(dataCache, anchorPk)
+          willMove = aIdx === -1 ? true : aIdx !== curIdx + 1
+        }
+      }
+
+      const target = newRow ?? dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+      if (target) {
+        target.rowMeta.isRowOrderUpdated = willMove
+        target.rowMeta.pendingSortAnchor = willMove ? anchorPk : undefined
+      }
+    } else if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
       const needsResorting = willSortOrderChange({
         row,
         newData: data,
@@ -1959,7 +2063,15 @@ export function useInfiniteData(args: {
   }
 
   const handleDataEvent = (data: DataPayload) => {
-    const { id, action, payload, before } = data
+    const { id, action, payload } = data
+
+    // Per-view sort anchor: the backend ships `beforeByView[viewId]` for sorted
+    // views (null = sorts last). Prefer it over the legacy flat `before`.
+    const anchorViewId = viewMeta.value?.id as string | undefined
+    const hasAnchor = !!(data.beforeByView && anchorViewId && anchorViewId in data.beforeByView)
+    const anchorBefore = hasAnchor ? (data.beforeByView as Record<string, string | null>)[anchorViewId!] : undefined
+    // Effective `before` for the add path (pk to insert ahead of, or nullish).
+    const before = hasAnchor ? anchorBefore : data.before
 
     if (action === 'bulk') {
       if (Array.isArray(data.rows)) {
@@ -2127,43 +2239,51 @@ export function useInfiniteData(args: {
         const dataCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()) : [getDataCache()]
         const found = findCachedRowByPk(dataCaches, id)
 
-        if (!found) {
-          if (!isGroupBy.value) {
-            // Row not cached — optimistically treat as an add so it shows up.
-            // In group-by mode we'd need the group-column value to pick the right
-            // group cache; skip that case rather than mis-inserting into root.
-            handleDataEvent({
-              ...data,
-              action: 'add',
-            })
-          }
+        if (!found && !hasAnchor) {
+          // Row isn't in the loaded window (infinite scroll only caches the
+          // chunks scrolled through, not the whole table) and the server sent no
+          // sort anchor → nothing to do. An `update` never changes the row count,
+          // and the row re-loads with fresh data when its chunk scrolls into
+          // view — so do NOT synthesize an `add` here (that bumps `totalRows` for
+          // every off-screen row, inflating the count en masse on a bulk update,
+          // e.g. a table-sync resync re-stamping all rows drove 1000 → 2000).
           return
         }
 
-        const { cachedRow } = found
+        if (found) {
+          const { cachedRow } = found
 
-        // If the update changes any group-by column value, the row needs to
-        // move between groups (or into a new group). We can't do that in
-        // place; trigger a full group reload instead.
-        if (isGroupBy.value && groupBy.value.length) {
-          const groupColumnChanged = groupBy.value.some((g) => {
-            const title = g.column?.title
-            return title && title in (payload ?? {}) && payload[title] !== cachedRow.row[title]
-          })
-          if (groupColumnChanged) {
-            eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
-            return
+          // If the update changes any group-by column value, the row needs to
+          // move between groups (or into a new group). We can't do that in
+          // place; trigger a full group reload instead.
+          if (isGroupBy.value && groupBy.value.length) {
+            const groupColumnChanged = groupBy.value.some((g) => {
+              const title = g.column?.title
+              return title && title in (payload ?? {}) && payload[title] !== cachedRow.row[title]
+            })
+            if (groupColumnChanged) {
+              eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+              return
+            }
           }
+
+          Object.assign(cachedRow.row, payload)
+          Object.assign(cachedRow.oldRow, payload)
+
+          const isValidationFailed = !recordPassesViewFilter(data)
+
+          cachedRow.rowMeta.isValidationFailed = isValidationFailed
+          cachedRow.rowMeta.changed = false
+          Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
         }
 
-        Object.assign(cachedRow.row, payload)
-        Object.assign(cachedRow.oldRow, payload)
-
-        const isValidationFailed = !recordPassesViewFilter(data)
-
-        cachedRow.rowMeta.isValidationFailed = isValidationFailed
-        cachedRow.rowMeta.changed = false
-        Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+        // Sorted-view reposition: the server-computed anchor tells us where the
+        // row now belongs under this view's order (works for viewers + computed
+        // sorts, since the DB did the ordering). Count-neutral. Group-by repos
+        // is handled by the reload path above, so only the root cache here.
+        if (hasAnchor && !isGroupBy.value) {
+          repositionRowByAnchor(getDataCache(), id, payload, anchorBefore ?? null)
+        }
 
         callbacks?.syncVisibleData?.()
       } catch (e) {
@@ -2456,6 +2576,7 @@ export function useInfiniteData(args: {
     isRowSortRequiredRows,
     clearInvalidRows,
     applySorting,
+    repositionRowByAnchor,
     CHUNK_SIZE,
     loadData,
     isLastRow,

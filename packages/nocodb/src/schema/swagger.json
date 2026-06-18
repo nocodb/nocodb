@@ -11302,6 +11302,14 @@
             },
             "in": "query",
             "name": "undo"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortAnchor",
+            "description": "When 'true' in a sorted view, the response includes a '__nc_sortBefore' anchor (the pk the new row should sit before under the view's order; null = sorts last) so the editor can position the new row without recomputing the sort."
           }
         ],
         "requestBody": {
@@ -11867,6 +11875,22 @@
             "in": "query",
             "name": "typecast",
             "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortAnchor",
+            "description": "When 'true' in a sorted view, the response includes a per-row '__nc_sortBefore' anchor (the pk the row should sit before under the view's order; null = sorts last) so the editor can reposition their own row without recomputing the sort."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "viewId",
+            "description": "View to compute the sort anchor against, for the bulk endpoints whose route carries no view. Used only alongside sortAnchor='true'."
           }
         ]
       },
@@ -12131,6 +12155,22 @@
             "in": "query",
             "name": "typecast",
             "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortAnchor",
+            "description": "When 'true' in a sorted view, the response includes a per-row '__nc_sortBefore' anchor (the pk the row should sit before under the view's order; null = sorts last) so the editor can reposition their own row without recomputing the sort."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "viewId",
+            "description": "View to compute the sort anchor against, for the bulk endpoints whose route carries no view. Used only alongside sortAnchor='true'."
           }
         ]
       },
@@ -12443,6 +12483,22 @@
             "in": "query",
             "name": "typecast",
             "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortAnchor",
+            "description": "When 'true' in a sorted view, the response includes a per-row '__nc_sortBefore' anchor (the pk the row should sit before under the view's order; null = sorts last) so the editor can reposition their own row without recomputing the sort."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "viewId",
+            "description": "View to compute the sort anchor against, for the bulk endpoints whose route carries no view. Used only alongside sortAnchor='true'."
           }
         ]
       }
@@ -12662,6 +12718,22 @@
             "in": "query",
             "name": "typecast",
             "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortAnchor",
+            "description": "When 'true' in a sorted view, the response includes a per-row '__nc_sortBefore' anchor (the pk the row should sit before under the view's order; null = sorts last) so the editor can reposition their own row without recomputing the sort."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "viewId",
+            "description": "View to compute the sort anchor against, for the bulk endpoints whose route carries no view. Used only alongside sortAnchor='true'."
           }
         ]
       },

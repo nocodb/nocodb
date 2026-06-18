@@ -117,6 +117,10 @@ interface Row {
     isLoading?: boolean
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
+    // Deferred sort-anchor: pk this row should sit BEFORE under the view's order
+    // (null = sorts last). Stashed on an actor edit; the reposition is committed
+    // on click-away (flush) so the row doesn't jump while you're still on it.
+    pendingSortAnchor?: string | null
     isGroupChanged?: boolean
     changedGroupIndex?: number
     isDragging?: boolean

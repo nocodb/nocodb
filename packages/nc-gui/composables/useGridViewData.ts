@@ -69,6 +69,7 @@ export function useGridViewData(
     isRowSortRequiredRows,
     clearInvalidRows,
     applySorting,
+    repositionRowByAnchor,
     CHUNK_SIZE,
     isLastRow,
     isFirstRow,
@@ -347,15 +348,20 @@ export function useGridViewData(
     })
 
     try {
+      // In a sorted grid, ask the backend for each row's post-update sort anchor
+      // so we can reposition locally — no full reload (honors the no-reload UX).
+      const wantAnchors = !isGroupBy.value && !!viewMeta.value?.id
       const newRows = (await $api.dbTableRow.bulkUpdate(
         NOCO,
         metaValue?.base_id as string,
         metaValue?.id as string,
         updateArray,
-        { typecast: 'true' },
+        wantAnchors ? { typecast: 'true', sortAnchor: 'true', viewId: viewMeta.value!.id } : { typecast: 'true' },
       )) as Record<string, any>
 
       triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
+
+      const anchoredRows: Array<{ pk: string | number; row: Record<string, any> }> = []
 
       newRows.forEach((newRow: Record<string, any>) => {
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
@@ -376,7 +382,24 @@ export function useGridViewData(
             dataCache.cachedRows.value.set(rowIndex, row)
           }
         }
+
+        if (pk != null && '__nc_sortBefore' in newRow) {
+          anchoredRows.push({ pk, row: newRow })
+        }
       })
+
+      // Anchored path: reposition each changed row to its server-computed slot
+      // (computed sorts included) without a reload. Fall back to the client-side
+      // applySorting + reload only when the backend shipped no anchors.
+      if (anchoredRows.length) {
+        for (const { pk, row } of anchoredRows) {
+          repositionRowByAnchor(dataCache, pk, row, (row.__nc_sortBefore as string | null) ?? null, path)
+        }
+        // saving flags are reset in the `finally` below; just render + exit.
+        syncVisibleData()
+        isBulkOperationInProgress.value = false
+        return
+      }
     } catch (e) {
       console.error(e)
       onError?.(e)
@@ -437,12 +460,13 @@ export function useGridViewData(
         return row
       })
 
+      const wantAnchors = !isGroupBy.value && !!viewMeta.value?.id
       const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
         NOCO,
         metaValue?.base_id ?? (base.value?.id as string),
         metaValue?.id as string,
         [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
-        { typecast: 'true' },
+        wantAnchors ? { typecast: 'true', sortAnchor: 'true', viewId: viewMeta.value!.id } : { typecast: 'true' },
       )
 
       const existingPks = new Set(Array.from(dataCache.cachedRows.value.values()).map((row) => getPk(row)))
@@ -473,7 +497,18 @@ export function useGridViewData(
 
       dataCache.totalRows.value += insertedRows.length
 
-      reloadViewDataHook?.trigger()
+      // Anchored path: the server told us where each upserted row belongs under
+      // the view's order (computed sorts included) — reposition locally and skip
+      // the full reload (honors the no-reload UX). Fall back to reload otherwise.
+      const anchoredUpserts = (bulkUpsertedRows as Record<string, any>[]).filter((r) => '__nc_sortBefore' in r)
+      if (anchoredUpserts.length) {
+        for (const r of anchoredUpserts) {
+          const pk = extractPkFromRow(r, metaValue?.columns as ColumnType[])
+          if (pk != null) repositionRowByAnchor(dataCache, pk, r, (r.__nc_sortBefore as string | null) ?? null, path)
+        }
+      } else {
+        reloadViewDataHook?.trigger()
+      }
       syncVisibleData()
       await syncCount(path, true, false)
     } catch (error: any) {

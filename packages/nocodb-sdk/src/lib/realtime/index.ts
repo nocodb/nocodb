@@ -74,6 +74,13 @@ export interface DataPayload extends BaseSocketPayload {
   action: 'add' | 'update' | 'delete' | 'reorder' | 'bulk';
   payload: Record<string, any>;
   before?: string;
+  /**
+   * Per-view sort anchor: `viewId → pk the changed row should sit BEFORE` (null
+   * = sorts last). The DB computes this per (view × RLS scope); the FE reads
+   * `beforeByView[activeViewId]` to reposition the row in a sorted view without
+   * knowing the sort. Present only for sorted views on add/update.
+   */
+  beforeByView?: Record<string, string | null>;
   matchedViewIds?: string[];
   rows?: DataPayload[];
 }

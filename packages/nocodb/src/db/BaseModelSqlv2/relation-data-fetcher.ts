@@ -1,5 +1,5 @@
 import groupBy from 'lodash/groupBy';
-import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import { extractFilterFromXwhere, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -31,6 +31,92 @@ function wrapUnionMember(model: IBaseModelSqlV2, query: any): any {
     .from((model as any).isMssql ? query.as('__nc_u') : query);
 }
 
+// Build the set of column titles selectable for a related table when the caller
+// asks for target-view-aware visibility. Used by mmList/hmList on the public
+// shared-view boundary so the response cannot leak columns the view owner
+// hid in the LTAR's configured (or default) view.
+//
+// Rules — `fk_target_view_id` resolves to the LTAR's target view; falls back
+// to the related table's default (first) view at the call site:
+//   1. Columns visible in the target view are returned.
+//   2. The custom display-value column (`fk_display_value_column_id`) is
+//      always returned, even if hidden in that view.
+//   3. PKs and FKs are always returned (selectObject's fieldsSet path does
+//      not auto-promote them, but downstream code relies on them).
+//   4. If the caller supplied a `fields`/`fieldsSet` filter, it narrows the
+//      result further but cannot widen beyond rules 1–3. `callerFields` is
+//      the raw `?fields=` query (comma-separated string or array of column
+//      IDs or titles) and is resolved to titles via `refColumns`.
+async function deriveAllowedFieldsForTargetView(params: {
+  context: NcContext;
+  refTable: Model;
+  targetViewId?: string | null;
+  fkDisplayValueColumnId?: string | null;
+  callerFieldsSet?: Set<string>;
+  callerFields?: string | string[];
+}): Promise<Set<string>> {
+  const {
+    context,
+    refTable,
+    targetViewId,
+    fkDisplayValueColumnId,
+    callerFieldsSet,
+    callerFields,
+  } = params;
+  const refColumns = await refTable.getColumns(context);
+
+  const alwaysAllowed = new Set<string>();
+  for (const col of refColumns) {
+    if (col.pk || col.uidt === UITypes.ForeignKey) alwaysAllowed.add(col.title);
+  }
+  if (fkDisplayValueColumnId) {
+    const dv = refColumns.find((c) => c.id === fkDisplayValueColumnId);
+    if (dv) alwaysAllowed.add(dv.title);
+  }
+
+  const base = new Set<string>(alwaysAllowed);
+  if (targetViewId) {
+    const viewColumns = await View.getColumns(context, targetViewId);
+    for (const vc of viewColumns) {
+      if (!vc.show) continue;
+      const col = refColumns.find((c) => c.id === vc.fk_column_id);
+      if (col) base.add(col.title);
+    }
+  } else {
+    // No view to enforce against — allow every column (legacy behavior).
+    for (const col of refColumns) base.add(col.title);
+  }
+
+  // Resolve caller's narrowing input. Prefer the typed `callerFieldsSet`
+  // (already title-keyed) when present; otherwise parse the raw `fields=`
+  // query and map column IDs to titles. `*` and empty values are no-ops.
+  let narrowingSet = callerFieldsSet;
+  if (!narrowingSet?.size && callerFields && callerFields !== '*') {
+    const fieldList = Array.isArray(callerFields)
+      ? callerFields
+      : String(callerFields)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+    if (fieldList.length) {
+      narrowingSet = new Set<string>();
+      for (const f of fieldList) {
+        const col = refColumns.find((c) => c.id === f || c.title === f);
+        if (col) narrowingSet.add(col.title);
+      }
+    }
+  }
+
+  if (narrowingSet?.size) {
+    const narrowed = new Set<string>(alwaysAllowed);
+    for (const title of base) {
+      if (narrowingSet.has(title)) narrowed.add(title);
+    }
+    return narrowed;
+  }
+  return base;
+}
+
 export const relationDataFetcher = (param: {
   baseModel: IBaseModelSqlV2;
   logger: Logger;
@@ -43,19 +129,57 @@ export const relationDataFetcher = (param: {
       data,
       model,
       query,
+      allowedFieldsSet,
     }: {
       data: any[];
       model: Model;
       query: any;
+      // Set by the public/shared-view relation fetch (mmList/hmList with
+      // `enforceTargetViewVisibility`). The CE post-process step below runs
+      // `nocoExecute` over a `getAst`-derived AST; without a restriction that
+      // AST spans the whole related-table model and re-expands relation
+      // columns, re-reading the related table UNRESTRICTED and re-leaking
+      // columns the SQL layer (`selectObject`) already excluded. When this is
+      // provided the AST is narrowed to these column titles, relation columns
+      // (LTAR/Links/Lookup) that would trigger a nested re-read are stripped,
+      // and PKs are always kept. EE skips this path entirely.
+      allowedFieldsSet?: Set<string>;
     },
   ) {
     if (Noco.isEE()) {
       return data;
     }
 
+    let effectiveQuery = query;
+    if (allowedFieldsSet?.size) {
+      const cols = model.columns?.length
+        ? model.columns
+        : await model.getColumns(context);
+      // Relation/lookup columns traverse into another table; resolving them
+      // here re-reads that table without the view restriction, so exclude
+      // them from the projection. Rollup/formula/etc. stay (scalar values).
+      const nestedExpandingUidts = [
+        UITypes.LinkToAnotherRecord,
+        UITypes.Links,
+        UITypes.Lookup,
+      ];
+      const projectionTitles = new Set<string>();
+      for (const col of cols) {
+        // PKs are always needed downstream (id / id_fields).
+        if (col.pk) {
+          projectionTitles.add(col.title);
+          continue;
+        }
+        if (!allowedFieldsSet.has(col.title)) continue;
+        if (nestedExpandingUidts.includes(col.uidt)) continue;
+        projectionTitles.add(col.title);
+      }
+      effectiveQuery = { ...(query || {}), fields: [...projectionTitles] };
+    }
+
     const { ast, parsedQuery } = await getAst(context, {
       model,
-      query,
+      query: effectiveQuery,
       extractOnlyPrimaries:
         context.cacheMap?.get('relation_postProcessData') ?? false,
     });
@@ -213,14 +337,29 @@ export const relationDataFetcher = (param: {
         apiVersion,
         nested = false,
         linksAsLtar = false,
+        enforceTargetViewVisibility = false,
       }: {
         colId: string;
         parentId: any;
         apiVersion?: NcApiVersion;
         nested?: boolean;
         linksAsLtar?: boolean;
+        // When true, restrict the selected columns of the related table to
+        // those visible in the LTAR's `fk_target_view_id` (or the related
+        // table's default view if none is configured). The configured
+        // display-value column is always included. Public/shared-view
+        // callers set this so the response cannot leak columns the view
+        // owner intended to keep private.
+        enforceTargetViewVisibility?: boolean;
       },
-      args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldsSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+        fields?: string | string[];
+        f?: string | string[];
+      } = {},
       selectAllRecords = false,
     ) {
       const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -293,19 +432,35 @@ export const relationDataFetcher = (param: {
         baseModel.context.user,
       ));
 
-      await refBaseModel.selectObject({
-        qb,
-        fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
-        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
-        linksAsLtar,
-      });
-
+      // Resolve target view up-front — used both for column visibility
+      // enforcement and for sort/filter application below.
       await refTable.getViews(refContext);
       const viewId =
         relColumn.colOptions?.fk_target_view_id ?? refTable.views?.[0]?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(refContext, viewId);
+
+      const effectiveFieldsSet = enforceTargetViewVisibility
+        ? await deriveAllowedFieldsForTargetView({
+            context: refContext,
+            refTable,
+            targetViewId: viewId,
+            fkDisplayValueColumnId: relColOptions.fk_display_value_column_id,
+            callerFieldsSet: args.fieldsSet,
+            callerFields: args.fields ?? args.f,
+          })
+        : args.fieldsSet;
+
+      await refBaseModel.selectObject({
+        qb,
+        fieldsSet: effectiveFieldsSet,
+        pkAndPvOnly:
+          relColOptions.isCrossBaseLink() ||
+          hasLimitedAccess ||
+          !!args.pkAndPvOnly,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
+        linksAsLtar,
+      });
 
       await refBaseModel.applySortAndFilter({
         table: refTable,
@@ -354,6 +509,9 @@ export const relationDataFetcher = (param: {
         }),
         model: refTable,
         query: args,
+        allowedFieldsSet: enforceTargetViewVisibility
+          ? effectiveFieldsSet
+          : undefined,
       });
     },
 
@@ -540,14 +698,26 @@ export const relationDataFetcher = (param: {
         id,
         apiVersion,
         linksAsLtar = false,
+        enforceTargetViewVisibility = false,
       }: {
         colId: string;
         id: any;
         apiVersion?: NcApiVersion;
         nested?: boolean;
         linksAsLtar?: boolean;
+        // See mmList — public/shared-view callers set this so the related
+        // table's `fk_target_view_id` (or default view) governs which
+        // columns are returned.
+        enforceTargetViewVisibility?: boolean;
       },
-      args: { limit?; offset?; fieldSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+        fields?: string | string[];
+        f?: string | string[];
+      } = {},
       selectAllRecords = false,
     ) {
       try {
@@ -616,10 +786,25 @@ export const relationDataFetcher = (param: {
           baseModel.context.user,
         ));
 
+        const effectiveFieldsSet = enforceTargetViewVisibility
+          ? await deriveAllowedFieldsForTargetView({
+              context: childBaseModel.context,
+              refTable: childTable,
+              targetViewId: viewId,
+              fkDisplayValueColumnId:
+                relationColOpts.fk_display_value_column_id,
+              callerFieldsSet: args.fieldSet,
+              callerFields: args.fields ?? args.f,
+            })
+          : args.fieldSet;
+
         await childBaseModel.selectObject({
           qb,
-          fieldsSet: args.fieldSet,
-          pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          fieldsSet: effectiveFieldsSet,
+          pkAndPvOnly:
+            relationColOpts.isCrossBaseLink() ||
+            hasLimitedAccess ||
+            !!args.pkAndPvOnly,
           fk_display_value_column_id:
             relationColOpts.fk_display_value_column_id,
           linksAsLtar,
@@ -653,6 +838,9 @@ export const relationDataFetcher = (param: {
           }),
           model: childTable,
           query: args,
+          allowedFieldsSet: enforceTargetViewVisibility
+            ? effectiveFieldsSet
+            : undefined,
         });
       } catch (e) {
         throw e;

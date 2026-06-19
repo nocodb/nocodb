@@ -1323,6 +1323,17 @@ export class PublicDatasService {
       NcError.recordNotFound(param.rowId);
     }
 
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables). The shared-view
+    // /mm/ fetch is `pkAndPvOnly`-restricted, so an unsanitized predicate on a
+    // hidden related column is the same one-bit oracle the authenticated paths
+    // close. Mutates `param.query`, which both the data fetch and the count
+    // read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
+    // Strip query keys the public caller must not control (getHiddenColumn, nested).
+    const sanitizedQuery = sanitizePublicQuery(param.query);
+
     const key = `List`;
     const requestObj: any = {
       [key]: 1,
@@ -1333,10 +1344,15 @@ export class PublicDatasService {
         requestObj,
         {
           [key]: async (args) => {
+            // enforceTargetViewVisibility restricts the SELECT to the related
+            // table's configured (or default) view at the SQL layer, plus the
+            // LTAR's display-value column, so the response cannot leak columns
+            // the view owner did not expose — works on both CE and EE.
             return await baseModel.mmList(
               {
                 colId: param.columnId,
                 parentId: param.rowId,
+                enforceTargetViewVisibility: true,
               },
               args,
             );
@@ -1344,7 +1360,7 @@ export class PublicDatasService {
         },
         {},
 
-        { nested: { [key]: param.query } },
+        { nested: { [key]: sanitizedQuery } },
       )
     )?.[key];
 
@@ -1353,7 +1369,7 @@ export class PublicDatasService {
         colId: param.columnId,
         parentId: param.rowId,
       },
-      param.query,
+      sanitizedQuery,
     );
 
     return new PagedResponseImpl(data, { ...param.query, count });
@@ -1416,6 +1432,17 @@ export class PublicDatasService {
       NcError.recordNotFound(param.rowId);
     }
 
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables). The shared-view
+    // /hm/ fetch is `pkAndPvOnly`-restricted, so an unsanitized predicate on a
+    // hidden related column is the same one-bit oracle the authenticated paths
+    // close. Mutates `param.query`, which both the data fetch and the count
+    // read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
+    // Strip query keys the public caller must not control (getHiddenColumn, nested).
+    const sanitizedQuery = sanitizePublicQuery(param.query);
+
     const key = `List`;
     const requestObj: any = {
       [key]: 1,
@@ -1426,17 +1453,22 @@ export class PublicDatasService {
         requestObj,
         {
           [key]: async (args) => {
+            // enforceTargetViewVisibility restricts the SELECT to the related
+            // table's configured (or default) view at the SQL layer, plus the
+            // LTAR's display-value column, so the response cannot leak columns
+            // the view owner did not expose — works on both CE and EE.
             return await baseModel.hmList(
               {
                 colId: param.columnId,
                 id: param.rowId,
+                enforceTargetViewVisibility: true,
               },
               args,
             );
           },
         },
         {},
-        { nested: { [key]: param.query } },
+        { nested: { [key]: sanitizedQuery } },
       )
     )?.[key];
 
@@ -1445,7 +1477,7 @@ export class PublicDatasService {
         colId: param.columnId,
         id: param.rowId,
       },
-      param.query,
+      sanitizedQuery,
     );
 
     return new PagedResponseImpl(data, { ...param.query, count });

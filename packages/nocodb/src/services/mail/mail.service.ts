@@ -3,7 +3,7 @@ import { ncIsArray, RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
 import type { NcRequest, WhiteLabelConfig } from 'nocodb-sdk';
 import type { MailParams, RawMailParams } from '~/interface/Mail';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactElement } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent, SKIP_STORING_MAIL_EVENTS } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -142,9 +142,18 @@ export class MailService {
     props: TemplateProps<K>,
     branding: WhiteLabelConfig | null,
   ) {
-    const Component = MailTemplates[template];
-    // TODO: Fix Type here
-    return await render(Component({ ...props, branding } as any));
+    // `MailTemplates[template]` is a union of all template components (the key
+    // `K` is generic), which TS treats as an uncallable union. Asserting to a
+    // call signature whose param stays *correlated to K* — i.e. left as the
+    // indexed type `ComponentProps<TemplateComponent<K>>` rather than an
+    // evaluated intersection — is accepted by TS and preserves full prop
+    // checking at every call site (no `any`).
+    const Component = MailTemplates[template] as (
+      props: ComponentProps<TemplateComponent<K>>,
+    ) => ReactElement;
+    return await render(
+      Component({ ...props, branding } as ComponentProps<TemplateComponent<K>>),
+    );
   }
 
   /**

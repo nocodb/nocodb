@@ -449,9 +449,6 @@ export class DataAttachmentV3Service {
     const contentType =
       (response.headers['content-type'] as string) ||
       'application/octet-stream';
-    const contentLength = response.headers['content-length'] as
-      | string
-      | undefined;
     const contentDisposition = response.headers['content-disposition'] as
       | string
       | undefined;
@@ -498,9 +495,11 @@ export class DataAttachmentV3Service {
       filePathConstructed.storageDest,
       response.data.pipe(sizeLimiter),
     );
-    const fileSize = contentLength
-      ? Number(contentLength)
-      : sizeLimiter.bytesProcessed;
+    // sizeLimiter.bytesProcessed is the exact number of bytes streamed into
+    // storage by the time fileCreateByStream resolves. Prefer it over the
+    // Content-Length header, which can be absent (chunked), understated, or
+    // outright wrong — the very conditions this limiter exists to guard against.
+    const fileSize = sizeLimiter.bytesProcessed;
 
     return {
       storageName: storageAdapter.name,

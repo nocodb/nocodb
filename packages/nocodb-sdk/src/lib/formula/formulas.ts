@@ -906,7 +906,6 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'TRUE()',
     examples: ['TRUE()'],
     returnType: FormulaDataTypes.NUMERIC,
-    // TODO: Add docs url
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#true`,
   },
 
@@ -920,7 +919,6 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'FALSE()',
     examples: ['FALSE()'],
     returnType: FormulaDataTypes.NUMERIC,
-    // TODO: Add docs url
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#false`,
   },
 
@@ -1035,7 +1033,6 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'BLANK()',
     examples: ['BLANK()'],
     returnType: FormulaDataTypes.NULL,
-    // TODO: Add docs url
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#blank`,
   },
   XOR: {
@@ -1050,7 +1047,6 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'XOR(expression, [exp2, ...])',
     examples: ['XOR(TRUE(), FALSE(), TRUE())'],
     returnType: FormulaDataTypes.BOOLEAN,
-    // TODO: Add docs url
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#xor`,
   },
   EVEN: {

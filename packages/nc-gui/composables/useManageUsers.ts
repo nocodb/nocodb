@@ -1,4 +1,4 @@
-import type { RequestParams } from 'nocodb-sdk'
+import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const [setup, use] = useInjectionState(() => {
   const { api } = useApi()
@@ -9,8 +9,8 @@ const [setup, use] = useInjectionState(() => {
   const currentPage = ref(1)
   const currentLimit = ref(10)
   const searchText = ref<string>('')
-  const users = ref<null | User[]>(null)
-  const lastFetchedUsers = ref<null | User[]>(null)
+  const users = ref<null | UserType[]>(null)
+  const lastFetchedUsers = ref<null | UserType[]>(null)
   const totalUsers = ref(0)
   const isBatchUpdating = ref(false)
   // todo: Only tracks roles updates
@@ -29,8 +29,7 @@ const [setup, use] = useInjectionState(() => {
     try {
       if (!base.value?.id) return
 
-      // TODO: Types of api is not correct
-      const response: any = await api.auth.baseUserList(base.value?.id, {
+      const response = await api.auth.baseUserList(base.value?.id, {
         query: {
           limit,
           offset: (page - 1) * limit,
@@ -39,13 +38,13 @@ const [setup, use] = useInjectionState(() => {
       } as RequestParams)
       if (!response.users) return
 
-      const removedUser = response.users.list.filter((u: User) => !u.roles)
+      const removedUser = response.users.list.filter((u) => !u.roles)
 
       totalUsers.value = (response.users.pageInfo.totalRows ?? 0) - Number(removedUser?.length)
 
-      if (!users.value) users.value = response.users.list.filter((u: User) => u.roles) as User[]
+      if (!users.value) users.value = response.users.list.filter((u) => u.roles)
       else {
-        users.value = [...users.value, ...(response.users.list.filter((u: User) => u.roles) as User[])]
+        users.value = [...users.value, ...response.users.list.filter((u) => u.roles)]
       }
 
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
@@ -83,7 +82,7 @@ const [setup, use] = useInjectionState(() => {
     return res
   }
 
-  const updateEditedUsers = async (_editedUsers?: User[]) => {
+  const updateEditedUsers = async (_editedUsers?: UserType[]) => {
     _editedUsers = _editedUsers || editedUsers.value
     isBatchUpdating.value = true
     try {

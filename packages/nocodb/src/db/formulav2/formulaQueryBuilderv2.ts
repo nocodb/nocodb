@@ -608,11 +608,20 @@ export default async function formulaQueryBuilderv2({
     // Check if this is a transient error (connection/timeout issue)
     const isTransient = isTransientError(e);
 
+    // The dry-run short-circuit above re-throws a sentinel error only because an
+    // earlier transient failure set `formulaDryRunFailed` (the flag's sole write
+    // site is guarded by `isTransient`), and no real validation runs once it's
+    // set. That sentinel is not a real formula error, so it must never be
+    // persisted as the column's `error` — doing so poisons every later read with
+    // ERR_FORMULA and never self-heals.
+    const skipMarkingColumn = isTransient || !!baseModelSqlv2.formulaDryRunFailed;
+
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
-    // BUT skip marking for transient errors
+    // BUT skip marking for transient errors (and the transient-induced
+    // dry-run short-circuit, see skipMarkingColumn above)
     if (
-      !isTransient &&
+      !skipMarkingColumn &&
       (validateFormula ||
         (column?.id &&
           e instanceof NcBaseErrorv2 &&

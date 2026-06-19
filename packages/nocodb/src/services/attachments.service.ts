@@ -77,7 +77,6 @@ export class AttachmentsService {
       ? `${hash(userId)}`
       : param.path || `${moment().format('YYYY/MM/DD')}/${hash(userId)}`;
 
-    // TODO: add getAjvValidatorMw
     const _filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
     );

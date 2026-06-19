@@ -329,8 +329,17 @@ export class OauthTokenService {
     // Rotate refresh tokens for security
     const newRefreshToken = randomBytes(64).toString('base64url');
 
-    // Revoke old token
-    await OAuthToken.revoke(tokenRecord.id);
+    // Atomically revoke the presented refresh token, gating issuance of the new
+    // chain. This compare-and-swap is the single-use guard: two concurrent
+    // refreshes presenting the same token both pass the is_revoked check above,
+    // but only one wins revokeIfActive — the loser is rejected here instead of
+    // minting a second valid token chain. Done after token generation so a
+    // generateAccessToken failure does not burn the still-valid refresh token
+    // (GHSA-353r).
+    const revoked = await OAuthToken.revokeIfActive(tokenRecord.id);
+    if (!revoked) {
+      NcError.badRequest('Refresh token has been revoked');
+    }
 
     // Create new token record
     await OAuthToken.insert({

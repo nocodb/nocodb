@@ -33,6 +33,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { Audit, FileReference, PresignedUrl } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { SizeLimitedStream } from '~/services/v3/attachment-size-limited-stream';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { RootScopes } from '~/utils/globals';
@@ -455,13 +456,15 @@ export class DataAttachmentV3Service {
       | string
       | undefined;
 
-    const passthrough = new PassThrough(); // Track size via the PassThrough stream
-    let totalBytes = 0;
-    if (!contentLength) {
-      passthrough.on('data', (chunk) => {
-        totalBytes += chunk.length;
-      });
-    }
+    // Enforce the size limit mid-transfer. axios maxContentLength above is only
+    // honoured when the response declares a Content-Length, so a chunked or
+    // length-less (or lying) response would otherwise stream an oversized file
+    // straight to storage. The limiter aborts the stream once the cap is passed.
+    const sizeLimiter = new SizeLimitedStream(NC_ATTACHMENT_FIELD_SIZE);
+    sizeLimiter.on('error', () => {
+      // tear down the underlying download so it does not keep buffering
+      response.data.destroy();
+    });
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
     const mimeType = contentType.split(';')[0].trim();
@@ -493,9 +496,11 @@ export class DataAttachmentV3Service {
       : filePath;
     const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
       filePathConstructed.storageDest,
-      response.data.pipe(passthrough),
+      response.data.pipe(sizeLimiter),
     );
-    const fileSize = contentLength ? Number(contentLength) : totalBytes;
+    const fileSize = contentLength
+      ? Number(contentLength)
+      : sizeLimiter.bytesProcessed;
 
     return {
       storageName: storageAdapter.name,

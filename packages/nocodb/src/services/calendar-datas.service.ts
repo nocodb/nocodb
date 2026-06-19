@@ -6,6 +6,7 @@ import type { NcContext } from '~/interface/config';
 import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
+import { NC_CALENDAR_MAX_RECORDS } from '~/constants';
 
 @Injectable()
 export class CalendarDatasService {
@@ -79,7 +80,7 @@ export class CalendarDatasService {
       viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,
-      limitOverride: 3000, // TODO: make this configurable in env
+      limitOverride: NC_CALENDAR_MAX_RECORDS,
     });
   }
 

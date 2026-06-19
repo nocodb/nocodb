@@ -50,6 +50,11 @@ export const V3_META_REQUEST_LIMIT = 10;
 // Not related to V1_V2_DATA_PAYLOAD_LIMIT, which guards programmatic (api-token) bulk requests.
 export const NC_GRID_MAX_SELECTION_LIMIT =
   +process.env['NC_GRID_MAX_SELECTION_LIMIT'] || 1000;
+
+// Max number of records returned for a single calendar view data list request.
+// Bounded in practice by the 42-day date-range guard in CalendarDatasService.
+export const NC_CALENDAR_MAX_RECORDS =
+  +process.env['NC_CALENDAR_MAX_RECORDS'] || 3000;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;
 export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;

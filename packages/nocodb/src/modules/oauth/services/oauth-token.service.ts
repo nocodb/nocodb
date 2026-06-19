@@ -278,6 +278,12 @@ export class OauthTokenService {
   }): Promise<TokenResponse> {
     const { refreshToken, clientId, clientSecret } = params;
 
+    // TODO: refresh-grant failures below reject via NcError.badRequest, while the
+    // authorization-code grant throws RFC-6749 `invalid_grant: …` codes. Align the
+    // whole refresh flow on RFC-6749 error codes in a dedicated change (kept out of
+    // the GHSA-353r advisory fix to avoid altering response shapes here).
+    // https://github.com/nocodb/nocohub/pull/9337#discussion_r3435641193
+
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
     if (!tokenRecord) {

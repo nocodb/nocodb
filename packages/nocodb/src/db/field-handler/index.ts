@@ -51,6 +51,7 @@ import { CheckboxMssqlHandler } from '~/db/field-handler/handlers/checkbox/check
 import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
 import { LongTextMysqlHandler } from '~/db/field-handler/handlers/long-text/long-text.mysql.handler';
 import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
+import { LongTextPgHandler } from '~/db/field-handler/handlers/long-text/long-text.pg.handler';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
 import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
 import { DateTimeMySQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mysql.handler';
@@ -123,6 +124,7 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
+    [ClientType.PG]: LongTextPgHandler,
     [ClientType.MYSQL]: LongTextMysqlHandler,
   },
   [UITypes.Attachment]: {

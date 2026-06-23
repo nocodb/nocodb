@@ -79,6 +79,8 @@ const getDatesCacheKey = () => {
   }`
 }
 
+const { t } = useI18n()
+
 const days = computed(() => {
   let days = []
   if (props.isMondayFirst) {
@@ -91,7 +93,7 @@ const days = computed(() => {
     days = days.filter((day) => day !== 'Sa' && day !== 'Su')
   }
 
-  return days
+  return days.map((d) => t(`objects.shortDays.${d}`))
 })
 
 const currentMonthYear = computed(() => {

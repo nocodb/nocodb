@@ -20,8 +20,10 @@ concurrency:
 jobs:
   # enrich tag for pr release
   set-tag:
-    if: ${{ vars.ENABLE_UFFIZZI_PREVIEW == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
     runs-on: 'ubuntu-22.04'
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -78,6 +80,8 @@ jobs:
   leave-comment:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
     runs-on: 'ubuntu-22.04'
+    permissions:
+      contents: read
     needs: [release-docker, set-tag]
     steps:
       - uses: peter-evans/commit-comment@v2
@@ -91,7 +95,7 @@ jobs:
   # Create a preview for the pull request
   preview-pull-request:
     name: "Trigger Uffizzi Preview"
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
+    if: ${{ vars.ENABLE_UFFIZZI_PREVIEW == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
     runs-on: 'ubuntu-22.04'
     needs: [release-docker, set-tag]
     outputs:

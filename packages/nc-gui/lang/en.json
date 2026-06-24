@@ -2232,6 +2232,7 @@
     "editTableDescription": "Edit table description",
     "editFieldDescription": "Edit field description",
     "convertToNewLink": "Upgrade field",
+    "convertToRegularField": "Convert to regular field",
     "legacyLinkColumn": "Legacy link column",
     "urlFormula": "URL Formula",
     "visibilityCondition": "Visibility condition",

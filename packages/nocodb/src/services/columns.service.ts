@@ -3665,6 +3665,71 @@ export class ColumnsService implements IColumnsService {
     return result;
   }
 
+  // Convert the hidden reverse field of a self-referential link into a regular
+  // (non-system) field, so it shows up in the grid and the expanded form and
+  // the link can be navigated in both directions. This is the after-the-fact
+  // counterpart to the "Show reverse field" toggle offered at creation time.
+  async columnConvertToField(
+    context: NcContext,
+    param: { columnId: string; req: NcRequest },
+  ) {
+    const oldColumn = await Column.get(context, { colId: param.columnId });
+
+    if (!oldColumn) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const colOptions = await oldColumn.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    // Only the reverse field of a self-referential link may be converted: it
+    // must be a system link column pointing back at its own model.
+    const isSelfReferentialLink =
+      oldColumn.system &&
+      isLinksOrLTAR(oldColumn) &&
+      colOptions?.fk_related_model_id === oldColumn.fk_model_id;
+
+    if (!isSelfReferentialLink) {
+      NcError.get(context).invalidRequestBody(
+        'Only the reverse field of a self-referential link can be converted to a regular field.',
+      );
+    }
+
+    await Column.updateSystemField(context, oldColumn.id, { system: false });
+
+    const column = await Column.get(context, { colId: param.columnId });
+
+    const table = await Model.getWithInfo(context, { id: column.fk_model_id });
+
+    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      table,
+      oldColumn,
+      column,
+      columnId: column.id,
+      req: param.req,
+      context,
+      columns: table.columns,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_update',
+          payload: {
+            table,
+            column,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
+    return column;
+  }
+
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {

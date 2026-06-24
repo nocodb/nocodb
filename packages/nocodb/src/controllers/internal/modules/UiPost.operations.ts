@@ -84,6 +84,7 @@ export class UiPostOperations
     'columnUpdate' as const,
     'columnDelete' as const,
     'columnSetAsPrimary' as const,
+    'columnConvertToField' as const,
     'columnsBulk' as const,
     'viewUpdate' as const,
     'viewDelete' as const,
@@ -226,6 +227,11 @@ export class UiPostOperations
         });
       case 'columnSetAsPrimary':
         return await this.columnsService.columnSetAsPrimary(context, {
+          columnId: req.query.columnId,
+          req,
+        });
+      case 'columnConvertToField':
+        return await this.columnsService.columnConvertToField(context, {
           columnId: req.query.columnId,
           req,
         });

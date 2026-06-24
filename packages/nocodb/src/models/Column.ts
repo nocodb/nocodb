@@ -1769,6 +1769,34 @@ export default class Column<T = any> implements ColumnType {
     await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
   }
 
+  // Flip the `system` flag on a column without going through the heavyweight
+  // recreate path in `update2`. Used to convert a self-referential link's
+  // hidden reverse field into a regular visible field.
+  static async updateSystemField(
+    context: NcContext,
+    colId: string,
+    { system }: { system: boolean },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        system,
+      },
+      colId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.COLUMN}:${colId}`, {
+      system,
+    });
+
+    const column = await Column.get(context, { colId }, ncMeta);
+
+    await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
+  }
+
   public getValidators(): any {
     if (this.validate && typeof this.validate === 'string')
       try {

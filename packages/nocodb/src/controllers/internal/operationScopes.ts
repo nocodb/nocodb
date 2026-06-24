@@ -56,6 +56,7 @@ export const OPERATION_SCOPES = {
   columnUpdate: 'base',
   columnDelete: 'base',
   columnSetAsPrimary: 'base',
+  columnConvertToField: 'base',
   columnsBulk: 'base',
   viewUpdate: 'base',
   viewDelete: 'base',

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   PlanLimitTypes,
@@ -73,7 +73,19 @@ const { isUIAllowed, isMetaReadOnly, isDataReadOnly, sandboxRestrictionReason } 
 
 const { showEEFeatures } = useEeConfig()
 
-const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
+const isLoading = ref<'' | 'hideOrShow' | 'setDisplay' | 'convertToField'>('')
+
+// The reverse field of a self-referential link is created as a hidden system
+// field — detect it so we can offer converting it into a regular field.
+const isSelfLinkSystemColumn = computed(() => {
+  const col = column.value
+  return (
+    !!col &&
+    isSystemColumn(col) &&
+    isLinksOrLTAR(col) &&
+    (col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === col.fk_model_id
+  )
+})
 
 const setAsDisplayValue = async () => {
   isLoading.value = 'setDisplay'
@@ -103,6 +115,35 @@ const setAsDisplayValue = async () => {
     reloadRowTrigger?.trigger()
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
+  } finally {
+    isLoading.value = ''
+  }
+}
+
+const convertSelfLinkToField = async () => {
+  isLoading.value = 'convertToField'
+  try {
+    isOpen.value = false
+
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnConvertToField',
+        columnId: column?.value?.id as string,
+      },
+      {},
+    )
+
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    $e('a:column:convert-self-link-to-field')
+
+    reloadDataHook?.trigger()
+    reloadRowTrigger?.trigger()
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = ''
   }
@@ -641,6 +682,20 @@ const onDeleteColumn = () => {
         <div class="nc-column-convert-v2 nc-header-menu-item">
           <GeneralIcon icon="ncArrowUpCircle" class="opacity-80" />
           {{ $t('labels.convertToNewLink') }}
+        </div>
+      </NcMenuItem>
+    </GeneralSourceRestrictionTooltip>
+    <GeneralSourceRestrictionTooltip
+      v-if="!isMobileMode && isSelfLinkSystemColumn && isUIAllowed('fieldAlter') && !isSqlView"
+      message="Field cannot be converted."
+      :enabled="!!isMetaReadOnly"
+      :is-sql-view="isSqlView"
+    >
+      <NcMenuItem :disabled="isMetaReadOnly" data-testid="nc-column-convert-to-field" @click="convertSelfLinkToField">
+        <div class="nc-column-convert-to-field nc-header-menu-item">
+          <GeneralLoader v-if="isLoading === 'convertToField'" size="regular" />
+          <GeneralIcon v-else icon="ncArrowUpCircle" class="opacity-80" />
+          {{ $t('labels.convertToRegularField') }}
         </div>
       </NcMenuItem>
     </GeneralSourceRestrictionTooltip>

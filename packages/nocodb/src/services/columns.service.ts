@@ -1482,7 +1482,10 @@ export class ColumnsService implements IColumnsService {
             });
           } catch (e) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            this.logger.error(`Failed to update column: ${e?.message ?? e}`, e?.stack);
+            this.logger.error(
+              `Failed to update column: ${e?.message ?? e}`,
+              e?.stack,
+            );
             NcError.get(context).internalServerError('Failed to update column');
           }
 
@@ -4071,7 +4074,10 @@ export class ColumnsService implements IColumnsService {
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            this.logger.error(`Failed to update column: ${e?.message ?? e}`, e?.stack);
+            this.logger.error(
+              `Failed to update column: ${e?.message ?? e}`,
+              e?.stack,
+            );
             NcError.get(context).internalServerError('Failed to update column');
           }
         }
@@ -6357,6 +6363,16 @@ export class ColumnsService implements IColumnsService {
       fk_display_value_column_id?: string | null;
     };
 
+    // For self-referential links the reverse field is hidden as a system field
+    // by default. Honor an opt-in flag from the UI to keep it visible instead.
+    // The flag is a creation-time hint only — strip it so it isn't persisted on
+    // the forward column's meta (the reverse column's `system: false` is the
+    // source of truth).
+    const reverseFieldVisible = !!ltarReq.meta?.fk_self_link_reverse_visible;
+    if (ltarReq.meta && 'fk_self_link_reverse_visible' in ltarReq.meta) {
+      delete ltarReq.meta.fk_self_link_reverse_visible;
+    }
+
     if (!ltarReq.parentId) {
       NcError.get(context).invalidRequestBody(`'parentId' is required`);
     }
@@ -6620,6 +6636,7 @@ export class ColumnsService implements IColumnsService {
           savedColumnId: ltarReq.id,
         },
         hmBtOut,
+        reverseFieldVisible,
       );
       if (capture) capture.reverseColumnId = hmBtOut.childRelColId;
     } else if (!isMMLike && ltarReq.type === 'oo') {
@@ -6743,6 +6760,7 @@ export class ColumnsService implements IColumnsService {
           savedColumnId: ltarReq.id,
         },
         ooOut,
+        reverseFieldVisible,
       );
       if (capture) capture.reverseColumnId = ooOut.childRelColId;
     } else if (isMMLike || ltarReq.type === 'mm') {
@@ -7060,8 +7078,9 @@ export class ColumnsService implements IColumnsService {
           plural: pluralize(table.title),
           singular: singularize(table.title),
         },
-        // if self referencing treat it as system field to hide from ui
-        system: table.id === refTable.id,
+        // if self referencing treat it as system field to hide from ui,
+        // unless the user opted to keep the reverse field visible
+        system: table.id === refTable.id && !reverseFieldVisible,
         // include cross base link props
         ...refCrossBaseLinkProps,
       });

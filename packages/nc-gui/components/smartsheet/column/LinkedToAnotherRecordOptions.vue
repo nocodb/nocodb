@@ -375,6 +375,21 @@ const onLimitRecToViewChange = (value: boolean) => {
   }
 }
 
+// Self-referential link: the related table is the current table. By default the
+// reverse (back-reference) field is hidden as a system field — let the user opt
+// in to keeping it visible so the link can be navigated in both directions.
+const isSelfReferential = computed(() => !isEdit.value && !!vModel.value.childId && vModel.value.childId === meta.value?.id)
+
+const showReverseField = computed({
+  get() {
+    return !!vModel.value.meta?.fk_self_link_reverse_visible
+  },
+  set(value: boolean) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.fk_self_link_reverse_visible = value
+  },
+})
+
 provide(
   MetaInj,
   computed(() => {
@@ -838,6 +853,29 @@ const handleScrollIntoView = () => {
           </a-select-option>
         </NcSelect>
       </a-form-item>
+    </div>
+
+    <div v-if="isSelfReferential && !hideAdvancedOptions" class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
+        <a-switch
+          v-model:checked="showReverseField"
+          v-e="['c:link:self-ref-reverse-visible', { status: showReverseField }]"
+          size="small"
+          data-testid="nc-link-show-reverse-field"
+        />
+        <span
+          v-e="['c:link:self-ref-reverse-visible', { status: showReverseField }]"
+          class="cursor-pointer inline-flex items-center gap-1"
+          data-testid="nc-link-show-reverse-field-label"
+          @click="showReverseField = !showReverseField"
+        >
+          {{ $t('labels.showReverseField') }}
+
+          <NcTooltip :title="$t('tooltip.showReverseField')" placement="right">
+            <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5 text-nc-content-gray-disabled" />
+          </NcTooltip>
+        </span>
+      </div>
     </div>
 
     <div v-if="!hideAdvancedOptions" class="flex flex-col gap-2">

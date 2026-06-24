@@ -61,6 +61,9 @@ export async function createHmAndBtColumn(
   // capture for the recording side. CE callers leave both undefined.
   idHints?: LtarHmBtIds,
   out?: LtarHmBtIds,
+  // Self-referential links force the reverse (bt) column to a hidden system
+  // field by default. When the user opts in at creation time, keep it visible.
+  reverseFieldVisible = false,
 ) {
   let savedColumn: Column;
   let crossBaseProps: {
@@ -109,8 +112,9 @@ export async function createHmAndBtColumn(
 
         virtual,
         readonly: colExtra?.readonly || false,
-        // if self referencing treat it as system field to hide from ui
-        system: isSystemCol || parent.id === child.id,
+        // if self referencing treat it as system field to hide from ui,
+        // unless the user opted to keep the reverse field visible
+        system: isSystemCol || (parent.id === child.id && !reverseFieldVisible),
         fk_col_name: fkColName,
         fk_index_name: fkColName,
         ...(type === 'bt' ? colExtra : {}),
@@ -244,6 +248,9 @@ export async function createOOColumn(
   // Sandbox-replay only — see `createHmAndBtColumn` for shape and rationale.
   idHints?: LtarHmBtIds,
   out?: LtarHmBtIds,
+  // See `createHmAndBtColumn` — keep the self-referential reverse field visible
+  // when the user opts in at creation time.
+  reverseFieldVisible = false,
 ) {
   let savedColumn: Column;
 
@@ -288,8 +295,9 @@ export async function createOOColumn(
         ur: 'NO ACTION',
         virtual,
         readonly: colExtra?.readonly || false,
-        // if self referencing treat it as system field to hide from ui
-        system: isSystemCol || parent.id === child.id,
+        // if self referencing treat it as system field to hide from ui,
+        // unless the user opted to keep the reverse field visible
+        system: isSystemCol || (parent.id === child.id && !reverseFieldVisible),
         fk_col_name: fkColName,
         fk_index_name: fkColName,
         // ...(colExtra || {}),

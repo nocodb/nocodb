@@ -11,7 +11,7 @@ jobs:
   cache-compose-file:
     name: Cache Compose File
     runs-on: ubuntu-22.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ vars.ENABLE_UFFIZZI_PREVIEW == 'true' && github.event.workflow_run.conclusion == 'success' }}
     outputs:
       compose-file-cache-key: ${{ steps.hash.outputs.COMPOSE_FILE_HASH }}
       git-ref: ${{ steps.event.outputs.GIT_REF }}
@@ -67,7 +67,7 @@ jobs:
     name: Use Remote Workflow to Preview on Uffizzi
     needs:
       - cache-compose-file
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ vars.ENABLE_UFFIZZI_PREVIEW == 'true' && github.event.workflow_run.conclusion == 'success' }}
     uses: UffizziCloud/preview-action/.github/workflows/reusable.yaml@v2
     with:
       # If this workflow was triggered by a PR close event, cache-key will be an empty string

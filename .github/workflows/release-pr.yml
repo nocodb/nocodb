@@ -20,7 +20,7 @@ concurrency:
 jobs:
   # enrich tag for pr release
   set-tag:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
+    if: ${{ vars.ENABLE_UFFIZZI_PREVIEW == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
     runs-on: 'ubuntu-22.04'
     steps:
       - name: Checkout
@@ -164,7 +164,7 @@ jobs:
   delete-uffizzi-preview:
     name: Call for Preview Deletion
     runs-on: ubuntu-22.04
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action == 'closed' }}
+    if: ${{ vars.ENABLE_UFFIZZI_PREVIEW == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action == 'closed' }}
     steps:
       # If this PR is closing, we will not render a compose file nor pass it to the next workflow.
       - name: Serialize PR Event to File

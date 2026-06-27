@@ -1258,6 +1258,7 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     isAlreadyShownUpgradeModal,
     isExternalSource,
+    tableColumns: computed(() => (meta.value?.columns ?? []) as ColumnType[]),
   })
 
   const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({

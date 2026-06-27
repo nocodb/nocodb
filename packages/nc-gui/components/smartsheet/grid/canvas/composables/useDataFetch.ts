@@ -15,6 +15,7 @@ export function useDataFetch({
   triggerRefreshCanvas,
   isAlreadyShownUpgradeModal,
   isExternalSource,
+  tableColumns,
 }: {
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   cachedRows: Ref<Map<number, Row>>
@@ -25,6 +26,7 @@ export function useDataFetch({
   triggerRefreshCanvas: () => void
   isAlreadyShownUpgradeModal: Ref<boolean>
   isExternalSource: ComputedRef<boolean>
+  tableColumns: ComputedRef<ColumnType[]>
 }) {
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
@@ -73,7 +75,7 @@ export function useDataFetch({
     }
     try {
       const newItems = await loadData({ offset, limit }, undefined, [])
-      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      upsertCachedRows(cachedRows.value, newItems, (row) => extractPkFromRow(row, tableColumns.value))
       chunkStates.value[chunkId] = 'loaded'
       if (isInitialLoad) {
         chunkStates.value[chunkId + 1] = 'loaded'
@@ -101,7 +103,7 @@ export function useDataFetch({
     group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loading'))
     try {
       const newItems = await loadData({ offset, limit }, undefined, [])
-      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      upsertCachedRows(cachedRows.value, newItems, (row) => extractPkFromRow(row, tableColumns.value))
       group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
     } catch (error) {
       console.error(`Error fetching chunks group from ${startChunk} to ${endChunk}:`, error)

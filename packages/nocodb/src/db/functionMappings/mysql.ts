@@ -252,6 +252,20 @@ END)`,
       ),
     };
   },
+
+  SHA256: async ({fn, knex, pt}: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw('SHA2(?, 256)', [source])
+    };
+  },
+
+  MD5: async({fn, knex, pt}: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw('MD5(?)', [source])
+    };
+  },
 };
 
 export default mysql2;

@@ -1192,6 +1192,43 @@ export const formulas: Record<string, FormulaMeta> = {
     ],
     returnType: FormulaDataTypes.STRING,
   },
+
+  MD5: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#md5`,
+
+    validation: {
+      args: {
+        rqd: 1
+      },
+    },
+    description: 'Returns the MD5 hash of the input string.',
+    syntax: 'MD5(str)',
+    examples: [
+      'MD5("hello") => "5d41402abc4b2a76b9719d911017c592"',
+      'MD5({column1})',
+      'IF(MD5({column1}) = "expected", TRUE(), FALSE())',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+
+  SHA256: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#sha256`,
+
+    validation: {
+      args: {
+        rqd: 1
+      },
+    },
+    description: 'Returns the SHA-256 hash of the input string as a lowercase hexadecimal string',
+    syntax: 'SHA256(str)',
+    examples: [
+      'SHA256("hello") => "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"',
+      'SHA256({column1})',
+      'IF(SHA256({column1}) = "expected", TRUE(), FALSE())',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas
   //

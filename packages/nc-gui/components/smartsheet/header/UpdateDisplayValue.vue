@@ -8,6 +8,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { t, te } = useI18n()
+
 const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
@@ -49,7 +51,9 @@ const getFormatedColumn = (column: ColumnType) => ({
   ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
   ncItemTooltip:
     !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
-      ? `${columnTypeName(column)} field cannot be used as display value field`
+      ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', {
+          field: column.uidt ? getUidtI18nName(column.uidt, t, te) : columnTypeName(column),
+        })
       : '',
   column,
 })

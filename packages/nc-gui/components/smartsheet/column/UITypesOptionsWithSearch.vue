@@ -10,6 +10,8 @@ const emits = defineEmits<{ selected: [UITypes] }>()
 
 const { options } = toRefs(props)
 
+const { t, te } = useI18n()
+
 const { isMetaReadOnly } = useRoles()
 
 const {
@@ -28,8 +30,8 @@ const filteredOptions = computed(() => {
   searchBasisInfoMap.value = {}
 
   return (options.value || []).filter((c) => {
-    // Step 1: apply default filter
-    if (searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) return true
+    // Step 1: apply default filter (match against localized name and the English name/uidt)
+    if (searchCompare([c.name, UITypesName[c.name], getUidtI18nName(c.name, t, te)], searchQuery.value)) return true
 
     // Step 2: apply search basis options
     return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
@@ -177,7 +179,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
                 'flex-1': !searchBasisInfoMap[option.name],
               }"
             >
-              {{ UITypesName[option.name] }}
+              {{ getUidtI18nName(option.name, t, te) }}
             </div>
             <div v-if="searchBasisInfoMap[option.name]" class="flex-1 flex">
               <NcTooltip :title="searchBasisInfoMap[option.name]" class="flex cursor-help">

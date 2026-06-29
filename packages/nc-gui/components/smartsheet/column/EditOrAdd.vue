@@ -113,7 +113,7 @@ const editDescription = toRef(props, 'editDescription')
 
 const { getMeta } = useMetas()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
@@ -374,7 +374,7 @@ const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: s
         disabled: isColumnTypeDisabled,
         tooltip:
           isColumnTypeDisabled && UITypesName[type.name]
-            ? `${UITypesName[type.name]} field cannot be used as display value field`
+            ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getUidtI18nName(type.name, t, te) })
             : '',
       }
     })
@@ -706,8 +706,14 @@ const searchBasisInfoMap = ref<Record<string, string>>({})
 const filterOption = (input: string, option: { value: UITypes }) => {
   delete searchBasisInfoMap.value[option.value]
 
-  // Step 1: apply default filter
-  if (searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)) return true
+  // Step 1: apply default filter (match against localized name and the English name/uidt)
+  if (
+    searchCompare(
+      [option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : []), getUidtI18nName(option.value, t, te)],
+      input,
+    )
+  )
+    return true
 
   // Step 2: apply search basis options
   return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
@@ -1342,7 +1348,7 @@ const unique = computed({
                         'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
+                      <span class="truncate">{{ getUidtI18nName(opt.name, t, te) }}</span>
                       <NcTooltip
                         v-if="
                           isEdit &&
@@ -1483,10 +1489,7 @@ const unique = computed({
             <div class="text-sm text-nc-content-gray">
               {{
                 `${$t('msg.acceptOnlyValid', {
-                  type:
-                    formState.uidt === UITypes.URL
-                      ? `${UITypesName[formState.uidt as UITypes]}s`
-                      : `${UITypesName[formState.uidt as UITypes]}s`.toLowerCase(),
+                  type: getUidtI18nName(formState.uidt as UITypes, t, te),
                 })}`
               }}
             </div>

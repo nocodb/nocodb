@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type SortType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isColumnInError, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -12,7 +12,7 @@ const emits = defineEmits(['created'])
 
 const { isParentOpen } = toRefs(props)
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -75,7 +75,7 @@ const options = computed<ColumnType[]>(() =>
       c.ncItemDisabled = true
       c.ncItemTooltip = isColumnInError(c)
         ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
-        : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
+        : t('tooltip.sortingNotSupportedForField', { type: getUidtI18nName(c.uidt, t, te) })
     }
 
     return c

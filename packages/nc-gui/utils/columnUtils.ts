@@ -16,6 +16,7 @@ import {
   isVirtualCol,
   ratingIconList,
   substituteColumnIdWithAliasInPrompt,
+  UITypesName,
   validateEmail,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
@@ -33,6 +34,30 @@ export const AIButton = 'AIButton'
 export const AIPrompt = 'AIPrompt'
 
 export const LongTextAiMetaProp = _LongTextAiMetaProp
+
+/**
+ * Resolve the localized display name for a field type (UI type).
+ *
+ * The field type names in `UITypesName` (from nocodb-sdk) are hardcoded in English.
+ * This helper looks up the matching i18n key under `datatype.*` (whose keys match the
+ * `UITypes` enum values, e.g. `datatype.SingleLineText`) and falls back to the English
+ * `UITypesName` value (and finally the raw uidt) when no translation is available.
+ *
+ * @param uidt - the UI type, e.g. `UITypes.SingleLineText` / `'AIButton'`
+ * @param t - the i18n translate function (from `useI18n()`)
+ * @param te - the i18n key-exists function (from `useI18n()`)
+ */
+export const getUidtI18nName = (
+  uidt: UITypes | string,
+  t: (key: string) => string,
+  te: (key: string) => boolean,
+): string => {
+  const key = `datatype.${uidt}`
+
+  if (te(key)) return t(key)
+
+  return (UITypesName as Record<string, string>)[uidt] ?? `${uidt}`
+}
 
 const uiTypes: UiTypesType[] = [
   {

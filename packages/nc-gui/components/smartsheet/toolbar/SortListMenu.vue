@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isColumnInError, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
@@ -9,7 +9,7 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { eventBus, isList } = useSmartsheetStoreOrThrow()
 
 const { blockToggleSort, showUpgradeToUseToggleSort } = useEeConfig()
@@ -99,7 +99,7 @@ const columns = computed(() =>
       c.ncItemDisabled = true
       c.ncItemTooltip = isColumnInError(c)
         ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
-        : `Sorting is not supported for ${UITypesName[c.uidt]} field`
+        : t('tooltip.sortingNotSupportedForField', { type: getUidtI18nName(c.uidt, t, te) })
     }
 
     return c

@@ -1,19 +1,22 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CanvasGridColumn } from '~/lib/types'
+import { getI18n } from '../../../../../plugins/a.i18n'
 
 export function columnTypeName(column: CanvasGridColumn) {
+  const { t, te } = getI18n().global
+
   if (column?.columnObj.uidt === UITypes.LongText) {
     if (parseProp(column?.columnObj?.meta)?.richMode) {
-      return UITypesName.RichText
+      return getUidtI18nName('RichText', t, te)
     }
 
     if (parseProp(column.columnObj?.meta)?.[LongTextAiMetaProp]) {
-      return UITypesName.AIPrompt
+      return getUidtI18nName(AIPrompt, t, te)
     }
   }
 
-  return column.columnObj.uidt ? UITypesName[column.columnObj.uidt!] : ''
+  return column.columnObj.uidt ? getUidtI18nName(column.columnObj.uidt, t, te) : ''
 }
 export function getCustomColumnTooltip({
   column,

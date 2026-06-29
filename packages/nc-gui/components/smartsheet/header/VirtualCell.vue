@@ -12,7 +12,7 @@ import {
   isLinksOrLTAR,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import { RelationTypes, UITypes, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: ColumnType
@@ -25,7 +25,7 @@ const props = defineProps<{
   showMenuMobile?: boolean
 }>()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const column = toRef(props, 'column')
 
@@ -148,14 +148,14 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const columnTypeName = computed(() => {
   if (column.value.uidt === UITypes.LinkToAnotherRecord && column.value.colOptions?.type === RelationTypes.ONE_TO_ONE) {
-    return UITypesName[UITypes.Links]
+    return getUidtI18nName(UITypes.Links, t, te)
   }
 
   if (isAiButton(column.value)) {
-    return UITypesName.AIButton
+    return getUidtI18nName(AIButton, t, te)
   }
 
-  return column.value.uidt ? UITypesName[column.value.uidt] : ''
+  return column.value.uidt ? getUidtI18nName(column.value.uidt, t, te) : ''
 })
 
 const addField = async (payload: any) => {

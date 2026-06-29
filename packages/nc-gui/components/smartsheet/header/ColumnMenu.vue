@@ -57,7 +57,7 @@ const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { $api, $e } = useNuxtApp()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const { getMeta } = useMetas()
 
@@ -809,7 +809,9 @@ const onDeleteColumn = () => {
         {{
           isSyncedTable
             ? $t('msg.info.displayValueChangeNotAvailableForSyncedTable')
-            : $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) })
+            : $t('tooltip.fieldCannotBeUsedAsDisplayValueField', {
+                field: column?.uidt ? getUidtI18nName(column.uidt, t, te) : columnTypeName(column),
+              })
         }}
       </template>
 

@@ -1,13 +1,13 @@
 import { isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import { LookupGeneralHandler } from '../lookup/lookup.general.handler';
 import type CustomKnex from '~/db/CustomKnex';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
 import type {
   FilterOptions,
   SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
-import { Filter, Model } from '~/models';
+import { Filter, LinksColumn, Model } from '~/models';
 import {
   getAlias,
   negatedMapping,
@@ -15,12 +15,17 @@ import {
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
 
 export class LtarGeneralHandler extends GenericFieldHandler {
   /**
-   * Sort by the linked record's display value — delegates to
-   * `LookupGeneralHandler.applySort` since both produce SQL via
-   * `generateLookupSelectQuery`. Keeps the lookup-chain logic in one place.
+   * V2 one-to-many (OM) links hold multiple linked records. Sorting them by
+   * the stringified display-value list (the lookup path) is meaningless —
+   * order by the COUNT of linked records instead, the same as the Links
+   * column does via the rollup builder. Every other relation type (and nested
+   * lookups) keeps sorting by the linked record's display value, delegated to
+   * `LookupGeneralHandler.applySort` (both produce SQL via
+   * `generateLookupSelectQuery`).
    */
   override async applySort(
     qb: Knex.QueryBuilder,
@@ -28,6 +33,30 @@ export class LtarGeneralHandler extends GenericFieldHandler {
     direction: 'asc' | 'desc',
     options: SortOptions,
   ): Promise<void> {
+    const { alias, nulls, baseModel: baseModelSqlv2, context } = options;
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    // `om` is a V2-only relation type, so the type check alone detects it.
+    if (colOptions?.type === RelationTypes.ONE_TO_MANY) {
+      const builder = (
+        await genRollupSelectv2({
+          baseModelSqlv2,
+          knex: options.knex as CustomKnex,
+          // Read the column as a LinksColumn to get count-rollup semantics
+          // (rollup_function = 'count') for the COUNT(*) over the junction.
+          columnOptions: (await LinksColumn.read(
+            context,
+            column.id,
+          )) as RollupColumn,
+          alias,
+        })
+      ).builder;
+      qb.orderBy(builder, direction, nulls);
+      return;
+    }
+
     return new LookupGeneralHandler().applySort(qb, column, direction, options);
   }
 

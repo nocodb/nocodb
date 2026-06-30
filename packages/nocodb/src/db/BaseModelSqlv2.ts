@@ -9202,9 +9202,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
 
           data[column.column_name] = vals.join(',');
-        } else if (Array.isArray(value)) {
-          // preserve existing empty-array handling
-          data[column.column_name] = value.join(',');
         }
       } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {

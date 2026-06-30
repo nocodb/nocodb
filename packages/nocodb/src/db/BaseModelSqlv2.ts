@@ -9191,11 +9191,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           data[column.column_name] = JSON.stringify(data[column.column_name]);
         }
       } else if (UITypes.MultiSelect === column.uidt) {
-        if (
-          data[column.column_name] &&
-          Array.isArray(data[column.column_name])
-        ) {
-          data[column.column_name] = data[column.column_name].join(',');
+        const value = data[column.column_name];
+        if (value !== undefined && value !== null && value !== '') {
+          // normalize to array (option titles cannot contain commas — validated on option create)
+          let vals = Array.isArray(value) ? value : `${value}`.split(',');
+
+          // when the column is alphabetized, persist selected values in alphabetical order
+          if (column.meta?.isAlphabetized === true) {
+            vals = [...vals].sort((a, b) => `${a ?? ''}`.localeCompare(`${b ?? ''}`));
+          }
+
+          data[column.column_name] = vals.join(',');
+        } else if (Array.isArray(value)) {
+          // preserve existing empty-array handling
+          data[column.column_name] = value.join(',');
         }
       } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {

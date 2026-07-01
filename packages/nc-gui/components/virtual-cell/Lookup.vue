@@ -469,7 +469,12 @@ const isFormulaUrlLookup = computed(() => {
 
 const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
 const { getPossibleAttachmentSrc } = useAttachment()
-const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
+const attachmentUrl = computed(() => {
+  const item = arrValue.value[0]
+  if (!item) return ''
+  // HEIC can't be rendered by the browser — use the full-res preview rendition.
+  return getPossibleAttachmentSrc(item, isHeic(item.title, item.mimetype) ? 'preview' : undefined)?.[0] ?? ''
+})
 </script>
 
 <template>

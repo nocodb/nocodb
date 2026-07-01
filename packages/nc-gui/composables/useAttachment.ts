@@ -1,4 +1,5 @@
 import type { AttachmentType } from 'nocodb-sdk'
+import { isHeic } from '../utils/fileUtils'
 import { getI18n } from '~/plugins/a.i18n'
 
 const useAttachment = () => {
@@ -18,6 +19,12 @@ const useAttachment = () => {
 
   const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small' | 'preview') => {
     const res: string[] = []
+
+    // HEIC/HEIF originals can't be rendered by most browsers (Safari aside), so when no
+    // thumbnail is requested fall back to the full-res server-generated `preview` rendition.
+    if (!thumbnail && isHeic(item?.title, item?.mimetype)) {
+      thumbnail = 'preview'
+    }
 
     if (thumbnail && item?.thumbnails && item.thumbnails[thumbnail]) {
       res.push(getPossibleAttachmentSrc(item.thumbnails[thumbnail])[0])

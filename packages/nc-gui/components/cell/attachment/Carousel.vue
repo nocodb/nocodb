@@ -180,7 +180,7 @@ const initEmblaApi = (val: any) => {
                   object-fit="contain"
                   controls
                   :alt="item.title"
-                  :srcs="getPossibleAttachmentSrc(item, isHeic(item.title, item.mimetype) ? 'preview' : undefined)"
+                  :srcs="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
 

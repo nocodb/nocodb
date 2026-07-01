@@ -472,8 +472,9 @@ const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => {
   const item = arrValue.value[0]
   if (!item) return ''
-  // HEIC can't be rendered by the browser — use the full-res preview rendition.
-  return getPossibleAttachmentSrc(item, isHeic(item.title, item.mimetype) ? 'preview' : undefined)?.[0] ?? ''
+  // Lookup renders inline/compact (here, inside the page-designer preview), so use the
+  // small `tiny` rendition — HEIC included, since its original can't render in-browser.
+  return getPossibleAttachmentSrc(item, 'tiny')?.[0] ?? ''
 })
 </script>
 

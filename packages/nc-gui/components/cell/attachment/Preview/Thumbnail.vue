@@ -10,7 +10,7 @@ interface Props {
   objectFit?: string
   isCellPreview?: boolean
   imageClass?: string
-  thumbnail?: 'card_cover' | 'tiny' | 'small'
+  thumbnail?: 'card_cover' | 'tiny' | 'small' | 'preview'
   attachment: Record<string, any>
   iconWidth?: number
   iconHeight?: number

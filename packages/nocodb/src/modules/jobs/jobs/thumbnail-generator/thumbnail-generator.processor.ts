@@ -5,13 +5,15 @@ import type { Job } from 'bull';
 import type { AttachmentResType, PublicAttachmentScope } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import { getPathFromUrl, isHeicMimeType } from '~/helpers/attachmentHelpers';
 import { ImageThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/image-thumbnail-generator';
+import { HeicThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/heic-thumbnail-generator';
 import Noco from '~/Noco';
 
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
   private imageGenerator = new ImageThumbnailGenerator();
+  private heicGenerator = new HeicThumbnailGenerator();
 
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments, scope } = job.data;
@@ -64,6 +66,14 @@ export class ThumbnailGeneratorProcessor {
       const mimeType = attachment.mimetype || '';
 
       switch (true) {
+        // HEIC must be checked before the generic image/ case since HEIC
+        // mimetypes also start with `image/` but need codec conversion first.
+        case isHeicMimeType(mimeType):
+          return await this.heicGenerator.generateThumbnails(
+            file,
+            relativePath,
+            storageAdapter,
+          );
         case mimeType.startsWith('image/'):
           return await this.imageGenerator.generateThumbnails(
             file,

@@ -87,6 +87,16 @@ const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
+// HEIC/HEIF can't be rendered natively by most browsers (Safari aside). These
+// are detected so the preview falls back to a server-generated thumbnail instead
+// of the original file.
+const heicMimeTypes = ['image/heic', 'image/heic-sequence', 'image/heif', 'image/heif-sequence']
+
+const isHeic = (name?: string, mimetype?: string) => {
+  if (mimetype && heicMimeTypes.includes(mimetype)) return true
+  return ['heic', 'heics', 'heif', 'heifs'].some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
 const isPdf = (name: string, mimetype?: string) => {
   return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
 }
@@ -115,7 +125,20 @@ const isPreviewSupportedFile = (name: string, mimetype?: string) => {
   return isImage(name, mimetype) || isVideo(name, mimetype) || isAudio(name, mimetype) || isPdf(name, mimetype)
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation, isPreviewSupportedFile }
+export {
+  isImage,
+  isHeic,
+  imageExt,
+  isVideo,
+  isPdf,
+  isOffice,
+  isAudio,
+  isZip,
+  isWord,
+  isExcel,
+  isPresentation,
+  isPreviewSupportedFile,
+}
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

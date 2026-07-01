@@ -166,6 +166,7 @@ import {
 import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { isHeicMimeType } from '~/helpers/attachmentHelpers';
 import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
 import { isTransientError } from '~/helpers/db-error/utils';
@@ -7764,6 +7765,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         small: {},
         card_cover: {},
       };
+
+      // HEIC/HEIF can't be rendered natively by most browsers, so the
+      // full-screen preview uses a larger server-generated thumbnail instead of
+      // the original file. This `preview` size is only generated for HEIC (see
+      // HeicThumbnailGenerator).
+      if (isHeicMimeType(attachment.mimetype || attachment.mimeType)) {
+        attachment.thumbnails.preview = {};
+      }
 
       const thumbnailKeys = Object.keys(attachment.thumbnails);
 

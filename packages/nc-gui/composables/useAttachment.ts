@@ -16,7 +16,7 @@ const useAttachment = () => {
     return new URL(path, base).toString()
   }
 
-  const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {
+  const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small' | 'preview') => {
     const res: string[] = []
 
     if (thumbnail && item?.thumbnails && item.thumbnails[thumbnail]) {

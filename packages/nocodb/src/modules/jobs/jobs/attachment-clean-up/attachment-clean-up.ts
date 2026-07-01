@@ -72,7 +72,14 @@ export class AttachmentCleanUpProcessor {
           path.join('nc', 'uploads', relativePath),
         );
 
-        const thumbnails = ['tiny.jpg', 'small.jpg', 'card_cover.jpg'];
+        // `preview.jpg` only exists for HEIC attachments; deleting a missing
+        // file is a harmless no-op for the other formats.
+        const thumbnails = [
+          'tiny.jpg',
+          'small.jpg',
+          'card_cover.jpg',
+          'preview.jpg',
+        ];
 
         for (const thumb of thumbnails) {
           await storageAdapter.fileDelete(

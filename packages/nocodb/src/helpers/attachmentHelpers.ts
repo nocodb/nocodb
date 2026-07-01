@@ -105,6 +105,21 @@ export const imageMimeTypes = [
   'image/x-emf',
   'image/x-wmf',
 ];
+
+// HEIC/HEIF images use the HEVC codec, which the prebuilt libvips bundled with
+// sharp cannot decode. They are converted to JPEG server-side before the normal
+// thumbnail pipeline runs, and the full-screen preview falls back to a thumbnail
+// since browsers (except Safari) can't render `.heic` natively.
+export const heicMimeTypes = [
+  'image/heic',
+  'image/heic-sequence',
+  'image/heif',
+  'image/heif-sequence',
+];
+
+export const isHeicMimeType = (mimetype?: string): boolean =>
+  !!mimetype && heicMimeTypes.includes(mimetype);
+
 const previewableMimeTypes = [...imageMimeTypes, 'pdf', 'video', 'audio'];
 
 export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {

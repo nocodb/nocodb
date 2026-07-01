@@ -28,6 +28,15 @@ const MAX_INPUT_PIXELS_SHRINKABLE =
 const MAX_INPUT_PIXELS_FULL_DECODE =
   +process.env.NC_THUMBNAIL_MAX_INPUT_PIXELS || 24 * 1000 * 1000;
 
+// Per-size output config. `height` produces a fixed-height cover-cropped
+// thumbnail; `maxEdge` produces a full-resolution rendition that only shrinks if
+// it exceeds the cap (used for the HEIC preview, which must match the original).
+interface ThumbnailSizeConfig {
+  height?: number;
+  maxEdge?: number;
+  quality?: number;
+}
+
 export abstract class BaseThumbnailGenerator {
   protected logger = new Logger(this.constructor.name);
 
@@ -35,6 +44,19 @@ export abstract class BaseThumbnailGenerator {
    * Generate the thumbnail buffer - implemented by subclasses
    */
   protected abstract generateThumbnailBuffer(file: Buffer): Promise<Buffer>;
+
+  /**
+   * Thumbnail sizes as a map of name -> output config. Subclasses can override
+   * to add or change sizes (e.g. a full-resolution `preview` for formats the
+   * browser can't render natively, like HEIC).
+   */
+  protected getThumbnailSizes(): Record<string, ThumbnailSizeConfig> {
+    return {
+      card_cover: { height: 512 },
+      small: { height: 128 },
+      tiny: { height: 64 },
+    };
+  }
 
   /**
    * Generate thumbnails for the given file
@@ -50,16 +72,14 @@ export abstract class BaseThumbnailGenerator {
 
       const sharp = Noco.sharp;
 
-      const thumbnailPaths = {
-        card_cover: path.join(
-          'nc',
-          'thumbnails',
-          relativePath,
-          'card_cover.jpg',
-        ),
-        small: path.join('nc', 'thumbnails', relativePath, 'small.jpg'),
-        tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
-      };
+      const sizes = this.getThumbnailSizes();
+
+      const thumbnailPaths = Object.fromEntries(
+        Object.keys(sizes).map((name) => [
+          name,
+          path.join('nc', 'thumbnails', relativePath, `${name}.jpg`),
+        ]),
+      ) as { [key: string]: string };
 
       // Reject oversized images up front. `metadata()` only parses the header
       // (no full decode), so this is cheap and lets us skip gracefully instead
@@ -108,31 +128,29 @@ export abstract class BaseThumbnailGenerator {
       }
 
       for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
-        let height;
-        switch (size) {
-          case 'card_cover':
-            height = 512;
-            break;
-          case 'small':
-            height = 128;
-            break;
-          case 'tiny':
-            height = 64;
-            break;
-          default:
-            height = 32;
-            break;
-        }
+        const cfg = sizes[size] ?? { height: 32 };
 
         // clone() per size so each output gets an independent pipeline snapshot
         // (inheriting the rotate above) rather than mutating the shared instance.
-        const resizedImage = await sharpImage
-          .clone()
-          .resize(undefined, height, {
+        const pipeline = sharpImage.clone();
+
+        if (cfg.maxEdge) {
+          // Full-resolution rendition: keep the source dimensions, only shrinking
+          // if a side exceeds the cap, and never upscaling.
+          pipeline.resize(cfg.maxEdge, cfg.maxEdge, {
+            fit: 'inside',
+            withoutEnlargement: true,
+            kernel: 'lanczos3',
+          });
+        } else {
+          pipeline.resize(undefined, cfg.height ?? 32, {
             fit: sharp.fit.cover,
             kernel: 'lanczos3',
-          })
-          .jpeg({ quality: 80 })
+          });
+        }
+
+        const resizedImage = await pipeline
+          .jpeg({ quality: cfg.quality ?? 80 })
           .toBuffer();
 
         await (storageAdapter as any).fileCreateByStream(

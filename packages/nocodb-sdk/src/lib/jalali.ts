@@ -83,8 +83,8 @@ function d2j(jdn: number): { jy: number; jm: number; jd: number } {
   let jy = gy - 621;
   const r = jalCal(jy);
   const jdn1f = g2d(gy, 3, r.march);
-  let jd;
-  let jm;
+  let jd: number;
+  let jm: number;
   let k = jdn - jdn1f;
 
   if (k >= 0) {
@@ -219,12 +219,24 @@ export const jalaliPlugin = (
     if (!JALALI_TOKEN_REGEX.test(str) || !this.isValid()) {
       return oldFormat.call(this, str);
     }
-    const { jy, jm, jd } = toJalaali(
-      this.year(),
-      this.month() + 1,
-      this.date()
-    );
-    return oldFormat.call(this, buildFormatWithJalali(str, { jy, jm, jd }));
+    try {
+      const { jy, jm, jd } = toJalaali(
+        this.year(),
+        this.month() + 1,
+        this.date()
+      );
+      return oldFormat.call(this, buildFormatWithJalali(str, { jy, jm, jd }));
+    } catch {
+      // The date falls outside the range the Jalali algorithm supports
+      // (roughly Gregorian years < 560 or > 3799), where `jalCal` throws.
+      // Degrade to Gregorian rendering by stripping the `j` prefixes instead of
+      // letting the throw escape — an uncaught error here would break every
+      // consumer of `.format()`, including the whole grid render loop.
+      return oldFormat.call(
+        this,
+        str.replace(/j(YYYY|YY|MMMM|MMM|MM|M|DD|D)/g, '$1')
+      );
+    }
   };
 };
 
@@ -286,9 +298,20 @@ export function parseJalaliToGregorian(
     else if (name === 'jmName') jm = jalaliMonths.indexOf(raw) + 1;
   });
 
-  if (!jy || !jm || !jd || jm < 1 || jm > 12) return null;
-  if (jd < 1 || jd > jalaaliMonthLength(jy, jm)) return null;
+  // Month-only Jalali formats (e.g. `jYYYY/jMM`) have no day token, so `jd` is
+  // never captured — default it to the 1st so these formats still parse.
+  if (!jd && !/jD/.test(format)) jd = 1;
 
-  const { gy, gm, gd } = toGregorian(jy, jm, jd);
-  return { y: gy, m: gm, d: gd };
+  if (!jy || !jm || !jd || jm < 1 || jm > 12) return null;
+
+  try {
+    if (jd < 1 || jd > jalaaliMonthLength(jy, jm)) return null;
+
+    const { gy, gm, gd } = toGregorian(jy, jm, jd);
+    return { y: gy, m: gm, d: gd };
+  } catch {
+    // Out-of-range Jalali year: `jalCal` (via jalaaliMonthLength/toGregorian)
+    // throws rather than returning a value. Treat as an unparseable date.
+    return null;
+  }
 }

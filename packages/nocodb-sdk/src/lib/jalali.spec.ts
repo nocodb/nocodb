@@ -87,6 +87,12 @@ describe('jalali calendar helpers', () => {
     it('does not alter plain Gregorian formatting', () => {
       expect(dayjs('2024-03-20').format('YYYY-MM-DD')).toBe('2024-03-20');
     });
+
+    it('does not throw for dates outside the Jalali range and degrades to Gregorian', () => {
+      // 4000-01-01 is beyond the supported Jalali range — must not throw.
+      expect(() => dayjs('4000-01-01').format('jYYYY/jMM/jDD')).not.toThrow();
+      expect(dayjs('4000-01-01').format('jYYYY/jMM/jDD')).toBe('4000/01/01');
+    });
   });
 
   describe('parseJalaliToGregorian', () => {
@@ -107,6 +113,28 @@ describe('jalali calendar helpers', () => {
     it('rejects invalid Jalali dates', () => {
       expect(parseJalaliToGregorian('1404/12/30', 'jYYYY/jMM/jDD')).toBeNull();
       expect(parseJalaliToGregorian('not a date', 'jYYYY/jMM/jDD')).toBeNull();
+    });
+
+    it('parses a month-only Jalali format to the first of the month', () => {
+      // 1 Mordad 1403 -> 2024-07-22 (no day token: defaults to the 1st)
+      expect(parseJalaliToGregorian('1403/05', 'jYYYY/jMM')).toEqual({
+        y: 2024,
+        m: 7,
+        d: 22,
+      });
+      expect(parseJalaliToGregorian('1403-05', 'jYYYY-jMM')).toEqual({
+        y: 2024,
+        m: 7,
+        d: 22,
+      });
+    });
+
+    it('returns null (does not throw) for out-of-range Jalali years', () => {
+      expect(() =>
+        parseJalaliToGregorian('5000/01/01', 'jYYYY/jMM/jDD')
+      ).not.toThrow();
+      expect(parseJalaliToGregorian('5000/01/01', 'jYYYY/jMM/jDD')).toBeNull();
+      expect(parseJalaliToGregorian('9999/12/29', 'jYYYY/jMM/jDD')).toBeNull();
     });
   });
 });

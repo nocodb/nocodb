@@ -116,8 +116,10 @@ function saveChanges(val?: dayjs.Dayjs) {
   }
 
   if (picker.value === 'month') {
-    // reset day to 1st
-    val = dayjs(val).date(1)
+    // reset day to the 1st of the month — in Jalali space for Jalali columns.
+    // The Gregorian 1st usually falls inside the *previous* Jalali month, so
+    // dayjs(val).date(1) would silently store the wrong month for Jalali.
+    val = isJalali.value ? jalaliStartOfMonth(dayjs(val)) : dayjs(val).date(1)
   }
 
   if (val.isValid()) {

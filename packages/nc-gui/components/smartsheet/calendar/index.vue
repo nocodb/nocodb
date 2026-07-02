@@ -8,7 +8,7 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { isMobileMode, user } = useGlobal()
+const { user } = useGlobal()
 
 const { isAllowed } = usePermissions()
 
@@ -166,17 +166,7 @@ watch(
 </script>
 
 <template>
-  <template v-if="isMobileMode">
-    <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
-      <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
-        {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
-      </div>
-      <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
-        {{ $t('msg.calendarViewNotSupportedOnMobile') }}
-      </div>
-    </div>
-  </template>
-  <template v-else>
+  <div class="nc-calendar-container flex flex-col h-full">
     <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
       <div
         ref="calendarBody"
@@ -271,7 +261,7 @@ watch(
       :expand-form="expandRecord"
       :view="view"
     />
-  </template>
+  </div>
 </template>
 
 <style scoped lang="scss">

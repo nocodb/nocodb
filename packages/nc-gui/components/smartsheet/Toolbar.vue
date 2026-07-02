@@ -37,11 +37,7 @@ const { width } = useElementSize(containerRef)
 const router = useRouter()
 
 const disableToolbar = computed(
-  () =>
-    router.currentRoute.value.query?.disableToolbar === 'true' ||
-    (isCalendar.value && isMobileMode.value) ||
-    isTimeline.value ||
-    isForm.value,
+  () => router.currentRoute.value.query?.disableToolbar === 'true' || isTimeline.value || isForm.value,
 )
 
 /** EE only: Check if any filters are pinned to the toolbar.
@@ -94,9 +90,9 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         }"
         class="flex items-center gap-3 empty:hidden"
       >
-        <template v-if="isCalendar && !isMobileMode">
+        <template v-if="isCalendar">
           <LazySmartsheetToolbarCalendarHeader />
-          <LazySmartsheetToolbarCalendarToday />
+          <LazySmartsheetToolbarCalendarToday v-if="!isMobileMode" />
           <LazySmartsheetToolbarCalendarNextPrev />
         </template>
 
@@ -173,7 +169,9 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
       <SmartsheetToolbarCalendarRecordHeight v-if="isCalendar && !isMobileMode" />
 
-      <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
+      <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed && !isMobileMode" />
+
+      <SmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && isMobileMode" />
 
       <template v-if="isCalendar && !isMobileMode">
         <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures" />

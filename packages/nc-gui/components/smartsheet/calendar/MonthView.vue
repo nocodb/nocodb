@@ -4,6 +4,8 @@ import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
+const { isMobileMode } = useGlobal()
+
 const {
   selectedDate,
   selectedMonth,
@@ -849,8 +851,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   // Drag-to-reschedule is only available on editable, non-synced, non-readonly
   // ranges. Click-to-expand (registered via onMouseUp below) must work regardless,
   // otherwise records on synced tables (readonly date column) can't be opened.
-  const canDrag =
-    isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
+  const canDrag = isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
   if (canDrag) {
     dragTimeout.value = setTimeout(() => {
@@ -1103,6 +1104,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflow &&
                 !draggingId
               "
+              :trigger="isMobileMode ? [] : ['click']"
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"

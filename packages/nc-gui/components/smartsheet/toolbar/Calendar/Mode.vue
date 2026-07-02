@@ -11,6 +11,8 @@ const { updateViewMeta } = useViewsStore()
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -137,15 +139,16 @@ watch(activeCalendarView, () => {
 
   <NcDropdown v-else v-model:visible="dropdownOpen" :trigger="['click']" overlay-class-name="!rounded-lg">
     <NcButton
-      class="nc-select-shadow !h-7 !rounded-lg !px-3"
+      class="nc-select-shadow !h-7 !rounded-lg !shrink-0"
+      :class="isMobileMode ? '!px-2' : '!px-3'"
       data-testid="nc-calendar-view-mode"
       size="small"
       type="secondary"
       @click.stop
     >
-      <div class="flex items-center gap-2 text-[13px] font-medium text-nc-content-gray">
+      <div class="flex items-center text-[13px] font-medium text-nc-content-gray" :class="isMobileMode ? 'gap-1' : 'gap-2'">
         <span class="whitespace-nowrap">{{ $t(modeI18nKey(activeCalendarView)) }}</span>
-        <GeneralIcon icon="arrowDown" class="flex-none text-nc-content-gray-subtle h-4 w-4" />
+        <GeneralIcon v-if="!isMobileMode" icon="arrowDown" class="flex-none text-nc-content-gray-subtle h-4 w-4" />
       </div>
     </NcButton>
 

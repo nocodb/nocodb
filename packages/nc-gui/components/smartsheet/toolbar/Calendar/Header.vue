@@ -14,6 +14,8 @@ const {
   weeksInRange,
 } = useCalendarViewStoreOrThrow()
 
+const { isMobileMode } = useGlobal()
+
 const calendarRangeDropdown = ref(false)
 
 // 3-day mode anchors on a single day; the picker selects the first visible day
@@ -44,6 +46,26 @@ const formatWeekRange = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
 }
 
 const headerText = computed(() => {
+  // On mobile the toolbar is tight, so show a compact label — the grid's column headers
+  // already spell out the full visible range.
+  if (isMobileMode.value) {
+    switch (activeCalendarView.value) {
+      case 'day':
+        return timezoneDayjs.timezonize(selectedDate.value).format('D MMM')
+      case '3day':
+      case 'week':
+      case '2week':
+      case '6week':
+        return timezoneDayjs.timezonize(selectedDateRange.value.start).format('D MMM')
+      case 'month':
+        return timezoneDayjs.timezonize(selectedMonth.value).format('MMM YY')
+      case 'year':
+        return timezoneDayjs.timezonize(selectedDate.value).format('YYYY')
+      default:
+        return ''
+    }
+  }
+
   switch (activeCalendarView.value) {
     case 'day':
       return timezoneDayjs.timezonize(selectedDate.value).format('D MMM YYYY')
@@ -76,29 +98,35 @@ const headerText = computed(() => {
   <div class="flex gap-1">
     <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
       <NcButton
-        :class="{
-          'w-20': activeCalendarView === 'year',
-          'w-26.5': activeCalendarView === 'month',
-          'w-29': activeCalendarView === 'day',
-          'w-38':
-            activeCalendarView === 'week' ||
-            activeCalendarView === '3day' ||
-            activeCalendarView === '2week' ||
-            activeCalendarView === '6week',
-        }"
+        :class="
+          isMobileMode
+            ? '!w-auto !max-w-[7.5rem]'
+            : {
+                'w-20': activeCalendarView === 'year',
+                'w-26.5': activeCalendarView === 'month',
+                'w-29': activeCalendarView === 'day',
+                'w-38':
+                  activeCalendarView === 'week' ||
+                  activeCalendarView === '3day' ||
+                  activeCalendarView === '2week' ||
+                  activeCalendarView === '6week',
+              }
+        "
         class="prev-next-btn !h-7"
         full-width
         size="small"
         type="secondary"
       >
-        <div class="flex w-full px-1 items-center justify-between">
+        <div class="flex w-full px-1 items-center justify-between gap-1">
           <span
             :class="{
               'max-w-38 truncate':
-                activeCalendarView === 'week' ||
-                activeCalendarView === '3day' ||
-                activeCalendarView === '2week' ||
-                activeCalendarView === '6week',
+                !isMobileMode &&
+                (activeCalendarView === 'week' ||
+                  activeCalendarView === '3day' ||
+                  activeCalendarView === '2week' ||
+                  activeCalendarView === '6week'),
+              'truncate': isMobileMode,
             }"
             class="font-bold text-[13px] text-center text-nc-content-gray"
             data-testid="nc-calendar-active-date"

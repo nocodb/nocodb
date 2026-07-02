@@ -118,12 +118,27 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     }
 
     const loadRow = async (row: Row) => {
-      const record = await $api.dbTableRow.read(
-        NOCO,
-        meta.value?.base_id ?? (base.value?.id as string),
-        meta.value?.title as string,
-        encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
-      )
+      // Callers (e.g. the attachment Carousel's reload-on-media-error flow) must not let a
+      // failed refetch (404 if the row was deleted meanwhile, a transient network error, etc.)
+      // escape as an uncaught rejection — that would bubble past this composable's callers,
+      // get caught by the top-level ErrorBoundary, and crash the whole page instead of just
+      // failing the reload. Mirrors the error handling in useExpandedFormStore's loadRow.
+      let record: Record<string, any>
+      try {
+        record = await $api.dbTableRow.read(
+          NOCO,
+          meta.value?.base_id ?? (base.value?.id as string),
+          meta.value?.title as string,
+          encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
+        )
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          message.error(t('msg.noRecordFound'))
+        } else {
+          message.error(await extractSdkResponseErrorMsg(e))
+        }
+        return
+      }
       Object.assign(unref(row), {
         row: record,
         oldRow: { ...record },

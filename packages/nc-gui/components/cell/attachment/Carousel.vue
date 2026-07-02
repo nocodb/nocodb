@@ -87,7 +87,14 @@ const { loadRow } = useSmartsheetRowStoreOrThrow()
 const isUpdated = ref(1)
 
 const triggerReload = async () => {
-  await loadRow()
+  // Defensive: this runs off a media (img/video) `error` event, so a failure here must never
+  // escape as an uncaught rejection and crash the whole page via the top-level ErrorBoundary.
+  try {
+    await loadRow()
+  } catch (e) {
+    console.error('Failed to reload row after attachment load error:', e)
+    return
+  }
   isUpdated.value = isUpdated.value + 1
 }
 

@@ -114,10 +114,14 @@ const changeView = (date: dayjs.Dayjs) => {
   activeCalendarView.value = 'day'
 }
 
-// Single click on a day: open the record sidebar filtered to that day's records.
 const onDateSelect = (date: dayjs.Dayjs) => {
-  sideBarFilterOption.value = 'selectedDate'
   selectedDate.value = date
+
+  // On desktop keep the old behaviour: a single click only moves the selection.
+  // On mobile, single-tap opens the record sidebar filtered to that day's records.
+  if (!isMobileMode.value) return
+
+  sideBarFilterOption.value = 'selectedDate'
   showSideMenu.value = true
 }
 

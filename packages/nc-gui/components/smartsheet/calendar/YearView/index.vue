@@ -3,6 +3,8 @@ import type dayjs from 'dayjs'
 
 const { selectedDate, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
 
+const { isMobileMode } = useGlobal()
+
 // Create a shared cache service for all Month components in Year View
 const sharedCalendarCache = reactive({
   // Cache for date comparisons
@@ -80,6 +82,13 @@ const size = ref<'small' | 'medium'>('small')
 const cols = ref(4)
 
 const handleResize = () => {
+  // On a phone two months don't fit side-by-side and the right column clips at the edge —
+  // stack to a single month column instead.
+  if (isMobileMode.value) {
+    size.value = 'medium'
+    cols.value = 1
+    return
+  }
   if (width.value > 1250) {
     size.value = 'medium'
     cols.value = 4
@@ -130,7 +139,7 @@ onMounted(() => {
   handleResize()
 })
 
-watch(width, handleResize)
+watch([width, isMobileMode], handleResize)
 </script>
 
 <template>

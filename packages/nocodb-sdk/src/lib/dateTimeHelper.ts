@@ -75,6 +75,17 @@ export function getDateFormat(v: string) {
   return 'YYYY/MM/DD';
 }
 
+// Unpadded variant of a date/time format, leaving month/weekday names intact
+export function toLenientDateFormat(format: string) {
+  return format
+    .replace(/M+/g, (m) => (m === 'MM' ? 'M' : m))
+    .replace(/D+/g, (d) => (d === 'DD' ? 'D' : d))
+    .replace(/H+/g, (h) => (h === 'HH' ? 'H' : h))
+    .replace(/h+/g, (h) => (h === 'hh' ? 'h' : h))
+    .replace(/m+/g, (m) => (m === 'mm' ? 'm' : m))
+    .replace(/s+/g, (s) => (s === 'ss' ? 's' : s));
+}
+
 export function getDateTimeFormat(v: string) {
   for (const format of dateFormats) {
     for (const timeFormat of timeFormats) {

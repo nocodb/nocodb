@@ -5,6 +5,7 @@ import {
   constructDateTimeFormat,
   getDateFormat,
   getDateTimeFormat,
+  toLenientDateFormat,
 } from '~/lib/dateTimeHelper';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
@@ -115,6 +116,11 @@ export const serializeDateOrDateTimeValue = (
       : constructDateTimeFormat(params.col);
 
     parsedDateOrDateTime = dayjs(value, formatting);
+
+    // fall back to unpadded input; strict, so invalid dates stay null
+    if (!parsedDateOrDateTime.isValid()) {
+      parsedDateOrDateTime = dayjs(value, toLenientDateFormat(formatting), true);
+    }
   }
 
   if (!parsedDateOrDateTime.isValid()) {

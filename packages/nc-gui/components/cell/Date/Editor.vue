@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
+import { isDateMonthFormat, isSystemColumn, toLenientDateFormat } from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -44,6 +44,12 @@ const isDateInvalid = ref(false)
 const datePickerRef = ref<HTMLInputElement>()
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
+
+// parse typed input, also accepting non-zero-padded values
+const parseDateInput = (input: string) => {
+  const value = dayjs(input, dateFormat.value)
+  return value.isValid() ? value : dayjs(input, toLenientDateFormat(dateFormat.value), true)
+}
 
 const picker = computed(() => (isDateMonthFormat(dateFormat.value) ? 'month' : ''))
 
@@ -128,7 +134,7 @@ const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) =>
     tempDate.value = undefined
     return
   }
-  const value = dayjs(targetValue, dateFormat.value)
+  const value = valueToSave ? dayjs(valueToSave) : parseDateInput(targetValue as string)
 
   if (value.isValid()) {
     tempDate.value = value
@@ -150,7 +156,7 @@ onClickOutside(datePickerRef, (e) => {
 
 const onBlur = (e) => {
   const value = (e?.target as HTMLInputElement)?.value
-  if (value && dayjs(value, dateFormat.value).isValid()) {
+  if (value && parseDateInput(value).isValid()) {
     handleUpdateValue(e, true)
   }
 

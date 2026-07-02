@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
+import { dateFormats, isSystemColumn, timeFormats, toLenientDateFormat } from 'nocodb-sdk'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'currentDate'])
+
+// exact column format, or its non-zero-padded variant when that is what the input matches
+const resolveInputFormat = (input: string, format: string) =>
+  dayjs(input, format).isValid() || !dayjs(input, toLenientDateFormat(format), true).isValid()
+    ? format
+    : toLenientDateFormat(format)
 
 interface Props {
   modelValue?: string | null
@@ -199,8 +205,9 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
       return
     }
 
-    if (dayjs(targetValue, dateFormat.value).isValid()) {
-      const date = dayjsTz(targetValue, dateFormat.value)
+    const dFmt = resolveInputFormat(targetValue, dateFormat.value)
+    if (dayjs(targetValue, dFmt).isValid()) {
+      const date = dayjsTz(targetValue, dFmt)
 
       if (localState.value) {
         tempDate.value = dayjsTz(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)

@@ -1,5 +1,5 @@
 import type { AttachmentType, ColumnType, SerializerOrParserFnProps } from 'nocodb-sdk'
-import { ColumnHelper, UITypes, populateUniqueFileName } from 'nocodb-sdk'
+import { ColumnHelper, TypeConversionError, UITypes, populateUniqueFileName } from 'nocodb-sdk'
 
 import type { AppInfo } from '~/composables/useGlobal/types'
 
@@ -65,7 +65,8 @@ export default function convertCellData(
 
   let serializedValue = value
 
-  /* eslint-disable no-useless-catch */
+  const isDateType = to === UITypes.Date || to === UITypes.DateTime
+
   try {
     /**
      * This method can throw errors. so it's important to use a try-catch block when calling it.
@@ -79,9 +80,13 @@ export default function convertCellData(
 
     serializedValue = handlePostSerialize(serializedValue, value)
   } catch (ex) {
+    // keep the existing value on an invalid date/datetime paste instead of nulling it
+    if (isDateType && ex instanceof TypeConversionError) return undefined
     throw ex
   }
-  /* eslint-enable no-useless-catch */
+
+  // multi-cell paste returns null instead of throwing for invalid date/datetime; skip it too
+  if (isDateType && serializedValue === null) return undefined
 
   function handlePostSerialize(serializedValue: any, value: any) {
     switch (to) {

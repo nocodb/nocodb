@@ -117,12 +117,16 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       }
     }
 
-    const loadRow = async (row: Row) => {
+    const loadRow = async (row: Row, { silent = false }: { silent?: boolean } = {}) => {
       // Callers (e.g. the attachment Carousel's reload-on-media-error flow) must not let a
       // failed refetch (404 if the row was deleted meanwhile, a transient network error, etc.)
       // escape as an uncaught rejection — that would bubble past this composable's callers,
       // get caught by the top-level ErrorBoundary, and crash the whole page instead of just
       // failing the reload. Mirrors the error handling in useExpandedFormStore's loadRow.
+      //
+      // `silent` is for background self-heal callers (e.g. Carousel's media-error reload):
+      // a failure there is not something the user asked for, so surface it in the console only
+      // instead of a toast — otherwise a benign transient failure looks like a data-loss bug.
       let record: Record<string, any>
       try {
         record = await $api.dbTableRow.read(
@@ -132,7 +136,9 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
           encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
         )
       } catch (e: any) {
-        if (e?.response?.status === 404) {
+        if (silent) {
+          console.error('loadRow: silent background refetch failed', e)
+        } else if (e?.response?.status === 404) {
           message.error(t('msg.noRecordFound'))
         } else {
           message.error(await extractSdkResponseErrorMsg(e))

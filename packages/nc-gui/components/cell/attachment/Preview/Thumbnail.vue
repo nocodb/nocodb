@@ -43,6 +43,13 @@ const FileIcon = (icon: string) => {
 }
 
 const srcs = computed(() => {
+  // Non-image attachments (video/pdf/etc.) never have a real `thumbnails.*` entry (only images
+  // get one — see prepareAttachmentForSigning on the backend), so `getPossibleAttachmentSrc`
+  // would fall back to the raw file URL here. Loading a multi-MB video through an `<img>` tag
+  // always fails, but not before the browser downloads some/all of it — wasted bandwidth and a
+  // guaranteed error event on every render (carousel filmstrip, list previews, audit views,
+  // etc.). Skip straight to the icon fallback below instead.
+  if (!isImage(props.attachment?.title, props.attachment?.mimetype)) return []
   return getPossibleAttachmentSrc(props.attachment, props.thumbnail)
 })
 

@@ -39,8 +39,12 @@ onBeforeUnmount(() => {
 })
 
 const handleError = async () => {
-  const isURLExp = await isURLExpired(props.src?.[0])
-  if (isURLExp.isExpired) {
+  // `props.src` is an ordered list of candidate URLs for the same file (e.g. presigned first,
+  // public/direct URL as fallback). A load failure on the first source doesn't mean the
+  // attachment itself is gone — only bubble up to the carousel's reload-on-error flow (which
+  // re-fetches the whole row) once every candidate has been confirmed expired/unavailable.
+  const results = await Promise.all((props.src ?? []).map((src) => isURLExpired(src)))
+  if (results.length > 0 && results.every((r) => r.isExpired)) {
     emit('error')
   }
 }

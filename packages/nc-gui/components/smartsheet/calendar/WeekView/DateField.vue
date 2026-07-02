@@ -581,8 +581,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   // Drag-to-reschedule is gated to editable, non-synced ranges; click-to-expand
   // (onMouseUp below) must work regardless so synced records can be opened.
-  const canDrag =
-    isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
+  const canDrag = isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
   if (canDrag) {
     dragTimeout.value = setTimeout(() => {

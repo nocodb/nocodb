@@ -656,9 +656,7 @@ export function useCopyPaste({
               // Reflect the persisted batches in the grid before reporting the failure
               reloadViewDataHook?.trigger({ shouldShowLoading: false })
 
-              message.error(
-                t('msg.error.pasteLinkPartiallySaved', { saved: savedCount, total: entries.length, error: errMsg }),
-              )
+              message.error(t('msg.error.pasteLinkPartiallySaved', { saved: savedCount, total: entries.length, error: errMsg }))
             } else {
               message.error(errMsg)
             }

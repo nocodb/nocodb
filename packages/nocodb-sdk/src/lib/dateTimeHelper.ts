@@ -9,6 +9,7 @@ import { ColumnType } from './Api';
 import { parseProp } from './helperFunctions';
 import { ncIsNull, ncIsUndefined } from './is';
 import {
+  isJalaliFormat,
   jalaliDateFormats,
   jalaliDateMonthFormats,
   jalaliPlugin,
@@ -295,6 +296,13 @@ export const getDateTimeValue = (
   const dateTimeFormat = `${dateFormat} ${timeFormat}`;
 
   if (!isXcdbBase) {
+    // For a Jalali date_format the stored value is Gregorian and cannot be
+    // parsed with the Jalali format as a mask (customParseFormat has no
+    // `j`-token support -> "Invalid Date"). Parse the raw value and let the
+    // dayjs Jalali plugin render it via .format().
+    if (isJalaliFormat(dateFormat)) {
+      return dayjs(modelValue).format(dateTimeFormat);
+    }
     return dayjs(
       /^\d+$/.test(modelValue) ? +modelValue : modelValue,
       dateTimeFormat

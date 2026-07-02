@@ -531,7 +531,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                 </NcDropdown> -->
 
                     <NcButton
-                      v-if="appInfo.ee && !hideReorder"
+                      v-if="appInfo.ee && !hideReorder && !isMobileMode"
                       type="secondary"
                       size="small"
                       class="nc-group-by-item-reorder-btn !border-l-transparent !rounded-none"

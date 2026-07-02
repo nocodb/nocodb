@@ -372,7 +372,7 @@ watch(
                       </NcSelect>
 
                       <NcButton
-                        v-if="appInfo.ee && !isPublic"
+                        v-if="appInfo.ee && !isPublic && !isMobileMode"
                         type="secondary"
                         size="small"
                         class="nc-sort-item-reorder-btn !border-l-transparent !rounded-none"

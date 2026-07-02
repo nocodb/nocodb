@@ -722,8 +722,10 @@
     "days": "Days",
     "threeDay": "3 Days",
     "week": "Week",
+    "weeks": "Weeks",
     "twoWeek": "2 Weeks",
     "sixWeek": "6 Weeks",
+    "custom": "Custom",
     "month": "Month",
     "quarter": "Quarter",
     "sixMonth": "6 Months",
@@ -1446,6 +1448,7 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "timescale": "Timescale",
     "createNewField": "Create new field",
     "chatImport": {
       "columnCount": "{count} column | {count} columns",

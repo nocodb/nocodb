@@ -12,7 +12,8 @@ const supportsWeekStep = computed(
     activeCalendarView.value === 'day' ||
     activeCalendarView.value === '3day' ||
     activeCalendarView.value === '2week' ||
-    activeCalendarView.value === '6week',
+    activeCalendarView.value === '6week' ||
+    activeCalendarView.value === 'custom',
 )
 
 const onNavigate = (action: 'next' | 'prev', event: MouseEvent) => {

@@ -78,6 +78,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       // 'compact' (default/absent) → grid fits the viewport, records scroll inside.
       // 'expanded' → cells grow to fit every record and the page scrolls.
       record_height_mode: 'compact' | 'expanded'
+      // Custom timescale (active_view === 'custom'): a user-picked count of days or weeks.
+      custom_count: number
+      custom_unit: 'day' | 'week'
     }>(() => {
       let meta = calendarMetaData.value?.meta ?? {}
 
@@ -90,6 +93,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         hide_weekend: boolean
         collapse_weekend: boolean
         record_height_mode: 'compact' | 'expanded'
+        custom_count: number
+        custom_unit: 'day' | 'week'
       }
     })
 
@@ -238,7 +243,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // reload or new tab restores the user's last choice without overwriting the
     // view creator's default (`viewMetaProperties.active_view`).
     const CALENDAR_MODE_STORAGE_PREFIX = 'nc-calendar-mode:'
-    const validCalendarModes = ['day', '3day', 'week', '2week', 'month', '6week', 'year'] as const
+    const validCalendarModes = ['day', '3day', 'week', '2week', 'month', '6week', 'year', 'custom'] as const
     type CalendarMode = (typeof validCalendarModes)[number]
 
     const calendarModeStorageKey = () => (viewMeta.value?.id ? `${CALENDAR_MODE_STORAGE_PREFIX}${viewMeta.value.id}` : null)
@@ -273,6 +278,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       readStoredCalendarMode() ?? (viewMetaProperties.value?.active_view as CalendarMode | undefined) ?? 'month',
     )
 
+    // Custom timescale (mode === 'custom'): a user-picked count (1–6) of days or weeks,
+    // persisted on the view meta. The day-unit reuses the day-anchored '3day' render path;
+    // the week-unit reuses the multi-week (2/6-week) path. Held as refs (seeded from meta,
+    // restored on view-id change) — not computeds — so changeCalendarView can set them
+    // synchronously before the activeCalendarView watcher fires, avoiding a stale-meta race
+    // with the async updateViewMeta persist.
+    const CUSTOM_COUNT_MIN = 1
+    const CUSTOM_COUNT_MAX = 6
+    const clampCustomCount = (raw: unknown) => {
+      const n = Number(raw)
+      if (!Number.isFinite(n)) return CUSTOM_COUNT_MIN
+      return Math.min(CUSTOM_COUNT_MAX, Math.max(CUSTOM_COUNT_MIN, Math.round(n)))
+    }
+    const customCount = ref<number>(clampCustomCount(viewMetaProperties.value?.custom_count))
+    const customUnit = ref<'day' | 'week'>(viewMetaProperties.value?.custom_unit === 'week' ? 'week' : 'day')
+
     // On a cold page load `viewMeta.value` (and therefore its `id`) is often
     // undefined when the ref above is initialised, so the localStorage lookup
     // is skipped. Restore once the view id becomes available.
@@ -300,6 +321,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             activeCalendarView.value = fromMeta
           }
         }
+        // Re-seed the custom count/unit from meta now that it's available (the refs
+        // above default to 1/day when viewMeta wasn't ready at construction).
+        customCount.value = clampCustomCount(viewMetaProperties.value?.custom_count)
+        customUnit.value = viewMetaProperties.value?.custom_unit === 'week' ? 'week' : 'day'
         restoredForCalendarId = id
       },
       { immediate: true },
@@ -309,32 +334,44 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       writeStoredCalendarMode(value)
     })
 
+    // Day-anchored modes render N consecutive day columns from the window start (not
+    // week-aligned): '3day' (N=3) and custom + day-unit (N=customCount).
+    const isDayAnchoredMode = computed(
+      () => activeCalendarView.value === '3day' || (activeCalendarView.value === 'custom' && customUnit.value === 'day'),
+    )
+    const dayAnchoredSpan = computed(() => (activeCalendarView.value === '3day' ? 3 : customCount.value))
+
     // The visible date range for the current mode, anchored on `date`.
-    // 3-day is day-anchored ([date, date+2]); week/2week/6week are week-aligned.
-    // Used everywhere selectedDateRange is (re)seeded so the range span always
-    // matches the active mode — otherwise the WeekView renders the wrong number
-    // of columns (e.g. a week-aligned 7-day span while in 3-day mode).
+    // Day-anchored ('3day' / custom-day) spans [date, date+(N-1)]; week/2week/6week/custom-week
+    // are week-aligned. Used everywhere selectedDateRange is (re)seeded so the range span always
+    // matches the active mode — otherwise the WeekView renders the wrong number of columns.
     const rangeForActiveMode = (date: dayjs.Dayjs) => {
-      if (activeCalendarView.value === '3day') {
-        return { start: date.startOf('day'), end: date.add(2, 'day').endOf('day') }
+      if (isDayAnchoredMode.value) {
+        return { start: date.startOf('day'), end: date.add(dayAnchoredSpan.value - 1, 'day').endOf('day') }
       }
       return { start: date.startOf('week'), end: date.endOf('week') }
     }
 
     // The activeCalendarView watcher only fires on later changes, so when the
-    // persisted mode is already '3day' on a cold load we seed the range here.
-    if (activeCalendarView.value === '3day') {
+    // persisted mode is already day-anchored on a cold load we seed the range here.
+    if (isDayAnchoredMode.value) {
       selectedDateRange.value = rangeForActiveMode(selectedDate.value)
     }
 
-    // Number of consecutive weeks rendered by the multi-week grid (week / 2week / 6week).
+    // Number of consecutive weeks rendered by the multi-week grid (week / 2week / 6week / custom-week).
     const weeksInRange = computed(() => {
       if (activeCalendarView.value === '2week') return 2
       if (activeCalendarView.value === '6week') return 6
+      if (activeCalendarView.value === 'custom' && customUnit.value === 'week') return customCount.value
       return 1
     })
 
-    const isMultiWeekRange = computed(() => activeCalendarView.value === '2week' || activeCalendarView.value === '6week')
+    const isMultiWeekRange = computed(
+      () =>
+        activeCalendarView.value === '2week' ||
+        activeCalendarView.value === '6week' ||
+        (activeCalendarView.value === 'custom' && customUnit.value === 'week'),
+    )
 
     // The active filter in the sidebar
     const sideBarFilterOption = ref<string>(activeCalendarView.value ?? 'allRecords')
@@ -424,6 +461,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         sideBarFilterOption.value === '3day' ||
         sideBarFilterOption.value === '2week' ||
         sideBarFilterOption.value === '6week' ||
+        sideBarFilterOption.value === 'custom' ||
         sideBarFilterOption.value === 'month' ||
         sideBarFilterOption.value === 'day' ||
         sideBarFilterOption.value === 'year' ||
@@ -446,6 +484,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           case '3day':
             fromDate = selectedDateRange.value.start.startOf('day')
             toDate = selectedDateRange.value.start.add(2, 'day').endOf('day')
+            prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
+            nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
+            break
+          case 'custom':
+            if (isDayAnchoredMode.value) {
+              fromDate = selectedDateRange.value.start.startOf('day')
+              toDate = selectedDateRange.value.start.add(dayAnchoredSpan.value - 1, 'day').endOf('day')
+            } else {
+              fromDate = selectedDateRange.value.start.startOf('week')
+              toDate = fromDate
+                .clone()
+                .add(weeksInRange.value * 7 - 1, 'day')
+                .endOf('day')
+            }
             prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
             nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
             break
@@ -687,7 +739,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         activeCalendarView.value === 'day' ||
         activeCalendarView.value === '3day' ||
         activeCalendarView.value === '2week' ||
-        activeCalendarView.value === '6week'
+        activeCalendarView.value === '6week' ||
+        activeCalendarView.value === 'custom'
       ) {
         const startOfMonth = timezoneDayjs.timezonize(pageDate.value.startOf('month'))
         fromDate = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
@@ -747,11 +800,21 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
-    // Update the calendar view
-    const changeCalendarView = async (view: 'month' | 'year' | 'day' | '3day' | 'week' | '2week' | '6week') => {
+    // Update the calendar view. For the custom timescale, pass `customConfig` to persist the
+    // count/unit; the refs are set synchronously (before the activeCalendarView watcher fires)
+    // so the derived range/weeks computeds read fresh values.
+    const changeCalendarView = async (
+      view: 'month' | 'year' | 'day' | '3day' | 'week' | '2week' | '6week' | 'custom',
+      customConfig?: { count: number; unit: 'day' | 'week' },
+    ) => {
       $e('c:calendar:change-calendar-view', view)
 
       try {
+        if (view === 'custom' && customConfig) {
+          customCount.value = clampCustomCount(customConfig.count)
+          customUnit.value = customConfig.unit === 'week' ? 'week' : 'day'
+        }
+
         activeCalendarView.value = view
 
         if (isUIAllowed('calendarViewUpdate')) {
@@ -759,6 +822,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             meta: {
               ...viewMetaProperties.value,
               active_view: view,
+              ...(view === 'custom' ? { custom_count: customCount.value, custom_unit: customUnit.value } : {}),
             },
           })
         }
@@ -767,7 +831,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           activeCalendarView.value === 'week' ||
           activeCalendarView.value === '3day' ||
           activeCalendarView.value === '2week' ||
-          activeCalendarView.value === '6week'
+          activeCalendarView.value === '6week' ||
+          activeCalendarView.value === 'custom'
         ) {
           selectedTime.value = null
         }
@@ -832,11 +897,21 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           fromDate = selectedDate.value.startOf('day')
           toDate = selectedDate.value.endOf('day')
           break
-        case '3day': {
-          // Day-anchored 3-column window — selectedDateRange.start is the first
-          // visible day (not week-aligned like the week/2week/6week modes).
-          fromDate = selectedDateRange.value.start.startOf('day')
-          toDate = selectedDateRange.value.start.add(2, 'day').endOf('day')
+        case '3day':
+        case 'custom': {
+          if (isDayAnchoredMode.value) {
+            // Day-anchored window — selectedDateRange.start is the first visible day
+            // (not week-aligned like the week/2week/6week modes).
+            fromDate = selectedDateRange.value.start.startOf('day')
+            toDate = selectedDateRange.value.start.add(dayAnchoredSpan.value - 1, 'day').endOf('day')
+          } else {
+            // custom + week-unit → week-aligned multi-week window (same shape as 2/6-week).
+            fromDate = selectedDateRange.value.start.startOf('week')
+            toDate = fromDate
+              .clone()
+              .add(weeksInRange.value * 7 - 1, 'day')
+              .endOf('day')
+          }
           prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
           nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
           break
@@ -949,6 +1024,25 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           }
           return
         }
+        if (activeCalendarView.value === 'custom') {
+          // Nudge the custom window by exactly 1 week, keeping its span.
+          if (isDayAnchoredMode.value) {
+            const newStart = selectedDateRange.value.start.add(dayShift, 'day')
+            selectedDateRange.value = {
+              start: newStart.startOf('day'),
+              end: newStart.add(dayAnchoredSpan.value - 1, 'day').endOf('day'),
+            }
+            if (pageDate.value.month() !== newStart.month()) {
+              pageDate.value = newStart
+            }
+          } else {
+            selectedDateRange.value = {
+              start: selectedDateRange.value.start.add(dayShift, 'day'),
+              end: selectedDateRange.value.end.add(dayShift, 'day'),
+            }
+          }
+          return
+        }
         if (activeCalendarView.value === '2week' || activeCalendarView.value === '6week') {
           // Shift the multi-week window by exactly 1 week instead of the
           // natural 2/6-week step — useful when nudging a 6-week planning grid.
@@ -994,6 +1088,32 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           }
           if (pageDate.value.month() !== newStart.month()) {
             pageDate.value = newStart
+          }
+          break
+        }
+        case 'custom': {
+          if (isDayAnchoredMode.value) {
+            // Step the day-anchored window by its full span.
+            const dayShift = (action === 'next' ? 1 : -1) * dayAnchoredSpan.value
+            const newStart = selectedDateRange.value.start.add(dayShift, 'day')
+            selectedDateRange.value = {
+              start: newStart.startOf('day'),
+              end: newStart.add(dayAnchoredSpan.value - 1, 'day').endOf('day'),
+            }
+            if (pageDate.value.month() !== newStart.month()) {
+              pageDate.value = newStart
+            }
+          } else {
+            // Step the multi-week window by its full span (same as 2/6-week).
+            const dayShift = (action === 'next' ? 1 : -1) * weeksInRange.value * 7
+            selectedDateRange.value = {
+              start: selectedDateRange.value.start.add(dayShift, 'day'),
+              end: selectedDateRange.value.end.add(dayShift, 'day'),
+            }
+            const visibleRangeEnd = selectedDateRange.value.start.add(weeksInRange.value * 7 - 1, 'day')
+            if (pageDate.value.month() !== visibleRangeEnd.month()) {
+              pageDate.value = selectedDateRange.value.start
+            }
           }
           break
         }
@@ -1115,7 +1235,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         activeCalendarView.value === 'week' ||
         activeCalendarView.value === '3day' ||
         activeCalendarView.value === '2week' ||
-        activeCalendarView.value === '6week'
+        activeCalendarView.value === '6week' ||
+        activeCalendarView.value === 'custom'
       ) {
         if (sideBarFilterOption.value === 'selectedDate' && showSideMenu.value) {
           await loadSidebarData()
@@ -1155,18 +1276,33 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         activeCalendarView.value !== 'week' &&
         activeCalendarView.value !== '3day' &&
         activeCalendarView.value !== '2week' &&
-        activeCalendarView.value !== '6week'
+        activeCalendarView.value !== '6week' &&
+        activeCalendarView.value !== 'custom'
       ) {
         return
       }
       await Promise.all([loadCalendarData(), loadSidebarData()])
     })
 
+    // Changing the custom count/unit while already in 'custom' mode doesn't re-fire the
+    // activeCalendarView watcher (same value), so re-anchor the window here. Anchor on the
+    // current window start (not selectedDate, which can be stale after day-anchored nav),
+    // so a day→week / count change keeps the visible window in place. The range change
+    // cascades to the selectedDateRange watcher above, which reloads the data.
+    watch([customCount, customUnit], () => {
+      if (activeCalendarView.value !== 'custom') return
+      selectedDateRange.value = rangeForActiveMode(selectedDateRange.value.start)
+    })
+
     watch(activeCalendarView, async (value, oldValue) => {
-      if (oldValue === '3day') {
-        // Leaving 3-day: anchor every cursor on the first visible day of the window,
+      // Was the OLD mode day-anchored? When leaving 'custom' the unit ref still holds the
+      // custom config, so customUnit reflects what the custom window was.
+      const wasDayAnchored = oldValue === '3day' || (oldValue === 'custom' && customUnit.value === 'day')
+
+      if (wasDayAnchored) {
+        // Leaving a day-anchored window: anchor every cursor on the first visible day,
         // and restore a week-aligned range so a week-based target mode renders the
-        // full 7 columns (the entering-3day block below re-narrows it if needed).
+        // full 7 columns (the entering block below re-narrows it if needed).
         const anchor = selectedDateRange.value.start
         pageDate.value = anchor
         selectedMonth.value = anchor
@@ -1176,7 +1312,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           start: anchor.startOf('week'),
           end: anchor.endOf('week'),
         }
-      } else if (oldValue === 'week' || oldValue === '2week' || oldValue === '6week') {
+      } else if (oldValue === 'week' || oldValue === '2week' || oldValue === '6week' || oldValue === 'custom') {
         pageDate.value = selectedDate.value
         selectedMonth.value = selectedDate.value ?? selectedDateRange.value.start
         selectedDate.value = selectedDate.value ?? selectedDateRange.value.start
@@ -1205,8 +1341,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           end: selectedDate.value.endOf('week'),
         }
       }
-      // Entering 3-day: anchor the day-window on the currently selected day.
-      if (value === '3day') {
+      // Entering a day-anchored or custom mode: re-seed the range from the selected day
+      // (rangeForActiveMode handles the day-anchored vs week-aligned shape).
+      if (value === '3day' || value === 'custom') {
         selectedDateRange.value = rangeForActiveMode(selectedDate.value)
       }
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
@@ -1348,6 +1485,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             selectedDateRange.value,
             selectedMonth.value,
             timezoneDayjs,
+            {
+              isDayAnchored: isDayAnchoredMode.value,
+              spanDays: isDayAnchoredMode.value ? dayAnchoredSpan.value : weeksInRange.value * 7,
+            },
           )
 
           // Check if new row should be in sidebar
@@ -1360,6 +1501,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             selectedMonth.value,
             selectedTime.value,
             timezoneDayjs,
+            {
+              isDayAnchored: isDayAnchoredMode.value,
+              spanDays: isDayAnchoredMode.value ? dayAnchoredSpan.value : weeksInRange.value * 7,
+            },
           )
 
           const newRowData = {
@@ -1425,6 +1570,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             selectedDateRange.value,
             selectedMonth.value,
             timezoneDayjs,
+            {
+              isDayAnchored: isDayAnchoredMode.value,
+              spanDays: isDayAnchoredMode.value ? dayAnchoredSpan.value : weeksInRange.value * 7,
+            },
           )
 
           // Check if updated row should be in sidebar
@@ -1437,6 +1586,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             selectedMonth.value,
             selectedTime.value,
             timezoneDayjs,
+            {
+              isDayAnchored: isDayAnchoredMode.value,
+              spanDays: isDayAnchoredMode.value ? dayAnchoredSpan.value : weeksInRange.value * 7,
+            },
           )
 
           // Handle calendar view updates
@@ -1598,6 +1751,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       isSyncedFromColumn,
       weeksInRange,
       isMultiWeekRange,
+      customCount,
+      customUnit,
+      isDayAnchoredMode,
+      dayAnchoredSpan,
     }
   },
 )

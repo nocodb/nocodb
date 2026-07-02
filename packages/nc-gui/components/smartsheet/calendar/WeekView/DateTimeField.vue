@@ -18,6 +18,8 @@ const {
   timezoneDayjs,
   isSyncedFromColumn,
   activeCalendarView,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -80,10 +82,15 @@ const getDayIndex = (date: dayjs.Dayjs) => {
 }
 
 const maxVisibleDays = computed(() => {
-  // 3-day mode always renders exactly 3 day columns (weekends included).
-  if (activeCalendarView.value === '3day') return 3
+  // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns
+  // (weekends always included). Week mode honours hide_weekend → 5 columns.
+  if (isDayAnchoredMode.value) return dayAnchoredSpan.value
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
+
+// True only when weekends are actually hidden (week mode + hide_weekend). A day-anchored
+// 5-day custom window also yields maxVisibleDays === 5 but is NOT weekend-hidden.
+const isWeekendHidden = computed(() => !isDayAnchoredMode.value && maxVisibleDays.value === 5)
 
 // --- Collapsed-weekend column model -----------------------------------------
 // When collapse_weekend is on (week mode → 7 columns), Sat & Sun render in
@@ -379,7 +386,7 @@ const recordsAcrossAllRange = computed<{
   const scheduleStart = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
   let scheduleEnd = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day')
 
-  if (maxVisibleDays.value === 5) {
+  if (isWeekendHidden.value) {
     scheduleEnd = scheduleEnd.subtract(2, 'day')
   }
 
@@ -634,7 +641,7 @@ const recordsAcrossAllRange = computed<{
 
       let display = 'block'
 
-      if (maxVisibleDays.value === 5) {
+      if (isWeekendHidden.value) {
         if (dayIndex === 5 || dayIndex === 6) {
           display = 'none'
         }

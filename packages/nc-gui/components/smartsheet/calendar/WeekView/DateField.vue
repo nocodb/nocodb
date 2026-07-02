@@ -22,17 +22,24 @@ const {
   viewMetaProperties,
   updateFormat,
   isSyncedFromColumn,
-  activeCalendarView,
   recordHeightMode,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
-  // 3-day mode always renders exactly 3 day columns (weekends included).
-  if (activeCalendarView.value === '3day') return 3
+  // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns
+  // (weekends always included). Week mode honours hide_weekend → 5 columns.
+  if (isDayAnchoredMode.value) return dayAnchoredSpan.value
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
+
+// True only when weekends are actually hidden (week mode + hide_weekend). A day-anchored
+// 5-day custom window also yields maxVisibleDays === 5 but is NOT weekend-hidden, so the
+// weekend-skip logic must guard on this, not on the column count.
+const isWeekendHidden = computed(() => !isDayAnchoredMode.value && maxVisibleDays.value === 5)
 
 const container = ref<null | HTMLElement>(null)
 
@@ -90,7 +97,7 @@ const weekDates = computed(() => {
   let startOfWeek = dayjs(selectedDateRange.value.start)
   let endOfWeek = dayjs(selectedDateRange.value.end)
 
-  if (maxVisibleDays.value === 5) {
+  if (isWeekendHidden.value) {
     endOfWeek = endOfWeek.subtract(2, 'day')
   }
   const datesArray = []
@@ -170,8 +177,9 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
 }
 
 const isInRange = (date: dayjs.Dayjs) => {
-  const rangeEndDate =
-    maxVisibleDays.value === 5 ? dayjs(selectedDateRange.value.end).subtract(2, 'day') : dayjs(selectedDateRange.value.end)
+  const rangeEndDate = isWeekendHidden.value
+    ? dayjs(selectedDateRange.value.end).subtract(2, 'day')
+    : dayjs(selectedDateRange.value.end)
 
   return (
     date && date.isBetween(dayjs(selectedDateRange.value.start).startOf('day'), dayjs(rangeEndDate).endOf('day'), 'day', '[]')

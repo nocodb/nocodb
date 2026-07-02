@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
 
-const { selectedDate, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
+const { selectedDate, activeDates, activeCalendarView, sideBarFilterOption, showSideMenu } = useCalendarViewStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
@@ -114,6 +114,13 @@ const changeView = (date: dayjs.Dayjs) => {
   activeCalendarView.value = 'day'
 }
 
+// Single click on a day: open the record sidebar filtered to that day's records.
+const onDateSelect = (date: dayjs.Dayjs) => {
+  sideBarFilterOption.value = 'selectedDate'
+  selectedDate.value = date
+  showSideMenu.value = true
+}
+
 // Update the active dates grouping when activeDates change
 watch(
   activeDates,
@@ -160,10 +167,11 @@ watch([width, isMobileMode], handleResize)
         :key="index"
         v-model:active-dates="activeDates"
         v-model:page-date="months[index]"
-        v-model:selected-date="selectedDate"
+        :selected-date="selectedDate"
         :size="size"
         class="nc-year-view-calendar"
         data-testid="nc-calendar-year-view-month-selector"
+        @update:selected-date="onDateSelect"
         @dbl-click="changeView"
       />
     </div>

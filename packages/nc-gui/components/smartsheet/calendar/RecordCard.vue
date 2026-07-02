@@ -112,6 +112,8 @@ const rowColorInfo = computed(() => {
         <NcTooltip
           v-if="multiline"
           wrap-child="div"
+          hide-on-click
+          disable-in-mobile
           :disabled="selected || dragging || !hasHiddenFields"
           overlay-class-name="nc-record-fields-tooltip"
           class="w-full overflow-hidden"
@@ -128,6 +130,8 @@ const rowColorInfo = computed(() => {
         <!-- Single-line: prod behaviour — tooltip only when the text is clipped. -->
         <NcTooltip
           v-else
+          hide-on-click
+          disable-in-mobile
           :disabled="selected || dragging"
           overlay-class-name="nc-record-fields-tooltip"
           show-on-truncate-only

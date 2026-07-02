@@ -97,6 +97,8 @@ const rowColorInfo = computed(() => {
     >
       <NcTooltip
         wrap-child="div"
+        hide-on-click
+        disable-in-mobile
         :disabled="selected || dragging"
         overlay-class-name="nc-record-fields-tooltip"
         show-on-truncate-only

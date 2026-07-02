@@ -8,6 +8,11 @@ import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType } from './Api';
 import { parseProp } from './helperFunctions';
 import { ncIsNull, ncIsUndefined } from './is';
+import {
+  jalaliDateFormats,
+  jalaliDateMonthFormats,
+  jalaliPlugin,
+} from './jalali';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -15,6 +20,7 @@ dayjs.extend(customParseFormat);
 dayjs.extend(duration);
 dayjs.extend(weekday);
 dayjs.extend(timezone);
+dayjs.extend(jalaliPlugin);
 
 export const dateMonthFormats = ['YYYY-MM', 'YYYY MM'];
 
@@ -50,7 +56,7 @@ export const dateFormats = [
 ];
 
 export const isDateMonthFormat = (format: string) =>
-  dateMonthFormats.includes(format);
+  dateMonthFormats.includes(format) || jalaliDateMonthFormats.includes(format);
 
 export function validateDateWithUnknownFormat(v: string) {
   for (const format of dateFormats) {
@@ -145,7 +151,11 @@ export const handleTZ = (val: any) => {
 };
 
 export function validateDateFormat(v: string) {
-  return dateFormats.includes(v);
+  return (
+    dateFormats.includes(v) ||
+    jalaliDateFormats.includes(v) ||
+    jalaliDateMonthFormats.includes(v)
+  );
 }
 
 export const timeAgo = (date: any) => {

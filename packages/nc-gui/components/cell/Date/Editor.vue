@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
+import { isDateMonthFormat, isJalaliFormat, isSystemColumn, parseJalaliToGregorian } from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -45,7 +45,21 @@ const datePickerRef = ref<HTMLInputElement>()
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
 
+const isJalali = computed(() => isJalaliFormat(dateFormat.value))
+
 const picker = computed(() => (isDateMonthFormat(dateFormat.value) ? 'month' : ''))
+
+// Parse a user-typed date string into a Gregorian dayjs, honouring the Jalali
+// calendar when the column format is Jalali. Returns null when it can't be parsed.
+function parseTypedDate(str: string): dayjs.Dayjs | null {
+  if (isJalali.value) {
+    const g = parseJalaliToGregorian(str, dateFormat.value)
+    if (!g) return null
+    return dayjs(`${g.y}-${String(g.m).padStart(2, '0')}-${String(g.d).padStart(2, '0')}`)
+  }
+  const parsed = dayjs(str, dateFormat.value)
+  return parsed.isValid() ? parsed : null
+}
 
 const isClearedInputMode = ref<boolean>(false)
 
@@ -71,7 +85,9 @@ const localState = computed({
       return undefined
     }
 
-    const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
+    // Stored values are always Gregorian ISO; parse them as Gregorian even for
+    // Jalali columns (the Jalali conversion happens at display/format time).
+    const format = isJalali.value ? 'YYYY-MM-DD' : picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
 
     const value = dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
 
@@ -128,9 +144,9 @@ const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) =>
     tempDate.value = undefined
     return
   }
-  const value = dayjs(targetValue, dateFormat.value)
+  const value = typeof targetValue === 'string' ? parseTypedDate(targetValue) : dayjs(targetValue, dateFormat.value)
 
-  if (value.isValid()) {
+  if (value?.isValid()) {
     tempDate.value = value
 
     if (save) {
@@ -150,7 +166,7 @@ onClickOutside(datePickerRef, (e) => {
 
 const onBlur = (e) => {
   const value = (e?.target as HTMLInputElement)?.value
-  if (value && dayjs(value, dateFormat.value).isValid()) {
+  if (value && parseTypedDate(value)?.isValid()) {
     handleUpdateValue(e, true)
   }
 
@@ -404,6 +420,7 @@ onMounted(() => {
           v-model:page-date="tempDate"
           v-model:selected-date="localState"
           :is-open="isOpen"
+          :is-jalali="isJalali"
           type="month"
           size="medium"
           :show-current-date-option="showCurrentDateOption"
@@ -413,6 +430,7 @@ onMounted(() => {
           v-else
           v-model:page-date="tempDate"
           :is-open="isOpen"
+          :is-jalali="isJalali"
           :selected-date="localState"
           type="date"
           size="medium"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnHelper, UITypes, dateFormats, dateMonthFormats } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, dateFormats, dateMonthFormats, jalaliDateFormats, jalaliDateMonthFormats } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -18,7 +18,7 @@ vModel.value.meta = {
 
 const { isSystem } = useColumnCreateStoreOrThrow()
 
-const allDateFormats = [...dateFormats, ...dateMonthFormats]
+const allDateFormats = [...dateFormats, ...dateMonthFormats, ...jalaliDateFormats, ...jalaliDateMonthFormats]
 
 // Examples are rendered against today's date so users see what each format produces
 const today = dayjs()

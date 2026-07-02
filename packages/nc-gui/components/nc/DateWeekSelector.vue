@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { jalaliWeekdaysShort } from 'nocodb-sdk'
 
 interface Props {
   size?: 'medium'
@@ -18,6 +19,7 @@ interface Props {
   showCurrentDateOption?: boolean | 'disabled'
   timezone?: string
   header?: 'v1' | 'v2'
+  isJalali?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   isCellInputField: false,
   pickerType: 'date',
   header: 'v1',
+  isJalali: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'update:pickerType', 'currentDate'])
 // Page date is the date we use to manage which month/date that is currently being displayed
@@ -49,7 +52,13 @@ const timezoneDayjs = computed(() => {
   return withTimezone(props.timezone)
 })
 
+// Jalali week starts on Saturday; days are laid out starting from that day.
+const weekStartDay = computed(() => (props.isJalali ? 6 : props.isMondayFirst ? 1 : 0))
+
 const days = computed(() => {
+  if (props.isJalali) {
+    return jalaliWeekdaysShort
+  }
   if (props.isMondayFirst) {
     return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
   } else {
@@ -58,15 +67,15 @@ const days = computed(() => {
 })
 
 const currentMonthYear = computed(() => {
-  return timezoneDayjs.value.dayjsTz(pageDate.value).format('MMMM YYYY')
+  return timezoneDayjs.value.dayjsTz(pageDate.value).format(props.isJalali ? 'jMMMM jYYYY' : 'MMMM YYYY')
 })
 
 const currentMonth = computed(() => {
-  return timezoneDayjs.value.dayjsTz(pageDate.value).format('MMMM')
+  return timezoneDayjs.value.dayjsTz(pageDate.value).format(props.isJalali ? 'jMMMM' : 'MMMM')
 })
 
 const currentYear = computed(() => {
-  return timezoneDayjs.value.dayjsTz(pageDate.value).format('YYYY')
+  return timezoneDayjs.value.dayjsTz(pageDate.value).format(props.isJalali ? 'jYYYY' : 'YYYY')
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
@@ -84,8 +93,10 @@ const selectWeek = (date: dayjs.Dayjs) => {
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
-  const startOfMonth = timezoneDayjs.value.timezonize(pageDate.value.startOf('month'))
-  const dayOffset = +props.isMondayFirst
+  const startOfMonth = timezoneDayjs.value.timezonize(
+    props.isJalali ? jalaliStartOfMonth(pageDate.value) : pageDate.value.startOf('month'),
+  )
+  const dayOffset = weekStartDay.value
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')
 
@@ -117,6 +128,9 @@ const isSelectedDate = (dObj: dayjs.Dayjs) => {
 }
 
 const isDayInPagedMonth = (date: dayjs.Dayjs) => {
+  if (props.isJalali) {
+    return isSameJalaliMonth(date, timezoneDayjs.value.dayjsTz(pageDate.value))
+  }
   return date.month() === timezoneDayjs.value.dayjsTz(pageDate.value).month()
 }
 
@@ -139,6 +153,9 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
 
 // Used to check if a date is in the current month
 const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
+  if (props.isJalali) {
+    return isSameJalaliMonth(date, timezoneDayjs.value.dayjsTz(pageDate.value))
+  }
   return date.month() === timezoneDayjs.value.dayjsTz(pageDate.value).month()
 }
 
@@ -150,10 +167,11 @@ const isActiveDate = (date: dayjs.Dayjs) => {
 // Paginate the calendar
 const paginate = (action: 'next' | 'prev') => {
   let newDate = timezoneDayjs.value.dayjsTz(pageDate.value)
-  if (action === 'next') {
-    newDate = newDate.add(1, 'month')
+  const delta = action === 'next' ? 1 : -1
+  if (props.isJalali) {
+    newDate = jalaliAddMonths(newDate, delta)
   } else {
-    newDate = newDate.subtract(1, 'month')
+    newDate = newDate.add(delta, 'month')
   }
   pageDate.value = newDate
   emit('update:pageDate', newDate)
@@ -268,14 +286,14 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md text-nc-content-brand !font-semibold nc-calendar-today':
               isSameDate(date, timezoneDayjs.dayjsTz()) && isDateInCurrentMonth(date),
-            'text-nc-content-gray-muted': date.get('day') === 0 || date.get('day') === 6,
+            'text-nc-content-gray-muted': isJalali ? date.get('day') === 5 : date.get('day') === 0 || date.get('day') === 6,
             'nc-date-item font-weight-400': isCellInputField,
             'font-medium': !isCellInputField,
             'rounded': !isWeekPicker && isCellInputField,
           }"
           class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-nc-content-gray-subtle leading-5 font-[400] items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
-          :title="isCellInputField ? date.format('YYYY-MM-DD') : undefined"
+          :title="isCellInputField ? date.format(isJalali ? 'jYYYY-jMM-jDD' : 'YYYY-MM-DD') : undefined"
           @click="handleSelectDate(date)"
         >
           <span
@@ -287,7 +305,7 @@ const paginate = (action: 'next' | 'prev') => {
             class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-nc-base-white bg-nc-fill-primary"
           ></span>
           <span class="nc-date-item-inner z-2">
-            {{ date.get('date') }}
+            {{ isJalali ? date.format('jD') : date.get('date') }}
           </span>
         </span>
       </div>

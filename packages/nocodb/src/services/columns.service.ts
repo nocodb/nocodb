@@ -42,7 +42,12 @@ import {
   WebhookActions,
 } from 'nocodb-sdk';
 import { getProjectRole } from 'nocodb-sdk';
-import { dateFormats, dateMonthFormats } from 'nocodb-sdk';
+import {
+  dateFormats,
+  dateMonthFormats,
+  jalaliDateFormats,
+  jalaliDateMonthFormats,
+} from 'nocodb-sdk';
 import rfdc from 'rfdc';
 import { ClientType } from 'nocodb-sdk';
 import type {
@@ -161,7 +166,15 @@ const TITLE_IMMUTABLE_SYSTEM_TYPES = new Set([
   UITypes.Deleted,
 ]);
 
-const ALLOWED_DATE_FORMATS = new Set([...dateFormats, ...dateMonthFormats]);
+const ALLOWED_DATE_FORMATS = new Set([
+  ...dateFormats,
+  ...dateMonthFormats,
+  // Jalali (Persian) display formats — stored as Gregorian, rendered as Jalali
+  // on the frontend. Server-side SQL formatting falls back to ISO (see
+  // convertDateFormat), so these are presentation-only.
+  ...jalaliDateFormats,
+  ...jalaliDateMonthFormats,
+]);
 
 // MySQL stores SingleSelect/MultiSelect as ENUM/SET, which compares members
 // case-insensitively under utf8mb4_*_ci collations. Callers use this to

@@ -10,6 +10,7 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import isBetween from 'dayjs/plugin/isBetween'
 import advanced from 'dayjs/plugin/advancedFormat'
+import { jalaliPlugin } from 'nocodb-sdk'
 
 export default defineNuxtPlugin(() => {
   extend(utc)
@@ -23,6 +24,7 @@ export default defineNuxtPlugin(() => {
   extend(isSameOrAfter)
   extend(isBetween)
   extend(advanced)
+  extend(jalaliPlugin)
   dayjs.updateLocale('en', {
     weekStart: 1,
     relativeTime: {

@@ -40,9 +40,7 @@ function tableNodeClasses(rawTable?: string): string[] {
 function columnNodeClasses(rawTable?: string, rawCol?: string): string[] {
   if (!rawTable || !rawCol) return []
   const cols = caseVariants(rawCol)
-  return [
-    ...new Set(caseVariants(rawTable).flatMap((t) => cols.map((c) => `nc-erd-table-node-${t}-column-${c}`))),
-  ]
+  return [...new Set(caseVariants(rawTable).flatMap((t) => cols.map((c) => `nc-erd-table-node-${t}-column-${c}`)))]
 }
 
 const isZooming = refAutoReset(false, 200)
@@ -80,10 +78,7 @@ watch(
     <div
       v-if="table"
       class="relative h-full max-w-76 flex flex-col justify-center bg-nc-bg-default min-w-16 min-h-8 rounded-lg nc-erd-table-node"
-      :class="[
-        ...tableNodeClasses(table.table_name),
-        showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '',
-      ]"
+      :class="[...tableNodeClasses(table.table_name), showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '']"
       @click="$e('c:erd:node-click')"
     >
       <div
@@ -144,14 +139,16 @@ watch(
               v-else-if="isVirtualCol(col)"
               :column="col"
               :hide-menu="true"
-              :class="['nc-erd-table-node-column', ...columnNodeClasses(table.table_name, col.column_name)]"
+              class="nc-erd-table-node-column"
+              :class="[...columnNodeClasses(table.table_name, col.column_name)]"
             />
 
             <LazySmartsheetHeaderCell
               v-else
               :column="col"
               :hide-menu="true"
-              :class="['nc-erd-table-node-column', ...columnNodeClasses(table.table_name, col.column_name)]"
+              class="nc-erd-table-node-column"
+              :class="[...columnNodeClasses(table.table_name, col.column_name)]"
             />
           </div>
         </div>

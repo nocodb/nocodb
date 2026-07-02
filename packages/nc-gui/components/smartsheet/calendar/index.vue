@@ -8,7 +8,7 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { isMobileMode, user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
 
 const { isAllowed } = usePermissions()
 
@@ -50,6 +50,30 @@ const {
 const isHeightExpanded = computed(
   () => recordHeightMode.value === 'expanded' && ['week', '3day', '2week', 'month', '6week'].includes(activeCalendarView.value),
 )
+
+// On a phone the multi-column modes squeeze day-columns to ~50px and event text becomes
+// unreadable. Give the grid a per-mode minimum width so columns stay legible and let the
+// body scroll horizontally instead of collapsing. Day and Year keep the full viewport width.
+const gridMinWidth = computed(() => {
+  if (!isMobileMode.value) return 0
+  switch (activeCalendarView.value) {
+    case 'week':
+    case 'month':
+    case '2week':
+    case '6week':
+      return 700
+    case '3day':
+      return 460
+    default:
+      return 0
+  }
+})
+
+const isGridScroll = computed(() => gridMinWidth.value > 0)
+
+// When the full-screen record sidebar is open on a phone the calendar body collapses to 0
+// width; without clipping, its overflowing day-numbers bleed through the sidebar's edges.
+const isMobileSidebarOpen = computed(() => isMobileMode.value && showSideMenu.value)
 
 // Viewport-bounded height of the calendar body. Stays the visible height even when the
 // grid grows and scrolls, so Month/multi-week can use it as the compact (minimum) row
@@ -166,72 +190,68 @@ watch(
 </script>
 
 <template>
-  <template v-if="isMobileMode">
-    <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
-      <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
-        {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
-      </div>
-      <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
-        {{ $t('msg.calendarViewNotSupportedOnMobile') }}
-      </div>
-    </div>
-  </template>
-  <template v-else>
+  <div class="nc-calendar-container flex flex-col h-full">
     <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
       <div
         ref="calendarBody"
         class="flex flex-col w-full min-h-0 min-w-0"
-        :class="{ 'overflow-y-auto nc-scrollbar-md': isHeightExpanded }"
+        :class="{
+          'overflow-y-auto nc-scrollbar-md': isHeightExpanded && !isMobileSidebarOpen,
+          'nc-scrollbar-x-md': isGridScroll && !isMobileSidebarOpen,
+          '!overflow-hidden': isMobileSidebarOpen,
+        }"
       >
-        <template v-if="calendarRange?.length">
-          <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
-          <template v-if="!isCalendarDataLoading">
-            <LazySmartsheetCalendarMonthView
-              v-if="activeCalendarView === 'month' || activeCalendarView === '2week' || activeCalendarView === '6week'"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
+        <div class="flex flex-col h-full w-full" :style="isGridScroll ? { minWidth: `${gridMinWidth}px` } : undefined">
+          <template v-if="calendarRange?.length">
+            <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
+            <template v-if="!isCalendarDataLoading">
+              <LazySmartsheetCalendarMonthView
+                v-if="activeCalendarView === 'month' || activeCalendarView === '2week' || activeCalendarView === '6week'"
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
 
-            <LazySmartsheetCalendarWeekViewDateField
-              v-else-if="(activeCalendarView === 'week' || activeCalendarView === '3day') && calDataType === UITypes.Date"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-            <LazySmartsheetCalendarWeekViewDateTimeField
-              v-else-if="
-                (activeCalendarView === 'week' || activeCalendarView === '3day') &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
-              "
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-            <LazySmartsheetCalendarDayViewDateField
-              v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-            <LazySmartsheetCalendarDayViewDateTimeField
-              v-else-if="
-                activeCalendarView === 'day' &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
-              "
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
+              <LazySmartsheetCalendarWeekViewDateField
+                v-else-if="(activeCalendarView === 'week' || activeCalendarView === '3day') && calDataType === UITypes.Date"
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+              <LazySmartsheetCalendarWeekViewDateTimeField
+                v-else-if="
+                  (activeCalendarView === 'week' || activeCalendarView === '3day') &&
+                  [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+                "
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+              <LazySmartsheetCalendarDayViewDateField
+                v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+              <LazySmartsheetCalendarDayViewDateTimeField
+                v-else-if="
+                  activeCalendarView === 'day' &&
+                  [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+                "
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+            </template>
+
+            <div
+              v-if="isCalendarDataLoading && activeCalendarView !== 'year'"
+              class="flex w-full items-center h-full justify-center"
+            >
+              <GeneralLoader size="xlarge" />
+            </div>
           </template>
-
-          <div
-            v-if="isCalendarDataLoading && activeCalendarView !== 'year'"
-            class="flex w-full items-center h-full justify-center"
-          >
-            <GeneralLoader size="xlarge" />
-          </div>
-        </template>
-        <template v-else>
-          <div class="flex w-full items-center h-full justify-center">
-            {{ $t('activity.noRange') }}
-          </div>
-        </template>
+          <template v-else>
+            <div class="flex w-full items-center h-full justify-center">
+              {{ $t('activity.noRange') }}
+            </div>
+          </template>
+        </div>
       </div>
       <Transition>
         <LazySmartsheetCalendarSideMenu
@@ -271,7 +291,7 @@ watch(
       :expand-form="expandRecord"
       :view="view"
     />
-  </template>
+  </div>
 </template>
 
 <style scoped lang="scss">

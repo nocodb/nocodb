@@ -77,26 +77,28 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <NcDropdown
+  <NcDropDrawer
     v-if="supportsHeightOptions"
     v-model:visible="open"
-    offset-y
     :trigger="['click']"
+    drawer-content-height
+    drawer-body-class-name="!px-2 !pb-2"
     overlay-class-name="nc-dropdown-calendar-record-height overflow-hidden"
   >
-    <div>
+    <template #default="{ onClick }">
       <NcButton
         class="nc-calendar-record-height-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
         size="small"
         type="secondary"
         data-testid="nc-calendar-record-height"
         :show-as-disabled="isLocked"
+        @click="onClick"
       >
         <div class="flex items-center gap-0.5">
           <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />
         </div>
       </NcButton>
-    </div>
+    </template>
     <template #overlay>
       <div class="p-1.5 min-w-[224px]" data-testid="nc-calendar-record-height-menu">
         <div class="flex flex-col w-full text-sm" @click.stop>
@@ -123,7 +125,7 @@ useMenuCloseOnEsc(open)
         </div>
       </div>
     </template>
-  </NcDropdown>
+  </NcDropDrawer>
 </template>
 
 <style scoped>

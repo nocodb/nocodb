@@ -22,7 +22,7 @@ const onNavigate = (action: 'next' | 'prev', event: MouseEvent) => {
 
 <template>
   <div class="flex items-center gap-2">
-    <NcTooltip hide-on-click>
+    <NcTooltip hide-on-click disable-in-mobile>
       <template #title>
         {{ $t('labels.previous') }}
         <div v-if="supportsWeekStep" class="text-xs text-nc-content-gray-muted">{{ $t('tooltip.shiftClickWeekStep') }}</div>
@@ -40,7 +40,7 @@ const onNavigate = (action: 'next' | 'prev', event: MouseEvent) => {
         <GeneralIcon icon="ncChevronLeft" class="h-4 !-ml-0.5 w-4" />
       </NcButton>
     </NcTooltip>
-    <NcTooltip hide-on-click>
+    <NcTooltip hide-on-click disable-in-mobile>
       <template #title>
         {{ $t('labels.next') }}
         <div v-if="supportsWeekStep" class="text-xs text-nc-content-gray-muted">{{ $t('tooltip.shiftClickWeekStep') }}</div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnHelper, UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, dateFormats, jalaliDateFormats, timeFormats } from 'nocodb-sdk'
 import { type TimeZone, getTimeZones } from '@vvo/tzdb'
 import { timeFormatsObj } from '../../cell/DateTime/utils'
 
@@ -11,6 +11,8 @@ const props = defineProps<{
 const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
+
+const allDateFormats = [...dateFormats, ...jalaliDateFormats]
 
 const { appInfo } = useGlobal()
 
@@ -98,7 +100,7 @@ const combinedPreview = computed(
           <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
 
-        <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
+        <a-select-option v-for="(format, i) of allDateFormats" :key="i" :value="format">
           <div class="w-full flex items-center gap-2">
             <span class="nc-check-gutter flex-none w-4 h-4 flex items-center justify-center">
               <component

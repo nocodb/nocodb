@@ -77,6 +77,7 @@ export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
 export * from '~/lib/passwordHelpers';
 export * from '~/lib/mergeSwaggerSchema';
 export * from '~/lib/dateTimeHelper';
+export * from '~/lib/jalali';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
 export * from '~/lib/aggregationCompute';

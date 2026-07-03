@@ -1449,7 +1449,8 @@
     "deleteSyncConfirmSubtitle": "This will delete related sync table and this action cannot be undone.",
     "relevantDocumentation": "Relevant documentation",
     "oneToMany": "One to Many",
-    "manyToOne": "Many to One"
+    "manyToOne": "Many to One",
+    "hierarchyNotConfigured": "Hierarchy Not Configured"
   },
   "labels": {
     "timescale": "Timescale",
@@ -3065,6 +3066,7 @@
     "restricted": "Restricted",
     "grantAccessToAllBases": "Grant access to all current and future bases",
     "selectBases": "Select bases",
+    "clearField": "Clear {field}",
     "sandboxDiff": {
       "gridViewSettings": "Grid view settings",
       "gridColumnSettings": "Grid column settings",
@@ -4401,7 +4403,8 @@
       "noAccessToDashboard": "You don't have access to this dashboard",
       "noAccessToAutomation": "You don't have access to this automation",
       "noAccessToScript": "You don't have access to this script",
-      "noAccessToTable": "You don't have access to this table"
+      "noAccessToTable": "You don't have access to this table",
+      "configureListViewHierarchy": "Use {setLevels} in the toolbar to configure your list view hierarchy."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",

@@ -2,11 +2,13 @@ import dayjs from 'dayjs';
 import { JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
+  extractDatetimeFormat,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import { buildMysqlDatetimeFormat } from '~/helpers/convertDayjsFormat';
 
 const mysql2 = {
   ...commonFns,
@@ -120,6 +122,13 @@ const mysql2 = {
       builder: knex.raw(
         `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1})`,
       ),
+    };
+  },
+  DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const format = extractDatetimeFormat(pt);
+    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    return {
+      builder: knex.raw(buildMysqlDatetimeFormat(`${dateExpr}`, format)),
     };
   },
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {

@@ -1,8 +1,31 @@
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
+import { DEFAULT_DATETIME_FORMAT } from '~/helpers/convertDayjsFormat';
+
+// Reads the (optional) format argument of DATETIME_FORMAT. The format must be a
+// constant string literal so it can be translated to a SQL pattern at build
+// time; a missing argument falls back to the default format.
+export function extractDatetimeFormat(pt: MapFnArgs['pt']): string {
+  const formatArg = pt?.arguments?.[1];
+
+  if (!formatArg) {
+    return DEFAULT_DATETIME_FORMAT;
+  }
+
+  if (
+    formatArg.type !== JSEPNode.LITERAL ||
+    typeof formatArg.value !== 'string'
+  ) {
+    NcError.badRequest(
+      'Second parameter of DATETIME_FORMAT must be a constant text format',
+    );
+  }
+
+  return formatArg.value;
+}
 
 export const ALLOWED_DATEADD_UNITS = new Set([
   'day',

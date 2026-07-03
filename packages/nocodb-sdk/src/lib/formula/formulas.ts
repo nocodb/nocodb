@@ -139,6 +139,38 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['DATESTR({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
+  DATETIME_FORMAT: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#datetime_format`,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+      custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
+        if (
+          parsedTree.arguments[1] &&
+          parsedTree.arguments[1].type === JSEPNode.LITERAL &&
+          typeof parsedTree.arguments[1].value !== 'string'
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.TYPE_MISMATCH,
+            { key: 'msg.formula.secondParamDateFormatHaveString' },
+            'Second parameter of DATETIME_FORMAT should be a string'
+          );
+        }
+      },
+    },
+    description:
+      'Formats a date / datetime field into a string using the given Day.js format. Supports localized presets such as "LL", "LLL" and "LLLL".',
+    syntax: 'DATETIME_FORMAT(date | datetime, ["format"])',
+    examples: [
+      'DATETIME_FORMAT({column1})',
+      'DATETIME_FORMAT({column1}, "YYYY-MM-DD")',
+      'DATETIME_FORMAT({column1}, "DD MMM YYYY")',
+      'DATETIME_FORMAT({column1}, "LLL")',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
   DAY: {
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#day`,
     validation: {

@@ -1,12 +1,14 @@
 import dayjs from 'dayjs';
 import { convertToTargetFormat, getDateFormat, JSEPNode } from 'nocodb-sdk';
 import commonFns, {
+  extractDatetimeFormat,
   safeDateAddUnitSQL,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import { buildSqliteDatetimeFormat } from '~/helpers/convertDayjsFormat';
 
 const sqlite3 = {
   ...commonFns,
@@ -200,6 +202,13 @@ const sqlite3 = {
         sql = '';
     }
     return { builder: knex.raw(`ROUND(${sql})`) };
+  },
+  DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const format = extractDatetimeFormat(pt);
+    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    return {
+      builder: knex.raw(buildSqliteDatetimeFormat(`(${dateExpr})`, format)),
+    };
   },
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0

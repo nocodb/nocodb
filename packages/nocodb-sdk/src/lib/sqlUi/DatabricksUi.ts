@@ -883,6 +883,8 @@ export class DatabricksUi implements SqlUi {
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',
+      // DATETIME_FORMAT is only implemented for PG, MySQL and SQLite.
+      'DATETIME_FORMAT',
       'DAY',
       'MONTH',
       'HOUR',

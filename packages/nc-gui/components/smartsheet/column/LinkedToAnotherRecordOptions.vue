@@ -690,7 +690,7 @@ const handleScrollIntoView = () => {
           >
         </span>
       </div>
-      <GeneralSourceRestrictionTooltip message="Field cannot be upgraded." :enabled="!!isMetaReadOnly">
+      <GeneralSourceRestrictionTooltip :message="$t('msg.info.fieldCannotBeUpgraded')" :enabled="!!isMetaReadOnly">
         <NcButton size="xs" type="primary" :disabled="isMetaReadOnly" @click="emit('upgrade')">
           {{ $t('general.upgrade') }}
         </NcButton>
@@ -711,7 +711,7 @@ const handleScrollIntoView = () => {
           'cursor-pointer': !isEdit,
         }"
         @click="onCustomSwitchLabelClick"
-        >Advanced Link</span
+        >{{ $t('labels.advancedLink') }}</span
       >
     </div>
     <div v-if="isEeUI && vModel.is_custom_link">
@@ -758,7 +758,7 @@ const handleScrollIntoView = () => {
             show-search
             :disabled="isEdit || isLinkedTablePrivate"
             :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
-            placeholder="select table to link"
+            :placeholder="$t('placeholder.selectTableToLink')"
             dropdown-class-name="nc-dropdown-ltar-child-table"
             @change="handleUpdateRefTable"
           >

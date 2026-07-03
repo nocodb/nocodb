@@ -143,8 +143,8 @@ const combinedPreview = computed(
     </a-form-item>
     <a-form-item>
       <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout">
-        <a-radio :value="true">12 Hrs</a-radio>
-        <a-radio :value="false">24 Hrs</a-radio>
+        <a-radio :value="true">{{ $t('labels.hours12') }}</a-radio>
+        <a-radio :value="false">{{ $t('labels.hours24') }}</a-radio>
       </a-radio-group>
     </a-form-item>
 
@@ -178,14 +178,14 @@ const combinedPreview = computed(
           allow-clear
           :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
           dropdown-class-name="nc-dropdown-timezone"
-          placeholder="Use same timezone for all collaborator"
+          :placeholder="$t('placeholder.useSameTimezoneForAll')"
           class="nc-search-timezone"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
 
-          <a-select-opt-group label="Suggested">
+          <a-select-opt-group :label="$t('labels.suggested')">
             <a-select-option
               v-for="timezone of priorityTzs"
               :key="timezone.name"

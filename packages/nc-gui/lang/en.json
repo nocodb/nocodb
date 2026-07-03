@@ -699,7 +699,8 @@
     "updatedBy": "Updated by",
     "updated": "Updated",
     "stop": "Stop",
-    "run": "Run"
+    "run": "Run",
+    "repair": "Repair"
   },
   "objects": {
     "addons": "Add-ons",
@@ -1066,7 +1067,8 @@
       "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
     },
     "widgets": "Widgets",
-    "sorts": "Sorts"
+    "sorts": "Sorts",
+    "formulas": "Formulas"
   },
   "datatype": {
     "ID": "ID",
@@ -1450,7 +1452,9 @@
     "relevantDocumentation": "Relevant documentation",
     "oneToMany": "One to Many",
     "manyToOne": "Many to One",
-    "hierarchyNotConfigured": "Hierarchy Not Configured"
+    "hierarchyNotConfigured": "Hierarchy Not Configured",
+    "noSearchResultsFound": "No search results found",
+    "theListIsEmpty": "The list is empty"
   },
   "labels": {
     "timescale": "Timescale",
@@ -3195,7 +3199,23 @@
     "grouping": "Grouping",
     "withTitle": "with title",
     "changePage": "Change page:",
-    "mapView": "Map view"
+    "mapView": "Map view",
+    "maxNumberOfAttachments": "Max Number of Attachments",
+    "maxAttachmentSizeMb": "Max Attachment Size (MB)",
+    "swatchAndHex": "Swatch & Hex",
+    "swatchOnly": "Swatch only",
+    "hexOnly": "Hex only",
+    "square": "Square",
+    "hours12": "12 Hrs",
+    "hours24": "24 Hrs",
+    "suggested": "Suggested",
+    "viewInDocs": "View in Docs",
+    "fixFormula": "Fix Formula",
+    "formulaHelper": "Formula Helper",
+    "prompt": "Prompt",
+    "advancedLink": "Advanced Link",
+    "allowAddingMultipleUsers": "Allow adding multiple users",
+    "notifyUsersWithBaseAccessWhenAdded": "Notify users with base access when they're added"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -3864,7 +3884,13 @@
     "searchViews": "Search views",
     "searchBases": "Search bases",
     "searchDashboards": "Search dashboards",
-    "searchScripts": "Search scripts"
+    "searchScripts": "Search scripts",
+    "useSameTimezoneForAll": "Use same timezone for all collaborator",
+    "enterPromptToModifyFormula": "Enter prompt to modify formula",
+    "enterPromptToGenerateFormula": "Enter prompt to generate formula",
+    "selectTableToLink": "select table to link",
+    "select": "-select-",
+    "enterOptionName": "Enter option name..."
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -4455,6 +4481,7 @@
       "matchedByFieldDescription": "Matched by field description",
       "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles.",
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role.",
+      "fieldCannotBeUpgraded": "Field cannot be upgraded.",
       "noAccessToDashboard": "You don't have access to this dashboard",
       "noAccessToAutomation": "You don't have access to this automation",
       "noAccessToScript": "You don't have access to this script",
@@ -4797,6 +4824,8 @@
       "externallyModifiedTitle": "This webhook was modified by another user",
       "externallyModifiedDescription": "Saving now will overwrite their changes."
     },
+    "matchedByKeyword": "Matched by keyword: {matchKeyword}",
+    "changingMultipleToSingleRetainsFirstUser": "Changing from multiple mode to single will retain only first user in each cell!",
     "noRecordsInThisDay": "No records in this day",
     "recordCreatedFromTemplate": "Record created from template",
     "loadingPage": "Loading page<br/>{page} of {total}",

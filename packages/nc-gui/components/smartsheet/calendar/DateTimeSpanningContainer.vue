@@ -493,7 +493,7 @@ defineExpose({
       }"
       class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-nc-content-gray"
     >
-      All day
+      {{ $t('labels.allDay') }}
 
       <NcButton size="xsmall" class="mt-2" type="text" @click="isExpanded = !isExpanded">
         <GeneralIcon v-if="!isExpanded" class="w-4 h-4 text-nc-content-gray" icon="maximize" />

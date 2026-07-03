@@ -767,7 +767,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 v-if="hiddenFieldCount(record) > 0"
                 class="nc-calendar-card-more truncate leading-5 text-bodySm text-nc-content-gray-muted"
               >
-                +{{ hiddenFieldCount(record) }} more
+                {{ $t('msg.chat.showMore', { count: hiddenFieldCount(record) }) }}
               </div>
               <template #tooltip>
                 <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />

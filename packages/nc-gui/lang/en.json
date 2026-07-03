@@ -1512,7 +1512,8 @@
       "duplicateMergeValue": "Detected {count} record with merge field value \"{value}\". They will be overridden to match the first matching CSV row. | Detected {count} records with merge field value \"{value}\". They will be overridden to match the first matching CSV row.",
       "importFailedInserting": "Import failed while inserting records between {from} - {to}",
       "importFailedUpdating": "Import failed while updating records between {from} - {to}",
-      "importFailedRange": "Import failed for records between {from} - {to}"
+      "importFailedRange": "Import failed for records between {from} - {to}",
+      "selectField": "-select field-"
     },
     "onThisPage": "On this page",
     "whiteLabel": {
@@ -3067,6 +3068,9 @@
     "restricted": "Restricted",
     "grantAccessToAllBases": "Grant access to all current and future bases",
     "selectBases": "Select bases",
+    "relationSettings": "Relation Settings",
+    "junction": "Junction",
+    "child": "Child",
     "allDay": "All day",
     "selectDateFieldToAdd": "Select date field to add",
     "clearField": "Clear {field}",
@@ -3743,7 +3747,9 @@
     "suggestMore": "Suggest more",
     "reSuggest": "Re-suggest",
     "portWebhookV2ToV3": "Port this webhook from v2 to v3",
-    "formDisplayMessageTemplating": "Use column name/title for templated field instead of field label. For example: \"Hello {'{'}Title{'}'}!\""
+    "formDisplayMessageTemplating": "Use column name/title for templated field instead of field label. For example: \"Hello {'{'}Title{'}'}!\"",
+    "incompatibleWithColumn": "Incompatible with column '{title}'",
+    "crossBaseLinkCreatorAccess": "You can only link to tables in bases where you have creator access or above."
   },
   "placeholder": {
     "findBaseCollaborator": "Find a base collaborator",
@@ -3852,6 +3858,7 @@
     "enterTeamDescription": "Enter team description",
     "searchRecords": "Search records",
     "searchRecordTemplates": "Search record templates",
+    "selectBase": "Select base",
     "pasteRedirectUrlHere": "Paste redirect URL here",
     "enterPromptForFieldSuggestions": "Enter your prompt to get field suggestions..",
     "searchViews": "Search views",

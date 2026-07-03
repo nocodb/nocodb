@@ -554,8 +554,7 @@ const execBulkAction = async (path: Array<number>) => {
       >
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-          <!-- Generate All -->
-          Generate {{ selection.isSingleCell() ? 'Cell' : 'All' }}
+          {{ $t('labels.generateType', { type: selection.isSingleCell() ? $t('objects.cell') : $t('general.all') }) }}
         </div>
       </NcMenuItem>
     </NcTooltip>
@@ -570,8 +569,7 @@ const execBulkAction = async (path: Array<number>) => {
     >
       <div class="flex gap-2 items-center">
         <GeneralIcon icon="ncScript" class="h-4 w-4" />
-        <!-- Generate All -->
-        Execute {{ selection.isSingleCell() ? 'Cell' : 'All' }}
+        {{ $t('labels.executeType', { type: selection.isSingleCell() ? $t('objects.cell') : $t('general.all') }) }}
       </div>
     </NcMenuItem>
 

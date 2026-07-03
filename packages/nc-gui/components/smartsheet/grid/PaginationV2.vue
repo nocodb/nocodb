@@ -184,7 +184,7 @@ const getCountWithLabel = (defaultCount: number) => {
                   </span>
                   <NcTooltip v-if="isRlsEnabled">
                     <template #title>
-                      Row-level security is enabled. Some rows may be hidden based on your access permissions.
+                      {{ $t('tooltip.rowLevelSecurityEnabled') }}
                     </template>
                     <GeneralIcon icon="ncShield" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
                   </NcTooltip>
@@ -207,7 +207,7 @@ const getCountWithLabel = (defaultCount: number) => {
                   </span>
                   <NcTooltip v-if="isRlsEnabled">
                     <template #title>
-                      Row-level security is enabled. Some rows may be hidden based on your access permissions.
+                      {{ $t('tooltip.rowLevelSecurityEnabled') }}
                     </template>
                     <GeneralIcon icon="ncShield" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
                   </NcTooltip>
@@ -229,7 +229,7 @@ const getCountWithLabel = (defaultCount: number) => {
                 class="text-nc-content-gray-muted opacity-0 transition"
               >
                 <GeneralIcon class="text-nc-content-gray-muted" icon="arrowDown" />
-                <span class="text-[10px] font-semibold"> Summary </span>
+                <span class="text-[10px] font-semibold"> {{ $t('labels.summary') }} </span>
               </div>
               <NcTooltip
                 v-else-if="displayFieldComputed.value !== undefined"
@@ -347,7 +347,7 @@ const getCountWithLabel = (defaultCount: number) => {
               class="text-nc-content-gray-muted opacity-0 transition"
             >
               <GeneralIcon class="text-nc-content-gray-muted" icon="arrowDown" />
-              <span class="text-[10px] font-semibold"> Summary </span>
+              <span class="text-[10px] font-semibold"> {{ $t('labels.summary') }} </span>
             </div>
 
             <NcTooltip

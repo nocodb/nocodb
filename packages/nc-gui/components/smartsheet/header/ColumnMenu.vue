@@ -655,7 +655,7 @@ const onDeleteColumn = () => {
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="opacity-80" />
             <!-- Duplicate -->
-            {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+            {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
           </div>
         </NcMenuItem>
       </GeneralSourceRestrictionTooltip>
@@ -668,7 +668,7 @@ const onDeleteColumn = () => {
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="opacity-80" />
             <!-- Duplicate -->
-            {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+            {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
           </div>
         </NcMenuItem>
       </GeneralSourceRestrictionTooltip>
@@ -769,7 +769,7 @@ const onDeleteColumn = () => {
           }"
           class="opacity-80 !w-4.5 !h-4.5 !mx-0"
         />
-        {{ t('general.addLookupField') }}
+        {{ $t('general.addLookupField') }}
       </div>
     </NcMenuItem>
     <NcMenuItem
@@ -788,7 +788,7 @@ const onDeleteColumn = () => {
           }"
           class="opacity-80 !w-4.5 !h-4.5 !mx-0"
         />
-        {{ t('general.addRollupField') }}
+        {{ $t('general.addRollupField') }}
       </div>
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
@@ -914,14 +914,14 @@ const onDeleteColumn = () => {
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
             <component :is="iconMap.colInsertAfter" class="opacity-80 w-4 h-4" />
             <!-- Insert After -->
-            {{ t('general.insertAfter') }}
+            {{ $t('general.insertAfter') }}
           </div>
         </NcMenuItem>
         <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <component :is="iconMap.colInsertBefore" class="opacity-80 w-4 h-4" />
             <!-- Insert Before -->
-            {{ t('general.insertBefore') }}
+            {{ $t('general.insertBefore') }}
           </div>
         </NcMenuItem>
       </template>

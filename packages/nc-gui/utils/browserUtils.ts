@@ -102,6 +102,13 @@ export const isTiptapDropdownExistInsideEditor = () => {
 export const ncIsIframe = () => window.self !== window.top
 
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
+
+// True while an IME (Chinese/Japanese/Korean etc.) composition is active for this
+// key event. The Enter that confirms an IME candidate must NOT commit a rename.
+// isComposing covers Chromium; key==='Process' / keyCode===229 are cross-browser
+// fallbacks for the composing Enter.
+export const isComposingKeyEvent = (event: KeyboardEvent) =>
+  event.isComposing || event.key === 'Process' || (event as any).keyCode === 229
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
   const classNames = ncIsArray(className) ? className : [className]
 

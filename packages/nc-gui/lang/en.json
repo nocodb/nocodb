@@ -700,7 +700,9 @@
     "updated": "Updated",
     "stop": "Stop",
     "run": "Run",
-    "repair": "Repair"
+    "repair": "Repair",
+    "regenerating": "Re-generating",
+    "regenerate": "Re-generate"
   },
   "objects": {
     "addons": "Add-ons",
@@ -3192,7 +3194,6 @@
     "swagger": "Swagger",
     "autoSuggestActions": "Auto suggest actions",
     "addIntegration": "Add Integration",
-    "generatedFields": "Generated Field(s)",
     "manualTrigger": "Manual Trigger",
     "beforeOperation": "Before {operation}",
     "uncategorized": "Uncategorized",
@@ -3215,7 +3216,14 @@
     "prompt": "Prompt",
     "advancedLink": "Advanced Link",
     "allowAddingMultipleUsers": "Allow adding multiple users",
-    "notifyUsersWithBaseAccessWhenAdded": "Notify users with base access when they're added"
+    "notifyUsersWithBaseAccessWhenAdded": "Notify users with base access when they're added",
+    "generatedFields": "Generated Field(s)",
+    "addAiIntegration": "Add AI integration",
+    "legacy": "(Legacy)",
+    "generateTextUsingAi": "Generate text using AI",
+    "generating": "Generating",
+    "generatePreview": "Generate preview",
+    "untitledAiText": "Untitled AI Text"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -3769,7 +3777,14 @@
     "portWebhookV2ToV3": "Port this webhook from v2 to v3",
     "formDisplayMessageTemplating": "Use column name/title for templated field instead of field label. For example: \"Hello {'{'}Title{'}'}!\"",
     "incompatibleWithColumn": "Incompatible with column '{title}'",
-    "crossBaseLinkCreatorAccess": "You can only link to tables in bases where you have creator access or above."
+    "crossBaseLinkCreatorAccess": "You can only link to tables in bases where you have creator access or above.",
+    "autoSuggestFieldsFor": "Auto suggest fields for {table}",
+    "suggestMore": "Suggest more",
+    "clearAllAndResuggest": "Clear all and Re-suggest",
+    "cannotSetDefaultValueWithUnique": "Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value",
+    "useAiToGenerateContent": "Use AI to generate content based on record data.",
+    "previewGeneratedFromFirstRecord": "Preview is generated using the first record in this table",
+    "includeFieldInPromptToGenerate": "Include at least 1 field in prompt to generate"
   },
   "placeholder": {
     "findBaseCollaborator": "Find a base collaborator",
@@ -3890,7 +3905,8 @@
     "enterPromptToGenerateFormula": "Enter prompt to generate formula",
     "selectTableToLink": "select table to link",
     "select": "-select-",
-    "enterOptionName": "Enter option name..."
+    "enterOptionName": "Enter option name...",
+    "writeCustomAiPrompt": "Write custom AI Prompt instruction here"
   },
   "msg": {
     "sourceViewNotShared": "Sync is disabled on this view",
@@ -4489,7 +4505,13 @@
       "configureListViewHierarchy": "Use {setLevels} in the toolbar to configure your list view hierarchy.",
       "useRecordIdInRedirectUrl": "Use {'{'}record_id{'}'} to get ID of the newly created record.",
       "deleteStackRemovesOption": "This action will also remove the {stackToBeDeleted} option from the {groupingField} field.",
-      "recordsMovedToUncategorizedStack": "Records will be moved to Uncategorized stack."
+      "recordsMovedToUncategorizedStack": "Records will be moved to Uncategorized stack.",
+      "maxFieldSelectionAtATime": "You can only select {maxSelectionCount} fields to create at a time.",
+      "cannotEditAiGeneratedFieldType": "You cannot edit field types of AI-generated fields. Edits can be made after the field is created.",
+      "cannotGenerateInSyncedField": "You cannot generate content in a synced field",
+      "generateTextNotSupportedWithRichText": "Generate text using AI is not supported when rich text formatting is enabled",
+      "mentionFieldsUsingCurlyBraces": "Mention fields using curly braces, e.g. {fieldName}.",
+      "includeAtLeastOneFieldInPrompt": "Include at least 1 field in prompt."
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -4678,7 +4700,10 @@
       "missingDates": "Missing Dates",
       "missingDatesTooltip": "At least one date (start or end) is required for this record to be displayed in the calendar.",
       "invalidRecord": "Invalid Record",
-      "invalidRecordTooltip": "This record has errors and may not display correctly in the calendar."
+      "invalidRecordTooltip": "This record has errors and may not display correctly in the calendar.",
+      "failedToAddFields": "Failed to add fields",
+      "unableToAddFields": "NocoDB was unable to add {count} fields to the table. Please retry adding the fields.",
+      "includeSampleRecordToGenerate": "Include at least 1 sample record in table to generate"
     },
     "toast": {
       "expandedFormModeSidePanel": "Records will now open in the side panel",
@@ -4832,7 +4857,9 @@
     "autoSuggestingFieldsFor": "Auto suggesting {type} fields for {title}",
     "generateMoreFieldSuggestions": "To generate more {type} field suggestions, click the + or ⟳ icon on the right",
     "clickSuggestedFieldsToAdd": "Click on suggested fields to add",
-    "noSuggestionsRemainingPromptAgain": "No suggestions remaining. To generate more fields, prompt again..."
+    "noSuggestionsRemainingPromptAgain": "No suggestions remaining. To generate more fields, prompt again...",
+    "matchedByKeyword": "Matched by keyword: {matchKeyword}",
+    "autoSuggestingFieldsFor": "Auto suggesting fields for {table}"
   },
   "trash": {
     "title": "Deleted Records",

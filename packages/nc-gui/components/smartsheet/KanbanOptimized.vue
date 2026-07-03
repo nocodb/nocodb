@@ -1450,7 +1450,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               >
                                 <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
                                   <template #title>
-                                    {{ stack.title ?? 'Uncategorized' }}
+                                    {{ stack.title ?? $t('labels.uncategorized') }}
                                   </template>
                                   <span
                                     data-testid="nc-kanban-stack-title"
@@ -1461,7 +1461,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       display: 'inline',
                                     }"
                                   >
-                                    {{ stack.title ?? 'Uncategorized' }}
+                                    {{ stack.title ?? $t('labels.uncategorized') }}
                                   </span>
                                 </NcTooltip>
                               </span>
@@ -2015,7 +2015,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             >
                               <NcTooltip class="truncate max-w-full" placement="left" show-on-truncate-only>
                                 <template #title>
-                                  {{ stack.title ?? 'Uncategorized' }}
+                                  {{ stack.title ?? $t('labels.uncategorized') }}
                                 </template>
                                 <span
                                   data-testid="nc-kanban-stack-title"
@@ -2026,7 +2026,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     display: 'inline',
                                   }"
                                 >
-                                  {{ stack.title ?? 'Uncategorized' }}
+                                  {{ stack.title ?? $t('labels.uncategorized') }}
                                 </span>
                               </NcTooltip>
                             </span>
@@ -2221,17 +2221,21 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 
   <GeneralDeleteModal
     v-model:visible="deleteStackVModel"
-    entity-name="Stack"
+    :entity-name="$t('general.stack')"
     :show-default-delete-msg="false"
     :on-delete="handleDeleteStackConfirmClick"
   >
     <template #entity-preview>
       <div v-if="stackToBeDeleted" class="text-nc-content-gray flex flex-col gap-3">
-        <div>
-          This action will also remove the <b>"{{ stackToBeDeleted }}"</b> option from the
-          <b> "{{ groupingFieldColumn?.title ?? 'Grouping' }}"</b> field.
-        </div>
-        <div>Records will be moved to Uncategorized stack.</div>
+        <i18n-t keypath="msg.info.deleteStackRemovesOption" tag="div">
+          <template #stackToBeDeleted>
+            <b>"{{ stackToBeDeleted }}"</b>
+          </template>
+          <template #groupingField>
+            <b>"{{ groupingFieldColumn?.title ?? $t('labels.grouping') }}"</b>
+          </template>
+        </i18n-t>
+        <div>{{ $t('msg.info.recordsMovedToUncategorizedStack') }}</div>
       </div>
     </template>
   </GeneralDeleteModal>

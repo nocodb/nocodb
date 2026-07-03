@@ -137,7 +137,7 @@ const tempPageVal = ref(page.value)
         :show-size-changer="showSizeChanger"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
-        <span class="text-xs" style="white-space: nowrap"> Change page:</span>
+        <span class="text-xs" style="white-space: nowrap"> {{ $t('labels.changePage') }}</span>
         <a-input
           v-model:value="tempPageVal"
           size="small"

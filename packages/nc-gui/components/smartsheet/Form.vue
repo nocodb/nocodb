@@ -1647,7 +1647,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       <div class="flex gap-2 items-center">
                                         <component :is="iconMap.upload" class="w-4 h-4" />
                                         <span>
-                                          {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span
+                                          {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }}
+                                          {{ $t('general.logo') }}</span
                                         >
                                         <PaymentUpgradeBadge
                                           v-if="!isLocked && showEEFeatures"
@@ -2315,7 +2316,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               #footer
                             >
                               <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
-                                {{ $t('title.noFieldsFound') }} with title `{{ searchQuery }}`
+                                {{ $t('title.noFieldsFound') }} {{ $t('labels.withTitle') }} `{{ searchQuery }}`
                               </div>
                             </template>
                           </Draggable>
@@ -2559,13 +2560,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   v-model:value="formViewData.redirect_url"
                                   type="text"
                                   class="!h-8 !px-3 !py-1 !rounded-lg"
-                                  placeholder="Paste redirect URL here"
+                                  :placeholder="$t('placeholder.pasteRedirectUrlHere')"
                                   data-testid="nc-form-redirect-url-input"
                                   @input="handleUpdateRedirectUrl"
                                 ></a-input>
                               </a-form-item>
                               <div class="text-small leading-[18px] text-nc-content-gray-disabled pl-3">
-                                Use {record_id} to get ID of the newly created record.
+                                {{ $t('msg.info.useRecordIdInRedirectUrl') }}
                                 <a
                                   href="https://nocodb.com/docs/product-docs/views/view-types/form#redirect-url"
                                   target="_blank"
@@ -2650,7 +2651,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             {{ $t('msg.info.formDisplayMessage') }}
                             <NcTooltip>
                               <template #title>
-                                Use column name/title for templated field instead of field label. For example: "Hello {Title}!"
+                                {{ $t('tooltip.formDisplayMessageTemplating') }}
                               </template>
                               <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
                             </NcTooltip>

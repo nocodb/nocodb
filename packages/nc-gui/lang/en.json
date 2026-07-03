@@ -3163,7 +3163,10 @@
     "editingDashboard": "You are now editing this dashboard",
     "workflowUnpublishedChanges": "Workflow has unpublished changes",
     "editDashboard": "Edit Dashboard",
-    "theCurrentTable": "the current table"
+    "theCurrentTable": "the current table",
+    "junctionTable": "Junction Table: {title}",
+    "foreignKeyColumn": "Foreign Key Column: {title}",
+    "formulaTooltip": "Formula - {formula}"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -3700,7 +3703,14 @@
     "setupScriptSettingsToRun": "Setup script settings to run",
     "autoSuggestViewsFor": "Auto suggest views for {tableName}",
     "discardDraftChanges": "Discard draft changes and restore published version",
-    "testAllNodesBeforePublish": "Please test all nodes before publishing"
+    "testAllNodesBeforePublish": "Please test all nodes before publishing",
+    "fieldPropertiesCannotBeEdited": "Field properties cannot be edited.",
+    "fieldAssociatedWithLinkColumn": "Field is associated with a link column",
+    "fieldCannotBeUpgraded": "Field cannot be upgraded.",
+    "fieldCannotBeDuplicated": "Field cannot be duplicated.",
+    "selectNewFieldAsDisplayValue": "Select a new field as display value",
+    "addFieldDescription": "Add field description",
+    "fieldCannotBeDeleted": "Field cannot be deleted."
   },
   "placeholder": {
     "findBaseCollaborator": "Find a base collaborator",
@@ -4589,6 +4599,7 @@
       "rlsPolicyDeleteFailed": "Failed to delete record-level security policy",
       "rlsPolicyUpdateFailed": "Failed to update record-level security policy",
       "docAttachmentRefFailed": "Couldn't save the attachment reference. Please try uploading it again.",
+      "lookupColumnCreateFailed": "Failed to create lookup columns",
       "dateError": "Date Error",
       "dateOrderErrorTooltip": "Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.",
       "missingDates": "Missing Dates",

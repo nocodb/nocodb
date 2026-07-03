@@ -16,6 +16,8 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { fields } = useViewColumnsOrThrow()
 
+const { t } = useI18n()
+
 const meta = inject(MetaInj, ref())
 
 const value = useVModel(props, 'value')
@@ -49,7 +51,7 @@ const getFormatedColumn = (column: ColumnType) => ({
   ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
   ncItemTooltip:
     !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
-      ? `${columnTypeName(column)} field cannot be used as display value field`
+      ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) })
       : '',
   column,
 })

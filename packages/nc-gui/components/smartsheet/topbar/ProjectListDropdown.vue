@@ -53,7 +53,7 @@ const handleNavigateToProject = async (base: NcProject) => {
         :list="basesList"
         option-value-key="id"
         option-label-key="title"
-        search-input-placeholder="Search bases"
+        :search-input-placeholder="$t('placeholder.searchBases')"
         class="min-w-64 !w-auto"
         variant="medium"
         @change="handleNavigateToProject"

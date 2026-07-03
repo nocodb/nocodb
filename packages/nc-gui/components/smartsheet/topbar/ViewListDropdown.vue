@@ -145,7 +145,7 @@ async function onOpenModal({
         :list="views"
         option-value-key="id"
         option-label-key="title"
-        search-input-placeholder="Search views"
+        :search-input-placeholder="$t('placeholder.searchViews')"
         class="min-w-63.5 !w-auto"
         :filter-option="filterOption"
         variant="medium"
@@ -340,7 +340,10 @@ async function onOpenModal({
 
                 <template v-if="isAiFeaturesEnabled">
                   <NcDivider />
-                  <NcTooltip :title="`Auto suggest views for ${activeTable?.title || 'the current table'}`" placement="right">
+                  <NcTooltip
+                    :title="$t('tooltip.autoSuggestViewsFor', { tableName: activeTable?.title || $t('labels.theCurrentTable') })"
+                    placement="right"
+                  >
                     <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
                       <div class="nc-viewlist-submenu-popup-item">
                         <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />

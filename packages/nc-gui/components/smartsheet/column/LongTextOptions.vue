@@ -99,7 +99,7 @@ const generate = async () => {
   const pk = formattedData.value.length ? extractPkFromRow(unref(formattedData.value[0].row), meta.value?.columns || []) : ''
 
   if (!formattedData.value.length || !pk) {
-    message.error('Include at least 1 sample record in table to generate')
+    message.error(t('msg.error.includeSampleRecordToGenerate'))
     generatingPreview.value = false
 
     return
@@ -289,10 +289,10 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           <template #title>
             {{
               isSyncedField
-                ? 'You cannot generate content in a synced field'
+                ? $t('msg.info.cannotGenerateInSyncedField')
                 : isPvColumn && !isEnabledGenerateText
-                ? `${UITypesName.AIPrompt} field cannot be used as display value field`
-                : 'Generate text using AI is not supported when rich text formatting is enabled'
+                ? $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName.AIPrompt })
+                : $t('msg.info.generateTextNotSupportedWithRichText')
             }}</template
           >
 
@@ -309,12 +309,12 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                 'text-nc-content-gray': !isEnabledGenerateText,
               }"
             >
-              Generate text using AI
+              {{ $t('labels.generateTextUsingAi') }}
             </span>
           </NcSwitch>
         </NcTooltip>
         <NcTooltip class="ml-2 mr-[40px] flex cursor-pointer">
-          <template #title> Use AI to generate content based on record data. </template>
+          <template #title> {{ $t('tooltip.useAiToGenerateContent') }} </template>
           <GeneralIcon icon="info" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5" />
         </NcTooltip>
         <div class="flex-1"></div>
@@ -349,15 +349,17 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
             v-model="vModel.prompt_raw"
             :options="availableFields"
             :read-only="!aiIntegrationAvailable"
-            placeholder="Write custom AI Prompt instruction here"
+            :placeholder="$t('placeholder.writeCustomAiPrompt')"
             prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
             suggestion-icon-class-name="!text-nc-content-purple-medium"
           />
           <div class="rounded-b-lg flex items-center gap-1.5 p-1">
             <GeneralIcon icon="info" class="!text-nc-content-purple-medium w-3.5 h-3.5" />
-            <span class="text-xs text-nc-content-gray-subtle2"
-              >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
-            >
+            <i18n-t keypath="msg.info.mentionFieldsUsingCurlyBraces" tag="span" class="text-xs text-nc-content-gray-subtle2">
+              <template #fieldName>
+                <span class="text-nc-content-purple-dark">{Field name}</span>
+              </template>
+            </i18n-t>
           </div>
         </div>
       </a-form-item>
@@ -374,7 +376,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
               <div class="flex items-center gap-2">
                 <span class="text-sm font-bold text-nc-content-gray-subtle">{{ $t('labels.preview') }}</span>
                 <NcTooltip class="flex cursor-pointer">
-                  <template #title> Preview is generated using the first record in this table</template>
+                  <template #title> {{ $t('tooltip.previewGeneratedFromFirstRecord') }}</template>
                   <GeneralIcon
                     icon="info"
                     class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
@@ -382,12 +384,12 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                 </NcTooltip>
               </div>
               <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">
-                Include at least 1 field in prompt.
+                {{ $t('msg.info.includeAtLeastOneFieldInPrompt') }}
               </span>
             </div>
 
             <NcTooltip :disabled="isPreviewEnabled">
-              <template #title> Include at least 1 field in prompt to generate </template>
+              <template #title> {{ $t('tooltip.includeFieldInPromptToGenerate') }} </template>
               <NcButton
                 class="nc-aioptions-preview-generate-btn"
                 :class="{
@@ -411,11 +413,11 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                   {{
                     isAlreadyGenerated
                       ? generatingPreview
-                        ? 'Re-generating'
-                        : 'Re-generate'
+                        ? $t('general.regenerating')
+                        : $t('general.regenerate')
                       : generatingPreview
-                      ? 'Generating'
-                      : 'Generate preview'
+                      ? $t('labels.generating')
+                      : $t('labels.generatePreview')
                   }}
                 </div>
               </NcButton>
@@ -427,7 +429,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                 <LazySmartsheetCell
                   :edit-enabled="true"
                   :model-value="previewRow.row[previewFieldTitle]"
-                  :column="{ ...vModel, title: vModel.title || 'Untitled AI Text' }"
+                  :column="{ ...vModel, title: vModel.title || $t('labels.untitledAiText') }"
                   class="!border-none h-auto my-auto pl-1"
                 />
               </LazySmartsheetRow>

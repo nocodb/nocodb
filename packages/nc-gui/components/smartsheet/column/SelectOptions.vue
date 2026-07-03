@@ -622,7 +622,7 @@ defineExpose({
 
             <a-input
               v-model:value="kanbanStackOption.title"
-              placeholder="Enter option name..."
+              :placeholder="$t('placeholder.enterOptionName')"
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
               :disabled="isLoadingPredictOptions || isSyncedField"

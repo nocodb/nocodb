@@ -20,6 +20,8 @@ const {
   showUpgradeToUseAutoNumberField,
 } = useEeConfig()
 
+const { t } = useI18n()
+
 const searchQuery = ref('')
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
@@ -35,7 +37,7 @@ const filteredOptions = computed(() => {
     return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
       if (!matchKeyword) return
 
-      searchBasisInfoMap.value[c.name] = `Matched by keyword: ${matchKeyword}`
+      searchBasisInfoMap.value[c.name] = t('msg.matchedByKeyword', { matchKeyword })
     })
   })
 })
@@ -140,10 +142,10 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         <img
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
-          alt="No search results found"
+          :alt="$t('title.noSearchResultsFound')"
         />
 
-        {{ options?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
+        {{ options?.length ? $t('title.noResultsMatchedYourSearch') : $t('title.theListIsEmpty') }}
       </div>
       <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"

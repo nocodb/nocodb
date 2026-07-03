@@ -777,7 +777,7 @@ const validationErrorDisplay = computed(() => {
     <div class="flex flex-row mt-3 mb-3 justify-end pr-3">
       <a v-if="suggestionPreviewed.docsUrl" target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
         <NcButton type="text" size="small" class="!text-nc-content-gray-disabled !hover:text-nc-content-gray-subtle !text-xs"
-          >View in Docs
+          >{{ $t('labels.viewInDocs') }}
           <GeneralIcon icon="openInNew" class="ml-1" />
         </NcButton>
       </a>
@@ -810,8 +810,10 @@ const validationErrorDisplay = computed(() => {
           <GeneralLoader class="!text-nc-content-purple-medium" size="regular" />
         </template>
         <div class="flex gap-2 items-center">
-          <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">Fix Formula</span>
-          <span v-else class="text-[13px] font-semibold">Formula Helper</span>
+          <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">{{
+            $t('labels.fixFormula')
+          }}</span>
+          <span v-else class="text-[13px] font-semibold">{{ $t('labels.formulaHelper') }}</span>
         </div>
       </NcButton>
     </div>
@@ -825,7 +827,7 @@ const validationErrorDisplay = computed(() => {
           <div class="nc-triangle-bottom-bar"></div>
 
           <div class="flex items-center gap-2 pl-3 pr-1 py-1 border-b-1 border-transparent">
-            <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
+            <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">{{ $t('labels.prompt') }}</div>
             <div class="flex items-center gap-2">
               <NcButton
                 v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
@@ -845,7 +847,7 @@ const validationErrorDisplay = computed(() => {
                   <GeneralLoader class="!text-current" size="regular" />
                 </template>
                 <div class="flex items-center gap-1">
-                  <span class="text-[13px] font-semibold text-nc-purple-400">Repair</span>
+                  <span class="text-[13px] font-semibold text-nc-purple-400">{{ $t('general.repair') }}</span>
                 </div>
               </NcButton>
               <NcButton
@@ -875,7 +877,7 @@ const validationErrorDisplay = computed(() => {
           <a-textarea
             v-model:value="aiPrompt"
             class="nc-ai-formula-helper-input nc-input-shadow nc-ai-input nc-scrollbar-thin !min-h-[80px]"
-            :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
+            :placeholder="value ? $t('placeholder.enterPromptToModifyFormula') : $t('placeholder.enterPromptToGenerateFormula')"
           ></a-textarea>
         </div>
       </div>
@@ -905,7 +907,7 @@ const validationErrorDisplay = computed(() => {
         v-if="!disableSuggestionHeaders"
         class="border-b-1 bg-nc-bg-gray-extralight px-3 py-1 uppercase text-nc-content-gray-subtle2 text-xs font-semibold sticky top-0 z-10"
       >
-        Formulas
+        {{ $t('objects.formulas') }}
       </div>
 
       <a-list :data-source="suggestedFormulas" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">

@@ -325,7 +325,7 @@ const handleScrollIntoView = () => {
       >
         <a-select
           v-model:value="vModel.fk_relation_column_id"
-          placeholder="-select-"
+          :placeholder="$t('placeholder.select')"
           dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
           @change="onRelationColChange"
         >
@@ -370,7 +370,7 @@ const handleScrollIntoView = () => {
         <a-select
           v-model:value="vModel.fk_rollup_column_id"
           name="fk_rollup_column_id"
-          placeholder="-select-"
+          :placeholder="$t('placeholder.select')"
           :disabled="!vModel.fk_relation_column_id"
           show-search
           :filter-option="antSelectFilterOption"
@@ -406,7 +406,7 @@ const handleScrollIntoView = () => {
       <a-select
         v-model:value="vModel.rollup_function"
         :disabled="!vModel.fk_relation_column_id"
-        placeholder="-select-"
+        :placeholder="$t('placeholder.select')"
         dropdown-class-name="nc-dropdown-rollup-function"
         class="!mt-0.5"
         @change="onRollupFunctionChange"
@@ -509,7 +509,7 @@ const handleScrollIntoView = () => {
   <div v-else>
     <a-alert type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
-      <template #message> Alert </template>
+      <template #message> {{ $t('objects.ncMessage.warning') }} </template>
       <template #description>
         {{
           $t('msg.linkColumnClearNotSupportedYet', {

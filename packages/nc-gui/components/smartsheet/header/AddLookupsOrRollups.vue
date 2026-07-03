@@ -178,7 +178,7 @@ const createLookupsOrRollup = async () => {
     value.value = false
   } catch (e) {
     console.error(e)
-    message.error('Failed to create lookup columns')
+    message.error(t('msg.error.lookupColumnCreateFailed'))
   } finally {
     isLoading.value = false
   }

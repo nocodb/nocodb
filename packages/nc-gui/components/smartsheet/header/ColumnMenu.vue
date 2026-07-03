@@ -583,7 +583,7 @@ const onDeleteColumn = () => {
     <NcDivider />
     <GeneralSourceRestrictionTooltip
       v-if="isUIAllowed('fieldAlter') || !!fieldAlterReason"
-      message="Field properties cannot be edited."
+      :message="$t('tooltip.fieldPropertiesCannotBeEdited')"
       :enabled="!!fieldAlterReason || !isColumnEditAllowed"
       :is-sql-view="isSqlView"
     >
@@ -605,7 +605,7 @@ const onDeleteColumn = () => {
           !isColumnEditAllowed ||
           linksAssociated?.length
         "
-        :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
+        :title="linksAssociated?.length ? $t('tooltip.fieldAssociatedWithLinkColumn') : undefined"
         @click="onEditPress($event, false)"
       >
         <div class="nc-column-edit nc-header-menu-item">
@@ -624,7 +624,7 @@ const onDeleteColumn = () => {
         isUIAllowed('fieldAlter') &&
         !isSqlView
       "
-      message="Field cannot be upgraded."
+      :message="$t('tooltip.fieldCannotBeUpgraded')"
       :enabled="!!isMetaReadOnly"
       :is-sql-view="isSqlView"
     >
@@ -647,7 +647,7 @@ const onDeleteColumn = () => {
     <template v-if="!isExpandedForm">
       <GeneralSourceRestrictionTooltip
         v-if="!column?.pk"
-        message="Field cannot be duplicated."
+        :message="$t('tooltip.fieldCannotBeDuplicated')"
         :enabled="!isDuplicateAllowed && isMetaReadOnly"
         :is-sql-view="isSqlView"
       >
@@ -661,7 +661,7 @@ const onDeleteColumn = () => {
       </GeneralSourceRestrictionTooltip>
       <GeneralSourceRestrictionTooltip
         v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
-        message="Field cannot be duplicated."
+        :message="$t('tooltip.fieldCannotBeDuplicated')"
         :enabled="!isDuplicateAllowed"
       >
         <NcMenuItem :disabled="!isDuplicateAllowed || isSqlView" @click="openDuplicateDlg">
@@ -676,7 +676,7 @@ const onDeleteColumn = () => {
 
     <NcTooltip v-if="isUIAllowed('fieldAlter') && !!column?.pv" :disabled="!isSyncedTable" placement="right">
       <template #title>{{ $t('msg.info.displayValueChangeNotAvailableForSyncedTable') }}</template>
-      <NcMenuItem :disabled="isSyncedTable" title="Select a new field as display value" @click="changeTitleField">
+      <NcMenuItem :disabled="isSyncedTable" :title="$t('tooltip.selectNewFieldAsDisplayValue')" @click="changeTitleField">
         <div class="nc-column-change-display-value-field nc-header-menu-item">
           <GeneralIcon icon="star" class="opacity-80 !w-4.25 !h-4.25" />
           {{ $t('labels.changeDisplayValueField') }}
@@ -690,7 +690,7 @@ const onDeleteColumn = () => {
       :disabled="!fieldAlterReason"
     >
       <template #title>{{ fieldAlterReason ? $t(fieldAlterReason) : '' }}</template>
-      <NcMenuItem :disabled="!!fieldAlterReason" title="Add field description" @click="onEditPress($event, true)">
+      <NcMenuItem :disabled="!!fieldAlterReason" :title="$t('tooltip.addFieldDescription')" @click="onEditPress($event, true)">
         <div class="nc-column-edit-description nc-header-menu-item">
           <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
           {{ $t('labels.editFieldDescription') }}
@@ -929,7 +929,7 @@ const onDeleteColumn = () => {
     <NcDivider v-if="!column?.pv" />
     <GeneralSourceRestrictionTooltip
       v-if="!column?.pv && (isUIAllowed('fieldDelete') || !!fieldDeleteReason)"
-      message="Field cannot be deleted."
+      :message="$t('tooltip.fieldCannotBeDeleted')"
       :enabled="!!fieldDeleteReason || !isColumnUpdateAllowed"
       :is-sql-view="isSqlView"
     >
@@ -943,7 +943,7 @@ const onDeleteColumn = () => {
       </template>
       <NcMenuItem
         :disabled="!!fieldDeleteReason || !isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
-        :title="linksAssociated ? 'Field is associated with a link column' : undefined"
+        :title="linksAssociated ? $t('tooltip.fieldAssociatedWithLinkColumn') : undefined"
         danger
         @click="handleDelete"
       >

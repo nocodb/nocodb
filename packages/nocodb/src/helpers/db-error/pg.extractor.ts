@@ -308,7 +308,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           }
 
           const extractColumnNameMatch = error.message.match(
-            / column "(\w+)" does not exist/i,
+            / column "([^"]+)" does not exist/i,
           );
 
           if (extractColumnNameMatch && extractColumnNameMatch[1]) {
@@ -324,7 +324,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'The column does not exist.';
         if (error.message) {
           const extractTableNameMatch = error.message.match(
-            / column "(\w+)" does not exist/i,
+            / column "([^"]+)" does not exist/i,
           );
           if (extractTableNameMatch && extractTableNameMatch[1]) {
             message = `The column '${extractTableNameMatch[1]}' does not exist.`;

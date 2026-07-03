@@ -635,6 +635,9 @@ export async function populateRollupForLTAR({
 }
 
 export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
+  // Periods are always replaced — Knex treats '.' as a schema/table qualifier
+  // separator and produces broken SQL for any identifier containing a period.
+  name = name.replace(/\./g, '_');
   if (
     process.env.NC_DATABASE_COLUMN_NAME_SANITIZE_ENABLED === 'false' ||
     process.env.NC_SANITIZE_COLUMN_NAME === 'false'

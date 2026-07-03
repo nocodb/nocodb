@@ -865,7 +865,7 @@ export class DataImportProcessor {
       // Map source columns to dest columns + type coercion
       const dbRow: Record<string, any> = {};
       for (const [srcCol, mapping] of Object.entries(colMap)) {
-        dbRow[mapping.destCn] = coerceValue(sourceRow[srcCol], mapping);
+        dbRow[mapping.destCn.replace(/\./g, '_')] = coerceValue(sourceRow[srcCol], mapping);
       }
 
       // Extract link display values for the post-insert link phase.

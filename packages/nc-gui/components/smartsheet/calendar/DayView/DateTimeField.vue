@@ -954,7 +954,7 @@ const expandRecord = (record: Row) => {
               </NcButton>
               <template #overlay>
                 <NcMenu class="w-64">
-                  <NcMenuItem> Select date field to add </NcMenuItem>
+                  <NcMenuItem> {{ $t('labels.selectDateFieldToAdd') }} </NcMenuItem>
                   <template v-for="(range, calIndex) in calendarRange" :key="calIndex">
                     <NcMenuItem
                       v-if="!range.is_readonly"

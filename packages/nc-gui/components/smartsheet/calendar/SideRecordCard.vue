@@ -19,6 +19,8 @@ const rowColorInfo = computed(() => {
 
 const { timezoneDayjs } = useCalendarViewStoreOrThrow()
 
+const { t } = useI18n()
+
 // Extract range configuration
 const range = computed(() => props.row?.rowMeta?.range)
 const fromCol = computed(() => range.value?.fk_from_col)
@@ -72,22 +74,21 @@ const errorInfo = computed(() => {
 
   if (dateOrderError) {
     return {
-      message: 'Date Error',
-      tooltip:
-        "Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.",
+      message: t('msg.error.dateError'),
+      tooltip: t('msg.error.dateOrderErrorTooltip'),
     }
   }
 
   if (missingFromDate && missingToDate) {
     return {
-      message: 'Missing Dates',
-      tooltip: 'At least one date (start or end) is required for this record to be displayed in the calendar.',
+      message: t('msg.error.missingDates'),
+      tooltip: t('msg.error.missingDatesTooltip'),
     }
   }
 
   return {
-    message: 'Invalid Record',
-    tooltip: 'This record has errors and may not display correctly in the calendar.',
+    message: t('msg.error.invalidRecord'),
+    tooltip: t('msg.error.invalidRecordTooltip'),
   }
 })
 </script>

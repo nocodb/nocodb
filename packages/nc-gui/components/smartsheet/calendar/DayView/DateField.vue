@@ -262,7 +262,7 @@ const newRecord = () => {
     @drop="dropEvent"
     @dblclick="newRecord"
   >
-    No records in this day
+    {{ $t('msg.noRecordsInThisDay') }}
   </div>
 </template>
 

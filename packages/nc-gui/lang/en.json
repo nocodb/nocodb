@@ -3066,6 +3066,8 @@
     "restricted": "Restricted",
     "grantAccessToAllBases": "Grant access to all current and future bases",
     "selectBases": "Select bases",
+    "allDay": "All day",
+    "selectDateFieldToAdd": "Select date field to add",
     "clearField": "Clear {field}",
     "sandboxDiff": {
       "gridViewSettings": "Grid view settings",
@@ -4586,7 +4588,13 @@
       "rlsPolicyCreateFailed": "Failed to create record-level security policy",
       "rlsPolicyDeleteFailed": "Failed to delete record-level security policy",
       "rlsPolicyUpdateFailed": "Failed to update record-level security policy",
-      "docAttachmentRefFailed": "Couldn't save the attachment reference. Please try uploading it again."
+      "docAttachmentRefFailed": "Couldn't save the attachment reference. Please try uploading it again.",
+      "dateError": "Date Error",
+      "dateOrderErrorTooltip": "Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.",
+      "missingDates": "Missing Dates",
+      "missingDatesTooltip": "At least one date (start or end) is required for this record to be displayed in the calendar.",
+      "invalidRecord": "Invalid Record",
+      "invalidRecordTooltip": "This record has errors and may not display correctly in the calendar."
     },
     "toast": {
       "expandedFormModeSidePanel": "Records will now open in the side panel",
@@ -4731,7 +4739,8 @@
       "externallyDeletedDescription": "You can no longer save changes here. Close this dialog to dismiss.",
       "externallyModifiedTitle": "This webhook was modified by another user",
       "externallyModifiedDescription": "Saving now will overwrite their changes."
-    }
+    },
+    "noRecordsInThisDay": "No records in this day"
   },
   "trash": {
     "title": "Deleted Records",

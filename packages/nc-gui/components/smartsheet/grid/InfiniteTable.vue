@@ -3197,7 +3197,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 })
               "
             >
-              {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
+              {{ isWsOwner ? $t('general.upgrade') : $t('general.requestUpgrade') }}
             </NcButton>
           </div>
         </div>

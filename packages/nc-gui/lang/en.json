@@ -3779,7 +3779,6 @@
     "incompatibleWithColumn": "Incompatible with column '{title}'",
     "crossBaseLinkCreatorAccess": "You can only link to tables in bases where you have creator access or above.",
     "autoSuggestFieldsFor": "Auto suggest fields for {table}",
-    "suggestMore": "Suggest more",
     "clearAllAndResuggest": "Clear all and Re-suggest",
     "cannotSetDefaultValueWithUnique": "Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value",
     "useAiToGenerateContent": "Use AI to generate content based on record data.",
@@ -4858,7 +4857,6 @@
     "generateMoreFieldSuggestions": "To generate more {type} field suggestions, click the + or ⟳ icon on the right",
     "clickSuggestedFieldsToAdd": "Click on suggested fields to add",
     "noSuggestionsRemainingPromptAgain": "No suggestions remaining. To generate more fields, prompt again...",
-    "matchedByKeyword": "Matched by keyword: {matchKeyword}",
     "autoSuggestingFieldsForTable": "Auto suggesting fields for {table}"
   },
   "trash": {

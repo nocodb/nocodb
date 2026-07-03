@@ -4859,7 +4859,7 @@
     "clickSuggestedFieldsToAdd": "Click on suggested fields to add",
     "noSuggestionsRemainingPromptAgain": "No suggestions remaining. To generate more fields, prompt again...",
     "matchedByKeyword": "Matched by keyword: {matchKeyword}",
-    "autoSuggestingFieldsFor": "Auto suggesting fields for {table}"
+    "autoSuggestingFieldsForTable": "Auto suggesting fields for {table}"
   },
   "trash": {
     "title": "Deleted Records",

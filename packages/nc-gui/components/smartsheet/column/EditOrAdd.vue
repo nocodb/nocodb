@@ -942,7 +942,7 @@ const unique = computed({
                       <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
                       <!-- Todo: add table name  -->
-                      <div class="nc-animate-dots">{{ $t('msg.autoSuggestingFieldsFor', { table: meta?.title }) }}</div>
+                      <div class="nc-animate-dots">{{ $t('msg.autoSuggestingFieldsForTable', { table: meta?.title }) }}</div>
                     </div>
                   </div>
                   <div v-else-if="aiAutoSuggestModeStep === 'pick'" class="flex gap-3 items-start">

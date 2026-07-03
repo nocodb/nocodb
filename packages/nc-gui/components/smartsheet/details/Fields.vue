@@ -783,13 +783,13 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
 
       if (column.type === ButtonActionsType.Ai) {
         column.theme = column.theme || 'text'
-        column.label = column.label || 'Generate data'
+        column.label = column.label || t('labels.multiField.generateDataButtonLabel')
         column.color = column.color || 'purple'
         column.icon = column.icon || 'ncAutoAwesome'
         column.output_column_ids = column?.output_column_ids || ''
       } else {
         column.theme = column.theme || 'solid'
-        column.label = column.label || 'Button'
+        column.label = column.label || t('datatype.Button')
         column.color = column.color || 'brand'
         column.fk_webhook_id = column?.fk_webhook_id || ''
       }
@@ -1757,7 +1757,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           @click="toggleAiMode('button')"
                         >
                           <component :is="getUIDTIcon(UITypes.Button)" class="flex-none w-3.5 h-3.5" />
-                          Auto suggest actions
+                          {{ $t('labels.autoSuggestActions') }}
                         </NcMenuItem>
                       </NcMenu>
                     </template>
@@ -1838,7 +1838,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         <template #icon>
                           <GeneralIcon icon="plus" class="h-4 w-4" />
                         </template>
-                        Add Integration
+                        {{ $t('labels.addIntegration') }}
                       </NcButton>
                     </div>
                     <div v-else-if="aiError" class="w-full flex items-center gap-3">
@@ -1861,7 +1861,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                         <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
                         <div class="nc-animate-dots">
-                          Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields for {{ meta?.title }}
+                          {{
+                            $t('msg.autoSuggestingFieldsFor', {
+                              type: isFormulaPredictionMode ? 'formula' : '',
+                              title: meta?.title,
+                            })
+                          }}
                         </div>
                       </div>
                     </div>
@@ -1874,7 +1879,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                               <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
                                 <template #title>
                                   <div class="w-[150px]">
-                                    You can only select {{ maxSelectionCount }} fields to create at a time.
+                                    {{ $t('msg.warning.maxAiFieldSelection', { maxSelectionCount }) }}
                                   </div>
                                 </template>
 
@@ -1906,8 +1911,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                             </template>
                           </template>
                           <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
-                            To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + or ⟳
-                            icon on the right
+                            {{ $t('msg.generateMoreFieldSuggestions', { type: isFormulaPredictionMode ? 'formula' : '' }) }}
                           </div>
                           <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                         </div>
@@ -1918,7 +1922,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                                 ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
                                 : activeTabPredictHistory.length < 10
                             "
-                            title="Suggest more"
+                            :title="$t('tooltip.suggestMore')"
                             placement="top"
                           >
                             <NcButton
@@ -1936,7 +1940,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                               </template>
                             </NcButton>
                           </NcTooltip>
-                          <NcTooltip title="Re-suggest" placement="top">
+                          <NcTooltip :title="$t('tooltip.reSuggest')" placement="top">
                             <NcButton
                               size="xs"
                               class="!px-1"
@@ -1967,7 +1971,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                             <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted w-3.5 h-3.5" />
                           </template>
                           <template #title>
-                            <span class="truncate"> Click on suggested fields to add </span>
+                            <span class="truncate"> {{ $t('msg.clickSuggestedFieldsToAdd') }} </span>
                           </template>
                         </GeneralLockedViewFooter>
                       </div>
@@ -1985,7 +1989,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         <template #icon>
                           <GeneralIcon icon="plus" class="h-4 w-4" />
                         </template>
-                        Add Integration
+                        {{ $t('labels.addIntegration') }}
                       </NcButton>
                     </div>
                     <template v-else>
@@ -1994,7 +1998,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           ref="aiPromptInputRef"
                           v-model:value="prompt"
                           :disabled="loading"
-                          placeholder="Enter your prompt to get field suggestions.."
+                          :placeholder="$t('placeholder.enterPromptForFieldSuggestions')"
                           class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                           @keydown.enter.stop
                         >
@@ -2040,14 +2044,14 @@ onBeforeRouteUpdate((_to, from, next) => {
                       </div>
 
                       <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                        <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Field(s)</div>
+                        <div class="text-nc-content-purple-dark font-semibold text-xs">{{ $t('labels.generatedFields') }}</div>
                         <div class="flex gap-2 flex-wrap">
                           <template v-if="activeTabNonSelectedFields.length">
                             <template v-for="f of activeTabNonSelectedFields" :key="f.title">
                               <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
                                 <template #title>
                                   <div class="w-[150px]">
-                                    You can only select {{ maxSelectionCount }} fields to create at a time.
+                                    {{ $t('msg.warning.maxAiFieldSelection', { maxSelectionCount }) }}
                                   </div>
                                 </template>
 
@@ -2079,7 +2083,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                             </template>
                           </template>
                           <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
-                            No suggestions remaining. To generate more fields, prompt again...
+                            {{ $t('msg.noSuggestionsRemainingPromptAgain') }}
                           </div>
                           <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                         </div>

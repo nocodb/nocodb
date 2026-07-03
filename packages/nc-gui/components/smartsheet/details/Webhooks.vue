@@ -311,11 +311,11 @@ const getHookTypeText = (hook: HookType) => {
 
   const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text
 
-  if (result && result.includes('Manual Trigger')) {
-    return 'Manual Trigger'
+  if (result && result.includes(t('labels.manualTrigger'))) {
+    return t('labels.manualTrigger')
   }
 
-  return result?.join(' ') || `Before ${hook.operation}`
+  return result?.join(' ') || t('labels.beforeOperation', { operation: hook.operation })
 }
 </script>
 
@@ -442,7 +442,7 @@ const getHookTypeText = (hook: HookType) => {
                 <NcTooltip v-if="hook.version === 'v2'" class="-mr-2 flex">
                   <GeneralIcon icon="ncAlertTriangle" class="flex-none text-nc-content-orange-dark" />
 
-                  <template #title> Port this webhook from v2 to v3 </template>
+                  <template #title> {{ $t('tooltip.portWebhookV2ToV3') }} </template>
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">

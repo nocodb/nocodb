@@ -43,12 +43,16 @@ const {
   fetchActiveDates, // Function to fetch Active Dates
   showSideMenu, // Boolean Ref to show Side Menu
   recordHeightMode, // 'compact' (default) | 'expanded'
+  isDayAnchoredMode, // '3day' or custom + day-unit → WeekView with N day columns
+  isMultiWeekRange, // 2week / 6week / custom + week-unit → MonthView with N week rows
 } = useCalendarViewStoreOrThrow()
 
 // In Expanded mode the week/multi-week and month grids grow beyond the viewport to show
 // every record, so the calendar body becomes the vertical scroll container.
 const isHeightExpanded = computed(
-  () => recordHeightMode.value === 'expanded' && ['week', '3day', '2week', 'month', '6week'].includes(activeCalendarView.value),
+  () =>
+    recordHeightMode.value === 'expanded' &&
+    ['week', '3day', '2week', 'month', '6week', 'custom'].includes(activeCalendarView.value),
 )
 
 // On a phone the multi-column modes squeeze day-columns to ~50px and event text becomes
@@ -206,19 +210,19 @@ watch(
             <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
             <template v-if="!isCalendarDataLoading">
               <LazySmartsheetCalendarMonthView
-                v-if="activeCalendarView === 'month' || activeCalendarView === '2week' || activeCalendarView === '6week'"
+                v-if="activeCalendarView === 'month' || isMultiWeekRange"
                 @expand-record="expandRecord"
                 @new-record="newRecord"
               />
 
               <LazySmartsheetCalendarWeekViewDateField
-                v-else-if="(activeCalendarView === 'week' || activeCalendarView === '3day') && calDataType === UITypes.Date"
+                v-else-if="(activeCalendarView === 'week' || isDayAnchoredMode) && calDataType === UITypes.Date"
                 @expand-record="expandRecord"
                 @new-record="newRecord"
               />
               <LazySmartsheetCalendarWeekViewDateTimeField
                 v-else-if="
-                  (activeCalendarView === 'week' || activeCalendarView === '3day') &&
+                  (activeCalendarView === 'week' || isDayAnchoredMode) &&
                   [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
                 "
                 @expand-record="expandRecord"

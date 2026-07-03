@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 
-const { activeCalendarView, calDataType, recordHeightMode, viewMetaProperties } = useCalendarViewStoreOrThrow()
+const { activeCalendarView, calDataType, recordHeightMode, viewMetaProperties, isDayAnchoredMode, isMultiWeekRange } =
+  useCalendarViewStoreOrThrow()
 
 const { updateViewMeta } = useViewsStore()
 
@@ -23,17 +24,19 @@ const open = ref(false)
 
 type RecordHeightMode = 'compact' | 'expanded'
 
-// Month / multi-week grids (month, 2week, 6week) always render record cards
-// (MonthView) regardless of the start field type, so height always applies there.
+// Month / multi-week grids (month, 2week, 6week, custom + week-unit) always render record
+// cards (MonthView) regardless of the start field type, so height always applies there.
 const monthGridModes = ['2week', 'month', '6week']
 
-// week / 3day render record cards (DateField) only for a Date start field. With a
-// DateTime field they render the hour time-grid (DateTimeField), which sizes events
-// by duration and ignores the height option — so hide the control there.
+// week / 3day / custom + day-unit render record cards (DateField) only for a Date start
+// field. With a DateTime field they render the hour time-grid (DateTimeField), which sizes
+// events by duration and ignores the height option — so hide the control there.
 const supportsHeightOptions = computed(() => {
-  if (monthGridModes.includes(activeCalendarView.value)) return true
+  if (activeCalendarView.value === 'month' || monthGridModes.includes(activeCalendarView.value) || isMultiWeekRange.value) {
+    return true
+  }
 
-  if (activeCalendarView.value === 'week' || activeCalendarView.value === '3day') {
+  if (activeCalendarView.value === 'week' || isDayAnchoredMode.value) {
     return calDataType.value === UITypes.Date
   }
 

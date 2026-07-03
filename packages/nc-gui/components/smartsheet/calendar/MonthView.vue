@@ -567,10 +567,18 @@ const weekRowTops = computed(() => {
   return tops
 })
 
-// Grid container style. Compact keeps the original viewport-fit height. Expanded sets
-// explicit per-week row tracks (variable heights) and grows the grid to their sum.
+// Grid container style. Compact keeps the original viewport-fit height and splits it into
+// N equal week rows (driven by the week count, so any custom-week count 1–6 gets uniform
+// fixed rows — not just the enumerated 2/5/6 of month/2week/6week, which left 1/3/4-week
+// custom grids with content-sized rows that reflow on hover). Expanded sets explicit
+// per-week row tracks (variable heights) and grows the grid to their sum.
 const gridContainerStyle = computed(() => {
-  if (!isExpanded.value) return { height: 'calc(100% - 1.59rem)' }
+  if (!isExpanded.value) {
+    return {
+      height: 'calc(100% - 1.59rem)',
+      gridTemplateRows: `repeat(${calendarData.value?.weeks.length || 1}, minmax(0, 1fr))`,
+    }
+  }
   return {
     minHeight: 'calc(100% - 1.59rem)',
     gridTemplateRows: perWeekHeights.value.map((h) => `${h}px`).join(' '),
@@ -991,18 +999,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
         {{ day }}
       </div>
     </div>
-    <div
-      ref="calendarGridContainer"
-      :class="{
-        'grid-rows-2': !isExpanded && calendarData.weeks.length === 2,
-        'grid-rows-5': !isExpanded && calendarData.weeks.length === 5,
-        'grid-rows-6': !isExpanded && calendarData.weeks.length === 6,
-        'grid-rows-7': !isExpanded && calendarData.weeks.length === 7,
-      }"
-      class="grid"
-      :style="gridContainerStyle"
-      @drop="dropEvent"
-    >
+    <div ref="calendarGridContainer" class="grid" :style="gridContainerStyle" @drop="dropEvent">
       <div
         v-for="week in calendarData.weeks"
         :key="week.weekIndex"

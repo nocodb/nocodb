@@ -42,14 +42,18 @@ const {
   updateFormat,
   timezone,
   timezoneDayjs,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
+  weeksInRange,
+  isMultiWeekRange,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
-// 3-day mode anchors on a single day; the picker selects the first visible day
-// and the window spans that day + 2. Mirrors the calendar toolbar header so the
-// side-panel selector navigates the same canonical cursors.
-const threeDayDate = computed<dayjs.Dayjs>({
+// Day-anchored modes ('3day', custom + day-unit) anchor on a single day; the picker
+// selects the first visible day and the window spans that day + (N-1). Mirrors the
+// calendar toolbar header so the side-panel selector navigates the same canonical cursors.
+const dayAnchoredDate = computed<dayjs.Dayjs>({
   get: () => timezoneDayjs.timezonize(selectedDateRange.value.start),
   set: (date: dayjs.Dayjs) => {
     const start = date.startOf('day')
@@ -57,7 +61,7 @@ const threeDayDate = computed<dayjs.Dayjs>({
     if (pageDate.value.month() !== start.month()) pageDate.value = start
     selectedDateRange.value = {
       start,
-      end: start.add(2, 'day').endOf('day'),
+      end: start.add(dayAnchoredSpan.value - 1, 'day').endOf('day'),
     }
   },
 })
@@ -128,6 +132,7 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === '3day' ||
           sideBarFilterOption.value === '2week' ||
           sideBarFilterOption.value === '6week' ||
+          sideBarFilterOption.value === 'custom' ||
           sideBarFilterOption.value === 'day'
         ) {
           let fromDate: dayjs.Dayjs | null = null
@@ -141,6 +146,21 @@ const renderData = computed<Array<Row>>(() => {
             case '3day':
               fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
               toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
+              break
+            case 'custom':
+              if (isDayAnchoredMode.value) {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+                toDate = timezoneDayjs
+                  .dayjsTz(selectedDateRange.value.start)
+                  .add(dayAnchoredSpan.value - 1, 'day')
+                  .endOf('day')
+              } else {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+                toDate = fromDate
+                  .clone()
+                  .add(weeksInRange.value * 7 - 1, 'day')
+                  .endOf('day')
+              }
               break
             case 'year':
               fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
@@ -203,6 +223,7 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === '3day' ||
           sideBarFilterOption.value === '2week' ||
           sideBarFilterOption.value === '6week' ||
+          sideBarFilterOption.value === 'custom' ||
           sideBarFilterOption.value === 'month' ||
           sideBarFilterOption.value === 'year'
         ) {
@@ -213,6 +234,21 @@ const renderData = computed<Array<Row>>(() => {
             case '3day':
               fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
               toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(2, 'day').endOf('day')
+              break
+            case 'custom':
+              if (isDayAnchoredMode.value) {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+                toDate = timezoneDayjs
+                  .dayjsTz(selectedDateRange.value.start)
+                  .add(dayAnchoredSpan.value - 1, 'day')
+                  .endOf('day')
+              } else {
+                fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+                toDate = fromDate
+                  .clone()
+                  .add(weeksInRange.value * 7 - 1, 'day')
+                  .endOf('day')
+              }
               break
             case 'week':
             case '2week':
@@ -311,6 +347,19 @@ const options = computed(() => {
         { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
         { label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' },
       ]
+    case 'custom' as const: {
+      const customOptions = [
+        { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
+        { label: t('labels.calendarFilter.inSelectedRange'), value: 'custom' },
+        { label: t('labels.calendarFilter.inSelectedDate'), value: 'selectedDate' },
+      ]
+      // Day-anchored DateTime windows expose the hour filter, mirroring 3-day/week.
+      if (isDayAnchoredMode.value && calDataType.value !== UITypes.Date) {
+        customOptions.push({ label: t('labels.calendarFilter.inSelectedHours'), value: 'selectedHours' })
+      }
+      customOptions.push({ label: t('labels.calendarFilter.withoutDates'), value: 'withoutDates' })
+      return customOptions
+    }
     case 'month' as const:
       return [
         { label: t('labels.calendarFilter.allRecords'), value: 'allRecords' },
@@ -352,10 +401,12 @@ const newRecord = () => {
     activeCalendarView.value === 'week' ||
     activeCalendarView.value === '3day' ||
     activeCalendarView.value === '2week' ||
-    activeCalendarView.value === '6week'
+    activeCalendarView.value === '6week' ||
+    activeCalendarView.value === 'custom'
   ) {
-    // 3-day is day-anchored, so selectedDateRange.start is its first visible day
-    // (same source the header/today/store use) — week-family modes use it too.
+    // 3-day / custom are day-anchored or week-aligned, so selectedDateRange.start is
+    // their first visible day (same source the header/today/store use) — week-family
+    // modes use it too.
     fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
     fromDate = selectedDate.value ?? selectedMonth.value
@@ -452,21 +503,17 @@ const selectOption = (option) => {
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
-        v-else-if="activeCalendarView === ('3day' as const)"
+        v-else-if="isDayAnchoredMode"
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
-        v-model:selected-date="threeDayDate"
+        v-model:selected-date="dayAnchoredDate"
         :timezone="timezone"
         size="medium"
         header="v2"
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
-        v-else-if="
-          activeCalendarView === ('week' as const) ||
-          activeCalendarView === ('2week' as const) ||
-          activeCalendarView === ('6week' as const)
-        "
+        v-else-if="activeCalendarView === ('week' as const) || isMultiWeekRange"
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"

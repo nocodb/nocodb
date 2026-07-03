@@ -46,11 +46,14 @@ const isRowInCurrentDateRange = (
     id: string
     is_readonly: boolean
   }>,
-  activeCalendarView: 'month' | 'year' | 'day' | '3day' | 'week' | '2week' | '6week',
+  activeCalendarView: 'month' | 'year' | 'day' | '3day' | 'week' | '2week' | '6week' | 'custom',
   selectedDate: dayjs.Dayjs,
   selectedDateRange: { start: dayjs.Dayjs; end: dayjs.Dayjs },
   selectedMonth: dayjs.Dayjs,
   timezoneDayjs: { timezonize: (date: any) => dayjs.Dayjs },
+  // Window descriptor for the custom timescale: day-anchored (N day columns from the
+  // range start) vs week-aligned, and the total day-span of the window.
+  customConfig?: { isDayAnchored: boolean; spanDays: number },
 ): boolean => {
   if (!calendarRange?.length) return false
 
@@ -95,6 +98,20 @@ const isRowInCurrentDateRange = (
           .endOf('day')
         break
       }
+      case 'custom': {
+        const spanDays = customConfig?.spanDays ?? 1
+        if (customConfig?.isDayAnchored) {
+          viewStartDate = selectedDateRange.start.startOf('day')
+          viewEndDate = selectedDateRange.start.add(spanDays - 1, 'day').endOf('day')
+        } else {
+          viewStartDate = selectedDateRange.start.startOf('week')
+          viewEndDate = viewStartDate
+            .clone()
+            .add(spanDays - 1, 'day')
+            .endOf('day')
+        }
+        break
+      }
       case 'month': {
         const startOfMonth = timezoneDayjs.timezonize(selectedMonth.startOf('month'))
         viewStartDate = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
@@ -135,6 +152,8 @@ const isRowMatchingSidebarFilter = (
     timezonize: (date: any) => dayjs.Dayjs
     dayjsTz: () => dayjs.Dayjs
   },
+  // Window descriptor for the custom timescale (see isRowInCurrentDateRange).
+  customConfig?: { isDayAnchored: boolean; spanDays: number },
 ): boolean => {
   if (!calendarRange?.length) return false
 
@@ -192,6 +211,16 @@ const isRowMatchingSidebarFilter = (
       const end = start
         .clone()
         .add(weeks * 7 - 1, 'day')
+        .endOf('day')
+      return isRowInDateRange(rowData, start, end, calendarRange, timezoneDayjs)
+    }
+
+    case 'custom': {
+      const spanDays = customConfig?.spanDays ?? 1
+      const start = customConfig?.isDayAnchored ? selectedDateRange.start.startOf('day') : selectedDateRange.start.startOf('week')
+      const end = start
+        .clone()
+        .add(spanDays - 1, 'day')
         .endOf('day')
       return isRowInDateRange(rowData, start, end, calendarRange, timezoneDayjs)
     }

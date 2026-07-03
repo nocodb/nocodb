@@ -45,13 +45,20 @@ const {
   activeCalendarView,
   updateFormat,
   timezoneDayjs,
+  isDayAnchoredMode,
+  dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
   if (activeCalendarView.value === 'week') return viewMetaProperties.value?.hide_weekend ? 5 : 7
-  if (activeCalendarView.value === '3day') return 3
+  // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns.
+  if (isDayAnchoredMode.value) return dayAnchoredSpan.value
   return 1
 })
+
+// True only when weekends are actually hidden (week mode + hide_weekend); a day-anchored
+// 5-day custom window also yields maxVisibleDays === 5 but is NOT weekend-hidden.
+const isWeekendHidden = computed(() => !isDayAnchoredMode.value && maxVisibleDays.value === 5)
 
 // This function is used to find the first suitable row for a record
 // It takes the recordsInDay object, the start day index and the span of the record in days
@@ -92,10 +99,9 @@ const isInRange = (date: dayjs.Dayjs) => {
   if (activeCalendarView.value === 'day') {
     return date.isSame(selectedDate.value, 'day')
   } else {
-    const rangeEndDate =
-      maxVisibleDays.value === 5
-        ? timezoneDayjs.dayjsTz(selectedDateRange.value.end).subtract(2, 'day')
-        : timezoneDayjs.dayjsTz(selectedDateRange.value.end)
+    const rangeEndDate = isWeekendHidden.value
+      ? timezoneDayjs.dayjsTz(selectedDateRange.value.end).subtract(2, 'day')
+      : timezoneDayjs.dayjsTz(selectedDateRange.value.end)
 
     return (
       date &&

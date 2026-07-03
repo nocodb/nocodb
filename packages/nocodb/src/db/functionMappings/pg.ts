@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
-import { FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
 import commonFns, {
   extractDatetimeFormat,
@@ -12,7 +12,7 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
 import { NcError } from '~/helpers/ncError';
-import { buildPgDatetimeFormat } from '~/helpers/convertDayjsFormat';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const getArraySourceAttachmentUnnested = async (
   argument: any,
@@ -243,7 +243,10 @@ const pg = {
     const dateExpr = (await fn(pt?.arguments[0])).builder;
     return {
       builder: knex.raw(
-        `${buildPgDatetimeFormat(`${dateExpr}`, format)}::text`,
+        `${getDatetimeFormatHandler(ClientType.PG).build(
+          `${dateExpr}`,
+          format,
+        )}::text`,
       ),
     };
   },

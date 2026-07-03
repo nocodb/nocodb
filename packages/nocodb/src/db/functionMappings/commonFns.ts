@@ -3,7 +3,7 @@ import type { Knex } from 'knex';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
-import { DEFAULT_DATETIME_FORMAT } from '~/helpers/convertDayjsFormat';
+import { DEFAULT_DATETIME_FORMAT } from '~/db/datetime-format';
 
 // Reads the (optional) format argument of DATETIME_FORMAT. The format must be a
 // constant string literal so it can be translated to a SQL pattern at build

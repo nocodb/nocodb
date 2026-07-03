@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { JSEPNode } from 'nocodb-sdk';
+import { ClientType, JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
   extractDatetimeFormat,
@@ -8,7 +8,7 @@ import commonFns, {
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
-import { buildMysqlDatetimeFormat } from '~/helpers/convertDayjsFormat';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const mysql2 = {
   ...commonFns,
@@ -128,7 +128,9 @@ const mysql2 = {
     const format = extractDatetimeFormat(pt);
     const dateExpr = (await fn(pt?.arguments[0])).builder;
     return {
-      builder: knex.raw(buildMysqlDatetimeFormat(`${dateExpr}`, format)),
+      builder: knex.raw(
+        getDatetimeFormatHandler(ClientType.MYSQL).build(`${dateExpr}`, format),
+      ),
     };
   },
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {

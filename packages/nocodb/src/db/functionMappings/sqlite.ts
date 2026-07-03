@@ -1,5 +1,10 @@
 import dayjs from 'dayjs';
-import { convertToTargetFormat, getDateFormat, JSEPNode } from 'nocodb-sdk';
+import {
+  ClientType,
+  convertToTargetFormat,
+  getDateFormat,
+  JSEPNode,
+} from 'nocodb-sdk';
 import commonFns, {
   extractDatetimeFormat,
   safeDateAddUnitSQL,
@@ -8,7 +13,7 @@ import commonFns, {
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
-import { buildSqliteDatetimeFormat } from '~/helpers/convertDayjsFormat';
+import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const sqlite3 = {
   ...commonFns,
@@ -207,7 +212,12 @@ const sqlite3 = {
     const format = extractDatetimeFormat(pt);
     const dateExpr = (await fn(pt?.arguments[0])).builder;
     return {
-      builder: knex.raw(buildSqliteDatetimeFormat(`(${dateExpr})`, format)),
+      builder: knex.raw(
+        getDatetimeFormatHandler(ClientType.SQLITE).build(
+          `(${dateExpr})`,
+          format,
+        ),
+      ),
     };
   },
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {

@@ -66,7 +66,7 @@ function openTableCreateDialog() {
         :list="filteredTableList"
         option-value-key="id"
         option-label-key="title"
-        search-input-placeholder="Search tables"
+        :search-input-placeholder="$t('placeholder.searchProjectTree')"
         class="min-w-64 !w-auto"
         variant="medium"
         @change="handleNavigateToTable"

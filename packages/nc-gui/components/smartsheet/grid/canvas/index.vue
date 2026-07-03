@@ -974,7 +974,7 @@ async function onSelectedTemplateClick() {
       getMeta,
     })
 
-    message.toast('Record created from template')
+    message.toast(t('msg.recordCreatedFromTemplate'))
     reloadViewDataHook?.trigger()
   } catch (e: any) {
     console.error(e)
@@ -2138,7 +2138,7 @@ const getHeaderTooltipRegions = (
         x: rightOffset - scrollLeftValue,
         width: 14,
         type: 'error',
-        text: column.isInvalidColumn.tooltip || 'Invalid Column',
+        text: column.isInvalidColumn.tooltip || t('labels.invalidColumn'),
       })
     }
 

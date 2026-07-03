@@ -92,7 +92,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
             }"
           >
             <GeneralIcon class="text-nc-content-gray-muted" icon="arrowDown" />
-            <span class="text-[10px] font-semibold"> Summary </span>
+            <span class="text-[10px] font-semibold"> {{ $t('labels.summary') }} </span>
           </div>
 
           <NcTooltip

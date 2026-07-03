@@ -3166,7 +3166,17 @@
     "theCurrentTable": "the current table",
     "junctionTable": "Junction Table: {title}",
     "foreignKeyColumn": "Foreign Key Column: {title}",
-    "formulaTooltip": "Formula - {formula}"
+    "formulaTooltip": "Formula - {formula}",
+    "summary": "Summary",
+    "collapseGroup": "Collapse group",
+    "expandGroup": "Expand group",
+    "rowFiltered": "Row filtered",
+    "rowMoved": "Row moved",
+    "rowHidden": "Row hidden",
+    "generateType": "Generate {type}",
+    "executeType": "Execute {type}",
+    "generateAgain": "Generate Again",
+    "invalidColumn": "Invalid Column"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -3710,7 +3720,11 @@
     "fieldCannotBeDuplicated": "Field cannot be duplicated.",
     "selectNewFieldAsDisplayValue": "Select a new field as display value",
     "addFieldDescription": "Add field description",
-    "fieldCannotBeDeleted": "Field cannot be deleted."
+    "fieldCannotBeDeleted": "Field cannot be deleted.",
+    "recordHiddenByFilter": "This record will be hidden as it does not match the filters applied to this view.",
+    "recordWillMove": "This record will move to a new position when you click outside of it.",
+    "recordHiddenByPermission": "This record will be hidden as it does not match your access permissions.",
+    "rowLevelSecurityEnabled": "Row-level security is enabled. Some rows may be hidden based on your access permissions."
   },
   "placeholder": {
     "findBaseCollaborator": "Find a base collaborator",
@@ -4751,7 +4765,9 @@
       "externallyModifiedTitle": "This webhook was modified by another user",
       "externallyModifiedDescription": "Saving now will overwrite their changes."
     },
-    "noRecordsInThisDay": "No records in this day"
+    "noRecordsInThisDay": "No records in this day",
+    "recordCreatedFromTemplate": "Record created from template",
+    "loadingPage": "Loading page<br/>{page} of {total}"
   },
   "trash": {
     "title": "Deleted Records",

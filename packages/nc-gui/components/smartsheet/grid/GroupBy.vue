@@ -500,11 +500,11 @@ async function openNewRecordHandler() {
                         <NcMenu variant="small">
                           <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
-                            Collapse group
+                            {{ $t('labels.collapseGroup') }}
                           </NcMenuItem>
                           <NcMenuItem v-else @click="expandGroup(grp.key)">
                             <GeneralIcon icon="maximize" />
-                            Expand group
+                            {{ $t('labels.expandGroup') }}
                           </NcMenuItem>
                           <!--
                           <NcMenuItem @click="expandAllGroup">

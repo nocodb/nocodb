@@ -2483,11 +2483,11 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       <div
                         class="sticky left-0 flex items-center gap-2 transform bg-nc-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-nc-content-gray"
                       >
-                        Row filtered
+                        {{ $t('labels.rowFiltered') }}
 
                         <NcTooltip>
                           <template #title>
-                            This record will be hidden as it does not match the filters applied to this view.
+                            {{ $t('tooltip.recordHiddenByFilter') }}
                           </template>
 
                           <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
@@ -2505,10 +2505,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       <div
                         class="sticky left-0 flex items-center gap-2 transform bg-nc-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-nc-content-gray"
                       >
-                        Row moved
+                        {{ $t('labels.rowMoved') }}
 
                         <NcTooltip>
-                          <template #title> This record will move to a new position when you click outside of it. </template>
+                          <template #title> {{ $t('tooltip.recordWillMove') }} </template>
 
                           <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
@@ -2525,10 +2525,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       <div
                         class="sticky left-0 flex items-center gap-2 transform bg-nc-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-nc-content-gray"
                       >
-                        Row hidden
+                        {{ $t('labels.rowHidden') }}
 
                         <NcTooltip>
-                          <template #title> This record will be hidden as it does not match your access permissions. </template>
+                          <template #title> {{ $t('tooltip.recordHiddenByPermission') }} </template>
 
                           <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
@@ -3038,8 +3038,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
               >
                 <div class="flex gap-2 items-center">
                   <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-                  <!-- Generate All -->
-                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                  {{ $t('labels.generateType', { type: selectedRange.isSingleCell() ? $t('objects.cell') : $t('general.all') }) }}
                 </div>
               </NcMenuItem>
             </NcTooltip>
@@ -3053,8 +3052,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             >
               <div class="flex gap-2 items-center">
                 <GeneralIcon icon="ncScript" class="h-4 w-4" />
-                <!-- Generate All -->
-                Execute {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                {{ $t('labels.executeType', { type: selectedRange.isSingleCell() ? $t('objects.cell') : $t('general.all') }) }}
               </div>
             </NcMenuItem>
 
@@ -3199,7 +3197,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 })
               "
             >
-              {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
+              {{ isWsOwner ? $t('general.upgrade') : $t('general.requestUpgrade') }}
             </NcButton>
           </div>
         </div>

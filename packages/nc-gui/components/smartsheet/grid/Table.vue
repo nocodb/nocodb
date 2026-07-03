@@ -1727,9 +1727,10 @@ const handleCellClick = (event: MouseEvent, row: number, col: number) => {
 const loaderText = computed(() => {
   if (isPaginationLoading.value) {
     if (paginationDataRef.value?.totalRows && paginationDataRef.value?.pageSize) {
-      return `Loading page<br/>${paginationDataRef.value.page} of ${Math.ceil(
-        paginationDataRef.value?.totalRows / paginationDataRef.value?.pageSize,
-      )}`
+      return t('msg.loadingPage', {
+        page: paginationDataRef.value.page,
+        total: Math.ceil(paginationDataRef.value?.totalRows / paginationDataRef.value?.pageSize),
+      })
     } else {
       return t('general.loading')
     }
@@ -2009,7 +2010,7 @@ onKeyStroke('ArrowDown', onDown)
                             <NcMenuItem class="flex flex-row items-center" @click="predictNextColumn(meta.id)">
                               <div class="text-nc-content-red-medium text-xs">
                                 <MdiReload />
-                                Generate Again
+                                {{ $t('labels.generateAgain') }}
                               </div>
                             </NcMenuItem>
                           </NcSubMenu>
@@ -2048,7 +2049,7 @@ onKeyStroke('ArrowDown', onDown)
                             <NcMenuItem class="flex flex-row items-center" @click="predictNextFormulas(meta.id)">
                               <div class="text-nc-content-red-medium text-xs">
                                 <MdiReload />
-                                Generate Again
+                                {{ $t('labels.generateAgain') }}
                               </div>
                             </NcMenuItem>
                           </NcSubMenu>
@@ -2510,8 +2511,7 @@ onKeyStroke('ArrowDown', onDown)
               >
                 <div class="flex gap-2 items-center">
                   <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-                  <!-- Generate All -->
-                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                  {{ $t('labels.generateType', { type: selectedRange.isSingleCell() ? $t('objects.cell') : $t('general.all') }) }}
                 </div>
               </NcMenuItem>
             </NcTooltip>

@@ -52,7 +52,7 @@ const handleUseTemplate = async (tmpl: any) => {
       getMeta,
     })
 
-    message.toast('Record created from template')
+    message.toast(t('msg.recordCreatedFromTemplate'))
     reloadViewDataHook?.trigger()
   } catch (e: any) {
     console.error(e)

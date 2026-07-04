@@ -1548,10 +1548,20 @@ export class ExportService {
           // would otherwise let through), else fall back to the page offset +
           // row index.
           const pkValue = pkColumn ? row[pkColumn.title] : undefined;
-          const recordId =
-            pkValue !== null && pkValue !== undefined && pkValue !== ''
-              ? pkValue
-              : `${offset}-${i}`;
+          const hasRealPk =
+            pkValue !== null && pkValue !== undefined && pkValue !== '';
+          const recordId = hasRealPk ? pkValue : `${offset}-${i}`;
+
+          // Deep link back to the record, mirroring the dashboard's
+          // copy-record-URL route: {site}/{workspace}/{base}/{table}/{view}?rowId.
+          // Only emitted when we have a site URL and a real primary key (the
+          // fallback id wouldn't resolve to a record).
+          const recordUrl =
+            param.ncSiteUrl && hasRealPk
+              ? `${param.ncSiteUrl}/${context.workspace_id}/${model.base_id}/${
+                  model.id
+                }/${view.id}?rowId=${encodeURIComponent(String(pkValue))}`
+              : undefined;
 
           const vEvent = buildVEvent({
             uid: `${recordId}@${view.id}.nocodb`,
@@ -1561,6 +1571,7 @@ export class ExportService {
             start: startValue,
             end: toColumn ? row[toColumn.title] : undefined,
             startIsDateOnly: fromIsDateOnly,
+            url: recordUrl,
           });
 
           if (vEvent) {

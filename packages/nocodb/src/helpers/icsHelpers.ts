@@ -123,6 +123,8 @@ export interface IcsEventInput {
   end?: unknown;
   /** whether the start column is a date-only (all-day) column */
   startIsDateOnly: boolean;
+  /** absolute URL linking back to the source record (optional) */
+  url?: string;
 }
 
 /**
@@ -172,6 +174,13 @@ export function buildVEvent(event: IcsEventInput): string | null {
     event.description !== ''
   ) {
     lines.push(foldIcsLine(`DESCRIPTION:${escapeIcsText(event.description)}`));
+  }
+
+  if (event.url) {
+    // URL is a URI value (RFC 5545 §3.8.4.6), not TEXT — it must NOT be
+    // backslash-escaped (a `,` or `;` is a valid URI character); only line
+    // folding applies.
+    lines.push(foldIcsLine(`URL:${event.url}`));
   }
 
   lines.push('END:VEVENT');

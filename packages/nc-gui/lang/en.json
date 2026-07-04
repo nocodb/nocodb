@@ -702,6 +702,7 @@
     "createdBy": "Created by",
     "updatedBy": "Updated by",
     "updated": "Updated",
+    "file": "File",
     "stop": "Stop",
     "run": "Run",
     "repair": "Repair",
@@ -1074,7 +1075,9 @@
     },
     "widgets": "Widgets",
     "sorts": "Sorts",
-    "formulas": "Formulas"
+    "formulas": "Formulas",
+    "video": "Video",
+    "audio": "Audio"
   },
   "datatype": {
     "ID": "ID",
@@ -3080,6 +3083,9 @@
     "restricted": "Restricted",
     "grantAccessToAllBases": "Grant access to all current and future bases",
     "selectBases": "Select bases",
+    "word": "Word",
+    "ppt": "PPT",
+    "zip": "Zip",
     "relationSettings": "Relation Settings",
     "junction": "Junction",
     "child": "Child",
@@ -3583,7 +3589,8 @@
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
     "navigateToBilling": "Navigate to billing",
-    "goBackHome": "Go back home"
+    "goBackHome": "Go back home",
+    "uploadAttachment": "Upload Attachment"
   },
   "tooltip": {
     "viewAllEventsInDayView": "View all {count} event in day view | View all {count} events in day view",
@@ -4872,7 +4879,14 @@
     "generateMoreFieldSuggestions": "To generate more {type} field suggestions, click the + or ⟳ icon on the right",
     "clickSuggestedFieldsToAdd": "Click on suggested fields to add",
     "noSuggestionsRemainingPromptAgain": "No suggestions remaining. To generate more fields, prompt again...",
-    "autoSuggestingFieldsForTable": "Auto suggesting fields for {table}"
+    "autoSuggestingFieldsForTable": "Auto suggesting fields for {table}",
+    "noAttachmentField": "No Attachment field",
+    "createAttachmentFieldToUseFileMode": "Create an attachment field to use file mode.",
+    "attachmentFieldRequiredForFileMode": "At least one attachment field should be present to use file mode.",
+    "noAttachment": "No Attachment",
+    "noAttachmentsToDisplayInField": "There are no attachments to display in this field",
+    "unsupportedFileType": "Unsupported File Type",
+    "fileTypeNotSupportedForViewing": "This file type is currently not supported for viewing."
   },
   "trash": {
     "title": "Deleted Records",

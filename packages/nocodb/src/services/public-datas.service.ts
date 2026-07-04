@@ -1158,7 +1158,16 @@ export class PublicDatasService {
     }
 
     const column = await Column.get(context, { colId: param.columnId });
+
+    if (!column) NcError.get(context).fieldNotFound(param.columnId);
+
     const currentModel = await view.getModel(context);
+
+    // A shared view can outlive its table: trashing a table soft-deletes only
+    // the model row (Model.softDelete), leaving the view + its share UUID intact.
+    // View.getByUUID still resolves, but view.getModel returns null for the
+    // soft-deleted model — guard before dereferencing.
+    if (!currentModel) NcError.get(context).tableNotFound(view.fk_model_id);
 
     if (column.fk_model_id !== currentModel.id)
       NcError.badRequest("Column doesn't belongs to the model");
@@ -1178,7 +1187,15 @@ export class PublicDatasService {
       context,
     );
 
+    if (!colOptions)
+      NcError.get(context).badRequest('Column is not a relation column');
+
     const model = await colOptions.getRelatedTable(context);
+
+    // Related table may have been trashed (soft-deleted) while the link column
+    // still references it — fail cleanly instead of dereferencing null below.
+    if (!model)
+      NcError.get(context).tableNotFound(colOptions.fk_related_model_id);
 
     // Use refContext for cross-base links — the related table may belong
     // to a different base, so Source.get scoped to the original context
@@ -1289,10 +1306,16 @@ export class PublicDatasService {
       NcError.invalidSharedViewPassword();
     }
 
+    const currentModel = await view.getModel(context);
+
+    // Shared view can outlive its table (see relDataList) — a trashed table
+    // soft-deletes only the model row, so getModel returns null here.
+    if (!currentModel) NcError.get(context).tableNotFound(view.fk_model_id);
+
     const column = await getColumnByIdOrName(
       context,
       param.columnId,
-      await view.getModel(context),
+      currentModel,
     );
 
     if (column.fk_model_id !== view.fk_model_id)
@@ -1390,10 +1413,16 @@ export class PublicDatasService {
       NcError.invalidSharedViewPassword();
     }
 
+    const currentModel = await view.getModel(context);
+
+    // Shared view can outlive its table (see relDataList) — a trashed table
+    // soft-deletes only the model row, so getModel returns null here.
+    if (!currentModel) NcError.get(context).tableNotFound(view.fk_model_id);
+
     const column = await getColumnByIdOrName(
       context,
       param.columnId,
-      await view.getModel(context),
+      currentModel,
     );
 
     if (column.fk_model_id !== view.fk_model_id)

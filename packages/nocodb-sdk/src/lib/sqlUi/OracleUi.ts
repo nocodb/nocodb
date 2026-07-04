@@ -829,6 +829,8 @@ export class OracleUi implements SqlUi {
       'ARRAYSLICE',
       'ARRAYCOMPACT',
       'EXP',
+      // DATETIME_FORMAT is only implemented for PG, MySQL and SQLite.
+      'DATETIME_FORMAT',
     ];
   }
 

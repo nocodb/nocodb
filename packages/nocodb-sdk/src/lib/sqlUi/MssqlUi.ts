@@ -796,6 +796,9 @@ export class MssqlUi implements SqlUi {
       'REGEX_EXTRACT',
       'REGEX_REPLACE',
       'DATETIME_DIFF',
+      // DATETIME_FORMAT translates Day.js tokens to TO_CHAR/DATE_FORMAT/strftime
+      // patterns, which are only implemented for PG, MySQL and SQLite.
+      'DATETIME_FORMAT',
       // T-SQL DATEADD(datepart, number, date) requires the unit as a bare
       // datepart keyword, not a value — NocoDB passes it as a string literal
       // ("day"), which compiles to N'day' and is not a valid datepart. Blocked

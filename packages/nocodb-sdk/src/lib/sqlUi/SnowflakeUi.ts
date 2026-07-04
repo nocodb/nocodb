@@ -1285,6 +1285,8 @@ export class SnowflakeUi implements SqlUi {
       'COUNTA',
       'COUNT',
       'DATESTR',
+      // DATETIME_FORMAT is only implemented for PG, MySQL and SQLite.
+      'DATETIME_FORMAT',
       'ARRAYSORT',
       'ARRAYUNIQUE',
       'ARRAYSLICE',

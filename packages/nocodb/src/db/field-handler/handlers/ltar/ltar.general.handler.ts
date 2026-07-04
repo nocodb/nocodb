@@ -14,7 +14,7 @@ import {
 } from '~/db/field-handler/utils/handlerUtils';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
-import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
+import { getRefTableColumnForFilter } from '~/db/generateLookupSelectQuery';
 
 export class LtarGeneralHandler extends GenericFieldHandler {
   /**
@@ -140,7 +140,13 @@ export class LtarGeneralHandler extends GenericFieldHandler {
             ? negatedMapping[filter.comparison_op]
             : {}),
           fk_model_id: childModel.id,
-          fk_column_id: (await getDisplayValueOfRefTable(context, column))?.id,
+          fk_column_id: (
+            await getRefTableColumnForFilter(
+              context,
+              column,
+              filter.meta?.ltarSubField,
+            )
+          )?.id,
         }),
         aliasCount,
         childTableAlias,
@@ -233,7 +239,13 @@ export class LtarGeneralHandler extends GenericFieldHandler {
             ? negatedMapping[filter.comparison_op]
             : {}),
           fk_model_id: parentModel.id,
-          fk_column_id: (await getDisplayValueOfRefTable(context, column))?.id,
+          fk_column_id: (
+            await getRefTableColumnForFilter(
+              context,
+              column,
+              filter.meta?.ltarSubField,
+            )
+          )?.id,
         }),
         aliasCount,
         parentTableAlias,
@@ -385,7 +397,13 @@ export class LtarGeneralHandler extends GenericFieldHandler {
             ? negatedMapping[filter.comparison_op]
             : {}),
           fk_model_id: parentModel.id,
-          fk_column_id: (await getDisplayValueOfRefTable(context, column))?.id,
+          fk_column_id: (
+            await getRefTableColumnForFilter(
+              context,
+              column,
+              filter.meta?.ltarSubField,
+            )
+          )?.id,
         }),
         aliasCount,
         parentTableAlias,

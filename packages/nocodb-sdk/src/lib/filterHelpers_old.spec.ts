@@ -246,6 +246,81 @@ testExtractFilterFromXwhere('filterHelpers_old', extractFilterFromXwhere);
 
 describe('filterHelpers_old_specific', () => {
   describe('extractFilterFromXwhere', () => {
+    describe('LTAR dot-notation sub-field (author.Id,eq,5)', () => {
+      const ltarAlias: Record<string, ColumnType> = {
+        author: {
+          id: 'ltar_col_id',
+          column_name: 'author',
+          title: 'author',
+          uidt: UITypes.Links,
+        },
+      };
+
+      it('parses dot-notation eq — sets fk_column_id to LTAR col and meta.ltarSubField', () => {
+        const result = extractFilterFromXwhere('(author.Id,eq,5)', ltarAlias);
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        const f = result.filters[0];
+        expect(f.fk_column_id).toBe('ltar_col_id');
+        expect(f.comparison_op).toBe('eq');
+        expect(f.value).toBe('5');
+        expect((f as any).meta?.ltarSubField).toBe('Id');
+      });
+
+      it('parses dot-notation in — splits value and sets ltarSubField', () => {
+        const result = extractFilterFromXwhere('(author.Id,in,1,2,3)', ltarAlias);
+        expect(result.filters).toBeDefined();
+        const f = result.filters[0];
+        expect(f.fk_column_id).toBe('ltar_col_id');
+        expect(f.comparison_op).toBe('in');
+        expect(f.value).toEqual(['1', '2', '3']);
+        expect((f as any).meta?.ltarSubField).toBe('Id');
+      });
+
+      it('parses dot-notation with non-Id sub-field (author.Name)', () => {
+        const result = extractFilterFromXwhere('(author.Name,eq,Jane)', ltarAlias);
+        const f = result.filters[0];
+        expect(f.fk_column_id).toBe('ltar_col_id');
+        expect((f as any).meta?.ltarSubField).toBe('Name');
+      });
+
+      it('is case-preserving for sub-field (Id not lowercased)', () => {
+        const result = extractFilterFromXwhere('(author.Id,eq,1)', ltarAlias);
+        expect((result.filters[0] as any).meta?.ltarSubField).toBe('Id');
+      });
+
+      it('without dot-notation no ltarSubField is set (backward compat)', () => {
+        const result = extractFilterFromXwhere('(author,eq,John)', ltarAlias);
+        const f = result.filters[0];
+        expect(f.fk_column_id).toBe('ltar_col_id');
+        expect((f as any).meta?.ltarSubField).toBeUndefined();
+      });
+
+      it('non-LTAR column with dot in alias returns error (no LTAR in map)', () => {
+        const textAlias: Record<string, ColumnType> = {
+          Title: { id: 'txt_col', column_name: 'Title', title: 'Title', uidt: UITypes.SingleLineText },
+        };
+        const result = extractFilterFromXwhere('(Title.Something,eq,x)', textAlias);
+        expect(result.errors).toBeDefined();
+        expect(result.errors.length).toBeGreaterThan(0);
+      });
+
+      it('works for LinkToAnotherRecord uidt as well', () => {
+        const ltarV1Alias: Record<string, ColumnType> = {
+          author: {
+            id: 'ltar_v1_col_id',
+            column_name: 'author',
+            title: 'author',
+            uidt: UITypes.LinkToAnotherRecord,
+          },
+        };
+        const result = extractFilterFromXwhere('(author.Id,eq,7)', ltarV1Alias);
+        const f = result.filters[0];
+        expect(f.fk_column_id).toBe('ltar_v1_col_id');
+        expect((f as any).meta?.ltarSubField).toBe('Id');
+      });
+    });
+
     it('will parse comma value', async () => {
       const query = '(Title,eq,Istanbul, India)';
       const columnAlias: Record<string, ColumnType> = {

@@ -57,6 +57,42 @@ export async function getDisplayValueOfRefTable(
   return cols.find((col) => col.pv) || cols[0];
 }
 
+/**
+ * Like getDisplayValueOfRefTable but respects an optional ltarSubField override.
+ * When ltarSubField is 'id' (case-insensitive), returns the primary key column of
+ * the related table so callers can filter by row ID instead of display value.
+ * For any other sub-field string, finds a column whose title matches (case-insensitive).
+ * Falls back to display value when ltarSubField is absent or unresolvable.
+ */
+export async function getRefTableColumnForFilter(
+  context: NcContext,
+  relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
+  ltarSubField?: string,
+) {
+  if (!ltarSubField) {
+    return getDisplayValueOfRefTable(context, relationCol);
+  }
+
+  const colOpt = await relationCol.getColOptions<
+    LinkToAnotherRecordColumn | LinksColumn
+  >({ ...context, base_id: relationCol.base_id });
+  const model = await colOpt.getRelatedTable(context);
+  const modelContext = { ...context, base_id: model.base_id };
+  const cols = await model.getColumns(modelContext);
+
+  // 'id' (case-insensitive) → primary key column
+  if (ltarSubField.toLowerCase() === 'id') {
+    return cols.find((col) => col.pk) || null;
+  }
+
+  // Otherwise find by column title (case-insensitive)
+  return (
+    cols.find(
+      (col) => col.title?.toLowerCase() === ltarSubField.toLowerCase(),
+    ) || null
+  );
+}
+
 // this function will generate the query for lookup column
 // or for  LTAR column and return the query builder
 // query result will be aggregated json array string in case of Myssql and Postgres

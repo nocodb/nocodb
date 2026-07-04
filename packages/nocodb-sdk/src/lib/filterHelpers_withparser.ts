@@ -29,6 +29,7 @@ export {
 export interface FilterTypeWithMeta extends FilterType {
   meta?: {
     timezone?: string;
+    ltarSubField?: string;
   };
 }
 
@@ -231,7 +232,28 @@ function mapFilterClauseSubType(
     errors?: FilterParseError[];
   }
 ): { filter?: FilterType; errors?: FilterParseError[] } {
-  const aliasCol = aliasColObjMap[filter.field];
+  // Support dot-notation for LTAR sub-field filtering: "@(author.Id, eq, 5)"
+  // splits into base column "author" + sub-field "Id" for filtering related
+  // records by a specific field (e.g. primary key) instead of display value.
+  let resolvedField = filter.field;
+  let ltarSubField: string | undefined;
+  const dotIdx = filter.field.indexOf('.');
+  if (dotIdx !== -1) {
+    const baseField = filter.field.substring(0, dotIdx);
+    const subField = filter.field.substring(dotIdx + 1);
+    const baseCol = aliasColObjMap[baseField];
+    if (
+      baseCol &&
+      [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
+        baseCol.uidt as UITypes
+      )
+    ) {
+      resolvedField = baseField;
+      ltarSubField = subField;
+    }
+  }
+
+  const aliasCol = aliasColObjMap[resolvedField];
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
       throw new InvalidFilterError({
@@ -244,13 +266,14 @@ function mapFilterClauseSubType(
       return { errors };
     }
   }
-  const result: FilterType = {
+  const result: FilterTypeWithMeta = {
     fk_column_id: aliasCol.id,
     is_group: false,
     logical_op: filter.logical_op as any,
     comparison_op: filter.comparison_op as any,
     comparison_sub_op: undefined,
     value: filter.value,
+    ...(ltarSubField && { meta: { ltarSubField } }),
   };
   return handleDataTypes(context, {
     filterType: result,

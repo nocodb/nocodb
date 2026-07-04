@@ -290,6 +290,26 @@ export function extractCondition(
 
       let sub_op = null;
 
+      // Support dot-notation for LTAR sub-field filtering: "(author.Id,eq,5)"
+      // splits into base column "author" + sub-field "Id" for filtering related
+      // records by a specific field (e.g. primary key) instead of display value.
+      let ltarSubField: string | undefined;
+      if (alias?.includes('.')) {
+        const dotIdx = alias.indexOf('.');
+        const baseAlias = alias.substring(0, dotIdx);
+        const subField = alias.substring(dotIdx + 1);
+        const baseCol = aliasColObjMap[baseAlias];
+        if (
+          baseCol &&
+          [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
+            baseCol.uidt as UITypes
+          )
+        ) {
+          alias = baseAlias;
+          ltarSubField = subField;
+        }
+      }
+
       if (aliasColObjMap[alias]) {
         const columnType = aliasColObjMap[alias].uidt;
 
@@ -349,7 +369,8 @@ export function extractCondition(
         fk_column_id: columnId,
         logical_op: logicOp as FilterType['logical_op'],
         value,
-      };
+        ...(ltarSubField && { meta: { ltarSubField } }),
+      } as FilterType;
     })
     .filter(Boolean);
 

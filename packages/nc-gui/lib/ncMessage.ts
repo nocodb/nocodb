@@ -84,15 +84,36 @@ const initialToastTypeValue = {
 } as NcMessageObjectProps
 
 /**
- * Generates a unique key for each message instance.
- * @returns A unique string key for the message.
+ * Generates the key that identifies a message instance.
+ *
+ * Identical repeated messages (same type + title + content) reuse a single
+ * stable key so ant updates the one existing toast instead of stacking a
+ * duplicate — this collapses a flood of the same error into one. Falls back to
+ * a unique key for non-primitive content (VNode/function) or when the caller
+ * supplies an explicit `key`.
  */
-const generateMessageKey = (params: NcMessageProps) => {
-  if (ncIsString(params) || !params.key) {
-    return `ncMessage_${Date.now()}_${Math.random()}`
+const generateMessageKey = (
+  type: NcAlertProps['type'],
+  title: string | undefined,
+  content: NcMessageObjectProps['content'],
+  params: NcMessageProps,
+) => {
+  // caller-supplied key wins
+  if (!ncIsString(params) && (params as NcMessageObjectProps)?.key) {
+    return (params as NcMessageObjectProps).key
   }
 
-  return params.key
+  // dedup identical messages by hashing type + title + content
+  if (isPrimitiveValue(content) || content === null || content === undefined) {
+    const raw = `${type}|${title ?? ''}|${content ?? ''}`
+    let hash = 0
+    for (let i = 0; i < raw.length; i++) {
+      hash = (Math.imul(31, hash) + raw.charCodeAt(i)) | 0
+    }
+    return `ncMessage_dedup_${hash >>> 0}`
+  }
+
+  return `ncMessage_${Date.now()}_${Math.random()}`
 }
 
 function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
@@ -220,7 +241,7 @@ const showMessage = (
   // Skip toast for errors already handled via dedicated modals
   if (type === 'error' && ncIsString(content) && MODAL_HANDLED_MESSAGES.some((msg) => content.includes(msg))) return
 
-  const key = generateMessageKey(params)
+  const key = generateMessageKey(type, title, content, params)
 
   let ncDuration = duration ?? ncAlertProps.duration
 

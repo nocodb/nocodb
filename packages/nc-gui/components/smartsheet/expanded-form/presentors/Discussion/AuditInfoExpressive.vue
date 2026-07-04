@@ -166,7 +166,7 @@ const isAiGeneratedText = (key: string) => {
           </NcTooltip>
 
           <span v-if="isAiGeneratedText(columnKey)" class="whitespace-nowrap text-xs text-nc-content-purple-medium">
-            {{ $t('labels.generatedByAi') }}
+            ({{ $t('labels.generatedByAi') }})
           </span>
         </span>
         <template v-if="meta[columnKey]?.type === 'Attachment'">

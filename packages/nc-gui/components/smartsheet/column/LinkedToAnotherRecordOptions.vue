@@ -690,7 +690,7 @@ const handleScrollIntoView = () => {
           >
         </span>
       </div>
-      <GeneralSourceRestrictionTooltip :message="$t('msg.info.fieldCannotBeUpgraded')" :enabled="!!isMetaReadOnly">
+      <GeneralSourceRestrictionTooltip :message="$t('tooltip.fieldCannotBeUpgraded')" :enabled="!!isMetaReadOnly">
         <NcButton size="xs" type="primary" :disabled="isMetaReadOnly" @click="emit('upgrade')">
           {{ $t('general.upgrade') }}
         </NcButton>

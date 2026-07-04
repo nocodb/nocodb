@@ -1879,7 +1879,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                               <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
                                 <template #title>
                                   <div class="w-[150px]">
-                                    {{ $t('msg.warning.maxAiFieldSelection', { maxSelectionCount }) }}
+                                    {{ $t('msg.info.maxFieldSelectionAtATime', { maxSelectionCount }) }}
                                   </div>
                                 </template>
 
@@ -2051,7 +2051,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                               <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
                                 <template #title>
                                   <div class="w-[150px]">
-                                    {{ $t('msg.warning.maxAiFieldSelection', { maxSelectionCount }) }}
+                                    {{ $t('msg.info.maxFieldSelectionAtATime', { maxSelectionCount }) }}
                                   </div>
                                 </template>
 

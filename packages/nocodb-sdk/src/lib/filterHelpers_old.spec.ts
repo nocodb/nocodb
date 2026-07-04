@@ -295,11 +295,13 @@ describe('filterHelpers_old_specific', () => {
         expect((f as any).meta?.ltarSubField).toBe('Id');
       });
 
-      it('parses dot-notation with non-Id sub-field (author.Name)', () => {
+      it('rejects non-Id sub-field (author.Name) — only related record id is supported', () => {
+        // The backend only resolves the `id` sub-field (to the related table's
+        // PK); any other sub-field must error rather than silently fall back to
+        // display-value filtering.
         const result = extractFilterFromXwhere('(author.Name,eq,Jane)', ltarAlias);
-        const f = result.filters[0];
-        expect(f.fk_column_id).toBe('ltar_col_id');
-        expect((f as any).meta?.ltarSubField).toBe('Name');
+        expect(result.errors).toBeDefined();
+        expect(result.errors.length).toBeGreaterThan(0);
       });
 
       it('is case-preserving for sub-field (Id not lowercased)', () => {

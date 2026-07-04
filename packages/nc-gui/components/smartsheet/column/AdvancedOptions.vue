@@ -115,7 +115,7 @@ vModel.value.au = !!vModel.value.au */
         />
       </a-form-item>
 
-      <a-form-item v-if="sqlUi.showScale(vModel)" :label="$t('objects.paymentPlan.Scale')">
+      <a-form-item v-if="sqlUi.showScale(vModel)" :label="$t('labels.scale')">
         <a-input v-model:value="vModel.dtxs" class="!rounded-lg" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
       </a-form-item>
 

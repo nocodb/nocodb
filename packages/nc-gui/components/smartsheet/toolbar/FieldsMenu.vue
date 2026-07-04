@@ -1044,7 +1044,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                 :disabled="!!addFieldReason"
               >
                 <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
-                <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
+                <span>{{ $t('general.new') }} {{ $t('objects.field') }}</span>
               </NcButton>
             </NcTooltip>
             <template #overlay>

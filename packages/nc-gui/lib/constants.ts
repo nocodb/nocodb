@@ -61,6 +61,11 @@ export const NO_SCOPE = SDK_NO_SCOPE
 
 export const ANT_MESSAGE_DURATION = +(process.env.ANT_MESSAGE_DURATION ?? (ncIsPlaywright() ? 1 : 6))
 
+// Cap the number of toasts shown at once. Without this, a burst of errors (e.g.
+// a config mismatch failing many dependent fields) stacks unbounded and sweeps
+// the screen. Ant removes the oldest once the cap is exceeded.
+export const ANT_MESSAGE_MAX_COUNT = +(process.env.ANT_MESSAGE_MAX_COUNT ?? 5)
+
 export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
 
 export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100

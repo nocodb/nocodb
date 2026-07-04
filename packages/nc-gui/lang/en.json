@@ -311,7 +311,11 @@
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing"
     },
-    "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
+    "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!",
+    "toAccessCopyViewConfigFromAnotherView": "to access copy view configuration from another view feature.",
+    "toAccessReassignPersonalView": "to access re-assign personal view feature.",
+    "toAccessAssignAsPersonalView": "to access assign as personal view feature.",
+    "toAccessCardFieldHeaderVisibility": "to access card field header visibility feature."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1454,6 +1458,8 @@
     "relevantDocumentation": "Relevant documentation",
     "oneToMany": "One to Many",
     "manyToOne": "Many to One",
+    "noSearchResultsFound": "No search results found",
+    "countOfTotal": "{count} of {total}",
     "hierarchyNotConfigured": "Hierarchy Not Configured",
     "noSearchResultsFound": "No search results found",
     "theListIsEmpty": "The list is empty"
@@ -3755,6 +3761,7 @@
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
     "sandboxMasterLocked": "This base has an active sandbox — make schema changes in the sandbox.",
     "sandboxFeatureOnMaster": "This action is managed on the master base, not in the sandbox.",
+    "cantUploadDataInSyncedTable": "You can't upload data in synced table",
     "hideMyPresence": "Hide my presence",
     "showMyPresence": "Show my presence",
     "setupScriptSettingsToRun": "Setup script settings to run",
@@ -3892,6 +3899,7 @@
     "enterTeamDescription": "Enter team description",
     "searchRecords": "Search records",
     "searchRecordTemplates": "Search record templates",
+    "searchFieldToAddAsLookup": "Search field to add as lookup",
     "selectBase": "Select base",
     "pasteRedirectUrlHere": "Paste redirect URL here",
     "enterPromptForFieldSuggestions": "Enter your prompt to get field suggestions..",
@@ -4496,6 +4504,8 @@
       "matchedByFieldDescription": "Matched by field description",
       "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles.",
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role.",
+      "preparingForDownload": "Preparing {type} for download...",
+      "noPermissionToEditView": "You don’t have permission to edit this view.",
       "fieldCannotBeUpgraded": "Field cannot be upgraded.",
       "noAccessToDashboard": "You don't have access to this dashboard",
       "noAccessToAutomation": "You don't have access to this automation",
@@ -4702,7 +4712,11 @@
       "invalidRecordTooltip": "This record has errors and may not display correctly in the calendar.",
       "failedToAddFields": "Failed to add fields",
       "unableToAddFields": "NocoDB was unable to add {count} fields to the table. Please retry adding the fields.",
-      "includeSampleRecordToGenerate": "Include at least 1 sample record in table to generate"
+      "includeSampleRecordToGenerate": "Include at least 1 sample record in table to generate",
+      "viewUpdateFailed": "There was an error while updating view!",
+      "selectViewFirst": "Please select a view first",
+      "dataExportFailed": "Failed to export data!",
+      "fieldHeaderVisibilityUpdateFailed": "Error occurred while updating field header visibility"
     },
     "toast": {
       "expandedFormModeSidePanel": "Records will now open in the side panel",
@@ -4828,7 +4842,8 @@
       "scimDisabled": "SCIM provisioning disabled",
       "tokenRegenerated": "Provisioning token regenerated successfully",
       "scimDeleted": "SCIM configuration deleted successfully",
-      "defaultRoleUpdated": "Default role updated successfully"
+      "defaultRoleUpdated": "Default role updated successfully",
+      "dataExported": "Successfully exported data!"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

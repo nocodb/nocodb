@@ -6,6 +6,8 @@ const meta = inject(MetaInj, ref())
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
+const { t } = useI18n()
+
 const activeView = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -123,10 +125,10 @@ const saveCalendarRanges = async () => {
       // calendarRangeDropdown.value = false
     } catch (e) {
       console.log(e)
-      message.error('There was an error while updating view!')
+      message.error(t('msg.error.viewUpdateFailed'))
     }
   } else {
-    message.error('Please select a view first')
+    message.error(t('msg.error.selectViewFirst'))
   }
 }
 

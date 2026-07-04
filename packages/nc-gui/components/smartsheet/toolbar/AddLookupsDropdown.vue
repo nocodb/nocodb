@@ -189,7 +189,7 @@ watch(isOpened, async (val) => {
                   v-model:value="searchField"
                   :bordered="false"
                   class="w-full !shadow-none !py-3 a-input-without-effect absolute !bg-transparent"
-                  placeholder="Search field to add as lookup"
+                  :placeholder="t('placeholder.searchFieldToAddAsLookup')"
                 >
                   <template #prefix>
                     <GeneralIcon icon="search" class="w-3.5 text-nc-content-gray-muted h-3.5 mr-1 ml-1" />

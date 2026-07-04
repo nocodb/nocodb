@@ -816,7 +816,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"
                 class="!w-[164px] flex-none"
-                alt="No search results found"
+                :alt="$t('title.noSearchResultsFound')"
               />
 
               {{ $t('title.noResultsMatchedYourSearch') }}
@@ -1068,7 +1068,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           :show-unlock-button="isLocked"
           @on-open="open = false"
         >
-          <template v-if="!isLocked" #title> You don’t have permission to edit this view. </template>
+          <template v-if="!isLocked" #title> {{ $t('msg.info.noPermissionToEditView') }} </template>
         </GeneralLockedViewFooter>
       </div>
     </template>

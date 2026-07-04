@@ -264,7 +264,7 @@ const onToggleFieldHeaderVisibility = async () => {
     }
 
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
-    message.error('Error occurred while updating field header visibility', undefined, {
+    message.error(t('msg.error.fieldHeaderVisibilityUpdateFailed'), undefined, {
       copyText: errorInfo.message,
     })
   }
@@ -513,7 +513,7 @@ defineOptions({
                 <div class="flex-1 w-full mr-1" />
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
-                  :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
+                  :limit-or-feature="$t('upgrade.toAccessCopyViewConfigFromAnotherView') as PlanFeatureTypes"
                   :content="
                     $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
                       plan: getPlanTitle(PlanTitles.PLUS),
@@ -570,7 +570,7 @@ defineOptions({
                 <template #default="{ isAllowed }">
                   <NcMenuItem
                     :disabled="!isAllowed || !!table?.synced"
-                    :title="!!table?.synced ? `You can't upload data in synced table` : undefined"
+                    :title="!!table?.synced ? $t('tooltip.cantUploadDataInSyncedTable') : undefined"
                     @click="onImportClick(dialog)"
                   >
                     <div
@@ -729,7 +729,7 @@ defineOptions({
                     <div class="flex-1 w-full" />
                     <LazyPaymentUpgradeBadge
                       :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
-                      :limit-or-feature="'to access re-assign personal view feature.' as PlanFeatureTypes"
+                      :limit-or-feature="$t('upgrade.toAccessReassignPersonalView') as PlanFeatureTypes"
                       :content="
                         $t('upgrade.upgradeToAccessReassignViewSubtitle', {
                           plan: getPlanTitle(PlanTitles.PLUS),
@@ -776,7 +776,7 @@ defineOptions({
                     <div class="flex-1 w-full mr-1" />
                     <LazyPaymentUpgradeBadge
                       :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
-                      :limit-or-feature="'to access assign as personal view feature.' as PlanFeatureTypes"
+                      :limit-or-feature="$t('upgrade.toAccessAssignAsPersonalView') as PlanFeatureTypes"
                       :content="
                         $t('upgrade.upgradeToAccessAssignAsPersonalViewSubtitle', {
                           plan: getPlanTitle(PlanTitles.PLUS),
@@ -807,7 +807,7 @@ defineOptions({
               <div class="flex-1 w-full" />
               <LazyPaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
-                :limit-or-feature="'to access card field header visibility feature.' as PlanFeatureTypes"
+                :limit-or-feature="$t('upgrade.toAccessCardFieldHeaderVisibility') as PlanFeatureTypes"
                 :content="
                   $t('upgrade.upgradeToAccessCardFieldHeaderVisibilitySubtitle', {
                     plan: getPlanTitle(PlanTitles.PLUS),

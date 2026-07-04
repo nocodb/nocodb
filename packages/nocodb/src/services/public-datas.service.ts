@@ -440,11 +440,17 @@ export class PublicDatasService {
     delete listArgs.s;
     if (!listArgs.sort) delete listArgs.sort;
 
-    // `having`/`h` is not honored on the public read paths today, but collapse
-    // and drop it defensively so a future consumer can't reintroduce a
-    // hidden-column oracle through the aggregated `HAVING` clause.
+    // `having`/`h` and `condition`/`c`/`conditionGraph` are all column-referencing
+    // args that `getListArgs` re-derives but that no public v2 read path honors
+    // today (`condition`/`conditionGraph` survive only in CustomKnex + the legacy
+    // v1 BaseModel). Drop them defensively — same rationale as the aliases above —
+    // so a future consumer can't reintroduce a hidden-column oracle through the
+    // aggregated `HAVING` clause or a condition graph.
     delete listArgs.having;
     delete listArgs.h;
+    delete listArgs.condition;
+    delete listArgs.c;
+    delete listArgs.conditionGraph;
 
     // Parse `where` with a restricted alias map so only visible columns are
     // accepted.  The parsed filters are merged into filterArr and the raw

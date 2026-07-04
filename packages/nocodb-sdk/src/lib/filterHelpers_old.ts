@@ -7,6 +7,7 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { FilterParseError } from '~/lib/filterHelpers';
+import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
 import UITypes from '~/lib/UITypes';
 export {
   COMPARISON_OPS,
@@ -378,7 +379,7 @@ export function extractCondition(
         logical_op: logicOp as FilterType['logical_op'],
         value,
         ...(ltarSubField && { meta: { ltarSubField } }),
-      } as FilterType;
+      } as FilterTypeWithMeta;
     })
     .filter(Boolean);
 

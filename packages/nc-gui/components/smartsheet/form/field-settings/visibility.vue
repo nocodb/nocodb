@@ -69,7 +69,7 @@ const filterOption = (column: ColumnType) => {
             overlay-class-name="nc-form-field-visibility-dropdown"
           >
             <NcTooltip placement="left" :disabled="!isFirstField">
-              <template #title> Cannot add conditions to the first field in a form. </template>
+              <template #title> {{ $t('tooltip.cannotAddConditionsToFirstField') }} </template>
               <div
                 class="nc-form-field-visibility-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
                 :class="{
@@ -88,8 +88,8 @@ const filterOption = (column: ColumnType) => {
                 >
                   {{
                     visibilityFilters.length
-                      ? `${visibilityFilters.length} condition${visibilityFilters.length !== 1 ? 's' : ''}`
-                      : 'No conditions'
+                      ? $t('labels.conditionsCount', { count: visibilityFilters.length }, visibilityFilters.length)
+                      : $t('labels.noConditions')
                   }}
                 </div>
 
@@ -132,7 +132,7 @@ const filterOption = (column: ColumnType) => {
       <div>
         <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
         <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
-          Error conditions will not be used for determining field visibility.
+          {{ $t('msg.error.errorConditionsIgnoredForVisibility') }}
         </div>
       </div>
     </div>

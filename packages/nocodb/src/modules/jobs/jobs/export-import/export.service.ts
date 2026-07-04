@@ -1442,9 +1442,6 @@ export class ExportService {
 
     const dateOnlyTypes: string[] = [UITypes.Date];
     const fromIsDateOnly = dateOnlyTypes.includes(fromColumn.uidt);
-    const toIsDateOnly = toColumn
-      ? dateOnlyTypes.includes(toColumn.uidt)
-      : fromIsDateOnly;
 
     const displayColumn =
       model.columns.find((c) => c.pv) ?? model.columns.find((c) => c.pk);
@@ -1511,7 +1508,8 @@ export class ExportService {
           skipSortBasedOnOrderCol: true,
         });
 
-        for (const row of result.list) {
+        for (let i = 0; i < result.list.length; i++) {
+          const row = result.list[i];
           const startValue = row[fromColumn.title];
 
           // Skip records without a start date — they can't be a calendar event.
@@ -1545,9 +1543,15 @@ export class ExportService {
             }
           }
 
+          // RFC 5545 requires UID to be globally unique. Use the primary key
+          // when present (guarding against an empty value, which `&&`/`??`
+          // would otherwise let through), else fall back to the page offset +
+          // row index.
+          const pkValue = pkColumn ? row[pkColumn.title] : undefined;
           const recordId =
-            (pkColumn && row[pkColumn.title]) ??
-            `${offset}-${result.list.indexOf(row)}`;
+            pkValue !== null && pkValue !== undefined && pkValue !== ''
+              ? pkValue
+              : `${offset}-${i}`;
 
           const vEvent = buildVEvent({
             uid: `${recordId}@${view.id}.nocodb`,
@@ -1557,7 +1561,6 @@ export class ExportService {
             start: startValue,
             end: toColumn ? row[toColumn.title] : undefined,
             startIsDateOnly: fromIsDateOnly,
-            endIsDateOnly: toIsDateOnly,
           });
 
           if (vEvent) {

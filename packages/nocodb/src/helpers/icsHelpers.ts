@@ -123,8 +123,6 @@ export interface IcsEventInput {
   end?: unknown;
   /** whether the start column is a date-only (all-day) column */
   startIsDateOnly: boolean;
-  /** whether the end column is a date-only (all-day) column */
-  endIsDateOnly?: boolean;
 }
 
 /**
@@ -142,20 +140,23 @@ export function buildVEvent(event: IcsEventInput): string | null {
   lines.push(`DTSTAMP:${dayjs.utc(event.dtstamp).format('YYYYMMDDTHHmmss')}Z`);
   lines.push(`DTSTART${start.paramAndValue}`);
 
-  let end = event.end != null && event.end !== '' ? event.end : null;
-  let endIsDateOnly = event.endIsDateOnly ?? event.startIsDateOnly;
+  // RFC 5545 §3.6.1: DTEND MUST share DTSTART's value type (DATE vs DATE-TIME),
+  // so the whole event's all-day-ness is governed by the start column and the
+  // end is formatted to match — a timed end on an all-day event keeps only its
+  // date, and a date-only end on a timed event is read as midnight.
+  const isAllDay = event.startIsDateOnly;
 
-  // For all-day events DTEND is exclusive, so a single-day event ends on the
-  // next day. When an explicit end column exists, shift it by one day too so
-  // the final day is included.
-  if (event.startIsDateOnly) {
-    const base = end ?? event.start;
-    end = shiftIcsDate(base, true, 1);
-    endIsDateOnly = true;
+  let end = event.end != null && event.end !== '' ? event.end : null;
+
+  if (isAllDay) {
+    // All-day DTEND is exclusive: the day after the last day the event covers.
+    // With no explicit end that is start + 1 day; with an explicit end it is
+    // that end's date + 1 day so the final day stays included.
+    end = shiftIcsDate(end ?? event.start, true, 1);
   }
 
   if (end != null) {
-    const endFormatted = formatIcsDate(end, endIsDateOnly);
+    const endFormatted = formatIcsDate(end, isAllDay);
     if (endFormatted) {
       lines.push(`DTEND${endFormatted.paramAndValue}`);
     }
@@ -185,9 +186,17 @@ export function icsCalendarHeader(calendarName?: string): string {
     'PRODID:-//NocoDB//Calendar Export//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
+    // All event times are emitted as absolute UTC (`Z`); advertise UTC as the
+    // calendar's reference timezone. TIMEZONE-ID is the legacy hint and
+    // X-WR-TIMEZONE its widely-supported counterpart.
+    'TIMEZONE-ID:UTC',
+    'X-WR-TIMEZONE:UTC',
   ];
 
   if (calendarName) {
+    // NAME is the RFC 7986 standard property; X-WR-CALNAME is the legacy
+    // equivalent many clients still rely on, so emit both.
+    lines.push(foldIcsLine(`NAME:${escapeIcsText(calendarName)}`));
     lines.push(foldIcsLine(`X-WR-CALNAME:${escapeIcsText(calendarName)}`));
   }
 

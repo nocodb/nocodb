@@ -783,13 +783,13 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
 
       if (column.type === ButtonActionsType.Ai) {
         column.theme = column.theme || 'text'
-        column.label = column.label || t('labels.multiField.generateDataButtonLabel')
+        column.label = column.label || 'Generate data'
         column.color = column.color || 'purple'
         column.icon = column.icon || 'ncAutoAwesome'
         column.output_column_ids = column?.output_column_ids || ''
       } else {
         column.theme = column.theme || 'solid'
-        column.label = column.label || t('datatype.Button')
+        column.label = column.label || 'Button'
         column.color = column.color || 'brand'
         column.fk_webhook_id = column?.fk_webhook_id || ''
       }

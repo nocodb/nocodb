@@ -237,7 +237,10 @@ function mapFilterClauseSubType(
   // records by a specific field (e.g. primary key) instead of display value.
   let resolvedField = filter.field;
   let ltarSubField: string | undefined;
-  const dotIdx = filter.field.indexOf('.');
+  // `filter.field` can be null (e.g. a field token that parses to null) — guard
+  // before dereferencing, mirroring the `alias?.includes('.')` check on the old
+  // parser path. Falls through to the regular "field not found" error below.
+  const dotIdx = filter.field?.indexOf('.') ?? -1;
   if (dotIdx !== -1) {
     const baseField = filter.field.substring(0, dotIdx);
     const subField = filter.field.substring(dotIdx + 1);

@@ -126,6 +126,24 @@ export const testExtractFilterFromXwhere = (
         expect(result.filters[0].value).toBe('oneWeekAgo India');
       });
 
+      it('returns an error (does not crash) when the field name parses to null', () => {
+        // The field token "null"/"NULL" parses to JS null. The dot-notation
+        // LTAR handling must not dereference a null field — both parsers should
+        // return a clean "field not found" error instead of throwing.
+        const columnAlias: Record<string, ColumnType> = {
+          Title: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Title',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere('(null,eq,5)', columnAlias);
+        expect(result.errors).toBeDefined();
+        expect(result.errors.length).toBeGreaterThan(0);
+      });
+
       describe('datetime', () => {
         it('will parse datetime exactDate', async () => {
           // most datetime filter need to have suboperator

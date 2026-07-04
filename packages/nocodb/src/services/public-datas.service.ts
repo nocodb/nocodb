@@ -1193,7 +1193,7 @@ export class PublicDatasService {
     );
 
     if (!colOptions)
-      NcError.get(context).badRequest('Column is not a relation column');
+      NcError.get(context).badRequest('Relation column metadata is missing');
 
     const model = await colOptions.getRelatedTable(context);
 

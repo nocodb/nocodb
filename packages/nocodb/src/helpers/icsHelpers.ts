@@ -164,7 +164,11 @@ export function buildVEvent(event: IcsEventInput): string | null {
     }
   }
 
-  if (event.summary !== undefined && event.summary !== null) {
+  if (
+    event.summary !== undefined &&
+    event.summary !== null &&
+    event.summary !== ''
+  ) {
     lines.push(foldIcsLine(`SUMMARY:${escapeIcsText(event.summary)}`));
   }
 
@@ -195,10 +199,9 @@ export function icsCalendarHeader(calendarName?: string): string {
     'PRODID:-//NocoDB//Calendar Export//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    // All event times are emitted as absolute UTC (`Z`); advertise UTC as the
-    // calendar's reference timezone. TIMEZONE-ID is the legacy hint and
-    // X-WR-TIMEZONE its widely-supported counterpart.
-    'TIMEZONE-ID:UTC',
+    // All event times are emitted as absolute UTC (`Z`), so they are already
+    // self-describing. X-WR-TIMEZONE is the widely-supported (non-standard)
+    // hint most clients read for the calendar's reference timezone.
     'X-WR-TIMEZONE:UTC',
   ];
 

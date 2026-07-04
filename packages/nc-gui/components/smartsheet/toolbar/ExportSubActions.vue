@@ -196,7 +196,12 @@ const exportFile = async (exportType: ExportTypes) => {
     </div>
   </NcMenuItem>
 
-  <NcMenuItem v-if="isCalendarView" v-e="['a:download:ics']" @click.stop="exportFile(ExportTypes.ICS)">
+  <NcMenuItem
+    v-if="isCalendarView"
+    v-e="['a:download:ics']"
+    data-testid="nc-export-ics"
+    @click.stop="exportFile(ExportTypes.ICS)"
+  >
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
       <GeneralLoader v-if="activeExportType === ExportTypes.ICS" size="regular" />
       <GeneralIcon v-else icon="calendar" class="w-4" />

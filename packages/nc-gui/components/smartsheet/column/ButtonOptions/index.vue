@@ -293,13 +293,13 @@ if (isEdit.value) {
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.theme = 'light'
-    vModel.value.label = t('labels.generateData')
+    vModel.value.label = 'Generate data'
     vModel.value.color = 'purple'
     vModel.value.icon = 'ncAutoAwesome'
     vModel.value.output_column_ids = vModel.value?.output_column_ids || ''
   } else {
     vModel.value.theme = 'solid'
-    vModel.value.label = t('datatype.Button')
+    vModel.value.label = 'Button'
     vModel.value.color = 'brand'
   }
 

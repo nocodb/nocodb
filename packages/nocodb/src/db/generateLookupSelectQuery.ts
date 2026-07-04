@@ -58,11 +58,14 @@ export async function getDisplayValueOfRefTable(
 }
 
 /**
- * Like getDisplayValueOfRefTable but respects an optional ltarSubField override.
- * When ltarSubField is 'id' (case-insensitive), returns the primary key column of
- * the related table so callers can filter by row ID instead of display value.
- * For any other sub-field string, finds a column whose title matches (case-insensitive).
- * Falls back to display value when ltarSubField is absent or unresolvable.
+ * Like getDisplayValueOfRefTable but supports filtering by the related record's
+ * primary key when ltarSubField is 'id' (case-insensitive).
+ *
+ * Only 'id' is supported as a sub-field to avoid exposing columns that may be
+ * hidden in the related table's view. The PK column is always accessible
+ * (it is the row identifier used in all API operations).
+ *
+ * Falls back to the display value when ltarSubField is absent or not 'id'.
  */
 export async function getRefTableColumnForFilter(
   context: NcContext,
@@ -73,6 +76,14 @@ export async function getRefTableColumnForFilter(
     return getDisplayValueOfRefTable(context, relationCol);
   }
 
+  // Only 'id' (case-insensitive) is permitted — maps to the PK column.
+  // Generic title-based column lookup is intentionally excluded: the caller
+  // has no visibility context for the related table's view, so we cannot
+  // safely allow arbitrary column references without leaking hidden field data.
+  if (ltarSubField.toLowerCase() !== 'id') {
+    return getDisplayValueOfRefTable(context, relationCol);
+  }
+
   const colOpt = await relationCol.getColOptions<
     LinkToAnotherRecordColumn | LinksColumn
   >({ ...context, base_id: relationCol.base_id });
@@ -80,17 +91,7 @@ export async function getRefTableColumnForFilter(
   const modelContext = { ...context, base_id: model.base_id };
   const cols = await model.getColumns(modelContext);
 
-  // 'id' (case-insensitive) → primary key column
-  if (ltarSubField.toLowerCase() === 'id') {
-    return cols.find((col) => col.pk) || null;
-  }
-
-  // Otherwise find by column title (case-insensitive)
-  return (
-    cols.find(
-      (col) => col.title?.toLowerCase() === ltarSubField.toLowerCase(),
-    ) || null
-  );
+  return cols.find((col) => col.pk) || null;
 }
 
 // this function will generate the query for lookup column

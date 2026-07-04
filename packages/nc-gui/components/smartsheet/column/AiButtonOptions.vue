@@ -421,7 +421,11 @@ onBeforeUnmount(() => {
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">
                       <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
-                      <i18n-t keypath="msg.info.aiButtonMentionFields" tag="span" class="text-xs text-nc-content-gray-subtle2">
+                      <i18n-t
+                        keypath="msg.info.mentionFieldsUsingCurlyBraces"
+                        tag="span"
+                        class="text-xs text-nc-content-gray-subtle2"
+                      >
                         <template #fieldName>
                           <span class="text-nc-content-purple-dark">{Field name}</span>
                         </template>

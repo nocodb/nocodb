@@ -253,7 +253,7 @@ watch(dropdownOpen, (open) => {
           inner-class="w-full"
           @click="openCustomPanel"
         >
-          <div class="flex-1 text-[13px]">{{ $t('objects.custom') }}…</div>
+          <div class="flex-1 text-[13px]">{{ $t('labels.custom') }}…</div>
           <GeneralIcon
             v-if="activeCalendarView === 'custom'"
             id="nc-selected-item-icon"

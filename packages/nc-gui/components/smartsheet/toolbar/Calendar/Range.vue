@@ -125,7 +125,7 @@ const saveCalendarRanges = async () => {
       // calendarRangeDropdown.value = false
     } catch (e) {
       console.log(e)
-      message.error(t('msg.error.viewUpdateFailed'))
+      message.error(t('msg.error.errorWhileUpdatingView'))
     }
   } else {
     message.error(t('msg.error.selectViewFirst'))

@@ -1467,7 +1467,6 @@
     "noSearchResultsFound": "No search results found",
     "countOfTotal": "{count} of {total}",
     "hierarchyNotConfigured": "Hierarchy Not Configured",
-    "noSearchResultsFound": "No search results found",
     "theListIsEmpty": "The list is empty"
   },
   "labels": {
@@ -3929,7 +3928,6 @@
     "enterTeamDescription": "Enter team description",
     "searchRecords": "Search records",
     "searchRecordTemplates": "Search record templates",
-    "mimeTypesExample": "image/jpg, video/mp4, text/plain ",
     "selectAnOption": "Select and option",
     "typeErrorMessage": "Type error message...",
     "searchFieldToAddAsLookup": "Search field to add as lookup",

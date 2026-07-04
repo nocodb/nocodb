@@ -284,6 +284,38 @@ export class PublicDatasService {
   }
 
   /**
+   * Sanitizes the V2 `sort` query string (e.g. `-Salary,Name`) by keeping only
+   * entries that reference accessible (visible or group-by) columns. Mirrors the
+   * field-name parsing in `extractSortsObject` (direction prefixes `-`, `~-`,
+   * `~+`, `+`). Returns the filtered comma-joined string, or `undefined` when
+   * nothing accessible remains (so the caller can drop the key and let the
+   * default ordering apply). Without this, `?sort=-HiddenCol` resolves against
+   * the full alias map in BaseModel and leaks ordering on a hidden column.
+   */
+  protected stripHiddenColumnsFromSortString(
+    sort: string | string[],
+    visibleInfo: VisibleColumnInfo,
+  ): string | undefined {
+    const parts = ncIsArray(sort) ? sort : `${sort}`.split(/\s*,\s*/);
+    const isAccessible = (field: string) =>
+      visibleInfo.visibleColumnIds.has(field) ||
+      visibleInfo.visibleColumnTitles.has(field) ||
+      visibleInfo.visibleColumnNames.has(field) ||
+      visibleInfo.groupByColumnIds.has(field) ||
+      visibleInfo.groupByColumnTitles.has(field) ||
+      visibleInfo.groupByColumnNames.has(field);
+
+    const kept = parts.filter((s) => {
+      if (!s) return false;
+      // Strip the direction prefix to recover the column identifier.
+      const field = `${s}`.replace(/^~?[+-]/, '');
+      return isAccessible(field);
+    });
+
+    return kept.join(',') || undefined;
+  }
+
+  /**
    * Removes aggregation entries that reference hidden columns.
    */
   protected stripHiddenColumnsFromAggregation(
@@ -388,6 +420,32 @@ export class PublicDatasService {
       delete listArgs[key];
     }
 
+    // Collapse query-param aliases into their canonical keys BEFORE the
+    // visibility-aware sanitization below. `getListArgs` (helpers/dbHelpers.ts)
+    // re-derives `where`/`sort`/`having` from these aliases
+    // (`where` <- `filter`/`w`, `sort` <- `s`, `having` <- `h`), but this
+    // sanitizer only understands the canonical keys. An un-collapsed alias
+    // would therefore skip the restricted-column-map parse and reach BaseModel
+    // with the FULL (hidden-column-inclusive) alias map — letting an
+    // unauthenticated caller filter/sort by hidden columns. Collapse with the
+    // SAME precedence `getListArgs` uses, then delete every alias so nothing
+    // un-sanitized survives to be re-read downstream.
+    listArgs.where = listArgs.where || listArgs.filter || listArgs.w;
+    delete listArgs.filter;
+    delete listArgs.w;
+    // Don't leave a `where: undefined` key behind when no alias was supplied.
+    if (!listArgs.where) delete listArgs.where;
+
+    listArgs.sort = listArgs.sort || listArgs.s;
+    delete listArgs.s;
+    if (!listArgs.sort) delete listArgs.sort;
+
+    // `having`/`h` is not honored on the public read paths today, but collapse
+    // and drop it defensively so a future consumer can't reintroduce a
+    // hidden-column oracle through the aggregated `HAVING` clause.
+    delete listArgs.having;
+    delete listArgs.h;
+
     // Parse `where` with a restricted alias map so only visible columns are
     // accepted.  The parsed filters are merged into filterArr and the raw
     // `where` string is deleted so BaseModel won't re-parse it with the
@@ -438,6 +496,17 @@ export class PublicDatasService {
         listArgs.sortArr,
         accessibleColumnIds,
       );
+    }
+
+    // Strip the V2 `sort` string (collapsed from `sort`/`s` above) to accessible
+    // columns. Only the `sortArr` array form was sanitized previously, so a raw
+    // `?sort=-HiddenCol` string slipped through to BaseModel's full alias map.
+    if (listArgs.sort) {
+      listArgs.sort = this.stripHiddenColumnsFromSortString(
+        listArgs.sort,
+        visibleInfo,
+      );
+      if (!listArgs.sort) delete listArgs.sort;
     }
 
     // Strip hidden columns from `fields` / `f` (comma-separated string or array)

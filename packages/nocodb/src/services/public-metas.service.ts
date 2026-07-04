@@ -63,6 +63,20 @@ export class PublicMetasService {
     await view.getViewWithInfo(context);
     await view.getColumns(context);
     await view.getModelWithInfo(context);
+
+    // A shared view can outlive its table: trashing a table soft-deletes only
+    // the model row (Model.softDelete), leaving the view + its share UUID intact.
+    // View.getByUUID still resolves, but the model is gone. The shared frontend
+    // calls viewMetaGet first to load the schema, so guard here to return a clean
+    // 4xx instead of a 500 on page load, before the data endpoints are reached.
+    //
+    // Two cases to cover: Model.getWithInfo returns null on a cache-miss (DB query
+    // filters soft-deleted rows) → view.model is unset; on a cache-hit it returns
+    // the cached row without re-checking the flag → view.model.deleted is true.
+    if (!view.model || view.model.deleted) {
+      NcError.get(context).tableNotFound(view.fk_model_id);
+    }
+
     await view.model.getColumns(context);
 
     const source = await Source.get(context, view.model.source_id);

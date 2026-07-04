@@ -3,6 +3,8 @@ import { type AuditType, PlanLimitTypes, type TableType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits } =
   useExpandedFormStoreOrThrow()
 
@@ -21,13 +23,13 @@ const auditRetentionLimit = computed(() => {
   const retention = getPlanLimit(PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION)
 
   if (retention === 14) {
-    return '2 weeks'
+    return t('labels.audit.retention.twoWeeks')
   } else if (retention === 60) {
-    return '2 months'
+    return t('labels.audit.retention.twoMonths')
   } else if (retention === 180) {
-    return '6 months'
+    return t('labels.audit.retention.sixMonths')
   } else if (retention === 365) {
-    return '1 year'
+    return t('labels.audit.retention.oneYear')
   }
 
   return null
@@ -52,13 +54,13 @@ const createdByAudit = (
   },
 ) => {
   if (comment.user === user.value?.email) {
-    return 'You'
+    return t('general.you')
   } else if (comment.created_display_name_short?.trim()) {
-    return comment.created_display_name_short || 'Shared source'
+    return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.user) {
     return comment.user
   } else {
-    return 'Shared source'
+    return t('labels.sharedSource')
   }
 }
 
@@ -155,19 +157,27 @@ function isV0Audit(audit: AuditType) {
           <div class="text-center text-3xl text-nc-content-gray-subtle2">
             <MdiHistory />
           </div>
-          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">See changes to this record</div>
-          <div v-if="auditRetentionLimit" class="text-center text-nc-content-gray-subtle2">
-            Your current plan provides <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
-          </div>
+          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">{{ $t('msg.info.seeChangesToRecord') }}</div>
+          <i18n-t
+            v-if="auditRetentionLimit"
+            keypath="msg.info.planRevisionHistory"
+            tag="div"
+            class="text-center text-nc-content-gray-subtle2"
+          >
+            <template #limit>
+              <span class="font-bold">{{ auditRetentionLimit }}</span>
+            </template>
+          </i18n-t>
         </div>
       </template>
       <template v-else>
         <div class="mt-auto" />
         <div v-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
-          <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full
-            history.
-          </div>
+          <i18n-t keypath="msg.info.revisionHistoryUpgrade" tag="div" class="text-center text-nc-content-gray-subtle2 text-xs">
+            <template #limit>
+              <span class="font-bold">{{ auditRetentionLimit }}</span>
+            </template>
+          </i18n-t>
           <NcButton
             v-if="isPaymentEnabled"
             v-e="['c:audit:retention:upgrade']"
@@ -182,7 +192,7 @@ function isV0Audit(audit: AuditType) {
           </NcButton>
         </div>
         <div v-if="hasMoreAudits" class="p-3 text-center">
-          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
+          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> {{ $t('general.loadEarlier') }} </NcButton>
         </div>
         <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
@@ -222,7 +232,7 @@ function isV0Audit(audit: AuditType) {
               </div>
             </div>
             <template v-else-if="['DATA_INSERT', 'DATA_BULK_INSERT'].includes(audit?.op_type)">
-              <div class="pl-9">created the record.</div>
+              <div class="pl-9">{{ $t('activity.createdRecord') }}</div>
               <div
                 v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
                 class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y"
@@ -280,10 +290,10 @@ function isV0Audit(audit: AuditType) {
               </div>
             </template>
             <template v-else-if="['DATA_SOFT_DELETE', 'DATA_BULK_SOFT_DELETE'].includes(audit?.op_type)">
-              <div class="pl-9">moved the record to trash.</div>
+              <div class="pl-9">{{ $t('activity.movedRecordToTrash') }}</div>
             </template>
             <template v-else-if="['DATA_RESTORE', 'DATA_BULK_RESTORE'].includes(audit?.op_type)">
-              <div class="pl-9">restored the record from trash.</div>
+              <div class="pl-9">{{ $t('activity.restoredRecordFromTrash') }}</div>
             </template>
           </div>
         </div>

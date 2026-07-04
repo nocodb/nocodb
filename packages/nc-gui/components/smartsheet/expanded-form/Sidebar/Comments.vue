@@ -5,6 +5,8 @@ import type { CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const { user, appInfo } = useGlobal()
 
+const { t } = useI18n()
+
 const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useRoles()
@@ -250,13 +252,13 @@ const createdBy = (
   },
 ) => {
   if (comment.created_by === user.value?.id) {
-    return 'You'
+    return t('general.you')
   } else if (comment.created_display_name_short?.trim()) {
-    return comment.created_display_name_short || 'Shared source'
+    return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.created_by_email) {
     return comment.created_by_email
   } else {
-    return 'Shared source'
+    return t('labels.sharedSource')
   }
 }
 
@@ -453,13 +455,16 @@ onBeforeUnmount(() => {
                             </div>
                           </div>
                         </div>
-                        <div
+                        <i18n-t
                           v-if="isUIAllowed('dataEdit')"
+                          keypath="labels.hasRoleInBase"
+                          tag="div"
                           class="px-3 rounded-b-lg !text-[13px] items-center text-nc-content-gray-subtle2 flex gap-1 bg-nc-bg-gray-light py-1.5"
                         >
-                          Has <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
-                          role in base
-                        </div>
+                          <template #role>
+                            <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
+                          </template>
+                        </i18n-t>
                       </div>
                     </template>
                   </NcDropdown>
@@ -497,7 +502,7 @@ onBeforeUnmount(() => {
                       <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(commentItem)">
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.copy" class="cursor-pointer" />
-                          {{ $t('general.copy') }} URL
+                          {{ $t('activity.copyUrl') }}
                         </div>
                       </NcMenuItem>
                       <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">

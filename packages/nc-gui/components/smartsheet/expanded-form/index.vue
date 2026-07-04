@@ -346,12 +346,12 @@ const save = async () => {
     // Template mode: emit row data without creating a real record
     if (props.templateMode) {
       if (!editableTemplateName.value.trim()) {
-        message.toast('Template name is required')
+        message.toast(t('msg.error.templateNameRequired'))
         isSaving.value = false
         return
       }
       if (isDuplicateTemplateName.value) {
-        message.toast('A template with this name already exists')
+        message.toast(t('msg.error.templateNameExistsSimple'))
         isSaving.value = false
         return
       }
@@ -407,7 +407,7 @@ const save = async () => {
 
     // Close expanded form if row is hidden by RLS policy
     if (_row.value?.row?.__nc_rls_hidden) {
-      message.info('Record saved successfully but is hidden due to your access permissions.')
+      message.info(t('msg.info.recordSavedButHidden'))
       isExpanded.value = false
     } else if (props.closeAfterSave) {
       isExpanded.value = false
@@ -660,7 +660,7 @@ useActiveKeydownListener(
         })
       } else if (isNew.value) {
         Modal.confirm({
-          title: 'Do you want to save the record?',
+          title: t('msg.doYouWantToSaveTheRecord'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
@@ -955,10 +955,10 @@ export default {
                 v-model="editableTemplateName"
                 class="bg-transparent border-none outline-none font-bold text-xl w-full placeholder-gray-300"
                 :class="isDuplicateTemplateName ? 'text-red-500' : 'text-nc-content-gray'"
-                placeholder="Enter template name..."
+                :placeholder="$t('placeholder.enterTemplateName')"
               />
               <span v-if="isDuplicateTemplateName" class="text-red-500 text-[11px] pl-0.5">
-                A template with this name already exists
+                {{ $t('msg.error.templateNameExistsSimple') }}
               </span>
             </div>
             <div v-else-if="row.rowMeta?.new || props.newRecordHeader" class="flex flex-col truncate overflow-hidden">
@@ -1097,8 +1097,8 @@ export default {
         class="nc-expanded-form-template-notice flex items-center justify-center gap-2 px-4 py-1.5 border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-nc-content-gray-muted text-[11px] flex-shrink-0"
       >
         <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
-        <span v-if="templateMode">You are editing a record template. Changes here define default values for new records.</span>
-        <span v-else>You are editing a sub-record. A new record will be created and linked each time the template is used.</span>
+        <span v-if="templateMode">{{ $t('msg.info.editingRecordTemplate') }}</span>
+        <span v-else>{{ $t('msg.info.editingSubRecord') }}</span>
       </div>
     </div>
   </component>

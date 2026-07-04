@@ -7,6 +7,7 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { FilterParseError } from '~/lib/filterHelpers';
+import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
 import UITypes from '~/lib/UITypes';
 export {
   COMPARISON_OPS,
@@ -290,6 +291,34 @@ export function extractCondition(
 
       let sub_op = null;
 
+      // Support dot-notation for LTAR sub-field filtering: "(author.Id,eq,5)"
+      // splits into base column "author" + sub-field "Id" so related records can
+      // be filtered by their id instead of the display value.
+      //
+      // Skip the split when the full alias is itself a real column, so a literal
+      // column whose title contains a dot is not shadowed by an LTAR base match.
+      let ltarSubField: string | undefined;
+      if (alias && !aliasColObjMap[alias] && alias.includes('.')) {
+        const dotIdx = alias.indexOf('.');
+        const baseAlias = alias.substring(0, dotIdx);
+        const subField = alias.substring(dotIdx + 1);
+        const baseCol = aliasColObjMap[baseAlias];
+        // Only the related record's id (case-insensitive) is supported as a
+        // sub-field — the backend resolves it to the related table's primary
+        // key. Any other sub-field falls through to the "column not found" error
+        // below rather than silently filtering by the display value.
+        if (
+          baseCol &&
+          [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
+            baseCol.uidt as UITypes
+          ) &&
+          subField.toLowerCase() === 'id'
+        ) {
+          alias = baseAlias;
+          ltarSubField = subField;
+        }
+      }
+
       if (aliasColObjMap[alias]) {
         const columnType = aliasColObjMap[alias].uidt;
 
@@ -349,7 +378,8 @@ export function extractCondition(
         fk_column_id: columnId,
         logical_op: logicOp as FilterType['logical_op'],
         value,
-      };
+        ...(ltarSubField && { meta: { ltarSubField } }),
+      } as FilterTypeWithMeta;
     })
     .filter(Boolean);
 

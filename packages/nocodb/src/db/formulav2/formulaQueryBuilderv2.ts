@@ -46,6 +46,13 @@ import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
+// Sentinel thrown by the dry-run short-circuit below. It is internal control
+// flow, not a real formula error, so callers (e.g. select-object.ts) must not
+// log it — logging it per record/column is the noise that overwhelms the
+// instance when an external source is unreachable.
+export const FORMULA_DRY_RUN_SKIPPED_MESSAGE =
+  'Skipping formula dry-run: a previous validation already failed';
+
 async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const {
     baseModelSqlv2,
@@ -605,9 +612,7 @@ export default async function formulaQueryBuilderv2({
     // Short-circuit if a previous dry-run already failed for this base model,
     // to avoid amplifying requests to an overwhelmed external source
     if (baseModelSqlv2.formulaDryRunFailed) {
-      throw new Error(
-        'Skipping formula dry-run: a previous validation already failed',
-      );
+      throw new Error(FORMULA_DRY_RUN_SKIPPED_MESSAGE);
     }
 
     // dry run qb.builder to see if it will break the grid view or not

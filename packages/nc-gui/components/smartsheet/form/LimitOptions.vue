@@ -342,7 +342,7 @@ const showOrHideAll = (showAll: boolean) => {
         #footer
       >
         <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
-          {{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`
+          {{ $t('msg.info.noOptionsFoundWithTitle', { searchQuery }) }}
         </div>
       </template>
     </Draggable>

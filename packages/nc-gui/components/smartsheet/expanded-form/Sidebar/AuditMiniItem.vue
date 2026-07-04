@@ -207,7 +207,7 @@ function toggleLongText(key: string) {
         {{ columnKey }}
       </NcTooltip>
       <span v-if="isAiGeneratedText(columnKey)" class="whitespace-nowrap text-xs text-nc-content-purple-medium">
-        {{ $t('labels.generatedByAi') }}
+        ({{ $t('labels.generatedByAi') }})
       </span>
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">

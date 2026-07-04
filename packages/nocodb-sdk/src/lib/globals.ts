@@ -105,6 +105,7 @@ export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
   JSON = 'json',
+  ICS = 'ics',
 }
 
 export enum PluginCategory {

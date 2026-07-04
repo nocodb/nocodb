@@ -514,7 +514,7 @@ export interface IntegrationUpdateEvent extends IntegrationEvent {
 export interface DataExportEvent extends NcBaseEvent {
   view: ViewType;
   table: TableType;
-  type: 'excel' | 'csv' | 'json';
+  type: 'excel' | 'csv' | 'json' | 'ics';
 }
 
 export interface RecordsSoftDeleteEvent extends NcBaseEvent {

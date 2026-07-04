@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExportTypes } from 'nocodb-sdk'
+import { ExportTypes, ViewTypes } from 'nocodb-sdk'
 
 const { $api, $poller } = useNuxtApp()
 
@@ -68,6 +68,10 @@ const effectiveSorts = computed(() => (isPublicView.value ? activeSorts.value : 
 const effectiveNestedFilters = computed(() => (isPublicView.value ? activeNestedFilters.value : nestedFilters.value))
 
 const { isUIAllowed } = useRoles()
+
+// `.ics` export only makes sense for calendar views, which carry the date range
+// fields used to build the calendar events.
+const isCalendarView = computed(() => selectedView.value?.type === ViewTypes.CALENDAR)
 
 const exportFile = async (exportType: ExportTypes) => {
   try {
@@ -189,6 +193,15 @@ const exportFile = async (exportType: ExportTypes) => {
       <GeneralIcon v-else icon="ncFileTypeExcel" class="w-4" />
       <!-- Download as Excel -->
       {{ $t('labels.excel') }}
+    </div>
+  </NcMenuItem>
+
+  <NcMenuItem v-if="isCalendarView" v-e="['a:download:ics']" @click.stop="exportFile(ExportTypes.ICS)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="activeExportType === ExportTypes.ICS" size="regular" />
+      <GeneralIcon v-else icon="calendar" class="w-4" />
+      <!-- Download as iCalendar (.ics) -->
+      {{ $t('labels.icsCalendar') }}
     </div>
   </NcMenuItem>
 </template>

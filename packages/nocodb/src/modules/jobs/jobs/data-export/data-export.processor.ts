@@ -38,7 +38,12 @@ export class DataExportProcessor {
       locale,
     } = job.data;
 
-    if (exportAs !== 'csv' && exportAs !== 'json' && exportAs !== 'excel')
+    if (
+      exportAs !== 'csv' &&
+      exportAs !== 'json' &&
+      exportAs !== 'excel' &&
+      exportAs !== 'ics'
+    )
       NcError.notImplemented(`Export as ${exportAs}`);
 
     const hrTime = initTime();
@@ -65,7 +70,13 @@ export class DataExportProcessor {
     )}) ${date}`;
 
     const fileExtension =
-      exportAs === 'json' ? 'json' : exportAs === 'excel' ? 'xlsx' : 'csv';
+      exportAs === 'json'
+        ? 'json'
+        : exportAs === 'excel'
+        ? 'xlsx'
+        : exportAs === 'ics'
+        ? 'ics'
+        : 'csv';
     const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
 
     let url = null;
@@ -144,6 +155,23 @@ export class DataExportProcessor {
             dataStream.push(null);
             error = e;
           });
+      } else if (exportAs === 'ics') {
+        this.exportService
+          .streamModelDataAsIcs(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+            locale,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
       } else {
         this.exportService
           .streamModelDataAsCsv(context, {
@@ -178,6 +206,8 @@ export class DataExportProcessor {
           ? 'application/json'
           : exportAs === 'csv'
           ? 'text/csv'
+          : exportAs === 'ics'
+          ? 'text/calendar'
           : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const filenameWithExt = `${filename}.${fileExtension}`;
 

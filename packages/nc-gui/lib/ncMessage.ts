@@ -103,8 +103,8 @@ const generateMessageKey = (
     return (params as NcMessageObjectProps).key
   }
 
-  // dedup identical messages by hashing type + title + content
-  if (isPrimitiveValue(content) || content === null || content === undefined) {
+  // dedup identical messages by hashing type + title + content (isPrimitiveValue also covers null/undefined)
+  if (isPrimitiveValue(content)) {
     const raw = `${type}|${title ?? ''}|${content ?? ''}`
     let hash = 0
     for (let i = 0; i < raw.length; i++) {

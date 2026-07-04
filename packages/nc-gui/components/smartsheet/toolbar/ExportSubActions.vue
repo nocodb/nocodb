@@ -5,6 +5,8 @@ const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const { t } = useI18n()
+
 const meta = inject(MetaInj)!
 
 const isPublicView = inject(IsPublicInj, ref(false))
@@ -120,7 +122,7 @@ const exportFile = async (exportType: ExportTypes) => {
       )
     }
 
-    message.toast(`Preparing ${exportType.toUpperCase()} for download...`)
+    message.toast(t('msg.info.preparingForDownload', { type: exportType.toUpperCase() }))
 
     $poller.subscribe(
       { id: jobData.id },
@@ -138,13 +140,13 @@ const exportFile = async (exportType: ExportTypes) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             // Export completed successfully
-            message.toast('Successfully exported data!')
+            message.toast(t('msg.success.dataExported'))
 
             handleDownload(data.data?.result?.url)
 
             activeExportType.value = null
           } else if (data.status === JobStatus.FAILED) {
-            message.error('Failed to export data!')
+            message.error(t('msg.error.dataExportFailed'))
 
             activeExportType.value = null
           }

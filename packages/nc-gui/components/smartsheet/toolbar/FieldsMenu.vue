@@ -816,7 +816,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"
                 class="!w-[164px] flex-none"
-                alt="No search results found"
+                :alt="$t('title.noSearchResultsFound')"
               />
 
               {{ $t('title.noResultsMatchedYourSearch') }}
@@ -1044,7 +1044,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                 :disabled="!!addFieldReason"
               >
                 <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
-                <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
+                <span>{{ $t('general.new') }} {{ $t('objects.field') }}</span>
               </NcButton>
             </NcTooltip>
             <template #overlay>
@@ -1068,7 +1068,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           :show-unlock-button="isLocked"
           @on-open="open = false"
         >
-          <template v-if="!isLocked" #title> You don’t have permission to edit this view. </template>
+          <template v-if="!isLocked" #title> {{ $t('msg.info.noPermissionToEditView') }} </template>
         </GeneralLockedViewFooter>
       </div>
     </template>

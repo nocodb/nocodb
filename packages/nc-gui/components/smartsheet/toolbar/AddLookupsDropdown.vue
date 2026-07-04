@@ -189,7 +189,7 @@ watch(isOpened, async (val) => {
                   v-model:value="searchField"
                   :bordered="false"
                   class="w-full !shadow-none !py-3 a-input-without-effect absolute !bg-transparent"
-                  placeholder="Search field to add as lookup"
+                  :placeholder="$t('placeholder.searchFieldToAddAsLookup')"
                 >
                   <template #prefix>
                     <GeneralIcon icon="search" class="w-3.5 text-nc-content-gray-muted h-3.5 mr-1 ml-1" />
@@ -201,7 +201,9 @@ watch(isOpened, async (val) => {
                   class="flex justify-between items-center pl-4 pr-3 py-1.5 absolute w-full overflow-auto"
                   style="scrollbar-gutter: stable"
                 >
-                  <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
+                  <div class="font-weight-600">
+                    {{ $t('general.add') }} {{ $t('datatype.Lookup') }} {{ $t('objects.fields') }}
+                  </div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
                     <GeneralIcon icon="search" class="w-4 h-4" />
                   </NcButton>

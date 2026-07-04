@@ -11,6 +11,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
   useSmartsheetStoreOrThrow()
 
@@ -30,10 +32,10 @@ const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const { getMetaByKey } = useMetas()
 
 function getTableTitle(tableId?: string) {
-  if (!tableId) return 'Unknown'
+  if (!tableId) return t('general.unknown')
   const baseId = (meta.value as TableType)?.base_id
   const tableMeta = getMetaByKey(baseId, tableId)
-  return tableMeta?.title || 'Unknown'
+  return tableMeta?.title || t('general.unknown')
 }
 
 const isDropdownOpen = ref(false)
@@ -388,7 +390,7 @@ watch(
         </div>
         <div v-if="isSearchResultVisible" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
           <div class="text-nc-content-gray text-bodySmBold">
-            {{ totalRowsWithSearchQuery }} of {{ totalRowsWithoutSearchQuery }}
+            {{ $t('title.countOfTotal', { count: totalRowsWithSearchQuery, total: totalRowsWithoutSearchQuery }) }}
           </div>
           <div class="text-nc-content-gray-muted text-bodySm">
             {{ $t('title.matchingResultsInRecords', { count: totalRowsWithSearchQuery }) }}

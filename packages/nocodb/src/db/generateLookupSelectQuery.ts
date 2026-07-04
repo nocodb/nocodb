@@ -25,7 +25,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { NcError } from '~/helpers/catchError';
 import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
-import { Model } from '~/models';
+import { Model, View } from '~/models';
 import { getAliasGenerator } from '~/utils';
 import { DBQueryClient } from '~/dbQueryClient';
 
@@ -61,9 +61,14 @@ export async function getDisplayValueOfRefTable(
  * Like getDisplayValueOfRefTable but supports filtering by the related record's
  * primary key when ltarSubField is 'id' (case-insensitive).
  *
- * Only 'id' is supported as a sub-field to avoid exposing columns that may be
- * hidden in the related table's view. The PK column is always accessible
- * (it is the row identifier used in all API operations).
+ * Only 'id' is supported as a sub-field — generic title-based column lookup is
+ * excluded to prevent accessing columns that may be hidden in the related
+ * table's view.
+ *
+ * The PK column is checked against the LTAR's target view (fk_target_view_id,
+ * falling back to the first collaborative view). If the PK column is hidden in
+ * that view, this falls back to the display value so the filter still works but
+ * does not expose data the view owner intended to restrict.
  *
  * Falls back to the display value when ltarSubField is absent or not 'id'.
  */
@@ -76,10 +81,7 @@ export async function getRefTableColumnForFilter(
     return getDisplayValueOfRefTable(context, relationCol);
   }
 
-  // Only 'id' (case-insensitive) is permitted — maps to the PK column.
-  // Generic title-based column lookup is intentionally excluded: the caller
-  // has no visibility context for the related table's view, so we cannot
-  // safely allow arbitrary column references without leaking hidden field data.
+  // Only 'id' (case-insensitive) is permitted.
   if (ltarSubField.toLowerCase() !== 'id') {
     return getDisplayValueOfRefTable(context, relationCol);
   }
@@ -91,7 +93,26 @@ export async function getRefTableColumnForFilter(
   const modelContext = { ...context, base_id: model.base_id };
   const cols = await model.getColumns(modelContext);
 
-  return cols.find((col) => col.pk) || null;
+  const pkCol = cols.find((col) => col.pk);
+  if (!pkCol) return null;
+
+  // Resolve the target view: use the LTAR-configured view if set, otherwise
+  // fall back to the first collaborative (grid) view of the related table.
+  const targetViewId = (colOpt as LinkToAnotherRecordColumn).fk_target_view_id;
+  const targetView = targetViewId
+    ? await View.get(modelContext, targetViewId)
+    : await View.getFirstCollaborativeView(modelContext, model.id);
+
+  if (targetView) {
+    const viewCols = await View.getColumns(modelContext, targetView.id);
+    const pkViewCol = viewCols.find((vc) => vc.fk_column_id === pkCol.id);
+    // If PK is explicitly hidden in the target view, fall back to display value.
+    if (pkViewCol && !pkViewCol.show) {
+      return getDisplayValueOfRefTable(context, relationCol);
+    }
+  }
+
+  return pkCol;
 }
 
 // this function will generate the query for lookup column

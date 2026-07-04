@@ -16,6 +16,8 @@ const props = defineProps<{
 
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 /* fields */
 
 const fieldsChanged = computed(() => {
@@ -47,11 +49,11 @@ function getLinkColumnType(audit: AuditType) {
 const createdBy = computed(() => {
   const displayName = props.auditGroup.displayNameShort?.trim() || props.auditGroup.created_display_name_short?.trim()
   if (props.auditGroup.user === user.value?.email) {
-    return 'You'
+    return t('general.you')
   } else if (displayName) {
-    return displayName || 'Shared source'
+    return displayName || t('labels.sharedSource')
   } else {
-    return 'Shared source'
+    return t('labels.sharedSource')
   }
 })
 </script>
@@ -77,10 +79,10 @@ const createdBy = computed(() => {
           {{ createdBy }}
         </span>
         <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-nc-content-gray-subtle2">
-          created a record.
+          {{ $t('activity.createdARecord') }}
         </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-nc-content-gray-subtle2">
-          updated {{ fieldsChanged }} fields
+          {{ $t('activity.updatedFields', { fieldsChanged }) }}
         </span>
         <span
           v-else-if="props.auditGroup.audit?.op_type === 'DATA_CASCADE_UPDATE'"
@@ -89,7 +91,7 @@ const createdBy = computed(() => {
           {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
         </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-nc-content-gray-subtle2">
-          updated 1 field
+          {{ $t('activity.updatedOneField') }}
         </span>
       </p>
       <div class="text-xs font-weight-500 text-nc-content-gray-muted">
@@ -105,7 +107,7 @@ const createdBy = computed(() => {
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
+        <p class="text-sm font-weight-500 mb-1 ml-6.5">{{ $t('activity.recordWasCreated') }}</p>
       </div>
     </template>
     <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">
@@ -118,7 +120,7 @@ const createdBy = computed(() => {
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
         />
         <div class="text-sm ml-6.5 inline-flex items-center flex-wrap gap-1">
-          <span class="text-small1 text-nc-content-gray-subtle2 font-weight-500"> changed </span>
+          <span class="text-small1 text-nc-content-gray-subtle2 font-weight-500"> {{ $t('activity.changed') }} </span>
           <span
             class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
           >

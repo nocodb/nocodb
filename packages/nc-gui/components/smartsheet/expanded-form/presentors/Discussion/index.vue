@@ -117,7 +117,7 @@ export default {
             class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
             @click="initLoadMoreAudits()"
           >
-            Load more
+            {{ $t('general.loadMore') }}
           </NcButton>
         </div>
       </div>
@@ -134,12 +134,12 @@ export default {
           v-if="isUIAllowed('commentEdit')"
           class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
         >
-          <div class="font-bold my-3">Add a comment</div>
+          <div class="font-bold my-3">{{ $t('activity.addComment') }}</div>
           <SmartsheetExpandedFormRichComment
             ref="refRichComment"
             v-model:value="newCommentText"
             :hide-options="false"
-            placeholder="Comment..."
+            :placeholder="$t('placeholder.comment')"
             class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
             data-testid="expanded-form-comment-input"
             :autofocus="isExpandedFormCommentMode"

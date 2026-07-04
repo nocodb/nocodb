@@ -9,6 +9,8 @@ const props = defineProps<{
 
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
@@ -37,24 +39,24 @@ const createdBy = (
   },
 ) => {
   if (comment.created_by === user.value?.id) {
-    return 'You'
+    return t('general.you')
   } else if (comment.created_display_name_short?.trim()) {
-    return comment.created_display_name_short || 'Shared source'
+    return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.created_by_email) {
     return comment.created_by_email
   } else {
-    return 'Shared source'
+    return t('labels.sharedSource')
   }
 }
 
 const isCreatedByYou = computed(() => {
-  return createdBy(props.comment) === 'You'
+  return createdBy(props.comment) === t('general.you')
 })
 
 const editedAt = (comment: CommentType) => {
   if (comment.updated_at !== comment.created_at && comment.updated_at) {
     const str = timeAgo(comment.updated_at).replace(' ', '_')
-    return `[(edited)](a~~~###~~~Edited_${str}) `
+    return `[${t('activity.edited')}](a~~~###~~~Edited_${str}) `
   }
   return ''
 }
@@ -186,7 +188,7 @@ async function copyComment(comment: CommentType) {
             >
               <GeneralIcon class="!w-3.5 !h-3.5" icon="pencil" />
             </NcButton>
-            <template #title>Click to edit</template>
+            <template #title>{{ $t('tooltip.clickToEdit') }}</template>
           </NcTooltip>
 
           <NcDropdown
@@ -203,7 +205,7 @@ async function copyComment(comment: CommentType) {
                 <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(props.comment)">
                   <div class="flex gap-2 items-center">
                     <component :is="iconMap.copy" class="cursor-pointer" />
-                    {{ $t('general.copy') }} URL
+                    {{ $t('general.copy') }} {{ $t('datatype.URL') }}
                   </div>
                 </NcMenuItem>
                 <template v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
@@ -234,7 +236,7 @@ async function copyComment(comment: CommentType) {
             <template #title>{{ $t('activity.clickToResolve') }}</template>
           </NcTooltip>
           <NcTooltip v-else-if="props.comment.resolved_by">
-            <template #title>{{ `Resolved by ${props.comment.resolved_display_name_short}` }}</template>
+            <template #title>{{ $t('tooltip.resolvedBy', { name: props.comment.resolved_display_name_short }) }}</template>
             <NcButton
               class="!h-6 !w-6 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
               size="xsmall"

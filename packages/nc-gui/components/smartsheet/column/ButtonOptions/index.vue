@@ -139,7 +139,7 @@ const validators = {
       validator: (_: any, formula: any) => {
         return (async () => {
           if (vModel.value.type === ButtonActionsType.Url) {
-            if (!formula?.trim()) throw new Error('Formula is required for URL Button')
+            if (!formula?.trim()) throw new Error(t('msg.error.formulaRequiredForUrlButton'))
 
             try {
               await validateFormulaAndExtractTreeWithType({
@@ -165,7 +165,7 @@ const validators = {
               throw new Error(e.message)
             }
           } else if (vModel.value.type === ButtonActionsType.Ai) {
-            if (!formula?.trim()) throw new Error('Prompt required for AI Button')
+            if (!formula?.trim()) throw new Error(t('msg.error.promptRequiredForAiButton'))
           }
         })()
       },
@@ -250,7 +250,7 @@ const validators = {
       validator: (_: any, value: any) => {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === ButtonActionsType.Ai && !value) {
-            reject(new Error('At least one output field is required for AI Button'))
+            reject(new Error(t('msg.error.outputFieldRequiredForAiButton')))
           }
           resolve()
         })
@@ -389,7 +389,7 @@ if (isEdit.value) {
             :class="{
               'nc-ai-input': isAiMode,
             }"
-            placeholder="Button"
+            :placeholder="$t('datatype.Button')"
           />
         </a-form-item>
       </a-col>

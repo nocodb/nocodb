@@ -27,7 +27,9 @@ const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[
           <span>{{ $t('objects.coloring.usingConditions') }}</span>
         </div>
         <div>
-          <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">Colour records based on conditions</span>
+          <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">{{
+            $t('objects.coloring.usingConditionsDescriptionOss')
+          }}</span>
         </div>
       </div>
     </a-button>

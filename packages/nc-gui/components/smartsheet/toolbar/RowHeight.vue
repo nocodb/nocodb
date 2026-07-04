@@ -20,6 +20,8 @@ const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = 
   },
 ]
 
+const { t } = useI18n()
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const viewStore = useViewsStore()
@@ -73,7 +75,7 @@ const updateRowHeight = async (rh: number) => {
 
       open.value = false
     } catch (e: any) {
-      message.error((await extractSdkResponseErrorMsg(e)) || 'There was an error while updating view!')
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.errorWhileUpdatingView'))
     }
   }
 }

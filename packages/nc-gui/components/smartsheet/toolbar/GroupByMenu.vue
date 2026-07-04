@@ -40,6 +40,8 @@ const { blockToggleGroupBy, showUpgradeToUseToggleGroupBy } = useEeConfig()
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { isUserViewOwner, updateViewMeta } = useViewsStore()
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -152,7 +154,7 @@ const isSavingGroupBy = ref(false)
 
 const saveGroupBy = async () => {
   if (!view.value?.id) {
-    message.error('View not found!!!')
+    message.error(t('msg.error.viewNotFound'))
     return
   }
 
@@ -201,7 +203,7 @@ const saveGroupBy = async () => {
 
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
-      message.error('There was an error while updating view!')
+      message.error(t('msg.error.errorWhileUpdatingView'))
     } finally {
       isSavingGroupBy.value = false
     }
@@ -366,7 +368,7 @@ const updateHideEmptyGroups = async (v: boolean) => {
       await updateViewMeta(view.value.id, ViewTypes.GRID, { meta: payload })
     } catch (e) {
       hideEmptyGroups.value = previousValue
-      message.error('There was an error while updating view!')
+      message.error(t('msg.error.errorWhileUpdatingView'))
       return
     }
   }

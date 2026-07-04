@@ -427,7 +427,7 @@ watch(
           <div v-else-if="filtersFromUrlParams?.errors?.length">
             <NcAlert
               type="error"
-              message="Error"
+              :message="$t('objects.ncMessage.error')"
               :description="$t('msg.urlFilterError')"
               :copy-text="filtersFromUrlParamsReadableErrors"
               :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"

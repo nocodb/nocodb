@@ -220,7 +220,7 @@ const isSingleOrMultiSelect = computed(() => {
       :is="filterUIType ? componentMap[filterUIType] : Text"
       v-model="filterInput"
       :disabled="filter.readOnly || disabled"
-      placeholder="Enter a value"
+      :placeholder="$t('placeholder.enterAValue')"
       :column="column"
       class="flex !rounded-lg"
       :class="{

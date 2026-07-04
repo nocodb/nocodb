@@ -3088,7 +3088,6 @@
     "restricted": "Restricted",
     "grantAccessToAllBases": "Grant access to all current and future bases",
     "selectBases": "Select bases",
-    "levelShort": "L{n}",
     "groupDisabled": "Group disabled",
     "clearValue": "Clear value",
     "subRecords": "Sub Records",

@@ -291,6 +291,14 @@ export class PublicDatasService {
    * nothing accessible remains (so the caller can drop the key and let the
    * default ordering apply). Without this, `?sort=-HiddenCol` resolves against
    * the full alias map in BaseModel and leaks ordering on a hidden column.
+   *
+   * Only column ids and titles are matched — deliberately NOT physical
+   * `column_name`s. `extractSortsObject` resolves each field against
+   * `Model.getAliasColObjMap`, which is keyed solely by `id` and `title`, so a
+   * physical `column_name` never resolves to a sort. Worse, allowing it here
+   * opens a bypass: if a hidden column's title/id collides with a visible
+   * column's physical `column_name`, `?sort=<name>` would pass this gate yet
+   * resolve to the hidden column downstream, leaking its ordering.
    */
   protected stripHiddenColumnsFromSortString(
     sort: string | string[],
@@ -300,10 +308,8 @@ export class PublicDatasService {
     const isAccessible = (field: string) =>
       visibleInfo.visibleColumnIds.has(field) ||
       visibleInfo.visibleColumnTitles.has(field) ||
-      visibleInfo.visibleColumnNames.has(field) ||
       visibleInfo.groupByColumnIds.has(field) ||
-      visibleInfo.groupByColumnTitles.has(field) ||
-      visibleInfo.groupByColumnNames.has(field);
+      visibleInfo.groupByColumnTitles.has(field);
 
     const kept = parts.filter((s) => {
       if (!s) return false;

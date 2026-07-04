@@ -346,7 +346,11 @@ const onConfirmDeleteRowClick = async () => {
     </template>
   </NcDropdown>
 
-  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="onConfirmDeleteRowClick">
+  <GeneralDeleteModal
+    v-model:visible="showDeleteRowModal"
+    :entity-name="$t('general.record')"
+    :on-delete="onConfirmDeleteRowClick"
+  >
     <template #entity-preview>
       <span>
         <div

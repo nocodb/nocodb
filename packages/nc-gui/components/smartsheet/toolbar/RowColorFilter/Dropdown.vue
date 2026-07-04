@@ -17,7 +17,9 @@ const isShowColoringButton = ref(false)
             <component :is="iconMap.ncPaintRoller" class="h-4 w-4" />
 
             <!-- Group By -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">Coloring</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
+              $t('objects.coloring.title')
+            }}</span>
           </div>
           <!-- <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
             groupedByColumnIds.length

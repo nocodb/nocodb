@@ -1265,7 +1265,7 @@ defineExpose({
                         v-e="['c:filter:logical-op:select']"
                         :dropdown-match-select-width="false"
                         class="min-w-18 capitalize"
-                        placeholder="Group op"
+                        :placeholder="$t('placeholder.groupOp')"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
                         :disabled="(i > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly"
                         :class="{
@@ -1583,14 +1583,18 @@ defineExpose({
                               @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-3">
+                                  {{ $t('labels.staticCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="!filter.dynamic && !filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnStaticValue') }}
+                              </div>
                             </div>
                             <div
                               v-e="['c:filter:dynamic-filter']"
@@ -1598,14 +1602,18 @@ defineExpose({
                               @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                  {{ $t('labels.dynamicCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="filter.dynamic || filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnDynamicValue') }}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1634,14 +1642,18 @@ defineExpose({
                               @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-3">
+                                  {{ $t('labels.staticCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="!filter.dynamic && !filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnStaticValue') }}
+                              </div>
                             </div>
                             <div
                               v-e="['c:filter:dynamic-filter']"
@@ -1654,14 +1666,18 @@ defineExpose({
                               @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                  {{ $t('labels.dynamicCondition') }}
+                                </div>
                                 <GeneralIcon
                                   v-if="filter.dynamic || filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                {{ $t('labels.filterBasedOnDynamicValue') }}
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -956,7 +956,9 @@
       "usingConditionsDescription": "Colour records/cells based on conditions",
       "colourRecordsByField": "Colour records by field",
       "rowColorDescription": "Apply colour to the record",
-      "cellColorDescription": "Apply colour to a specific field"
+      "cellColorDescription": "Apply colour to a specific field",
+      "title": "Coloring",
+      "usingConditionsDescriptionOss": "Colour records based on conditions"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Create record restricted",
@@ -3313,7 +3315,11 @@
       }
     },
     "sharedSource": "Shared source",
-    "hasRoleInBase": "Has {role} role in base"
+    "hasRoleInBase": "Has {role} role in base",
+    "staticCondition": "Static condition",
+    "filterBasedOnStaticValue": "Filter based on static value",
+    "dynamicCondition": "Dynamic condition",
+    "filterBasedOnDynamicValue": "Filter based on dynamic value"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4001,6 +4007,8 @@
     "enterTeamDescription": "Enter team description",
     "searchRecords": "Search records",
     "searchRecordTemplates": "Search record templates",
+    "groupOp": "Group op",
+    "enterAValue": "Enter a value",
     "enterTemplateName": "Enter template name...",
     "aiButtonPromptExample": "Enter prompt here...\n\n eg : Categorise this {'{'}Notes{'}'}",
     "selectMappingField": "Select a Mapping Field",
@@ -4830,6 +4838,8 @@
       "rlsPolicyDeleteFailed": "Failed to delete record-level security policy",
       "rlsPolicyUpdateFailed": "Failed to update record-level security policy",
       "docAttachmentRefFailed": "Couldn't save the attachment reference. Please try uploading it again.",
+      "viewNotFound": "View not found!!!",
+      "errorWhileUpdatingView": "There was an error while updating view!",
       "templateNameRequired": "Template name is required",
       "templateNameExistsSimple": "A template with this name already exists",
       "formulaRequiredForUrlButton": "Formula is required for URL Button",

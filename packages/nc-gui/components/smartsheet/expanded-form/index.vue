@@ -351,7 +351,7 @@ const save = async () => {
         return
       }
       if (isDuplicateTemplateName.value) {
-        message.toast(t('msg.error.templateNameExists'))
+        message.toast(t('msg.error.templateNameExistsSimple'))
         isSaving.value = false
         return
       }
@@ -958,7 +958,7 @@ export default {
                 :placeholder="$t('placeholder.enterTemplateName')"
               />
               <span v-if="isDuplicateTemplateName" class="text-red-500 text-[11px] pl-0.5">
-                {{ $t('msg.error.templateNameExists') }}
+                {{ $t('msg.error.templateNameExistsSimple') }}
               </span>
             </div>
             <div v-else-if="row.rowMeta?.new || props.newRecordHeader" class="flex flex-col truncate overflow-hidden">

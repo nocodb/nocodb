@@ -4831,7 +4831,7 @@
       "rlsPolicyUpdateFailed": "Failed to update record-level security policy",
       "docAttachmentRefFailed": "Couldn't save the attachment reference. Please try uploading it again.",
       "templateNameRequired": "Template name is required",
-      "templateNameExists": "A template with this name already exists",
+      "templateNameExistsSimple": "A template with this name already exists",
       "formulaRequiredForUrlButton": "Formula is required for URL Button",
       "promptRequiredForAiButton": "Prompt required for AI Button",
       "outputFieldRequiredForAiButton": "At least one output field is required for AI Button",

@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
   extractFilterFromXwhere,
+  isLinksOrLTAR,
   NcBaseError,
   ncIsArray,
   NOCO_SERVICE_USERS,
@@ -1183,6 +1184,10 @@ export class PublicDatasService {
     }
 
     await currentModel.getColumns(context);
+
+    if (!isLinksOrLTAR(column))
+      NcError.get(context).badRequest('Column is not a relation column');
+
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
     );

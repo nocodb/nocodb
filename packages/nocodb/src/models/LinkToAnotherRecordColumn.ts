@@ -220,10 +220,14 @@ export default class LinkToAnotherRecordColumn {
     table: Model = undefined,
     ncMeta = Noco.ncMeta,
   ) {
-    await table?.getViews(context);
-    const viewId = this.fk_target_view_id ?? table?.views?.[0]?.id ?? '';
-    if (!viewId) return;
-    return await View.get(context, viewId, false, ncMeta);
+    if (this.fk_target_view_id) {
+      return View.get(context, this.fk_target_view_id, false, ncMeta);
+    }
+    if (!table?.id) return;
+    // Fall back to the table's default view — the first collaborative GRID
+    // view (cached) — not the raw index-0 view, which is unordered and can be
+    // another user's personal view.
+    return View.getFirstCollaborativeView(context, table.id, ncMeta);
   }
 
   public static async read(

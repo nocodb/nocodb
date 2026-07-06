@@ -831,6 +831,10 @@ export class OracleUi implements SqlUi {
       'EXP',
       // DATETIME_FORMAT is only implemented for PG, MySQL and SQLite.
       'DATETIME_FORMAT',
+      // Checksum functions are only mapped for PostgreSQL and MySQL.
+      'MD5',
+      'SHA256',
+      'SHA512',
     ];
   }
 

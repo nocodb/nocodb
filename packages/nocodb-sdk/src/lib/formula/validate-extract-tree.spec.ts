@@ -674,6 +674,46 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     expect((result as any).dataType).toBe(FormulaDataTypes.BOOLEAN);
   });
 
+  // Test cases for checksum functions
+  for (const fnName of ['MD5', 'SHA256', 'SHA512']) {
+    it(`should resolve ${fnName} to a string CALL_EXP`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: `${fnName}({Column1})`,
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+      expect((result as any).dataType).toBe(FormulaDataTypes.STRING);
+    });
+
+    it(`should throw for ${fnName} without arguments`, async () => {
+      await expect(
+        validateFormulaAndExtractTreeWithType({
+          formula: `${fnName}()`,
+          columns: mockColumns,
+          clientOrSqlUi: mockClientOrSqlUi,
+          getMeta: mockGetMeta,
+        })
+      ).rejects.toThrow(FormulaError);
+    });
+
+    it(`should throw INVALID_FUNCTION_NAME for ${fnName} when unsupported by database`, async () => {
+      const mocked = jest
+        .spyOn(mockClientOrSqlUi, 'getUnsupportedFnList')
+        .mockReturnValue([fnName]);
+      await expect(
+        validateFormulaAndExtractTreeWithType({
+          formula: `${fnName}({Column1})`,
+          columns: mockColumns,
+          clientOrSqlUi: mockClientOrSqlUi,
+          getMeta: mockGetMeta,
+        })
+      ).rejects.toHaveProperty('type', FormulaErrorType.INVALID_FUNCTION_NAME);
+      mocked.mockRestore();
+    });
+  }
+
   // Test cases for unary expression
   it('should handle negative numeric literal', async () => {
     const result = await validateFormulaAndExtractTreeWithType({

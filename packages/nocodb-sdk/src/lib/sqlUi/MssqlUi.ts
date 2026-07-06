@@ -808,6 +808,10 @@ export class MssqlUi implements SqlUi {
       // (e.g. "12ab-c345" -> -12345); T-SQL has no regex pre-2025, so the
       // TRY_CAST-based impl can't reproduce it. Blocked rather than wrong.
       'VALUE',
+      // Checksum functions are only mapped for PostgreSQL and MySQL.
+      'MD5',
+      'SHA256',
+      'SHA512',
     ];
   }
 

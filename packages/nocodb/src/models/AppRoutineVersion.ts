@@ -23,7 +23,9 @@ export default class AppRoutineVersion implements RoutineVersionType {
     return null;
   }
 
-  public static async listForRoutine(..._args: any): Promise<AppRoutineVersion[]> {
+  public static async listForRoutine(
+    ..._args: any
+  ): Promise<AppRoutineVersion[]> {
     return [];
   }
 

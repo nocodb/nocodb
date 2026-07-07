@@ -33,7 +33,6 @@ import {
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
-  ncIsBoolean,
   ncIsNull,
   ncIsNullOrUndefined,
   ncIsObject,
@@ -4082,7 +4081,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const dt = (col?.dt || '').toLowerCase();
       return dayjs(val)
         .utc()
-        .format(dt === 'date' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ss.SSS');
+        .format(
+          dt === 'date' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ss.SSS',
+        );
     }
     if (isMssql) {
       // T-SQL `datetime` / `datetime2` types reject the `+00:00` offset

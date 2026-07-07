@@ -454,9 +454,8 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     );
 
     // Notify clients viewing the related table about its new back-link column.
-    const ltarColOpt = await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const ltarColOpt =
+      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     if (ltarColOpt) {
       await broadcastRelatedTableBackLink(context, {
         relationColOpt: ltarColOpt,

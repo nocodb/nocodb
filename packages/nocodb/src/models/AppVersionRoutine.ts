@@ -15,7 +15,9 @@ export default class AppVersionRoutine implements AppVersionRoutineType {
     return null;
   }
 
-  public static async listForAppVersion(..._args: any): Promise<AppVersionRoutine[]> {
+  public static async listForAppVersion(
+    ..._args: any
+  ): Promise<AppVersionRoutine[]> {
     return [];
   }
 

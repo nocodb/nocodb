@@ -8255,6 +8255,9 @@ export class ColumnsService implements IColumnsService {
       let newLtarCol: Column | undefined;
       let dependentLookupColIds: string[] = [];
       let dependentRollupColIds: string[] = [];
+      // View-column rows of the dropped FK column, removed inside the meta
+      // transaction; their cache is busted post-commit (see below).
+      const fkViewColumnDeepDelKeys: { scope: CacheScope; id: string }[] = [];
 
       try {
         // Delete old HM col_relations
@@ -8355,8 +8358,67 @@ export class ColumnsService implements IColumnsService {
           },
         );
 
-        // Delete old FK column metadata
+        // Delete old FK column metadata + its dependent view-column rows.
+        // Raw metaDelete (rather than Column.delete) keeps this inside the
+        // conversion's transaction/phase structure, but on its own it would
+        // orphan the FK column's GridViewColumn/etc. rows (fk_column_id pointing
+        // at a now-deleted column) — surfacing as "Column not found for
+        // viewOrTableColumn" warnings and broken view metadata. Mirror the
+        // view-column cleanup that Column.delete performs.
         if (fkColumn.uidt === UITypes.ForeignKey) {
+          const fkViewColumnTables = [
+            {
+              table: MetaTable.GRID_VIEW_COLUMNS,
+              scope: CacheScope.GRID_VIEW_COLUMN,
+            },
+            {
+              table: MetaTable.FORM_VIEW_COLUMNS,
+              scope: CacheScope.FORM_VIEW_COLUMN,
+            },
+            {
+              table: MetaTable.KANBAN_VIEW_COLUMNS,
+              scope: CacheScope.KANBAN_VIEW_COLUMN,
+            },
+            {
+              table: MetaTable.GALLERY_VIEW_COLUMNS,
+              scope: CacheScope.GALLERY_VIEW_COLUMN,
+            },
+            {
+              table: MetaTable.CALENDAR_VIEW_COLUMNS,
+              scope: CacheScope.CALENDAR_VIEW_COLUMN,
+            },
+            {
+              // Map views insert a column row for every column (FK included —
+              // the MAP branch of insertColumnToAllViews has no system/FK skip),
+              // so the FK column orphans a MAP_VIEW_COLUMNS row too. Keep this in
+              // sync with the 6 tables the one-time migration job reaps so a post-
+              // migration V1→V2 upgrade doesn't re-orphan an uncleaned map row.
+              table: MetaTable.MAP_VIEW_COLUMNS,
+              scope: CacheScope.MAP_VIEW_COLUMN,
+            },
+          ];
+
+          for (const { table, scope } of fkViewColumnTables) {
+            const viewCols = await ncMeta.metaList2(
+              childRefContext.workspace_id,
+              childRefContext.base_id,
+              table,
+              { condition: { fk_column_id: fkColumn.id } },
+            );
+            if (!viewCols.length) continue;
+
+            await ncMeta.metaDelete(
+              childRefContext.workspace_id,
+              childRefContext.base_id,
+              table,
+              { fk_column_id: fkColumn.id },
+            );
+
+            for (const vc of viewCols) {
+              fkViewColumnDeepDelKeys.push({ scope, id: vc.id });
+            }
+          }
+
           await ncMeta.metaDelete(
             childRefContext.workspace_id,
             childRefContext.base_id,
@@ -8541,6 +8603,15 @@ export class ColumnsService implements IColumnsService {
           `${CacheScope.COLUMN}:${fkColumn.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
+
+        // Bust cache for the FK column's view-column rows removed in the tx
+        for (const { scope, id } of fkViewColumnDeepDelKeys) {
+          await NocoCache.deepDel(
+            childRefContext,
+            `${scope}:${id}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
       }
 
       await View.clearSingleQueryCache(context, parentTable.id);

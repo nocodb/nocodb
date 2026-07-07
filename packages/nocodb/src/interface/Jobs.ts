@@ -30,6 +30,7 @@ export enum MigrationJobTypes {
   NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
   RecordTrashBackfill = 'record-trash-backfill',
   CleanupOrphanCrossBaseLinks = 'cleanup-orphan-cross-base-links',
+  CleanupOrphanViewColumns = 'cleanup-orphan-view-columns',
 }
 
 export enum JobTypes {

@@ -1,44 +1,13 @@
-import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+// Neutralized (no-op). This migration once widened nc_operation_logs.entity_id
+// to varchar(255) to fit the composite app-page permission id `<appId>::<pageId>`.
+// That composite id was retired: app pages are now first-class nc_app_pages rows
+// whose base-unique ids (`pg…`, 16 chars) fit the original varchar(20). The
+// widen is therefore unnecessary; the file + its XcMigrationSource registrations
+// are kept (not deleted) so knex's validateMigrationList still matches recorded
+// migration names on DBs that already ran it. Fresh DBs no longer widen;
+// already-migrated dev DBs keep the harmless wider column.
+const up = async () => {};
 
-// `entity_id` was sized varchar(20) for a single nanoid, but app PAGE
-// permissions target a composite id `<appId>::<pageId>`
-// (see appPagePermissionEntityId) that overflows 20 chars. The forward
-// write lands in nc_permissions.entity_id (varchar(255)); only the
-// best-effort undo-log insert failed. Widen to 255 to match that source
-// column — this is the invariant "undo-log width >= widest source column".
-//
-// Raw SQL on purpose: knex's .string(...).alter() emits
-// `... TYPE varchar(255) USING (entity_id::varchar(255))` plus redundant
-// drop default/not null. The plain `ALTER COLUMN ... TYPE varchar(255)` is a
-// documented catalog-only change on Postgres (no table rewrite, since 9.2),
-// which the USING form does not guarantee across versions.
-const up = async (knex: Knex) => {
-  const client = knex.client.config.client;
-  if (client === 'pg' || client === 'postgres' || client === 'postgresql') {
-    await knex.raw(
-      `ALTER TABLE ${MetaTable.OPERATION_LOGS} ALTER COLUMN entity_id TYPE varchar(255)`,
-    );
-  } else if (client === 'mysql' || client === 'mysql2') {
-    await knex.raw(
-      `ALTER TABLE ${MetaTable.OPERATION_LOGS} MODIFY entity_id varchar(255)`,
-    );
-  }
-  // sqlite: varchar length is not enforced, so the column already accepts
-  // the composite id — nothing to alter.
-};
-
-const down = async (knex: Knex) => {
-  const client = knex.client.config.client;
-  if (client === 'pg' || client === 'postgres' || client === 'postgresql') {
-    await knex.raw(
-      `ALTER TABLE ${MetaTable.OPERATION_LOGS} ALTER COLUMN entity_id TYPE varchar(20)`,
-    );
-  } else if (client === 'mysql' || client === 'mysql2') {
-    await knex.raw(
-      `ALTER TABLE ${MetaTable.OPERATION_LOGS} MODIFY entity_id varchar(20)`,
-    );
-  }
-};
+const down = async () => {};
 
 export { up, down };

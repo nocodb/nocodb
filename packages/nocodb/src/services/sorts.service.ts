@@ -47,6 +47,20 @@ export class SortsService {
       ncMeta,
     );
 
+    // Lookup-scoped sort (fk_lookup_col_id, no view): no view webhooks/hooks.
+    if (!sort.fk_view_id) {
+      await Sort.delete(context, param.sortId, ncMeta);
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: { action: 'sort_delete', payload: sort },
+        },
+        context.socket_id,
+      );
+      return true;
+    }
+
     const view = await View.get(context, sort.fk_view_id, false, ncMeta);
 
     const viewWebhookManager =
@@ -128,6 +142,24 @@ export class SortsService {
       { colId: sort.fk_column_id },
       ncMeta,
     );
+
+    // Lookup-scoped sort (fk_lookup_col_id, no view): there is no view to drive
+    // view webhooks/hooks, so just persist the change and broadcast.
+    if (!sort.fk_view_id) {
+      const res = await Sort.update(context, param.sortId, param.sort, ncMeta);
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'sort_update',
+            payload: { ...sort, ...param.sort },
+          },
+        },
+        context.socket_id,
+      );
+      return res;
+    }
 
     const view = await View.get(context, sort.fk_view_id, false, ncMeta);
 

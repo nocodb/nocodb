@@ -162,3 +162,18 @@ export const ctx = {
     },
   ),
 };
+
+// Route-sync: emit the current hash whenever the app navigates internally
+// (HashRouter fires hashchange on every navigation). The full-bleed parent
+// listens and updates its own outer URL hash without reload so deep-links stay
+// shareable. Child→parent only; postMessage to '*' is safe under an opaque
+// (sandbox=allow-scripts, no allow-same-origin) origin — no allow-same-origin
+// needed.
+if (typeof window !== 'undefined') {
+  window.addEventListener('hashchange', () => {
+    window.parent.postMessage(
+      { type: 'nc-app-route', path: window.location.hash },
+      '*',
+    );
+  });
+}

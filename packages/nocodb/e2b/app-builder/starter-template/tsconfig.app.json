@@ -13,8 +13,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    /* Off by design: unused imports/locals are tree-shaken out of the bundle,
+       so a leftover import (the most common artifact of iterative UI drafting)
+       must not fail the build and waste a build turn. Genuine type errors still
+       error. */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",

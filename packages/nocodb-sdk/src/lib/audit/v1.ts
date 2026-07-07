@@ -254,6 +254,7 @@ enum AuditV1OperationTypes {
   DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
 
   ROUTINE_INVOKE = 'ROUTINE_INVOKE',
+  ROUTINE_GRANT = 'ROUTINE_GRANT',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1423,6 +1424,15 @@ export interface RoutineInvokePayload {
   auditDetail?: RoutineInvokeAuditDetail;
 }
 
+export interface RoutineGrantPayload {
+  appId: string;
+  integrationId: string;
+  action: 'request' | 'approve' | 'revoke';
+  status: 'pending' | 'active' | 'revoked';
+  grantId?: string;
+  reason?: string;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1950,6 +1960,10 @@ const descriptionTemplates = {
     audit: AuditV1<RoutineInvokePayload>
   ) =>
     `Routine '${audit.details.routineName}' invoked with status '${audit.details.status}'`,
+  [AuditV1OperationTypes.ROUTINE_GRANT]: (
+    audit: AuditV1<RoutineGrantPayload>
+  ) =>
+    `Integration access ${audit.details.action} (status '${audit.details.status}') for app '${audit.details.appId}'`,
 };
 
 function auditDescription(audit: AuditV1) {

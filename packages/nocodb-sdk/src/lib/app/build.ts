@@ -20,7 +20,12 @@ export type AppChatPart =
       input?: unknown;
       result?: unknown;
       status?: 'running' | 'success' | 'error';
-    };
+    }
+  // A turn that ran but did not produce a working result (the agent failed, or
+  // its change did not compile). Persisted as part of the assistant message so
+  // the failure stays visible in the thread on reload — distinct from the
+  // transient infra/in-progress errors that go through the ERROR action.
+  | { type: 'error'; text: string };
 
 export interface AppChatMessageType {
   id?: string;

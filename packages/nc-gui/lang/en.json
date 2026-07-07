@@ -330,6 +330,8 @@
     "properties": "Properties",
     "authorization": "Authorization",
     "revoke": "Revoke",
+    "approve": "Approve",
+    "decline": "Decline",
     "marketplace": "Marketplace",
     "template": "Template",
     "templates": "Templates",
@@ -3330,7 +3332,23 @@
     "deleteAppHint": "Permanently delete this app and all of its data. This can't be undone.",
     "appTheme": "Theme",
     "appThemeHint": "Choose a color theme for your app. Changes apply instantly.",
-    "noThemesFound": "No themes match your search"
+    "noThemesFound": "No themes match your search",
+    "appIntegrations": {
+      "subtitle": "Manage which integrations this app can use in its routines.",
+      "pendingRequests": "Pending requests",
+      "availableIntegrations": "Available integrations",
+      "statusGranted": "Granted",
+      "statusRevoked": "Revoked",
+      "grantAccess": "Grant access",
+      "grantAgain": "Grant again",
+      "remove": "Remove",
+      "empty": "No integrations are available to this base yet.",
+      "thisIntegration": "this integration",
+      "requestAccessTitle": "Requested access to {title}",
+      "accessGranted": "Access granted",
+      "accessNotGranted": "Access not granted",
+      "requestFailed": "Couldn't request access — this integration isn't available."
+    }
   },
   "activity": {
     "useTemplate": "Use template",

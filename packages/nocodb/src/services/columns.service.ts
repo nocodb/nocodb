@@ -8387,6 +8387,15 @@ export class ColumnsService implements IColumnsService {
               table: MetaTable.CALENDAR_VIEW_COLUMNS,
               scope: CacheScope.CALENDAR_VIEW_COLUMN,
             },
+            {
+              // Map views insert a column row for every column (FK included —
+              // the MAP branch of insertColumnToAllViews has no system/FK skip),
+              // so the FK column orphans a MAP_VIEW_COLUMNS row too. Keep this in
+              // sync with the 6 tables the one-time migration job reaps so a post-
+              // migration V1→V2 upgrade doesn't re-orphan an uncleaned map row.
+              table: MetaTable.MAP_VIEW_COLUMNS,
+              scope: CacheScope.MAP_VIEW_COLUMN,
+            },
           ];
 
           for (const { table, scope } of fkViewColumnTables) {

@@ -8,10 +8,14 @@
  * source file. This is nocovibe's `@nocovibe/ctx` pattern. A change here ships
  * with the next E2B image rebuild and reaches every app (new + hydrated).
  *
- * Two window globals are injected by the app shell at serve time (the preview
- * controller writes them into the served HTML):
- *   window.__nc_app_invoke_url__  absolute path the app POSTs routine invocations to
+ * Window globals injected by the app shell at serve time (the preview controller
+ * and the published serve middleware write them into the served HTML):
+ *   window.__nc_app_invoke_url__  path the app POSTs routine invocations to
  *   window.__nc_app_user__        { id, email?, displayName?, role? }
+ *   window.__nc_app_live__        true on the published origin — invoke then
+ *                                 authenticates with the same-origin session
+ *                                 cookie + CSRF header (preview uses a token in
+ *                                 the invoke path and sends no cookies)
  *
  * Import and use:
  *   import { ctx } from '@nocodb/app-ctx'
@@ -55,6 +59,24 @@ declare global {
   interface Window {
     __nc_app_invoke_url__?: string;
     __nc_app_user__?: AppUser;
+    __nc_app_live__?: boolean;
+  }
+}
+
+/**
+ * Re-handshake loop guard: allow at most one reload per short window, so a 401
+ * that a reload cannot fix (e.g. the console session is also gone) doesn't spin.
+ */
+function shouldRehandshake(): boolean {
+  try {
+    const KEY = '__nc_app_reauth_at__';
+    const now = Date.now();
+    const last = Number(window.sessionStorage.getItem(KEY) || '0');
+    if (now - last < 10_000) return false;
+    window.sessionStorage.setItem(KEY, String(now));
+    return true;
+  } catch {
+    return true;
   }
 }
 
@@ -67,10 +89,17 @@ async function invoke(name: string, params: unknown): Promise<unknown> {
     );
   }
 
+  // Published origin (`__nc_app_live__`): authenticate with the same-origin
+  // `__Host-nc_app` session cookie + CSRF header, so credentials must be sent.
+  // Preview: token-in-path on an opaque origin — must NOT send cookies.
+  const live = window.__nc_app_live__ === true;
+
   const res = await fetch(invokeUrl, {
     method: 'POST',
-    credentials: 'omit', // opaque-origin: auth is the JWT-in-path, never cookies
-    headers: { 'content-type': 'application/json' },
+    credentials: live ? 'include' : 'omit',
+    headers: live
+      ? { 'content-type': 'application/json', 'x-nc-app-request': '1' }
+      : { 'content-type': 'application/json' },
     body: JSON.stringify({ name, params }),
   });
 
@@ -90,6 +119,13 @@ async function invoke(name: string, params: unknown): Promise<unknown> {
   }
 
   if (!res.ok) {
+    // Published session expired mid-use (401) → re-handshake: a top-level reload
+    // hits the serve gate, which bounces through the console to mint a fresh 1h
+    // cookie and returns to this route. A cooldown prevents a reload loop when
+    // re-auth can't succeed (a revoked runner is already denied at the doc).
+    if (live && res.status === 401 && shouldRehandshake()) {
+      window.location.reload();
+    }
     const e = body ?? {};
     throw new IntegrationError(
       e.code ?? 'broker_error',

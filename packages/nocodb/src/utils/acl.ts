@@ -9,6 +9,7 @@ const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
+    WorkspaceUserRoles.APP_USER,
     WorkspaceUserRoles.VIEWER,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
@@ -393,6 +394,11 @@ const rolePermissions:
     include: {
       baseList: true,
     },
+  },
+  // App User (EE concept; kept here for map parity + acl self-validation).
+  // Empty include inherits NO_ACCESS parity via scope ordering.
+  [WorkspaceUserRoles.APP_USER]: {
+    include: {},
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
@@ -1071,6 +1077,7 @@ const permissionDescriptions: Record<string, string> = {
 const roleDescriptions: Record<string, string> = {
   // Workspace roles
   [WorkspaceUserRoles.NO_ACCESS]: 'No Access',
+  [WorkspaceUserRoles.APP_USER]: 'App User',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
   [WorkspaceUserRoles.COMMENTER]: 'Commenter',
   [WorkspaceUserRoles.EDITOR]: 'Editor',

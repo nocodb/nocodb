@@ -1,38 +1,25 @@
 /**
- * App membership — an app is a first-class access resource.
- *
- * A member is a user or team assigned DIRECTLY to an app (stored in
- * `nc_principal_assignments` with `resource_type='app'`, the tier in `roles`),
- * decoupled from base/workspace membership. This is what lets an external
- * app-only collaborator — a `no-access` workspace member with zero base/data
- * access — be granted app access. App members are seat-free (seat counting
- * only considers workspace/base/team assignments).
- *
- * The tier is capped at EDITOR (apps escalate data verbs, never schema/member
- * management). For a member with no base role, the tier becomes the synthesized
- * runner `base_roles` at invoke; the write-gate is the ceiling.
+ * Explicit app access — the people (users/teams) named on an app's `APP_USE`
+ * permission allow-list, on top of the base-members threshold. Presence in the
+ * list means "allowed to open this app"; capability inside the app is always
+ * the person's real base role (there is no app-level role). External
+ * collaborators appear here as App Users with a base role.
  */
-export enum AppMemberRole {
-  VIEWER = 'viewer',
-  EDITOR = 'editor',
-}
-
-export const APP_MEMBER_ROLES: AppMemberRole[] = [
-  AppMemberRole.VIEWER,
-  AppMemberRole.EDITOR,
-];
-
 export interface AppMemberType {
   /** Whether the member is an individual user or a team. */
   principal_type: 'user' | 'team';
-  /** The user id or team id. */
+  /** The user id or team id (the APP_USE subject id). */
   principal_id: string;
-  /** Access tier. */
-  role: AppMemberRole;
   /** User identity (present when principal_type === 'user'). */
   email?: string;
   display_name?: string;
   /** Team identity (present when principal_type === 'team'). */
   title?: string;
+  /** Team reach — whether sub-teams are included (present for teams). */
+  hierarchy_scope?: 'self_only' | 'self_and_descendants';
+  /** Resolved base role, shown for information (present for users). */
+  base_role?: string;
+  /** True when the user is a workspace App User (external, apps-only). */
+  is_app_user?: boolean;
   created_at?: string;
 }

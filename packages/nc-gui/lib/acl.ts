@@ -4,6 +4,7 @@ const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
+    WorkspaceUserRoles.APP_USER,
     WorkspaceUserRoles.VIEWER,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
@@ -75,6 +76,9 @@ const rolePermissions = {
     },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.APP_USER]: {
     include: {},
   },
 

@@ -128,7 +128,11 @@ const focusOnDiv = () => {
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
-      const rolesArr = Object.values(orderedRoles.value)
+      let rolesArr = Object.values(orderedRoles.value)
+
+      // App User is a per-person external status — not assignable to a team.
+      if (props.isTeam) rolesArr = rolesArr.filter((role) => role !== WorkspaceUserRoles.APP_USER)
+
       let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
 
       if (currentRoleIndex !== -1) {

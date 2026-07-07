@@ -206,7 +206,20 @@ export const useRolesShared = createSharedComposable(() => {
   // CE has no sandbox concept — always returns null so CE behavior is identical to before.
   const sandboxRestrictionReason = (..._args: any[]): string | null => null
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded, sandboxRestrictionReason }
+  // CE has no App User role.
+  const isAppUserOnly = computed(() => false)
+
+  return {
+    allRoles,
+    orgRoles,
+    workspaceRoles,
+    baseRoles,
+    isAppUserOnly,
+    loadRoles,
+    isUIAllowed,
+    isBaseRolesLoaded,
+    sandboxRestrictionReason,
+  }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>

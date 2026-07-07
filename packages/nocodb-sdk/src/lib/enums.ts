@@ -48,6 +48,8 @@ export enum WorkspaceUserRoles {
   COMMENTER = 'workspace-level-commenter',
   VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
+  // App-only collaborator: no direct product access; base roles work only via apps.
+  APP_USER = 'workspace-level-app-user',
 }
 
 export enum TeamUserRoles {
@@ -452,6 +454,7 @@ export const RoleLabels = {
   [WorkspaceUserRoles.VIEWER]: 'viewer',
   [WorkspaceUserRoles.INHERIT]: 'inherit',
   [WorkspaceUserRoles.NO_ACCESS]: 'noaccess',
+  [WorkspaceUserRoles.APP_USER]: 'appUser',
   [ProjectRoles.OWNER]: 'owner',
   [ProjectRoles.CREATOR]: 'creator',
   [ProjectRoles.EDITOR]: 'editor',
@@ -475,6 +478,7 @@ export const RoleColors = {
   [WorkspaceUserRoles.VIEWER]: 'yellow',
   [WorkspaceUserRoles.INHERIT]: 'gray',
   [WorkspaceUserRoles.NO_ACCESS]: 'red',
+  [WorkspaceUserRoles.APP_USER]: 'maroon',
   [ProjectRoles.OWNER]: 'purple',
   [ProjectRoles.CREATOR]: 'blue',
   [ProjectRoles.EDITOR]: 'green',
@@ -503,6 +507,8 @@ export const RoleDescriptions = {
   [WorkspaceUserRoles.INHERIT]:
     'Inherits role from workspace-level team assignment',
   [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
+  [WorkspaceUserRoles.APP_USER]:
+    'Can use published apps only; no direct workspace or base access',
 
   [ProjectRoles.OWNER]:
     'Has full control over the base, including configuration and deletion rights',
@@ -533,6 +539,7 @@ export const RoleIcons = {
   [WorkspaceUserRoles.VIEWER]: 'role_viewer',
   [WorkspaceUserRoles.INHERIT]: 'role_inherit',
   [WorkspaceUserRoles.NO_ACCESS]: 'role_no_access',
+  [WorkspaceUserRoles.APP_USER]: 'role_no_access',
   [ProjectRoles.OWNER]: 'role_owner',
   [ProjectRoles.CREATOR]: 'role_creator',
   [ProjectRoles.EDITOR]: 'role_editor',
@@ -557,6 +564,8 @@ export const WorkspaceRolesToProjectRoles = {
   [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
   [WorkspaceUserRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
   [WorkspaceUserRoles.INHERIT]: ProjectRoles.INHERIT,
+  // No workspace-inherited base access — App Users get explicit base roles only.
+  [WorkspaceUserRoles.APP_USER]: ProjectRoles.NO_ACCESS,
 };
 
 export const OrderedWorkspaceRoles = [
@@ -566,6 +575,7 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.APP_USER,
   WorkspaceUserRoles.NO_ACCESS,
 ];
 

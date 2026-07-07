@@ -323,6 +323,7 @@ export const NON_SEAT_ROLES = [
   WorkspaceUserRoles.VIEWER,
   WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.COMMENTER,
+  WorkspaceUserRoles.APP_USER,
   ProjectRoles.NO_ACCESS,
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,

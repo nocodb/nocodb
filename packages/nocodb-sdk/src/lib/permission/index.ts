@@ -11,6 +11,7 @@ export enum PermissionKey {
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
   ROUTINE_INVOKE = 'ROUTINE_INVOKE',
   APP_USE = 'APP_USE',
+  PAGE_VIEW = 'PAGE_VIEW',
 }
 
 export enum PermissionGrantedType {
@@ -25,6 +26,7 @@ export enum PermissionEntity {
   DOCUMENT = 'document',
   ROUTINE = 'routine',
   APP = 'app',
+  PAGE = 'page',
 }
 
 export enum PermissionRole {
@@ -174,6 +176,13 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to use this app.',
   },
+  [PermissionKey.PAGE_VIEW]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view this page',
+    description: 'can view page',
+    userSelectorDescription:
+      'Only members selected here will be able to open this page and run the routines it uses.',
+  },
 };
 
 // Restrictiveness order for document permission inheritance (lower = more permissive).
@@ -221,6 +230,8 @@ export const DOCUMENT_PERMISSION_KEYS = [
 export const ROUTINE_PERMISSION_KEYS = [PermissionKey.ROUTINE_INVOKE];
 
 export const APP_PERMISSION_KEYS = [PermissionKey.APP_USE];
+
+export const PAGE_PERMISSION_KEYS = [PermissionKey.PAGE_VIEW];
 
 // Utility functions for permission management
 export const getPermissionOption = (

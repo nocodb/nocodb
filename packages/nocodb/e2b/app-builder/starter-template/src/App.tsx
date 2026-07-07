@@ -1,5 +1,10 @@
+// ⚠️ GENERATED ROUTER SHELL — do NOT edit. Routes + nav are derived from the
+// `definePages([...])` manifest in src/pages.ts, which the platform also scans for
+// per-page access control. To change pages, edit src/pages.ts — NEVER hand-write
+// <Route>s here or replace this with your own routing. See CLAUDE.md → Routing.
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "@/pages/Home";
+import AppNav from "@/components/AppNav";
+import { pages } from "@/pages";
 
 // The platform serves this bundle under different path prefixes — the app's own
 // domain root when published, a deeper path in the builder preview — and injects
@@ -12,8 +17,11 @@ export default function App() {
   return (
     <BrowserRouter basename={basename}>
       <div className="min-h-screen bg-background text-foreground">
+        <AppNav />
         <Routes>
-          <Route path="/" element={<Home />} />
+          {pages.map((p) => (
+            <Route key={p.id} path={p.path} element={<p.component />} />
+          ))}
         </Routes>
       </div>
     </BrowserRouter>

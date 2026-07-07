@@ -3367,6 +3367,14 @@
       "accessGranted": "Access granted",
       "accessNotGranted": "Access not granted",
       "requestFailed": "Couldn't request access — this integration isn't available."
+    },
+    "appAccess": {
+      "appUseHeading": "Who can use this app",
+      "appUseSubtitle": "Choose who can open and use this app.",
+      "pageAccessHeading": "Page access",
+      "pageAccessSubtitle": "Control who can view each page. Viewing a page also grants access to the routines it uses.",
+      "noPagesTitle": "No pages to configure yet",
+      "noPagesSubtitle": "Publish this app to configure who can view each of its pages."
     }
   },
   "activity": {

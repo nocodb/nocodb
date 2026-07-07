@@ -51,3 +51,4 @@ export * from './build';
 export * from './routine';
 export * from './theme';
 export * from './publish';
+export * from './pages';

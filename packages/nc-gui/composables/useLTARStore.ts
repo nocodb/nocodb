@@ -357,12 +357,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
         })
 
-        const sortedFields = filteredFields.sort((a, b) => {
-          if (isPublic.value) {
-            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-          }
+        // Resolve a stable sort order for each extra field:
+        //   1. the target view's column order — authoritative when loaded
+        //   2. else the field's default-view order — always present on meta
+        // Public views never load target-view columns, so they use (2). Cross-base
+        // links can also end up with no target-view columns (they load from the
+        // external base and may come back empty), and without a fallback every
+        // field resolved to Infinity — `Infinity - Infinity` is NaN, which makes
+        // Array.sort bail and surface raw table-creation order (the reported
+        // "notes / model / old-values on top instead of the display fields" bug).
+        const fieldOrder = (col: ColumnType) => {
+          const viewOrder = isPublic.value ? undefined : targetViewColumnsById.value[col.id!]?.order
+          return viewOrder ?? col.meta?.defaultViewColOrder ?? Infinity
+        }
 
-          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+        const sortedFields = filteredFields.sort((a, b) => {
+          const diff = fieldOrder(a) - fieldOrder(b)
+          return Number.isNaN(diff) ? 0 : diff
         })
 
         // When a custom display value is set, prepend the original PV as the first extra field

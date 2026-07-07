@@ -175,16 +175,11 @@ const limitRecToCond = computed({
   },
 })
 
-// ── Lookup Sort + Limit (EE, licensed) — persisted to column meta and consumed
-// by the PG single-query lookup builder (applyLookupSortAndLimit). ──
-
-// All target-table columns are valid sort keys (Airtable allows any column).
-const sortableColumns = computed<ColumnType[]>(() => {
-  if (!selectedTable.value?.id) return []
-  return (getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns || []).filter((c: ColumnType) => !c.system)
-})
-
-// Limit (First/Last N)
+// ── Lookup Limit (EE, licensed) — "limit items shown", persisted to column meta. ──
+// NOTE: lookup *sort* is NOT stored in meta; it lives in the Sort table scoped by
+// `fk_lookup_link_col_id` (like lookup conditions use the Filter table). The sort
+// UI here will be a small reusable sort component (follow-up); the backend already
+// reads/applies it via applyLookupSortAndLimit + sortV2.
 const lookupLimitEnabled = computed({
   get: () => !!vModel.value.meta?.lookup_limit?.value,
   set(value: boolean) {
@@ -208,34 +203,6 @@ const lookupLimitValue = computed({
   set(v: number) {
     vModel.value.meta = vModel.value.meta || {}
     vModel.value.meta.lookup_limit = { type: vModel.value.meta.lookup_limit?.type || 'first', value: Math.max(1, +v || 1) }
-  },
-})
-
-// Sort (multi-column over target table)
-const lookupSorts = computed<{ fk_column_id: string; direction: 'asc' | 'desc' }[]>(() =>
-  Array.isArray(vModel.value.meta?.lookup_sort) ? vModel.value.meta.lookup_sort : [],
-)
-const addLookupSort = () => {
-  vModel.value.meta = vModel.value.meta || {}
-  const used = new Set(lookupSorts.value.map((s) => s.fk_column_id))
-  const next = sortableColumns.value.find((c) => !used.has(c.id!)) || sortableColumns.value[0]
-  vModel.value.meta.lookup_sort = [...lookupSorts.value, { fk_column_id: next?.id || '', direction: 'asc' }]
-}
-const removeLookupSort = (i: number) => {
-  vModel.value.meta = vModel.value.meta || {}
-  const next = lookupSorts.value.filter((_, idx) => idx !== i)
-  if (next.length) vModel.value.meta.lookup_sort = next
-  else delete vModel.value.meta.lookup_sort
-}
-const lookupSortEnabled = computed({
-  get: () => Array.isArray(vModel.value.meta?.lookup_sort) && vModel.value.meta.lookup_sort.length > 0,
-  set(value: boolean) {
-    vModel.value.meta = vModel.value.meta || {}
-    if (value) {
-      if (!lookupSorts.value.length) addLookupSort()
-    } else {
-      delete vModel.value.meta.lookup_sort
-    }
   },
 })
 
@@ -553,64 +520,9 @@ const handleScrollIntoView = () => {
                 <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" />
               </div>
 
-              <!-- Sort records (by any target-table column, multi-level) -->
-              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
-                <template #default="{ click }">
-                  <div class="flex gap-1 items-center whitespace-nowrap">
-                    <NcSwitch
-                      :checked="lookupSortEnabled"
-                      :disabled="!selectedTable"
-                      size="small"
-                      data-testid="nc-lookup-sort"
-                      @change="
-                        (value) => {
-                          if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT)) return
-                          lookupSortEnabled = value
-                        }
-                      "
-                    >
-                      Sort records
-                    </NcSwitch>
-                    <LazyPaymentUpgradeBadge
-                      v-if="!lookupSortEnabled"
-                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
-                      class="ml-1"
-                    />
-                  </div>
-                </template>
-              </PaymentUpgradeBadgeProvider>
-              <div v-if="lookupSortEnabled" class="flex flex-col gap-2 pl-10">
-                <div v-for="(sort, i) in lookupSorts" :key="i" class="flex items-center gap-2">
-                  <a-select
-                    v-model:value="sort.fk_column_id"
-                    class="flex-1"
-                    show-search
-                    :filter-option="antSelectFilterOption"
-                    dropdown-class-name="!rounded-md"
-                  >
-                    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                    <a-select-option v-for="col of sortableColumns" :key="col.id" :value="col.id">
-                      <div class="flex items-center gap-2 truncate">
-                        <SmartsheetHeaderIcon :column="col" class="!mx-0" />
-                        <span class="truncate">{{ col.title }}</span>
-                      </div>
-                    </a-select-option>
-                  </a-select>
-                  <a-select v-model:value="sort.direction" class="!w-32" dropdown-class-name="!rounded-md">
-                    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                    <a-select-option value="asc">First → Last</a-select-option>
-                    <a-select-option value="desc">Last → First</a-select-option>
-                  </a-select>
-                  <NcButton type="text" size="small" @click="removeLookupSort(i)">
-                    <GeneralIcon icon="close" class="w-4 h-4" />
-                  </NcButton>
-                </div>
-                <div>
-                  <NcButton type="text" size="small" @click="addLookupSort">
-                    <div class="flex items-center gap-1"><GeneralIcon icon="plus" class="w-4 h-4" /> Add another sort</div>
-                  </NcButton>
-                </div>
-              </div>
+              <!-- Sort records: reusable sort component scoped to this lookup
+                   column (fk_lookup_link_col_id), backed by the Sort table.
+                   TODO(follow-up): mount the simple reusable sort builder here. -->
             </div>
           </div>
         </div>

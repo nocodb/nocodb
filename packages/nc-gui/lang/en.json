@@ -3386,8 +3386,9 @@
       "addPeople": "Add people",
       "baseMembers": "Base members",
       "baseMembersHint": "Everyone in this base",
-      "addModalTitle": "Add people to this app",
-      "addModalSubtitle": "Base members already have access by role. Add specific people or teams to give them access too.",
+      "addModalTitle": "Add external collaborators",
+      "addModalSubtitle": "Give someone outside this base access to only this app — they get no other base access.",
+      "addExternalEmailHint": "Must already have a NocoDB account — new accounts can't be invited here yet.",
       "removeMember": "Remove from app"
     }
   },

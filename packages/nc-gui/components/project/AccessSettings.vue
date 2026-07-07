@@ -769,16 +769,6 @@ onBeforeUnmount(() => {
                   }}</span>
                 </div>
               </template>
-
-              <!-- App-User marker: the member is an app-only workspace collaborator; the role
-                   above is their real base capability, this flags how they reach it. -->
-              <div
-                v-if="record.workspace_roles === WorkspaceUserRolesEnum.APP_USER"
-                class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
-              >
-                <GeneralIcon icon="role_no_access" class="h-3 w-3" />
-                <span>{{ $t('objects.roleType.appUser') }}</span>
-              </div>
             </div>
             <div v-if="column.key === 'created_at'">
               <NcTooltip class="max-w-full">

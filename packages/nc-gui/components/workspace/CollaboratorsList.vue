@@ -282,10 +282,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
   if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== WorkspaceUserRoles.INHERIT || isTeamsEnabled.value)
 
-  // App User is a per-person external status — never assignable to a team.
-  return roles.filter(
-    (r) => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT && r !== WorkspaceUserRoles.APP_USER,
-  )
+  return roles.filter((r) => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT)
 }
 
 onMounted(async () => {

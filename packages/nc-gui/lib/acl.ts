@@ -4,7 +4,6 @@ const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
-    WorkspaceUserRoles.APP_USER,
     WorkspaceUserRoles.VIEWER,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
@@ -13,6 +12,7 @@ const roleScopes = {
   ],
   base: [
     ProjectRoles.NO_ACCESS,
+    ProjectRoles.APP_USER,
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -76,9 +76,6 @@ const rolePermissions = {
     },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {
-    include: {},
-  },
-  [WorkspaceUserRoles.APP_USER]: {
     include: {},
   },
 
@@ -232,6 +229,11 @@ const rolePermissions = {
     },
   },
   [ProjectRoles.NO_ACCESS]: {
+    include: {},
+  },
+  // App User: no base product permissions — capability is entirely per-app via
+  // the app's APP_USE assignment role, not this ACL matrix.
+  [ProjectRoles.APP_USER]: {
     include: {},
   },
 } as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>

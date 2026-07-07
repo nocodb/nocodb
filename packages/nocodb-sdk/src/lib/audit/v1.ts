@@ -1427,7 +1427,7 @@ export interface RoutineInvokePayload {
 export interface RoutineGrantPayload {
   appId: string;
   integrationId: string;
-  action: 'request' | 'approve' | 'revoke';
+  action: 'request' | 'approve' | 'revoke' | 'remove';
   status: 'pending' | 'active' | 'revoked';
   grantId?: string;
   reason?: string;

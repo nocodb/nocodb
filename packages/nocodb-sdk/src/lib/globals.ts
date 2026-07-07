@@ -323,7 +323,8 @@ export const NON_SEAT_ROLES = [
   WorkspaceUserRoles.VIEWER,
   WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.COMMENTER,
-  WorkspaceUserRoles.APP_USER,
+  // App Users consume a seat — they operate app data (up to Editor) through
+  // apps, so they are billed like any seat-consuming collaborator.
   ProjectRoles.NO_ACCESS,
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,

@@ -3382,6 +3382,7 @@
     "manageAccess": "Manage access",
     "appIntegrations": {
       "subtitle": "Manage which integrations this app can use in its routines.",
+      "manage": "Manage integrations",
       "pendingRequests": "Pending requests",
       "availableIntegrations": "Available integrations",
       "statusGranted": "Granted",

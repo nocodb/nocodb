@@ -4,6 +4,7 @@ import type { LtarSideEffectIds } from '~/services/columns.service.type';
 export interface ReplayBag {
   sandboxColumnIds: Record<string, string>;
   sandboxDefaultViewId: string;
+  draftVersionId: string;
   ltarReplayIds: LtarSideEffectIds;
   convertedLinkId: string;
   convertedTextId: string;

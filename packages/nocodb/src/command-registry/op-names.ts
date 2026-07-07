@@ -112,6 +112,12 @@ export const OperationName = {
   scriptDelete: 'scriptDelete',
   scriptDuplicate: 'scriptDuplicate',
 
+  // Apps
+  appCreate: 'appCreate',
+  appUpdate: 'appUpdate',
+  appDelete: 'appDelete',
+  appDuplicate: 'appDuplicate',
+
   // Workflows
   workflowCreate: 'workflowCreate',
   workflowUpdate: 'workflowUpdate',

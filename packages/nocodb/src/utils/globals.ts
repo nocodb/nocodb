@@ -554,6 +554,7 @@ export enum CacheScope {
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
   APP = 'app',
+  APP_SLUG = 'appSlug',
   APP_VERSION = 'appVersion',
   APP_CHAT_MESSAGE = 'appChatMessage',
   OAUTH_CLIENT = 'oAuthClient',

@@ -30,6 +30,8 @@ const {
 
 const baseStore = useBase()
 
+const { isPg } = baseStore
+
 const { tables } = storeToRefs(baseStore)
 
 const { getMeta, getMetaByKey, metasWithIdAsKey } = useMetas()
@@ -501,8 +503,11 @@ const handleScrollIntoView = () => {
               </div>
             </div>
 
-            <!-- Lookup Sort + Limit (EE, licensed) — persisted to column meta -->
-            <div class="flex flex-col gap-2">
+            <!-- Lookup Sort + Limit (EE, licensed) — persisted to column meta.
+                 PG-only: the ordered/limited read lives in the PG query path
+                 (ee/dbQueryClient/pg.ts) and is a no-op on mysql/sqlite/oracle/
+                 external sources, so don't surface the option there. -->
+            <div v-if="isPg(meta?.source_id)" class="flex flex-col gap-2">
               <!-- Limit the number of items shown -->
               <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
                 <template #default="{ click }">
@@ -524,6 +529,11 @@ const handleScrollIntoView = () => {
                     <LazyPaymentUpgradeBadge
                       v-if="!lookupLimitEnabled"
                       :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
+                      :content="
+                        $t('upgrade.upgradeToSortAndLimitLookupValues', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
                       class="ml-1"
                     />
                   </div>
@@ -556,7 +566,15 @@ const handleScrollIntoView = () => {
                 <template #default="{ click }">
                   <div class="flex gap-1 items-center whitespace-nowrap">
                     <span class="text-nc-content-gray-subtle2">{{ $t('labels.sortRecords') }}</span>
-                    <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT" class="ml-1" />
+                    <LazyPaymentUpgradeBadge
+                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
+                      :content="
+                        $t('upgrade.upgradeToSortAndLimitLookupValues', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      class="ml-1"
+                    />
                   </div>
                   <div
                     v-if="selectedTable"

@@ -2267,6 +2267,7 @@
     "failedToLoadStatistics": "Failed to load statistics",
     "errorLoadingDeploymentData": "There was an error loading deployment data",
     "describeWhatsNew": "Describe what's new in this version",
+    "describeWhatToBuild": "Describe what to build…",
     "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
@@ -3318,7 +3319,8 @@
     "staticCondition": "Static condition",
     "filterBasedOnStaticValue": "Filter based on static value",
     "dynamicCondition": "Dynamic condition",
-    "filterBasedOnDynamicValue": "Filter based on dynamic value"
+    "filterBasedOnDynamicValue": "Filter based on dynamic value",
+    "previewComingSoon": "Preview coming soon"
   },
   "activity": {
     "useTemplate": "Use template",

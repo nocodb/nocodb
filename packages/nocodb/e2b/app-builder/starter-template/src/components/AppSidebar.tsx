@@ -20,11 +20,19 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const meta = useAppMeta();
   const location = useLocation();
 
+  // Render the icon as a literal glyph ONLY when it looks like one. The platform
+  // may store meta.icon as a named icon key (e.g. "ncApp") that this sandboxed
+  // app can't resolve — in that case fall back to the app title's initial.
+  const glyph =
+    meta.icon && [...meta.icon].length <= 2 && !/[a-z]/i.test(meta.icon)
+      ? meta.icon
+      : null;
+
   return (
     <div className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-14 shrink-0 items-center gap-2 border-b border-sidebar-border px-4">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-          {meta.icon ? <span>{meta.icon}</span> : (meta.title?.[0]?.toUpperCase() ?? "A")}
+          {glyph ? <span>{glyph}</span> : (meta.title?.[0]?.toUpperCase() ?? "A")}
         </div>
         <span className="truncate text-sm font-semibold">{meta.title ?? "App"}</span>
       </div>

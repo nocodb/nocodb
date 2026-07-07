@@ -89,6 +89,15 @@ export async function applyLookupSortLimitToQb(param: {
 }): Promise<void> {
   const { qb, alias, refBaseModel, sorts, limitVal, takeLast } = param;
 
+  if (!refBaseModel.model.columns?.length) {
+    await refBaseModel.model.getColumns(refBaseModel.context);
+  }
+  const pks = refBaseModel.model.primaryKeys?.length
+    ? refBaseModel.model.primaryKeys
+    : refBaseModel.model.primaryKey
+    ? [refBaseModel.model.primaryKey]
+    : [];
+
   // "Last N": pick the tail as a pk set, then present it in the original order.
   if (takeLast && limitVal > 0) {
     await applyLookupPkInLimit({
@@ -101,38 +110,22 @@ export async function applyLookupSortLimitToQb(param: {
     });
     if (sorts.length) {
       await sortV2(refBaseModel, sorts, qb, alias);
-    } else {
-      if (!refBaseModel.model.columns?.length) {
-        await refBaseModel.model.getColumns(refBaseModel.context);
-      }
-      const pks = refBaseModel.model.primaryKeys?.length
-        ? refBaseModel.model.primaryKeys
-        : refBaseModel.model.primaryKey
-        ? [refBaseModel.model.primaryKey]
-        : [];
-      for (const pk of pks) qb.orderBy(`${alias}.${pk.column_name}`, 'asc');
     }
+    // Deterministic display order for ties — the pk-IN above already fixed the
+    // SET, this only stabilises presentation.
+    for (const pk of pks) qb.orderBy(`${alias}.${pk.column_name}`, 'asc');
     return;
   }
 
   // "First N" / sort-only: order by the configured sort, then limit the head.
   if (sorts.length) {
     await sortV2(refBaseModel, sorts, qb, alias);
-  } else if (limitVal > 0) {
-    // No configured sort but a limit is set → without an ORDER BY, `LIMIT n`
-    // returns an arbitrary (and unstable) N rows. Add a deterministic pk asc
-    // fallback so the SET is stable (mirrors the Last-N branch above and the
-    // mm/hm sibling in ee/dbQueryClient/pg.ts).
-    if (!refBaseModel.model.columns?.length) {
-      await refBaseModel.model.getColumns(refBaseModel.context);
-    }
-    const pks = refBaseModel.model.primaryKeys?.length
-      ? refBaseModel.model.primaryKeys
-      : refBaseModel.model.primaryKey
-      ? [refBaseModel.model.primaryKey]
-      : [];
-    for (const pk of pks) qb.orderBy(`${alias}.${pk.column_name}`, 'asc');
   }
+  // Always append pk asc as the final ORDER BY term so the LIMITed set is stable
+  // (across refresh / list-vs-count) and matches the filter/formula consumers
+  // even when the sort key ties at the boundary — and it's the sole order when
+  // no sort is configured. Mirrors the mm/hm sibling in ee/dbQueryClient/pg.ts.
+  for (const pk of pks) qb.orderBy(`${alias}.${pk.column_name}`, 'asc');
 
   if (limitVal > 0) qb.limit(limitVal);
 }
@@ -190,7 +183,6 @@ export async function applyLookupPkInLimit(param: {
           }),
       )
     : sorts;
-  let ordered = false;
   for (const s of effective) {
     const col = cols.find((c) => c.id === s.fk_column_id);
     if (col?.column_name) {
@@ -198,16 +190,14 @@ export async function applyLookupPkInLimit(param: {
         `${alias}.${col.column_name}`,
         s.direction === 'desc' ? 'desc' : 'asc',
       );
-      ordered = true;
     }
   }
-  if (!ordered) {
-    // No scalar sort configured → order by pk so the LIMITed pk SET is
-    // deterministic (asc for first-N, desc for last-N). Without this the pk-IN
-    // set is arbitrary and can change between requests.
-    for (const pk of pks)
-      inner.orderBy(`${alias}.${pk.column_name}`, takeLast ? 'desc' : 'asc');
-  }
+  // Always end with the pk as the final tiebreaker (flipped for last-N) so the
+  // LIMITed pk SET is deterministic — stable across refresh/list-vs-count and
+  // identical to what the filter/formula consumers pick even when the sort key
+  // ties at the boundary. Also the sole order when no scalar sort is configured.
+  for (const pk of pks)
+    inner.orderBy(`${alias}.${pk.column_name}`, takeLast ? 'desc' : 'asc');
   inner.limit(limitVal);
 
   if (pks.length === 1) {
@@ -310,7 +300,6 @@ export async function buildNestedLookupLevelLimit(param: {
           }),
       )
     : sorts;
-  let ordered = false;
   for (const s of effective) {
     const col = cols.find((c) => c.id === s.fk_column_id);
     if (col?.column_name) {
@@ -318,14 +307,12 @@ export async function buildNestedLookupLevelLimit(param: {
         `${ia}.${col.column_name}`,
         s.direction === 'desc' ? 'desc' : 'asc',
       );
-      ordered = true;
     }
   }
-  if (!ordered) {
-    // No scalar sort configured → order by pk so the LIMITed set is
-    // deterministic (asc for first-N, desc for last-N).
-    inner.orderBy(`${ia}.${pk.column_name}`, takeLast ? 'desc' : 'asc');
-  }
+  // Always end with the pk (flipped for last-N) as the deterministic tiebreaker
+  // so the LIMITed set is stable and matches the other consumers even when the
+  // sort key ties at the boundary; also the sole order with no scalar sort.
+  inner.orderBy(`${ia}.${pk.column_name}`, takeLast ? 'desc' : 'asc');
   inner.limit(limitVal);
 
   return (qb: Knex.QueryBuilder) =>
@@ -398,10 +385,11 @@ export async function applyLookupFilterWindowLimit(param: {
       orderBindings.push(ra, col.column_name);
     }
   }
-  if (!orderBits.length) {
-    orderBits.push(`??.?? ${takeLast ? 'desc' : 'asc'}`);
-    orderBindings.push(ra, pk.column_name);
-  }
+  // Always end the window ORDER BY with the pk (flipped for last-N) so the rank
+  // boundary is deterministic and matches the display/formula consumers even
+  // when the sort key ties; also the sole order when no scalar sort is set.
+  orderBits.push(`??.?? ${takeLast ? 'desc' : 'asc'}`);
+  orderBindings.push(ra, pk.column_name);
 
   const win = knex(knex.raw('?? as ??', [tnPath, ra]))
     .select(knex.raw('??.?? as __nc_pk', [ra, pk.column_name]))

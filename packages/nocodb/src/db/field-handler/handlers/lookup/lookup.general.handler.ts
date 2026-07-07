@@ -489,10 +489,12 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
                 binds.push(wr, col.column_name);
               }
             }
-            if (!bits.length) {
-              bits.push(`??.?? ${cfg.takeLast ? 'desc' : 'asc'}`);
-              binds.push(wj, mmChildColumn.column_name);
-            }
+            // Always end with the junction child FK (= related pk, flipped for
+            // last-N) as the deterministic tiebreaker so the rank boundary is
+            // stable and matches the display/formula consumers even when the
+            // sort key ties; also the sole order when no scalar sort is set.
+            bits.push(`??.?? ${cfg.takeLast ? 'desc' : 'asc'}`);
+            binds.push(wj, mmChildColumn.column_name);
             const win = knex(
               dbQueryClient.tableAlias(
                 knex,

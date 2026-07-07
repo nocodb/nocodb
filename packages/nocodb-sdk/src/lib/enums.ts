@@ -326,6 +326,10 @@ export enum AppEvents {
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
 
+  ROUTINE_CREATE = 'routine.create',
+  ROUTINE_UPDATE = 'routine.update',
+  ROUTINE_DELETE = 'routine.delete',
+
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
   PERMISSION_DELETE = 'permission.delete',

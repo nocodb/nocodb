@@ -55,6 +55,24 @@ RUN cd /opt/starter-template \
 #      owning them. The starter template's own compile is verified by the build smoke,
 #      not at image-bake time.
 
+# Materialize the @nocodb/app-ctx runtime package into the shared starter
+# node_modules — the dir every app symlinks each turn (see appBuildSandbox.ts).
+# This is nocovibe's pattern: the routine runtime ships as a real resolvable
+# package, NOT a per-app source file or build alias, so apps just
+# `import { ctx } from '@nocodb/app-ctx'` and resolve it from node_modules with
+# zero per-app config. esbuild ships with the starter deps (vite), so compiling
+# the TS source to ESM needs no extra install. A runtime change ships with the
+# next image rebuild and reaches every app (new + hydrated) via the symlink.
+COPY runtime-modules /opt/runtime-modules
+RUN cd /opt/starter-template \
+ && mkdir -p node_modules/@nocodb/app-ctx \
+ && ./node_modules/.bin/esbuild /opt/runtime-modules/app-ctx/index.ts \
+      --format=esm --platform=browser --target=es2022 \
+      --outfile=node_modules/@nocodb/app-ctx/index.js \
+ && cp /opt/runtime-modules/app-ctx/package.json \
+       /opt/runtime-modules/app-ctx/index.d.ts \
+       node_modules/@nocodb/app-ctx/
+
 # The app repo lands here at runtime (git clone / git init / seed from starter).
 RUN mkdir -p /home/user/app
 WORKDIR /home/user/app

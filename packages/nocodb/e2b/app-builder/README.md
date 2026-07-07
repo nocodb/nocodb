@@ -17,6 +17,7 @@ This directory defines the dedicated E2B sandbox template for the **App Build En
 | `tsx@4` | TypeScript runner | Executes the runtime-injected MCP stdio server script |
 | `/opt/mcp/node_modules` (`@modelcontextprotocol/sdk@^1.26.0`) | MCP SDK for the stdio server | Baked so the runtime-injected `server.mjs` can resolve the SDK without a network install inside the sandbox |
 | `/opt/starter-template` (+ pre-installed `node_modules`) | Static Vite + React 19 + Tailwind v4 + shadcn/ui scaffold | Seeds a brand-new app; `npm ci` is run at image-build time so per-turn `vite build` needs no network install |
+| `…/node_modules/@nocodb/app-ctx` (compiled from `runtime-modules/app-ctx/`) | The routine runtime apps import (`ctx.routines.*`) | A real resolvable package in the shared `node_modules`, symlinked into every app — no per-app alias/source file |
 
 ## `/opt/mcp` — the MCP SDK mount point
 
@@ -37,12 +38,34 @@ copies it in via the seed, but a hydrated app would otherwise keep the frozen co
 it was first created — so a guidance fix would never reach existing apps. Re-overlaying it means a
 contract change rolls out to **all** apps after a template rebuild, with no per-app migration. The
 overlay is scoped to `CLAUDE.md` only — `package.json` / `vite.config.ts` / `tsconfig*` can be
-edited per app (e.g. an added dependency), so they are left as the app committed them.
+edited per app (e.g. an added dependency), so they are left as the app committed them. The routine
+runtime (`@nocodb/app-ctx`) does not need overlaying — it is a baked `node_modules` package (see
+below), which the per-turn `node_modules` symlink already re-provides to every app.
 
 The image runs `npm ci` (so `node_modules` is pre-installed) and a throwaway `npm run build` (to
 validate the scaffold and warm the `tsc` incremental cache). A new app is seeded by copying the
 scaffold **without** `node_modules`; the per-turn build re-provides `node_modules` by symlinking
 back to `/opt/starter-template/node_modules` (deps are pinned, so one install serves every app).
+
+## `@nocodb/app-ctx` — the routine runtime
+
+App code reads and writes the user's data through **routines**, called via a small typed runtime:
+
+```ts
+import { ctx, IntegrationError } from '@nocodb/app-ctx'
+const rows = await ctx.routines.listFeatures({ status: 'open' })
+const me = ctx.user // { id, email?, displayName?, role? } | undefined
+```
+
+This is nocovibe's `@nocovibe/ctx` pattern. The runtime source is `runtime-modules/app-ctx/index.ts`;
+the image compiles it (via the esbuild that ships with the starter's `vite`) into a real package at
+`/opt/starter-template/node_modules/@nocodb/app-ctx/` (`index.js` + `package.json` + `index.d.ts`).
+Because every app symlinks its `node_modules` to this baked dir each turn, the import resolves with
+**no per-app alias, `tsconfig` path, or source file** — and a runtime change reaches every app (new
+*and* hydrated) on the next image rebuild. Two window globals (`window.__nc_app_invoke_url__`,
+`window.__nc_app_user__`) are injected into the served HTML by the preview controller; the runtime
+reads them at call time. The browser↔broker contract is guarded by a backend unit test
+(`tests/unit/rest/tests/internal/ee/app-ctx-module.test.ts`).
 
 ## What is NOT baked in (injected at runtime)
 

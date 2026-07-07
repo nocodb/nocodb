@@ -1,7 +1,15 @@
 /**
  * @nocodb/app-ctx — typed runtime module for NocoDB app routines.
  *
- * Two window globals are injected by the app shell at serve time:
+ * Compiled at image-build into the shared starter node_modules
+ * (`/opt/starter-template/node_modules/@nocodb/app-ctx`) — the dir every built
+ * app symlinks each turn — so apps `import { ctx } from '@nocodb/app-ctx'` and
+ * resolve it like any dependency, with no per-app alias, tsconfig path, or
+ * source file. This is nocovibe's `@nocovibe/ctx` pattern. A change here ships
+ * with the next E2B image rebuild and reaches every app (new + hydrated).
+ *
+ * Two window globals are injected by the app shell at serve time (the preview
+ * controller writes them into the served HTML):
  *   window.__nc_app_invoke_url__  absolute path the app POSTs routine invocations to
  *   window.__nc_app_user__        { id, email?, displayName?, role? }
  *
@@ -10,8 +18,8 @@
  *   const rows = await ctx.routines.myRoutine({ filter: 'active' })
  *   const me = ctx.user  // AppUser | undefined
  *
- * Single source of the app routine runtime — there is no backend duplicate.
- * Its browser↔broker contract is guarded by the backend unit test
+ * This module is the single source of the app routine runtime. Its
+ * browser↔broker contract is guarded by the backend unit test
  * tests/unit/rest/tests/internal/ee/app-ctx-module.test.ts.
  */
 

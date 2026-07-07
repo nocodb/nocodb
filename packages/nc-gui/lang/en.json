@@ -2279,6 +2279,8 @@
     "openApp": "Open app",
     "copyAppLink": "Copy app link",
     "appOpening": "Opening app…",
+    "appConsumerHint": "Open this app to start using it.",
+    "appNotPublishedYet": "This app isn't available yet — check back once it's published.",
     "unpublished": "Unpublished",
     "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
     "newSnapshot": "New Snapshot",

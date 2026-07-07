@@ -736,7 +736,7 @@ onBeforeUnmount(() => {
                 </NcTooltip>
               </div>
             </div>
-            <div v-if="column.key === 'role'">
+            <div v-if="column.key === 'role'" class="flex flex-col gap-1">
               <template
                 v-if="
                   isDeleteOrUpdateAllowed(record) &&
@@ -756,21 +756,29 @@ onBeforeUnmount(() => {
                 />
               </template>
               <template v-else>
-                <div class="flex flex-col gap-1">
-                  <RolesBadge
-                    :border="false"
-                    :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
-                  />
-                  <div v-if="getInheritanceInfo(record)" class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
-                    <GeneralIcon icon="role_inherit" class="h-3 w-3" />
-                    <span>{{
-                      getInheritanceInfo(record)?.source === 'team'
-                        ? $t('tooltip.roleInheritedFromTeam')
-                        : $t('tooltip.roleInheritedFromWorkspace')
-                    }}</span>
-                  </div>
+                <RolesBadge
+                  :border="false"
+                  :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
+                />
+                <div v-if="getInheritanceInfo(record)" class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
+                  <GeneralIcon icon="role_inherit" class="h-3 w-3" />
+                  <span>{{
+                    getInheritanceInfo(record)?.source === 'team'
+                      ? $t('tooltip.roleInheritedFromTeam')
+                      : $t('tooltip.roleInheritedFromWorkspace')
+                  }}</span>
                 </div>
               </template>
+
+              <!-- App-User marker: the member is an app-only workspace collaborator; the role
+                   above is their real base capability, this flags how they reach it. -->
+              <div
+                v-if="record.workspace_roles === WorkspaceUserRolesEnum.APP_USER"
+                class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
+              >
+                <GeneralIcon icon="role_no_access" class="h-3 w-3" />
+                <span>{{ $t('objects.roleType.appUser') }}</span>
+              </div>
             </div>
             <div v-if="column.key === 'created_at'">
               <NcTooltip class="max-w-full">

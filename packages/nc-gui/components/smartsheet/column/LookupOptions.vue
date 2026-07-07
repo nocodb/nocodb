@@ -522,7 +522,9 @@ const handleScrollIntoView = () => {
                   <a-select-option value="first">First</a-select-option>
                   <a-select-option value="last">Last</a-select-option>
                 </a-select>
-                <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" data-testid="nc-lookup-limit-value" />
+                <div data-testid="nc-lookup-limit-value">
+                  <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" />
+                </div>
               </div>
 
               <!-- Sort records (lookup-scoped, backed by the Sort table). Edit-mode

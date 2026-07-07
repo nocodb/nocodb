@@ -31118,7 +31118,7 @@
           "resource_type": {
             "type": "string",
             "description": "Type of the trashed resource",
-            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook"]
+            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook", "app"]
           },
           "resource_id": {
             "$ref": "#/components/schemas/Id",

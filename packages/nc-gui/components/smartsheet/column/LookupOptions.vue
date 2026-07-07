@@ -541,19 +541,21 @@ const handleScrollIntoView = () => {
               </PaymentUpgradeBadgeProvider>
               <div v-if="lookupLimitEnabled" class="flex items-center gap-2 pl-10">
                 <span class="text-nc-content-gray-subtle2">{{ $t('labels.limitToThe') }}</span>
-                <a-select
+                <NcSelect
                   v-model:value="lookupLimitType"
-                  class="!w-28"
+                  class="!w-28 nc-lookup-limit-type"
                   data-testid="nc-lookup-limit-type"
-                  dropdown-class-name="!rounded-md nc-dropdown-lookup-limit-type"
+                  dropdown-class-name="nc-dropdown-lookup-limit-type"
                 >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                   <a-select-option value="first">{{ $t('general.first') }}</a-select-option>
                   <a-select-option value="last">{{ $t('general.last') }}</a-select-option>
-                </a-select>
-                <div data-testid="nc-lookup-limit-value">
-                  <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" />
-                </div>
+                </NcSelect>
+                <a-input-number
+                  v-model:value="lookupLimitValue"
+                  :min="1"
+                  class="!w-20 nc-lookup-limit-value"
+                  data-testid="nc-lookup-limit-value"
+                />
               </div>
 
               <!-- Sort records (lookup-scoped, backed by the Sort table). Held
@@ -687,6 +689,17 @@ const handleScrollIntoView = () => {
 
 :deep(.nc-filter-grid) {
   @apply !pr-0;
+}
+
+// Keep the "Limit to the [First/Last] [N]" controls visually consistent — the
+// NcSelect and the number input should share the same height + corner radius.
+:deep(.nc-lookup-limit-value) {
+  @apply !h-8 !rounded-lg;
+
+  .ant-input-number-input-wrap,
+  .ant-input-number-input {
+    @apply !h-full;
+  }
 }
 
 .nc-lookup-options-tabs {

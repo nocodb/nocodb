@@ -58,12 +58,12 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      {user?.displayName ? (
+      {user ? (
         <div className="flex shrink-0 items-center gap-2 border-t border-sidebar-border px-4 py-3">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
-            {initials(user.displayName)}
+            {initials(user.displayName ?? "")}
           </div>
-          <span className="truncate text-sm">{user.displayName}</span>
+          <span className="truncate text-sm">{user.displayName ?? "Signed in"}</span>
         </div>
       ) : null}
     </div>

@@ -13,6 +13,8 @@ export interface AppVersionType {
   base_id?: string;
   version_number?: number;
   status?: AppStatus;
+  git_sha?: string;
+  claude_session_id?: string;
   created_by?: string;
   created_at?: string;
 }
@@ -27,8 +29,11 @@ export interface AppType {
   order?: number;
   fk_draft_version_id?: string;
   fk_live_version_id?: string;
+  last_build_error?: string;
   created_by?: string;
   deleted?: boolean;
   created_at?: string;
   updated_at?: string;
 }
+
+export * from './build';

@@ -6,6 +6,7 @@ import type {
   ChatMessageType,
   ChatSessionType,
 } from '~/lib/chat';
+import type { AppBuildEventPayload } from '~/lib/app/build';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -25,6 +26,7 @@ export enum EventType {
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
   PRESENCE_EVENT = 'event-presence',
   CHAT_EVENT = 'event-chat',
+  APP_BUILD_EVENT = 'event-app-build',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
   DOCUMENT_SYNC_EVENT = 'event-document-sync',
@@ -306,6 +308,7 @@ export type SocketEventPayload =
   | NotificationPayload
   | PresencePayload
   | ChatEventPayload
+  | AppBuildEventPayload
   | SmartTextPayload;
 
 // Type mapping for event types to their corresponding payloads
@@ -320,6 +323,7 @@ export type SocketEventPayloadMap = {
   [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.APP_BUILD_EVENT]: AppBuildEventPayload;
   [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;
 };

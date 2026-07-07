@@ -285,3 +285,44 @@ interface RawMailParams {
 export interface IMailService {
   sendMailRaw(param: RawMailParams): Promise<boolean>;
 }
+
+export interface CommentAuthor {
+  id: string | null;
+  name: string | null;
+  email: string | null;
+}
+
+export interface CommentMentionRef {
+  id: string;
+  email: string | null;
+  name: string | null;
+}
+
+/**
+ * A comment enriched for consumption by workflow nodes: the raw + plain-text
+ * body, the resolved author, and the @mentioned users parsed from the body.
+ * Mirrors what the comment-trigger dispatcher builds on the live event path.
+ */
+export interface CommentRecord {
+  id: string;
+  record_id: string | null;
+  body: string;
+  body_plain: string;
+  author: CommentAuthor;
+  created_at: string | null;
+  updated_at: string | null;
+  parent_comment_id: string | null;
+  mentions: CommentMentionRef[];
+}
+
+export interface ICommentsService {
+  /**
+   * List comments on a table, enriched with plain-text body, resolved author
+   * and parsed @mentions. Used by nodes that need real comment data (e.g. the
+   * comment trigger's "Test" action fetches a sample comment through this).
+   */
+  listByModel(
+    context: NocoSDK.NcContext,
+    param: { modelId: string; limit?: number },
+  ): Promise<CommentRecord[]>;
+}

@@ -1,5 +1,6 @@
 import type { NocoSDK } from '../sdk';
 import type {
+  ICommentsService,
   IDataV3Service,
   IMailService,
   ITablesService,
@@ -30,4 +31,11 @@ export interface NocoDBContext {
   getBaseUsers: () => Promise<
     Array<{ id: string; email: string; display_name?: string | null }>
   >;
+  /**
+   * Comments service — list comments enriched with plain-text body, resolved
+   * author and parsed @mentions. Used by nodes that need real comment data
+   * (e.g. the comment trigger's "Test" action fetches a sample comment
+   * through it).
+   */
+  commentsService: ICommentsService;
 }

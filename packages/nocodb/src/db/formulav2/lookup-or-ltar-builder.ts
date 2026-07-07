@@ -24,6 +24,10 @@ import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import {
+  applyLookupPkInLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
@@ -256,7 +260,10 @@ export const lookupOrLtarBuilder =
       let prevAlias = alias;
       // set initial lookup context
       let lookupContext = refContext;
+      let nested = false;
+      const singleLevelLookupCol = lookupColumn;
       while (lookupColumn.uidt === UITypes.Lookup) {
+        nested = true;
         // overwrite lookupContext from previous iteration
         const context = lookupContext;
         const nestedAlias = `__nc_formula${getAliasCount()}`;
@@ -425,6 +432,34 @@ export const lookupOrLtarBuilder =
         lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
+
+      // Per-lookup Limit (PG, single-level): restrict the relation rows a formula
+      // sees to the top-N of the configured sort, matching the displayed cell.
+      // selectQb is still a plain builder here (before the aggregate wrap).
+      if (
+        !nested &&
+        column.uidt === UITypes.Lookup &&
+        baseModelSqlv2.isPg &&
+        typeof (selectQb as any)?.clone === 'function'
+      ) {
+        const cfg = await loadLookupSortAndLimit(context, column);
+        if (cfg.hasConfig && cfg.limitVal > 0) {
+          const refModel = await singleLevelLookupCol.getModel(refContext);
+          const refBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: refModel,
+            dbDriver: knex,
+          });
+          await applyLookupPkInLimit({
+            qb: selectQb,
+            alias,
+            refBaseModel,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+        }
+      }
+
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:

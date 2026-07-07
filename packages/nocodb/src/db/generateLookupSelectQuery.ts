@@ -23,6 +23,10 @@ import type {
 import type LookupColumn from '../models/LookupColumn';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import {
+  applyLookupPkInLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 import { NcError } from '~/helpers/catchError';
 import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
 import { Model, View } from '~/models';
@@ -140,6 +144,11 @@ export default async function generateLookupSelectQuery({
   const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
 
   const context = baseModelSqlv2.context;
+
+  // Captured before the inner `context`/`baseModelSqlv2` shadows — the lookup's
+  // sort+limit config lives under the root base; the feature is PG-only.
+  const rootContext = context;
+  const rootIsPg = baseModelSqlv2.isPg;
 
   const rootAlias = alias;
 
@@ -387,10 +396,14 @@ export default async function generateLookupSelectQuery({
     {
       let prevAlias = alias;
       let context = refContext;
+      // Nested lookups are join-flattened here, so the single-query pk-IN limit
+      // only applies at depth 1.
+      let nested = false;
       while (
         lookupColumn.uidt === UITypes.Lookup ||
         lookupColumn.uidt === UITypes.LinkToAnotherRecord
       ) {
+        nested = true;
         const nestedAlias = getAlias();
 
         let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
@@ -669,6 +682,23 @@ export default async function generateLookupSelectQuery({
             }
 
             break;
+        }
+
+        // Per-lookup Limit (PG, single-level): restrict the relation rows to the
+        // top-N of the configured sort via a correlated pk-IN, so sort / group-by
+        // built on this aggregated value see the same limited set as the cell.
+        if (!nested && column.uidt === UITypes.Lookup && rootIsPg) {
+          const cfg = await loadLookupSortAndLimit(rootContext, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            await applyLookupPkInLimit({
+              qb: selectQb,
+              alias: prevAlias,
+              refBaseModel: baseModelSqlv2,
+              sorts: cfg.sorts,
+              limitVal: cfg.limitVal,
+              takeLast: cfg.takeLast,
+            });
+          }
         }
       }
       // if all relation are belongs to then we don't need to do the aggregation

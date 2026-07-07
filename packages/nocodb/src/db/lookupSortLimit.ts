@@ -86,3 +86,82 @@ export async function applyLookupSortLimitToQb(param: {
 
   if (limitVal > 0) qb.limit(limitVal);
 }
+
+/**
+ * Restrict a lookup's base correlated row query `qb` (aliased `alias`, rows from
+ * `refBaseModel`) to the top-N rows of the configured sort, via a correlated
+ *   ... AND <alias>.<pk> IN (SELECT <pk> FROM <same rows> ORDER BY <sortkey> LIMIT n)
+ * subquery. Unlike putting ORDER BY/LIMIT on the query directly, this composes
+ * with whatever the CONSUMER does with the rows afterwards (STRING_AGG in a
+ * formula, json_agg for a sort key, an EXISTS in a filter) — the outer query
+ * stays a valid aggregate/EXISTS while only the top-N rows are considered. Built
+ * by cloning `qb` so the exact relation correlation is reused.
+ *
+ * Only the LIMIT case needs this (sort-only affects presentation order, handled
+ * elsewhere); a no-op when there's no limit or the related table has no PK.
+ */
+export async function applyLookupPkInLimit(param: {
+  qb: Knex.QueryBuilder;
+  alias: string;
+  refBaseModel: IBaseModelSqlV2;
+  sorts: Sort[];
+  limitVal: number;
+  takeLast: boolean;
+}): Promise<void> {
+  const { qb, alias, refBaseModel, sorts, limitVal, takeLast } = param;
+  if (limitVal <= 0) return;
+
+  if (!refBaseModel.model.columns?.length) {
+    await refBaseModel.model.getColumns(refBaseModel.context);
+  }
+  const cols = refBaseModel.model.columns || [];
+  const pks = refBaseModel.model.primaryKeys?.length
+    ? refBaseModel.model.primaryKeys
+    : refBaseModel.model.primaryKey
+    ? [refBaseModel.model.primaryKey]
+    : [];
+  if (!pks.length) return;
+
+  const inner = qb.clone();
+  // Return only the pk(s) — the correlation WHERE is carried over by the clone.
+  if (typeof (inner as any).clearSelect === 'function') {
+    (inner as any).clearSelect();
+  }
+  for (const pk of pks) inner.select(`${alias}.${pk.column_name}`);
+
+  // Order by the configured sort columns (scalar columns only — resolved by
+  // name to keep the subquery projecting just the pk). "Last N" flips direction.
+  const effective = takeLast
+    ? sorts.map(
+        (s) =>
+          new Sort({
+            ...s,
+            direction: s.direction === 'desc' ? 'asc' : 'desc',
+          }),
+      )
+    : sorts;
+  let ordered = false;
+  for (const s of effective) {
+    const col = cols.find((c) => c.id === s.fk_column_id);
+    if (col?.column_name) {
+      inner.orderBy(
+        `${alias}.${col.column_name}`,
+        s.direction === 'desc' ? 'desc' : 'asc',
+      );
+      ordered = true;
+    }
+  }
+  if (!ordered && takeLast) {
+    for (const pk of pks) inner.orderBy(`${alias}.${pk.column_name}`, 'desc');
+  }
+  inner.limit(limitVal);
+
+  if (pks.length === 1) {
+    qb.whereIn(`${alias}.${pks[0].column_name}`, inner);
+  } else {
+    qb.whereIn(
+      pks.map((pk) => `${alias}.${pk.column_name}`),
+      inner,
+    );
+  }
+}

@@ -1,4 +1,4 @@
-import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, parseProp, RelationTypes, UITypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
 import type { ClientType, NcContext } from 'nocodb-sdk';
@@ -13,6 +13,10 @@ import type {
 import type { Knex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
+import {
+  applyLookupPkInLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 import { Filter } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import {
@@ -260,6 +264,28 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.where(hmSoftDeleteFilter);
         }
 
+        // Per-lookup Limit (PG, single-level): a filter matches only within the
+        // limited+sorted set — restrict the related rows to the top-N.
+        if (
+          baseModelSqlv2.isPg &&
+          !(
+            lookupColumn?.uidt === UITypes.Lookup ||
+            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
+          )
+        ) {
+          const cfg = await loadLookupSortAndLimit(context, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            await applyLookupPkInLimit({
+              qb,
+              alias,
+              refBaseModel: childBaseModel,
+              sorts: cfg.sorts,
+              limitVal: cfg.limitVal,
+              takeLast: cfg.takeLast,
+            });
+          }
+        }
+
         return {
           rootApply: (qb) => {
             rootApply?.(qb);
@@ -336,6 +362,28 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         );
         if (btSoftDeleteFilter) {
           qb.where(btSoftDeleteFilter);
+        }
+
+        // Per-lookup Limit (PG, single-level): a filter matches only within the
+        // limited+sorted set — restrict the related rows to the top-N.
+        if (
+          baseModelSqlv2.isPg &&
+          !(
+            lookupColumn?.uidt === UITypes.Lookup ||
+            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
+          )
+        ) {
+          const cfg = await loadLookupSortAndLimit(context, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            await applyLookupPkInLimit({
+              qb,
+              alias,
+              refBaseModel: parentBaseModel,
+              sorts: cfg.sorts,
+              limitVal: cfg.limitVal,
+              takeLast: cfg.takeLast,
+            });
+          }
         }
 
         return {
@@ -420,6 +468,29 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         );
         if (mmSoftDeleteFilter) {
           qb.where(mmSoftDeleteFilter);
+        }
+
+        // Per-lookup Limit (PG, single-level): a filter matches only within the
+        // limited+sorted set — restrict the related (parent) rows to the top-N.
+        // The parent rows live behind `childAlias`; the clone carries the join.
+        if (
+          baseModelSqlv2.isPg &&
+          !(
+            lookupColumn?.uidt === UITypes.Lookup ||
+            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
+          )
+        ) {
+          const cfg = await loadLookupSortAndLimit(context, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            await applyLookupPkInLimit({
+              qb,
+              alias: childAlias,
+              refBaseModel: parentBaseModel,
+              sorts: cfg.sorts,
+              limitVal: cfg.limitVal,
+              takeLast: cfg.takeLast,
+            });
+          }
         }
 
         return {

@@ -16,10 +16,25 @@ This directory defines the dedicated E2B sandbox template for the **App Build En
 | `@anthropic-ai/claude-code@latest` | Claude Code CLI | The build processor spawns `claude` to run one build turn |
 | `tsx@4` | TypeScript runner | Executes the runtime-injected MCP stdio server script |
 | `/opt/mcp/node_modules` (`@modelcontextprotocol/sdk@^1.26.0`) | MCP SDK for the stdio server | Baked so the runtime-injected `server.mjs` can resolve the SDK without a network install inside the sandbox |
+| `/opt/starter-template` (+ pre-installed `node_modules`) | Static Vite + React 19 + Tailwind v4 + shadcn/ui scaffold | Seeds a brand-new app; `npm ci` is run at image-build time so per-turn `vite build` needs no network install |
 
 ## `/opt/mcp` — the MCP SDK mount point
 
 `/opt/mcp` is an ESM package directory (`"type": "module"`) with `@modelcontextprotocol/sdk` pre-installed in its `node_modules`. The build processor writes the MCP stdio server source to `/opt/mcp/server.mjs` at runtime (Task 8, `sandbox.files.write`), and Claude Code spawns it via `node /opt/mcp/server.mjs`. Node resolves `@modelcontextprotocol/sdk` from the sibling `node_modules` directory — no network access or `npm install` needed inside the sandbox at runtime.
+
+## `/opt/starter-template` — the static app scaffold
+
+A complete, build-green Vite SPA (React 19 + TypeScript + Tailwind CSS v4 + shadcn/ui new-york
++ react-router `HashRouter`). It is configured for static serving under a deep, opaque path:
+`vite.config.ts` sets `base: "./"` (relative asset URLs) and the router is hash-based (no server
+rewrites needed). Its `CLAUDE.md` is the authoring contract Claude Code auto-loads each turn — it
+enforces the **static-only** rule (no `fetch`/server/`eval`) and documents the theme-token swap
+seam and the future routines data layer.
+
+The image runs `npm ci` (so `node_modules` is pre-installed) and a throwaway `npm run build` (to
+validate the scaffold and warm the `tsc` incremental cache). A new app is seeded by copying the
+scaffold **without** `node_modules`; the per-turn build re-provides `node_modules` by symlinking
+back to `/opt/starter-template/node_modules` (deps are pinned, so one install serves every app).
 
 ## What is NOT baked in (injected at runtime)
 
@@ -33,10 +48,10 @@ The MCP stdio server source (`/opt/mcp/server.mjs`) and its `--mcp-config` JSON 
 
 ```bash
 cd packages/nocodb/e2b/app-builder
-e2b template build
+e2b template create nocodb-app-builder --cpu-count 2 --memory-mb 4096
 ```
 
-`e2b template build` builds the Docker image, pushes it to E2B, and writes the resulting `template_id` back into `e2b.toml`.
+> The legacy `e2b template build` (v1) is deprecated and now exits without building — use `e2b template create` (v2). Passing the existing template name (`nocodb-app-builder`) **rebuilds that template in place**, preserving its `template_id`. CPU/memory are v2 CLI flags (the `cpu_count`/`memory_mb` keys in `e2b.toml` are v1 and ignored by v2). The Dockerfile in this directory is auto-detected.
 
 After the build, set the new env var in your deployment environment:
 

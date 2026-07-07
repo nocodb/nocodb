@@ -1,7 +1,10 @@
 template_name = "nocodb-app-builder"
+template_id = "pqij35l3krqpk7gylga6"
 dockerfile = "Dockerfile"
 # No start_cmd — the build processor drives everything via commands.run after
 # Sandbox.create. Resource floor for claude; tune after the first smoke.
-# (`e2b template build` writes template_id back into this file after the build.)
+# Rebuild with: `e2b template create nocodb-app-builder --cpu-count 2 --memory-mb 4096`
+# (v2; the legacy `e2b template build` is deprecated. cpu_count/memory_mb below
+# are v1 keys, ignored by v2 — pass them as CLI flags instead.)
 cpu_count = 2
 memory_mb = 4096

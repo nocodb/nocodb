@@ -8,6 +8,7 @@ export enum AppBuildAction {
   STATUS = 'status',
   MESSAGE_DONE = 'message-done',
   ERROR = 'error',
+  PREVIEW_READY = 'preview-ready',
 }
 
 export type AppChatPart =
@@ -54,4 +55,7 @@ export interface AppBuildEventPayload {
   parts?: AppChatPart[];
   // action: 'error'
   error?: string;
+  // action: 'preview-ready' — backend-relative path; resolve against the
+  // backend origin (ncSiteUrl) to form the iframe src.
+  previewUrl?: string;
 }

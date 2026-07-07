@@ -31,6 +31,18 @@ RUN mkdir -p /opt/mcp \
 # (Task 8 sandbox.files.write), NOT baked into this image. This keeps the
 # image minimal and lets the MCP server change without an image rebuild.
 
-# The app repo lands here at runtime (git clone / git init).
+# Bake the static starter template (Vite + React + Tailwind v4 + shadcn/ui).
+# A brand-new app is seeded by copying /opt/starter-template into the app dir;
+# `npm ci` here pre-installs node_modules so per-turn `vite build` needs no
+# network install. The app's own node_modules is git-ignored and is re-provided
+# each turn by symlinking back to this baked copy (deps are pinned, so one
+# install serves every app and every revision).
+COPY starter-template /opt/starter-template
+RUN cd /opt/starter-template \
+ && npm ci \
+ && npm run build \
+ && rm -rf dist
+
+# The app repo lands here at runtime (git clone / git init / seed from starter).
 RUN mkdir -p /home/user/app
 WORKDIR /home/user/app

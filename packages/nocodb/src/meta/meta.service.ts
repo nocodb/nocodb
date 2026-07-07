@@ -202,6 +202,8 @@ export class MetaService {
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
+      [MetaTable.APPS]: 'app',
+      [MetaTable.APP_VERSIONS]: 'apv',
       [MetaTable.WORKSPACE]: 'w',
       [MetaTable.LIST_VIEW]: 'lv',
       [MetaTable.LIST_VIEW_COLUMNS]: 'lvc',

@@ -31,6 +31,14 @@ rewrites needed). Its `CLAUDE.md` is the authoring contract Claude Code auto-loa
 enforces the **static-only** rule (no `fetch`/server/`eval`) and documents the theme-token swap
 seam and the future routines data layer.
 
+`CLAUDE.md` is **platform-owned, not app-owned**: the build runner re-copies it from this baked
+template into the app dir at the start of *every* turn (not just at seed time). A brand-new app
+copies it in via the seed, but a hydrated app would otherwise keep the frozen copy committed when
+it was first created — so a guidance fix would never reach existing apps. Re-overlaying it means a
+contract change rolls out to **all** apps after a template rebuild, with no per-app migration. The
+overlay is scoped to `CLAUDE.md` only — `package.json` / `vite.config.ts` / `tsconfig*` can be
+edited per app (e.g. an added dependency), so they are left as the app committed them.
+
 The image runs `npm ci` (so `node_modules` is pre-installed) and a throwaway `npm run build` (to
 validate the scaffold and warm the `tsc` incremental cache). A new app is seeded by copying the
 scaffold **without** `node_modules`; the per-turn build re-provides `node_modules` by symlinking

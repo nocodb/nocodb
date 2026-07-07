@@ -3356,6 +3356,7 @@
     "appNothingToPublish": "No changes to publish",
     "appVersionsEmptyHint": "Publish this app to create its first version.",
     "appVersionsHint": "Every published version of this app. Roll back any time.",
+    "appVersionCurrent": "Current",
     "appDraftPreview": "Draft preview",
     "viewportDesktop": "Desktop width",
     "viewportMobile": "Mobile width",

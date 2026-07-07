@@ -28118,6 +28118,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to List View Level"
           },
+          "fk_lookup_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view"
+          },
           "enabled": {
             "type": "boolean",
             "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation.",

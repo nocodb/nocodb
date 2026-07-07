@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isColumnInError, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import Draggable from 'vuedraggable'
-import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -110,14 +108,6 @@ const columns = computed(() =>
   }),
 )
 
-const columnByID = computed(() =>
-  columns.value.reduce((obj, col) => {
-    obj[col.id!] = col
-
-    return obj
-  }, {} as Record<string, ColumnType>),
-)
-
 const availableColumns = computed(() => {
   return columns.value
     ?.filter((c: ColumnType) => {
@@ -142,10 +132,6 @@ const availableColumns = computed(() => {
     })
     .filter((c) => !(displayedSorts.value ?? []).find((s) => s.fk_column_id === c.id))
 })
-
-const getColumnUidtByID = (key?: string) => {
-  return sortGetColumnUidtByID(key, columnByID.value)
-}
 
 const open = ref(false)
 
@@ -309,156 +295,23 @@ watch(
           data-testid="nc-sorts-menu"
         >
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
-            <template v-if="!isRestrictedEditor">
-              <Draggable
-                :model-value="displayedSorts"
-                :item-key="(sort) => sort.id || sort.fk_column_id"
-                ghost-class="bg-nc-bg-gray-extralight"
-                :disabled="isLocked || !appInfo.ee || isPublic"
-                @change="onSortMove($event)"
-              >
-                <template #item="{ element: sort }">
-                  <div
-                    :key="sort.id || sort.fk_column_id"
-                    class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center gap-2"
-                    :class="{ 'nc-sort-disabled-row': sort.enabled === false }"
-                  >
-                    <NcCheckbox
-                      v-if="appInfo.ee && !isPublic"
-                      :checked="sort.enabled !== false"
-                      size="default"
-                      :disabled="isLocked"
-                      class="nc-sort-enabled-checkbox xs:(flex min-h-8)"
-                      @change="onToggleSortEnabled(sort)"
-                    />
-                    <!-- joined control group (no internal gap so the field/dir/reorder/remove stay connected) -->
-                    <div class="flex items-center flex-1 min-w-0">
-                      <SmartsheetToolbarFieldListAutoCompleteDropdown
-                        v-model="sort.fk_column_id"
-                        class="flex caption nc-sort-field-select !w-44 flex-grow"
-                        :columns="columns"
-                        is-sort
-                        :meta="meta"
-                        :disabled="false"
-                        @click.stop
-                        @update:model-value="saveOrUpdate(sort, getSortIndex(sort))"
-                      />
-
-                      <NcSelect
-                        v-model:value="sort.direction"
-                        class="flex flex-grow-1 w-full nc-sort-dir-select"
-                        :label="$t('labels.operation')"
-                        dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-                        :disabled="false"
-                        @click.stop
-                        @select="saveOrUpdate(sort, getSortIndex(sort))"
-                      >
-                        <a-select-option
-                          v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
-                          :key="j"
-                          v-e="['c:sort:operation:select']"
-                          :value="option.value"
-                        >
-                          <div class="w-full flex items-center justify-between gap-2">
-                            <div class="truncate flex-1">{{ option.text }}</div>
-                            <component
-                              :is="iconMap.check"
-                              v-if="sort.direction === option.value"
-                              id="nc-selected-item-icon"
-                              class="text-primary w-4 h-4"
-                            />
-                          </div>
-                        </a-select-option>
-                      </NcSelect>
-
-                      <NcButton
-                        v-if="appInfo.ee && !isPublic && !isMobileMode"
-                        type="secondary"
-                        size="small"
-                        class="nc-sort-item-reorder-btn !border-l-transparent !rounded-none"
-                        :shadow="false"
-                        :disabled="isLocked"
-                      >
-                        <component :is="iconMap.drag" />
-                      </NcButton>
-
-                      <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
-                        <NcButton
-                          v-e="['c:sort:delete']"
-                          size="small"
-                          type="secondary"
-                          :shadow="false"
-                          :disabled="false"
-                          class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
-                          @click.stop="deleteSort(sort, getSortIndex(sort))"
-                        >
-                          <component :is="iconMap.deleteListItem" />
-                        </NcButton>
-                      </NcTooltip>
-                    </div>
-                  </div>
-                </template>
-              </Draggable>
-            </template>
-            <template v-else>
-              <!-- Restricted editors (locked / non-owned personal) see the
-                   saved sorts as read-only — the temp/local sort path is
-                   intentionally gone now that editors have direct write
-                   access on collab + own personal views. -->
-              <!-- Existing Sorts (Read Only) -->
-              <div
-                v-for="(sort, i) of displayedExistingSorts"
-                :key="`existing-${i}`"
-                class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center opacity-70"
-              >
-                <SmartsheetToolbarFieldListAutoCompleteDropdown
-                  :model-value="sort.fk_column_id"
-                  class="flex caption nc-sort-field-select !w-44 flex-grow"
-                  :columns="meta.columns || columns"
-                  is-sort
-                  :meta="meta"
-                  disabled
-                  show-all-columns
-                />
-
-                <NcSelect
-                  :value="sort.direction"
-                  class="flex flex-grow-1 w-full nc-sort-dir-select"
-                  :label="$t('labels.operation')"
-                  dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-                  :disabled="true"
-                >
-                  <a-select-option
-                    v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
-                    :key="j"
-                    :value="option.value"
-                  >
-                    <div class="w-full flex items-center justify-between gap-2">
-                      <div class="truncate flex-1">{{ option.text }}</div>
-                      <component
-                        :is="iconMap.check"
-                        v-if="sort.direction === option.value"
-                        id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </NcSelect>
-
-                <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
-                  <NcButton
-                    v-e="['c:sort:delete']"
-                    size="small"
-                    type="secondary"
-                    :shadow="false"
-                    :disabled="true"
-                    class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
-                  >
-                    <component :is="iconMap.deleteListItem" />
-                  </NcButton>
-                </NcTooltip>
-              </div>
-            </template>
+            <!-- Shared, presentational sort rows. Restricted editors (locked /
+                 non-owned personal) get the saved sorts read-only; the temp/local
+                 sort path is intentionally gone now that editors have direct write
+                 access on collab + own personal views. -->
+            <SmartsheetSortList
+              :sorts="isRestrictedEditor ? displayedExistingSorts : displayedSorts"
+              :columns="columns"
+              :meta="meta"
+              :read-only="isRestrictedEditor"
+              :draggable="appInfo.ee && !isPublic"
+              :show-enable-toggle="appInfo.ee && !isPublic"
+              :disabled="isLocked"
+              @save-or-update="saveOrUpdate($event, getSortIndex($event))"
+              @delete="deleteSort($event, getSortIndex($event))"
+              @toggle-enabled="onToggleSortEnabled($event)"
+              @move="onSortMove($event)"
+            />
           </div>
 
           <div v-if="!isRestrictedEditor" class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">

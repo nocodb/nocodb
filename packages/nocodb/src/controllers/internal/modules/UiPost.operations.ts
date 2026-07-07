@@ -111,6 +111,7 @@ export class UiPostOperations
     'sortCreate' as const,
     'sortUpdate' as const,
     'sortDelete' as const,
+    'lookupSortCreate' as const,
     'hookCreate' as const,
     'hookUpdate' as const,
     'hookDelete' as const,
@@ -400,6 +401,12 @@ export class UiPostOperations
       case 'sortDelete':
         return await this.sortsService.sortDelete(context, {
           sortId: req.query.sortId,
+          req,
+        });
+      case 'lookupSortCreate':
+        return await this.sortsService.lookupSortCreate(context, {
+          columnId: req.query.columnId,
+          sort: payload,
           req,
         });
       case 'hookCreate':

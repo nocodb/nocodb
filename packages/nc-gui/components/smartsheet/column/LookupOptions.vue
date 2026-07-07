@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { PlanFeatureTypes, PlanTitles, UITypes, getLookupResultType, getUITypesForLookupResultType } from 'nocodb-sdk'
 
@@ -31,11 +30,17 @@ const {
 
 const baseStore = useBase()
 
+const { isPg } = baseStore
+
 const { tables } = storeToRefs(baseStore)
 
 const { getMeta, getMetaByKey, metasWithIdAsKey } = useMetas()
 
 const filterRef = ref()
+
+// Lookup sort builder — mirrors filterRef: the child owns a local, status-tagged
+// sort set which we sync into `vModel.value.sorts`; the column save persists it.
+const sortRef = ref()
 
 const activeTabKey = ref<'configuration' | 'formatting'>('configuration')
 
@@ -84,6 +89,11 @@ const refTables = computed(() => {
 const selectedTable = computed(() => {
   return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 })
+
+// Target table meta (with columns) for the lookup sort builder.
+const lookupTargetMeta = computed(() =>
+  selectedTable.value ? getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) : undefined,
+)
 
 // Synthetic lookup column built from the live form selections — used to resolve the
 // looked-up result type (following nested-lookup chains and unwrapping Formula/Rollup).
@@ -175,6 +185,37 @@ const limitRecToCond = computed({
   },
 })
 
+// ── Lookup Limit (EE, licensed) — "limit items shown", persisted to column meta. ──
+// NOTE: lookup *sort* is NOT stored in meta; it lives in the Sort table scoped by
+// `fk_lookup_col_id` (like lookup conditions use the Filter table), edited by the
+// reusable LookupSort component below and applied by the backend via
+// applyLookupSortAndLimit + sortV2.
+const lookupLimitEnabled = computed({
+  get: () => !!vModel.value.meta?.lookup_limit?.value,
+  set(value: boolean) {
+    vModel.value.meta = vModel.value.meta || {}
+    if (value) {
+      vModel.value.meta.lookup_limit = { type: vModel.value.meta.lookup_limit?.type || 'first', value: 1 }
+    } else {
+      delete vModel.value.meta.lookup_limit
+    }
+  },
+})
+const lookupLimitType = computed({
+  get: () => vModel.value.meta?.lookup_limit?.type || 'first',
+  set(v: 'first' | 'last') {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.lookup_limit = { type: v, value: vModel.value.meta.lookup_limit?.value || 1 }
+  },
+})
+const lookupLimitValue = computed({
+  get: () => vModel.value.meta?.lookup_limit?.value || 1,
+  set(v: number) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.lookup_limit = { type: vModel.value.meta.lookup_limit?.type || 'first', value: Math.max(1, +v || 1) }
+  },
+})
+
 // Provide related table meta for filter conditions
 provide(
   MetaInj,
@@ -208,6 +249,17 @@ watch(
   (next) => {
     if (!vModel.value) return
     vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
+
+// Sync the lookup sort builder's local, status-tagged set into the column body so
+// postColumnAdd/postColumnUpdate persist it against fk_lookup_col_id on save.
+watch(
+  () => sortRef.value?.sorts,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.sorts = next ? [...next] : []
   },
   { deep: true },
 )
@@ -450,6 +502,99 @@ const handleScrollIntoView = () => {
                 />
               </div>
             </div>
+
+            <!-- Lookup Sort + Limit (EE, licensed) — persisted to column meta.
+                 PG-only: the ordered/limited read lives in the PG query path
+                 (ee/dbQueryClient/pg.ts) and is a no-op on mysql/sqlite/oracle/
+                 external sources, so don't surface the option there. -->
+            <div v-if="isPg(meta?.source_id)" class="flex flex-col gap-2">
+              <!-- Limit the number of items shown -->
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <NcSwitch
+                      :checked="lookupLimitEnabled"
+                      :disabled="!selectedTable"
+                      size="small"
+                      data-testid="nc-lookup-limit-items"
+                      @change="
+                        (value) => {
+                          if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT)) return
+                          lookupLimitEnabled = value
+                        }
+                      "
+                    >
+                      {{ $t('labels.limitNumberOfItemsShown') }}
+                    </NcSwitch>
+                    <LazyPaymentUpgradeBadge
+                      v-if="!lookupLimitEnabled"
+                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
+                      :content="
+                        $t('upgrade.upgradeToSortAndLimitLookupValues', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      class="ml-1"
+                    />
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+              <div v-if="lookupLimitEnabled" class="flex items-center gap-2 pl-10">
+                <span class="text-nc-content-gray-subtle2">{{ $t('labels.limitToThe') }}</span>
+                <NcSelect
+                  v-model:value="lookupLimitType"
+                  class="!w-28 nc-lookup-limit-type"
+                  data-testid="nc-lookup-limit-type"
+                  dropdown-class-name="nc-dropdown-lookup-limit-type"
+                >
+                  <a-select-option value="first">{{ $t('general.first') }}</a-select-option>
+                  <a-select-option value="last">{{ $t('general.last') }}</a-select-option>
+                </NcSelect>
+                <div data-testid="nc-lookup-limit-value">
+                  <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20 nc-lookup-limit-value" />
+                </div>
+              </div>
+
+              <!-- Sort records (lookup-scoped, backed by the Sort table). Held
+                   locally and persisted with the column on save — same flow as
+                   LTAR limit-by-filter — so it works in the create form too.
+                   Gated (like the limit toggle) behind FEATURE_LOOKUP_SORT_LIMIT:
+                   on an unlicensed workspace, interacting with the builder opens
+                   the upgrade flow instead of editing sorts. -->
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <span class="text-nc-content-gray-subtle2">{{ $t('labels.sortRecords') }}</span>
+                    <LazyPaymentUpgradeBadge
+                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
+                      :content="
+                        $t('upgrade.upgradeToSortAndLimitLookupValues', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      class="ml-1"
+                    />
+                  </div>
+                  <div
+                    v-if="selectedTable"
+                    class="pl-10"
+                    @click.capture="
+                      (e) => {
+                        if (click(PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT)) {
+                          e.stopPropagation()
+                          e.preventDefault()
+                        }
+                      }
+                    "
+                  >
+                    <LazySmartsheetColumnLookupSort ref="sortRef" :column-id="vModel.id" :target-meta="lookupTargetMeta" />
+                  </div>
+                  <div v-else class="pl-10 text-nc-content-gray-subtle2 text-bodySm">
+                    {{ $t('labels.selectRelatedFieldToConfigureSort') }}
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+            </div>
           </div>
         </div>
       </a-tab-pane>
@@ -541,6 +686,17 @@ const handleScrollIntoView = () => {
 
 :deep(.nc-filter-grid) {
   @apply !pr-0;
+}
+
+// Keep the "Limit to the [First/Last] [N]" controls visually consistent — the
+// NcSelect and the number input should share the same height + corner radius.
+:deep(.nc-lookup-limit-value) {
+  @apply !h-8 !rounded-lg;
+
+  .ant-input-number-input-wrap,
+  .ant-input-number-input {
+    @apply !h-full;
+  }
 }
 
 .nc-lookup-options-tabs {

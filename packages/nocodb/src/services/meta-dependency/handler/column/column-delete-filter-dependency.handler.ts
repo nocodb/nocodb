@@ -16,6 +16,9 @@ import Noco from '~/Noco';
  *
  * Sweeps:
  *  - `nc_sorts` rows where `fk_column_id = colId`
+ *  - `nc_sorts` rows where `fk_lookup_col_id = colId` (per-lookup sort config —
+ *    its `fk_column_id` points at the related table, so the `fk_column_id`
+ *    sweep above never matches it; deleting the Lookup column would orphan it)
  *  - `nc_filter_exp` rows where `fk_column_id = colId` OR `fk_value_col_id = colId`
  *  - filter-group children parented by this column (recursive cache-aware)
  *
@@ -48,6 +51,14 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
       );
       if (rows.length) return {};
     }
+    // Per-lookup sort config scoped to this (lookup) column.
+    const lookupSortRows = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SORT,
+      { condition: { fk_lookup_col_id: id }, limit: 1 },
+    );
+    if (lookupSortRows.length) return {};
     return undefined;
   }
 
@@ -64,14 +75,22 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
     const deletedSorts: any[] = [];
     const deletedFilters: any[] = [];
 
-    for (const sort of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SORT,
-      { condition: { fk_column_id: id } },
-    )) {
-      await Sort.delete(context, sort.id, ncMeta);
-      deletedSorts.push(sort);
+    const deletedSortIds = new Set<string>();
+    // Sorts keyed on this column directly, plus per-lookup sort config scoped to
+    // this (lookup) column. A lookup sort's `fk_column_id` points at a related
+    // table column, so the two conditions never overlap — the guard is defensive.
+    for (const condition of [{ fk_column_id: id }, { fk_lookup_col_id: id }]) {
+      for (const sort of await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.SORT,
+        { condition },
+      )) {
+        if (deletedSortIds.has(sort.id)) continue;
+        deletedSortIds.add(sort.id);
+        await Sort.delete(context, sort.id, ncMeta);
+        deletedSorts.push(sort);
+      }
     }
 
     for (const filter of await ncMeta.metaList2(

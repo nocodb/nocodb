@@ -150,6 +150,7 @@ const permissionScopes = {
     'exportCsv',
     'exportExcel',
     'sortList',
+    'lookupSortList',
     'filterList',
     'baseInfoGet',
     'baseUserMetaUpdate',
@@ -215,6 +216,7 @@ const permissionScopes = {
     'viewColumnUpdate',
     'viewColumnsBulkSetVisibility',
     'sortCreate',
+    'lookupSortCreate',
     'sortUpdate',
     'sortDelete',
     'filterCreate',
@@ -458,6 +460,7 @@ const rolePermissions:
 
       // sort & filter
       sortList: true,
+      lookupSortList: true,
       filterList: true,
       baseInfoGet: true,
       baseUserMetaUpdate: true,
@@ -573,6 +576,7 @@ const rolePermissions:
 
       // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
       sortCreate: true,
+      lookupSortCreate: true,
       sortUpdate: true,
       sortDelete: true,
       filterCreate: true,
@@ -927,6 +931,7 @@ const permissionDescriptions: Record<string, string> = {
   exportCsv: 'export data to CSV',
   exportExcel: 'export data to Excel',
   sortList: 'view list of sorts',
+  lookupSortList: 'view the sort config of a lookup field',
   filterList: 'view list of filters',
   baseInfoGet: 'view base information',
   baseUserMetaUpdate: 'update user metadata for the base',
@@ -992,6 +997,7 @@ const permissionDescriptions: Record<string, string> = {
   viewColumnUpdate: 'update view columns',
   viewColumnsBulkSetVisibility: 'bulk update view column visibility',
   sortCreate: 'create a new sort',
+  lookupSortCreate: 'add a sort to a lookup field',
   sortUpdate: 'update an existing sort',
   sortDelete: 'delete a sort',
   filterCreate: 'create a new filter',

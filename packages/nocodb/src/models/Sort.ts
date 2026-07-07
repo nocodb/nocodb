@@ -17,8 +17,12 @@ import { isReplay } from '~/helpers/replayScope';
 export default class Sort {
   id: string;
 
-  fk_view_id: string;
+  fk_view_id?: string;
   fk_column_id?: string;
+  // When set, this sort is scoped to a lookup column (it orders the
+  // relation sub-query for that column) instead of a view — mirrors
+  // Filter.fk_link_col_id used by the "limit records by conditions" feature.
+  fk_lookup_col_id?: string;
   fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
   enabled?: boolean;
@@ -74,12 +78,18 @@ export default class Sort {
       'id',
       'fk_view_id',
       'fk_column_id',
+      'fk_lookup_col_id',
       'fk_level_id',
       'direction',
       'enabled',
       'base_id',
       'source_id',
     ]);
+
+    // A sort belongs to a view OR (for lookup-scoped sorts) a lookup column.
+    const parentCond = sortObj.fk_lookup_col_id
+      ? { fk_lookup_col_id: sortObj.fk_lookup_col_id }
+      : { fk_view_id: sortObj.fk_view_id };
 
     const replayKeepOrder = isReplay() && sortObj.order != null;
     if (replayKeepOrder) {
@@ -92,9 +102,7 @@ export default class Sort {
             await ncMeta
               .knex(MetaTable.SORT)
               .max('order', { as: 'order' })
-              .where({
-                fk_view_id: sortObj.fk_view_id,
-              })
+              .where(parentCond)
               .first()
           )?.order || 0) + 1;
     }
@@ -111,12 +119,7 @@ export default class Sort {
 
     // increment existing order
     if (sortObj.push_to_top) {
-      await ncMeta
-        .knex(MetaTable.SORT)
-        .where({
-          fk_view_id: sortObj.fk_view_id,
-        })
-        .increment('order', 1);
+      await ncMeta.knex(MetaTable.SORT).where(parentCond).increment('order', 1);
     }
 
     if (isReplay() && sortObj.id) {
@@ -130,51 +133,54 @@ export default class Sort {
       insertObj,
     );
     if (sortObj.push_to_top) {
+      // Refresh the list cache for whichever parent this sort belongs to — a
+      // view (`[fk_view_id]`) or a lookup column (`['lookup', fk_lookup_col_id]`,
+      // the distinct prefix used by listByLookupColumn). Keying on fk_view_id
+      // unconditionally would corrupt the cache for lookup-scoped sorts.
+      const listCacheKey = sortObj.fk_lookup_col_id
+        ? ['lookup', sortObj.fk_lookup_col_id]
+        : [sortObj.fk_view_id];
       const sortList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
         MetaTable.SORT,
         {
-          condition: { fk_view_id: sortObj.fk_view_id },
+          condition: parentCond,
           orderBy: {
             order: 'asc',
           },
         },
       );
-      await NocoCache.setList(
-        context,
-        CacheScope.SORT,
-        [sortObj.fk_view_id],
-        sortList,
-      );
+      await NocoCache.setList(context, CacheScope.SORT, listCacheKey, sortList);
     }
     // on insert, delete any optimised single query cache
-    {
-      const view = await View.get(context, row.fk_view_id, false, ncMeta);
-      if (view) {
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [view],
-          ncMeta,
-        );
-      }
-    }
+    await Sort.clearSingleQueryCacheForSort(context, row, ncMeta);
 
     return this.get(context, row.id, ncMeta).then(async (sort) => {
       if (!sortObj.push_to_top) {
-        await NocoCache.appendToList(
-          context,
-          CacheScope.SORT,
-          [sortObj.fk_view_id],
-          `${CacheScope.SORT}:${row.id}`,
-        );
-        await NocoCache.appendToList(
-          context,
-          CacheScope.SORT,
-          [sortObj.fk_column_id],
-          `${CacheScope.SORT}:${row.id}`,
-        );
+        if (sortObj.fk_view_id)
+          await NocoCache.appendToList(
+            context,
+            CacheScope.SORT,
+            [sortObj.fk_view_id],
+            `${CacheScope.SORT}:${row.id}`,
+          );
+        if (sortObj.fk_column_id)
+          await NocoCache.appendToList(
+            context,
+            CacheScope.SORT,
+            [sortObj.fk_column_id],
+            `${CacheScope.SORT}:${row.id}`,
+          );
+        // Lookup-scoped list cache (distinct prefix to avoid colliding with the
+        // view/column lists), mirrored by listByLookupColumn().
+        if (sortObj.fk_lookup_col_id)
+          await NocoCache.appendToList(
+            context,
+            CacheScope.SORT,
+            ['lookup', sortObj.fk_lookup_col_id],
+            `${CacheScope.SORT}:${row.id}`,
+          );
       }
       return sort;
     });
@@ -224,6 +230,79 @@ export default class Sort {
     return sortList.map((s) => new Sort(s));
   }
 
+  // Sorts scoped to a lookup column (used to order the relation sub-query).
+  // Mirrors Filter.allLinkFilterList; cached under a distinct 'lookup' prefix.
+  public static async listByLookupColumn(
+    context: NcContext,
+    { columnId }: { columnId: string },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Sort[]> {
+    if (!columnId) return [];
+    const cachedList = await NocoCache.getList(context, CacheScope.SORT, [
+      'lookup',
+      columnId,
+    ]);
+    let { list: sortList } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !sortList.length) {
+      sortList = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.SORT,
+        {
+          condition: { fk_lookup_col_id: columnId },
+          orderBy: { order: 'asc' },
+        },
+      );
+      await NocoCache.setList(
+        context,
+        CacheScope.SORT,
+        ['lookup', columnId],
+        sortList,
+      );
+    }
+    sortList.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity),
+    );
+    return sortList.map((s) => new Sort(s));
+  }
+
+  // Clear the single-query cache for the model a sort affects: the view's model
+  // for view sorts, or the model owning the lookup column for lookup sorts.
+  private static async clearSingleQueryCacheForSort(
+    context: NcContext,
+    sort: { fk_view_id?: string; fk_lookup_col_id?: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (sort?.fk_view_id) {
+      const view = await View.get(context, sort.fk_view_id, false, ncMeta);
+      if (view) {
+        await View.clearSingleQueryCache(
+          context,
+          view.fk_model_id,
+          [view],
+          ncMeta,
+        );
+      }
+    } else if (sort?.fk_lookup_col_id) {
+      const lookupCol = await Column.get(
+        context,
+        { colId: sort.fk_lookup_col_id },
+        ncMeta,
+      );
+      if (lookupCol?.fk_model_id) {
+        await View.clearSingleQueryCache(
+          context,
+          lookupCol.fk_model_id,
+          undefined,
+          ncMeta,
+        );
+      }
+    }
+  }
+
   public static async update(
     context: NcContext,
     sortId,
@@ -251,17 +330,7 @@ export default class Sort {
     // on update, delete any optimised single query cache
     {
       const sort = await this.get(context, sortId, ncMeta);
-      if (sort?.fk_view_id) {
-        const view = await View.get(context, sort.fk_view_id, false, ncMeta);
-        if (view) {
-          await View.clearSingleQueryCache(
-            context,
-            view.fk_model_id,
-            [view],
-            ncMeta,
-          );
-        }
-      }
+      await Sort.clearSingleQueryCacheForSort(context, sort, ncMeta);
     }
 
     return res;
@@ -288,17 +357,7 @@ export default class Sort {
     );
 
     // on delete, delete any optimised single query cache
-    if (sort?.fk_view_id) {
-      const view = await View.get(context, sort.fk_view_id, false, ncMeta);
-      if (view) {
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [view],
-          ncMeta,
-        );
-      }
-    }
+    await Sort.clearSingleQueryCacheForSort(context, sort, ncMeta);
   }
 
   public static async get(context: NcContext, id: any, ncMeta = Noco.ncMeta) {

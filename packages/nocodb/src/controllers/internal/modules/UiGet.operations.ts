@@ -51,6 +51,7 @@ export class UiGetOperations
     'filterList' as const,
     'filterChildrenList' as const,
     'sortList' as const,
+    'lookupSortList' as const,
     'hookList' as const,
     'hookLogList' as const,
     'hookFilterList' as const,
@@ -142,6 +143,12 @@ export class UiGetOperations
         return new PagedResponseImpl(
           await this.sortsService.sortList(context, {
             viewId: req.query.viewId as string,
+          }),
+        );
+      case 'lookupSortList':
+        return new PagedResponseImpl(
+          await this.sortsService.lookupSortList(context, {
+            columnId: req.query.columnId as string,
           }),
         );
       case 'hookList':

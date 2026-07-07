@@ -120,6 +120,7 @@
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
     "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
+    "upgradeToSortAndLimitLookupValues": "To sort and limit the values shown in a lookup field, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to add",
     "requestUpgradeToAdd": "Request upgrade to add",
     "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
@@ -318,6 +319,8 @@
     "toAccessCardFieldHeaderVisibility": "to access card field header visibility feature."
   },
   "general": {
+    "first": "First",
+    "last": "Last",
     "scrollToBottom": "Scroll to bottom",
     "undo": "Undo",
     "optional": "Optional",
@@ -1478,6 +1481,10 @@
   },
   "labels": {
     "timescale": "Timescale",
+    "limitNumberOfItemsShown": "Limit the number of items shown",
+    "limitToThe": "Limit to the",
+    "sortRecords": "Sort records",
+    "selectRelatedFieldToConfigureSort": "Select a related field first to configure sort.",
     "createNewField": "Create new field",
     "chatImport": {
       "columnCount": "{count} column | {count} columns",

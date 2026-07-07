@@ -24,6 +24,11 @@ import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import {
+  applyLookupPkInLimit,
+  applyNestedLookupLevelLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
@@ -256,6 +261,37 @@ export const lookupOrLtarBuilder =
       let prevAlias = alias;
       // set initial lookup context
       let lookupContext = refContext;
+      const singleLevelLookupCol = lookupColumn;
+
+      // Per-lookup Limit — OUTER level (PG): restrict the first-level relation
+      // rows a formula sees to the configured top-N BEFORE any nested joins,
+      // correlated to the root row. Applies to single-level lookups and the
+      // outer level of nested ones (the pk-IN survives the nested joins below).
+      // selectQb is still a plain builder here (it only becomes a function in
+      // the terminal switch after the loop).
+      if (
+        column.uidt === UITypes.Lookup &&
+        baseModelSqlv2.isPg &&
+        typeof (selectQb as any)?.clone === 'function'
+      ) {
+        const cfg = await loadLookupSortAndLimit(context, column);
+        if (cfg.hasConfig && cfg.limitVal > 0) {
+          const refModel = await singleLevelLookupCol.getModel(refContext);
+          const refBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: refModel,
+            dbDriver: knex,
+          });
+          await applyLookupPkInLimit({
+            qb: selectQb,
+            alias,
+            refBaseModel,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+        }
+      }
+
       while (lookupColumn.uidt === UITypes.Lookup) {
         // overwrite lookupContext from previous iteration
         const context = lookupContext;
@@ -330,6 +366,25 @@ export const lookupOrLtarBuilder =
               if (nestedBtSoftDeleteFilter) {
                 selectQb.where(nestedBtSoftDeleteFilter);
               }
+
+              // INNER-level limit for a nested lookup (BT): restrict this
+              // level's joined rows to the top-N per the previous level's row.
+              if (baseModelSqlv2.isPg && nestedLookup) {
+                const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+                if (cfg.hasConfig && cfg.limitVal > 0) {
+                  await applyNestedLookupLevelLimit({
+                    qb: selectQb,
+                    nestedAlias,
+                    nestedRefBaseModel: parentBaseModel,
+                    corrColName: parentColumn.column_name,
+                    prevAlias,
+                    prevCorrColName: childColumn.column_name,
+                    sorts: cfg.sorts,
+                    limitVal: cfg.limitVal,
+                    takeLast: cfg.takeLast,
+                  });
+                }
+              }
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -360,6 +415,25 @@ export const lookupOrLtarBuilder =
               );
               if (nestedHmSoftDeleteFilter) {
                 selectQb.where(nestedHmSoftDeleteFilter);
+              }
+
+              // INNER-level limit for a nested lookup (HM): restrict this
+              // level's joined rows to the top-N per the previous level's row.
+              if (baseModelSqlv2.isPg && nestedLookup) {
+                const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+                if (cfg.hasConfig && cfg.limitVal > 0) {
+                  await applyNestedLookupLevelLimit({
+                    qb: selectQb,
+                    nestedAlias,
+                    nestedRefBaseModel: childBaseModel,
+                    corrColName: childColumn.column_name,
+                    prevAlias,
+                    prevCorrColName: parentColumn.column_name,
+                    sorts: cfg.sorts,
+                    limitVal: cfg.limitVal,
+                    takeLast: cfg.takeLast,
+                  });
+                }
               }
             }
             break;
@@ -425,6 +499,7 @@ export const lookupOrLtarBuilder =
         lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
+
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:

@@ -19650,6 +19650,10 @@
             "description": "Base ID",
             "example": "p_9sx43moxhqtjm3",
             "readOnly": true
+          },
+          "fk_lookup_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view"
           }
         },
         "x-stoplight": {

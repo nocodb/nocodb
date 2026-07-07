@@ -138,6 +138,8 @@ export enum PlanFeatureTypes {
   FEATURE_WHITE_LABEL = 'feature_white_label',
   FEATURE_APP = 'feature_app',
   FEATURE_APP_EXTERNAL_DATA = 'feature_app_external_data',
+  /** Clean app URL without the random suffix (`<slug>` vs `<slug>-<suffix>`). Enterprise-only. */
+  FEATURE_APP_VANITY_URL = 'feature_app_vanity_url',
 }
 
 export enum PlanAddonTypes {
@@ -506,6 +508,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_APP]: 'to build Apps.',
   [PlanFeatureTypes.FEATURE_APP_EXTERNAL_DATA]:
     'to use external data sources in apps.',
+  [PlanFeatureTypes.FEATURE_APP_VANITY_URL]:
+    'to use a clean app URL without a random suffix.',
 };
 
 export const getUpgradeMessage = (

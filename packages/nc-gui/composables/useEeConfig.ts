@@ -390,6 +390,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseApps = (..._args: any[]) => {}
 
+  const blockAppVanityUrl = computed(() => true)
+
+  const showUpgradeToUseAppVanityUrl = (..._args: any[]) => {}
+
   const blockBookmarks = computed(() => true)
 
   const showUpgradeToUseBookmarks = (..._args: any[]) => {}
@@ -575,6 +579,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseWorkflows,
     blockApps,
     showUpgradeToUseApps,
+    blockAppVanityUrl,
+    showUpgradeToUseAppVanityUrl,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

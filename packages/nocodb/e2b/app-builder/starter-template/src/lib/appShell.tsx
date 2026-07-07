@@ -23,3 +23,31 @@ export function useAppPages(): AppNavEntry[] {
 export function appBasename(): string {
   return (window.__nc_app_base__ ?? '/').replace(/\/$/, '') || '/';
 }
+
+export interface AppUser {
+  id: string;
+  displayName?: string;
+}
+
+/**
+ * The current viewer, injected by the platform at serve time. `undefined` in
+ * anonymous contexts. v1 exposes `id` + `displayName` only.
+ */
+export function useAppUser(): AppUser | undefined {
+  return window.__nc_app_user__;
+}
+
+export interface AppMeta {
+  title?: string;
+  icon?: string;
+}
+
+/**
+ * App identity (title + optional icon) for navigation chrome. Falls back to the
+ * document title for pure local `vite dev` where nothing is injected.
+ */
+export function useAppMeta(): AppMeta {
+  const injected = window.__nc_app_meta__;
+  if (injected && (injected.title || injected.icon)) return injected;
+  return { title: document.title || undefined };
+}

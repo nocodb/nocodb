@@ -3353,6 +3353,7 @@
     "appCleanUrlHint": "Drop the random suffix for a shorter, branded address.",
     "appUrlSettingsHint": "The public address where your app is served. Changing it takes effect on the next publish; the old address stops working.",
     "appNothingToPublish": "No changes to publish",
+    "appVersionsEmptyHint": "Publish this app to create its first version.",
     "publishApp": "Publish app",
     "publishChanges": "Publish changes",
     "missingRoutines": "Missing routines",

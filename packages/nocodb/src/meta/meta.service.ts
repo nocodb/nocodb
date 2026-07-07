@@ -235,6 +235,9 @@ export class MetaService {
       [MetaTable.BOOKMARKS]: 'bmk',
       [MetaTable.MAIL_SENDS]: 'ms',
       [MetaTable.OPERATION_LOGS]: 'opl',
+      [MetaTable.APP_ROUTINES]: 'rtn',
+      [MetaTable.APP_ROUTINE_VERSIONS]: 'rtv',
+      [MetaTable.APP_VERSION_ROUTINES]: 'rtp',
     };
 
     const prefix = prefixMap[target] || 'nc';

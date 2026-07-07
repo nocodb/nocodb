@@ -149,6 +149,9 @@ export enum MetaTable {
   DOC_REVISIONS = 'nc_doc_revisions_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',
   TRASH = 'nc_trash',
+  APP_ROUTINES = 'nc_app_routines',
+  APP_ROUTINE_VERSIONS = 'nc_app_routine_versions',
+  APP_VERSION_ROUTINES = 'nc_app_version_routines',
 }
 
 export const BaseRelatedMetaTables = [
@@ -584,6 +587,9 @@ export enum CacheScope {
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
   TRASH = 'trash',
+  APP_ROUTINE = 'appRoutine',
+  APP_ROUTINE_VERSION = 'appRoutineVersion',
+  APP_VERSION_ROUTINE = 'appVersionRoutine',
 }
 
 export enum CacheGetType {

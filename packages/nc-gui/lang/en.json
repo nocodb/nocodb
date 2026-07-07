@@ -3354,6 +3354,8 @@
     "appUrlSettingsHint": "The public address where your app is served. Changing it takes effect on the next publish; the old address stops working.",
     "appNothingToPublish": "No changes to publish",
     "appVersionsEmptyHint": "Publish this app to create its first version.",
+    "input": "Input",
+    "result": "Result",
     "publishApp": "Publish app",
     "publishChanges": "Publish changes",
     "missingRoutines": "Missing routines",

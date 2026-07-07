@@ -150,6 +150,11 @@ export const OperationName = {
   tableSyncDetachTable: 'tableSyncDetachTable',
   tableSyncAttachTable: 'tableSyncAttachTable',
 
+  // App Routines
+  appRoutineCreate: 'appRoutineCreate',
+  appRoutineUpdate: 'appRoutineUpdate',
+  appRoutineDelete: 'appRoutineDelete',
+
   // App Sync (integration-based SyncConfig)
   appSyncCreate: 'appSyncCreate',
   appSyncUpdate: 'appSyncUpdate',

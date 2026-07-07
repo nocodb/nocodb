@@ -267,6 +267,8 @@ export interface CaptureBag {
   sandboxDefaultViewId: string;
   /** Draft `nc_app_versions` row id captured at app-create. */
   draftVersionId: string;
+  /** `nc_app_routine_versions` row id captured at routine-create/update. */
+  appRoutineVersionId: string;
   /** View ids that lived in a section at delete time — needed to re-link
    *  child views when the section is recreated on undo. */
   viewSectionViewIds: ReadonlyArray<string>;

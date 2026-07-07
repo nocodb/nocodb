@@ -241,6 +241,7 @@ export class MetaService {
       [MetaTable.APP_VERSION_ROUTINES]: 'rtp',
       [MetaTable.APP_INTEGRATION_GRANTS]: 'aig',
       [MetaTable.APP_ARTIFACTS]: 'apar',
+      [MetaTable.APP_PAGES]: 'pg',
     };
 
     const prefix = prefixMap[target] || 'nc';

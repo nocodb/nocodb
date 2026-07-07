@@ -3320,7 +3320,10 @@
     "filterBasedOnStaticValue": "Filter based on static value",
     "dynamicCondition": "Dynamic condition",
     "filterBasedOnDynamicValue": "Filter based on dynamic value",
-    "previewComingSoon": "Preview coming soon"
+    "previewComingSoon": "Preview coming soon",
+    "appNameHint": "Shown in the sidebar and across the workspace.",
+    "deleteApp": "Delete app",
+    "deleteAppHint": "Permanently delete this app and all of its data. This can't be undone."
   },
   "activity": {
     "useTemplate": "Use template",

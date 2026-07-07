@@ -1,6 +1,21 @@
-export type RoutineSourceType = 'nocodb_data' | 'integration' | 'sql' | 'http';
+export type RoutineSourceType =
+  | 'nocodb_data'
+  | 'integration'
+  | 'sql'
+  | 'http'
+  | 'redis';
 
 export type HttpRoutineMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** Named capability ops for source_type='redis' (strings-only KeyValue). */
+export type RedisRoutineOp =
+  | 'get'
+  | 'mget'
+  | 'set'
+  | 'del'
+  | 'expire'
+  | 'ttl'
+  | 'incr';
 
 /** source_ref for source_type='sql' (static part of a SQL routine). */
 export interface SqlRoutineSourceRef {
@@ -13,6 +28,15 @@ export interface SqlRoutineSourceRef {
 export interface HttpRoutineSourceRef {
   integrationId: string;
   method: HttpRoutineMethod;
+}
+
+/**
+ * source_ref for source_type='redis' (static part of a Redis routine). The op
+ * itself lives on the version's `operation` field (one of RedisRoutineOp) — the
+ * source_ref carries only the connection. Strings-only by contract.
+ */
+export interface RedisRoutineSourceRef {
+  integrationId: string;
 }
 
 /** invoke() result for a SQL routine. */
@@ -28,6 +52,40 @@ export interface HttpRoutineResult {
   headers: Record<string, string>;
   body: unknown;
 }
+
+/** Per-op invoke() results for a Redis routine (strings-only values). */
+export interface RedisGetResult {
+  value: string | null;
+}
+export interface RedisMgetResult {
+  /** Aligned 1:1 with the input `keys`; null for a missing key. */
+  values: (string | null)[];
+}
+export interface RedisSetResult {
+  ok: boolean;
+}
+export interface RedisDelResult {
+  deleted: number;
+}
+export interface RedisExpireResult {
+  applied: boolean;
+}
+export interface RedisTtlResult {
+  /** Remaining TTL in seconds; null when the key has no TTL or is missing. */
+  ttlSeconds: number | null;
+}
+export interface RedisIncrResult {
+  value: number;
+}
+
+export type RedisRoutineResult =
+  | RedisGetResult
+  | RedisMgetResult
+  | RedisSetResult
+  | RedisDelResult
+  | RedisExpireResult
+  | RedisTtlResult
+  | RedisIncrResult;
 
 /**
  * Full-payload audit detail captured for sql/http routine invokes (D10).
@@ -49,6 +107,10 @@ export interface RoutineInvokeAuditDetail {
     headers?: Record<string, unknown>;
     body?: unknown;
   };
+  /** Redis routine: the named op + its input + result (secret-free). */
+  redisOp?: string;
+  redisInput?: Record<string, unknown>;
+  redisResult?: unknown;
   rowCount?: number;
   truncated?: boolean;
   /** true when the captured payload was size-capped before persistence. */

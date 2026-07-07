@@ -53,6 +53,7 @@ export default class Integration implements IntegrationType {
   created_by?: string;
   sources?: Partial<SourceType>[];
   is_encrypted?: BoolType;
+  environments?: { fk_environment_id: string; config?: Record<string, any> }[];
 
   constructor(integration: Partial<IntegrationType>) {
     Object.assign(this, integration);
@@ -643,15 +644,9 @@ export default class Integration implements IntegrationType {
         NcError._.internalServerError('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), {
+      this.wrapper = new integrationWrapper.wrapper(this.getWrapperConfig(), {
         saveConfig: async (config: any) => {
-          await IntegrationClass.updateIntegration(
-            {
-              workspace_id: this.fk_workspace_id,
-            },
-            this.id,
-            { config },
-          );
+          await this.persistWrapperConfig(config);
         },
         logger: pLogger,
       });
@@ -663,22 +658,41 @@ export default class Integration implements IntegrationType {
       ) {
         (this.wrapper as any).setTokenRefreshCallback(
           async (tokens: { oauth_token: string; refresh_token?: string }) => {
-            await IntegrationClass.updateIntegration(
-              { workspace_id: this.fk_workspace_id },
-              this.id,
-              {
-                config: {
-                  ...this.getConfig(),
-                  ...tokens,
-                },
-              },
-            );
+            await this.persistWrapperConfig({
+              ...this.getWrapperConfig(),
+              ...tokens,
+            });
           },
         );
       }
     }
 
     return this.wrapper as T;
+  }
+
+  /**
+   * The config the integration client is built from. Defaults to the
+   * integration's own (production) config. EE overrides this to return a
+   * per-environment override when the instance has been bound to a non-production
+   * environment (e.g. inside a sandbox — see `applyEnvironment`).
+   */
+  protected getWrapperConfig(): any {
+    return this.getConfig();
+  }
+
+  /**
+   * Persist a config the wrapper produced (OAuth token exchange / refresh).
+   * Defaults to the integration's own config. EE routes it to the per-environment
+   * override when bound to an environment, so a sandbox's refreshed tokens never
+   * overwrite production credentials.
+   */
+  protected async persistWrapperConfig(config: any): Promise<void> {
+    const IntegrationClass = this.constructor as typeof Integration;
+    await IntegrationClass.updateIntegration(
+      { workspace_id: this.fk_workspace_id },
+      this.id,
+      { config },
+    );
   }
 
   getIntegrationMeta() {

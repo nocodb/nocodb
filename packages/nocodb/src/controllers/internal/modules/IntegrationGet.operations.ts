@@ -6,6 +6,10 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { BaseIntegrationsService } from '~/services/base-integrations.service';
+import {
+  assertResolvedBaseAcl,
+  resolveAccessContext,
+} from '~/helpers/sandboxGuards';
 
 @Injectable()
 export class IntegrationGetOperations
@@ -33,6 +37,17 @@ export class IntegrationGetOperations
       req: NcRequest;
     },
   ): InternalGETResponseType {
+    if (
+      operation === 'baseIntegrationList' ||
+      operation === 'baseIntegrationRead'
+    ) {
+      const { context: accessContext, baseId: accessBaseId } =
+        await resolveAccessContext(context, context.base_id);
+      if (accessBaseId !== context.base_id) {
+        await assertResolvedBaseAcl(accessContext, req, operation);
+      }
+    }
+
     switch (operation) {
       case 'baseIntegrationList':
         return await this.baseIntegrationsService.listForBase(context, {

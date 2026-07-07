@@ -73,6 +73,10 @@ export const presetErrorCodexMap: Partial<
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
   },
+  [NcErrorType.ERR_ENVIRONMENT_NOT_FOUND]: {
+    message: (id: string) => `Environment '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,

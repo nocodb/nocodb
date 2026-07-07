@@ -140,6 +140,10 @@ export enum PlanFeatureTypes {
   FEATURE_APP_EXTERNAL_DATA = 'feature_app_external_data',
   /** Clean app URL without the random suffix (`<slug>` vs `<slug>-<suffix>`). Enterprise-only. */
   FEATURE_APP_VANITY_URL = 'feature_app_vanity_url',
+  /** Use of the built-in Staging environment (Production is always free). */
+  FEATURE_STAGING_ENVIRONMENT = 'feature_staging_environment',
+  /** Creating custom environments (beyond Production/Staging). */
+  FEATURE_CUSTOM_ENVIRONMENT = 'feature_custom_environment',
 }
 
 export enum PlanAddonTypes {
@@ -510,6 +514,10 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to use external data sources in apps.',
   [PlanFeatureTypes.FEATURE_APP_VANITY_URL]:
     'to use a clean app URL without a random suffix.',
+  [PlanFeatureTypes.FEATURE_STAGING_ENVIRONMENT]:
+    'to use the Staging environment.',
+  [PlanFeatureTypes.FEATURE_CUSTOM_ENVIRONMENT]:
+    'to create custom environments.',
 };
 
 export const getUpgradeMessage = (

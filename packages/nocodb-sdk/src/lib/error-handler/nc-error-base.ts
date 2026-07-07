@@ -459,6 +459,13 @@ export class NcErrorBase {
     });
   }
 
+  environmentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ENVIRONMENT_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
   syncConfigNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND, {
       params: id,

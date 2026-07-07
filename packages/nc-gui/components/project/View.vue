@@ -89,7 +89,11 @@ const isAuditsTabVisible = computed(
   () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
-const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
+const isIntegrationsTabVisible = computed(() => {
+  if (isMobileMode.value) return false
+  if (base.value?.is_sandbox) return isUIAllowed('sourceCreate', { skipBaseCheck: true })
+  return isUIAllowed('sourceCreate')
+})
 
 const isWorkflowsTabVisible = computed(
   () =>

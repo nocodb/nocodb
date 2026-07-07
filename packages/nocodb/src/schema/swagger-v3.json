@@ -6789,6 +6789,608 @@
         }
       }
     },
+    "/api/v3/meta/workspaces/{workspaceId}/environments": {
+      "get": {
+        "summary": "List Environments",
+        "operationId": "environments-list-v3",
+        "description": "Retrieve the effective environment set for a workspace: the built-in `production` and `staging` environments (virtual, locked — present for every workspace with no stored row), plus the organization’s shared environments and the workspace’s own custom environments. Environments resolve per-environment integration configuration.\n\nRequires **Workspace Owner** or **Workspace Creator** role.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of environments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EnvironmentV3"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                },
+                "examples": {
+                  "Environments List": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "production",
+                          "key": "production",
+                          "title": "Production",
+                          "description": "The default. Your live apps and automations always run on this configuration.",
+                          "color": "#17803d",
+                          "is_default": true,
+                          "is_locked": true
+                        },
+                        {
+                          "id": "staging",
+                          "key": "staging",
+                          "title": "Staging",
+                          "description": "Pick this while building apps or creating a sandbox, to test against non-production data.",
+                          "color": "#c2410c",
+                          "is_default": false,
+                          "is_locked": true
+                        },
+                        {
+                          "id": "envabc12345",
+                          "key": "qa",
+                          "title": "QA",
+                          "description": "Pre-release verification",
+                          "color": "#6A7184",
+                          "is_default": false,
+                          "is_locked": false,
+                          "workspace_id": "w6dw3fo0",
+                          "created_at": "2026-07-01T06:04:18.000Z",
+                          "updated_at": "2026-07-01T06:04:18.000Z",
+                          "created_by": "usr1234567"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Environment",
+        "operationId": "environments-create-v3",
+        "description": "Create a custom environment in a workspace. The stable `key` slug is auto-derived from the title server-side (lowercased, non-alphanumeric runs collapsed to `-`, capped at 50 characters) and frozen thereafter — clients never send a key. Titles that collide with a built-in environment name (Production / Staging) or derive to a key already in use are rejected.\n\nRequires **Workspace Owner** or **Workspace Creator** role. Plan-gated: the plan must include the custom-environments feature and the workspace must be within its custom-environment limit.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvironmentCreateV3Req"
+              },
+              "examples": {
+                "Create Environment": {
+                  "value": {
+                    "title": "QA",
+                    "description": "Pre-release verification",
+                    "color": "#6A7184"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvironmentV3"
+                },
+                "examples": {
+                  "Environment": {
+                    "value": {
+                      "id": "envabc12345",
+                      "key": "qa",
+                      "title": "QA",
+                      "description": "Pre-release verification",
+                      "color": "#6A7184",
+                      "is_default": false,
+                      "is_locked": false,
+                      "workspace_id": "w6dw3fo0",
+                      "created_at": "2026-07-01T06:04:18.000Z",
+                      "updated_at": "2026-07-01T06:04:18.000Z",
+                      "created_by": "usr1234567"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Environment not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}/environments/{environmentId}": {
+      "patch": {
+        "summary": "Update Environment",
+        "operationId": "environments-update-v3",
+        "description": "Update a custom environment’s title, description, color or order. The `key` slug is frozen at create time — renaming the title never re-derives it, so references to the environment stay valid. The built-in environments (`production` / `staging`) cannot be edited, and org-scoped environments cannot be edited from the workspace routes.\n\nRequires **Workspace Owner** or **Workspace Creator** role.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "environmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Environment ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvironmentUpdateV3Req"
+              },
+              "examples": {
+                "Rename Environment": {
+                  "value": {
+                    "title": "QA Renamed",
+                    "color": "#c2410c"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvironmentV3"
+                },
+                "examples": {
+                  "Environment": {
+                    "value": {
+                      "id": "envabc12345",
+                      "key": "qa",
+                      "title": "QA Renamed",
+                      "description": "Pre-release verification",
+                      "color": "#c2410c",
+                      "is_default": false,
+                      "is_locked": false,
+                      "workspace_id": "w6dw3fo0",
+                      "created_at": "2026-07-01T06:04:18.000Z",
+                      "updated_at": "2026-07-01T06:04:18.000Z",
+                      "created_by": "usr1234567"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Environment not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Environment",
+        "operationId": "environments-delete-v3",
+        "description": "Delete a custom environment. All per-environment integration configuration overrides bound to it are removed as well. The built-in environments (`production` / `staging`) cannot be deleted, and org-scoped environments cannot be deleted from the workspace routes.\n\nRequires **Workspace Owner** or **Workspace Creator** role.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "environmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Environment ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Environment deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Environment not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/orgs/{orgId}/environments": {
+      "get": {
+        "summary": "List Organization Environments",
+        "operationId": "org-environments-list-v3",
+        "description": "Retrieve the organization-level environment set: the built-in `production` and `staging` environments (virtual, locked) plus the organization’s own environments. Organization environments are shared by every workspace under the organization; workspace-scoped environments are not included here.\n\nRequires organization membership (**Org Viewer** or above). Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Organization ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of environments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EnvironmentV3"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                },
+                "examples": {
+                  "Environments List": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "production",
+                          "key": "production",
+                          "title": "Production",
+                          "description": "The default. Your live apps and automations always run on this configuration.",
+                          "color": "#17803d",
+                          "is_default": true,
+                          "is_locked": true
+                        },
+                        {
+                          "id": "staging",
+                          "key": "staging",
+                          "title": "Staging",
+                          "description": "Pick this while building apps or creating a sandbox, to test against non-production data.",
+                          "color": "#c2410c",
+                          "is_default": false,
+                          "is_locked": true
+                        },
+                        {
+                          "id": "envabc12345",
+                          "key": "qa",
+                          "title": "QA",
+                          "description": "Pre-release verification",
+                          "color": "#6A7184",
+                          "is_default": false,
+                          "is_locked": false,
+                          "created_at": "2026-07-01T06:04:18.000Z",
+                          "updated_at": "2026-07-01T06:04:18.000Z",
+                          "created_by": "usr1234567",
+                          "org_id": "org123"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Organization Environment",
+        "operationId": "org-environments-create-v3",
+        "description": "Create a custom environment at the organization level, shared by all of the organization’s workspaces. The stable `key` slug is auto-derived from the title server-side and frozen thereafter — clients never send a key. Titles that collide with a built-in environment name (Production / Staging) or derive to a key already in use are rejected.\n\nRequires **Org Owner** role. Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Organization ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvironmentCreateV3Req"
+              },
+              "examples": {
+                "Create Organization Environment": {
+                  "value": {
+                    "title": "QA",
+                    "description": "Pre-release verification",
+                    "color": "#6A7184"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvironmentV3"
+                },
+                "examples": {
+                  "Environment": {
+                    "value": {
+                      "id": "envabc12345",
+                      "key": "qa",
+                      "title": "QA",
+                      "description": "Pre-release verification",
+                      "color": "#6A7184",
+                      "is_default": false,
+                      "is_locked": false,
+                      "created_at": "2026-07-01T06:04:18.000Z",
+                      "updated_at": "2026-07-01T06:04:18.000Z",
+                      "created_by": "usr1234567",
+                      "org_id": "org123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Environment not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/orgs/{orgId}/environments/{environmentId}": {
+      "patch": {
+        "summary": "Update Organization Environment",
+        "operationId": "org-environments-update-v3",
+        "description": "Update an organization environment’s title, description, color or order. The `key` slug is frozen at create time — renaming the title never re-derives it. The built-in environments (`production` / `staging`) cannot be edited.\n\nRequires **Org Owner** role. Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Organization ID"
+          },
+          {
+            "name": "environmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Environment ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvironmentUpdateV3Req"
+              },
+              "examples": {
+                "Rename Organization Environment": {
+                  "value": {
+                    "title": "QA Renamed",
+                    "color": "#c2410c"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvironmentV3"
+                },
+                "examples": {
+                  "Environment": {
+                    "value": {
+                      "id": "envabc12345",
+                      "key": "qa",
+                      "title": "QA Renamed",
+                      "description": "Pre-release verification",
+                      "color": "#c2410c",
+                      "is_default": false,
+                      "is_locked": false,
+                      "created_at": "2026-07-01T06:04:18.000Z",
+                      "updated_at": "2026-07-01T06:04:18.000Z",
+                      "created_by": "usr1234567",
+                      "org_id": "org123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Environment not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Organization Environment",
+        "operationId": "org-environments-delete-v3",
+        "description": "Delete an organization environment. All per-environment integration configuration overrides bound to it — across every workspace under the organization — are removed as well. The built-in environments (`production` / `staging`) cannot be deleted.\n\nRequires **Org Owner** role. Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "tags": [
+          "Environments"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Organization ID"
+          },
+          {
+            "name": "environmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Environment ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Environment deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Environment not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
     "/api/v3/meta/tokens": {
       "get": {
         "summary": "List API tokens",
@@ -13866,6 +14468,147 @@
             "description": "Updated team badge color (hex code)",
             "example": "#00AEEF",
             "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        }
+      },
+      "EnvironmentV3": {
+        "type": "object",
+        "description": "Environment for v3 API — a named stage (production / staging / custom) that resolves per-environment integration configuration. The built-in `production` and `staging` environments are virtual: they exist for every workspace and organization without a stored row, are locked, and use their reserved key as `id`.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Environment ID. Custom environments use a generated ID; the built-in environments use their reserved key (`production` / `staging`).",
+            "example": "envabc12345"
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable slug auto-derived from the title at create time and frozen thereafter — renaming the title never changes it. Used to reference the environment.",
+            "example": "qa",
+            "maxLength": 50
+          },
+          "title": {
+            "type": "string",
+            "description": "Human-readable environment name",
+            "example": "QA",
+            "maxLength": 255
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional description shown on the environment card / editor",
+            "example": "Pre-release verification"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Solid color (hex) used for the environment’s dot / badge",
+            "example": "#6A7184",
+            "maxLength": 20
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "True only for the built-in `production` environment — the fallback whose configuration is the integration’s own config."
+          },
+          "is_locked": {
+            "type": "boolean",
+            "description": "True for the built-in environments (`production` / `staging`) — they cannot be renamed or deleted."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Present on workspace-scoped custom environments. At most one of `workspace_id` / `org_id` is set; both are absent on the virtual built-in environments.",
+            "example": "w6dw3fo0"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Present on organization-scoped environments, which are shared by all of the organization’s workspaces.",
+            "example": "org123"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (absent on the virtual built-in environments)"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (absent on the virtual built-in environments)"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "ID of the user who created the environment (absent on the virtual built-in environments)",
+            "example": "usr1234567"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "title",
+          "is_default",
+          "is_locked"
+        ]
+      },
+      "EnvironmentCreateV3Req": {
+        "type": "object",
+        "description": "Environment creation request for v3 API. Creates a CUSTOM environment — the built-in `production` and `staging` environments always exist and cannot be created. The stable `key` slug is auto-derived from the title server-side; clients never send a key.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Environment name. Must contain at least one letter or number, must not collide with a built-in environment name (Production / Staging), and must derive to a key not already in use in the scope.",
+            "example": "QA",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description shown on the environment card / editor",
+            "example": "Pre-release verification"
+          },
+          "color": {
+            "type": "string",
+            "description": "Solid color (hex) used for the environment’s dot / badge",
+            "example": "#6A7184",
+            "maxLength": 20
+          },
+          "order": {
+            "type": "number",
+            "description": "Display position among environments; defaults to the end of the list",
+            "example": 1
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "EnvironmentUpdateV3Req": {
+        "type": "object",
+        "description": "Environment update request for v3 API. Only `title`, `description`, `color` and `order` are editable — the `key` slug is frozen at create time and renaming the title never re-derives it. The built-in environments (`production` / `staging`) cannot be updated.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "New environment name. The `key` slug is NOT re-derived on rename.",
+            "example": "QA Renamed",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description shown on the environment card / editor",
+            "example": "Pre-release verification"
+          },
+          "color": {
+            "type": "string",
+            "description": "Solid color (hex) used for the environment’s dot / badge",
+            "example": "#c2410c",
+            "maxLength": 20
+          },
+          "order": {
+            "type": "number",
+            "description": "Display position among environments",
+            "example": 1
           }
         }
       },

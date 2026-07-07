@@ -22,6 +22,7 @@ export * from '~/lib/scripts';
 export * from '~/lib/oauth';
 export * from '~/lib/unifiedMeta';
 export * from '~/lib/base-variable';
+export * from '~/lib/environment';
 export * from '~/lib/managed-app';
 export * from '~/lib/operationLog';
 export * from '~/lib/types';

@@ -1,6 +1,6 @@
 import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
 import { RelationTypes, RolesObj, RolesType } from './globals';
-import { ClientType } from './enums';
+import { ClientType, IntegrationCategoryType } from './enums';
 import {
   ColumnType,
   FormulaType,
@@ -326,6 +326,21 @@ export const getTestDatabaseName = (db: {
 
 export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
+};
+
+/**
+ * Per-environment config overrides are only meaningful for integrations whose
+ * config is a set of credentials that legitimately differs between production and
+ * staging/custom environments — i.e. Auth and AI integrations. Database sources,
+ * Sync connectors and workflow nodes do NOT support environments.
+ *
+ * Accepts either enum since the two share identical string values ('auth', 'ai');
+ * the runtime comparison is on those values.
+ */
+export const integrationSupportsEnvironments = (
+  category?: IntegrationsType | IntegrationCategoryType,
+): boolean => {
+  return category === IntegrationsType.Auth || category === IntegrationsType.Ai;
 };
 
 export function parseProp(v: any, fallbackVal = {}): any {

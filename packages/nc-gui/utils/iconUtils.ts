@@ -356,6 +356,7 @@ import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
 import NcSmartphoneIcon from '~icons/nc-icons-v2/smartphone.svg'
 import NcMoreHorizontalIcon from '~icons/nc-icons-v2/more-horizontal.svg'
 import NcSlidersIcon from '~icons/nc-icons-v2/sliders.svg'
+import NcSlidersHorizontalIcon from '~icons/nc-icons-v2/sliders-horizontal.svg'
 import NcArrowUpLeftIcon from '~icons/nc-icons-v2/arrow-up-left.svg'
 import NcChevronDownIcon from '~icons/nc-icons-v2/chevron-down.svg'
 import NcHexagonIcon from '~icons/nc-icons-v2/hexagon.svg'
@@ -1449,6 +1450,7 @@ export const iconMap = {
   'ncMoreHorizontal': NcMoreHorizontalIcon,
   'ncSliders': NcSlidersIcon,
   'sliders': NcSlidersIcon,
+  'ncSlidersHorizontal': NcSlidersHorizontalIcon,
   'ncArrowUpLeft': NcArrowUpLeftIcon,
   'ncChevronDown': NcChevronDownIcon,
   'ncHexagon': NcHexagonIcon,

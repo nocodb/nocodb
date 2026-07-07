@@ -1,16 +1,20 @@
 <script lang="ts" setup>
-import { IntegrationsType } from 'nocodb-sdk'
-import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
+import { DefaultEnvironmentKey, IntegrationsType, integrationSupportsEnvironments } from 'nocodb-sdk'
+import type { EnvironmentType, IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     showTitle?: boolean
+    showEnvironments?: boolean
   }>(),
   {
     showTitle: false,
+    showEnvironments: false,
   },
 )
+
+const emit = defineEmits<{ manageEnvironments: [] }>()
 
 type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'source_count'
 
@@ -37,6 +41,47 @@ const { allCollaborators } = storeToRefs(useWorkspace())
 const { bases } = storeToRefs(useBases())
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const environmentsStore = useEnvironments()
+
+const { environments, activeEnvironmentKey, activeEnvironment } = storeToRefs(environmentsStore)
+
+const { loadEnvironments } = environmentsStore
+
+const showEnvUI = computed(() => props.showEnvironments)
+
+const { isEnvironmentBlocked, environmentUpgradeFeature, showUpgradeToUseStagingEnvironment, showUpgradeToUseCustomEnvironment } =
+  useEeConfig()
+
+// Production is always configured (it IS the integration's own config); other
+// stages are configured only when they appear in `integration.environments`.
+function isEnvConfigured(integration: IntegrationType, env: EnvironmentType) {
+  if (env.key === DefaultEnvironmentKey.PRODUCTION) return true
+  return (integration.environments ?? []).some((c) => c.fk_environment_id === env.id)
+}
+
+// Opens the matching upgrade prompt for a plan-locked environment.
+function showBlockedEnvUpgrade(env: EnvironmentType, triggerSource: string) {
+  if (env.key === DefaultEnvironmentKey.STAGING) {
+    showUpgradeToUseStagingEnvironment({ triggerSource })
+  } else {
+    showUpgradeToUseCustomEnvironment({ triggerSource })
+  }
+}
+
+// Selecting a plan-locked environment opens the matching upgrade prompt instead of switching.
+function onEnvironmentChange(key: string) {
+  const env = environments.value.find((e) => e.key === key)
+  if (env && isEnvironmentBlocked(env)) {
+    showBlockedEnvUpgrade(env, 'connections-environment-selector')
+    return
+  }
+  activeEnvironmentKey.value = key
+}
+
+onMounted(() => {
+  if (showEnvUI.value) loadEnvironments()
+})
 
 const connectionsSearchInputRef = ref<HTMLInputElement>()
 
@@ -288,6 +333,17 @@ const columns = [
     dataIndex: 'sub_type',
     showOrderBy: true,
   },
+  // Environments column — opt-in via the `showEnvironments` prop (parent gates by isEeUI).
+  ...(props.showEnvironments
+    ? [
+        {
+          key: 'environments',
+          title: t('title.environments'),
+          minWidth: 120,
+          width: 140,
+        },
+      ]
+    : []),
   {
     key: 'created_at',
     title: t('labels.dateAdded'),
@@ -353,6 +409,41 @@ const customRow = (record: Record<string, any>) => ({
           </a>
         </div>
       </div>
+      <div v-if="showEnvUI" class="flex items-center justify-between gap-3 mt-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-bodySm text-nc-content-gray-subtle2 flex-none">{{ $t('title.environment') }}</span>
+          <NcSelect
+            :value="activeEnvironmentKey"
+            class="nc-environment-select !w-44 flex-none"
+            data-testid="nc-environment-select"
+            :dropdown-match-select-width="false"
+            @change="onEnvironmentChange"
+          >
+            <a-select-option v-for="env in environments" :key="env.key" :value="env.key">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full flex-none" :style="{ backgroundColor: env.color || '#6a7184' }" />
+                <span class="truncate">{{ env.title }}</span>
+                <!-- remove-click: let the click select the option so onEnvironmentChange shows the full upgrade prompt -->
+                <PaymentUpgradeBadge
+                  v-if="isEnvironmentBlocked(env)"
+                  :feature="environmentUpgradeFeature(env)"
+                  remove-click
+                  class="ml-auto"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
+          <span class="text-bodySm text-nc-content-gray-muted truncate">
+            {{ $t('msg.info.showingEnvConfig', { env: activeEnvironment?.title }) }}
+          </span>
+        </div>
+        <NcButton type="secondary" size="small" data-testid="nc-manage-environments-btn" @click="emit('manageEnvironments')">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="ncSlidersHorizontal" class="h-4 w-4" />
+            {{ $t('title.manageEnvironments') }}
+          </div>
+        </NcButton>
+      </div>
       <div class="flex items-center gap-3 mt-2">
         <a-input
           ref="connectionsSearchInputRef"
@@ -401,6 +492,35 @@ const customRow = (record: Record<string, any>) => ({
             :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
           />
         </NcTooltip>
+
+        <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
+          <!-- Only Auth & AI integrations support per-environment overrides -->
+          <span v-if="!integrationSupportsEnvironments(integration.type)" class="text-nc-content-gray-muted">–</span>
+          <NcTooltip v-for="env in environments" v-else :key="env.key" placement="bottom">
+            <template #title>
+              {{ env.title }} —
+              <template v-if="isEnvironmentBlocked(env)">{{ $t('msg.info.environmentLocked') }}</template>
+              <template v-else>
+                {{ isEnvConfigured(integration, env) ? $t('general.configured') : $t('msg.info.fallsBackToProduction') }}
+              </template>
+            </template>
+            <span v-if="isEnvironmentBlocked(env)" @click.stop="showBlockedEnvUpgrade(env, 'connections-environments-column')">
+              <PaymentUpgradeBadge :feature="environmentUpgradeFeature(env)" remove-click />
+            </span>
+            <span
+              v-else
+              class="w-2.5 h-2.5 rounded-full border-2 flex-none inline-block"
+              :style="
+                isEnvConfigured(integration, env)
+                  ? { backgroundColor: env.color, borderColor: env.color }
+                  : {
+                      backgroundColor: 'transparent',
+                      borderColor: env.key === activeEnvironmentKey ? env.color : 'var(--nc-border-gray-medium)',
+                    }
+              "
+            />
+          </NcTooltip>
+        </div>
 
         <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only>
           <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>

@@ -21979,6 +21979,22 @@
             "description": "DB Type",
             "example": "mysql2",
             "type": "string"
+          },
+          "environments": {
+            "description": "EE only. Per-environment config overrides for this integration. Each entry's `config` is decrypted only when the caller may also see the integration's own config (same gate); otherwise it is omitted. Absent/empty in CE.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fk_environment_id": {
+                  "description": "The environment this override belongs to",
+                  "type": "string"
+                },
+                "config": {
+                  "description": "The per-environment config (decrypted for authorized callers, omitted otherwise)"
+                }
+              }
+            }
           }
         },
         "x-stoplight": {
@@ -22220,6 +22236,22 @@
           "is_restricted": {
             "$ref": "#/components/schemas/Bool",
             "description": "Whether the integration is restricted to specific bases"
+          },
+          "environments": {
+            "description": "EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped — it uses the integration's own config). Ignored in CE.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fk_environment_id": {
+                  "description": "The environment this override belongs to",
+                  "type": "string"
+                },
+                "config": {
+                  "description": "The per-environment config override"
+                }
+              }
+            }
           }
         },
         "title": "Source Request",

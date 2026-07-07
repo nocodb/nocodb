@@ -219,6 +219,10 @@ export class NcError {
     return NcError._.integrationNotFound(id, args);
   }
 
+  static environmentNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.environmentNotFound(id, args);
+  }
+
   static syncConfigNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.syncConfigNotFound(id, args);
   }

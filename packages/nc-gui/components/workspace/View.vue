@@ -35,7 +35,11 @@ const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadInte
 // Local ref for integrations view mode (main page vs all-connections page).
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
 // also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
-const integrationsViewMode = ref<'main' | 'all-connections'>('main')
+// Deep-linkable via `?integrationsView=environments` (used by the base Variables
+// page's "Manage environments" action).
+const integrationsViewMode = ref<'main' | 'all-connections' | 'environments'>(
+  route.value.query?.integrationsView === 'environments' ? 'environments' : 'main',
+)
 
 // After creating an integration, switch to all-connections view
 // (the store sets activeViewTab='connections' which breaks outer NcTabs, so we handle it here)
@@ -329,8 +333,16 @@ if (!props.isNewWsPage) {
                 </div>
 
                 <div class="flex-1 min-h-0">
-                  <WorkspaceIntegrationsConnectionsTab />
+                  <WorkspaceIntegrationsConnectionsTab
+                    :show-environments="isEeUI"
+                    @manage-environments="integrationsViewMode = 'environments'"
+                  />
                 </div>
+              </div>
+            </template>
+            <template v-else-if="integrationsViewMode === 'environments'">
+              <div class="h-full flex flex-col px-8 py-6">
+                <WorkspaceIntegrationsEnvironmentsManageEnvironments @back="integrationsViewMode = 'all-connections'" />
               </div>
             </template>
 

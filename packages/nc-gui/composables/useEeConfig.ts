@@ -234,6 +234,18 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const blockStagingEnvironment = computed(() => true)
+
+  const blockCustomEnvironment = computed(() => true)
+
+  const isEnvironmentBlocked = (..._args: any[]) => true
+
+  const environmentUpgradeFeature = (..._args: any[]) => undefined
+
+  const showUpgradeToUseStagingEnvironment = (..._args: any[]) => {}
+
+  const showUpgradeToUseCustomEnvironment = (..._args: any[]) => {}
+
   const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
 
   const showUpgradeToUseDocsInlineComments = (..._args: any[]) => {}
@@ -476,6 +488,12 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocShare,
     showUpgradeToShareDoc,
     showDashboardPlanLimitExceededModal,
+    blockStagingEnvironment,
+    blockCustomEnvironment,
+    isEnvironmentBlocked,
+    environmentUpgradeFeature,
+    showUpgradeToUseStagingEnvironment,
+    showUpgradeToUseCustomEnvironment,
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,

@@ -411,6 +411,10 @@ export enum AppEvents {
   BASE_VARIABLE_UPDATE = 'baseVariable.update',
   BASE_VARIABLE_DELETE = 'baseVariable.delete',
 
+  ENVIRONMENT_CREATE = 'environment.create',
+  ENVIRONMENT_UPDATE = 'environment.update',
+  ENVIRONMENT_DELETE = 'environment.delete',
+
   MANAGED_APP_CREATE = 'managedApp.create',
   MANAGED_APP_UPDATE = 'managedApp.update',
   MANAGED_APP_DELETE = 'managedApp.delete',

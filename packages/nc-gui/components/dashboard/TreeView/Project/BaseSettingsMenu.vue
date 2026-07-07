@@ -78,6 +78,14 @@ const activeBaseSettingsTab = computed(() => {
 // Use injected base role for immediate permission checks; load full roles in background
 const effectiveRoles = computed(() => baseRoles.value ?? baseRole.value)
 
+const isIntegrationsMenuVisible = computed(() => {
+  if (isMobileMode.value) return false
+  return isUIAllowed('sourceCreate', {
+    roles: effectiveRoles.value,
+    skipBaseCheck: !!resolvedProject.value?.is_sandbox,
+  })
+})
+
 // Load base roles in background if not already loaded
 onMounted(() => {
   const baseId = resolvedProject.value?.id
@@ -139,7 +147,7 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="isIntegrationsMenuVisible"
       v-e="['c:settings:base:integrations']"
       icon="integration"
       data-testid="base-integrations"

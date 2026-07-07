@@ -25,6 +25,13 @@ export interface NcContext {
   tab_id?: string;
   nc_site_url?: string;
   timezone?: string;
+  /**
+   * Active environment id (development / staging / production …). Determines
+   * which integration config is resolved at runtime (see Environment /
+   * IntegrationEnvConfig). Unset → the default (production) config. This is
+   * server-pinned per deployment for live apps; it is never client-settable.
+   */
+  environment?: string;
   suppressDependencyEvaluation?: boolean;
   additionalContext?: NcAdditionalContext;
   schema_locked?: boolean;

@@ -6,6 +6,10 @@ import type {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { BaseIntegrationsService } from '~/services/base-integrations.service';
+import {
+  assertResolvedBaseAcl,
+  resolveAccessContext,
+} from '~/helpers/sandboxGuards';
 
 @Injectable()
 export class IntegrationPostOperations
@@ -37,6 +41,19 @@ export class IntegrationPostOperations
       req: NcRequest;
     },
   ): InternalPOSTResponseType {
+    if (
+      operation === 'baseIntegrationCreate' ||
+      operation === 'baseIntegrationUpdate' ||
+      operation === 'baseIntegrationLink' ||
+      operation === 'baseIntegrationUnlink'
+    ) {
+      const { context: accessContext, baseId: accessBaseId } =
+        await resolveAccessContext(context, context.base_id);
+      if (accessBaseId !== context.base_id) {
+        await assertResolvedBaseAcl(accessContext, req, operation);
+      }
+    }
+
     switch (operation) {
       case 'baseIntegrationCreate':
         return await this.baseIntegrationsService.createFromBase(context, {

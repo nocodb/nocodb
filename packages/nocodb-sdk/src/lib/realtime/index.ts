@@ -19,6 +19,7 @@ export enum EventType {
   META_EVENT = 'event-meta',
   COMMENT_EVENT = 'event-comment',
   DASHBOARD_EVENT = 'event-dashboard',
+  BASE_VARIABLE_EVENT = 'event-base-variable',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
   TEAM_EVENT = 'event-team',

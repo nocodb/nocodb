@@ -3390,7 +3390,7 @@
       "baseMembersHint": "Everyone in this base",
       "addModalTitle": "Add external collaborators",
       "addModalSubtitle": "Give someone outside this base access to only this app — they get no other base access.",
-      "addExternalEmailHint": "Must already have a NocoDB account — new accounts can't be invited here yet.",
+      "addExternalEmailHint": "New to NocoDB? They'll get an invite email with a sign-up link.",
       "removeMember": "Remove from app"
     }
   },

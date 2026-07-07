@@ -83,6 +83,7 @@ export enum JobTypes {
   SandboxMerge = 'sandbox-merge',
   SandboxDelete = 'sandbox-delete',
   ManagedAppUpdate = 'managed-app-update',
+  AppBuild = 'app-build',
   MailDispatch = 'mail-dispatch',
   MailOutboxRecovery = 'mail-outbox-recovery',
   MailScanner = 'mail-scanner',
@@ -428,6 +429,14 @@ export interface ChatApprovalJobData extends JobData {
   >;
   /** User's current UI navigation context (active table/view/dashboard/document). */
   uiContext?: ChatUIContext;
+}
+
+export interface AppBuildJobData extends JobData {
+  appId: string;
+  baseId: string;
+  message: string;
+  messageId: string;
+  mcpToken: string;
 }
 
 export interface MailDispatchJobData extends JobData {

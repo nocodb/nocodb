@@ -1,24 +1,28 @@
-// This file is YOURS to restyle — swap the top nav for a sidebar, add a
-// layout, nest routes. Two rules keep routing and access control intact (see
-// CLAUDE.md → Routing): derive every route from the `pages` manifest (each
-// page mounted at its `path`), and keep `basename={appBasename()}` on the
-// router. Page access is enforced inside the manifest itself — a non-granted
-// page renders "Page unavailable" however it's reached — so custom layouts
-// never need their own access checks.
+// Platform-owned — restored every turn. Never edit: it auto-routes the
+// caller's granted pages (useAppPages()) to the component discovered at
+// `src/pages/<slug>.tsx`. To add, remove, or reorder pages, use the MCP
+// `create_page` / `update_page` / `delete_page` tools — see CLAUDE.md →
+// "Routing". Restyle navigation in `src/components/AppNav.tsx` instead.
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import type { ComponentType } from "react";
 import AppNav from "@/components/AppNav";
-import { appBasename } from "@/lib/appShell";
-import { pages } from "@/pages";
+import { appBasename, useAppPages } from "@/lib/appShell";
+
+const modules = import.meta.glob("./pages/*.tsx", { eager: true }) as Record<string, { default: ComponentType }>;
+const componentForSlug = (slug: string): ComponentType | null => modules[`./pages/${slug}.tsx`]?.default ?? null;
+const NotFound = () => <div className="p-8 text-muted-foreground">Page unavailable.</div>;
 
 export default function App() {
+  const pages = useAppPages();
   return (
     <BrowserRouter basename={appBasename()}>
       <div className="min-h-screen bg-background text-foreground">
         <AppNav />
         <Routes>
-          {pages.map((p) => (
-            <Route key={p.id} path={p.path} element={<p.component />} />
-          ))}
+          {pages.map((p) => {
+            const C = componentForSlug(p.slug);
+            return <Route key={p.id} path={p.path} element={C ? <C /> : <NotFound />} />;
+          })}
         </Routes>
       </div>
     </BrowserRouter>

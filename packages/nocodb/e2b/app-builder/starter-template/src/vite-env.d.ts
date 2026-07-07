@@ -8,12 +8,17 @@ interface Window {
    */
   __nc_app_base__?: string;
   /**
-   * The pages the current caller may see, injected at serve time in the live
-   * published app — pre-filtered server-side from the src/pages.ts manifest
-   * (routines omitted). Undefined in dev/preview; an array (possibly empty)
-   * in the live app.
+   * The pages the current caller may see, injected at serve time in BOTH the
+   * live published app (pre-filtered server-side to the caller's granted
+   * pages, routines omitted) and the builder preview (all of the app's
+   * pages, ungated). Undefined only outside these contexts.
    */
-  __nc_app_pages__?: { id: string; path: string; title: string }[];
+  __nc_app_pages__?: {
+    id: string;
+    path: string;
+    title: string;
+    slug: string;
+  }[];
   /** True only when this bundle is running as the live published app. */
   __nc_app_live__?: boolean;
 }

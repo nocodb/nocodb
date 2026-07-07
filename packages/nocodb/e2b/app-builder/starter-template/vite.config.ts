@@ -12,6 +12,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@nocodb/app-ctx': fileURLToPath(
+        new URL('./src/lib/app-ctx.ts', import.meta.url),
+      ),
     },
   },
   build: {

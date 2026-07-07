@@ -19,7 +19,8 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@nocodb/app-ctx": ["./src/lib/app-ctx.ts"]
     }
   },
   "include": ["src"]

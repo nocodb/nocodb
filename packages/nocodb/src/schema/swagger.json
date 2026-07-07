@@ -21045,6 +21045,24 @@
           "in": "query",
           "description": "App Page ID",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "routineId",
+          "in": "query",
+          "description": "App Routine ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "threadId",
+          "in": "query",
+          "description": "App Chat Thread ID",
+          "required": false
         }
       ]
     },

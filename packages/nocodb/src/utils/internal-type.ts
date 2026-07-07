@@ -1,5 +1,4 @@
 import type {
-  AppMemberType,
   BaseVariableType,
   DependencyTableType,
   NcContext,
@@ -79,7 +78,6 @@ export type InternalGETResponseType = Promise<
       editorCount: number;
     }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
-  | AppMemberType[]
 >;
 
 export type InternalPOSTResponseType = Promise<

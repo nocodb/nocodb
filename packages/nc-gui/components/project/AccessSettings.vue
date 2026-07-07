@@ -312,9 +312,9 @@ onMounted(async () => {
       (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
     if (isSuper.value) {
-      accessibleRoles.value = OrderedProjectRoles.slice(0)
+      accessibleRoles.value = filterAssignableRoles(OrderedProjectRoles.slice(0))
     } else if (currentRoleIndex !== -1) {
-      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+      accessibleRoles.value = filterAssignableRoles(OrderedProjectRoles.slice(currentRoleIndex))
     }
 
     moveInheritRole()
@@ -329,10 +329,16 @@ onMounted(async () => {
 
 watch(baseRoles, (br) => {
   const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
-  accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+  accessibleRoles.value = filterAssignableRoles(OrderedProjectRoles.slice(currentRoleIndex))
 
   moveInheritRole()
 })
+
+// APP_USER is assignable only where apps exist (EE) — hide it in CE.
+function filterAssignableRoles(roles: ProjectRoles[]) {
+  if (isEeUI) return roles
+  return roles.filter((role) => role !== ProjectRoles.APP_USER)
+}
 
 function moveInheritRole() {
   // move INHERIT role to the end of the list

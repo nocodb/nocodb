@@ -135,14 +135,16 @@ export class IntegrationsController {
     @Query('offset') offset?: string,
     @Query('query') query?: string,
   ) {
+    const wantsDbInfo = includeDatabaseInfo === 'true';
+
     const integrations = await this.integrationsService.integrationList({
       req,
-      includeDatabaseInfo: includeDatabaseInfo === 'true',
+      includeDatabaseInfo: wantsDbInfo,
       type,
       query,
     });
 
-    if (!includeDatabaseInfo) {
+    if (!wantsDbInfo) {
       for (const integration of integrations.list) {
         integration.config = undefined;
       }

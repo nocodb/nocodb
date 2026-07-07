@@ -14,7 +14,7 @@ import type { Knex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import {
-  applyLookupPkInLimit,
+  applyLookupFilterWindowLimit,
   loadLookupSortAndLimit,
 } from '~/db/lookupSortLimit';
 import { Filter } from '~/models';
@@ -265,7 +265,9 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         }
 
         // Per-lookup Limit (PG, single-level): a filter matches only within the
-        // limited+sorted set — restrict the related rows to the top-N.
+        // limited+sorted set. `qb` is a global child-row set with the comparison
+        // already applied, so rank the BASE related rows per parent (window) and
+        // keep only the top-N — then "contains X" matches only when X is visible.
         if (
           baseModelSqlv2.isPg &&
           !(
@@ -275,9 +277,10 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         ) {
           const cfg = await loadLookupSortAndLimit(context, column);
           if (cfg.hasConfig && cfg.limitVal > 0) {
-            await applyLookupPkInLimit({
+            await applyLookupFilterWindowLimit({
               qb,
               alias,
+              fkColumnName: childColumn.column_name,
               refBaseModel: childBaseModel,
               sorts: cfg.sorts,
               limitVal: cfg.limitVal,
@@ -364,27 +367,8 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.where(btSoftDeleteFilter);
         }
 
-        // Per-lookup Limit (PG, single-level): a filter matches only within the
-        // limited+sorted set — restrict the related rows to the top-N.
-        if (
-          baseModelSqlv2.isPg &&
-          !(
-            lookupColumn?.uidt === UITypes.Lookup ||
-            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
-          )
-        ) {
-          const cfg = await loadLookupSortAndLimit(context, column);
-          if (cfg.hasConfig && cfg.limitVal > 0) {
-            await applyLookupPkInLimit({
-              qb,
-              alias,
-              refBaseModel: parentBaseModel,
-              sorts: cfg.sorts,
-              limitVal: cfg.limitVal,
-              takeLast: cfg.takeLast,
-            });
-          }
-        }
+        // BELONGS_TO resolves to a single related row → a lookup limit is a
+        // no-op here; nothing to restrict.
 
         return {
           rootApply: (qb) => {
@@ -470,28 +454,9 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.where(mmSoftDeleteFilter);
         }
 
-        // Per-lookup Limit (PG, single-level): a filter matches only within the
-        // limited+sorted set — restrict the related (parent) rows to the top-N.
-        // The parent rows live behind `childAlias`; the clone carries the join.
-        if (
-          baseModelSqlv2.isPg &&
-          !(
-            lookupColumn?.uidt === UITypes.Lookup ||
-            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
-          )
-        ) {
-          const cfg = await loadLookupSortAndLimit(context, column);
-          if (cfg.hasConfig && cfg.limitVal > 0) {
-            await applyLookupPkInLimit({
-              qb,
-              alias: childAlias,
-              refBaseModel: parentBaseModel,
-              sorts: cfg.sorts,
-              limitVal: cfg.limitVal,
-              takeLast: cfg.takeLast,
-            });
-          }
-        }
+        // TODO(follow-up): MM/junction lookup limit-in-filter needs a
+        // per-parent window over the junction hop — left full-set for now
+        // (single-level HM/BT are handled).
 
         return {
           rootApply: (qb) => {

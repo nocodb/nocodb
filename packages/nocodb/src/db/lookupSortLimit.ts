@@ -5,6 +5,7 @@ import type { Column } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import Sort from '~/models/Sort';
 import sortV2 from '~/db/sortV2';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 
 /**
  * Per-lookup Sort + Limit — the CE core shared by every consumer of a lookup's
@@ -164,4 +165,87 @@ export async function applyLookupPkInLimit(param: {
       inner,
     );
   }
+}
+
+/**
+ * Filter variant: restrict the filter's related-row set `qb` (aliased `alias`,
+ * which selects the FK `fkColumnName` back to the parent and already carries the
+ * user's comparison) to the top-N related rows PER PARENT.
+ *
+ * The filter's `qb` is a global set matched via `parent IN (qb)`, not a
+ * per-parent correlated subquery — so a plain LIMIT/pk-IN can't express
+ * "top-N per parent". Instead rank the BASE related rows with
+ *   ROW_NUMBER() OVER (PARTITION BY <fk> ORDER BY <sortkey>)
+ * and keep only rn <= N, then AND that pk set onto `qb`. Ranking the base rows
+ * (independent of the comparison) is what makes "contains X" match only when X
+ * is within the visible top-N. Single PK only; scalar sort columns only.
+ */
+export async function applyLookupFilterWindowLimit(param: {
+  qb: Knex.QueryBuilder;
+  alias: string;
+  fkColumnName: string;
+  refBaseModel: IBaseModelSqlV2;
+  sorts: Sort[];
+  limitVal: number;
+  takeLast: boolean;
+}): Promise<void> {
+  const { qb, alias, fkColumnName, refBaseModel, sorts, limitVal, takeLast } =
+    param;
+  if (limitVal <= 0) return;
+
+  const knex = refBaseModel.dbDriver;
+  if (!refBaseModel.model.columns?.length) {
+    await refBaseModel.model.getColumns(refBaseModel.context);
+  }
+  const cols = refBaseModel.model.columns || [];
+  const pk = refBaseModel.model.primaryKey;
+  if (!pk) return; // composite / no PK → skip
+
+  const ra = '__nc_lk_win';
+  const tnPath = refBaseModel.getTnPath(refBaseModel.model.table_name);
+
+  // ORDER BY inside the window — scalar sort columns, "last N" flips direction.
+  const effective = takeLast
+    ? sorts.map(
+        (s) =>
+          new Sort({
+            ...s,
+            direction: s.direction === 'desc' ? 'asc' : 'desc',
+          }),
+      )
+    : sorts;
+  const orderBits: string[] = [];
+  const orderBindings: string[] = [];
+  for (const s of effective) {
+    const col = cols.find((c) => c.id === s.fk_column_id);
+    if (col?.column_name) {
+      orderBits.push(`??.?? ${s.direction === 'desc' ? 'desc' : 'asc'}`);
+      orderBindings.push(ra, col.column_name);
+    }
+  }
+  if (!orderBits.length) {
+    orderBits.push(`??.?? ${takeLast ? 'desc' : 'asc'}`);
+    orderBindings.push(ra, pk.column_name);
+  }
+
+  const win = knex(knex.raw('?? as ??', [tnPath, ra]))
+    .select(knex.raw('??.?? as __nc_pk', [ra, pk.column_name]))
+    .select(
+      knex.raw(
+        `ROW_NUMBER() OVER (PARTITION BY ??.?? ORDER BY ${orderBits.join(
+          ', ',
+        )}) as __nc_rn`,
+        [ra, fkColumnName, ...orderBindings],
+      ),
+    );
+
+  const softDelete = await getAliasedSoftDeleteFilter(refBaseModel, ra);
+  if (softDelete) win.where(softDelete);
+
+  const ranked = knex
+    .select('__nc_pk')
+    .from(win.as('__nc_lk_win_sub'))
+    .where('__nc_rn', '<=', limitVal);
+
+  qb.whereIn(`${alias}.${pk.column_name}`, ranked);
 }

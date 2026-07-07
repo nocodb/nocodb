@@ -134,6 +134,7 @@ export enum PlanFeatureTypes {
   FEATURE_ORACLE = 'feature_oracle',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
+  FEATURE_APP = 'feature_app',
 }
 
 export enum PlanAddonTypes {
@@ -498,6 +499,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_ORACLE]: 'to connect Oracle Database sources.',
   [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
     'to white-label this instance with your own logo, product name, and brand color.',
+  [PlanFeatureTypes.FEATURE_APP]: 'to build Apps.',
 };
 
 export const getUpgradeMessage = (

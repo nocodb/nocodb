@@ -121,3 +121,4 @@ export * from '~/lib/DocumentRevision';
 export * from '~/lib/docs';
 export * from '~/lib/entityNameValidation';
 export * from '~/lib/smartText';
+export * from '~/lib/app';

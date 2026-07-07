@@ -405,6 +405,11 @@ export enum AppEvents {
   MANAGED_APP_UPDATE_START = 'managedApp.update.start',
   MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
   MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
+
+  APP_CREATE = 'app.create',
+  APP_UPDATE = 'app.update',
+  APP_DELETE = 'app.delete',
+  APP_DUPLICATE = 'app.duplicate',
 }
 
 export enum ClickhouseTables {

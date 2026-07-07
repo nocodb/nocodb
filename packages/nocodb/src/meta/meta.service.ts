@@ -204,6 +204,7 @@ export class MetaService {
       [MetaTable.WIDGETS]: 'wgt',
       [MetaTable.APPS]: 'app',
       [MetaTable.APP_VERSIONS]: 'apv',
+      [MetaTable.APP_CHAT_MESSAGES]: 'acm',
       [MetaTable.WORKSPACE]: 'w',
       [MetaTable.LIST_VIEW]: 'lv',
       [MetaTable.LIST_VIEW_COLUMNS]: 'lvc',

@@ -40,8 +40,19 @@ RUN mkdir -p /opt/mcp \
 COPY starter-template /opt/starter-template
 RUN cd /opt/starter-template \
  && npm ci \
- && npm run build \
- && rm -rf dist
+ && chmod 0777 node_modules
+# This RUN executes as root, but the sandbox runs as the unprivileged `user`, who
+# symlinks this node_modules into the app dir and runs `vite build`. tsc + vite must
+# create temp dirs AT the node_modules root (.tmp for *.tsbuildinfo, .vite, .vite-temp).
+# Two rules make that work, and both matter:
+#   1. Do NOT run `npm run build` here. A bake-time build would create those temp dirs
+#      as root (0755) — then the runtime `user` can't write into them (EACCES), and a
+#      top-level `chmod` can't fix a pre-existing root-owned *subdir*. `npm ci` leaves
+#      only read-only package files (root:root, world-readable — builds only read them),
+#      so no root-owned temp dirs exist to collide with.
+#   2. `chmod 0777 node_modules` (top dir only) lets `user` create those temp dirs fresh,
+#      owning them. The starter template's own compile is verified by the build smoke,
+#      not at image-bake time.
 
 # The app repo lands here at runtime (git clone / git init / seed from starter).
 RUN mkdir -p /home/user/app

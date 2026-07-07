@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { type ColumnType, type SortType, type TableType, UITypes, UITypesName, isColumnInError } from 'nocodb-sdk'
 
-// Thin, lookup-scoped data container for sorts — the lookup-editor analogue of
-// `useViewSorts`/`SortListMenu`. It owns persistence only; the UI is the shared,
-// presentational <SmartsheetSortList> (the same component the toolbar sort menu
-// uses). Sorts are scoped to the lookup column via `fk_lookup_col_id` and saved
-// through the internal lookupSort* operations; the PG read path applies them with
-// sortV2. Edit-mode only (needs a saved column id).
+// Local, status-tagged sort collection for a Lookup column — the sort analogue of
+// how LTAR limit-by-filter works: NOTHING is persisted here. The field editor
+// syncs `sorts` into `vModel.value.sorts` and the column save (postColumnAdd /
+// postColumnUpdate, scoped by fk_lookup_col_id) persists the whole set. This makes
+// sorts configurable BEFORE the column is saved (create flow), not edit-only.
+//
+// Status tags mirror the link-filter contract:
+//   - existing (loaded, unchanged) → no status
+//   - newly added                  → 'create'
+//   - field/direction changed      → 'update' (only if it has a server id)
+//   - removed                      → 'delete' (kept in the set, hidden in UI)
+type LookupSort = SortType & { status?: 'create' | 'update' | 'delete' }
+
 const props = defineProps<{
-  // The lookup column id (fk_lookup_col_id scope).
-  columnId: string
+  // The lookup column id (fk_lookup_col_id scope). Empty in the create flow.
+  columnId?: string
   // The lookup's target table meta — provides the columns to sort by.
   targetMeta: TableType | undefined
 }>()
 
-const { $api } = useNuxtApp()
 const { internalGet } = useInternalBatch()
 const { base } = storeToRefs(useBase())
 const { t } = useI18n()
@@ -22,7 +28,11 @@ const { t } = useI18n()
 const wsId = computed(() => base.value?.fk_workspace_id as string)
 const baseId = computed(() => base.value?.id as string)
 
-const sorts = ref<SortType[]>([])
+// Full set (incl. delete-tagged) — this is what the parent persists on save.
+const sorts = ref<LookupSort[]>([])
+
+// Rows shown in the UI (delete-tagged rows stay in `sorts` for the backend).
+const visibleSorts = computed<LookupSort[]>(() => sorts.value.filter((s) => s.status !== 'delete'))
 
 // Non-system target columns, decorated with the same "not sortable" hints the
 // toolbar sort menu uses so the shared list renders identical disabled states.
@@ -41,66 +51,63 @@ const sortableColumns = computed<ColumnType[]>(() =>
     }),
 )
 
-// Columns still available to add (not already sorted).
+// Columns still available to add (not already used by a visible sort).
 const availableColumns = computed<ColumnType[]>(() =>
-  sortableColumns.value.filter((c) => !sorts.value.some((s) => s.fk_column_id === c.id)),
+  sortableColumns.value.filter((c) => !visibleSorts.value.some((s) => s.fk_column_id === c.id)),
 )
 
+// Edit flow only: hydrate the local set from the persisted lookup sorts.
 const loadSorts = async () => {
   if (!props.columnId || !wsId.value || !baseId.value) return
-  sorts.value =
+  const list =
     (
       (await internalGet(wsId.value, baseId.value, {
         operation: 'lookupSortList',
         columnId: props.columnId,
       })) as { list: SortType[] }
     )?.list ?? []
+  sorts.value = list.map((s) => ({ ...s }))
 }
 
-const addSort = async () => {
+const addSort = () => {
   const next = availableColumns.value[0]
   if (!next) return
-  const created = (await $api.internal.postOperation(
-    wsId.value,
-    baseId.value,
-    { operation: 'lookupSortCreate', columnId: props.columnId },
-    { fk_column_id: next.id, direction: 'asc' },
-  )) as unknown as SortType
-  sorts.value = [...sorts.value, created]
+  sorts.value = [...sorts.value, { fk_column_id: next.id, direction: 'asc', status: 'create' }]
 }
 
-// Field/direction edits: rows always carry an id here (created server-side), so
-// this is always an update via the shared sortUpdate operation.
-const saveOrUpdate = async (sort: SortType) => {
-  if (!sort.id) return
-  await $api.internal.postOperation(
-    wsId.value,
-    baseId.value,
-    { operation: 'sortUpdate', sortId: sort.id },
-    { fk_column_id: sort.fk_column_id, direction: sort.direction },
-  )
+// Field/direction change — the row object is mutated in place by SmartsheetSortList,
+// so we only need to (re)tag it. New rows keep 'create'; saved rows become 'update'.
+const onSaveOrUpdate = (sort: LookupSort) => {
+  if (sort.id && sort.status !== 'create') sort.status = 'update'
 }
 
-const removeSort = async (sort: SortType) => {
-  sorts.value = sorts.value.filter((s) => s !== sort)
-  if (sort?.id) {
-    await $api.internal.postOperation(wsId.value, baseId.value, { operation: 'sortDelete', sortId: sort.id }, {})
+const onRemove = (sort: LookupSort) => {
+  if (sort.id) {
+    // Persisted row → keep it tagged for deletion on save.
+    sort.status = 'delete'
+    sorts.value = [...sorts.value]
+  } else {
+    // Never-saved row → just drop it.
+    sorts.value = sorts.value.filter((s) => s !== sort)
   }
 }
 
 onMounted(loadSorts)
+
+// Exposed to the field editor, which syncs it into vModel.value.sorts.
+defineExpose({ sorts })
 </script>
 
 <template>
   <div class="flex flex-col gap-2" data-testid="nc-lookup-sort">
     <SmartsheetSortList
-      v-if="sorts.length"
-      :sorts="sorts"
+      v-if="visibleSorts.length"
+      :sorts="visibleSorts"
       :columns="sortableColumns"
       :meta="targetMeta || {}"
       disable-smartsheet
-      @save-or-update="saveOrUpdate"
-      @delete="removeSort"
+      @save-or-update="onSaveOrUpdate"
+      @delete="onRemove"
     />
 
     <div>

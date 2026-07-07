@@ -37,6 +37,10 @@ const { getMeta, getMetaByKey, metasWithIdAsKey } = useMetas()
 
 const filterRef = ref()
 
+// Lookup sort builder — mirrors filterRef: the child owns a local, status-tagged
+// sort set which we sync into `vModel.value.sorts`; the column save persists it.
+const sortRef = ref()
+
 const activeTabKey = ref<'configuration' | 'formatting'>('configuration')
 
 setAdditionalValidations({
@@ -244,6 +248,17 @@ watch(
   (next) => {
     if (!vModel.value) return
     vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
+
+// Sync the lookup sort builder's local, status-tagged set into the column body so
+// postColumnAdd/postColumnUpdate persist it against fk_lookup_col_id on save.
+watch(
+  () => sortRef.value?.sorts,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.sorts = next ? [...next] : []
   },
   { deep: true },
 )
@@ -527,16 +542,19 @@ const handleScrollIntoView = () => {
                 </div>
               </div>
 
-              <!-- Sort records (lookup-scoped, backed by the Sort table). Edit-mode
-                   only — sorts persist against a saved column via lookupSort* ops. -->
+              <!-- Sort records (lookup-scoped, backed by the Sort table). Held
+                   locally and persisted with the column on save — same flow as
+                   LTAR limit-by-filter — so it works in the create form too. -->
               <div class="flex gap-1 items-center whitespace-nowrap">
                 <span class="text-nc-content-gray-subtle2">Sort records</span>
                 <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT" class="ml-1" />
               </div>
-              <div v-if="isEdit && vModel.id && selectedTable" class="pl-10">
-                <LazySmartsheetColumnLookupSort :column-id="vModel.id" :target-meta="lookupTargetMeta" />
+              <div v-if="selectedTable" class="pl-10">
+                <LazySmartsheetColumnLookupSort ref="sortRef" :column-id="vModel.id" :target-meta="lookupTargetMeta" />
               </div>
-              <div v-else class="pl-10 text-nc-content-gray-subtle2 text-bodySm">Save the field first to configure sort.</div>
+              <div v-else class="pl-10 text-nc-content-gray-subtle2 text-bodySm">
+                Select a related field first to configure sort.
+              </div>
             </div>
           </div>
         </div>

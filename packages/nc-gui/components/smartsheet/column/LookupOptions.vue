@@ -550,12 +550,9 @@ const handleScrollIntoView = () => {
                   <a-select-option value="first">{{ $t('general.first') }}</a-select-option>
                   <a-select-option value="last">{{ $t('general.last') }}</a-select-option>
                 </NcSelect>
-                <a-input-number
-                  v-model:value="lookupLimitValue"
-                  :min="1"
-                  class="!w-20 nc-lookup-limit-value"
-                  data-testid="nc-lookup-limit-value"
-                />
+                <div data-testid="nc-lookup-limit-value">
+                  <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20 nc-lookup-limit-value" />
+                </div>
               </div>
 
               <!-- Sort records (lookup-scoped, backed by the Sort table). Held

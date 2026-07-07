@@ -96,6 +96,20 @@ export async function applyLookupSortLimitToQb(param: {
   // "First N" / sort-only: order by the configured sort, then limit the head.
   if (sorts.length) {
     await sortV2(refBaseModel, sorts, qb, alias);
+  } else if (limitVal > 0) {
+    // No configured sort but a limit is set → without an ORDER BY, `LIMIT n`
+    // returns an arbitrary (and unstable) N rows. Add a deterministic pk asc
+    // fallback so the SET is stable (mirrors the Last-N branch above and the
+    // mm/hm sibling in ee/dbQueryClient/pg.ts).
+    if (!refBaseModel.model.columns?.length) {
+      await refBaseModel.model.getColumns(refBaseModel.context);
+    }
+    const pks = refBaseModel.model.primaryKeys?.length
+      ? refBaseModel.model.primaryKeys
+      : refBaseModel.model.primaryKey
+      ? [refBaseModel.model.primaryKey]
+      : [];
+    for (const pk of pks) qb.orderBy(`${alias}.${pk.column_name}`, 'asc');
   }
 
   if (limitVal > 0) qb.limit(limitVal);
@@ -165,8 +179,12 @@ export async function applyLookupPkInLimit(param: {
       ordered = true;
     }
   }
-  if (!ordered && takeLast) {
-    for (const pk of pks) inner.orderBy(`${alias}.${pk.column_name}`, 'desc');
+  if (!ordered) {
+    // No scalar sort configured → order by pk so the LIMITed pk SET is
+    // deterministic (asc for first-N, desc for last-N). Without this the pk-IN
+    // set is arbitrary and can change between requests.
+    for (const pk of pks)
+      inner.orderBy(`${alias}.${pk.column_name}`, takeLast ? 'desc' : 'asc');
   }
   inner.limit(limitVal);
 
@@ -202,8 +220,30 @@ export async function applyNestedLookupLevelLimit(param: {
   limitVal: number;
   takeLast: boolean;
 }): Promise<void> {
+  const applier = await buildNestedLookupLevelLimit(param);
+  if (applier) applier(param.qb);
+}
+
+/**
+ * Deferred variant of {@link applyNestedLookupLevelLimit}: builds the correlated
+ * pk-IN sub-query eagerly (needs async column resolution) and returns a sync
+ * applier `(qb) => void`, or `null` when there's nothing to limit. Used by the
+ * filter path, where the nested joins live in a `qb` that isn't available until
+ * the deferred clauses run (see nestedConditionJoin). The correlation only
+ * references string aliases known at build time, so deferring the final
+ * `whereIn` is safe.
+ */
+export async function buildNestedLookupLevelLimit(param: {
+  nestedAlias: string;
+  nestedRefBaseModel: IBaseModelSqlV2;
+  corrColName: string;
+  prevAlias: string;
+  prevCorrColName: string;
+  sorts: Sort[];
+  limitVal: number;
+  takeLast: boolean;
+}): Promise<((qb: Knex.QueryBuilder) => void) | null> {
   const {
-    qb,
     nestedAlias,
     nestedRefBaseModel,
     corrColName,
@@ -213,7 +253,7 @@ export async function applyNestedLookupLevelLimit(param: {
     limitVal,
     takeLast,
   } = param;
-  if (limitVal <= 0) return;
+  if (limitVal <= 0) return null;
 
   const knex = nestedRefBaseModel.dbDriver;
   if (!nestedRefBaseModel.model.columns?.length) {
@@ -221,7 +261,7 @@ export async function applyNestedLookupLevelLimit(param: {
   }
   const cols = nestedRefBaseModel.model.columns || [];
   const pk = nestedRefBaseModel.model.primaryKey;
-  if (!pk) return;
+  if (!pk) return null;
 
   const ia = '__nc_lk_nlvl';
   const tnPath = nestedRefBaseModel.getTnPath(
@@ -259,12 +299,15 @@ export async function applyNestedLookupLevelLimit(param: {
       ordered = true;
     }
   }
-  if (!ordered && takeLast) {
-    inner.orderBy(`${ia}.${pk.column_name}`, 'desc');
+  if (!ordered) {
+    // No scalar sort configured → order by pk so the LIMITed set is
+    // deterministic (asc for first-N, desc for last-N).
+    inner.orderBy(`${ia}.${pk.column_name}`, takeLast ? 'desc' : 'asc');
   }
   inner.limit(limitVal);
 
-  qb.whereIn(`${nestedAlias}.${pk.column_name}`, inner);
+  return (qb: Knex.QueryBuilder) =>
+    qb.whereIn(`${nestedAlias}.${pk.column_name}`, inner);
 }
 
 /**

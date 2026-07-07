@@ -269,13 +269,12 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         // limited+sorted set. `qb` is a global child-row set with the comparison
         // already applied, so rank the BASE related rows per parent (window) and
         // keep only the top-N — then "contains X" matches only when X is visible.
-        if (
-          baseModelSqlv2.isPg &&
-          !(
-            lookupColumn?.uidt === UITypes.Lookup ||
-            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
-          )
-        ) {
+        // Outer-level limit — the root config's top-N applied to the FIRST
+        // relation's rows per parent. Applies to single-level lookups AND the
+        // outer level of nested ones; the per-level limits for deeper BT/HM
+        // levels are applied inside nestedConditionJoin (matching the display /
+        // formula builders, so all three consumers show the same set).
+        if (baseModelSqlv2.isPg) {
           const cfg = await loadLookupSortAndLimit(context, column);
           if (cfg.hasConfig && cfg.limitVal > 0) {
             await applyLookupFilterWindowLimit({
@@ -461,13 +460,12 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         // (childFk, parentFk) set onto qb — so a filter matches only within the
         // visible top-N. Each junction row is identified by its FK pair (no
         // assumption about a single junction PK).
-        if (
-          baseModelSqlv2.isPg &&
-          !(
-            lookupColumn?.uidt === UITypes.Lookup ||
-            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
-          )
-        ) {
+        // Outer-level limit — the root config's top-N applied to the FIRST
+        // relation's rows per parent. Applies to single-level lookups AND the
+        // outer level of nested ones; the per-level limits for deeper BT/HM
+        // levels are applied inside nestedConditionJoin (matching the display /
+        // formula builders, so all three consumers show the same set).
+        if (baseModelSqlv2.isPg) {
           const cfg = await loadLookupSortAndLimit(context, column);
           if (cfg.hasConfig && cfg.limitVal > 0) {
             const wj = `__nc_mmw_j`;

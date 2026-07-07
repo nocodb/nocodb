@@ -22,6 +22,10 @@ import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import { DBQueryClient } from '~/dbQueryClient';
+import {
+  buildNestedLookupLevelLimit,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -247,6 +251,39 @@ export async function nestedConditionJoin({
             });
           }
           break;
+      }
+
+      // Per-lookup Limit — INNER level (PG): restrict this nested level's joined
+      // rows to the top-N per the previous level's row, matching the display /
+      // formula builders so all three consumers show the same set. Only BT and
+      // HM nested levels are limited (the display builder does not limit nested
+      // MM levels); the config comes from THIS level's lookup column. Applied as
+      // a deferred clause because `qb` isn't available until the clauses run.
+      if (
+        baseModelSqlv2.isPg &&
+        lookupColumn.uidt === UITypes.Lookup &&
+        (relationType === RelationTypes.HAS_MANY ||
+          relationType === RelationTypes.BELONGS_TO)
+      ) {
+        const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+        if (cfg.hasConfig && cfg.limitVal > 0) {
+          const isHm = relationType === RelationTypes.HAS_MANY;
+          const applier = await buildNestedLookupLevelLimit({
+            nestedAlias: relAlias,
+            nestedRefBaseModel: isHm ? childBaseModel : parentBaseModel,
+            corrColName: isHm
+              ? childColumn.column_name
+              : parentColumn.column_name,
+            prevAlias: alias,
+            prevCorrColName: isHm
+              ? parentColumn.column_name
+              : childColumn.column_name,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+          if (applier) clauses.push(applier);
+        }
       }
     }
 

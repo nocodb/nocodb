@@ -1,17 +1,13 @@
+// Default navigation — a simple top bar. This file is YOURS: restyle it or
+// replace it with a sidebar, tabs, or a drawer when the user asks. Always
+// render links from useAppPages() (the caller's granted pages, manifest-
+// ordered) — never a hardcoded list.
 import { Link, useLocation } from "react-router-dom";
-import { pages } from "@/pages";
+import { useAppPages } from "@/lib/appShell";
 
 export default function AppNav() {
   const location = useLocation();
-
-  // Live (published) apps only ever see the pages the server granted for the
-  // current caller — window.__nc_app_pages__ is pre-filtered server-side and
-  // omits routines. Dev/preview has no server gate, so it falls back to the
-  // full local manifest.
-  const isLive = window.__nc_app_live__ === true;
-  const links = isLive
-    ? window.__nc_app_pages__ ?? []
-    : pages.map((p) => ({ id: p.id, path: p.path, title: p.title }));
+  const links = useAppPages();
 
   if (links.length <= 1) return null;
 

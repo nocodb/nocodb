@@ -37,6 +37,14 @@ export interface AppType {
   slug?: string;
   /** Derived (non-persisted): true when the draft has been built past the live version's sha. */
   hasUnpublishedChanges?: boolean;
+  /**
+   * Derived (non-persisted): the public origin where the live app is served
+   * (`https://<slug>.<apps-domain>/`). Present only when the app has a live
+   * version and a resolvable apps domain — otherwise undefined. This is the
+   * clean, shareable link members open; the console resolves the per-visit
+   * handshake (OTT) separately.
+   */
+  public_url?: string;
 }
 
 export * from './build';

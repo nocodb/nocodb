@@ -1,0 +1,88 @@
+import { parseProp } from 'nocodb-sdk';
+import type { Knex } from 'knex';
+import type { NcContext } from '~/interface/config';
+import type { Column } from '~/models';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import Sort from '~/models/Sort';
+import sortV2 from '~/db/sortV2';
+
+/**
+ * Per-lookup Sort + Limit — the CE core shared by every consumer of a lookup's
+ * relation sub-query so they all see the same limited/sorted set:
+ *   - display  : ee/dbQueryClient/pg.ts (via the licensed wrapper in ee/helpers)
+ *   - filter/sort/group-by : generateLookupSelectQuery
+ *   - formula  : formulav2/lookup-or-ltar-builder
+ *
+ * Config lives in the Sort table (`fk_lookup_col_id`) + column `meta.lookup_limit`
+ * and is only ever created by the EE, licensed UI — so a `hasConfig` check is the
+ * de-facto gate here (CE can't import the license helper). The display path adds
+ * an explicit license gate on top; callers PG-gate (the feature is PG-only).
+ */
+export interface LookupSortLimitConfig {
+  sorts: Sort[];
+  limitVal: number;
+  takeLast: boolean;
+  hasConfig: boolean;
+}
+
+export async function loadLookupSortAndLimit(
+  context: NcContext,
+  column: Column,
+): Promise<LookupSortLimitConfig> {
+  const meta = (parseProp(column.meta) || {}) as {
+    lookup_limit?: { type?: 'first' | 'last'; value?: number };
+  };
+  const limitVal = +(meta.lookup_limit?.value ?? 0) || 0;
+  const sorts = await Sort.listByLookupColumn(context, { columnId: column.id });
+  const takeLast = meta.lookup_limit?.type === 'last' && limitVal > 0;
+  return {
+    sorts,
+    limitVal,
+    takeLast,
+    hasConfig: sorts.length > 0 || limitVal > 0,
+  };
+}
+
+/**
+ * Apply an (already-loaded) lookup sort+limit to the relation sub-query `qb`
+ * (aliased `alias`, rows from `refBaseModel` — the immediate related table).
+ * "Last N" reverses the configured sort (or, with no sort, the primary-key
+ * order) before limiting so the tail is taken.
+ */
+export async function applyLookupSortLimitToQb(param: {
+  qb: Knex.QueryBuilder;
+  alias: string;
+  refBaseModel: IBaseModelSqlV2;
+  sorts: Sort[];
+  limitVal: number;
+  takeLast: boolean;
+}): Promise<void> {
+  const { qb, alias, refBaseModel, sorts, limitVal, takeLast } = param;
+
+  if (sorts.length) {
+    const effective = takeLast
+      ? sorts.map(
+          (s) =>
+            new Sort({
+              ...s,
+              direction: s.direction === 'desc' ? 'asc' : 'desc',
+            }),
+        )
+      : sorts;
+    await sortV2(refBaseModel, effective, qb, alias);
+  } else if (takeLast) {
+    if (!refBaseModel.model.columns?.length) {
+      await refBaseModel.model.getColumns(refBaseModel.context);
+    }
+    const pks = refBaseModel.model.primaryKeys?.length
+      ? refBaseModel.model.primaryKeys
+      : refBaseModel.model.primaryKey
+      ? [refBaseModel.model.primaryKey]
+      : [];
+    for (const pk of pks) {
+      qb.orderBy(`${alias}.${pk.column_name}`, 'desc');
+    }
+  }
+
+  if (limitVal > 0) qb.limit(limitVal);
+}

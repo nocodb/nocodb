@@ -23,6 +23,10 @@ import type {
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
+import {
+  applyLookupSortLimitToQb,
+  loadLookupSortAndLimit,
+} from '~/db/lookupSortLimit';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
@@ -256,7 +260,13 @@ export const lookupOrLtarBuilder =
       let prevAlias = alias;
       // set initial lookup context
       let lookupContext = refContext;
+      // Nested lookups are flattened via JOINs below, so per-level sort+limit
+      // can't be applied here — remember whether we nested + the single-level
+      // looked-up column so the injection after the loop only fires for depth 1.
+      let nested = false;
+      const singleLevelLookupCol = lookupColumn;
       while (lookupColumn.uidt === UITypes.Lookup) {
+        nested = true;
         // overwrite lookupContext from previous iteration
         const context = lookupContext;
         const nestedAlias = `__nc_formula${getAliasCount()}`;
@@ -425,6 +435,36 @@ export const lookupOrLtarBuilder =
         lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
+
+      // Per-lookup Sort + Limit (PG, single-level): order/slice the relation
+      // sub-query so a formula referencing this lookup sees the same limited+
+      // sorted set as the displayed cell. selectQb is still a plain builder here
+      // (before the terminal aggregate wrap). Config-presence gated; nested
+      // lookups (join-flattened above) are intentionally left out for now.
+      if (
+        !nested &&
+        column.uidt === UITypes.Lookup &&
+        baseModelSqlv2.isPg &&
+        typeof (selectQb as any)?.limit === 'function'
+      ) {
+        const cfg = await loadLookupSortAndLimit(context, column);
+        if (cfg.hasConfig) {
+          const refModel = await singleLevelLookupCol.getModel(refContext);
+          const refBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: refModel,
+            dbDriver: knex,
+          });
+          await applyLookupSortLimitToQb({
+            qb: selectQb,
+            alias,
+            refBaseModel,
+            sorts: cfg.sorts,
+            limitVal: cfg.limitVal,
+            takeLast: cfg.takeLast,
+          });
+        }
+      }
+
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:

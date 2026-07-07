@@ -50,6 +50,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.APP_CHAT_MESSAGES, (table) => {
     table.string('id', 20).notNullable();
     table.string('fk_app_id', 20).notNullable();
+    table.string('fk_thread_id', 20);
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
     table.string('role', 20).notNullable();
@@ -59,6 +60,21 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);
     table.index(['base_id', 'fk_app_id'], 'nc_app_chat_messages_context');
+    table.index(['base_id', 'fk_thread_id'], 'nc_app_chat_messages_thread');
+  });
+
+  await knex.schema.createTable(MetaTable.APP_CHAT_THREADS, (table) => {
+    table.string('id', 20).notNullable();
+    table.string('fk_app_id', 20).notNullable();
+    table.string('fk_workspace_id', 20);
+    table.string('base_id', 20);
+    table.string('title', 255);
+    table.string('claude_session_id', 64);
+    table.string('last_seen_sha', 40);
+    table.string('created_by', 20);
+    table.timestamps(true, true);
+    table.primary(['base_id', 'id']);
+    table.index(['base_id', 'fk_app_id'], 'nc_app_chat_threads_context');
   });
 
   await knex.schema.createTable(MetaTable.APP_ROUTINES, (table) => {
@@ -139,6 +155,7 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.APP_VERSION_ROUTINES);
   await knex.schema.dropTable(MetaTable.APP_ROUTINE_VERSIONS);
   await knex.schema.dropTable(MetaTable.APP_ROUTINES);
+  await knex.schema.dropTable(MetaTable.APP_CHAT_THREADS);
   await knex.schema.dropTable(MetaTable.APP_CHAT_MESSAGES);
   await knex.schema.dropTable(MetaTable.APP_VERSIONS);
   await knex.schema.dropTable(MetaTable.APPS);

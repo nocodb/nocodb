@@ -21,5 +21,7 @@ export interface AppMemberType {
   base_role?: string;
   /** True when the user is a workspace App User (external, apps-only). */
   is_app_user?: boolean;
+  /** Per-app role for external collaborators: viewer|commenter|editor. */
+  app_role?: string;
   created_at?: string;
 }

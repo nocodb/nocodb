@@ -9,6 +9,10 @@
  *   import { ctx } from '@nocodb/app-ctx'
  *   const rows = await ctx.routines.myRoutine({ filter: 'active' })
  *   const me = ctx.user  // AppUser | undefined
+ *
+ * Single source of the app routine runtime — there is no backend duplicate.
+ * Its browser↔broker contract is guarded by the backend unit test
+ * tests/unit/rest/tests/internal/ee/app-ctx-module.test.ts.
  */
 
 export interface AppUser {

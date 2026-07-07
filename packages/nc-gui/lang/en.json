@@ -3324,6 +3324,7 @@
     "dynamicCondition": "Dynamic condition",
     "filterBasedOnDynamicValue": "Filter based on dynamic value",
     "previewComingSoon": "Preview coming soon",
+    "previewEmptyHint": "Describe what you'd like to build in the chat — your app will appear here.",
     "appNameHint": "Shown in the sidebar and across the workspace.",
     "deleteApp": "Delete app",
     "deleteAppHint": "Permanently delete this app and all of its data. This can't be undone."

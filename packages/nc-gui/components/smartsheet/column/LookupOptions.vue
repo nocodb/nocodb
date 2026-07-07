@@ -85,6 +85,11 @@ const selectedTable = computed(() => {
   return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 })
 
+// Target table meta (with columns) for the lookup sort builder.
+const lookupTargetMeta = computed(() =>
+  selectedTable.value ? getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) : undefined,
+)
+
 // Synthetic lookup column built from the live form selections — used to resolve the
 // looked-up result type (following nested-lookup chains and unwrapping Formula/Rollup).
 const lookupColForResolution = computed(
@@ -177,9 +182,9 @@ const limitRecToCond = computed({
 
 // ── Lookup Limit (EE, licensed) — "limit items shown", persisted to column meta. ──
 // NOTE: lookup *sort* is NOT stored in meta; it lives in the Sort table scoped by
-// `fk_lookup_link_col_id` (like lookup conditions use the Filter table). The sort
-// UI here will be a small reusable sort component (follow-up); the backend already
-// reads/applies it via applyLookupSortAndLimit + sortV2.
+// `fk_lookup_col_id` (like lookup conditions use the Filter table), edited by the
+// reusable LookupSort component below and applied by the backend via
+// applyLookupSortAndLimit + sortV2.
 const lookupLimitEnabled = computed({
   get: () => !!vModel.value.meta?.lookup_limit?.value,
   set(value: boolean) {
@@ -517,12 +522,19 @@ const handleScrollIntoView = () => {
                   <a-select-option value="first">First</a-select-option>
                   <a-select-option value="last">Last</a-select-option>
                 </a-select>
-                <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" />
+                <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" data-testid="nc-lookup-limit-value" />
               </div>
 
-              <!-- Sort records: reusable sort component scoped to this lookup
-                   column (fk_lookup_link_col_id), backed by the Sort table.
-                   TODO(follow-up): mount the simple reusable sort builder here. -->
+              <!-- Sort records (lookup-scoped, backed by the Sort table). Edit-mode
+                   only — sorts persist against a saved column via lookupSort* ops. -->
+              <div class="flex gap-1 items-center whitespace-nowrap">
+                <span class="text-nc-content-gray-subtle2">Sort records</span>
+                <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT" class="ml-1" />
+              </div>
+              <div v-if="isEdit && vModel.id && selectedTable" class="pl-10">
+                <LazySmartsheetColumnLookupSort :column-id="vModel.id" :target-meta="lookupTargetMeta" />
+              </div>
+              <div v-else class="pl-10 text-nc-content-gray-subtle2 text-bodySm">Save the field first to configure sort.</div>
             </div>
           </div>
         </div>

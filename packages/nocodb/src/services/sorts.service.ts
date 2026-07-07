@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import { AppEvents, EventType, UITypes } from 'nocodb-sdk';
 import Noco from 'src/Noco';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -262,5 +262,49 @@ export class SortsService {
 
   async sortList(context: NcContext, param: { viewId: string }) {
     return Sort.list(context, { viewId: param.viewId });
+  }
+
+  // ── Lookup-scoped sorts (fk_lookup_col_id) — mirror of linkFilterCreate/List ──
+  // Order the relation sub-query of a Lookup column. CRUD by sortId for
+  // update/delete reuses the existing sortUpdate/sortDelete.
+  async lookupSortCreate(
+    context: NcContext,
+    param: { columnId: string; sort: SortReqType; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+    validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
+
+    const lookupCol = await Column.get(
+      context,
+      { colId: param.columnId },
+      ncMeta,
+    );
+    if (!lookupCol || lookupCol.uidt !== UITypes.Lookup) {
+      NcError.get(context).badRequest('Lookup column not found');
+    }
+
+    return await Sort.insert(
+      context,
+      {
+        ...param.sort,
+        fk_lookup_col_id: param.columnId,
+      } as Sort,
+      ncMeta,
+    );
+  }
+
+  async lookupSortList(
+    context: NcContext,
+    param: { columnId: string },
+    ncMeta?: MetaService,
+  ) {
+    return await Sort.listByLookupColumn(
+      context,
+      { columnId: param.columnId },
+      ncMeta,
+    );
   }
 }

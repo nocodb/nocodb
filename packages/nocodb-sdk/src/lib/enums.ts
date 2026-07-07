@@ -336,6 +336,10 @@ export enum AppEvents {
   ROUTINE_INVOKE = 'routine.invoke',
   ROUTINE_GRANT = 'routine.grant',
 
+  PAGE_CREATE = 'page.create',
+  PAGE_UPDATE = 'page.update',
+  PAGE_DELETE = 'page.delete',
+
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
   PERMISSION_DELETE = 'permission.delete',

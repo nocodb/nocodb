@@ -43,6 +43,8 @@ export interface PublishFail {
   /** page-manifest validation failures (Phase 1a pages) */
   invalidPages?: AppInvalidPage[];
   buildIncomplete?: boolean;
+  missingComponents?: string[];
+  noPages?: boolean;
 }
 
 export type PublishResult = PublishOk | PublishFail;

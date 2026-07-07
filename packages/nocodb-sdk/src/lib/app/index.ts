@@ -16,6 +16,7 @@ export interface AppVersionType {
   git_sha?: string;
   created_by?: string;
   created_at?: string;
+  pages_snapshot?: string | null;
 }
 
 export interface AppType {

@@ -12,52 +12,46 @@
  * The page `id` is authored by the builder and is stable across re-publishes, so
  * permissions set on it survive new versions.
  */
-export interface AppPageManifestEntry {
-  /** Builder-authored, stable across versions. Permission target (entity_id). */
-  id: string;
-  /** Router path, e.g. `/` or `/admin`. */
-  path: string;
-  /** Human label shown in nav / access UI. */
-  title: string;
-  /** Routine names this page is allowed to invoke (its reachability set). */
-  routines: string[];
+
+export enum AppPageKind {
+  AGENT = 'agent',
+  MANUAL = 'manual',
 }
 
+/** First-class page entity (nc_app_pages row). */
+export interface AppPageType {
+  id: string;
+  fk_workspace_id?: string;
+  base_id?: string;
+  fk_app_id: string;
+  type: AppPageKind;
+  route: string;
+  title: string;
+  slug: string;
+  order?: number;
+  meta?: { routines?: string[]; [k: string]: any } | string | null;
+  deleted?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// AppPageManifestEntry — the frozen per-version snapshot shape. `id` is a real
+// nc_app_pages.id (base-unique) and the PAGE_VIEW permission target.
+export interface AppPageManifestEntry {
+  id: string;
+  route: string; // router route (renamed from `path`)
+  title: string;
+  slug: string; // src/pages/<slug>.tsx join key
+  routines: string[];
+}
 export type AppPagesManifest = AppPageManifestEntry[];
 
-/**
- * Client-facing nav entry injected as `window.__nc_app_pages__` — the routine
- * list is intentionally omitted (the server enforces reachability; the client
- * only needs to render navigation).
- */
+// Client-facing nav entry injected as window.__nc_app_pages__ (routine list
+// omitted — the server enforces reachability). Keeps `path` for the client
+// router; the server maps manifest `route` -> nav `path`.
 export interface AppPageNavEntry {
   id: string;
   path: string;
   title: string;
-}
-
-/**
- * Page ids are authored per-app and only unique WITHIN an app, but the
- * `nc_permissions.entity_id` column is base-scoped (many apps share a base).
- * The PAGE_VIEW permission target is therefore the composite `<appId>::<pageId>`
- * so two apps in the same base can each own a page called `admin`.
- */
-export const APP_PAGE_ENTITY_SEP = '::';
-
-export function appPagePermissionEntityId(
-  appId: string,
-  pageId: string
-): string {
-  return `${appId}${APP_PAGE_ENTITY_SEP}${pageId}`;
-}
-
-export function parseAppPagePermissionEntityId(
-  entityId: string
-): { appId: string; pageId: string } | null {
-  const idx = entityId.indexOf(APP_PAGE_ENTITY_SEP);
-  if (idx === -1) return null;
-  return {
-    appId: entityId.slice(0, idx),
-    pageId: entityId.slice(idx + APP_PAGE_ENTITY_SEP.length),
-  };
+  slug: string;
 }

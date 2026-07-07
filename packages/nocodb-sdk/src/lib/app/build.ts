@@ -74,6 +74,8 @@ export interface AppBuildEventPayload {
   // action: 'lock' — base-room lock state broadcast
   building?: boolean;
   buildingBy?: string;
+  // The builder's user id — lets a client self-detect "I am the one building".
+  buildingById?: string;
   messageId?: string;
   // action: 'token'
   content?: string;

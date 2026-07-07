@@ -18,6 +18,7 @@ import {
   loadLookupSortAndLimit,
 } from '~/db/lookupSortLimit';
 import { Filter } from '~/models';
+import Sort from '~/models/Sort';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import {
   getAlias,
@@ -454,9 +455,94 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.where(mmSoftDeleteFilter);
         }
 
-        // TODO(follow-up): MM/junction lookup limit-in-filter needs a
-        // per-parent window over the junction hop — left full-set for now
-        // (single-level HM/BT are handled).
+        // Per-lookup Limit (PG, single-level): rank the junction⋈related rows
+        // per filtered row (PARTITION BY the junction's child FK) by the sort key
+        // (a related-table column) and keep only the top-N, then AND that
+        // (childFk, parentFk) set onto qb — so a filter matches only within the
+        // visible top-N. Each junction row is identified by its FK pair (no
+        // assumption about a single junction PK).
+        if (
+          baseModelSqlv2.isPg &&
+          !(
+            lookupColumn?.uidt === UITypes.Lookup ||
+            lookupColumn?.uidt === UITypes.LinkToAnotherRecord
+          )
+        ) {
+          const cfg = await loadLookupSortAndLimit(context, column);
+          if (cfg.hasConfig && cfg.limitVal > 0) {
+            const wj = `__nc_mmw_j`;
+            const wr = `__nc_mmw_r`;
+            const rcols = await parentModel.getColumns(parentContext);
+            const eff = cfg.takeLast
+              ? cfg.sorts.map(
+                  (s) =>
+                    new Sort({
+                      ...s,
+                      direction: s.direction === 'desc' ? 'asc' : 'desc',
+                    }),
+                )
+              : cfg.sorts;
+            const bits: string[] = [];
+            const binds: string[] = [];
+            for (const s of eff) {
+              const col = rcols.find((c: any) => c.id === s.fk_column_id);
+              if (col?.column_name) {
+                bits.push(`??.?? ${s.direction === 'desc' ? 'desc' : 'asc'}`);
+                binds.push(wr, col.column_name);
+              }
+            }
+            if (!bits.length) {
+              bits.push(`??.?? ${cfg.takeLast ? 'desc' : 'asc'}`);
+              binds.push(wj, mmChildColumn.column_name);
+            }
+            const win = knex(
+              dbQueryClient.tableAlias(
+                knex,
+                mmBaseModel.getTnPath(mmModel.table_name),
+                wj,
+              ),
+            )
+              .join(
+                dbQueryClient.tableAlias(
+                  knex,
+                  parentBaseModel.getTnPath(parentModel.table_name),
+                  wr,
+                ),
+                `${wj}.${mmParentColumn.column_name}`,
+                `${wr}.${parentColumn.column_name}`,
+              )
+              .select(
+                knex.raw('??.?? as __nc_c', [wj, mmChildColumn.column_name]),
+              )
+              .select(
+                knex.raw('??.?? as __nc_p', [wj, mmParentColumn.column_name]),
+              )
+              .select(
+                knex.raw(
+                  `ROW_NUMBER() OVER (PARTITION BY ??.?? ORDER BY ${bits.join(
+                    ', ',
+                  )}) as __nc_rn`,
+                  [wj, mmChildColumn.column_name, ...binds],
+                ),
+              );
+            const winSoftDelete = await getAliasedSoftDeleteFilter(
+              parentBaseModel,
+              wr,
+            );
+            if (winSoftDelete) win.where(winSoftDelete);
+            const ranked = knex
+              .select('__nc_c', '__nc_p')
+              .from(win.as('__nc_mmw_sub'))
+              .where('__nc_rn', '<=', cfg.limitVal);
+            qb.whereIn(
+              [
+                `${alias}.${mmChildColumn.column_name}`,
+                `${alias}.${mmParentColumn.column_name}`,
+              ],
+              ranked,
+            );
+          }
+        }
 
         return {
           rootApply: (qb) => {

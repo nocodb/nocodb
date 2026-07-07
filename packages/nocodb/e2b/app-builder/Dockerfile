@@ -13,9 +13,10 @@ RUN apt-get update \
 
 # claude: the build engine (the build processor spawns `claude` per turn).
 # tsx: runs the runtime-injected MCP stdio server script.
-# Pin both — replace `latest` with the resolved versions after the first
-# successful build for reproducibility.
-RUN npm install -g @anthropic-ai/claude-code@latest tsx@4
+# claude-code is PINNED: `@latest` once silently drifted across a rebuild to a
+# version whose startup config handling broke the build turn. Bump deliberately
+# (and re-run the build smoke) rather than tracking latest.
+RUN npm install -g @anthropic-ai/claude-code@2.1.187 tsx@4
 
 # Bake the MCP SDK into a dedicated ESM package dir. The build processor writes
 # the MCP stdio server to /opt/mcp/server.mjs at runtime and Claude spawns it

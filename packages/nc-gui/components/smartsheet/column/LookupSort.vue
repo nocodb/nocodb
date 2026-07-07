@@ -113,6 +113,41 @@ const onRemove = (sort: LookupSort) => {
   }
 }
 
+// Per-row enable/disable — mirrors the toolbar sort. sortV2 skips disabled sorts,
+// so a disabled lookup sort simply stops ordering the relation sub-query.
+const onToggleEnabled = (sort: LookupSort) => {
+  sort.enabled = sort.enabled === false
+  if (sort.id && sort.status !== 'create') sort.status = 'update'
+  sorts.value = [...sorts.value]
+}
+
+// Drag-reorder — mirrors the toolbar sort: reposition only the moved row with a
+// fractional `order` between its new neighbours (the column is a float), so a
+// single row changes. New (unsaved) rows persist in array order via Sort.insert;
+// saved rows persist the fractional order via Sort.update on column save.
+const onMove = (event: { moved?: { newIndex: number; oldIndex: number } }) => {
+  if (!event?.moved) return
+  const { newIndex, oldIndex } = event.moved
+  if (newIndex === oldIndex) return
+
+  const visible = [...visibleSorts.value]
+  const [moved] = visible.splice(oldIndex, 1)
+  if (!moved) return
+  visible.splice(newIndex, 0, moved)
+
+  const prevOrder = visible[newIndex - 1]?.order
+  const nextOrder = visible[newIndex + 1]?.order
+  if (prevOrder != null && nextOrder != null) moved.order = (prevOrder + nextOrder) / 2
+  else if (prevOrder != null) moved.order = prevOrder + 1
+  else if (nextOrder != null) moved.order = nextOrder / 2
+  else moved.order = 1
+
+  if (moved.id && moved.status !== 'create') moved.status = 'update'
+
+  // Keep delete-tagged rows in the persisted set; show the reordered visible set.
+  sorts.value = [...visible, ...sorts.value.filter((s) => s.status === 'delete')]
+}
+
 onMounted(loadSorts)
 
 // If the lookup's relation/target table changes, the existing sorts reference the
@@ -139,9 +174,13 @@ defineExpose({ sorts })
       :sorts="visibleSorts"
       :columns="sortableColumns"
       :meta="targetMeta || {}"
+      draggable
+      show-enable-toggle
       disable-smartsheet
       @save-or-update="onSaveOrUpdate"
       @delete="onRemove"
+      @toggle-enabled="onToggleEnabled"
+      @move="onMove"
     />
 
     <div>

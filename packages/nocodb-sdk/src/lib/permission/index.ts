@@ -112,6 +112,8 @@ export const PermissionRoleMap = {
   [ProjectRoles.EDITOR]: PermissionRole.EDITOR,
   [ProjectRoles.COMMENTER]: PermissionRole.COMMENTER,
   [ProjectRoles.VIEWER]: PermissionRole.VIEWER,
+  // ProjectRoles.APP_USER is deliberately unmapped — an app_user has no
+  // permission-role power on the direct data API.
   [WorkspaceUserRoles.OWNER]: PermissionRole.OWNER,
   [WorkspaceUserRoles.CREATOR]: PermissionRole.CREATOR,
   [WorkspaceUserRoles.EDITOR]: PermissionRole.EDITOR,

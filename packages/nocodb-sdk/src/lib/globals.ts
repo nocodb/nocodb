@@ -323,12 +323,12 @@ export const NON_SEAT_ROLES = [
   WorkspaceUserRoles.VIEWER,
   WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.COMMENTER,
-  // App Users consume a seat — they operate app data (up to Editor) through
-  // apps, so they are billed like any seat-consuming collaborator.
   ProjectRoles.NO_ACCESS,
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
+  // app_user base role is free for now (per-app editor-tier seat counting is a follow-up).
+  ProjectRoles.APP_USER,
 ];
 
 export const DURATION_TYPE_MAP = {

@@ -4126,6 +4126,7 @@
     "appUngrantedRoutines": "Some routines use integrations this app cannot access yet.",
     "appPublishOpenToMembers": "Publishing makes this app available to all base members.",
     "appWriteRoutineWarning": "These write-capable routines are open to all members: {names}",
+    "appNoPublishedVersions": "No published versions yet",
     "draftCreatedSuccessfully": "New draft version {version} created successfully!",
     "publishingWillMakeAvailable": "Publishing version {version} will make it available in the App Store and automatically update all installations.",
     "createDraftDescription": "Create a new draft version to work on updates. Current published version {version} will remain unchanged.",

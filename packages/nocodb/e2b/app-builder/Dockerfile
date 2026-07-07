@@ -17,6 +17,16 @@ RUN apt-get update \
 # successful build for reproducibility.
 RUN npm install -g @anthropic-ai/claude-code@latest tsx@4
 
+# Bake the MCP SDK into a dedicated ESM package dir. The build processor writes
+# the MCP stdio server to /opt/mcp/server.mjs at runtime and Claude spawns it
+# via `node /opt/mcp/server.mjs`; the .mjs resolves @modelcontextprotocol/sdk
+# from this sibling node_modules. (Server source is injected at runtime, not baked.)
+RUN mkdir -p /opt/mcp \
+ && cd /opt/mcp \
+ && npm init -y \
+ && npm pkg set type=module \
+ && npm install @modelcontextprotocol/sdk@^1.26.0
+
 # NOTE: the MCP stdio server script is written into the sandbox at runtime
 # (Task 8 sandbox.files.write), NOT baked into this image. This keeps the
 # image minimal and lets the MCP server change without an image rebuild.

@@ -15,10 +15,15 @@ This directory defines the dedicated E2B sandbox template for the **App Build En
 | `ca-certificates` | HTTPS trust roots | Required for `claude` to reach Anthropic + MCP callback URLs |
 | `@anthropic-ai/claude-code@latest` | Claude Code CLI | The build processor spawns `claude` to run one build turn |
 | `tsx@4` | TypeScript runner | Executes the runtime-injected MCP stdio server script |
+| `/opt/mcp/node_modules` (`@modelcontextprotocol/sdk@^1.26.0`) | MCP SDK for the stdio server | Baked so the runtime-injected `server.mjs` can resolve the SDK without a network install inside the sandbox |
+
+## `/opt/mcp` — the MCP SDK mount point
+
+`/opt/mcp` is an ESM package directory (`"type": "module"`) with `@modelcontextprotocol/sdk` pre-installed in its `node_modules`. The build processor writes the MCP stdio server source to `/opt/mcp/server.mjs` at runtime (Task 8, `sandbox.files.write`), and Claude Code spawns it via `node /opt/mcp/server.mjs`. Node resolves `@modelcontextprotocol/sdk` from the sibling `node_modules` directory — no network access or `npm install` needed inside the sandbox at runtime.
 
 ## What is NOT baked in (injected at runtime)
 
-The MCP stdio server script and its `--mcp-config` JSON are **written into the sandbox per-turn** by the build processor (`sandbox.files.write`). Nothing MCP-related is baked into this image. This keeps the image minimal and allows the MCP server to change without requiring an image rebuild.
+The MCP stdio server source (`/opt/mcp/server.mjs`) and its `--mcp-config` JSON are **written into the sandbox per-turn** by the build processor (`sandbox.files.write`). Only the SDK `node_modules` dependency is baked. This keeps the server source hot-swappable without an image rebuild.
 
 ---
 

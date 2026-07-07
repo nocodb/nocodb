@@ -556,16 +556,22 @@ export default class BaseUser {
       qb.where(`${MetaTable.PROJECT}.fk_workspace_id`, workspaceId);
 
       // Include bases where user has access via:
-      // 1. Explicit base role (not NO_ACCESS, not INHERIT)
+      // 1. Explicit base role (not NO_ACCESS, not INHERIT, not APP_USER)
       // 2. OR base role is null/INHERIT and workspace role grants access
       qb.where(function () {
         this.where(function () {
           // Priority 1: explicit base role that is not NO_ACCESS and not INHERIT
+          // (APP_USER hides the base like NO_ACCESS — app access only)
           this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`)
             .andWhere(
               `${MetaTable.PROJECT_USERS}.roles`,
               '!=',
               ProjectRoles.NO_ACCESS,
+            )
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.APP_USER,
             )
             .andWhere(
               `${MetaTable.PROJECT_USERS}.roles`,
@@ -598,9 +604,9 @@ export default class BaseUser {
         `${MetaTable.PROJECT_USERS}.fk_user_id`,
         ncMeta.knex.raw('?', [userId]),
       ).where(function () {
-        this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
+        this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNotIn(
           `${MetaTable.PROJECT_USERS}.roles`,
-          ProjectRoles.NO_ACCESS,
+          [ProjectRoles.NO_ACCESS, ProjectRoles.APP_USER],
         );
       });
     }

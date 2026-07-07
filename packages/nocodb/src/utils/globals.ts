@@ -152,6 +152,7 @@ export enum MetaTable {
   APP_ROUTINES = 'nc_app_routines',
   APP_ROUTINE_VERSIONS = 'nc_app_routine_versions',
   APP_VERSION_ROUTINES = 'nc_app_version_routines',
+  APP_INTEGRATION_GRANTS = 'nc_app_integration_grants',
 }
 
 export const BaseRelatedMetaTables = [
@@ -590,6 +591,7 @@ export enum CacheScope {
   APP_ROUTINE = 'appRoutine',
   APP_ROUTINE_VERSION = 'appRoutineVersion',
   APP_VERSION_ROUTINE = 'appVersionRoutine',
+  APP_INTEGRATION_GRANT = 'appIntegrationGrant',
 }
 
 export enum CacheGetType {

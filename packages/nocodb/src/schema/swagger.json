@@ -21027,6 +21027,24 @@
           "in": "query",
           "description": "Document Revision ID",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "appId",
+          "in": "query",
+          "description": "App ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "pageId",
+          "in": "query",
+          "description": "App Page ID",
+          "required": false
         }
       ]
     },

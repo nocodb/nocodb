@@ -44,7 +44,7 @@ export class SqliteDatetimeFormatHandler extends GeneralDatetimeFormatHandler {
       MMM: this.caseFromIndex(monthSel, MONTHS_ABBR, 1, 2),
       MM: `strftime('%m', ${dateExpr})`,
       M: `cast(strftime('%m', ${dateExpr}) as integer)`,
-      Do: `cast(strftime('%d', ${dateExpr}) as integer)`,
+      Do: this.dayWithOrdinal(dateExpr),
       DD: `strftime('%d', ${dateExpr})`,
       D: `cast(strftime('%d', ${dateExpr}) as integer)`,
       dddd: this.caseFromIndex(weekdaySel, DAYS_FULL, 0, 1),
@@ -75,6 +75,22 @@ export class SqliteDatetimeFormatHandler extends GeneralDatetimeFormatHandler {
 
   private sqlLiteral(value: string): string {
     return `'${value.replace(/'/g, "''")}'`;
+  }
+
+  // Day.js `Do` — day of month with English ordinal suffix (1st, 2nd, 3rd,
+  // 4th … 21st). strftime has no ordinal token, so derive it from the day
+  // integer: the teens (11–13) always take 'th', otherwise the last digit
+  // selects the suffix.
+  private dayWithOrdinal(dateExpr: string): string {
+    const day = `cast(strftime('%d', ${dateExpr}) as integer)`;
+    return (
+      `${day} || CASE ` +
+      `WHEN ${day} IN (11, 12, 13) THEN 'th' ` +
+      `WHEN ${day} % 10 = 1 THEN 'st' ` +
+      `WHEN ${day} % 10 = 2 THEN 'nd' ` +
+      `WHEN ${day} % 10 = 3 THEN 'rd' ` +
+      `ELSE 'th' END`
+    );
   }
 
   // `selector` yields a string key; map it to one of `values` (indexed from

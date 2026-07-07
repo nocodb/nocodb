@@ -834,6 +834,7 @@
       "viewer": "Can only view records within the base",
       "inherit": "Inherits role from base team or workspace team or workspace member",
       "no-access": "No access to this base",
+      "app-user": "Can use published apps only; capability is assigned per app",
       "super": "Full access to all",
       "org-level-creator": "Can fully configure and edit bases",
       "org-level-viewer": "Can only view records in bases",

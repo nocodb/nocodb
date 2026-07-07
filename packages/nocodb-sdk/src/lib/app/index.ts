@@ -34,6 +34,7 @@ export interface AppType {
   deleted?: boolean;
   created_at?: string;
   updated_at?: string;
+  slug?: string;
   /** Derived (non-persisted): true when the draft has been built past the live version's sha. */
   hasUnpublishedChanges?: boolean;
 }

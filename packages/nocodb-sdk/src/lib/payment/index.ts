@@ -16,6 +16,8 @@ export enum PlanLimitTypes {
   // were merged in here). Retention governs the automation_executions log.
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
+  // App routine (sql/http external-data) invocation budget — mirrors automation runs.
+  LIMIT_APP_ROUTINE_RUN = 'limit_app_routine_run',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -135,6 +137,7 @@ export enum PlanFeatureTypes {
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
   FEATURE_APP = 'feature_app',
+  FEATURE_APP_EXTERNAL_DATA = 'feature_app_external_data',
 }
 
 export enum PlanAddonTypes {
@@ -344,6 +347,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
     'to increase automation retention.',
+  [PlanLimitTypes.LIMIT_APP_ROUTINE_RUN]: 'to run more app routines.',
   [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 'to add more webhooks.',
   [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 'to add more extensions.',
   [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]:
@@ -500,6 +504,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
     'to white-label this instance with your own logo, product name, and brand color.',
   [PlanFeatureTypes.FEATURE_APP]: 'to build Apps.',
+  [PlanFeatureTypes.FEATURE_APP_EXTERNAL_DATA]:
+    'to use external data sources in apps.',
 };
 
 export const getUpgradeMessage = (

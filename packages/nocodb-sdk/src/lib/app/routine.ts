@@ -15,7 +15,8 @@ export type RedisRoutineOp =
   | 'del'
   | 'expire'
   | 'ttl'
-  | 'incr';
+  | 'incr'
+  | 'scan';
 
 /** source_ref for source_type='sql' (static part of a SQL routine). */
 export interface SqlRoutineSourceRef {
@@ -77,6 +78,15 @@ export interface RedisTtlResult {
 export interface RedisIncrResult {
   value: number;
 }
+export interface RedisScanResult {
+  /** Keys matched in this single non-blocking SCAN round (may be empty). */
+  keys: string[];
+  /**
+   * Cursor to resume from. Pass it back unchanged on the next call; 0 (the
+   * string "0") means the scan walked the whole keyspace and is complete.
+   */
+  cursor: string;
+}
 
 export type RedisRoutineResult =
   | RedisGetResult
@@ -85,7 +95,8 @@ export type RedisRoutineResult =
   | RedisDelResult
   | RedisExpireResult
   | RedisTtlResult
-  | RedisIncrResult;
+  | RedisIncrResult
+  | RedisScanResult;
 
 /**
  * Full-payload audit detail captured for sql/http routine invokes (D10).

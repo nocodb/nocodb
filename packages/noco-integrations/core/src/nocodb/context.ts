@@ -22,4 +22,12 @@ export interface NocoDBContext {
   mailService: IMailService;
   getBaseSchema: () => Promise<any>;
   getAccessToken: () => string;
+  /**
+   * List the collaborators of the current base (id + email + display name).
+   * Used by nodes that need a user picker (e.g. the comment trigger's
+   * "specific people mentioned" filter).
+   */
+  getBaseUsers: () => Promise<
+    Array<{ id: string; email: string; display_name?: string | null }>
+  >;
 }

@@ -19,10 +19,10 @@ export default class Sort {
 
   fk_view_id?: string;
   fk_column_id?: string;
-  // When set, this sort is scoped to a lookup/link column (it orders the
+  // When set, this sort is scoped to a lookup column (it orders the
   // relation sub-query for that column) instead of a view — mirrors
   // Filter.fk_link_col_id used by the "limit records by conditions" feature.
-  fk_lookup_link_col_id?: string;
+  fk_lookup_col_id?: string;
   fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
   enabled?: boolean;
@@ -78,7 +78,7 @@ export default class Sort {
       'id',
       'fk_view_id',
       'fk_column_id',
-      'fk_lookup_link_col_id',
+      'fk_lookup_col_id',
       'fk_level_id',
       'direction',
       'enabled',
@@ -86,9 +86,9 @@ export default class Sort {
       'source_id',
     ]);
 
-    // A sort belongs to a view OR (for lookup/link-scoped sorts) a link column.
-    const parentCond = sortObj.fk_lookup_link_col_id
-      ? { fk_lookup_link_col_id: sortObj.fk_lookup_link_col_id }
+    // A sort belongs to a view OR (for lookup-scoped sorts) a lookup column.
+    const parentCond = sortObj.fk_lookup_col_id
+      ? { fk_lookup_col_id: sortObj.fk_lookup_col_id }
       : { fk_view_id: sortObj.fk_view_id };
 
     const replayKeepOrder = isReplay() && sortObj.order != null;
@@ -170,13 +170,13 @@ export default class Sort {
             [sortObj.fk_column_id],
             `${CacheScope.SORT}:${row.id}`,
           );
-        // Link-scoped list cache (distinct prefix to avoid colliding with the
-        // view/column lists), mirrored by listByLink().
-        if (sortObj.fk_lookup_link_col_id)
+        // Lookup-scoped list cache (distinct prefix to avoid colliding with the
+        // view/column lists), mirrored by listByLookupColumn().
+        if (sortObj.fk_lookup_col_id)
           await NocoCache.appendToList(
             context,
             CacheScope.SORT,
-            ['link', sortObj.fk_lookup_link_col_id],
+            ['lookup', sortObj.fk_lookup_col_id],
             `${CacheScope.SORT}:${row.id}`,
           );
       }
@@ -228,16 +228,16 @@ export default class Sort {
     return sortList.map((s) => new Sort(s));
   }
 
-  // Sorts scoped to a lookup/link column (used to order the relation sub-query).
-  // Mirrors Filter.allLinkFilterList; cached under a distinct 'link' prefix.
-  public static async listByLink(
+  // Sorts scoped to a lookup column (used to order the relation sub-query).
+  // Mirrors Filter.allLinkFilterList; cached under a distinct 'lookup' prefix.
+  public static async listByLookupColumn(
     context: NcContext,
     { columnId }: { columnId: string },
     ncMeta = Noco.ncMeta,
   ): Promise<Sort[]> {
     if (!columnId) return [];
     const cachedList = await NocoCache.getList(context, CacheScope.SORT, [
-      'link',
+      'lookup',
       columnId,
     ]);
     let { list: sortList } = cachedList;
@@ -248,14 +248,14 @@ export default class Sort {
         context.base_id,
         MetaTable.SORT,
         {
-          condition: { fk_lookup_link_col_id: columnId },
+          condition: { fk_lookup_col_id: columnId },
           orderBy: { order: 'asc' },
         },
       );
       await NocoCache.setList(
         context,
         CacheScope.SORT,
-        ['link', columnId],
+        ['lookup', columnId],
         sortList,
       );
     }
@@ -268,10 +268,10 @@ export default class Sort {
   }
 
   // Clear the single-query cache for the model a sort affects: the view's model
-  // for view sorts, or the model owning the lookup/link column for link sorts.
+  // for view sorts, or the model owning the lookup column for lookup sorts.
   private static async clearSingleQueryCacheForSort(
     context: NcContext,
-    sort: { fk_view_id?: string; fk_lookup_link_col_id?: string },
+    sort: { fk_view_id?: string; fk_lookup_col_id?: string },
     ncMeta = Noco.ncMeta,
   ) {
     if (sort?.fk_view_id) {
@@ -284,16 +284,16 @@ export default class Sort {
           ncMeta,
         );
       }
-    } else if (sort?.fk_lookup_link_col_id) {
-      const linkCol = await Column.get(
+    } else if (sort?.fk_lookup_col_id) {
+      const lookupCol = await Column.get(
         context,
-        { colId: sort.fk_lookup_link_col_id },
+        { colId: sort.fk_lookup_col_id },
         ncMeta,
       );
-      if (linkCol?.fk_model_id) {
+      if (lookupCol?.fk_model_id) {
         await View.clearSingleQueryCache(
           context,
-          linkCol.fk_model_id,
+          lookupCol.fk_model_id,
           undefined,
           ncMeta,
         );

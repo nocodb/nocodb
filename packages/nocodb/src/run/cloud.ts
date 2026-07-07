@@ -11,6 +11,7 @@ import express from 'express';
 import cors from 'cors';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { isAppHost } from '~/helpers/appOrigin';
 
 handleUncaughtErrors(process);
 
@@ -41,7 +42,15 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
   // Add static file serving for the dashboard
   const ncGuiPath = path.join(__dirname, 'nc-gui');
   process.env.NC_GUI_DIST_PATH = process.env.NC_GUI_DIST_PATH ?? ncGuiPath;
-  server.use(process.env.NC_DASHBOARD_URL ?? '/', express.static(ncGuiPath));
+  // This static runs on the outer server, BEFORE Nest. On an app origin
+  // (`<slug>.<NC_APPS_BASE_DOMAIN>`) it would otherwise serve `nc-gui/index.html`
+  // for `/` (and `/index.html`) and bypass `AppOriginMiddleware`, which owns
+  // app-host serving. Skip it for app hosts so they fall through to Nest.
+  const ncGuiStatic = express.static(ncGuiPath);
+  server.use(process.env.NC_DASHBOARD_URL ?? '/', (req, res, next) => {
+    if (isAppHost(req.headers.host)) return next();
+    return ncGuiStatic(req, res, next);
+  });
 
   // if NC_DASHBOARD_URL is not set to /dashboard, then redirect '/dashboard'
   // to the path set in NC_DASHBOARD_URL

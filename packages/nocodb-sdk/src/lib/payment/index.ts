@@ -93,6 +93,7 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_SYNC_AUTO = 'feature_table_sync_auto',
   FEATURE_CUSTOM_SYNC = 'feature_custom_sync',
   FEATURE_UNIQUE = 'feature_unique',
+  FEATURE_LOOKUP_SORT_LIMIT = 'feature_lookup_sort_limit',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
   FEATURE_TOGGLE_GROUPBY = 'feature_toggle_groupby',
   FEATURE_TOGGLE_SORT = 'feature_toggle_sort',
@@ -450,6 +451,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: 'to use Custom Sync.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT]:
+    'to sort and limit lookup field values.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',
   [PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY]:

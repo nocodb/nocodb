@@ -417,6 +417,8 @@ export enum AppEvents {
   APP_UPDATE = 'app.update',
   APP_DELETE = 'app.delete',
   APP_DUPLICATE = 'app.duplicate',
+  APP_PUBLISH = 'app.publish',
+  APP_ROLLBACK = 'app.rollback',
 }
 
 export enum ClickhouseTables {

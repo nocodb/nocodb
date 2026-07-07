@@ -255,6 +255,9 @@ enum AuditV1OperationTypes {
 
   ROUTINE_INVOKE = 'ROUTINE_INVOKE',
   ROUTINE_GRANT = 'ROUTINE_GRANT',
+
+  APP_PUBLISH = 'APP_PUBLISH',
+  APP_ROLLBACK = 'APP_ROLLBACK',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1433,6 +1436,23 @@ export interface RoutineGrantPayload {
   reason?: string;
 }
 
+export interface AppPublishAuditDetails {
+  app_id: string;
+  app_title?: string;
+  version_id: string;
+  version_number: number;
+  git_sha: string;
+  pinned_routines: string[];
+}
+
+export interface AppRollbackAuditDetails {
+  app_id: string;
+  app_title?: string;
+  from_version_id?: string;
+  to_version_id: string;
+  to_version_number: number;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1964,6 +1984,14 @@ const descriptionTemplates = {
     audit: AuditV1<RoutineGrantPayload>
   ) =>
     `Integration access ${audit.details.action} (status '${audit.details.status}') for app '${audit.details.appId}'`,
+  [AuditV1OperationTypes.APP_PUBLISH]: (
+    audit: AuditV1<AppPublishAuditDetails>
+  ) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' published as version ${audit.details.version_number}`,
+  [AuditV1OperationTypes.APP_ROLLBACK]: (
+    audit: AuditV1<AppRollbackAuditDetails>
+  ) =>
+    `App '${audit.details.app_title ?? audit.details.app_id}' rolled back to version ${audit.details.to_version_number}`,
 };
 
 function auditDescription(audit: AuditV1) {

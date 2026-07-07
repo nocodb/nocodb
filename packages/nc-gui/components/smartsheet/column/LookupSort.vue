@@ -193,3 +193,44 @@ defineExpose({ sorts })
     </div>
   </div>
 </template>
+
+<!-- Reinforce the connected segmented look of each sort row (field│dir│drag│trash)
+     here too — mirrors SortListMenu. SortList's own scoped rules are overridden by
+     the column-editor modal's Ant select styling, so without these the controls
+     render with individual rounded corners instead of one joined control. -->
+<style scoped lang="scss">
+:deep(.nc-sort-field-select) {
+  @apply !w-44;
+  .ant-select-selector {
+    @apply !rounded-none !rounded-l-lg !border-r-0 !border-nc-border-gray-medium !shadow-none !w-44;
+
+    &.ant-select-focused:not(.ant-select-disabled) {
+      @apply !border-r-transparent;
+    }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-30;
+    }
+  }
+}
+
+:deep(.nc-select:not(.ant-select-disabled):hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+:deep(.nc-sort-dir-select) {
+  .ant-select-selector {
+    @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
+  }
+}
+
+.nc-sort-disabled-row {
+  .nc-sort-field-select,
+  .nc-sort-dir-select {
+    @apply opacity-40 pointer-events-none;
+  }
+}
+</style>

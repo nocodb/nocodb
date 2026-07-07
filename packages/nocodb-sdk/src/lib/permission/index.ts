@@ -9,6 +9,7 @@ export enum PermissionKey {
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
   DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
+  ROUTINE_INVOKE = 'ROUTINE_INVOKE',
 }
 
 export enum PermissionGrantedType {
@@ -21,6 +22,7 @@ export enum PermissionEntity {
   TABLE = 'table',
   FIELD = 'field',
   DOCUMENT = 'document',
+  ROUTINE = 'routine',
 }
 
 export enum PermissionRole {
@@ -156,6 +158,13 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to edit this page.',
   },
+  [PermissionKey.ROUTINE_INVOKE]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can run this routine',
+    description: 'can run routine',
+    userSelectorDescription:
+      'Only members selected here will be able to run this routine.',
+  },
 };
 
 // Restrictiveness order for document permission inheritance (lower = more permissive).
@@ -199,6 +208,8 @@ export const DOCUMENT_PERMISSION_KEYS = [
   PermissionKey.DOCUMENT_VISIBILITY,
   PermissionKey.DOCUMENT_EDIT,
 ];
+
+export const ROUTINE_PERMISSION_KEYS = [PermissionKey.ROUTINE_INVOKE];
 
 // Utility functions for permission management
 export const getPermissionOption = (

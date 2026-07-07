@@ -297,6 +297,12 @@ const handleOpenBookmarkPanel = () => {
       @click="onTabClick('settings')"
     />
 
+    <!-- Apps -->
+    <template v-if="isEeUI && showEEFeatures && hasAvailableBases">
+      <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium" />
+      <DashboardMiniSidebarV2AppTiles variant="rail" />
+    </template>
+
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
       <!-- Help -->

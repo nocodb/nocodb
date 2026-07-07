@@ -373,6 +373,12 @@ const handleOpenBookmarkPanel = () => {
       @click="onTabClick('settings')"
     />
 
+    <!-- Apps -->
+    <template v-if="isEeUI && showEEFeatures && hasAvailableBases">
+      <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium" />
+      <DashboardMiniSidebarV2AppTiles variant="dock" />
+    </template>
+
     <!-- Bottom group -->
     <div class="nc-dock-bottom-group" :class="{ 'is-hovering': isHovering }">
       <!-- Help -->

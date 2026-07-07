@@ -9,7 +9,6 @@ const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
-    WorkspaceUserRoles.APP_USER,
     WorkspaceUserRoles.VIEWER,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
@@ -17,6 +16,7 @@ const roleScopes = {
     WorkspaceUserRoles.OWNER,
   ],
   base: [
+    ProjectRoles.APP_USER,
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -395,11 +395,6 @@ const rolePermissions:
       baseList: true,
     },
   },
-  // App User (EE concept; kept here for map parity + acl self-validation).
-  // Empty include inherits NO_ACCESS parity via scope ordering.
-  [WorkspaceUserRoles.APP_USER]: {
-    include: {},
-  },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
       workspaceUserList: true,
@@ -436,6 +431,11 @@ const rolePermissions:
   },
 
   // ── Base roles (unchanged) ──
+  // App User: app-only collaborator, no ambient product-channel access.
+  // Empty include inherits NO_ACCESS parity via scope ordering.
+  [ProjectRoles.APP_USER]: {
+    include: {},
+  },
   [ProjectRoles.VIEWER]: {
     include: {
       // batch envelope — per-sub-op ACL is enforced inside the handler,
@@ -1077,13 +1077,13 @@ const permissionDescriptions: Record<string, string> = {
 const roleDescriptions: Record<string, string> = {
   // Workspace roles
   [WorkspaceUserRoles.NO_ACCESS]: 'No Access',
-  [WorkspaceUserRoles.APP_USER]: 'App User',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
   [WorkspaceUserRoles.COMMENTER]: 'Commenter',
   [WorkspaceUserRoles.EDITOR]: 'Editor',
   [WorkspaceUserRoles.CREATOR]: 'Creator',
   [WorkspaceUserRoles.OWNER]: 'Owner',
   // Base roles
+  [ProjectRoles.APP_USER]: 'App User',
   [ProjectRoles.VIEWER]: 'Viewer',
   [ProjectRoles.COMMENTER]: 'Commenter',
   [ProjectRoles.EDITOR]: 'Editor',

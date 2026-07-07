@@ -69,9 +69,12 @@ const sortableColumns = computed<ColumnType[]>(() =>
     }),
 )
 
-// Columns still available to add (not already used by a visible sort).
+// Columns still available to add: enabled (sortable) and not already used by a
+// visible sort. Excluding disabled columns is what makes "Add sort" default to a
+// real sortable column (e.g. Title) instead of the first column, which is the
+// disabled primary-key ID — sorting by ID would just reproduce insertion order.
 const availableColumns = computed<ColumnType[]>(() =>
-  sortableColumns.value.filter((c) => !visibleSorts.value.some((s) => s.fk_column_id === c.id)),
+  sortableColumns.value.filter((c) => !c.ncItemDisabled && !visibleSorts.value.some((s) => s.fk_column_id === c.id)),
 )
 
 // Edit flow only: hydrate the local set from the persisted lookup sorts.

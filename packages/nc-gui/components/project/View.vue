@@ -91,8 +91,11 @@ const isAuditsTabVisible = computed(
 
 const isIntegrationsTabVisible = computed(() => {
   if (isMobileMode.value) return false
-  if (base.value?.is_sandbox) return isUIAllowed('sourceCreate', { skipBaseCheck: true })
-  return isUIAllowed('sourceCreate')
+  // Managers (sourceCreate) get the full surface; viewers get the linked
+  // connections list, where per-user integrations offer their connect action.
+  if (base.value?.is_sandbox)
+    return isUIAllowed('sourceCreate', { skipBaseCheck: true }) || isUIAllowed('baseIntegrationList', { skipBaseCheck: true })
+  return isUIAllowed('sourceCreate') || isUIAllowed('baseIntegrationList')
 })
 
 const isWorkflowsTabVisible = computed(

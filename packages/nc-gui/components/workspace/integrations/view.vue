@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, workspaceRoles } = useRoles()
 
 const workspaceStore = useWorkspace()
 
@@ -11,6 +11,15 @@ const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
 const { isFromIntegrationPage, integrationPaginationData, activeViewTab, loadIntegrations } = useProvideIntegrationViewStore()
+
+// Non-managers never see the catalog tab — land them on Connections instead
+// of a blank pane. Enforced only after workspace roles resolve.
+watchEffect(() => {
+  if (!Object.keys(workspaceRoles.value ?? {}).length) return
+  if (!isUIAllowed('integrationManage') && activeViewTab.value !== 'connections') {
+    activeViewTab.value = 'connections'
+  }
+})
 
 const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, _activeWorkspace.value?.id)
@@ -64,7 +73,7 @@ onBeforeMount(() => {
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
-      <template v-if="isUIAllowed('workspaceIntegrations')">
+      <template v-if="isUIAllowed('integrationManage')">
         <a-tab-pane key="integrations" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-integrations">

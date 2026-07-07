@@ -50,12 +50,32 @@ const { loadEnvironments } = environmentsStore
 
 const showEnvUI = computed(() => props.showEnvironments)
 
+const { isUIAllowed } = useRoles()
+
+// Viewers reach this list to browse the inventory and connect their own
+// account on per-user integrations — creating/editing/deleting connections
+// stays a manage capability.
+const canManageIntegrations = computed(() => isUIAllowed('integrationManage'))
+
 const { isEnvironmentBlocked, environmentUpgradeFeature, showUpgradeToUseStagingEnvironment, showUpgradeToUseCustomEnvironment } =
   useEeConfig()
 
-// Production is always configured (it IS the integration's own config); other
-// stages are configured only when they appear in `integration.environments`.
+// Per-user integrations have no shared credential — each member connects
+// their own account per environment.
+function isPerUserIntegration(integration: IntegrationType) {
+  return integration.credential_mode === 'per_user'
+}
+
+// Shared integrations: Production is always configured (it IS the
+// integration's own config); other stages are configured only when they
+// appear in `integration.environments`.
+// Per-user integrations: the dot reflects YOUR OWN connection state for that
+// environment (`connected_environment_ids` is attached per caller by the
+// list endpoint) — there is no shared "configured" notion.
 function isEnvConfigured(integration: IntegrationType, env: EnvironmentType) {
+  if (isPerUserIntegration(integration)) {
+    return (integration.connected_environment_ids ?? []).includes(env.id!)
+  }
   if (env.key === DefaultEnvironmentKey.PRODUCTION) return true
   return (integration.environments ?? []).some((c) => c.fk_environment_id === env.id)
 }
@@ -317,74 +337,86 @@ onKeyStroke('ArrowRight', onRight)
 onKeyStroke('ArrowUp', onUp)
 onKeyStroke('ArrowDown', onDown)
 
-const columns = [
-  {
-    key: 'title',
-    title: t('general.name'),
-    minWidth: 250,
-    dataIndex: 'title',
-    showOrderBy: true,
-  },
-  {
-    key: 'sub_type',
-    title: t('general.type'),
-    minWidth: 98,
-    width: 120,
-    dataIndex: 'sub_type',
-    showOrderBy: true,
-  },
-  // Environments column — opt-in via the `showEnvironments` prop (parent gates by isEeUI).
-  ...(props.showEnvironments
-    ? [
-        {
-          key: 'environments',
-          title: t('title.environments'),
-          minWidth: 120,
-          width: 140,
-        },
-      ]
-    : []),
-  {
-    key: 'created_at',
-    title: t('labels.dateAdded'),
-    basis: '20%',
-    minWidth: 200,
+const columns = computed(
+  () =>
+    [
+      {
+        key: 'title',
+        title: t('general.name'),
+        minWidth: 250,
+        dataIndex: 'title',
+        showOrderBy: true,
+      },
+      {
+        key: 'sub_type',
+        title: t('general.type'),
+        minWidth: 98,
+        width: 120,
+        dataIndex: 'sub_type',
+        showOrderBy: true,
+      },
+      // Environments column — opt-in via the `showEnvironments` prop (parent gates by isEeUI).
+      ...(props.showEnvironments
+        ? [
+            {
+              key: 'environments',
+              title: t('title.environments'),
+              minWidth: 120,
+              width: 140,
+            },
+          ]
+        : []),
+      {
+        key: 'created_at',
+        title: t('labels.dateAdded'),
+        basis: '20%',
+        minWidth: 200,
 
-    dataIndex: 'created_at',
-    showOrderBy: true,
-  },
-  {
-    key: 'created_by',
-    title: t('labels.addedBy'),
-    minWidth: 250,
-    basis: '20%',
-    dataIndex: 'created_by',
-    showOrderBy: true,
-  },
-  {
-    key: 'source_count',
-    title: t('general.usage'),
-    width: 120,
-    dataIndex: 'source_count',
-    showOrderBy: true,
-  },
-  {
-    key: 'base_access',
-    title: t('labels.baseAccess'),
-    minWidth: 140,
-    width: 160,
-  },
-  {
-    key: 'action',
-    title: t('labels.actions'),
-    minWidth: 100,
-    width: 100,
-    justify: 'justify-end',
-  },
-] as NcTableColumnProps[]
+        dataIndex: 'created_at',
+        showOrderBy: true,
+      },
+      {
+        key: 'created_by',
+        title: t('labels.addedBy'),
+        minWidth: 250,
+        basis: '20%',
+        dataIndex: 'created_by',
+        showOrderBy: true,
+      },
+      {
+        key: 'source_count',
+        title: t('general.usage'),
+        width: 120,
+        dataIndex: 'source_count',
+        showOrderBy: true,
+      },
+      // Base assignment + row actions are manager-only surfaces — hide the
+      // columns outright for everyone else.
+      ...(canManageIntegrations.value
+        ? [
+            {
+              key: 'base_access',
+              title: t('labels.baseAccess'),
+              minWidth: 140,
+              width: 160,
+            },
+            {
+              key: 'action',
+              title: t('labels.actions'),
+              minWidth: 100,
+              width: 100,
+              justify: 'justify-end',
+            },
+          ]
+        : []),
+    ] as NcTableColumnProps[],
+)
 
 const customRow = (record: Record<string, any>) => ({
   onclick: () => {
+    // Non-managers may only open per-user integrations (to connect their own
+    // account) — a shared integration's editor is creator-gated server-side.
+    if (!canManageIntegrations.value && !isPerUserIntegration(record as IntegrationType)) return
     openEditIntegration(record)
   },
 })
@@ -437,7 +469,13 @@ const customRow = (record: Record<string, any>) => ({
             {{ $t('msg.info.showingEnvConfig', { env: activeEnvironment?.title }) }}
           </span>
         </div>
-        <NcButton type="secondary" size="small" data-testid="nc-manage-environments-btn" @click="emit('manageEnvironments')">
+        <NcButton
+          v-if="isUIAllowed('environmentCreate')"
+          type="secondary"
+          size="small"
+          data-testid="nc-manage-environments-btn"
+          @click="emit('manageEnvironments')"
+        >
           <div class="flex items-center gap-2">
             <GeneralIcon icon="ncSlidersHorizontal" class="h-4 w-4" />
             {{ $t('title.manageEnvironments') }}
@@ -478,6 +516,13 @@ const customRow = (record: Record<string, any>) => ({
           <span v-if="integration.is_private">
             <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{ $t('general.private') }}</NcBadge>
           </span>
+          <span v-if="isPerUserIntegration(integration)">
+            <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
+              <NcBadge :border="false" class="!h-4.5 text-xs bg-nc-bg-purple-light text-nc-content-purple-dark">
+                {{ $t('general.perUser') }}
+              </NcBadge>
+            </NcTooltip>
+          </span>
         </div>
 
         <NcTooltip
@@ -500,6 +545,9 @@ const customRow = (record: Record<string, any>) => ({
             <template #title>
               {{ env.title }} —
               <template v-if="isEnvironmentBlocked(env)">{{ $t('msg.info.environmentLocked') }}</template>
+              <template v-else-if="isPerUserIntegration(integration)">
+                {{ isEnvConfigured(integration, env) ? $t('general.connected') : $t('general.notConnected') }}
+              </template>
               <template v-else>
                 {{ isEnvConfigured(integration, env) ? $t('general.configured') : $t('msg.info.fallsBackToProduction') }}
               </template>
@@ -596,14 +644,16 @@ const customRow = (record: Record<string, any>) => ({
           </NcTooltip>
         </template>
 
+        <!-- Base assignment is manager-only (linked-base list + update ops are
+             creator+); for others the badge is purely informational. -->
         <div v-if="column.key === 'base_access'" class="text-sm">
           <NcBadge
             v-if="!integration.is_restricted"
             size="xs"
             color="green"
             :border="false"
-            class="cursor-pointer"
-            @click.stop="openBaseAssignment(integration)"
+            :class="{ 'cursor-pointer': canManageIntegrations }"
+            @click.stop="canManageIntegrations ? openBaseAssignment(integration) : undefined"
           >
             {{ $t('activity.allBases') }}
           </NcBadge>
@@ -612,14 +662,14 @@ const customRow = (record: Record<string, any>) => ({
             size="xs"
             color="gray"
             :border="false"
-            class="cursor-pointer"
-            @click.stop="openBaseAssignment(integration)"
+            :class="{ 'cursor-pointer': canManageIntegrations }"
+            @click.stop="canManageIntegrations ? openBaseAssignment(integration) : undefined"
           >
             {{ $t('labels.restricted') }}
           </NcBadge>
         </div>
 
-        <div v-if="column.key === 'action'" @click.stop>
+        <div v-if="column.key === 'action' && canManageIntegrations" @click.stop>
           <WorkspaceIntegrationsConnectionActionMenu
             :integration="integration"
             @delete="openDeleteIntegration"

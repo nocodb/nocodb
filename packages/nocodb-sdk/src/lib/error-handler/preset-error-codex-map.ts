@@ -77,6 +77,16 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Environment '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED]: {
+    message: (title: string) =>
+      `'${title}' requires you to connect your own account`,
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_PER_USER_NOT_ALLOWED]: {
+    message: (title: string, consumerPhrase: string) =>
+      `'${title}' uses per-user credentials and cannot be used ${consumerPhrase} — switch it to shared credentials`,
+    code: 400,
+  },
   [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,

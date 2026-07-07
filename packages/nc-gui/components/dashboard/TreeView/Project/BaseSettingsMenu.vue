@@ -80,10 +80,18 @@ const effectiveRoles = computed(() => baseRoles.value ?? baseRole.value)
 
 const isIntegrationsMenuVisible = computed(() => {
   if (isMobileMode.value) return false
-  return isUIAllowed('sourceCreate', {
-    roles: effectiveRoles.value,
-    skipBaseCheck: !!resolvedProject.value?.is_sandbox,
-  })
+  // Managers (sourceCreate) get the full surface; viewers get the linked
+  // connections list, where per-user integrations offer their connect action.
+  return (
+    isUIAllowed('sourceCreate', {
+      roles: effectiveRoles.value,
+      skipBaseCheck: !!resolvedProject.value?.is_sandbox,
+    }) ||
+    isUIAllowed('baseIntegrationList', {
+      roles: effectiveRoles.value,
+      skipBaseCheck: !!resolvedProject.value?.is_sandbox,
+    })
+  )
 })
 
 // Load base roles in background if not already loaded
@@ -225,7 +233,7 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && !isMobileMode"
+      v-if="isEeUI && !isMobileMode && isUIAllowed('baseVariableList', { roles: effectiveRoles })"
       v-e="['c:settings:base:variables']"
       icon="ncSettings"
       data-testid="base-variables"

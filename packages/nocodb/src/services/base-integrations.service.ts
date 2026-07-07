@@ -50,10 +50,19 @@ export class BaseIntegrationsService {
         `${MetaTable.INTEGRATIONS}.is_private`,
         `${MetaTable.INTEGRATIONS}.is_global`,
         `${MetaTable.INTEGRATIONS}.is_restricted`,
+        `${MetaTable.INTEGRATIONS}.credential_mode`,
         `${MetaTable.INTEGRATIONS}.created_by`,
         `${MetaTable.INTEGRATIONS}.meta`,
         `${MetaTable.INTEGRATIONS}.created_at`,
+        // Usage column — same workspace-wide semantics as the workspace list.
+        knex.raw(`count(${MetaTable.SOURCES}.id) as source_count`),
       )
+      .leftJoin(
+        MetaTable.SOURCES,
+        `${MetaTable.INTEGRATIONS}.id`,
+        `${MetaTable.SOURCES}.fk_integration_id`,
+      )
+      .groupBy(`${MetaTable.INTEGRATIONS}.id`)
       .where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
       .where((qb) => {
         qb.where(`${MetaTable.INTEGRATIONS}.deleted`, false).orWhereNull(

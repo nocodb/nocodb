@@ -19,6 +19,8 @@ export interface IntegrationItemType {
   hidden?: boolean
   form?: FormDefinition
   sync_category?: SyncCategory
+  /** AUTH packages that support per-user credentials (each user connects their own account). */
+  allowsPerUserCredentials?: boolean
 }
 
 export interface IntegrationCategoryItemType {

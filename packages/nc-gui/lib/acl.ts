@@ -52,6 +52,7 @@ const rolePermissions = {
       workspaceSettings: true,
       workspaceAuditList: true,
       workspaceIntegrations: true,
+      integrationManage: true,
       workspaceManage: true,
       baseDelete: true,
     },
@@ -204,6 +205,8 @@ const rolePermissions = {
   [ProjectRoles.VIEWER]: {
     include: {
       baseSettings: true,
+      // Base integrations inventory (mirrors the backend viewer+ floor).
+      baseIntegrationList: true,
       expandedForm: true,
       apiDocs: true,
 

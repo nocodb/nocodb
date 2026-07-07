@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { IntegrationCategoryType, type IntegrationType } from 'nocodb-sdk'
+import { DefaultEnvironmentKey, IntegrationCategoryType, integrationSupportsEnvironments } from 'nocodb-sdk'
+import type { EnvironmentType, IntegrationType } from 'nocodb-sdk'
 import type { IntegrationItemType, NcTableColumnProps } from '#imports'
 
 interface Props {
@@ -36,9 +37,34 @@ const {
   availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, isEnvironmentBlocked, environmentUpgradeFeature } = useEeConfig()
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
+
+// Environments (base scope resolves automatically from activeProjectId).
+const environmentsStore = useEnvironments()
+
+const { environments } = storeToRefs(environmentsStore)
+
+const { loadEnvironments } = environmentsStore
+
+// Per-user integrations have no shared credential — each member connects
+// their own account per environment.
+function isPerUserIntegration(integration: IntegrationType) {
+  return integration.credential_mode === 'per_user'
+}
+
+// Shared integrations: Production is always configured (it IS the
+// integration's own config); other stages only when an override exists.
+// Per-user integrations: the dot reflects YOUR OWN connection state for that
+// environment (`connected_environment_ids` is attached per caller).
+function isEnvConfigured(integration: IntegrationType, env: EnvironmentType) {
+  if (isPerUserIntegration(integration)) {
+    return ((integration as any).connected_environment_ids ?? []).includes(env.id!)
+  }
+  if (env.key === DefaultEnvironmentKey.PRODUCTION) return true
+  return ((integration as any).environments ?? []).some((c: { fk_environment_id: string }) => c.fk_environment_id === env.id)
+}
 
 const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
@@ -54,6 +80,15 @@ const hasAnyAction = (integration: IntegrationType) => {
 
 // View mode: 'main' (single-page with cards + categories) or 'all-connections' (full table)
 const viewMode = ref<'main' | 'all-connections'>('main')
+
+// Non-managers can't create integrations — the catalog is pointless for them,
+// so they land on (and stay in) the connections list, where per-user
+// integrations offer their connect action.
+watchEffect(() => {
+  if (!canManage.value && viewMode.value === 'main') {
+    viewMode.value = 'all-connections'
+  }
+})
 
 const searchQuery = ref('')
 const connectionsSearchQuery = ref('')
@@ -133,6 +168,16 @@ const unsubscribeEventBus = eventBus.on(async (event: string, payload: any) => {
     viewMode.value = 'all-connections'
     await reload()
   }
+
+  // The caller connected/disconnected their own account — reflect it on the
+  // matching row so the env dots update without a page reload.
+  if (event === IntegrationStoreEvents.USER_CONNECTION_UPDATE && payload?.id) {
+    const row = linkedIntegrations.value.find((i) => i.id === payload.id)
+    if (row) {
+      ;(row as IntegrationType & { connected_environment_ids?: string[] }).connected_environment_ids =
+        payload.connected_environment_ids ?? []
+    }
+  }
 })
 
 onBeforeUnmount(() => {
@@ -171,6 +216,17 @@ const linkedColumns = computed<NcTableColumnProps[]>(
         dataIndex: 'sub_type',
         showOrderBy: true,
       },
+      // Environments column — same semantics as the workspace connections list.
+      ...(isEeUI
+        ? [
+            {
+              key: 'environments',
+              title: t('title.environments'),
+              minWidth: 120,
+              width: 140,
+            },
+          ]
+        : []),
       {
         key: 'created_at',
         title: t('labels.dateAdded'),
@@ -188,13 +244,21 @@ const linkedColumns = computed<NcTableColumnProps[]>(
         showOrderBy: true,
       },
       {
-        key: 'base_access',
-        title: t('labels.baseAccess'),
-        minWidth: 140,
-        width: 160,
+        key: 'source_count',
+        title: t('general.usage'),
+        width: 120,
+        dataIndex: 'source_count',
+        showOrderBy: true,
       },
+      // Base access + row actions are manager-only surfaces.
       ...(canManage.value
         ? [
+            {
+              key: 'base_access',
+              title: t('labels.baseAccess'),
+              minWidth: 140,
+              width: 160,
+            },
             {
               key: 'action',
               title: t('labels.actions'),
@@ -221,6 +285,16 @@ async function handleUnlink(integrationId: string) {
 const handleEdit = (integration: IntegrationType) => {
   editIntegration(integration, true, baseId.value)
 }
+
+// Per-user integrations open for everyone (the modal offers the caller's
+// connect card); everything else opens only for its creator, as before.
+const customRow = (record: Record<string, any>) => ({
+  onclick: () => {
+    if (record.credential_mode === 'per_user' || canEditIntegration(record as IntegrationType)) {
+      handleEdit(record as IntegrationType)
+    }
+  },
+})
 
 // Connection cards: show max 6
 const maxVisibleCards = 6
@@ -249,7 +323,7 @@ onMounted(async () => {
     basesStore.getBaseUsers({ baseId: baseId.value }).catch(() => {})
   }
 
-  await Promise.all([reload(), loadDynamicIntegrations()])
+  await Promise.all([reload(), loadDynamicIntegrations(), ...(isEeUI ? [loadEnvironments()] : [])])
 })
 
 watch(viewMode, () => {
@@ -400,6 +474,7 @@ watch(baseId, reload)
     <template v-else-if="viewMode === 'all-connections'">
       <div class="h-full flex flex-col px-8 py-6">
         <NcButton
+          v-if="canManage"
           type="link"
           size="small"
           class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
@@ -414,7 +489,7 @@ watch(baseId, reload)
           <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
             {{ $t('general.allConnections') }}
           </h2>
-          <WorkspaceIntegrationsAddConnectionDropdown mode="base" />
+          <WorkspaceIntegrationsAddConnectionDropdown v-if="canManage" mode="base" />
         </div>
         <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
           {{ $t('msg.manageAllConnections') }}
@@ -440,6 +515,7 @@ watch(baseId, reload)
               :columns="linkedColumns"
               :data="filteredAllConnections"
               :is-data-loading="isLoading"
+              :custom-row="customRow"
               sticky-first-column
               class="h-full"
             >
@@ -452,6 +528,42 @@ watch(baseId, reload)
                   <NcBadge v-if="integration.is_private" :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">
                     {{ $t('general.private') }}
                   </NcBadge>
+                  <span v-if="isPerUserIntegration(integration)">
+                    <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
+                      <NcBadge :border="false" class="!h-4.5 text-xs bg-nc-bg-purple-light text-nc-content-purple-dark">
+                        {{ $t('general.perUser') }}
+                      </NcBadge>
+                    </NcTooltip>
+                  </span>
+                </div>
+
+                <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
+                  <!-- Only Auth & AI integrations support per-environment overrides -->
+                  <span v-if="!integrationSupportsEnvironments(integration.type)" class="text-nc-content-gray-muted">–</span>
+                  <NcTooltip v-for="env in environments" v-else :key="env.key" placement="bottom">
+                    <template #title>
+                      {{ env.title }} —
+                      <template v-if="isEnvironmentBlocked(env)">{{ $t('msg.info.environmentLocked') }}</template>
+                      <template v-else-if="isPerUserIntegration(integration)">
+                        {{ isEnvConfigured(integration, env) ? $t('general.connected') : $t('general.notConnected') }}
+                      </template>
+                      <template v-else>
+                        {{ isEnvConfigured(integration, env) ? $t('general.configured') : $t('msg.info.fallsBackToProduction') }}
+                      </template>
+                    </template>
+                    <span v-if="isEnvironmentBlocked(env)">
+                      <PaymentUpgradeBadge :feature="environmentUpgradeFeature(env)" remove-click />
+                    </span>
+                    <span
+                      v-else
+                      class="w-2.5 h-2.5 rounded-full border-2 flex-none inline-block"
+                      :style="
+                        isEnvConfigured(integration, env)
+                          ? { backgroundColor: env.color, borderColor: env.color }
+                          : { backgroundColor: 'transparent', borderColor: 'var(--nc-border-gray-medium)' }
+                      "
+                    />
+                  </NcTooltip>
                 </div>
 
                 <NcTooltip
@@ -494,6 +606,10 @@ watch(baseId, reload)
                     </div>
                   </div>
                   <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
+                </template>
+
+                <template v-if="column.key === 'source_count'">
+                  {{ integration.source_count ?? 0 }}
                 </template>
 
                 <div v-if="column.key === 'base_access'" class="flex items-center gap-2">

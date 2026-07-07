@@ -1,6 +1,6 @@
 import { IntegrationWrapper } from '../integration';
 import { RateLimitOptions } from '../utils/axios';
-import { TokenData, TestConnectionResponse, AuthType } from './types'
+import { TokenData, TestConnectionResponse, AuthType, MaskableAuthConfig } from './types'
 
 /**
  * Abstract base class for authenticated integrations.
@@ -28,6 +28,18 @@ export abstract class AuthIntegration<TConfig = any, TClient = any> extends Inte
   public setTokenRefreshCallback(callback: (tokens: TokenData) => Promise<void>) {
     this.tokenRefreshCallback = callback;
   }
+
+  /**
+   * REQUIRED: the response-safe view of a config. Every auth integration owns
+   * its own masking — explicitly name your secret fields and replace their
+   * values with CREDENTIAL_MASK (see the `maskSecret` helper); drop transient
+   * material like an un-exchanged `oauth` payload. Hosts run configs through
+   * this before serialising them into any API response, and restore echoed
+   * sentinels from the stored config on update — never persist the result.
+   */
+  public abstract maskConfig(
+    config?: MaskableAuthConfig<TConfig>,
+  ): Partial<MaskableAuthConfig<TConfig>>;
 
   /**
    * Authenticate and initialize the API client.

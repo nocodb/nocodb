@@ -194,6 +194,7 @@ export class MetaService {
       [MetaTable.INTEGRATION_LINKS]: 'il',
       [MetaTable.ENVIRONMENTS]: 'env',
       [MetaTable.INTEGRATION_ENV_CONFIGS]: 'iec',
+      [MetaTable.INTEGRATION_USER_CONFIGS]: 'iuc',
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',

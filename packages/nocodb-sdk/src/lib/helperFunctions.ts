@@ -316,9 +316,7 @@ export const getTestDatabaseName = (db: {
   connection?: { database?: string };
 }) => {
   if (
-    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(
-      db.client,
-    )
+    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(db.client)
   )
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
@@ -338,9 +336,27 @@ export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
  * the runtime comparison is on those values.
  */
 export const integrationSupportsEnvironments = (
-  category?: IntegrationsType | IntegrationCategoryType,
+  category?: IntegrationsType | IntegrationCategoryType
 ): boolean => {
   return category === IntegrationsType.Auth || category === IntegrationsType.Ai;
+};
+
+/**
+ * Whether an integration can be switched to per-user credentials
+ * (`credential_mode: 'per_user'`). Two-level opt-in: only AUTH integrations
+ * qualify (the credential must BE a user identity at the provider), and the
+ * integration package must declare `allowsPerUserCredentials` on its manifest
+ * (effectively OAuth2 authorization-code providers only — API-key auth has no
+ * user identity). The instance-level oauth check (`config.type === 'oauth'`)
+ * is enforced server-side at mode-set time, not here.
+ */
+export const integrationSupportsPerUserCredentials = (
+  category?: IntegrationsType | IntegrationCategoryType,
+  manifest?: { allowsPerUserCredentials?: boolean }
+): boolean => {
+  return (
+    category === IntegrationsType.Auth && !!manifest?.allowsPerUserCredentials
+  );
 };
 
 export function parseProp(v: any, fallbackVal = {}): any {

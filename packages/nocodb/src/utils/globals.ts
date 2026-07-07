@@ -73,6 +73,7 @@ export enum MetaTable {
   INTEGRATION_LINKS = 'nc_integration_links_v2',
   ENVIRONMENTS = 'nc_environments',
   INTEGRATION_ENV_CONFIGS = 'nc_integration_env_configs',
+  INTEGRATION_USER_CONFIGS = 'nc_integration_user_configs',
   BASE_VARIABLE_ENV_VALUES = 'nc_base_variable_env_values',
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
@@ -538,6 +539,7 @@ export enum CacheScope {
   INTEGRATION = 'integration',
   ENVIRONMENT = 'environment',
   INTEGRATION_ENV_CONFIG = 'integrationEnvConfig',
+  INTEGRATION_USER_CONFIG = 'integrationUserConfig',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
@@ -682,6 +684,7 @@ export const RootScopeTables = {
     MetaTable.WORKSPACE_USER,
     MetaTable.INTEGRATIONS,
     MetaTable.INTEGRATION_ENV_CONFIGS,
+    MetaTable.INTEGRATION_USER_CONFIGS,
     MetaTable.SOURCES,
     // We need to clear fk_integration_id from following tables
     MetaTable.COL_BUTTON,

@@ -127,6 +127,8 @@
     "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
     "upgradeToUseStagingEnvironment": "Upgrade to use the Staging environment",
     "upgradeToUseStagingEnvironmentSubtitle": "Your {activePlan} plan includes only the Production environment. Upgrade to {plan} to use Staging.",
+    "upgradeToUsePerUserCredentials": "Upgrade to use per-user credentials",
+    "upgradeToUsePerUserCredentialsSubtitle": "Your {activePlan} plan uses shared credentials only. Upgrade to {plan} to let each member connect their own account.",
     "upgradeToUseCustomEnvironments": "Upgrade to create custom environments",
     "upgradeToUseCustomEnvironmentsSubtitle": "Custom environments aren't available on your {activePlan} plan. Upgrade to {plan} to create environments beyond Production and Staging.",
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
@@ -639,6 +641,9 @@
     "allConnections": "All connections",
     "viewAllConnections": "View all connections",
     "connected": "Connected",
+    "notConnected": "Not connected",
+    "disconnect": "Disconnect",
+    "perUser": "Per-user",
     "backToIntegrations": "Back to integrations",
     "private": "Private",
     "starred": "Starred",
@@ -1498,6 +1503,9 @@
     "theListIsEmpty": "The list is empty"
   },
   "labels": {
+    "shareCredentialsBetweenUsers": "Share credentials between users",
+    "yourConnection": "Your connection",
+    "connectProvider": "Connect {provider}",
     "timescale": "Timescale",
     "createNewField": "Create new field",
     "chatImport": {
@@ -4465,6 +4473,13 @@
       "editingEnvConfig": "You're editing the {env} configuration for this integration.",
       "fallsBackToProduction": "Not configured — falls back to production.",
       "environmentLocked": "Available on a higher plan.",
+      "perUserIntegration": "Each member connects their own account — no shared credential is stored.",
+      "perUserIntegrationNotSelectable": "Per-user connections can't be used here — this runs as a configured identity, not as each member. Available in apps only.",
+      "shareCredentialsTooltip": "Authentication credentials will be shared between users. All requests to the API will be executed as the authenticated user. When off, each member connects their own account — available in apps only.",
+      "perUserConnectDescription": "Connect your own {provider} account for {env}. Only you can use it.",
+      "perUserConnectedDescription": "Your account is connected for {env}. Requests run as you.",
+      "reAuthenticateToTest": "Stored secrets are masked. Re-authenticate to run a live connection test — saving other changes doesn't require it.",
+      "perUserNoSharedToken": "No shared token is stored in per-user mode. Members without a connection get a \"connect your account\" prompt — never someone else's credential.",
       "appThreadStale": "This app changed outside this chat since your last message. The preview shows the latest version.",
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
       "allFieldsBlankForRecord": "All fields are blank for this record",
@@ -5041,6 +5056,7 @@
       "nRecordsCreated": "{n} records created"
     },
     "success": {
+      "accountConnected": "Your {provider} account is connected.",
       "restored": "Item restored successfully",
       "partiallyRestored": "Restored conflict-free items — conflicting ones remain in trash",
       "permanentlyDeleted": "Item permanently deleted",

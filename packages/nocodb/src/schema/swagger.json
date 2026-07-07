@@ -21964,6 +21964,21 @@
           "is_private": {
             "$ref": "#/components/schemas/Bool"
           },
+          "credential_mode": {
+            "description": "Credential sharing mode for AUTH integrations",
+            "enum": [
+              "shared",
+              "per_user"
+            ],
+            "type": "string"
+          },
+          "connected_environment_ids": {
+            "description": "EE only. On per-user integrations: environment ids the REQUESTING user has connected (attached to list/read responses; empty when unconnected).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "is_default": {
             "$ref": "#/components/schemas/Bool"
           },
@@ -22236,6 +22251,18 @@
           "is_restricted": {
             "$ref": "#/components/schemas/Bool",
             "description": "Whether the integration is restricted to specific bases"
+          },
+          "is_private": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the integration is visible only to its creator. Not combinable with credential_mode 'per_user'."
+          },
+          "credential_mode": {
+            "description": "EE only. Credential sharing mode for AUTH integrations: 'shared' (default \u2014 one credential everyone uses) or 'per_user' (each user connects their own account). Ignored in CE.",
+            "enum": [
+              "shared",
+              "per_user"
+            ],
+            "type": "string"
           },
           "environments": {
             "description": "EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped — it uses the integration's own config). Ignored in CE.",

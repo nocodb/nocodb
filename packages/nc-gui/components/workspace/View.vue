@@ -14,7 +14,7 @@ const { t } = useI18n()
 
 const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded, loadRoles, workspaceRoles } = useRoles()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
@@ -57,6 +57,17 @@ onBeforeUnmount(() => {
 
 watch(integrationsViewMode, () => {
   storeSearchQuery.value = ''
+})
+
+// Non-managers (viewers/editors) can't create integrations — the catalog is
+// pointless for them, so they land on (and stay in) the connections list,
+// where per-user integrations offer their connect action. Only enforced once
+// workspace roles have resolved, so managers aren't bounced mid-load.
+watchEffect(() => {
+  if (!Object.keys(workspaceRoles.value ?? {}).length) return
+  if (!isUIAllowed('integrationManage') && integrationsViewMode.value === 'main') {
+    integrationsViewMode.value = 'all-connections'
+  }
 })
 
 const currentWorkspace = computedAsync(async () => {
@@ -315,6 +326,7 @@ if (!props.isNewWsPage) {
             <template v-else-if="integrationsViewMode === 'all-connections'">
               <div class="h-full flex flex-col px-8 py-6">
                 <NcButton
+                  v-if="isUIAllowed('integrationManage')"
                   type="link"
                   size="small"
                   class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
@@ -329,7 +341,7 @@ if (!props.isNewWsPage) {
                   <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
                     {{ $t('general.allConnections') }}
                   </h2>
-                  <WorkspaceIntegrationsAddConnectionDropdown />
+                  <WorkspaceIntegrationsAddConnectionDropdown v-if="isUIAllowed('integrationManage')" />
                 </div>
 
                 <div class="flex-1 min-h-0">

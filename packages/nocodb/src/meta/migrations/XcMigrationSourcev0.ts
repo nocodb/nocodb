@@ -88,6 +88,7 @@ import * as nc_202607061200_app_pages from './v0/nc_202607061200_app_pages';
 import * as nc_202607010000_environments from './v0/nc_202607010000_environments';
 import * as nc_202607020000_sandbox_environment from './v0/nc_202607020000_sandbox_environment';
 import * as nc_202607030000_base_variable_env_values from './v0/nc_202607030000_base_variable_env_values';
+import * as nc_202607040000_integration_user_configs from './v0/nc_202607040000_integration_user_configs';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -186,7 +187,8 @@ export default class XcMigrationSourcev0 {
       'nc_202607061200_app_pages',
       'nc_202607010000_environments',
       'nc_202607020000_sandbox_environment',
-      'nc_202607030000_base_variable_env_values'
+      'nc_202607030000_base_variable_env_values',
+      'nc_202607040000_integration_user_configs'
     ]);
   }
 
@@ -376,6 +378,8 @@ export default class XcMigrationSourcev0 {
         return nc_202607020000_sandbox_environment;
       case 'nc_202607030000_base_variable_env_values':
         return nc_202607030000_base_variable_env_values;
+      case 'nc_202607040000_integration_user_configs':
+        return nc_202607040000_integration_user_configs;
     }
   }
 }

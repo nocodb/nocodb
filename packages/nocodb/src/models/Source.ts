@@ -10,6 +10,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -684,6 +685,60 @@ export default class Source implements SourceType {
     } else {
       return this.is_meta || this.is_local;
     }
+  }
+
+  /**
+   * Reverse lookup: the sources referencing an integration — a THIN,
+   * response-safe projection (id, alias, base_id, project title only), used by
+   * the integration read (`includeSources`, feeds the delete-confirmation
+   * dialog), the integration delete/soft-delete cascades, and user-deletion
+   * collection. Lives here because "which sources point at X" is a Source
+   * concern; only Database integrations are ever referenced, so other types
+   * yield []. Workspace scoping applies whenever the context carries a real
+   * workspace id (EE) and is skipped for CE/BYPASS contexts.
+   */
+  static async listByIntegration(
+    context: Omit<NcContext, 'base_id'>,
+    integrationId: string,
+    { force = false }: { force?: boolean } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<Source[]> {
+    const qb = ncMeta.knex(MetaTable.SOURCES);
+
+    qb.select(`${MetaTable.SOURCES}.id`)
+      .select(`${MetaTable.SOURCES}.alias`)
+      .select(`${MetaTable.PROJECT}.title as project_title`)
+      .select(`${MetaTable.SOURCES}.base_id`)
+      .innerJoin(
+        MetaTable.PROJECT,
+        `${MetaTable.SOURCES}.base_id`,
+        `${MetaTable.PROJECT}.id`,
+      )
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, integrationId);
+
+    if (
+      context.workspace_id &&
+      context.workspace_id !== RootScopes.BYPASS &&
+      context.workspace_id !== RootScopes.FULL_BYPASS
+    ) {
+      qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
+    }
+
+    if (!force) {
+      qb.where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.SOURCES}.deleted`, false)
+          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
+      }).where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.PROJECT}.deleted`, false)
+          .orWhereNull(`${MetaTable.PROJECT}.deleted`);
+      });
+    }
+
+    const sources = await qb;
+
+    return sources.map((src) => this.castType(src));
   }
 
   protected static extendQb(qb: any, _context: NcContext) {

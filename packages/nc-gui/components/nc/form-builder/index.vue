@@ -89,9 +89,11 @@ const integrationOptions = computed(() => {
     acc[key] = filteredIntegrations.value[key]!.map((integration) => ({
       label: integration.title as string,
       value: integration.id as string,
+      disabled: integration.credential_mode === 'per_user',
+      integration,
     }))
     return acc
-  }, {} as Record<string, { label: string; value: string }[]>)
+  }, {} as Record<string, { label: string; value: string; disabled?: boolean; integration: IntegrationType }[]>)
 })
 
 const activeModel = ref<string | null>(null)
@@ -488,6 +490,7 @@ watch(
                     <a-select
                       :value="deepReference(field.model)"
                       :options="integrationOptions[field.model]"
+                      option-filter-prop="label"
                       dropdown-match-select-width
                       class="nc-select nc-select-shadow"
                       placeholder="Select Integration"
@@ -499,27 +502,32 @@ watch(
                       <template #suffixIcon>
                         <GeneralIcon icon="ncChevronDown" class="text-nc-content-gray-muted" />
                       </template>
-                      <a-select-option
-                        v-for="integration in filteredIntegrations[field.model]"
-                        :key="integration.id"
-                        :value="integration.id"
-                      >
-                        <div class="w-full h-full flex gap-2 items-center" :data-testid="integration.title">
-                          <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
-                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                            <template #title>
+                      <template #option="{ integration, disabled: isOptionDisabled }">
+                        <NcTooltip class="w-full h-full" :disabled="!isOptionDisabled" placement="left">
+                          <template #title>
+                            {{ $t('msg.info.perUserIntegrationNotSelectable') }}
+                          </template>
+                          <div
+                            class="w-full h-full flex gap-2 items-center"
+                            :class="{ 'opacity-40 cursor-not-allowed': isOptionDisabled }"
+                            :data-testid="integration.title"
+                          >
+                            <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
+                            <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ integration.title }}
+                              </template>
                               {{ integration.title }}
-                            </template>
-                            {{ integration.title }}
-                          </NcTooltip>
-                          <component
-                            :is="iconMap.check"
-                            v-if="formState.fk_integration_id === integration.id"
-                            id="nc-selected-item-icon"
-                            class="text-nc-content-brand w-4 h-4"
-                          />
-                        </div>
-                      </a-select-option>
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="formState.fk_integration_id === integration.id"
+                              id="nc-selected-item-icon"
+                              class="text-nc-content-brand w-4 h-4"
+                            />
+                          </div>
+                        </NcTooltip>
+                      </template>
 
                       <template #dropdownRender="{ menuNode: menu }">
                         <component :is="menu" />

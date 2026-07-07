@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { DefaultEnvironmentKey, integrationSupportsEnvironments } from 'nocodb-sdk'
+import { DefaultEnvironmentKey, FormBuilderInputType, integrationSupportsEnvironments } from 'nocodb-sdk'
 import type { EnvironmentType } from 'nocodb-sdk'
 import { type IntegrationCategoryType, SyncDataType, type clientTypes as _clientTypes } from '#imports'
 
@@ -26,7 +26,15 @@ const {
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const { isUIAllowed } = useRoles()
+
+// Non-managers (viewers/editors on per-user integrations) get a read-only
+// form — their only action here is the per-user connect card.
+const canManageIntegrations = computed(() => isUIAllowed('integrationManage'))
 
 const { activeProjectId } = storeToRefs(useBases())
 
@@ -63,6 +71,11 @@ function envOverrideConfig(envId?: string) {
   return (activeIntegration.value?.environments ?? []).find((e) => e.fk_environment_id === envId)?.config
 }
 
+// Per-user credential mode (EE): mirrored into formState.credential_mode on
+// change; declared as its own ref so the schema filter below can depend on it
+// without a forward reference into the form-builder helper's state.
+const perUserEnabled = ref(false)
+
 const testConnectionResult = ref<{ success: boolean; message?: string } | null>(null)
 
 const testConnectionLoading = ref(false)
@@ -73,7 +86,15 @@ const initState = ref({
 })
 
 const formSchemaForEnv = computed(() => {
-  const schema = activeIntegrationItem.value?.form
+  let schema = activeIntegrationItem.value?.form
+
+  // Per-user mode (edit): the shared OAuth dance is replaced by the
+  // "Your connection" card — a config-embedded dance would try to mint a
+  // shared credential that per-user mode never stores.
+  if (schema && perUserEnabled.value && pageMode.value === IntegrationsPageMode.EDIT) {
+    schema = schema.filter((field) => field.type !== FormBuilderInputType.OAuth)
+  }
+
   if (!schema || isProductionEnv.value || pageMode.value === IntegrationsPageMode.ADD) return schema
   return schema.map((field) => (field.model === 'title' ? { ...field, disabled: true } : field))
 })
@@ -81,6 +102,7 @@ const formSchemaForEnv = computed(() => {
 const { form, formState, isLoading, initialState, submit } = useProvideFormBuilderHelper({
   formSchema: formSchemaForEnv,
   initialState: initState,
+  disabled: computed(() => !canManageIntegrations.value),
   onSubmit: async () => {
     // if it is edit mode and activeIntegration id is not present then return
     if (isEditMode.value && !activeIntegration.value?.id) return
@@ -157,6 +179,18 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
   },
 })
 
+// Per-user eligibility (EE): package opt-in + the instance configured for
+// OAuth. Provided (not prop-drilled) because the toggle renders inside the
+// form builder's OAuth field, whose subtree has its own integration store.
+const isPerUserEligible = computed(
+  () =>
+    activeIntegrationItem.value?.type === 'auth' &&
+    !!activeIntegrationItem.value?.allowsPerUserCredentials &&
+    formState.value?.config?.type === 'oauth',
+)
+
+provide(IntegrationPerUserStateInj, { perUserEnabled, isEligible: isPerUserEligible })
+
 // Per-environment overrides only apply to Auth & AI integrations — not Database
 // sources, Sync connectors or workflow nodes.
 const showEnvTabs = computed(
@@ -218,6 +252,33 @@ async function saveEnvironment(body: { title: string; description: string; color
   await createEnvironment(body)
 }
 
+// The toggle drives the persisted credential mode. Written only on change so
+// integrations that never touched the axis keep sending nothing.
+watch(perUserEnabled, (enabled) => {
+  formState.value.credential_mode = enabled ? 'per_user' : 'shared'
+
+  if (formState.value.config && typeof formState.value.config === 'object') {
+    // A pending OAuth dance must not carry across a mode flip — its meaning
+    // changes with the mode (shared credential vs the caller's own connection),
+    // so the user re-authenticates explicitly under the new mode.
+    delete formState.value.config.oauth
+
+    // In edit mode, reset the config to the stored one for the env being
+    // edited: flipping back and forth must not end up saving a config that
+    // lost its masked sentinels — they're what the update path restores the
+    // real stored tokens from.
+    if (isEditMode.value) {
+      const stored = isProductionEnv.value ? activeIntegration.value?.config : envOverrideConfig(activeEnv.value?.id)
+      if (stored && typeof stored === 'object') {
+        formState.value.config = JSON.parse(JSON.stringify(stored))
+        delete formState.value.config.oauth
+      }
+    }
+  }
+
+  testConnectionResult.value = null
+})
+
 // select and focus title field on load
 onMounted(async () => {
   isLoading.value = true
@@ -239,8 +300,10 @@ onMounted(async () => {
       title: activeIntegration.value.title || '',
       config: activeIntegration.value.config,
       is_private: !!activeIntegration.value?.is_private,
+      credential_mode: activeIntegration.value?.credential_mode,
       ...initState.value,
     }
+    perUserEnabled.value = activeIntegration.value?.credential_mode === 'per_user'
     initialState.value = JSON.parse(JSON.stringify(formState.value))
 
     // Reset to the production tab and load the workspace's environments.
@@ -264,7 +327,18 @@ onMounted(async () => {
   isLoading.value = false
 })
 
+// Stored secrets come back masked (`********`) — a test with sentinels would
+// fail at the provider, and requiring a fresh dance just to rename an
+// integration would be absurd. Sentinel-bearing configs were verified when
+// they were stored, so they satisfy the test requirement.
+const hasMaskedSecrets = computed(() => isEditMode.value && JSON.stringify(formState.value?.config ?? {}).includes('********'))
+
 const onTestConnection = async () => {
+  if (hasMaskedSecrets.value) {
+    message.info(t('msg.info.reAuthenticateToTest'))
+    return
+  }
+
   testConnectionLoading.value = true
 
   testConnectionResult.value = (await testConnection(formState.value)) || null
@@ -280,8 +354,10 @@ const onTestConnection = async () => {
     @update:open="vOpen = $event"
   >
     <template #headerRight>
+      <!-- Per-user mode stores no shared credential — there is nothing to test;
+           members verify their own connection via the connect card instead. -->
       <NcButton
-        v-if="activeIntegrationItem.type === 'auth'"
+        v-if="activeIntegrationItem.type === 'auth' && !perUserEnabled && canManageIntegrations"
         size="small"
         :type="!testConnectionResult?.success ? 'primary' : 'ghost'"
         :disabled="testConnectionLoading"
@@ -299,9 +375,13 @@ const onTestConnection = async () => {
         </div>
       </NcButton>
       <NcButton
+        v-if="canManageIntegrations"
         size="small"
         type="primary"
-        :disabled="isLoading || (!testConnectionResult?.success && activeIntegrationItem.type === 'auth')"
+        :disabled="
+          isLoading ||
+          (!testConnectionResult?.success && activeIntegrationItem.type === 'auth' && !perUserEnabled && !hasMaskedSecrets)
+        "
         :loading="isLoading"
         class="nc-extdb-btn-submit"
         @click="submit"
@@ -333,7 +413,13 @@ const onTestConnection = async () => {
               </template>
             </a-tab-pane>
             <template #rightExtra>
-              <NcButton type="text" size="xsmall" class="flex-none" @click="openNewEnvironment">
+              <NcButton
+                v-if="isUIAllowed('environmentCreate')"
+                type="text"
+                size="xsmall"
+                class="flex-none"
+                @click="openNewEnvironment"
+              >
                 <div class="flex items-center gap-1 text-nc-content-brand">
                   <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
                   {{ $t('title.newEnvironment') }}
@@ -361,6 +447,13 @@ const onTestConnection = async () => {
           </div>
         </div>
 
+        <WorkspaceIntegrationsFormsEditOrAddPerUserSection
+          v-if="isEeUI"
+          v-model:per-user-enabled="perUserEnabled"
+          :active-env="activeEnv"
+          :base-id="baseId"
+          class="px-2"
+        />
         <NcFormBuilder :key="activeEnvKey" class="px-2" />
         <WorkspaceIntegrationsSyncPanel v-if="activeIntegrationItem.type === 'sync'" class="px-2" />
         <div class="mt-10"></div>

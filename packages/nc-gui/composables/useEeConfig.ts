@@ -236,6 +236,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockStagingEnvironment = computed(() => true)
 
+  const blockPerUserCredentials = computed(() => true)
+
   const blockCustomEnvironment = computed(() => true)
 
   const isEnvironmentBlocked = (..._args: any[]) => true
@@ -243,6 +245,8 @@ export const useEeConfig = createSharedComposable(() => {
   const environmentUpgradeFeature = (..._args: any[]) => undefined
 
   const showUpgradeToUseStagingEnvironment = (..._args: any[]) => {}
+
+  const showUpgradeToUsePerUserCredentials = (..._args: any[]) => {}
 
   const showUpgradeToUseCustomEnvironment = (..._args: any[]) => {}
 
@@ -489,10 +493,12 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToShareDoc,
     showDashboardPlanLimitExceededModal,
     blockStagingEnvironment,
+    blockPerUserCredentials,
     blockCustomEnvironment,
     isEnvironmentBlocked,
     environmentUpgradeFeature,
     showUpgradeToUseStagingEnvironment,
+    showUpgradeToUsePerUserCredentials,
     showUpgradeToUseCustomEnvironment,
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,

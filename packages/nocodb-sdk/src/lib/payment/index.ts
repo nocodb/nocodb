@@ -144,6 +144,8 @@ export enum PlanFeatureTypes {
   FEATURE_STAGING_ENVIRONMENT = 'feature_staging_environment',
   /** Creating custom environments (beyond Production/Staging). */
   FEATURE_CUSTOM_ENVIRONMENT = 'feature_custom_environment',
+  /** Per-user credentials on OAuth auth integrations (each user connects their own account). */
+  FEATURE_PER_USER_CREDENTIALS = 'feature_per_user_credentials',
 }
 
 export enum PlanAddonTypes {
@@ -518,6 +520,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to use the Staging environment.',
   [PlanFeatureTypes.FEATURE_CUSTOM_ENVIRONMENT]:
     'to create custom environments.',
+  [PlanFeatureTypes.FEATURE_PER_USER_CREDENTIALS]:
+    'to let each user connect their own account.',
 };
 
 export const getUpgradeMessage = (

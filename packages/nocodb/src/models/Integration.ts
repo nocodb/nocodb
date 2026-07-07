@@ -49,14 +49,18 @@ export default class Integration implements IntegrationType {
   is_private?: BoolType;
   is_default?: BoolType;
   is_restricted?: BoolType;
+  is_encrypted?: BoolType;
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];
-  is_encrypted?: BoolType;
   environments?: { fk_environment_id: string; config?: Record<string, any> }[];
 
   constructor(integration: Partial<IntegrationType>) {
     Object.assign(this, integration);
+  }
+
+  protected static castType(integration: Integration): Integration {
+    return integration && new Integration(integration);
   }
 
   public static async init() {
@@ -65,15 +69,6 @@ export default class Integration implements IntegrationType {
     // (`~/utils`) that sits in a circular import with this model, so reading it
     // at module-evaluation time throws a temporal-dead-zone ReferenceError.
     setExternalDbSsrfEnforcement(isCloud);
-  }
-
-  protected static castType(integration: Integration): Integration {
-    return integration && new Integration(integration);
-  }
-
-  protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
-    obj.config = encryptPropIfRequired({ data: obj });
-    obj.is_encrypted = isEncryptionRequired();
   }
 
   public static async createIntegration(
@@ -122,8 +117,8 @@ export default class Integration implements IntegrationType {
         : {},
     );
 
+    // First integration of a default-needing category becomes the default.
     if (integrationCategoryNeedDefault(insertObj.type)) {
-      // get if default integration exists for the type
       const defaultIntegration = await this.getCategoryDefault(
         {
           workspace_id: insertObj.fk_workspace_id,
@@ -133,12 +128,7 @@ export default class Integration implements IntegrationType {
         ncMeta,
       );
 
-      // if default integration already exists then set is_default to false
-      if (defaultIntegration) {
-        insertObj.is_default = false;
-      } else {
-        insertObj.is_default = true;
-      }
+      insertObj.is_default = !defaultIntegration;
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -150,14 +140,12 @@ export default class Integration implements IntegrationType {
       insertObj,
     );
 
-    const int = await this.get(
+    return await this.get(
       { workspace_id: insertObj.fk_workspace_id },
       id,
       false,
       ncMeta,
     );
-
-    return int;
   }
 
   public static async updateIntegration(
@@ -199,7 +187,7 @@ export default class Integration implements IntegrationType {
       this.encryptConfigIfRequired(updateObj);
     }
 
-    // type property is undefined even if not provided
+    // `type` may arrive as an explicit undefined — never null it out.
     if (!updateObj.type) {
       updateObj.type = oldIntegration.type;
     }
@@ -208,7 +196,7 @@ export default class Integration implements IntegrationType {
       updateObj.meta = stringifyMetaProp(updateObj);
     }
 
-    // if order is missing (possible in old versions), get next order
+    // Rows created before ordering existed have no `order` — backfill.
     if (!oldIntegration.order && !updateObj.order) {
       if (updateObj.order <= 1) {
         updateObj.order = 2;
@@ -223,12 +211,10 @@ export default class Integration implements IntegrationType {
       oldIntegration.id,
     );
 
-    // call before reorder to update cache
-    const int = await this.get(context, oldIntegration.id, false, ncMeta);
-
-    return int;
+    return await this.get(context, oldIntegration.id, false, ncMeta);
   }
 
+  /** Make this integration its category's default, demoting the current one. */
   public static async setDefault(
     context: Omit<NcContext, 'base_id'>,
     integrationId: string,
@@ -240,12 +226,10 @@ export default class Integration implements IntegrationType {
       NcError.integrationNotFound(integrationId);
     }
 
-    // return if integration is already default
     if (integration.is_default) {
       return integration;
     }
 
-    // get if default integration exists for the type
     const defaultIntegration = await this.getCategoryDefault(
       {
         workspace_id: context.workspace_id,
@@ -255,7 +239,6 @@ export default class Integration implements IntegrationType {
       ncMeta,
     );
 
-    // if default integration already exists then set is_default to false
     if (defaultIntegration) {
       await ncMeta.metaUpdate(
         context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
@@ -294,7 +277,7 @@ export default class Integration implements IntegrationType {
   ): Promise<PagedResponseImpl<Integration>> {
     const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
 
-    // exclude integrations which are private and not created by user
+    // Private integrations are visible only to their creator.
     qb.where((whereQb) => {
       whereQb
         .where(`${MetaTable.INTEGRATIONS}.is_private`, false)
@@ -302,11 +285,9 @@ export default class Integration implements IntegrationType {
         .orWhere(`${MetaTable.INTEGRATIONS}.created_by`, args.userId);
     });
 
-    // if type is provided then filter integrations based on type
     if (args.type) {
       qb.where(`${MetaTable.INTEGRATIONS}.type`, args.type);
     }
-    // if sub_type is provided then filter integrations based on sub_type
     if (args.sub_type) {
       qb.where(`${MetaTable.INTEGRATIONS}.sub_type`, args.sub_type);
     }
@@ -342,7 +323,6 @@ export default class Integration implements IntegrationType {
       'asc',
     );
 
-    // parse JSON metadata
     for (const integration of integrationList) {
       integration.meta = parseMetaProp(integration, 'meta');
     }
@@ -351,14 +331,13 @@ export default class Integration implements IntegrationType {
       return this.castType(integrationData);
     });
 
-    // if includeDatabaseInfo is true then get the database info for each integration
+    // Non-secret connection facts only (client, database name, sqlite file).
     if (args.includeDatabaseInfo) {
       for (const integration of integrations) {
         const config = integration.getConfig();
         integration.config = partialExtract(config, [
           'client',
           ['connection', 'database'],
-          // extract params related to sqlite
           ['connection', 'filepath'],
           ['connection', 'connection', 'filepath'],
           ['searchPath'],
@@ -413,162 +392,9 @@ export default class Integration implements IntegrationType {
     return this.castType(integrationData);
   }
 
-  public async getConnectionConfig(): Promise<any> {
-    const config = this.getConfig();
-
-    // todo: update sql-client args
-    if (config?.client === 'sqlite3') {
-      config.connection.filename =
-        config.connection.filename || config.connection?.connection.filename;
-    }
-
-    return config;
-  }
-
-  public getConfig(): any {
-    const config = decryptPropIfRequired({
-      data: this,
-    });
-
-    return config;
-  }
-
-  async delete(ncMeta = Noco.ncMeta) {
-    const sources = await this.getSources(ncMeta, true);
-
-    for (const source of sources) {
-      await source.delete(
-        {
-          workspace_id: this.fk_workspace_id,
-          base_id: source.base_id,
-        },
-        ncMeta,
-      );
-    }
-
-    // unbind all buttons and long texts associated with this integration
-    await ncMeta.metaUpdate(
-      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.COL_BUTTON,
-      {
-        fk_integration_id: null,
-        model: null,
-      },
-      {
-        fk_integration_id: this.id,
-      },
-    );
-
-    await ncMeta.metaUpdate(
-      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.COL_LONG_TEXT,
-      {
-        fk_integration_id: null,
-        model: null,
-      },
-      {
-        fk_integration_id: this.id,
-      },
-    );
-
-    return await ncMeta.metaDelete(
-      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.INTEGRATIONS,
-      this.id,
-    );
-  }
-
-  async softDelete(ncMeta = Noco.ncMeta) {
-    const sources = await this.getSources(ncMeta, true);
-
-    for (const source of sources) {
-      await source.softDelete(
-        {
-          workspace_id: this.fk_workspace_id,
-          base_id: source.base_id,
-        },
-        ncMeta,
-      );
-    }
-
-    // unbind all buttons and long texts associated with this integration
-    await ncMeta.metaUpdate(
-      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.COL_BUTTON,
-      {
-        fk_integration_id: null,
-        model: null,
-      },
-      {
-        fk_integration_id: this.id,
-      },
-    );
-
-    await ncMeta.metaUpdate(
-      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.COL_LONG_TEXT,
-      {
-        fk_integration_id: null,
-        model: null,
-      },
-      {
-        fk_integration_id: this.id,
-      },
-    );
-
-    await ncMeta.metaUpdate(
-      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.INTEGRATIONS,
-      {
-        deleted: true,
-      },
-      this.id,
-    );
-  }
-
-  async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {
-    const qb = ncMeta.knex(MetaTable.SOURCES);
-
-    qb.select(`${MetaTable.SOURCES}.id`)
-      .select(`${MetaTable.SOURCES}.alias`)
-      .select(`${MetaTable.PROJECT}.title as project_title`)
-      .select(`${MetaTable.SOURCES}.base_id`)
-      .innerJoin(
-        MetaTable.PROJECT,
-        `${MetaTable.SOURCES}.base_id`,
-        `${MetaTable.PROJECT}.id`,
-      )
-      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id);
-
-    if (!force) {
-      qb.where((whereQb) => {
-        whereQb
-          .where(`${MetaTable.SOURCES}.deleted`, false)
-          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
-      }).where((whereQb) => {
-        whereQb
-          .where(`${MetaTable.PROJECT}.deleted`, false)
-          .orWhereNull(`${MetaTable.PROJECT}.deleted`);
-      });
-    }
-
-    const sources = await qb;
-
-    return (this.sources = sources.map((src) => new Source(src)));
-  }
-
   static async getCategoryDefault(
     context: Omit<NcContext, 'base_id'>,
     type: string,
-    // Accepted for signature parity with the EE override, which uses
-    // `preferGlobal` to prefer a global integration. CE has no global
-    // integrations, so the option is ignored here.
     _opts: { preferGlobal?: boolean } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
@@ -610,23 +436,29 @@ export default class Integration implements IntegrationType {
     return this.castType(integrationData);
   }
 
-  static tempIntegrationWrapper<T = any>(config: Partial<IntegrationType>) {
-    const integrationWrapper = Integration.availableIntegrations.find(
-      (el) => el.type === config.type && el.sub_type === config.sub_type,
-    );
-
-    if (!integrationWrapper) {
-      logger.error('Integration not found');
-      NcError._.internalServerError('Integration not found');
-    }
-
-    return new integrationWrapper.wrapper(config.config, {}) as T;
+  protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
+    obj.config = encryptPropIfRequired({ data: obj });
+    obj.is_encrypted = isEncryptionRequired();
   }
 
-  static getManifestForConfig(config: Partial<IntegrationType>) {
-    return Integration.availableIntegrations.find(
-      (el) => el.type === config.type && el.sub_type === config.sub_type,
-    )?.manifest;
+  public getConfig(): any {
+    const config = decryptPropIfRequired({
+      data: this,
+    });
+
+    return config;
+  }
+
+  public async getConnectionConfig(): Promise<any> {
+    const config = this.getConfig();
+
+    // todo: update sql-client args
+    if (config?.client === 'sqlite3') {
+      config.connection.filename =
+        config.connection.filename || config.connection?.connection.filename;
+    }
+
+    return config;
   }
 
   public wrapper: IntegrationWrapper;
@@ -651,6 +483,8 @@ export default class Integration implements IntegrationType {
         logger: pLogger,
       });
 
+      // Refreshed OAuth tokens persist back to the slot the config came from
+      // (production / env override / user row — see persistWrapperConfig).
       if (
         this.type === IntegrationsType.Auth &&
         this.wrapper &&
@@ -673,8 +507,8 @@ export default class Integration implements IntegrationType {
   /**
    * The config the integration client is built from. Defaults to the
    * integration's own (production) config. EE overrides this to return a
-   * per-environment override when the instance has been bound to a non-production
-   * environment (e.g. inside a sandbox — see `applyEnvironment`).
+   * per-environment override or a per-user credential when the instance has
+   * been bound (see EE `applyEnvironment` / `applyUserCredential`).
    */
   protected getWrapperConfig(): any {
     return this.getConfig();
@@ -682,8 +516,8 @@ export default class Integration implements IntegrationType {
 
   /**
    * Persist a config the wrapper produced (OAuth token exchange / refresh).
-   * Defaults to the integration's own config. EE routes it to the per-environment
-   * override when bound to an environment, so a sandbox's refreshed tokens never
+   * Defaults to the integration's own config. EE routes it to the bound
+   * per-environment override or per-user row, so refreshed tokens never
    * overwrite production credentials.
    */
   protected async persistWrapperConfig(config: any): Promise<void> {
@@ -693,6 +527,26 @@ export default class Integration implements IntegrationType {
       this.id,
       { config },
     );
+  }
+
+  /** Build a throwaway wrapper from an arbitrary config (no persistence hooks). */
+  static tempIntegrationWrapper<T = any>(config: Partial<IntegrationType>) {
+    const integrationWrapper = Integration.availableIntegrations.find(
+      (el) => el.type === config.type && el.sub_type === config.sub_type,
+    );
+
+    if (!integrationWrapper) {
+      logger.error('Integration not found');
+      NcError._.internalServerError('Integration not found');
+    }
+
+    return new integrationWrapper.wrapper(config.config, {}) as T;
+  }
+
+  static getManifestForConfig(config: Partial<IntegrationType>) {
+    return Integration.availableIntegrations.find(
+      (el) => el.type === config.type && el.sub_type === config.sub_type,
+    )?.manifest;
   }
 
   getIntegrationMeta() {
@@ -706,6 +560,82 @@ export default class Integration implements IntegrationType {
     }
 
     return integrationMeta?.manifest;
+  }
+
+  async delete(ncMeta = Noco.ncMeta) {
+    const sources = await Source.listByIntegration(
+      { workspace_id: this.fk_workspace_id },
+      this.id,
+      { force: true },
+      ncMeta,
+    );
+
+    for (const source of sources) {
+      await source.delete(
+        {
+          workspace_id: this.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        ncMeta,
+      );
+    }
+
+    await this.unbindColumnRefs(ncMeta);
+
+    return await ncMeta.metaDelete(
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      this.id,
+    );
+  }
+
+  async softDelete(ncMeta = Noco.ncMeta) {
+    const sources = await Source.listByIntegration(
+      { workspace_id: this.fk_workspace_id },
+      this.id,
+      { force: true },
+      ncMeta,
+    );
+
+    for (const source of sources) {
+      await source.softDelete(
+        {
+          workspace_id: this.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        ncMeta,
+      );
+    }
+
+    await this.unbindColumnRefs(ncMeta);
+
+    await ncMeta.metaUpdate(
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      {
+        deleted: true,
+      },
+      this.id,
+    );
+  }
+
+  private async unbindColumnRefs(ncMeta = Noco.ncMeta) {
+    for (const table of [MetaTable.COL_BUTTON, MetaTable.COL_LONG_TEXT]) {
+      await ncMeta.metaUpdate(
+        this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        table,
+        {
+          fk_integration_id: null,
+          model: null,
+        },
+        {
+          fk_integration_id: this.id,
+        },
+      );
+    }
   }
 
   async storeInsert(

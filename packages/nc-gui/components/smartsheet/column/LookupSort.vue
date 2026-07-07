@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { ColumnType, SortType, TableType } from 'nocodb-sdk'
+import { type ColumnType, type SortType, type TableType, UITypes, UITypesName, isColumnInError } from 'nocodb-sdk'
 
-// Small, reusable sort builder for a Lookup column (NOT the heavy filter
-// component). Sorts are scoped to the lookup column (fk_lookup_col_id) and
-// persisted to the Sort table via the internal lookupSort* operations — the
-// PG read path applies them with sortV2. Edit-mode only (needs a saved column).
+// Thin, lookup-scoped data container for sorts — the lookup-editor analogue of
+// `useViewSorts`/`SortListMenu`. It owns persistence only; the UI is the shared,
+// presentational <SmartsheetSortList> (the same component the toolbar sort menu
+// uses). Sorts are scoped to the lookup column via `fk_lookup_col_id` and saved
+// through the internal lookupSort* operations; the PG read path applies them with
+// sortV2. Edit-mode only (needs a saved column id).
 const props = defineProps<{
   // The lookup column id (fk_lookup_col_id scope).
   columnId: string
@@ -15,14 +17,34 @@ const props = defineProps<{
 const { $api } = useNuxtApp()
 const { internalGet } = useInternalBatch()
 const { base } = storeToRefs(useBase())
+const { t } = useI18n()
 
 const wsId = computed(() => base.value?.fk_workspace_id as string)
 const baseId = computed(() => base.value?.id as string)
 
 const sorts = ref<SortType[]>([])
 
-// Any non-system column of the target table is a valid sort key (Airtable parity).
-const sortableColumns = computed<ColumnType[]>(() => (props.targetMeta?.columns || []).filter((c: ColumnType) => !c.system))
+// Non-system target columns, decorated with the same "not sortable" hints the
+// toolbar sort menu uses so the shared list renders identical disabled states.
+const sortableColumns = computed<ColumnType[]>(() =>
+  (props.targetMeta?.columns || [])
+    .filter((c: ColumnType) => !c.system)
+    .map((c: ColumnType) => {
+      const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt) || isColumnInError(c)
+      if (isDisabled) {
+        c.ncItemDisabled = true
+        c.ncItemTooltip = isColumnInError(c)
+          ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
+          : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
+      }
+      return c
+    }),
+)
+
+// Columns still available to add (not already sorted).
+const availableColumns = computed<ColumnType[]>(() =>
+  sortableColumns.value.filter((c) => !sorts.value.some((s) => s.fk_column_id === c.id)),
+)
 
 const loadSorts = async () => {
   if (!props.columnId || !wsId.value || !baseId.value) return
@@ -36,8 +58,7 @@ const loadSorts = async () => {
 }
 
 const addSort = async () => {
-  const used = new Set(sorts.value.map((s) => s.fk_column_id))
-  const next = sortableColumns.value.find((c) => !used.has(c.id!)) || sortableColumns.value[0]
+  const next = availableColumns.value[0]
   if (!next) return
   const created = (await $api.internal.postOperation(
     wsId.value,
@@ -45,11 +66,13 @@ const addSort = async () => {
     { operation: 'lookupSortCreate', columnId: props.columnId },
     { fk_column_id: next.id, direction: 'asc' },
   )) as unknown as SortType
-  sorts.value.push(created)
+  sorts.value = [...sorts.value, created]
 }
 
-const patchSort = async (sort: SortType, patch: Partial<SortType>) => {
-  Object.assign(sort, patch)
+// Field/direction edits: rows always carry an id here (created server-side), so
+// this is always an update via the shared sortUpdate operation.
+const saveOrUpdate = async (sort: SortType) => {
+  if (!sort.id) return
   await $api.internal.postOperation(
     wsId.value,
     baseId.value,
@@ -58,9 +81,8 @@ const patchSort = async (sort: SortType, patch: Partial<SortType>) => {
   )
 }
 
-const removeSort = async (i: number) => {
-  const sort = sorts.value[i]
-  sorts.value.splice(i, 1)
+const removeSort = async (sort: SortType) => {
+  sorts.value = sorts.value.filter((s) => s !== sort)
   if (sort?.id) {
     await $api.internal.postOperation(wsId.value, baseId.value, { operation: 'sortDelete', sortId: sort.id }, {})
   }
@@ -71,40 +93,22 @@ onMounted(loadSorts)
 
 <template>
   <div class="flex flex-col gap-2" data-testid="nc-lookup-sort">
-    <div v-for="(sort, i) in sorts" :key="sort.id || i" class="flex items-center gap-2">
-      <a-select
-        :value="sort.fk_column_id"
-        class="flex-1"
-        show-search
-        :filter-option="antSelectFilterOption"
-        dropdown-class-name="!rounded-md nc-dropdown-lookup-sort-column"
-        @change="(v) => patchSort(sort, { fk_column_id: v })"
-      >
-        <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-        <a-select-option v-for="col of sortableColumns" :key="col.id" :value="col.id">
-          <div class="flex items-center gap-2 truncate">
-            <SmartsheetHeaderIcon :column="col" class="!mx-0" />
-            <span class="truncate">{{ col.title }}</span>
-          </div>
-        </a-select-option>
-      </a-select>
-      <a-select
-        :value="sort.direction"
-        class="!w-32"
-        dropdown-class-name="!rounded-md"
-        @change="(v) => patchSort(sort, { direction: v })"
-      >
-        <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-        <a-select-option value="asc">First → Last</a-select-option>
-        <a-select-option value="desc">Last → First</a-select-option>
-      </a-select>
-      <NcButton type="text" size="small" @click="removeSort(i)">
-        <GeneralIcon icon="close" class="w-4 h-4" />
-      </NcButton>
-    </div>
+    <SmartsheetSortList
+      v-if="sorts.length"
+      :sorts="sorts"
+      :columns="sortableColumns"
+      :meta="targetMeta || {}"
+      disable-smartsheet
+      @save-or-update="saveOrUpdate"
+      @delete="removeSort"
+    />
+
     <div>
-      <NcButton type="text" size="small" data-testid="nc-lookup-sort-add" @click="addSort">
-        <div class="flex items-center gap-1"><GeneralIcon icon="plus" class="w-4 h-4" /> Add sort</div>
+      <NcButton v-if="availableColumns.length" type="text" size="small" data-testid="nc-lookup-sort-add" @click.stop="addSort">
+        <div class="flex items-center gap-1">
+          <component :is="iconMap.plus" class="w-4 h-4" />
+          {{ $t('activity.addSort') }}
+        </div>
       </NcButton>
     </div>
   </div>

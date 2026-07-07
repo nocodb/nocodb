@@ -515,6 +515,19 @@ export default class Integration implements IntegrationType {
   }
 
   /**
+   * Public accessor for the effective, binding-aware config: the integration's
+   * own (production) config, or the per-environment override / per-user
+   * credential once the instance has been bound via EE `applyEnvironment()` /
+   * `applyUserCredential()`. Use at data-plane sites that build a throwaway
+   * wrapper (`tempIntegrationWrapper`) with their own connection lifecycle,
+   * rather than going through `getIntegrationWrapper()`. On an unbound instance
+   * (or in CE) this is identical to `getConfig()`.
+   */
+  public getEffectiveConfig(): any {
+    return this.getWrapperConfig();
+  }
+
+  /**
    * Persist a config the wrapper produced (OAuth token exchange / refresh).
    * Defaults to the integration's own config. EE routes it to the bound
    * per-environment override or per-user row, so refreshed tokens never

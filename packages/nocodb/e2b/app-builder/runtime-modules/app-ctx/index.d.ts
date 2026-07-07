@@ -25,7 +25,14 @@ export class IntegrationError extends Error {
   constructor(code: IntegrationErrorCode, message: string, detail?: unknown);
 }
 
+export interface AppStorage {
+  get(key: string): string | null;
+  set(key: string, value: string): void;
+  remove(key: string): void;
+}
+
 export const ctx: {
   readonly user: AppUser | undefined;
+  storage: AppStorage;
   routines: Record<string, (params?: unknown) => Promise<unknown>>;
 };

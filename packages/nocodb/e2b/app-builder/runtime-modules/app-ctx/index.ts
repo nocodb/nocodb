@@ -69,7 +69,7 @@ async function invoke(name: string, params: unknown): Promise<unknown> {
 
   const res = await fetch(invokeUrl, {
     method: 'POST',
-    credentials: 'include',
+    credentials: 'omit', // opaque-origin: auth is the JWT-in-path, never cookies
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name, params }),
   });
@@ -101,10 +101,55 @@ async function invoke(name: string, params: unknown): Promise<unknown> {
   return body;
 }
 
+function makeStorage() {
+  const mem = new Map<string, string>();
+  const ls = (): Storage | null => {
+    try {
+      // Throws SecurityError under an opaque (sandbox=allow-scripts) origin.
+      return typeof localStorage !== 'undefined' ? localStorage : null;
+    } catch {
+      return null;
+    }
+  };
+  return {
+    get(key: string): string | null {
+      const s = ls();
+      try {
+        if (s) return s.getItem(key);
+      } catch {
+        /* fall through to memory */
+      }
+      return mem.has(key) ? mem.get(key)! : null;
+    },
+    set(key: string, value: string): void {
+      const s = ls();
+      try {
+        if (s) {
+          s.setItem(key, value);
+          return;
+        }
+      } catch {
+        /* fall through to memory */
+      }
+      mem.set(key, value);
+    },
+    remove(key: string): void {
+      const s = ls();
+      try {
+        if (s) s.removeItem(key);
+      } catch {
+        /* ignore */
+      }
+      mem.delete(key);
+    },
+  };
+}
+
 export const ctx = {
   get user(): AppUser | undefined {
     return window.__nc_app_user__;
   },
+  storage: makeStorage(),
   routines: new Proxy(
     {} as Record<string, (params?: unknown) => Promise<unknown>>,
     {

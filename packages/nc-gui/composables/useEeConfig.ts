@@ -386,6 +386,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
+  const blockApps = computed(() => true)
+
+  const showUpgradeToUseApps = (..._args: any[]) => {}
+
   const blockBookmarks = computed(() => true)
 
   const showUpgradeToUseBookmarks = (..._args: any[]) => {}
@@ -569,6 +573,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockWorkflows,
     showUpgradeToUseWorkflows,
+    blockApps,
+    showUpgradeToUseApps,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

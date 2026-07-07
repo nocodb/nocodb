@@ -642,6 +642,7 @@ import NcPlusAi from '~icons/nc-icons/plus-ai'
 import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 import NcDashboards from '~icons/nc-icons/dashboards'
+import NcApp from '~icons/nc-icons-v2/app.svg'
 
 /* file types */
 
@@ -1702,6 +1703,7 @@ export const iconMap = {
   'ncImagePlaceholderIcon': h(NcImagePlaceholderIcon, { stroke: 'transparent' }),
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
+  'ncApp': NcApp,
   'youtube': NcYoutube2Icon,
   'ncEnter': NcEnter,
   'NcAmazonAws': h(NcAmazonAws, { stroke: 'transparent' }),

@@ -375,7 +375,7 @@ export class SortsService {
       {
         ...param.sort,
         fk_lookup_col_id: param.columnId,
-      } as Sort,
+      },
       ncMeta,
     );
   }

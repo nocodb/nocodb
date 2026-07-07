@@ -168,6 +168,93 @@ export async function applyLookupPkInLimit(param: {
 }
 
 /**
+ * Nested-level variant: restrict a nested lookup level's joined rows (`nestedAlias`,
+ * from `nestedRefBaseModel`) to the top-N per the PREVIOUS level's row, via a
+ * correlated
+ *   ... AND <nestedAlias>.<pk> IN (SELECT <pk> FROM <nested table> t
+ *                                  WHERE t.<corrCol> = <prevAlias>.<prevCorrCol>
+ *                                  ORDER BY <sortkey> LIMIT n)
+ * subquery. The nested loop join-flattens levels, so unlike the outer level there
+ * is no per-level qb to clone — the correlation is built explicitly from the
+ * level's relation columns. Single PK + scalar sort columns only.
+ */
+export async function applyNestedLookupLevelLimit(param: {
+  qb: Knex.QueryBuilder;
+  nestedAlias: string;
+  nestedRefBaseModel: IBaseModelSqlV2;
+  corrColName: string;
+  prevAlias: string;
+  prevCorrColName: string;
+  sorts: Sort[];
+  limitVal: number;
+  takeLast: boolean;
+}): Promise<void> {
+  const {
+    qb,
+    nestedAlias,
+    nestedRefBaseModel,
+    corrColName,
+    prevAlias,
+    prevCorrColName,
+    sorts,
+    limitVal,
+    takeLast,
+  } = param;
+  if (limitVal <= 0) return;
+
+  const knex = nestedRefBaseModel.dbDriver;
+  if (!nestedRefBaseModel.model.columns?.length) {
+    await nestedRefBaseModel.model.getColumns(nestedRefBaseModel.context);
+  }
+  const cols = nestedRefBaseModel.model.columns || [];
+  const pk = nestedRefBaseModel.model.primaryKey;
+  if (!pk) return;
+
+  const ia = '__nc_lk_nlvl';
+  const tnPath = nestedRefBaseModel.getTnPath(
+    nestedRefBaseModel.model.table_name,
+  );
+
+  const inner = knex(knex.raw('?? as ??', [tnPath, ia]))
+    .select(`${ia}.${pk.column_name}`)
+    .where(
+      knex.ref(`${ia}.${corrColName}`),
+      '=',
+      knex.ref(`${prevAlias}.${prevCorrColName}`),
+    );
+
+  const softDelete = await getAliasedSoftDeleteFilter(nestedRefBaseModel, ia);
+  if (softDelete) inner.where(softDelete);
+
+  const effective = takeLast
+    ? sorts.map(
+        (s) =>
+          new Sort({
+            ...s,
+            direction: s.direction === 'desc' ? 'asc' : 'desc',
+          }),
+      )
+    : sorts;
+  let ordered = false;
+  for (const s of effective) {
+    const col = cols.find((c) => c.id === s.fk_column_id);
+    if (col?.column_name) {
+      inner.orderBy(
+        `${ia}.${col.column_name}`,
+        s.direction === 'desc' ? 'desc' : 'asc',
+      );
+      ordered = true;
+    }
+  }
+  if (!ordered && takeLast) {
+    inner.orderBy(`${ia}.${pk.column_name}`, 'desc');
+  }
+  inner.limit(limitVal);
+
+  qb.whereIn(`${nestedAlias}.${pk.column_name}`, inner);
+}
+
+/**
  * Filter variant: restrict the filter's related-row set `qb` (aliased `alias`,
  * which selects the FK `fkColumnName` back to the parent and already carries the
  * user's comparison) to the top-N related rows PER PARENT.

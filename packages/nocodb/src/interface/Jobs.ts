@@ -436,6 +436,7 @@ export interface AppBuildJobData extends JobData {
   baseId: string;
   message: string;
   messageId: string;
+  threadId: string;
   mcpToken: string;
 }
 

@@ -5,121 +5,78 @@
 
 /* ============================================================
    THEME TOKENS — swap this entire block to change the palette.
-   Refined neutral base (warm zinc) + vivid indigo brand accent.
+   shadcn/ui default: neutral zinc base, near-black primary,
+   monochrome by design. A tweakcn export drops straight in.
    ============================================================ */
 :root {
-  /* Base */
   --radius: 0.625rem;
-
-  /* Backgrounds */
-  --background: oklch(0.99 0.002 247);
-  --foreground: oklch(0.145 0.012 252);
-
-  /* Card */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0.012 252);
-
-  /* Popover */
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.012 252);
-
-  /* Brand — vivid indigo */
-  --primary: oklch(0.518 0.243 264.5);
-  --primary-foreground: oklch(0.985 0.002 252);
-
-  /* Secondary — soft zinc */
-  --secondary: oklch(0.956 0.006 247);
-  --secondary-foreground: oklch(0.275 0.018 252);
-
-  /* Muted */
-  --muted: oklch(0.962 0.004 247);
-  --muted-foreground: oklch(0.52 0.018 252);
-
-  /* Accent — pale indigo tint */
-  --accent: oklch(0.94 0.024 264);
-  --accent-foreground: oklch(0.36 0.18 264);
-
-  /* Destructive */
-  --destructive: oklch(0.577 0.245 27.3);
-  --destructive-foreground: oklch(0.985 0.002 252);
-
-  /* Borders / inputs */
-  --border: oklch(0.88 0.008 247);
-  --input: oklch(0.88 0.008 247);
-  --ring: oklch(0.518 0.243 264.5);
-
-  /* Charts */
-  --chart-1: oklch(0.518 0.243 264.5);
-  --chart-2: oklch(0.65 0.19 225);
-  --chart-3: oklch(0.72 0.15 170);
-  --chart-4: oklch(0.80 0.14 100);
-  --chart-5: oklch(0.72 0.19 30);
-
-  /* Sidebar */
-  --sidebar: oklch(0.968 0.004 247);
-  --sidebar-foreground: oklch(0.145 0.012 252);
-  --sidebar-primary: oklch(0.518 0.243 264.5);
-  --sidebar-primary-foreground: oklch(0.985 0.002 252);
-  --sidebar-accent: oklch(0.94 0.024 264);
-  --sidebar-accent-foreground: oklch(0.36 0.18 264);
-  --sidebar-border: oklch(0.88 0.008 247);
-  --sidebar-ring: oklch(0.518 0.243 264.5);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  /* Backgrounds */
-  --background: oklch(0.118 0.012 252);
-  --foreground: oklch(0.952 0.006 247);
-
-  /* Card */
-  --card: oklch(0.16 0.014 252);
-  --card-foreground: oklch(0.952 0.006 247);
-
-  /* Popover */
-  --popover: oklch(0.16 0.014 252);
-  --popover-foreground: oklch(0.952 0.006 247);
-
-  /* Brand — lighter indigo for dark bg */
-  --primary: oklch(0.672 0.22 264.5);
-  --primary-foreground: oklch(0.145 0.012 252);
-
-  /* Secondary */
-  --secondary: oklch(0.22 0.018 252);
-  --secondary-foreground: oklch(0.952 0.006 247);
-
-  /* Muted */
-  --muted: oklch(0.22 0.018 252);
-  --muted-foreground: oklch(0.62 0.018 252);
-
-  /* Accent */
-  --accent: oklch(0.25 0.04 264);
-  --accent-foreground: oklch(0.82 0.12 264);
-
-  /* Destructive */
-  --destructive: oklch(0.704 0.191 22.2);
-  --destructive-foreground: oklch(0.145 0.012 252);
-
-  /* Borders / inputs */
-  --border: oklch(0.28 0.018 252);
-  --input: oklch(0.28 0.018 252);
-  --ring: oklch(0.672 0.22 264.5);
-
-  /* Charts */
-  --chart-1: oklch(0.672 0.22 264.5);
-  --chart-2: oklch(0.65 0.19 225);
-  --chart-3: oklch(0.72 0.15 170);
-  --chart-4: oklch(0.80 0.14 100);
-  --chart-5: oklch(0.72 0.19 30);
-
-  /* Sidebar */
-  --sidebar: oklch(0.155 0.013 252);
-  --sidebar-foreground: oklch(0.952 0.006 247);
-  --sidebar-primary: oklch(0.672 0.22 264.5);
-  --sidebar-primary-foreground: oklch(0.145 0.012 252);
-  --sidebar-accent: oklch(0.25 0.04 264);
-  --sidebar-accent-foreground: oklch(0.82 0.12 264);
-  --sidebar-border: oklch(0.28 0.018 252);
-  --sidebar-ring: oklch(0.672 0.22 264.5);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 /* ============================================================
    END THEME TOKENS

@@ -6,18 +6,23 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import Sort from '~/models/Sort';
 import sortV2 from '~/db/sortV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
+import { isLookupSortLimitLicensed } from '~/helpers/lookupSortLimitGate';
 
 /**
  * Per-lookup Sort + Limit — the CE core shared by every consumer of a lookup's
  * relation sub-query so they all see the same limited/sorted set:
- *   - display  : ee/dbQueryClient/pg.ts (via the licensed wrapper in ee/helpers)
+ *   - display  : ee/dbQueryClient/pg.ts (via the wrapper in ee/helpers)
  *   - filter/sort/group-by : generateLookupSelectQuery
  *   - formula  : formulav2/lookup-or-ltar-builder
  *
- * Config lives in the Sort table (`fk_lookup_col_id`) + column `meta.lookup_limit`
- * and is only ever created by the EE, licensed UI — so a `hasConfig` check is the
- * de-facto gate here (CE can't import the license helper). The display path adds
- * an explicit license gate on top; callers PG-gate (the feature is PG-only).
+ * Config lives in the Sort table (`fk_lookup_col_id`) + column `meta.lookup_limit`.
+ * The feature is paid (EE, `FEATURE_LOOKUP_SORT_LIMIT`), so `loadLookupSortAndLimit`
+ * resolves the license through the CE-stubbed / EE-implemented gate
+ * (`~/helpers/lookupSortLimitGate`) and reports `hasConfig: false` when unlicensed.
+ * Because every consumer short-circuits on `!hasConfig`, this single choke point
+ * gates them all uniformly — the feature is inert in OSS/CE, and a plan downgrade
+ * reverts display AND filter/formula/sort together (no divergence). Callers still
+ * PG-gate at the call site (the feature is PG-only).
  */
 export interface LookupSortLimitConfig {
   sorts: Sort[];
@@ -36,11 +41,28 @@ export async function loadLookupSortAndLimit(
   const limitVal = +(meta.lookup_limit?.value ?? 0) || 0;
   const sorts = await Sort.listByLookupColumn(context, { columnId: column.id });
   const takeLast = meta.lookup_limit?.type === 'last' && limitVal > 0;
+  const hasConfig = sorts.length > 0 || limitVal > 0;
+
+  const empty: LookupSortLimitConfig = {
+    sorts: [],
+    limitVal: 0,
+    takeLast: false,
+    hasConfig: false,
+  };
+
+  // Nothing configured → skip the (async) license lookup entirely.
+  if (!hasConfig) return empty;
+
+  // Licensed-only. The gate is CE-stubbed to `false`, so the feature is inert in
+  // OSS/CE; in EE it reflects the workspace plan, so a downgrade makes every
+  // consumer revert together. Report as "no config" so callers short-circuit.
+  if (!(await isLookupSortLimitLicensed(context))) return empty;
+
   return {
     sorts,
     limitVal,
     takeLast,
-    hasConfig: sorts.length > 0 || limitVal > 0,
+    hasConfig,
   };
 }
 
@@ -322,6 +344,16 @@ export async function buildNestedLookupLevelLimit(param: {
  * and keep only rn <= N, then AND that pk set onto `qb`. Ranking the base rows
  * (independent of the comparison) is what makes "contains X" match only when X
  * is within the visible top-N. Single PK only; scalar sort columns only.
+ *
+ * PERF (accepted for v1): the window ranks the ENTIRE related table (junction ⋈
+ * related for MM), soft-delete filtered only — it is not correlated to the outer
+ * parent set, and orders by an arbitrary user column that is usually unindexed.
+ * So every filtered list/count on a parent whose lookup carries a limit pays a
+ * full-table window sort. This is fine for small/medium bases but can hurt on a
+ * multi-million-row external PG source. Correlating the window to the outer set
+ * isn't possible here — the filter's `qb` is a global `parent IN (qb)` set, so
+ * the parent pk set isn't available at build time. Revisit (e.g. push a parent
+ * key correlation or a lateral) if this becomes a bottleneck in practice.
  */
 export async function applyLookupFilterWindowLimit(param: {
   qb: Knex.QueryBuilder;

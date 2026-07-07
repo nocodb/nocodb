@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, UITypes } from 'nocodb-sdk';
+import { AppEvents, EventType, isVirtualCol, UITypes } from 'nocodb-sdk';
 import Noco from 'src/Noco';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -10,6 +10,7 @@ import {
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertLookupSortLimitLicensed } from '~/helpers/lookupSortLimitGate';
 import { NcError } from '~/helpers/catchError';
 import { Column, Sort, View } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
@@ -307,6 +308,12 @@ export class SortsService {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
+
+    // Per-lookup sort is a paid feature — gate creation behind the license so it
+    // can't be written through the raw op on an unlicensed/CE workspace (the
+    // column-save path gates the same feature via validateLookupSortConfig).
+    await assertLookupSortLimitLicensed(context);
+
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const lookupCol = await Column.get(
@@ -322,6 +329,23 @@ export class SortsService {
     // silently no-ops at query time. Resolve the related model via the lookup's
     // target column; skip the check only if it can't be resolved.
     if ((param.sort as any)?.fk_column_id) {
+      const sortCol = await Column.get(
+        context,
+        { colId: (param.sort as any).fk_column_id },
+        ncMeta,
+      );
+
+      // Only real scalar columns are sortable: the correlated sub-query the
+      // filter/formula/view-sort consumers build orders by the physical
+      // `column_name`, which a virtual column (Formula/Lookup/Rollup/LTAR/…)
+      // doesn't have — allowing one would emit an invalid ORDER BY and 500 on
+      // every filtered read. Mirrors the UI's disabled-column rule (LookupSort.vue).
+      if (sortCol && isVirtualCol(sortCol)) {
+        NcError.get(context).badRequest(
+          'Lookup sort column must be a sortable (scalar) field',
+        );
+      }
+
       let relatedModelId: string | undefined;
       try {
         const colOpt: any = await lookupCol.getColOptions(context, ncMeta);
@@ -338,11 +362,6 @@ export class SortsService {
         relatedModelId = undefined;
       }
       if (relatedModelId) {
-        const sortCol = await Column.get(
-          context,
-          { colId: (param.sort as any).fk_column_id },
-          ncMeta,
-        );
         if (!sortCol || sortCol.fk_model_id !== relatedModelId) {
           NcError.get(context).badRequest(
             'Lookup sort column must belong to the related table',

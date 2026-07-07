@@ -153,6 +153,7 @@ export enum MetaTable {
   APP_ROUTINE_VERSIONS = 'nc_app_routine_versions',
   APP_VERSION_ROUTINES = 'nc_app_version_routines',
   APP_INTEGRATION_GRANTS = 'nc_app_integration_grants',
+  APP_ARTIFACTS = 'nc_app_artifacts',
 }
 
 export const BaseRelatedMetaTables = [

@@ -82,6 +82,7 @@ import * as nc_202606260001_dedupe_user_emails from './v0/nc_202606260001_dedupe
 import * as nc_202606271200_hook_comment_config from './v0/nc_202606271200_hook_comment_config';
 import * as nc_202606280000_apps from './v0/nc_202606280000_apps';
 import * as nc_202607030000_widen_operation_logs_entity_id from './v0/nc_202607030000_widen_operation_logs_entity_id';
+import * as nc_202607040000_app_artifacts from './v0/nc_202607040000_app_artifacts';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -175,6 +176,7 @@ export default class XcMigrationSourcev0 {
       'nc_202606271200_hook_comment_config',
       'nc_202606280000_apps',
       'nc_202607030000_widen_operation_logs_entity_id',
+      'nc_202607040000_app_artifacts',
     ]);
   }
 
@@ -352,6 +354,8 @@ export default class XcMigrationSourcev0 {
         return nc_202606280000_apps;
       case 'nc_202607030000_widen_operation_logs_entity_id':
         return nc_202607030000_widen_operation_logs_entity_id;
+      case 'nc_202607040000_app_artifacts':
+        return nc_202607040000_app_artifacts;
     }
   }
 }

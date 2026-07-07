@@ -239,6 +239,7 @@ export class MetaService {
       [MetaTable.APP_ROUTINE_VERSIONS]: 'rtv',
       [MetaTable.APP_VERSION_ROUTINES]: 'rtp',
       [MetaTable.APP_INTEGRATION_GRANTS]: 'aig',
+      [MetaTable.APP_ARTIFACTS]: 'apar',
     };
 
     const prefix = prefixMap[target] || 'nc';

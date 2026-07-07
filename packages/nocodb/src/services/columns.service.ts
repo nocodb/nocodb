@@ -7830,7 +7830,11 @@ export class ColumnsService implements IColumnsService {
       // Disambiguate by fk_index_name when an external source has multiple FK
       // constraints over the same column pair, otherwise the wrong counterpart
       // is picked (#13781).
-      const paired = pickPairedLtarColumn(candidates, colOptions, pairedRelType);
+      const paired = pickPairedLtarColumn(
+        candidates,
+        colOptions,
+        pairedRelType,
+      );
       if (paired) {
         hmColumn = paired.column;
         hmColOptions = paired.colOptions;
@@ -7870,7 +7874,11 @@ export class ColumnsService implements IColumnsService {
       // Disambiguate by fk_index_name when an external source has multiple FK
       // constraints over the same column pair, otherwise the wrong counterpart
       // is picked (#13781).
-      const paired = pickPairedLtarColumn(candidates, colOptions, pairedRelType);
+      const paired = pickPairedLtarColumn(
+        candidates,
+        colOptions,
+        pairedRelType,
+      );
       if (paired) {
         btColumn = paired.column;
         btColOptions = paired.colOptions;

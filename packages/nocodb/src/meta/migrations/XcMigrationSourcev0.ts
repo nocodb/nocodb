@@ -80,7 +80,6 @@ import * as nc_202606240001_chat_ui_context_record from './v0/nc_202606240001_ch
 import * as nc_202606251200_form_save_draft_to_browser from './v0/nc_202606251200_form_save_draft_to_browser';
 import * as nc_202606260001_dedupe_user_emails from './v0/nc_202606260001_dedupe_user_emails';
 import * as nc_202606271200_hook_comment_config from './v0/nc_202606271200_hook_comment_config';
-import * as nc_202606290001_cleanup_orphan_view_columns from './v0/nc_202606290001_cleanup_orphan_view_columns';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -172,7 +171,6 @@ export default class XcMigrationSourcev0 {
       'nc_202606251200_form_save_draft_to_browser',
       'nc_202606260001_dedupe_user_emails',
       'nc_202606271200_hook_comment_config',
-      'nc_202606290001_cleanup_orphan_view_columns',
     ]);
   }
 
@@ -346,8 +344,6 @@ export default class XcMigrationSourcev0 {
         return nc_202606260001_dedupe_user_emails;
       case 'nc_202606271200_hook_comment_config':
         return nc_202606271200_hook_comment_config;
-      case 'nc_202606290001_cleanup_orphan_view_columns':
-        return nc_202606290001_cleanup_orphan_view_columns;
     }
   }
 }

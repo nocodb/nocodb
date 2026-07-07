@@ -2274,6 +2274,7 @@
     "describeWhatsNew": "Describe what's new in this version",
     "describeWhatToBuild": "Describe what to build…",
     "appBuilding": "Building…",
+    "appBuildingBy": "{name} is building…",
     "appReady": "Ready",
     "appBuildFailed": "Build failed",
     "appLive": "App",
@@ -4404,6 +4405,7 @@
       "requiredFieldNotEditable": "This required field isn’t editable, which may cause submission errors during form submission."
     },
     "info": {
+      "appThreadStale": "This app changed outside this chat since your last message. The preview shows the latest version.",
       "sourceViewRebindResync": "Changing the source view triggers a full re-sync against the new view.",
       "allFieldsBlankForRecord": "All fields are blank for this record",
       "viewPasswordNotVisibleAfterSave": "For security, this password won't be shown again after saving. Make sure to store it somewhere safe.",

@@ -80,6 +80,7 @@ export { default as AppVersion } from './AppVersion';
 export { default as AppRoutine } from './AppRoutine';
 export { default as AppRoutineVersion } from './AppRoutineVersion';
 export { default as AppVersionRoutine } from './AppVersionRoutine';
+export { default as AppPage } from './AppPage';
 export { default as Workflow } from './Workflow';
 export { default as ChatSession } from './ChatSession';
 export { default as ChatMessage } from './ChatMessage';

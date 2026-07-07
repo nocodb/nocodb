@@ -9,6 +9,10 @@ export enum AppBuildAction {
   MESSAGE_DONE = 'message-done',
   ERROR = 'error',
   PREVIEW_READY = 'preview-ready',
+  // Base-room broadcast of the per-app build lock (acquire/release) so other
+  // builders' composers can show who is building. NOT part of the per-user
+  // token stream.
+  LOCK = 'lock',
 }
 
 export type AppChatPart =
@@ -30,6 +34,7 @@ export type AppChatPart =
 export interface AppChatMessageType {
   id?: string;
   fk_app_id?: string;
+  fk_thread_id?: string;
   fk_workspace_id?: string;
   base_id?: string;
   role: 'user' | 'assistant';
@@ -39,6 +44,24 @@ export interface AppChatMessageType {
   created_at?: string;
 }
 
+/**
+ * A per-builder conversation with the app-build agent. Each thread owns its
+ * own Claude session pointer; the app draft (git_sha) stays app-global.
+ */
+export interface AppChatThreadType {
+  id?: string;
+  fk_app_id?: string;
+  fk_workspace_id?: string;
+  base_id?: string;
+  title?: string;
+  claude_session_id?: string;
+  /** Draft sha after this thread's most recent turn — drives the stale-draft banner + agent note. */
+  last_seen_sha?: string;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface AppBuildEventPayload {
   // BaseSocketPayload fields (structural compat — avoids circular dep with realtime)
   timestamp: number;
@@ -46,6 +69,11 @@ export interface AppBuildEventPayload {
   // payload fields
   action: AppBuildAction;
   appId: string;
+  // Thread the per-user stream events belong to (all actions except 'lock')
+  threadId?: string;
+  // action: 'lock' — base-room lock state broadcast
+  building?: boolean;
+  buildingBy?: string;
   messageId?: string;
   // action: 'token'
   content?: string;

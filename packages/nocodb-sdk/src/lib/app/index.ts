@@ -14,7 +14,6 @@ export interface AppVersionType {
   version_number?: number;
   status?: AppStatus;
   git_sha?: string;
-  claude_session_id?: string;
   created_by?: string;
   created_at?: string;
 }

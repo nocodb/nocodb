@@ -318,6 +318,8 @@
     "toAccessCardFieldHeaderVisibility": "to access card field header visibility feature."
   },
   "general": {
+    "first": "First",
+    "last": "Last",
     "scrollToBottom": "Scroll to bottom",
     "undo": "Undo",
     "optional": "Optional",
@@ -1478,6 +1480,10 @@
   },
   "labels": {
     "timescale": "Timescale",
+    "limitNumberOfItemsShown": "Limit the number of items shown",
+    "limitToThe": "Limit to the",
+    "sortRecords": "Sort records",
+    "selectRelatedFieldToConfigureSort": "Select a related field first to configure sort.",
     "createNewField": "Create new field",
     "chatImport": {
       "columnCount": "{count} column | {count} columns",

@@ -133,23 +133,25 @@ export default class Sort {
       insertObj,
     );
     if (sortObj.push_to_top) {
+      // Refresh the list cache for whichever parent this sort belongs to — a
+      // view (`[fk_view_id]`) or a lookup column (`['lookup', fk_lookup_col_id]`,
+      // the distinct prefix used by listByLookupColumn). Keying on fk_view_id
+      // unconditionally would corrupt the cache for lookup-scoped sorts.
+      const listCacheKey = sortObj.fk_lookup_col_id
+        ? ['lookup', sortObj.fk_lookup_col_id]
+        : [sortObj.fk_view_id];
       const sortList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
         MetaTable.SORT,
         {
-          condition: { fk_view_id: sortObj.fk_view_id },
+          condition: parentCond,
           orderBy: {
             order: 'asc',
           },
         },
       );
-      await NocoCache.setList(
-        context,
-        CacheScope.SORT,
-        [sortObj.fk_view_id],
-        sortList,
-      );
+      await NocoCache.setList(context, CacheScope.SORT, listCacheKey, sortList);
     }
     // on insert, delete any optimised single query cache
     await Sort.clearSingleQueryCacheForSort(context, row, ncMeta);

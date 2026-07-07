@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { PlanFeatureTypes, PlanTitles, UITypes, getLookupResultType, getUITypesForLookupResultType } from 'nocodb-sdk'
 
@@ -520,7 +519,7 @@ const handleScrollIntoView = () => {
                         }
                       "
                     >
-                      Limit the number of items shown
+                      {{ $t('labels.limitNumberOfItemsShown') }}
                     </NcSwitch>
                     <LazyPaymentUpgradeBadge
                       v-if="!lookupLimitEnabled"
@@ -531,7 +530,7 @@ const handleScrollIntoView = () => {
                 </template>
               </PaymentUpgradeBadgeProvider>
               <div v-if="lookupLimitEnabled" class="flex items-center gap-2 pl-10">
-                <span class="text-nc-content-gray-subtle2">Limit to the</span>
+                <span class="text-nc-content-gray-subtle2">{{ $t('labels.limitToThe') }}</span>
                 <a-select
                   v-model:value="lookupLimitType"
                   class="!w-28"
@@ -539,8 +538,8 @@ const handleScrollIntoView = () => {
                   dropdown-class-name="!rounded-md nc-dropdown-lookup-limit-type"
                 >
                   <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                  <a-select-option value="first">First</a-select-option>
-                  <a-select-option value="last">Last</a-select-option>
+                  <a-select-option value="first">{{ $t('general.first') }}</a-select-option>
+                  <a-select-option value="last">{{ $t('general.last') }}</a-select-option>
                 </a-select>
                 <div data-testid="nc-lookup-limit-value">
                   <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" />
@@ -549,17 +548,35 @@ const handleScrollIntoView = () => {
 
               <!-- Sort records (lookup-scoped, backed by the Sort table). Held
                    locally and persisted with the column on save — same flow as
-                   LTAR limit-by-filter — so it works in the create form too. -->
-              <div class="flex gap-1 items-center whitespace-nowrap">
-                <span class="text-nc-content-gray-subtle2">Sort records</span>
-                <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT" class="ml-1" />
-              </div>
-              <div v-if="selectedTable" class="pl-10">
-                <LazySmartsheetColumnLookupSort ref="sortRef" :column-id="vModel.id" :target-meta="lookupTargetMeta" />
-              </div>
-              <div v-else class="pl-10 text-nc-content-gray-subtle2 text-bodySm">
-                Select a related field first to configure sort.
-              </div>
+                   LTAR limit-by-filter — so it works in the create form too.
+                   Gated (like the limit toggle) behind FEATURE_LOOKUP_SORT_LIMIT:
+                   on an unlicensed workspace, interacting with the builder opens
+                   the upgrade flow instead of editing sorts. -->
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <span class="text-nc-content-gray-subtle2">{{ $t('labels.sortRecords') }}</span>
+                    <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT" class="ml-1" />
+                  </div>
+                  <div
+                    v-if="selectedTable"
+                    class="pl-10"
+                    @click.capture="
+                      (e) => {
+                        if (click(PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT)) {
+                          e.stopPropagation()
+                          e.preventDefault()
+                        }
+                      }
+                    "
+                  >
+                    <LazySmartsheetColumnLookupSort ref="sortRef" :column-id="vModel.id" :target-meta="lookupTargetMeta" />
+                  </div>
+                  <div v-else class="pl-10 text-nc-content-gray-subtle2 text-bodySm">
+                    {{ $t('labels.selectRelatedFieldToConfigureSort') }}
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
             </div>
           </div>
         </div>

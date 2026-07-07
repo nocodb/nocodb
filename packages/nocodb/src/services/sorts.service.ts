@@ -318,6 +318,39 @@ export class SortsService {
       NcError.get(context).badRequest('Lookup column not found');
     }
 
+    // The sort column must belong to the lookup's related table — otherwise it
+    // silently no-ops at query time. Resolve the related model via the lookup's
+    // target column; skip the check only if it can't be resolved.
+    if ((param.sort as any)?.fk_column_id) {
+      let relatedModelId: string | undefined;
+      try {
+        const colOpt: any = await lookupCol.getColOptions(context, ncMeta);
+        const targetColId = colOpt?.fk_lookup_column_id;
+        if (targetColId) {
+          const targetCol = await Column.get(
+            context,
+            { colId: targetColId },
+            ncMeta,
+          );
+          relatedModelId = targetCol?.fk_model_id;
+        }
+      } catch {
+        relatedModelId = undefined;
+      }
+      if (relatedModelId) {
+        const sortCol = await Column.get(
+          context,
+          { colId: (param.sort as any).fk_column_id },
+          ncMeta,
+        );
+        if (!sortCol || sortCol.fk_model_id !== relatedModelId) {
+          NcError.get(context).badRequest(
+            'Lookup sort column must belong to the related table',
+          );
+        }
+      }
+    }
+
     return await Sort.insert(
       context,
       {

@@ -46,9 +46,16 @@ export async function loadLookupSortAndLimit(
 
 /**
  * Apply an (already-loaded) lookup sort+limit to the relation sub-query `qb`
- * (aliased `alias`, rows from `refBaseModel` — the immediate related table).
- * "Last N" reverses the configured sort (or, with no sort, the primary-key
- * order) before limiting so the tail is taken.
+ * (aliased `alias`, rows from `refBaseModel` — the immediate related table),
+ * whose row order feeds the aggregation (json_agg) that renders the cell.
+ *
+ * "First N": order by the configured sort (or leave natural order) then LIMIT.
+ * "Last N": we still need the TAIL of the sort, but the cell must present it in
+ *   the ORIGINAL order (not reversed). LIMIT only takes the head, so we select
+ *   the tail's pk set with a correlated pk-IN sub-query ordered by the *flipped*
+ *   sort + LIMIT (via {@link applyLookupPkInLimit}), then order the outer rows by
+ *   the *un-flipped* sort — no outer LIMIT needed, the pk-IN already restricts to
+ *   N. This keeps "last N" both correct (the tail) and in natural display order.
  */
 export async function applyLookupSortLimitToQb(param: {
   qb: Knex.QueryBuilder;
@@ -60,29 +67,35 @@ export async function applyLookupSortLimitToQb(param: {
 }): Promise<void> {
   const { qb, alias, refBaseModel, sorts, limitVal, takeLast } = param;
 
+  // "Last N": pick the tail as a pk set, then present it in the original order.
+  if (takeLast && limitVal > 0) {
+    await applyLookupPkInLimit({
+      qb,
+      alias,
+      refBaseModel,
+      sorts,
+      limitVal,
+      takeLast,
+    });
+    if (sorts.length) {
+      await sortV2(refBaseModel, sorts, qb, alias);
+    } else {
+      if (!refBaseModel.model.columns?.length) {
+        await refBaseModel.model.getColumns(refBaseModel.context);
+      }
+      const pks = refBaseModel.model.primaryKeys?.length
+        ? refBaseModel.model.primaryKeys
+        : refBaseModel.model.primaryKey
+        ? [refBaseModel.model.primaryKey]
+        : [];
+      for (const pk of pks) qb.orderBy(`${alias}.${pk.column_name}`, 'asc');
+    }
+    return;
+  }
+
+  // "First N" / sort-only: order by the configured sort, then limit the head.
   if (sorts.length) {
-    const effective = takeLast
-      ? sorts.map(
-          (s) =>
-            new Sort({
-              ...s,
-              direction: s.direction === 'desc' ? 'asc' : 'desc',
-            }),
-        )
-      : sorts;
-    await sortV2(refBaseModel, effective, qb, alias);
-  } else if (takeLast) {
-    if (!refBaseModel.model.columns?.length) {
-      await refBaseModel.model.getColumns(refBaseModel.context);
-    }
-    const pks = refBaseModel.model.primaryKeys?.length
-      ? refBaseModel.model.primaryKeys
-      : refBaseModel.model.primaryKey
-      ? [refBaseModel.model.primaryKey]
-      : [];
-    for (const pk of pks) {
-      qb.orderBy(`${alias}.${pk.column_name}`, 'desc');
-    }
+    await sortV2(refBaseModel, sorts, qb, alias);
   }
 
   if (limitVal > 0) qb.limit(limitVal);

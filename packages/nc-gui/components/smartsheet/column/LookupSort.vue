@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type ColumnType, type SortType, type TableType, UITypes, UITypesName, isColumnInError } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type SortType,
+  type TableType,
+  UITypes,
+  UITypesName,
+  isColumnInError,
+  isVirtualCol,
+} from 'nocodb-sdk'
 
 // Local, status-tagged sort collection for a Lookup column — the sort analogue of
 // how LTAR limit-by-filter works: NOTHING is persisted here. The field editor
@@ -36,18 +44,28 @@ const visibleSorts = computed<LookupSort[]>(() => sorts.value.filter((s) => s.st
 
 // Non-system target columns, decorated with the same "not sortable" hints the
 // toolbar sort menu uses so the shared list renders identical disabled states.
+// Virtual columns (formula/rollup/lookup/LTAR, barcode/qr, button) are disabled:
+// unlike the display path (sortV2 resolves them), the correlated sub-query the
+// filter/formula/view-sort consumers build can only order by real scalar
+// columns, so allowing them here would make the limit inconsistent across
+// consumers. We shallow-clone each column so the disabled hints don't mutate the
+// shared cached meta.
 const sortableColumns = computed<ColumnType[]>(() =>
   (props.targetMeta?.columns || [])
     .filter((c: ColumnType) => !c.system)
     .map((c: ColumnType) => {
-      const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt) || isColumnInError(c)
+      const col = { ...c } as ColumnType
+      const isDisabled =
+        isVirtualCol(col) ||
+        [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(col.uidt) ||
+        isColumnInError(col)
       if (isDisabled) {
-        c.ncItemDisabled = true
-        c.ncItemTooltip = isColumnInError(c)
+        col.ncItemDisabled = true
+        col.ncItemTooltip = isColumnInError(col)
           ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
-          : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
+          : t('tooltip.sortingNotSupportedForField', { type: UITypesName[col.uidt] })
       }
-      return c
+      return col
     }),
 )
 
@@ -93,6 +111,19 @@ const onRemove = (sort: LookupSort) => {
 }
 
 onMounted(loadSorts)
+
+// If the lookup's relation/target table changes, the existing sorts reference the
+// OLD table's columns and can't apply. Tag persisted ones for deletion (so the
+// column save removes them) and drop unsaved ones. Guarded so the async initial
+// resolution of targetMeta (undefined → id) doesn't trigger a reset.
+watch(
+  () => props.targetMeta?.id,
+  (newId, oldId) => {
+    if (oldId && newId && newId !== oldId) {
+      sorts.value = sorts.value.filter((s) => s.id).map((s) => ({ ...s, status: 'delete' as const }))
+    }
+  },
+)
 
 // Exposed to the field editor, which syncs it into vModel.value.sorts.
 defineExpose({ sorts })

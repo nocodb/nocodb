@@ -251,6 +251,8 @@ enum AuditV1OperationTypes {
 
   DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
   DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
+
+  ROUTINE_INVOKE = 'ROUTINE_INVOKE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1407,6 +1409,18 @@ export interface DocumentCommentDeletePayload {
   comment_id: string;
 }
 
+export interface RoutineInvokePayload {
+  appId: string;
+  appVersionId?: string;
+  routineName: string;
+  routineVersionId: string;
+  bodyHash: string;
+  sourceType: string;
+  status: 'success' | 'error';
+  durationMs: number;
+  actorRole: string;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1930,6 +1944,10 @@ const descriptionTemplates = {
     audit.details.gantt_view_title
       ? `Date dependency deleted from Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
       : `Date dependency deleted from table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.ROUTINE_INVOKE]: (
+    audit: AuditV1<RoutineInvokePayload>
+  ) =>
+    `Routine '${audit.details.routineName}' invoked with status '${audit.details.status}'`,
 };
 
 function auditDescription(audit: AuditV1) {

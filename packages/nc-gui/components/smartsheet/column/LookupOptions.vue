@@ -175,6 +175,70 @@ const limitRecToCond = computed({
   },
 })
 
+// ── Lookup Sort + Limit (EE, licensed) — persisted to column meta and consumed
+// by the PG single-query lookup builder (applyLookupSortAndLimit). ──
+
+// All target-table columns are valid sort keys (Airtable allows any column).
+const sortableColumns = computed<ColumnType[]>(() => {
+  if (!selectedTable.value?.id) return []
+  return (getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns || []).filter((c: ColumnType) => !c.system)
+})
+
+// Limit (First/Last N)
+const lookupLimitEnabled = computed({
+  get: () => !!vModel.value.meta?.lookup_limit?.value,
+  set(value: boolean) {
+    vModel.value.meta = vModel.value.meta || {}
+    if (value) {
+      vModel.value.meta.lookup_limit = { type: vModel.value.meta.lookup_limit?.type || 'first', value: 1 }
+    } else {
+      delete vModel.value.meta.lookup_limit
+    }
+  },
+})
+const lookupLimitType = computed({
+  get: () => vModel.value.meta?.lookup_limit?.type || 'first',
+  set(v: 'first' | 'last') {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.lookup_limit = { type: v, value: vModel.value.meta.lookup_limit?.value || 1 }
+  },
+})
+const lookupLimitValue = computed({
+  get: () => vModel.value.meta?.lookup_limit?.value || 1,
+  set(v: number) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.lookup_limit = { type: vModel.value.meta.lookup_limit?.type || 'first', value: Math.max(1, +v || 1) }
+  },
+})
+
+// Sort (multi-column over target table)
+const lookupSorts = computed<{ fk_column_id: string; direction: 'asc' | 'desc' }[]>(() =>
+  Array.isArray(vModel.value.meta?.lookup_sort) ? vModel.value.meta.lookup_sort : [],
+)
+const addLookupSort = () => {
+  vModel.value.meta = vModel.value.meta || {}
+  const used = new Set(lookupSorts.value.map((s) => s.fk_column_id))
+  const next = sortableColumns.value.find((c) => !used.has(c.id!)) || sortableColumns.value[0]
+  vModel.value.meta.lookup_sort = [...lookupSorts.value, { fk_column_id: next?.id || '', direction: 'asc' }]
+}
+const removeLookupSort = (i: number) => {
+  vModel.value.meta = vModel.value.meta || {}
+  const next = lookupSorts.value.filter((_, idx) => idx !== i)
+  if (next.length) vModel.value.meta.lookup_sort = next
+  else delete vModel.value.meta.lookup_sort
+}
+const lookupSortEnabled = computed({
+  get: () => Array.isArray(vModel.value.meta?.lookup_sort) && vModel.value.meta.lookup_sort.length > 0,
+  set(value: boolean) {
+    vModel.value.meta = vModel.value.meta || {}
+    if (value) {
+      if (!lookupSorts.value.length) addLookupSort()
+    } else {
+      delete vModel.value.meta.lookup_sort
+    }
+  },
+})
+
 // Provide related table meta for filter conditions
 provide(
   MetaInj,
@@ -448,6 +512,104 @@ const handleScrollIntoView = () => {
                   @add-filter="handleScrollIntoView"
                   @add-filter-group="handleScrollIntoView"
                 />
+              </div>
+            </div>
+
+            <!-- Lookup Sort + Limit (EE, licensed) — persisted to column meta -->
+            <div class="flex flex-col gap-2">
+              <!-- Limit the number of items shown -->
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <NcSwitch
+                      :checked="lookupLimitEnabled"
+                      :disabled="!selectedTable"
+                      size="small"
+                      data-testid="nc-lookup-limit-items"
+                      @change="
+                        (value) => {
+                          if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT)) return
+                          lookupLimitEnabled = value
+                        }
+                      "
+                    >
+                      Limit the number of items shown
+                    </NcSwitch>
+                    <LazyPaymentUpgradeBadge
+                      v-if="!lookupLimitEnabled"
+                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
+                      class="ml-1"
+                    />
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+              <div v-if="lookupLimitEnabled" class="flex items-center gap-2 pl-10">
+                <span class="text-nc-content-gray-subtle2">Limit to the</span>
+                <a-select v-model:value="lookupLimitType" class="!w-28" dropdown-class-name="!rounded-md">
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                  <a-select-option value="first">First</a-select-option>
+                  <a-select-option value="last">Last</a-select-option>
+                </a-select>
+                <a-input-number v-model:value="lookupLimitValue" :min="1" class="!w-20" />
+              </div>
+
+              <!-- Sort records (by any target-table column, multi-level) -->
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <NcSwitch
+                      :checked="lookupSortEnabled"
+                      :disabled="!selectedTable"
+                      size="small"
+                      data-testid="nc-lookup-sort"
+                      @change="
+                        (value) => {
+                          if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT)) return
+                          lookupSortEnabled = value
+                        }
+                      "
+                    >
+                      Sort records
+                    </NcSwitch>
+                    <LazyPaymentUpgradeBadge
+                      v-if="!lookupSortEnabled"
+                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT"
+                      class="ml-1"
+                    />
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+              <div v-if="lookupSortEnabled" class="flex flex-col gap-2 pl-10">
+                <div v-for="(sort, i) in lookupSorts" :key="i" class="flex items-center gap-2">
+                  <a-select
+                    v-model:value="sort.fk_column_id"
+                    class="flex-1"
+                    show-search
+                    :filter-option="antSelectFilterOption"
+                    dropdown-class-name="!rounded-md"
+                  >
+                    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                    <a-select-option v-for="col of sortableColumns" :key="col.id" :value="col.id">
+                      <div class="flex items-center gap-2 truncate">
+                        <SmartsheetHeaderIcon :column="col" class="!mx-0" />
+                        <span class="truncate">{{ col.title }}</span>
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                  <a-select v-model:value="sort.direction" class="!w-32" dropdown-class-name="!rounded-md">
+                    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                    <a-select-option value="asc">First → Last</a-select-option>
+                    <a-select-option value="desc">Last → First</a-select-option>
+                  </a-select>
+                  <NcButton type="text" size="small" @click="removeLookupSort(i)">
+                    <GeneralIcon icon="close" class="w-4 h-4" />
+                  </NcButton>
+                </div>
+                <div>
+                  <NcButton type="text" size="small" @click="addLookupSort">
+                    <div class="flex items-center gap-1"><GeneralIcon icon="plus" class="w-4 h-4" /> Add another sort</div>
+                  </NcButton>
+                </div>
               </div>
             </div>
           </div>

@@ -3357,6 +3357,7 @@
     "appVersionsEmptyHint": "Publish this app to create its first version.",
     "appVersionsHint": "Every published version of this app. Roll back any time.",
     "appVersionCurrent": "Current",
+    "appCreateNextHint": "Next, you'll describe what to build in chat.",
     "appDraftPreview": "Draft preview",
     "viewportDesktop": "Desktop width",
     "viewportMobile": "Mobile width",
@@ -3996,6 +3997,7 @@
     "includeFieldInPromptToGenerate": "Include at least 1 field in prompt to generate"
   },
   "placeholder": {
+    "appName": "e.g. Customer portal",
     "findBaseCollaborator": "Find a base collaborator",
     "enterVerificationCode": "Enter 6-digit code",
     "enterBackupCode": "Enter backup code (e.g., xxxx-xxxx)",

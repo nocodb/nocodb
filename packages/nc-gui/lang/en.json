@@ -3327,7 +3327,10 @@
     "previewEmptyHint": "Describe what you'd like to build in the chat — your app will appear here.",
     "appNameHint": "Shown in the sidebar and across the workspace.",
     "deleteApp": "Delete app",
-    "deleteAppHint": "Permanently delete this app and all of its data. This can't be undone."
+    "deleteAppHint": "Permanently delete this app and all of its data. This can't be undone.",
+    "appTheme": "Theme",
+    "appThemeHint": "Choose a color theme for your app. Changes apply instantly.",
+    "noThemesFound": "No themes match your search"
   },
   "activity": {
     "useTemplate": "Use template",

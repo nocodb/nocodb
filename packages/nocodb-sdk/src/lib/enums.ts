@@ -329,6 +329,8 @@ export enum AppEvents {
   ROUTINE_CREATE = 'routine.create',
   ROUTINE_UPDATE = 'routine.update',
   ROUTINE_DELETE = 'routine.delete',
+  ROUTINE_ROLLOUT = 'routine.rollout',
+  ROUTINE_INVOKE = 'routine.invoke',
 
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',

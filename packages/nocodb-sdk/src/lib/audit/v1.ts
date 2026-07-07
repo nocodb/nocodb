@@ -1,5 +1,6 @@
 import { RelationTypes } from '~/lib/globals';
 import UITypes from '~/lib/UITypes';
+import type { RoutineInvokeAuditDetail } from '../app/routine';
 
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',
@@ -1419,6 +1420,7 @@ export interface RoutineInvokePayload {
   status: 'success' | 'error';
   durationMs: number;
   actorRole: string;
+  auditDetail?: RoutineInvokeAuditDetail;
 }
 
 export interface TeamCreatePayload {

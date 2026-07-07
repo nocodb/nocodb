@@ -1,4 +1,59 @@
-export type RoutineSourceType = 'nocodb_data' | 'integration';
+export type RoutineSourceType = 'nocodb_data' | 'integration' | 'sql' | 'http';
+
+export type HttpRoutineMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** source_ref for source_type='sql' (static part of a SQL routine). */
+export interface SqlRoutineSourceRef {
+  integrationId: string;
+  /** Raw SQL authored by the builder; uses :name bind placeholders. */
+  sql: string;
+}
+
+/** source_ref for source_type='http' (static part of an HTTP routine). */
+export interface HttpRoutineSourceRef {
+  integrationId: string;
+  method: HttpRoutineMethod;
+}
+
+/** invoke() result for a SQL routine. */
+export interface SqlRoutineResult {
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  truncated: boolean;
+}
+
+/** invoke() result for an HTTP routine. */
+export interface HttpRoutineResult {
+  status: number;
+  headers: Record<string, string>;
+  body: unknown;
+}
+
+/**
+ * Full-payload audit detail captured for sql/http routine invokes (D10).
+ * Secret-free by construction — injected DB password / auth header / api-key
+ * are added inside the adapter and never appear in source_ref/input/result.
+ */
+export interface RoutineInvokeAuditDetail {
+  sql?: string;
+  binds?: Record<string, unknown>;
+  httpRequest?: {
+    method: string;
+    path: string;
+    query?: Record<string, unknown>;
+    headers?: Record<string, unknown>;
+    body?: unknown;
+  };
+  httpResponse?: {
+    status: number;
+    headers?: Record<string, unknown>;
+    body?: unknown;
+  };
+  rowCount?: number;
+  truncated?: boolean;
+  /** true when the captured payload was size-capped before persistence. */
+  payloadTruncated?: boolean;
+}
 
 export type RoutineDataOp = 'list' | 'read' | 'create' | 'update' | 'delete' | 'count';
 

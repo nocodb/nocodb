@@ -23,10 +23,6 @@ import type {
 import type LookupColumn from '../models/LookupColumn';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import {
-  applyLookupSortLimitToQb,
-  loadLookupSortAndLimit,
-} from '~/db/lookupSortLimit';
 import { NcError } from '~/helpers/catchError';
 import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
 import { Model, View } from '~/models';
@@ -144,12 +140,6 @@ export default async function generateLookupSelectQuery({
   const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
 
   const context = baseModelSqlv2.context;
-
-  // Captured before the inner `context`/`baseModelSqlv2` shadows below — the
-  // lookup's sort+limit config lives under the root base, and the feature is
-  // PG-only (mirrors the display path).
-  const rootContext = context;
-  const rootIsPg = baseModelSqlv2.isPg;
 
   const rootAlias = alias;
 
@@ -397,15 +387,10 @@ export default async function generateLookupSelectQuery({
     {
       let prevAlias = alias;
       let context = refContext;
-      // Nested lookups are flattened via JOINs here (not per-level
-      // sub-aggregation like the display path), so per-level sort+limit can't be
-      // applied consistently — restrict the injection below to single-level.
-      let nested = false;
       while (
         lookupColumn.uidt === UITypes.Lookup ||
         lookupColumn.uidt === UITypes.LinkToAnotherRecord
       ) {
-        nested = true;
         const nestedAlias = getAlias();
 
         let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
@@ -684,25 +669,6 @@ export default async function generateLookupSelectQuery({
             }
 
             break;
-        }
-
-        // Per-lookup Sort + Limit (PG, single-level): order/slice the relation
-        // sub-query before it is aggregated so filter / view-sort / group-by see
-        // the same limited+sorted set as the displayed cell. Only fires for a
-        // configured Lookup column; a no-op otherwise. Nested lookups are
-        // flattened via JOINs here, so they're intentionally left out for now.
-        if (!nested && column.uidt === UITypes.Lookup && rootIsPg) {
-          const cfg = await loadLookupSortAndLimit(rootContext, column);
-          if (cfg.hasConfig) {
-            await applyLookupSortLimitToQb({
-              qb: selectQb,
-              alias: prevAlias,
-              refBaseModel: baseModelSqlv2,
-              sorts: cfg.sorts,
-              limitVal: cfg.limitVal,
-              takeLast: cfg.takeLast,
-            });
-          }
         }
       }
       // if all relation are belongs to then we don't need to do the aggregation

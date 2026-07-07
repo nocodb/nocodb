@@ -532,7 +532,12 @@ const handleScrollIntoView = () => {
               </PaymentUpgradeBadgeProvider>
               <div v-if="lookupLimitEnabled" class="flex items-center gap-2 pl-10">
                 <span class="text-nc-content-gray-subtle2">Limit to the</span>
-                <a-select v-model:value="lookupLimitType" class="!w-28" dropdown-class-name="!rounded-md">
+                <a-select
+                  v-model:value="lookupLimitType"
+                  class="!w-28"
+                  data-testid="nc-lookup-limit-type"
+                  dropdown-class-name="!rounded-md nc-dropdown-lookup-limit-type"
+                >
                   <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                   <a-select-option value="first">First</a-select-option>
                   <a-select-option value="last">Last</a-select-option>

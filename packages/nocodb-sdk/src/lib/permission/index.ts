@@ -170,7 +170,10 @@ export const PermissionMeta = {
       'Only members selected here will be able to run this routine.',
   },
   [PermissionKey.APP_USE]: {
-    minimumRole: PermissionRole.EDITOR,
+    // VIEWER floor (mirrors PAGE_VIEW / DOCUMENT_VISIBILITY): an app can be
+    // opened by viewers — the write-gate ensures a viewer only reads. Gating
+    // app USE at editor would contradict PAGE_VIEW being grantable to viewers.
+    minimumRole: PermissionRole.VIEWER,
     label: 'Who can use this app',
     description: 'can use app',
     userSelectorDescription:

@@ -703,6 +703,12 @@ export enum ResourceType {
   WORKSPACE = 'workspace',
   BASE = 'base',
   TEAM = 'team',
+  // App membership as a first-class access resource. `nc_principal_assignments`
+  // rows with resource_type='app' assign users/teams directly to an app (with a
+  // tier in `roles`), decoupled from base/workspace membership — the basis for
+  // external app-only collaborators. Seat counting excludes 'app' (only
+  // workspace/base/team are counted), so app members are seat-free.
+  APP = 'app',
 }
 
 export enum PrincipalType {

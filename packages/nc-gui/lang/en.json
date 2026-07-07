@@ -3374,7 +3374,15 @@
       "pageAccessHeading": "Page access",
       "pageAccessSubtitle": "Control who can view each page. Viewing a page also grants access to the routines it uses.",
       "noPagesTitle": "No pages to configure yet",
-      "noPagesSubtitle": "Publish this app to configure who can view each of its pages."
+      "noPagesSubtitle": "Publish this app to configure who can view each of its pages.",
+      "noRoutines": "No routines",
+      "routinesLabel": "Routines",
+      "membersHeading": "App members",
+      "membersSubtitle": "Grant people or teams direct access to this app, even if they aren't members of this base.",
+      "addMembers": "Add members",
+      "noMembersTitle": "No app members yet",
+      "noMembersSubtitle": "Add people or teams to give them direct access to this app.",
+      "removeMember": "Remove from app"
     }
   },
   "activity": {

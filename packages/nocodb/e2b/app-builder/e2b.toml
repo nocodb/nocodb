@@ -1,0 +1,7 @@
+template_name = "nocodb-app-builder"
+dockerfile = "Dockerfile"
+# No start_cmd — the build processor drives everything via commands.run after
+# Sandbox.create. Resource floor for claude; tune after the first smoke.
+# (`e2b template build` writes template_id back into this file after the build.)
+cpu_count = 2
+memory_mb = 4096

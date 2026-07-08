@@ -1499,6 +1499,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     rowId,
     childId,
     before,
+    cookie,
   }: {
     cookie?: any;
     colId: string;
@@ -1512,7 +1513,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       (c) => c.id === colId,
     );
     if (!column || !isLinksOrLTAR(column)) {
-      NcError.get(context).unprocessableEntity(`Link column not found: ${colId}`);
+      NcError.get(context).unprocessableEntity(
+        `Link column not found: ${colId}`,
+      );
     }
     const colOptions = (await column.getColOptions(
       context,
@@ -1584,13 +1587,29 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       // once (consecutive integers always leave room for a midpoint).
       if (newOrder.lte(prevOrder) || newOrder.gte(beforeOrder)) {
         await reindexPartition();
-        return reorderLink({ colId, rowId, childId, before });
+        return reorderLink({ colId, rowId, childId, before, cookie });
       }
     }
 
     await partitionQb()
       .where(vParentCol.column_name, childId)
       .update({ [orderCol.column_name]: newOrder.toString() });
+
+    // Realtime: bump the current record's modified time and broadcast the link
+    // update so the grid canvas (and other clients) re-read the reordered cell —
+    // same as addLinks/removeLinks. Ordering is partitioned by the current
+    // record's junction FK, so only `rowId` needs to refresh.
+    await baseModel.updateLastModified({
+      model: baseModel.model,
+      rowIds: [rowId],
+      cookie,
+      updatedColIds: [column.id],
+    });
+    baseModel.dbDriver.attachToTransaction(async () => {
+      await baseModel
+        .getNonTransactionalClone()
+        .broadcastLinkUpdates([String(rowId)]);
+    });
 
     return true;
   };

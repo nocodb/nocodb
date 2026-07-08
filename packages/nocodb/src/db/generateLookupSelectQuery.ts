@@ -368,11 +368,17 @@ export default async function generateLookupSelectQuery({
           selectQb.limit(1);
         }
 
-        // Capture the junction Order column (current side) for ordered json_agg.
+        // Capture the junction Order column (current side) for ordered json_agg
+        // — but only as the DEFAULT order. If this lookup has its own sort/limit
+        // config, that ordering wins (applied elsewhere), so leave the link order
+        // off to avoid it overriding the lookup sort.
         if (baseModelSqlv2.isPg) {
-          const linkOrderCol = await relation.getMMChildOrderColumn(context);
-          if (linkOrderCol) {
-            mmLinkOrderRef = `${mmTableAlias}.${linkOrderCol.column_name}`;
+          const lookupCfg = await loadLookupSortAndLimit(rootContext, column);
+          if (!lookupCfg.hasConfig) {
+            const linkOrderCol = await relation.getMMChildOrderColumn(context);
+            if (linkOrderCol) {
+              mmLinkOrderRef = `${mmTableAlias}.${linkOrderCol.column_name}`;
+            }
           }
         }
       }

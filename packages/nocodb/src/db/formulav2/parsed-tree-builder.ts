@@ -483,6 +483,47 @@ export const binaryExpressionBuilder = async ({
 
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();
+
+  // Ordering comparisons (<, <=, >, >=) need numeric operands. A formula can put
+  // a text-typed expression on one side — e.g. IF(cond, "", <number>), whose
+  // mixed string/numeric branches the IF mapper unifies to text (`(?)::text`) —
+  // while the other side is a number. On strict-typed DBs `text <= 1` fails
+  // (Postgres `42883 operator does not exist: text <= integer`), surfacing as a
+  // 500 on the formula dry-run / list. Coerce the text operand to a NULL-safe
+  // numeric so a blank/non-numeric value becomes NULL (row excluded) rather than
+  // erroring, matching the numeric intent of the comparison.
+  const isOrderingComparison = ['<', '<=', '>', '>='].includes(pt.operator);
+  if (isOrderingComparison) {
+    const toSafeNumeric = (expr: string): string => {
+      switch (knex.clientType()) {
+        case 'pg':
+          // btrim + regex guard so non-numeric/empty text yields NULL instead of
+          // an "invalid input syntax for type double precision" runtime error.
+          return `(CASE WHEN btrim((${expr})::text) ~ '^[-+]?[0-9]+(\\.[0-9]+)?$' THEN (${expr})::double precision END)`;
+        case 'mssql':
+          return `TRY_CAST(${expr} AS FLOAT)`;
+        case 'oracledb':
+          return `CAST(${expr} AS BINARY_DOUBLE DEFAULT NULL ON CONVERSION ERROR)`;
+        // mysql2 / sqlite3 coerce text→number implicitly and don't hard-error,
+        // so leave them untouched to avoid changing their existing behavior.
+        default:
+          return expr;
+      }
+    };
+
+    if (
+      pt.left.dataType === FormulaDataTypes.STRING &&
+      pt.right.dataType === FormulaDataTypes.NUMERIC
+    ) {
+      left = toSafeNumeric(left);
+    } else if (
+      pt.right.dataType === FormulaDataTypes.STRING &&
+      pt.left.dataType === FormulaDataTypes.NUMERIC
+    ) {
+      right = toSafeNumeric(right);
+    }
+  }
+
   let sql = `${left} ${pt.operator} ${right}`;
 
   if (ComparisonOperators.includes(pt.operator as ComparisonOperator)) {

@@ -680,6 +680,7 @@ export class DataTableService {
   // Move an existing link (`refRowId`) within `rowId`'s ordered list for a v2
   // junction link, placing it before `before` (another linked record) or at the
   // end when `before` is null.
+  @TraceCommand(OperationName.recordLinkReorder)
   async nestedReorder(
     context: NcContext,
     param: {

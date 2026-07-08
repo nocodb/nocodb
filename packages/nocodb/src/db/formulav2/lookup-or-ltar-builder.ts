@@ -234,6 +234,18 @@ export const lookupOrLtarBuilder =
               selectQb.limit(1);
             }
 
+            // Per-link ordering (PG only): stash the junction Order column ref
+            // (current side) on the row query so the aggregate (getAggregateFn →
+            // concat) can ORDER BY it. Absent for non-PG / v1 / external links.
+            if (baseModelSqlv2.isPg) {
+              const linkOrderCol = await relation.getMMChildOrderColumn(context);
+              if (linkOrderCol) {
+                (selectQb as any)._ncLinkOrderRef = knex.raw('??', [
+                  `${assocAlias}.${linkOrderCol.column_name}`,
+                ]);
+              }
+            }
+
             lookupColumn =
               lookupColumn ??
               (await getDisplayValueOfRefTable(context, relationCol));

@@ -176,6 +176,10 @@ export const getAggregateFn: IGetAggregateFn = (parentFn) => {
 
     case 'CONCAT':
     default:
-      return ({ qb, cn }) => qb.clear('select').concat(cn);
+      // `_ncLinkOrderRef` (opt-in, PG only) is stashed on the row query by the
+      // lookup/LTAR builder for ordered mm links; absent for every other case,
+      // so the aggregate SQL is unchanged there.
+      return ({ qb, cn }) =>
+        qb.clear('select').concat(cn, (qb as any)?._ncLinkOrderRef);
   }
 };

@@ -155,6 +155,9 @@ export default async function generateLookupSelectQuery({
 
   {
     let selectQb: Knex.QueryBuilder;
+    // Per-link ordering (PG only): junction Order column ref for the current
+    // side, set for ordered mm links so the json_agg below can ORDER BY it.
+    let mmLinkOrderRef: string | undefined;
     const alias = getAlias();
     let lookupColOpt: LookupColumn;
     let isBtLookup = true;
@@ -363,6 +366,14 @@ export default async function generateLookupSelectQuery({
 
         if (isSingleTargetV2) {
           selectQb.limit(1);
+        }
+
+        // Capture the junction Order column (current side) for ordered json_agg.
+        if (baseModelSqlv2.isPg) {
+          const linkOrderCol = await relation.getMMChildOrderColumn(context);
+          if (linkOrderCol) {
+            mmLinkOrderRef = `${mmTableAlias}.${linkOrderCol.column_name}`;
+          }
         }
       }
     }
@@ -754,6 +765,23 @@ export default async function generateLookupSelectQuery({
       const subQueryAlias = getAlias();
 
       if (baseModelSqlv2.isPg) {
+        // Per-link ordering (opt-in): when an mm junction Order column is present
+        // (set above), select it into the subquery and ORDER the json_agg by it
+        // so the aggregated value reflects link order. Unchanged otherwise.
+        if (mmLinkOrderRef) {
+          selectQb.select(knex.raw('?? as ??', [mmLinkOrderRef, '__nc_lorder']));
+          return {
+            builder: knex
+              .select(
+                knex.raw('json_agg(?? ORDER BY ??)::text', [
+                  lookupColumn.id,
+                  '__nc_lorder',
+                ]),
+              )
+              .from(selectQb.as(subQueryAlias)),
+            applyCte,
+          };
+        }
         // alternate approach with array_agg
         return {
           builder: knex

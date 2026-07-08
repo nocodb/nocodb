@@ -6995,7 +6995,11 @@ export class ColumnsService implements IColumnsService {
           title: aTnAlias,
           // todo: sanitize
           mm: true,
-          columns: associateTableCols,
+          // Exclude the per-link Order columns — their meta is inserted
+          // explicitly below so we can capture their ids directly (resolving
+          // them from the model column list after bulkInsert proved unreliable).
+          // The physical columns were already created by tableCreate above.
+          columns: associateTableCols.filter((c) => c.uidt !== UITypes.Order),
           user_id: param.user?.id,
         },
       );
@@ -7033,28 +7037,33 @@ export class ColumnsService implements IColumnsService {
       const assocCols = await assocModel.getColumns(context);
       const parentCol = assocCols?.find((c) => c.column_name === columnName);
       const childCol = assocCols?.find((c) => c.column_name === refColumnName);
-      // The two junction Order columns (null unless addLinkOrder). "parentGroup"
-      // orders rows within each parentCol (FK→this table) group; "childGroup"
-      // within each childCol (FK→ref table) group.
-      //
-      // Resolve them from a FRESH meta read rather than the (possibly stale)
-      // cached column list: right after Model.insert the cached list can still
-      // omit the just-created order columns, which left the relation refs null.
-      const freshAssocCols =
-        parentGroupOrderColName || childGroupOrderColName
-          ? await Noco.ncMeta.metaList2(
-              context.workspace_id,
-              context.base_id,
-              MetaTable.COLUMNS,
-              { condition: { fk_model_id: assocModel.id } },
-            )
-          : [];
-      const parentGroupOrderCol = parentGroupOrderColName
-        ? freshAssocCols.find((c) => c.column_name === parentGroupOrderColName)
-        : null;
-      const childGroupOrderCol = childGroupOrderColName
-        ? freshAssocCols.find((c) => c.column_name === childGroupOrderColName)
-        : null;
+
+      // The two junction Order columns. "parentGroup" orders rows within each
+      // parentCol (FK→this table) group; "childGroup" within each childCol
+      // (FK→ref table) group. Insert their meta EXPLICITLY here (they were
+      // excluded from Model.insert) so we capture the created ids directly —
+      // resolving them from the model column list after bulkInsert was
+      // unreliable (returned them as not-yet-present, leaving the refs null).
+      // Meta-only; the physical columns already exist from tableCreate.
+      let parentGroupOrderCol: Column | null = null;
+      let childGroupOrderCol: Column | null = null;
+      if (addLinkOrder) {
+        for (const def of associateTableCols.filter(
+          (c) => c.uidt === UITypes.Order,
+        )) {
+          const inserted = await Column.insert(context, {
+            ...def,
+            fk_model_id: assocModel.id,
+            source_id: assocModel.source_id,
+            system: true,
+          } as any);
+          if (def.column_name === parentGroupOrderColName) {
+            parentGroupOrderCol = inserted;
+          } else {
+            childGroupOrderCol = inserted;
+          }
+        }
+      }
 
       // Composite index per order direction — (fk, order) — so the partitioned
       // reads (WHERE fk = x ORDER BY order) and the append MAX(order) WHERE fk = x

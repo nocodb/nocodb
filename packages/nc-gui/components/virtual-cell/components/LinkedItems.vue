@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Draggable from 'vuedraggable'
 import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
 import { computeLtarNewRowState } from '~/utils/dataUtils'
@@ -95,6 +96,9 @@ const {
   pendingLinkRows,
   removePendingLink,
   isPendingUnlink,
+  canReorder,
+  reorderLink,
+  getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
@@ -110,6 +114,70 @@ const showPendingLinks = computed(
 )
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
+
+// ── Per-link drag-to-reorder (v2 mm on Postgres) ──────────────────────────────
+// Only for editable, non-form, non-public, persisted rows, when the whole set is
+// small enough to load and render as a plain (non-virtualized) draggable list.
+// Larger sets keep the windowed, non-draggable rendering.
+const REORDER_MAX = 50
+
+const reorderEnabled = computed(
+  () =>
+    canReorder.value &&
+    !readOnly.value &&
+    !isPublic.value &&
+    !isForm.value &&
+    !isNew.value &&
+    !childrenListPagination.query &&
+    childrenListCount.value > 1 &&
+    childrenListCount.value <= REORDER_MAX,
+)
+
+// Local, mutable copy of the linked rows that vuedraggable reorders in place.
+const reorderRows = ref<Record<string, any>[]>([])
+
+const syncReorderRows = () => {
+  reorderRows.value = [...(childrenList.value?.list ?? [])]
+}
+
+// When reorder becomes active, make sure the FULL set (up to REORDER_MAX) is
+// loaded into a single page, then mirror it into the draggable list.
+watch(
+  reorderEnabled,
+  async (enabled) => {
+    if (!enabled) return
+    if ((childrenList.value?.list?.length ?? 0) < childrenListCount.value) {
+      await loadChildrenList(true, undefined, REORDER_MAX)
+    }
+    syncReorderRows()
+  },
+  { immediate: true },
+)
+
+// Keep the draggable list in sync when the underlying list changes (e.g. after a
+// reorder reload or an unlink) — but only while not mid-list-load.
+watch(childrenList, () => {
+  if (reorderEnabled.value) syncReorderRows()
+})
+
+const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
+  const { oldIndex, newIndex } = evt
+  if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
+
+  // vuedraggable has already reordered `reorderRows` in place: the moved row is at
+  // newIndex, and the row it must sit BEFORE is the next one (or null = to end).
+  const movedRow = reorderRows.value[newIndex]
+  const beforeRow = reorderRows.value[newIndex + 1] ?? null
+  if (!movedRow) return
+
+  try {
+    await reorderLink(movedRow, beforeRow)
+  } catch (e) {
+    // On failure, resync from the (unchanged) source of truth.
+    message.error(await extractSdkResponseErrorMsg(e))
+    syncReorderRows()
+  }
+}
 
 watch(
   [vModel, isForm],
@@ -523,6 +591,46 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 </div>
               </div>
             </div>
+          </template>
+          <!-- Drag-to-reorder branch (v2 mm on PG, small/loaded set): a plain,
+               non-virtualized draggable list so the whole set can be arranged. -->
+          <template v-else-if="reorderEnabled">
+            <Draggable
+              v-model="reorderRows"
+              :item-key="(r) => getRelatedTableRowId(r)"
+              handle=".nc-ltar-reorder-handle"
+              ghost-class="nc-ltar-reorder-ghost"
+              :animation="150"
+              @end="onReorderEnd"
+            >
+              <template #item="{ element, index }">
+                <div
+                  class="flex flex-row items-center border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
+                  data-testid="nc-child-list-reorder-item"
+                >
+                  <div
+                    class="nc-ltar-reorder-handle flex-none flex items-center pl-2 cursor-move text-nc-content-gray-muted hover:text-nc-content-gray"
+                    data-testid="nc-child-list-reorder-handle"
+                  >
+                    <GeneralIcon icon="ncDrag" class="!h-4 !w-4" />
+                  </div>
+                  <LazyVirtualCellComponentsListItem
+                    class="flex-1 min-w-0"
+                    :attachment="attachmentCol"
+                    :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+                    :fields="fields"
+                    :display-value-column="relatedTableDisplayValueColumn"
+                    :is-linked="true"
+                    :is-loading="false"
+                    :related-table-display-value-prop="relatedTableDisplayValueProp"
+                    :row="element"
+                    data-testid="nc-child-list-item"
+                    @link-or-unlink="unlinkRow(element, index)"
+                    @expand="onClick(element)"
+                  />
+                </div>
+              </template>
+            </Draggable>
           </template>
           <template v-else>
             <!-- Unsaved (buffered) links — shown above the persisted list until save -->

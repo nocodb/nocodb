@@ -70,6 +70,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { base, isSharedBase } = storeToRefs(useBase())
 
+    const { isPg } = useBase()
+
     const { getBaseRoles } = useBases()
 
     const { $api, $e } = useNuxtApp()
@@ -1444,7 +1446,47 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenListOffsetCount.value = 0
     }
 
+    // Per-link ordering (v2 mm on Postgres): the NocoDB-managed junction carries
+    // a per-direction Order column, so linked records can be manually arranged.
+    // Only surfaced when the junction actually has the order column
+    // (`fk_mm_child_order_column_id`) AND the source is Postgres — the ordered
+    // read is PG-only, so reordering elsewhere would be a confusing no-op.
+    const canReorder = computed(
+      () =>
+        type.value === RelationTypes.MANY_TO_MANY &&
+        !!(colOptions.value as any)?.fk_mm_child_order_column_id &&
+        isPg(meta.value?.source_id),
+    )
+
+    // Move `movedRow` before `beforeRow` (both related-table rows), or to the end
+    // when `beforeRow` is null. Extracts the related-table PKs and calls the
+    // per-link reorder endpoint, then reloads the child list so the new order is
+    // reflected. No-op unless `canReorder` (v2 mm on Postgres).
+    const reorderLink = async (
+      movedRow: Record<string, any>,
+      beforeRow: Record<string, any> | null = null,
+      { metaValue = meta.value }: { metaValue?: TableType } = {},
+    ) => {
+      if (!rowId.value || !column.value?.id) return
+
+      const refRowId = getRelatedTableRowId(movedRow)
+      if (refRowId === undefined || refRowId === null) return
+      const before = beforeRow ? getRelatedTableRowId(beforeRow) ?? null : null
+
+      const encodedRowId = encodeURIComponent(String(rowId.value))
+      await $api.instance.post(`/api/v2/tables/${metaValue?.id}/links/${column.value.id}/records/${encodedRowId}/reorder`, {
+        refRowId,
+        before,
+      })
+
+      $e('a:links:reorder')
+      await loadChildrenList()
+    }
+
     return {
+      canReorder,
+      reorderLink,
+      getRelatedTableRowId,
       relatedTableMeta,
       isLinkedTableAccessible,
       loadRelatedTableMeta,

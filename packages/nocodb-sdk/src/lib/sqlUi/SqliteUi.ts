@@ -1033,6 +1033,8 @@ export class SqliteUi implements SqlUi {
       'ARRAYUNIQUE',
       'ARRAYSLICE',
       'ARRAYCOMPACT',
+      'MD5',
+      'SHA256',
     ];
   }
 

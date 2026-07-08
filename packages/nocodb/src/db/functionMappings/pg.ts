@@ -709,6 +709,20 @@ END`,
       ),
     };
   },
+
+  SHA256: async ({fn, knex, pt}: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`encode(sha256(convert_to(?::text, 'UTF8')), 'hex')`, [source])
+    }
+  },
+
+  MD5: async({fn, knex, pt}: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`md5(?::text)`, [source]),
+    };
+  },
 };
 
 export default pg;

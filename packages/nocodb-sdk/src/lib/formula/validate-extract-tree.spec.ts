@@ -5,6 +5,7 @@ import UITypes from '../UITypes';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import { UnifiedMetaType } from '~/lib/types';
 import { SeparatorType } from '~/lib/columnHelper/utils/common';
+import { CallExpressionNode, IdentifierNode } from './types';
 
 // Mock dependencies
 const mockColumns: UnifiedMetaType.IColumn[] = [
@@ -968,4 +969,65 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     });
     expect(result.referencedColumn.uidt).toBe('SingleLineText');
   });
+  
+
+  describe('MD5 and SHA256 hash functions', () => {
+    const validate = (formula: string, client?: any) =>
+      validateFormulaAndExtractTreeWithType({
+        formula,
+        columns: mockColumns,
+        clientOrSqlUi: client || mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+    it('should validate MD5 with string literal and return STRING', async () => {
+      const result = (await validate('MD5("hello")')) as CallExpressionNode;
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+      expect((result.callee as IdentifierNode).name).toBe('MD5');
+      expect(result.dataType).toBe(FormulaDataTypes.STRING);
+    });
+    it('should validate SHA256 with string literal and return STRING', async () => {
+      const result = (await validate('SHA256("hello")')) as CallExpressionNode;
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+      expect((result.callee as IdentifierNode).name).toBe('SHA256');
+      expect(result.dataType).toBe(FormulaDataTypes.STRING);
+    });
+    it('should validate MD5 with column reference', async () => {
+      const result = (await validate('MD5({Column1})')) as CallExpressionNode;
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+      expect((result.callee as IdentifierNode).name).toBe('MD5');
+      expect((result.arguments[0] as IdentifierNode).name).toBe('col1');
+      expect(result.dataType).toBe(FormulaDataTypes.STRING);
+    });
+    it('should validate SHA256 with column reference', async () => {
+      const result = (await validate('SHA256({Column1})')) as CallExpressionNode;
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+      expect((result.callee as IdentifierNode).name).toBe('SHA256');
+      expect((result.arguments[0] as IdentifierNode).name).toBe('col1');
+      expect(result.dataType).toBe(FormulaDataTypes.STRING);
+    });
+    it('should throw INVALID_ARG when MD5 is missing required argument', async () => {
+      await expect(validate('MD5()')).rejects.toMatchObject({
+        type: FormulaErrorType.INVALID_ARG,
+      });
+    });
+    it('should throw INVALID_ARG when SHA256 has too many arguments', async () => {
+      await expect(validate('SHA256("hello", "extra")')).rejects.toMatchObject({
+        type: FormulaErrorType.INVALID_ARG,
+      });
+    });
+    it('should throw INVALID_FUNCTION_NAME for MD5 on SQLite', async () => {
+      const sqliteClient = SqlUiFactory.create({ client: 'sqlite3' });
+      await expect(validate('MD5({Column1})', sqliteClient)).rejects.toMatchObject({
+        type: FormulaErrorType.INVALID_FUNCTION_NAME,
+      });
+    });
+    it('should throw INVALID_FUNCTION_NAME for SHA256 on SQLite', async () => {
+      const sqliteClient = SqlUiFactory.create({ client: 'sqlite3' });
+      await expect(validate('SHA256({Column1})', sqliteClient)).rejects.toMatchObject({
+        type: FormulaErrorType.INVALID_FUNCTION_NAME,
+      });
+    });
+  });
 });
+
+

@@ -358,6 +358,13 @@ export const relationDataFetcher = (param: {
             mmContext,
           );
           if (linkOrderCol) {
+            // Drop the default related-table order applied above (the related
+            // model's own `nc_order`/PK sort). Without this the per-link order is
+            // only appended as a tiebreaker, so the related table's row order
+            // wins and the manual link arrangement is ignored. Safe here: this
+            // branch runs only when there is NO explicit sort AND no view sort,
+            // so nothing user-intended is discarded.
+            qb.clear('order');
             qb.orderBy(`${vtn}.${linkOrderCol.column_name}`, 'asc');
             // Deterministic tiebreak on the related-side junction FK (part of
             // the junction PK) so equal order values (backfill/manual/concurrent)

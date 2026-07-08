@@ -251,6 +251,31 @@ export class DataTableController {
     });
   }
 
+  @Post(['/api/v2/tables/:modelId/links/:columnId/records/:rowId/reorder'])
+  @Acl('nestedDataLink')
+  async nestedReorder(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Body()
+    body: { refRowId: string | number; before?: string | number | null },
+  ) {
+    return await this.dataTableService.nestedReorder(context, {
+      modelId,
+      rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      refRowId: body?.refRowId,
+      before: body?.before ?? null,
+      cookie: req,
+      user: req.user,
+    });
+  }
+
   @Delete(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataUnlink')
   async nestedUnlink(

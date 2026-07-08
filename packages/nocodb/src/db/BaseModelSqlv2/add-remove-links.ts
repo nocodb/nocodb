@@ -7,6 +7,7 @@ import {
   ncIsNullOrUndefined,
   RelationTypes,
 } from 'nocodb-sdk';
+import BigNumber from 'bignumber.js';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -1488,9 +1489,116 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       );
     });
   };
+  // Move an existing link `childId` within `rowId`'s ordered list of links for
+  // column `colId`, placing it immediately before `before` (another linked
+  // record's id) or at the end when `before` is null. Only the current side's
+  // order is changed — the junction Order column grouped by vChildCol, matching
+  // the read fallback in mmList / the mm lookup path. v2 junctions only.
+  const reorderLink = async ({
+    colId,
+    rowId,
+    childId,
+    before,
+  }: {
+    cookie?: any;
+    colId: string;
+    rowId: string | number;
+    childId: string | number;
+    before?: string | number | null;
+  }) => {
+    const context = baseModel.context;
+
+    const column = (await baseModel.model.getColumns(context)).find(
+      (c) => c.id === colId,
+    );
+    if (!column || !isLinksOrLTAR(column)) {
+      NcError.get(context).unprocessableEntity(`Link column not found: ${colId}`);
+    }
+    const colOptions = (await column.getColOptions(
+      context,
+    )) as LinkToAnotherRecordColumn;
+
+    // Ordering lives on the junction Order column — only present for v2
+    // junction-based links on NocoDB-managed sources. Its absence gates out
+    // hm/bt, v1 links, and external junctions with a clear error.
+    const { mmContext } = colOptions.getRelContext(context);
+    const orderCol = await colOptions.getMMChildOrderColumn(mmContext);
+    if (!orderCol) {
+      NcError.get(context).unprocessableEntity(
+        'This link does not support ordering',
+      );
+    }
+
+    const vChildCol = await colOptions.getMMChildColumn(mmContext);
+    const vParentCol = await colOptions.getMMParentColumn(mmContext);
+    const vTable = await colOptions.getMMModel(mmContext);
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: vTable,
+      dbDriver: baseModel.dbDriver,
+    });
+    const vTn = assocBaseModel.getTnPath(vTable);
+
+    // mm child/parent columns reference the related PKs, so rowId/childId ARE
+    // the junction FK values.
+    const partitionQb = () =>
+      baseModel.dbDriver(vTn).where(vChildCol.column_name, rowId);
+
+    // Reassign 1..n by current order within this partition (gap-recovery).
+    const reindexPartition = async () => {
+      const rows = await baseModel
+        .dbDriver(vTn)
+        .select(vParentCol.column_name)
+        .where(vChildCol.column_name, rowId)
+        .orderBy(orderCol.column_name, 'asc');
+      let i = 1;
+      for (const r of rows) {
+        await baseModel
+          .dbDriver(vTn)
+          .where(vChildCol.column_name, rowId)
+          .where(vParentCol.column_name, r[vParentCol.column_name])
+          .update({ [orderCol.column_name]: i++ });
+      }
+    };
+
+    let newOrder: BigNumber;
+    if (before === undefined || before === null || before === '') {
+      const maxRes = await partitionQb()
+        .max(`${orderCol.column_name} as m`)
+        .first();
+      newOrder = new BigNumber(maxRes?.m ?? 0).plus(1);
+    } else {
+      const beforeRow = await partitionQb()
+        .where(vParentCol.column_name, before)
+        .first();
+      if (!beforeRow) {
+        NcError.get(context).recordNotFound(`${before}`);
+      }
+      const beforeOrder = new BigNumber(beforeRow[orderCol.column_name] ?? 0);
+      const prevRes = await partitionQb()
+        .where(orderCol.column_name, '<', beforeOrder.toString())
+        .max(`${orderCol.column_name} as m`)
+        .first();
+      const prevOrder = new BigNumber(prevRes?.m ?? 0);
+      newOrder = prevOrder.plus(beforeOrder.minus(prevOrder).div(2));
+      // Fractional gap exhausted → reindex the partition to integers and retry
+      // once (consecutive integers always leave room for a midpoint).
+      if (newOrder.lte(prevOrder) || newOrder.gte(beforeOrder)) {
+        await reindexPartition();
+        return reorderLink({ colId, rowId, childId, before });
+      }
+    }
+
+    await partitionQb()
+      .where(vParentCol.column_name, childId)
+      .update({ [orderCol.column_name]: newOrder.toString() });
+
+    return true;
+  };
+
   return {
     addLinks,
     removeLinks,
+    reorderLink,
     extractCorrespondingLinkColumn,
   };
 };

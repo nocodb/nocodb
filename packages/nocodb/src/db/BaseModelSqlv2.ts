@@ -8270,6 +8270,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return addOrRemoveLinks(this).removeLinks(params);
   }
 
+  async reorderLink(params: {
+    cookie?: any;
+    colId: string;
+    rowId: string | number;
+    childId: string | number;
+    before?: string | number | null;
+  }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
+    return addOrRemoveLinks(this).reorderLink(params);
+  }
+
   async ooRead(
     { colId, id }: { colId; id; apiVersion?: NcApiVersion },
     _args: { limit?; offset?; fieldSet?: Set<string> } = {},

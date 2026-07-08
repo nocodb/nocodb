@@ -1473,11 +1473,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       if (refRowId === undefined || refRowId === null) return
       const before = beforeRow ? getRelatedTableRowId(beforeRow) ?? null : null
 
-      const encodedRowId = encodeURIComponent(String(rowId.value))
-      await $api.instance.post(`/api/v2/tables/${metaValue?.id}/links/${column.value.id}/records/${encodedRowId}/reorder`, {
-        refRowId,
-        before,
-      })
+      // Route through the internal-operations API — the same channel row reorder
+      // (`dataMove`) uses — rather than the public `/api/v2/tables` REST family,
+      // which isn't exposed to the app on EE/cloud deployments (there the GUI
+      // reaches data via `/api/v1/db/data` and meta via `/api/v2/internal`).
+      await $api.internal.postOperation(
+        (metaValue as any)?.fk_workspace_id,
+        metaValue?.base_id as string,
+        {
+          operation: 'nestedDataReorder',
+          tableId: metaValue?.id,
+          columnId: column.value.id,
+          rowId: rowId.value,
+          refRowId,
+          before,
+        } as any,
+        undefined,
+      )
 
       $e('a:links:reorder')
       await loadChildrenList()

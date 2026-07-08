@@ -7021,11 +7021,24 @@ export class ColumnsService implements IColumnsService {
       // The two junction Order columns (null unless addLinkOrder). "parentGroup"
       // orders rows within each parentCol (FK→this table) group; "childGroup"
       // within each childCol (FK→ref table) group.
+      //
+      // Resolve them from a FRESH meta read rather than the (possibly stale)
+      // cached column list: right after Model.insert the cached list can still
+      // omit the just-created order columns, which left the relation refs null.
+      const freshAssocCols =
+        parentGroupOrderColName || childGroupOrderColName
+          ? await Noco.ncMeta.metaList2(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.COLUMNS,
+              { condition: { fk_model_id: assocModel.id } },
+            )
+          : [];
       const parentGroupOrderCol = parentGroupOrderColName
-        ? assocCols?.find((c) => c.column_name === parentGroupOrderColName)
+        ? freshAssocCols.find((c) => c.column_name === parentGroupOrderColName)
         : null;
       const childGroupOrderCol = childGroupOrderColName
-        ? assocCols?.find((c) => c.column_name === childGroupOrderColName)
+        ? freshAssocCols.find((c) => c.column_name === childGroupOrderColName)
         : null;
 
       // Composite index per order direction — (fk, order) — so the partitioned

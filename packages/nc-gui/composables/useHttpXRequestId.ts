@@ -14,6 +14,11 @@ let httpXRequestSeq = 0
  * is independent, so paginated/chunked loads within one epoch don't invalidate
  * each other.
  *
+ * Staleness is tracked purely client-side: the captured id IS the request's
+ * `X-Request-ID`, so there's no need to read it back off the response (the
+ * response header may be absent or cache-stale). The header is sent only for
+ * server-side tracing.
+ *
  * @param prefix - human-readable label prefixed to generated ids (aids logging).
  */
 export function useHttpXRequestId(prefix = 'req') {

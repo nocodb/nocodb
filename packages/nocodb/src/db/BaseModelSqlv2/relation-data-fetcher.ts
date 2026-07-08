@@ -342,9 +342,22 @@ export const relationDataFetcher = (param: {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
           : await View.getFirstCollaborativeView(refContext, refTable.id);
+        let childSorts = [];
         if (view) {
-          const childSorts = await view.getSorts(refContext);
-          await sortV2(refBaseModel, childSorts, qb);
+          childSorts = await view.getSorts(refContext);
+          if (childSorts?.length) await sortV2(refBaseModel, childSorts, qb);
+        }
+        // No explicit sort and no view sort → fall back to the per-link order.
+        // The junction Order column grouped by the current side's FK (vcn, i.e.
+        // getMMChildColumn) holds this record's manual arrangement of its links.
+        // v1 links / external junctions have no such column → natural order.
+        if (!childSorts?.length) {
+          const linkOrderCol = await relColOptions.getMMChildOrderColumn(
+            mmContext,
+          );
+          if (linkOrderCol) {
+            qb.orderBy(`${vtn}.${linkOrderCol.column_name}`, 'asc');
+          }
         }
       }
 

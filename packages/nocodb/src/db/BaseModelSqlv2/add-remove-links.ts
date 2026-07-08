@@ -641,6 +641,65 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             }
           }
 
+          // Per-link ordering (v2 junctions carrying Order columns): append the
+          // new links at the end of each side's order sequence. childOrderCol
+          // groups by vChildCol (the current record's side) so all new links go
+          // after the current record's existing links; parentOrderCol groups by
+          // vParentCol (each linked record's side), appended per linked record.
+          const childOrderCol = await colOptions.getMMChildOrderColumn(
+            mmContext,
+          );
+          const parentOrderCol = await colOptions.getMMParentOrderColumn(
+            mmContext,
+          );
+          if (childOrderCol || parentOrderCol) {
+            const currentSideVal =
+              dataWrapper(row).getByColumnNameTitleOrId(childColumn);
+
+            let childOrderBase = 0;
+            if (childOrderCol) {
+              const res = await baseModel
+                .dbDriver(vTn)
+                .max(`${childOrderCol.column_name} as m`)
+                .where(vChildCol.column_name, currentSideVal)
+                .first();
+              childOrderBase = Number(res?.m ?? 0) || 0;
+            }
+
+            const parentMaxByVal: Record<string, number> = {};
+            if (parentOrderCol) {
+              const parentVals = [
+                ...new Set(insertData.map((d) => d[vParentCol.column_name])),
+              ];
+              if (parentVals.length) {
+                const maxRows = await baseModel
+                  .dbDriver(vTn)
+                  .select(vParentCol.column_name)
+                  .max(`${parentOrderCol.column_name} as m`)
+                  .whereIn(vParentCol.column_name, parentVals)
+                  .groupBy(vParentCol.column_name);
+                for (const r of maxRows) {
+                  parentMaxByVal[r[vParentCol.column_name]] =
+                    Number(r.m ?? 0) || 0;
+                }
+              }
+            }
+
+            insertData = insertData.map((d, i) => {
+              const out = { ...d };
+              if (childOrderCol) {
+                out[childOrderCol.column_name] = childOrderBase + i + 1;
+              }
+              if (parentOrderCol) {
+                const pv = d[vParentCol.column_name];
+                const next = (parentMaxByVal[pv] ?? 0) + 1;
+                parentMaxByVal[pv] = next;
+                out[parentOrderCol.column_name] = next;
+              }
+              return out;
+            });
+          }
+
           // todo: use bulk insert
           await baseModel.execAndParse(
             baseModel.dbDriver(vTn).insert(insertData),

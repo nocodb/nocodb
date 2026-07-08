@@ -19,6 +19,25 @@ const logger = new Logger('JsonImportHandler');
 const MAX_FLATTEN_DEPTH = 3;
 
 /**
+ * Builds `jsonStream -> parser -> streamArray` for `for await` consumption.
+ *
+ * `.pipe()` does NOT forward `'error'` events downstream, so a parser error on
+ * malformed JSON is emitted on the parser stream — which has no listener — and
+ * becomes an `uncaughtException` that crashes the process. Forward upstream
+ * read/parse errors onto the consumed (final) stream so the `for await` throws a
+ * catchable error instead.
+ */
+function buildJsonArrayStream(jsonStream: Readable): Transform {
+  const parserStream = parser();
+  const arrayStream = streamArray();
+  const forwardError = (err: Error) => arrayStream.destroy(err);
+  jsonStream.on('error', forwardError);
+  parserStream.on('error', forwardError);
+  jsonStream.pipe(parserStream).pipe(arrayStream);
+  return arrayStream as Transform;
+}
+
+/**
  * Flattens a nested object: { a: { b: 1 } } → { "a_b": 1 }
  * Objects deeper than maxDepth are JSON-stringified.
  */
@@ -156,7 +175,7 @@ export class JsonImportHandler implements DataImportHandler {
 
     // If not an array, wrap it: { ... } → [{ ... }]
     const jsonStream = isArray ? stream : wrapAsArray(stream);
-    const pipeline = jsonStream.pipe(parser()).pipe(streamArray()) as Transform;
+    const pipeline = buildJsonArrayStream(jsonStream);
 
     const sampleRows: Record<string, any>[] = [];
     let totalRows = 0;
@@ -246,7 +265,7 @@ export class JsonImportHandler implements DataImportHandler {
 
     // If not an array, wrap it: { ... } → [{ ... }]
     const jsonStream = isArray ? stream : wrapAsArray(stream);
-    const pipeline = jsonStream.pipe(parser()).pipe(streamArray()) as Transform;
+    const pipeline = buildJsonArrayStream(jsonStream);
 
     // Don't swallow ERR_STREAM_PREMATURE_CLOSE here — a mid-stream abort
     // during import must surface so partial-success stats are reported

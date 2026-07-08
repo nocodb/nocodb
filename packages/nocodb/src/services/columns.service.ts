@@ -7032,23 +7032,34 @@ export class ColumnsService implements IColumnsService {
       // reads (WHERE fk = x ORDER BY order) and the append MAX(order) WHERE fk = x
       // on link insert stay index-backed. Skipped on snowflake (create-index +
       // identifier quoting bug, matches the FK-index handling above).
+      //
+      // Best-effort: these indexes are performance-only, and on replay/sandbox
+      // apply the junction is re-created with the SAME assocModel.id, so the
+      // deterministic index names can already exist. Swallow failures so a
+      // duplicate index never aborts (and orphans) the link creation.
       if (
         parentGroupOrderCol &&
         childGroupOrderCol &&
         param.source.type !== 'snowflake'
       ) {
-        await sqlMgr.sqlOpPlus(param.source, 'indexCreate', {
-          tn: aTn,
-          columns: [columnName, parentGroupOrderCol.column_name],
-          non_unique: true,
-          indexName: `nc_lo_p_${assocModel.id}`,
-        });
-        await sqlMgr.sqlOpPlus(param.source, 'indexCreate', {
-          tn: aTn,
-          columns: [refColumnName, childGroupOrderCol.column_name],
-          non_unique: true,
-          indexName: `nc_lo_c_${assocModel.id}`,
-        });
+        try {
+          await sqlMgr.sqlOpPlus(param.source, 'indexCreate', {
+            tn: aTn,
+            columns: [columnName, parentGroupOrderCol.column_name],
+            non_unique: true,
+            indexName: `nc_lo_p_${assocModel.id}`,
+          });
+          await sqlMgr.sqlOpPlus(param.source, 'indexCreate', {
+            tn: aTn,
+            columns: [refColumnName, childGroupOrderCol.column_name],
+            non_unique: true,
+            indexName: `nc_lo_c_${assocModel.id}`,
+          });
+        } catch (e) {
+          this.logger.warn(
+            `lookup order index creation skipped for ${aTn}: ${e?.message}`,
+          );
+        }
       }
 
       // todo: skip hm and bt if new type

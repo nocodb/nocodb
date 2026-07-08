@@ -252,6 +252,7 @@ export class DataTableController {
   }
 
   @Post(['/api/v2/tables/:modelId/links/:columnId/records/:rowId/reorder'])
+  @HttpCode(200)
   @Acl('nestedDataLink')
   async nestedReorder(
     @TenantContext() context: NcContext,

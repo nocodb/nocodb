@@ -7028,6 +7028,29 @@ export class ColumnsService implements IColumnsService {
         ? assocCols?.find((c) => c.column_name === childGroupOrderColName)
         : null;
 
+      // Composite index per order direction — (fk, order) — so the partitioned
+      // reads (WHERE fk = x ORDER BY order) and the append MAX(order) WHERE fk = x
+      // on link insert stay index-backed. Skipped on snowflake (create-index +
+      // identifier quoting bug, matches the FK-index handling above).
+      if (
+        parentGroupOrderCol &&
+        childGroupOrderCol &&
+        param.source.type !== 'snowflake'
+      ) {
+        await sqlMgr.sqlOpPlus(param.source, 'indexCreate', {
+          tn: aTn,
+          columns: [columnName, parentGroupOrderCol.column_name],
+          non_unique: true,
+          indexName: `nc_lo_p_${assocModel.id}`,
+        });
+        await sqlMgr.sqlOpPlus(param.source, 'indexCreate', {
+          tn: aTn,
+          columns: [refColumnName, childGroupOrderCol.column_name],
+          non_unique: true,
+          indexName: `nc_lo_c_${assocModel.id}`,
+        });
+      }
+
       // todo: skip hm and bt if new type
       const hmBtRefOut: { childRelColId?: string; savedColumnId?: string } = {};
       await createHmAndBtColumn(

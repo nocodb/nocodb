@@ -137,9 +137,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const excludedLinkedState = ref<Map<number, boolean>>(new Map())
     const excludedLoadingState = ref<Map<number, boolean>>(new Map())
 
-    // Tracks the active X-Request-ID for the excluded-list search so a slow,
-    // superseded response can't overwrite the current search term's results.
-    const excludedSearch = useHttpXRequestId('ltar-search')
+    // Client-side session guard for the excluded-list search: a slow, superseded
+    // response is dropped instead of overwriting the current search term's results.
+    const excludedSearch = useQuerySession()
 
     // Children list (linked items) cache
     const childrenCachedRows = ref<Map<number, Record<string, any>>>(new Map())
@@ -148,8 +148,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const childrenCachedLinkedState = ref<Map<number, boolean>>(new Map())
     const childrenCachedLoadingState = ref<Map<number, boolean>>(new Map())
 
-    // Tracks the active X-Request-ID for the children-list search (see excludedSearch).
-    const childrenSearch = useHttpXRequestId('ltar-search')
+    // Client-side session guard for the children-list search (see excludedSearch).
+    const childrenSearch = useQuerySession()
 
     const newRowState = reactive({
       state: null,
@@ -540,10 +540,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
-      // Tag this request; if the query changes while it's in flight the response
-      // is discarded rather than overwriting the newer search's results.
+      // Snapshot the current query session; if the query changes while this load
+      // is in flight the response is discarded rather than overwriting the newer
+      // search's results.
       const req = excludedSearch.track()
-      const reqParams: RequestParams = { headers: req.headers }
       try {
         let offset =
           childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
@@ -578,7 +578,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               headers: {
                 'xc-password': sharedViewPassword.value,
-                ...req.headers,
               },
               query: {
                 limit: childrenExcludedListPagination.size,
@@ -595,19 +594,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else if (isNewRow?.value) {
           const linkRowData = await sanitizeRowData(row.value.row)
 
-          result = await $api.internal.getOperation(
-            (column.value as any).fk_workspace_id!,
-            column.value!.base_id!,
-            {
-              operation: 'linkDataList',
-              limit: childrenExcludedListPagination.size,
-              offset,
-              where,
-              columnId: column.value.fk_column_id || column.value.id,
-              linkRowData: JSON.stringify(linkRowData),
-            },
-            reqParams,
-          )
+          result = await $api.internal.getOperation((column.value as any).fk_workspace_id!, column.value!.base_id!, {
+            operation: 'linkDataList',
+            limit: childrenExcludedListPagination.size,
+            offset,
+            where,
+            columnId: column.value.fk_column_id || column.value.id,
+            linkRowData: JSON.stringify(linkRowData),
+          })
           const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
           if (result.list && ids.size) {
             result.list = result.list.filter((item: Record<string, any>) => !ids.has(item.Id))
@@ -640,7 +634,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
               fields: requiredFieldsToLoad.value,
             } as any,
-            reqParams,
           )
         }
 
@@ -716,8 +709,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenList = async (resetOffset = false, activeState: any = undefined, limit: number | undefined = undefined) => {
       if (activeState) newRowState.state = activeState
 
-      // Tag this request; if the query changes while it's in flight the response
-      // is discarded rather than overwriting the newer search's results.
+      // Snapshot the current query session; if the query changes while this load
+      // is in flight the response is discarded rather than overwriting the newer
+      // search's results.
       const req = childrenSearch.track()
 
       try {
@@ -771,7 +765,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               {
                 headers: {
                   'xc-password': sharedViewPassword.value,
-                  ...req.headers,
                 },
               },
             )
@@ -789,7 +782,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 where,
                 fields: requiredFieldsToLoad.value,
               } as any,
-              { headers: req.headers },
             )
           }
 
@@ -1220,7 +1212,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // --- Chunk-based fetch and cache eviction for virtual scroll ---
 
-    const _fetchExcludedChunkData = async (offset: number, limit: number, reqId: string) => {
+    const _fetchExcludedChunkData = async (offset: number, limit: number) => {
       const where = getWhereClause(childrenExcludedListPagination.query)
 
       if (isPublic.value) {
@@ -1236,7 +1228,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           column.value.id,
           {},
           {
-            headers: { 'xc-password': sharedViewPassword.value, 'X-Request-ID': reqId },
+            headers: { 'xc-password': sharedViewPassword.value },
             query: {
               limit,
               offset,
@@ -1248,19 +1240,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         )
       } else if (isNewRow?.value) {
         const linkRowData = await sanitizeRowData(row.value.row)
-        return await $api.internal.getOperation(
-          (column.value as any).fk_workspace_id!,
-          column.value!.base_id!,
-          {
-            operation: 'linkDataList',
-            limit,
-            offset,
-            where,
-            columnId: column.value.fk_column_id || column.value.id,
-            linkRowData: JSON.stringify(linkRowData),
-          },
-          { headers: { 'X-Request-ID': reqId } },
-        )
+        return await $api.internal.getOperation((column.value as any).fk_workspace_id!, column.value!.base_id!, {
+          operation: 'linkDataList',
+          limit,
+          offset,
+          where,
+          columnId: column.value.fk_column_id || column.value.id,
+          linkRowData: JSON.stringify(linkRowData),
+        })
       } else {
         let changedRowData
         try {
@@ -1286,7 +1273,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             fields: requiredFieldsToLoad.value,
           } as any,
-          { headers: { 'X-Request-ID': reqId } },
         )
       }
     }
@@ -1325,7 +1311,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const req = excludedSearch.track()
       excludedChunkStates.value[chunkId] = 'loading'
       try {
-        const result = await _fetchExcludedChunkData(offset, CHUNK_SIZE, req.id)
+        const result = await _fetchExcludedChunkData(offset, CHUNK_SIZE)
         // A newer search superseded this request while it was in flight — drop the
         // stale response so it can't populate the freshly-reset cache.
         if (req.isStale()) return
@@ -1360,7 +1346,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // --- Children (linked items) cache ---
 
-    const _fetchChildrenChunkData = async (offset: number, limit: number, reqId: string) => {
+    const _fetchChildrenChunkData = async (offset: number, limit: number) => {
       const where = getWhereClause(childrenListPagination.query)
 
       if (isNewRow?.value || !rowId.value) {
@@ -1384,7 +1370,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           type.value as RelationTypes,
           column.value.id,
           { limit: String(limit), offset: String(offset), where } as any,
-          { headers: { 'xc-password': sharedViewPassword.value, 'X-Request-ID': reqId } },
+          { headers: { 'xc-password': sharedViewPassword.value } },
         )
       } else {
         return await $api.dbTableRow.nestedList(
@@ -1395,7 +1381,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           type.value as RelationTypes,
           column?.value?.id,
           { limit: String(limit), offset: String(offset), where, fields: requiredFieldsToLoad.value } as any,
-          { headers: { 'X-Request-ID': reqId } },
         )
       }
     }
@@ -1433,7 +1418,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const req = childrenSearch.track()
       childrenChunkStates.value[chunkId] = 'loading'
       try {
-        const result = await _fetchChildrenChunkData(offset, CHUNK_SIZE, req.id)
+        const result = await _fetchChildrenChunkData(offset, CHUNK_SIZE)
         // A newer search superseded this request while it was in flight — drop the
         // stale response so it can't populate the freshly-reset cache.
         if (req.isStale()) return

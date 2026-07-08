@@ -198,6 +198,9 @@ export const OperationName = {
   recordLinkAdd: 'recordLinkAdd',
   recordLinkRemove: 'recordLinkRemove',
   recordMove: 'recordMove',
+  // Per-link reorder within a v2 junction's ordered list (self-inverse:
+  // reorder back to the pre-move neighbour captured in entry.before)
+  recordLinkReorder: 'recordLinkReorder',
 
   // Compound link diff/swap ops (Phase D — single op, link↔unlink swap inverse)
   recordLinkSwap: 'recordLinkSwap',

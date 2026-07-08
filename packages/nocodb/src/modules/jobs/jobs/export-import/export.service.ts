@@ -293,6 +293,10 @@ export class ExportService {
               case 'fk_mm_child_column_id':
               case 'fk_mm_parent_column_id':
               case 'fk_mm_model_id':
+              // per-link order columns on the junction — remap like the other
+              // junction refs so duplicate/snapshot don't dangle at source ids
+              case 'fk_mm_child_order_column_id':
+              case 'fk_mm_parent_order_column_id':
               case 'fk_parent_column_id':
               case 'fk_child_column_id':
               case 'fk_related_model_id':

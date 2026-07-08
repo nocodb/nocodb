@@ -677,6 +677,46 @@ export class DataTableService {
     return true;
   }
 
+  // Move an existing link (`refRowId`) within `rowId`'s ordered list for a v2
+  // junction link, placing it before `before` (another linked record) or at the
+  // end when `before` is null.
+  @TraceCommand(OperationName.recordLinkReorder)
+  async nestedReorder(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      rowId: string;
+      refRowId: string | number;
+      before?: string | number | null;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.getColumn(context, param);
+
+    await baseModel.reorderLink({
+      colId: column.id,
+      rowId: param.rowId,
+      childId: param.refRowId,
+      before: param.before ?? null,
+      cookie: param.cookie,
+    });
+    return true;
+  }
+
   @TraceCommand(OperationName.recordLinkRemove)
   async nestedUnlink(
     context: NcContext,

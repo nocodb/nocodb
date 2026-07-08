@@ -251,6 +251,13 @@ export class DataTableController {
     });
   }
 
+  // Per-link reorder is exposed only via the internal-operations API
+  // (`nestedDataReorder` in UiPost.operations) — the same channel row reorder
+  // uses — so the tenant context (workspace + base) is carried in the URL and
+  // resolves on EE/cloud. The public /api/v2/tables REST route is intentionally
+  // not provided (it can't resolve the workspace for a GUI-session request on a
+  // shared host). The service method lives in DataTableService.nestedReorder.
+
   @Delete(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataUnlink')
   async nestedUnlink(

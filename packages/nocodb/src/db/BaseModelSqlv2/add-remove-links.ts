@@ -7,6 +7,7 @@ import {
   ncIsNullOrUndefined,
   RelationTypes,
 } from 'nocodb-sdk';
+import BigNumber from 'bignumber.js';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -639,6 +640,65 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                 }
               });
             }
+          }
+
+          // Per-link ordering (v2 junctions carrying Order columns): append the
+          // new links at the end of each side's order sequence. childOrderCol
+          // groups by vChildCol (the current record's side) so all new links go
+          // after the current record's existing links; parentOrderCol groups by
+          // vParentCol (each linked record's side), appended per linked record.
+          const childOrderCol = await colOptions.getMMChildOrderColumn(
+            mmContext,
+          );
+          const parentOrderCol = await colOptions.getMMParentOrderColumn(
+            mmContext,
+          );
+          if (childOrderCol || parentOrderCol) {
+            const currentSideVal =
+              dataWrapper(row).getByColumnNameTitleOrId(childColumn);
+
+            let childOrderBase = 0;
+            if (childOrderCol) {
+              const res = await baseModel
+                .dbDriver(vTn)
+                .max(`${childOrderCol.column_name} as m`)
+                .where(vChildCol.column_name, currentSideVal)
+                .first();
+              childOrderBase = Number(res?.m ?? 0) || 0;
+            }
+
+            const parentMaxByVal: Record<string, number> = {};
+            if (parentOrderCol) {
+              const parentVals = [
+                ...new Set(insertData.map((d) => d[vParentCol.column_name])),
+              ];
+              if (parentVals.length) {
+                const maxRows = await baseModel
+                  .dbDriver(vTn)
+                  .select(vParentCol.column_name)
+                  .max(`${parentOrderCol.column_name} as m`)
+                  .whereIn(vParentCol.column_name, parentVals)
+                  .groupBy(vParentCol.column_name);
+                for (const r of maxRows) {
+                  parentMaxByVal[r[vParentCol.column_name]] =
+                    Number(r.m ?? 0) || 0;
+                }
+              }
+            }
+
+            insertData = insertData.map((d, i) => {
+              const out = { ...d };
+              if (childOrderCol) {
+                out[childOrderCol.column_name] = childOrderBase + i + 1;
+              }
+              if (parentOrderCol) {
+                const pv = d[vParentCol.column_name];
+                const next = (parentMaxByVal[pv] ?? 0) + 1;
+                parentMaxByVal[pv] = next;
+                out[parentOrderCol.column_name] = next;
+              }
+              return out;
+            });
           }
 
           // todo: use bulk insert
@@ -1429,9 +1489,135 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       );
     });
   };
+  // Move an existing link `childId` within `rowId`'s ordered list of links for
+  // column `colId`, placing it immediately before `before` (another linked
+  // record's id) or at the end when `before` is null. Only the current side's
+  // order is changed — the junction Order column grouped by vChildCol, matching
+  // the read fallback in mmList / the mm lookup path. v2 junctions only.
+  const reorderLink = async ({
+    colId,
+    rowId,
+    childId,
+    before,
+    cookie,
+  }: {
+    cookie?: any;
+    colId: string;
+    rowId: string | number;
+    childId: string | number;
+    before?: string | number | null;
+  }) => {
+    const context = baseModel.context;
+
+    const column = (await baseModel.model.getColumns(context)).find(
+      (c) => c.id === colId,
+    );
+    if (!column || !isLinksOrLTAR(column)) {
+      NcError.get(context).unprocessableEntity(
+        `Link column not found: ${colId}`,
+      );
+    }
+    const colOptions = (await column.getColOptions(
+      context,
+    )) as LinkToAnotherRecordColumn;
+
+    // Ordering lives on the junction Order column — only present for v2
+    // junction-based links on NocoDB-managed sources. Its absence gates out
+    // hm/bt, v1 links, and external junctions with a clear error.
+    const { mmContext } = colOptions.getRelContext(context);
+    const orderCol = await colOptions.getMMChildOrderColumn(mmContext);
+    if (!orderCol) {
+      NcError.get(context).unprocessableEntity(
+        'This link does not support ordering',
+      );
+    }
+
+    const vChildCol = await colOptions.getMMChildColumn(mmContext);
+    const vParentCol = await colOptions.getMMParentColumn(mmContext);
+    const vTable = await colOptions.getMMModel(mmContext);
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: vTable,
+      dbDriver: baseModel.dbDriver,
+    });
+    const vTn = assocBaseModel.getTnPath(vTable);
+
+    // mm child/parent columns reference the related PKs, so rowId/childId ARE
+    // the junction FK values.
+    const partitionQb = () =>
+      baseModel.dbDriver(vTn).where(vChildCol.column_name, rowId);
+
+    // Reassign 1..n by current order within this partition (gap-recovery).
+    const reindexPartition = async () => {
+      const rows = await baseModel
+        .dbDriver(vTn)
+        .select(vParentCol.column_name)
+        .where(vChildCol.column_name, rowId)
+        .orderBy(orderCol.column_name, 'asc');
+      let i = 1;
+      for (const r of rows) {
+        await baseModel
+          .dbDriver(vTn)
+          .where(vChildCol.column_name, rowId)
+          .where(vParentCol.column_name, r[vParentCol.column_name])
+          .update({ [orderCol.column_name]: i++ });
+      }
+    };
+
+    let newOrder: BigNumber;
+    if (before === undefined || before === null || before === '') {
+      const maxRes = await partitionQb()
+        .max(`${orderCol.column_name} as m`)
+        .first();
+      newOrder = new BigNumber(maxRes?.m ?? 0).plus(1);
+    } else {
+      const beforeRow = await partitionQb()
+        .where(vParentCol.column_name, before)
+        .first();
+      if (!beforeRow) {
+        NcError.get(context).recordNotFound(`${before}`);
+      }
+      const beforeOrder = new BigNumber(beforeRow[orderCol.column_name] ?? 0);
+      const prevRes = await partitionQb()
+        .where(orderCol.column_name, '<', beforeOrder.toString())
+        .max(`${orderCol.column_name} as m`)
+        .first();
+      const prevOrder = new BigNumber(prevRes?.m ?? 0);
+      newOrder = prevOrder.plus(beforeOrder.minus(prevOrder).div(2));
+      // Fractional gap exhausted → reindex the partition to integers and retry
+      // once (consecutive integers always leave room for a midpoint).
+      if (newOrder.lte(prevOrder) || newOrder.gte(beforeOrder)) {
+        await reindexPartition();
+        return reorderLink({ colId, rowId, childId, before, cookie });
+      }
+    }
+
+    await partitionQb()
+      .where(vParentCol.column_name, childId)
+      .update({ [orderCol.column_name]: newOrder.toString() });
+
+    // Realtime: bump the current record's modified time and broadcast the link
+    // update so the grid canvas (and other clients) re-read the reordered cell —
+    // same as addLinks/removeLinks. Ordering is partitioned by the current
+    // record's junction FK, so only `rowId` needs to refresh.
+    await baseModel.updateLastModified({
+      model: baseModel.model,
+      rowIds: [rowId],
+      cookie,
+      updatedColIds: [column.id],
+    });
+    baseModel.dbDriver.attachToTransaction(async () => {
+      await baseModel
+        .getNonTransactionalClone()
+        .broadcastLinkUpdates([String(rowId)]);
+    });
+
+    return true;
+  };
+
   return {
     addLinks,
     removeLinks,
+    reorderLink,
     extractCorrespondingLinkColumn,
   };
 };

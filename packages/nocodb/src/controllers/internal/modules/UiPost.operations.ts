@@ -139,6 +139,7 @@ export class UiPostOperations
     'ganttViewUpdate' as const,
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
+    'nestedDataReorder' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
     'nestedDataBulkCopyPasteOrDeleteAll' as const,
     'nestedDataBulkLinkByDisplayValue' as const,
@@ -559,6 +560,18 @@ export class UiPostOperations
           viewId: req.query.viewId as string,
           columnId: req.query.columnId as string,
           refRowIds: payload,
+          cookie: req,
+          user: req.user,
+        });
+      case 'nestedDataReorder':
+        return await this.dataTableService.nestedReorder(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          query: req.query,
+          viewId: req.query.viewId as string,
+          columnId: req.query.columnId as string,
+          refRowId: req.query.refRowId as string,
+          before: (req.query.before as string) ?? null,
           cookie: req,
           user: req.user,
         });

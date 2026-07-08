@@ -550,6 +550,7 @@ declare module 'knex' {
 
       concat<TRecord, TResult>(
         cn: string | any,
+        orderBy?: string | any,
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       conditionGraph<TRecord, TResult>(condition: {
@@ -587,15 +588,22 @@ knex.QueryBuilder.extend(
 /**
  * Append concat to knex query builder
  */
-knex.QueryBuilder.extend('concat', function (cn: any) {
+knex.QueryBuilder.extend('concat', function (cn: any, orderBy?: any) {
   const clientName =
     typeof this?.client?.config?.client === 'string'
       ? this.client.config.client
       : this?.client?.driverName ?? this?.client?.dialect;
   switch (clientName) {
     case 'pg':
+      // `orderBy` (opt-in) is only wired for per-link ordering on PG; every
+      // existing caller passes no orderBy and gets the exact prior SQL.
       this.select(
-        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
+        orderBy
+          ? this.client.raw(
+              `STRING_AGG(??::character varying , ',' ORDER BY ??)`,
+              [cn, orderBy],
+            )
+          : this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
       );
       break;
     case 'mysql':

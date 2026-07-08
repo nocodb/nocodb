@@ -244,6 +244,7 @@ const permissionScopes = {
     'nestedDataList',
     'nestedDataLink',
     'nestedDataUnlink',
+    'nestedDataReorder',
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
     'sourceCreate',
@@ -551,6 +552,7 @@ const rolePermissions:
 
       nestedDataLink: true,
       nestedDataUnlink: true,
+      nestedDataReorder: true,
       nestedListCopyPasteOrDeleteAll: true,
       // TODO add ACL with base scope
       // upload: true,
@@ -817,6 +819,7 @@ export const sourceRestrictions = {
     nestedDataBulkLinkByDisplayValue: true,
     nestedDataUnlink: true,
     nestedDataLink: true,
+    nestedDataReorder: true,
   },
 };
 

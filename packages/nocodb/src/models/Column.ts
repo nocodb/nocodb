@@ -371,6 +371,8 @@ export default class Column<T = any> implements ColumnType {
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,
+            fk_mm_child_order_column_id: column.fk_mm_child_order_column_id,
+            fk_mm_parent_order_column_id: column.fk_mm_parent_order_column_id,
 
             // cross base link props
             fk_related_base_id: column.fk_related_base_id,
@@ -2149,6 +2151,8 @@ export default class Column<T = any> implements ColumnType {
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,
+            fk_mm_child_order_column_id: column.fk_mm_child_order_column_id,
+            fk_mm_parent_order_column_id: column.fk_mm_parent_order_column_id,
 
             ur: column.ur,
             dr: column.dr,

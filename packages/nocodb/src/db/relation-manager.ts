@@ -312,6 +312,65 @@ export class RelationManager {
   }
 
   /**
+   * Per-link ordering for v2 junctions carrying Order columns: compute the
+   * append-at-end order value(s) for the single new junction row this addChild
+   * inserts. childOrderCol partitions by vChildCol (the child-side FK) and
+   * parentOrderCol by vParentCol (the parent-side FK) — each new row lands after
+   * the current max within its own partition. Mirrors the batch logic in
+   * add-remove-links `addLinks` for the single-row (v1 mm API) path. Returns an
+   * empty object for v1 links / external junctions (no Order columns).
+   */
+  private async computeJunctionAppendOrder(params: {
+    runner: any;
+    vTn: string | Knex.Raw;
+    vChildCol: Column;
+    vParentCol: Column;
+  }): Promise<Record<string, number>> {
+    const {
+      relationColOptions: colOptions,
+      mmContext,
+      parentColumn,
+      childColumn,
+      parentTable,
+      childTable,
+      parentTn,
+      childTn,
+      parentId,
+      childId,
+    } = this.relationContext;
+    const { runner, vTn, vChildCol, vParentCol } = params;
+
+    const childOrderCol = await colOptions.getMMChildOrderColumn(mmContext);
+    const parentOrderCol = await colOptions.getMMParentOrderColumn(mmContext);
+    const out: Record<string, number> = {};
+    if (!childOrderCol && !parentOrderCol) return out;
+
+    if (childOrderCol) {
+      const childValSub = runner(childTn)
+        .select(childColumn.column_name)
+        .where(_wherePk(childTable.primaryKeys, childId))
+        .first();
+      const res = await runner(vTn)
+        .max(`${childOrderCol.column_name} as m`)
+        .where(vChildCol.column_name, childValSub)
+        .first();
+      out[childOrderCol.column_name] = (Number(res?.m ?? 0) || 0) + 1;
+    }
+    if (parentOrderCol) {
+      const parentValSub = runner(parentTn)
+        .select(parentColumn.column_name)
+        .where(_wherePk(parentTable.primaryKeys, parentId))
+        .first();
+      const res = await runner(vTn)
+        .max(`${parentOrderCol.column_name} as m`)
+        .where(vParentCol.column_name, parentValSub)
+        .first();
+      out[parentOrderCol.column_name] = (Number(res?.m ?? 0) || 0) + 1;
+    }
+    return out;
+  }
+
+  /**
    * Batch delete junction rows by a filter column value (using a subquery).
    * Returns the FK pairs that were deleted for audit log generation.
    *
@@ -625,6 +684,12 @@ export class RelationManager {
           await insertQb;
         }
       } else {
+        const orderVals = await this.computeJunctionAppendOrder({
+          runner: trx,
+          vTn,
+          vChildCol,
+          vParentCol,
+        });
         const insertObj = {
           [vParentCol.column_name]: trx(parentTn)
             .select(parentColumn.column_name)
@@ -634,6 +699,7 @@ export class RelationManager {
             .select(childColumn.column_name)
             .where(_wherePk(childTable.primaryKeys, childId))
             .first(),
+          ...orderVals,
         };
         const insertQb = trx(vTn).insert(insertObj);
         if (isExternal) {
@@ -798,6 +864,12 @@ export class RelationManager {
                 { raw: true },
               );
             } else {
+              const orderVals = await this.computeJunctionAppendOrder({
+                runner: baseModel.dbDriver,
+                vTn,
+                vChildCol,
+                vParentCol,
+              });
               await assocBaseModel.execAndParse(
                 baseModel.dbDriver(vTn).insert({
                   [vParentCol.column_name]: baseModel
@@ -810,6 +882,7 @@ export class RelationManager {
                     .select(childColumn.column_name)
                     .where(_wherePk(childTable.primaryKeys, childId))
                     .first(),
+                  ...orderVals,
                 }),
                 null,
                 { raw: true },

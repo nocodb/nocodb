@@ -70,6 +70,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { base, isSharedBase } = storeToRefs(useBase())
 
+    const { isPg } = useBase()
+
     const { getBaseRoles } = useBases()
 
     const { $api, $e } = useNuxtApp()
@@ -1444,7 +1446,66 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenListOffsetCount.value = 0
     }
 
+    // Per-link ordering (v2 mm on Postgres): the NocoDB-managed junction carries
+    // a per-direction Order column, so linked records can be manually arranged.
+    // Only surfaced when the junction actually has the order column
+    // (`fk_mm_child_order_column_id`) AND the source is Postgres — the ordered
+    // read is PG-only, so reordering elsewhere would be a confusing no-op.
+    // Reorder applies to any multi-value junction side (mm, and the "many" side
+    // of a v2 one-to-many) — i.e. not the single-target sides (bt/mo/oo/bt-like).
+    // The junction Order column must exist (only present for v2 mm-like links on
+    // NocoDB-managed sources) and the source must be Postgres (ordered read is
+    // PG-only). v1 hm has no junction/Order column, so it's excluded here anyway.
+    const canReorder = computed(
+      () =>
+        !isSingleTargetRelation.value && !!(colOptions.value as any)?.fk_mm_child_order_column_id && isPg(meta.value?.source_id),
+    )
+
+    // Move `movedRow` before `beforeRow` (both related-table rows), or to the end
+    // when `beforeRow` is null. Extracts the related-table PKs and calls the
+    // per-link reorder endpoint, then reloads the child list so the new order is
+    // reflected. No-op unless `canReorder` (v2 mm on Postgres).
+    const reorderLink = async (
+      movedRow: Record<string, any>,
+      beforeRow: Record<string, any> | null = null,
+      { metaValue = meta.value }: { metaValue?: TableType } = {},
+    ) => {
+      if (!rowId.value || !column.value?.id) return
+
+      const refRowId = getRelatedTableRowId(movedRow)
+      if (refRowId === undefined || refRowId === null) return
+      const before = beforeRow ? getRelatedTableRowId(beforeRow) ?? null : null
+
+      // Route through the internal-operations API — the same channel row reorder
+      // (`dataMove`) uses — rather than the public `/api/v2/tables` REST family,
+      // which isn't exposed to the app on EE/cloud deployments (there the GUI
+      // reaches data via `/api/v1/db/data` and meta via `/api/v2/internal`).
+      await $api.internal.postOperation(
+        (metaValue as any)?.fk_workspace_id,
+        metaValue?.base_id as string,
+        {
+          operation: 'nestedDataReorder',
+          tableId: metaValue?.id,
+          columnId: column.value.id,
+          rowId: rowId.value,
+          refRowId,
+          before,
+        } as any,
+        undefined,
+      )
+
+      $e('a:links:reorder')
+      await loadChildrenList()
+      // Refresh the originating client's grid row (CE path). On EE this is a
+      // no-op and the NocoSocket broadcast from the backend refreshes the canvas
+      // instead — same split as link()/unlink().
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
+    }
+
     return {
+      canReorder,
+      reorderLink,
+      getRelatedTableRowId,
       relatedTableMeta,
       isLinkedTableAccessible,
       loadRelatedTableMeta,

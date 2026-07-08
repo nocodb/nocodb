@@ -1451,9 +1451,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // Only surfaced when the junction actually has the order column
     // (`fk_mm_child_order_column_id`) AND the source is Postgres — the ordered
     // read is PG-only, so reordering elsewhere would be a confusing no-op.
+    // Reorder applies to any multi-value junction side (mm, and the "many" side
+    // of a v2 one-to-many) — i.e. not the single-target sides (bt/mo/oo/bt-like).
+    // The junction Order column must exist (only present for v2 mm-like links on
+    // NocoDB-managed sources) and the source must be Postgres (ordered read is
+    // PG-only). v1 hm has no junction/Order column, so it's excluded here anyway.
     const canReorder = computed(
       () =>
-        type.value === RelationTypes.MANY_TO_MANY &&
+        !isSingleTargetRelation.value &&
         !!(colOptions.value as any)?.fk_mm_child_order_column_id &&
         isPg(meta.value?.source_id),
     )

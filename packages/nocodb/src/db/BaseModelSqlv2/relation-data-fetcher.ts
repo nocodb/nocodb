@@ -357,6 +357,10 @@ export const relationDataFetcher = (param: {
           );
           if (linkOrderCol) {
             qb.orderBy(`${vtn}.${linkOrderCol.column_name}`, 'asc');
+            // Deterministic tiebreak on the related-side junction FK (part of
+            // the junction PK) so equal order values (backfill/manual/concurrent)
+            // never yield a nondeterministic read order.
+            qb.orderBy(`${vtn}.${vrcn}`, 'asc');
           }
         }
       }

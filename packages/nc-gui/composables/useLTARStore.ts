@@ -1493,6 +1493,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       $e('a:links:reorder')
       await loadChildrenList()
+      // Refresh the originating client's grid row (CE path). On EE this is a
+      // no-op and the NocoSocket broadcast from the backend refreshes the canvas
+      // instead — same split as link()/unlink().
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
     }
 
     return {

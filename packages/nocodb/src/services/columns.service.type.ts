@@ -58,6 +58,9 @@ export interface LtarSideEffectIds {
   /** FK columns on the assoc table (mm path) — pre-set on `associateTableCols` so `Column.bulkInsert` honors them. */
   assocChildColId?: string;
   assocParentColId?: string;
+  /** Per-link Order columns on the assoc table — pre-set for replay id preservation. */
+  assocChildOrderColId?: string;
+  assocParentOrderColId?: string;
   /** Two `createHmAndBtColumn` calls for mm — assoc→ref and assoc→table. */
   hmBtCallRef?: LtarHmBtIds;
   hmBtCallTable?: LtarHmBtIds;

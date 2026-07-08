@@ -5589,8 +5589,15 @@ export class ColumnsService implements IColumnsService {
                     await mmTable.getColumns(mmContext, ncMeta);
 
                     // ignore deleting table if it has more than 2 columns
-                    // the expected 2 columns would be table1_id & table2_id
-                    if (mmTable.columns.length === 2) {
+                    // the expected 2 columns would be table1_id & table2_id.
+                    // Exclude the system per-link Order columns — they're ours,
+                    // not user-added data, so their presence must not block the
+                    // junction purge.
+                    if (
+                      mmTable.columns.filter(
+                        (c) => c.uidt !== UITypes.Order,
+                      ).length === 2
+                    ) {
                       const mmSource =
                         relationColOpt.fk_mm_source_id &&
                         relationColOpt.fk_mm_source_id !== source.id
@@ -6945,7 +6952,15 @@ export class ColumnsService implements IColumnsService {
           'nc_order',
         );
         for (const cn of [parentGroupOrderColName, childGroupOrderColName]) {
+          // Preserve ids on sandbox replay (mirrors the assoc FK columns) so the
+          // replayed junction's columns match the source — else the order
+          // columns get fresh ids and break sandbox→master id preservation.
+          const replayOrderId =
+            cn === parentGroupOrderColName
+              ? replayIds?.assocParentOrderColId
+              : replayIds?.assocChildOrderColId;
           associateTableCols.push({
+            ...(replayOrderId ? { id: replayOrderId } : {}),
             ...orderProps,
             cn,
             column_name: cn,
@@ -7294,6 +7309,8 @@ export class ColumnsService implements IColumnsService {
         capture.reverseColumnId = parentRelCol.id;
         capture.assocChildColId = childCol.id;
         capture.assocParentColId = parentCol.id;
+        capture.assocChildOrderColId = childGroupOrderCol?.id;
+        capture.assocParentOrderColId = parentGroupOrderCol?.id;
         capture.hmBtCallRef = hmBtRefOut;
         capture.hmBtCallTable = hmBtTableOut;
       }

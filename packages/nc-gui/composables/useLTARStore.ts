@@ -787,7 +787,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           // A newer search superseded this request while it was in flight — drop
           // the stale response so it can't replace the current term's results.
-          if (req.isStale()) return
+          // Return the current list (not undefined) to keep a stable return contract.
+          if (req.isStale()) return childrenList.value
 
           childrenList.value = result
         }
@@ -1340,6 +1341,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       excludedLoadingState.value = new Map()
       excludedChunkStates.value = []
       excludedTotalRows.value = 0
+      // Clear the loading flag here too: a superseded request no longer clears it
+      // (its finally is guarded by isCurrent), and a reset can run without a paired
+      // load (e.g. the search input's @change), which would otherwise leave the
+      // spinner stuck. Safe — a stale request won't touch it, and the next load re-sets it.
+      isChildrenExcludedLoading.value = false
       // Supersede any in-flight requests — their (now stale) responses are dropped.
       excludedSearch.refresh()
     }
@@ -1448,6 +1454,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenChunkStates.value = []
       childrenCachedTotalRows.value = 0
       pendingLinkRows.value = []
+      // Clear the loading flag here too (see resetExcludedCache) so a reset without
+      // a paired load can't leave the spinner stuck.
+      isChildrenLoading.value = false
       // Supersede any in-flight requests — their (now stale) responses are dropped.
       childrenSearch.refresh()
     }

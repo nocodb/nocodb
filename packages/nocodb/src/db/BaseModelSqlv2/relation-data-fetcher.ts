@@ -351,7 +351,9 @@ export const relationDataFetcher = (param: {
         // The junction Order column grouped by the current side's FK (vcn, i.e.
         // getMMChildColumn) holds this record's manual arrangement of its links.
         // v1 links / external junctions have no such column → natural order.
-        if (!childSorts?.length) {
+        // Per-link ordering is Postgres-only (the Order column exists on any
+        // isMeta source, but ordering by it is only wired/valid on pg).
+        if (!childSorts?.length && baseModel.isPg) {
           const linkOrderCol = await relColOptions.getMMChildOrderColumn(
             mmContext,
           );

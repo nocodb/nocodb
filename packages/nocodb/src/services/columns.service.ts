@@ -6920,6 +6920,48 @@ export class ColumnsService implements IColumnsService {
         },
       );
 
+      // Per-link ordering (v2 links, NocoDB-managed sources only): add two system
+      // Order columns to the junction table — one to order rows within each
+      // parent-FK group and one within each child-FK group — so each side of the
+      // link can be ordered independently (Airtable parity). Skipped for v1 links
+      // and external sources, mirroring the nc_order exclusion for mm tables.
+      const addLinkOrder = isMMLike && param.source.isMeta();
+      let parentGroupOrderColName: string | undefined;
+      let childGroupOrderColName: string | undefined;
+      if (addLinkOrder) {
+        const orderProps = await getColumnPropsFromUIDT(
+          { uidt: UITypes.Order } as any,
+          param.source,
+        );
+        parentGroupOrderColName = getUniqueColumnName(
+          associateTableCols as any,
+          'nc_order',
+        );
+        childGroupOrderColName = getUniqueColumnName(
+          [
+            ...associateTableCols,
+            { column_name: parentGroupOrderColName },
+          ] as any,
+          'nc_order',
+        );
+        for (const cn of [parentGroupOrderColName, childGroupOrderColName]) {
+          associateTableCols.push({
+            ...orderProps,
+            cn,
+            column_name: cn,
+            title: cn,
+            rqd: false,
+            pk: false,
+            ai: false,
+            cdf: null,
+            un: false,
+            altered: 1,
+            system: true,
+            uidt: UITypes.Order,
+          });
+        }
+      }
+
       await sqlMgr.sqlOpPlus(param.source, 'tableCreate', {
         tn: aTn,
         _tn: aTnAlias,
@@ -6973,12 +7015,18 @@ export class ColumnsService implements IColumnsService {
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
 
-      const parentCol = (await assocModel.getColumns(context))?.find(
-        (c) => c.column_name === columnName,
-      );
-      const childCol = (await assocModel.getColumns(context))?.find(
-        (c) => c.column_name === refColumnName,
-      );
+      const assocCols = await assocModel.getColumns(context);
+      const parentCol = assocCols?.find((c) => c.column_name === columnName);
+      const childCol = assocCols?.find((c) => c.column_name === refColumnName);
+      // The two junction Order columns (null unless addLinkOrder). "parentGroup"
+      // orders rows within each parentCol (FK→this table) group; "childGroup"
+      // within each childCol (FK→ref table) group.
+      const parentGroupOrderCol = parentGroupOrderColName
+        ? assocCols?.find((c) => c.column_name === parentGroupOrderColName)
+        : null;
+      const childGroupOrderCol = childGroupOrderColName
+        ? assocCols?.find((c) => c.column_name === childGroupOrderColName)
+        : null;
 
       // todo: skip hm and bt if new type
       const hmBtRefOut: { childRelColId?: string; savedColumnId?: string } = {};
@@ -7112,6 +7160,10 @@ export class ColumnsService implements IColumnsService {
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,
         fk_mm_parent_column_id: childCol.id,
+        // child order column groups by fk_mm_child_column (parentCol); parent
+        // order column groups by fk_mm_parent_column (childCol).
+        fk_mm_child_order_column_id: parentGroupOrderCol?.id ?? null,
+        fk_mm_parent_order_column_id: childGroupOrderCol?.id ?? null,
         fk_related_model_id: refTable.id,
         dr: 'NO ACTION',
         ur: 'NO ACTION',
@@ -7170,6 +7222,9 @@ export class ColumnsService implements IColumnsService {
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
+        // reverse: child order groups by childCol, parent order by parentCol.
+        fk_mm_child_order_column_id: childGroupOrderCol?.id ?? null,
+        fk_mm_parent_order_column_id: parentGroupOrderCol?.id ?? null,
         fk_related_model_id: table.id,
         dr: 'NO ACTION',
         ur: 'NO ACTION',

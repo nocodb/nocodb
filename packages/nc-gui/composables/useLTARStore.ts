@@ -1458,9 +1458,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // PG-only). v1 hm has no junction/Order column, so it's excluded here anyway.
     const canReorder = computed(
       () =>
-        !isSingleTargetRelation.value &&
-        !!(colOptions.value as any)?.fk_mm_child_order_column_id &&
-        isPg(meta.value?.source_id),
+        !isSingleTargetRelation.value && !!(colOptions.value as any)?.fk_mm_child_order_column_id && isPg(meta.value?.source_id),
     )
 
     // Move `movedRow` before `beforeRow` (both related-table rows), or to the end

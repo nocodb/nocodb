@@ -1,10 +1,7 @@
 import { ClientType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type {
-  AggregationGeneratorParams,
-  DBQueryClient,
-} from '~/dbQueryClient/types';
+import type { DBQueryClient } from '~/dbQueryClient/types';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
 export class MssqlDBQueryClient
@@ -23,10 +20,6 @@ export class MssqlDBQueryClient
   }
 
   simpleCast(_field: string, _asType: string): string {
-    throw new Error(MssqlDBQueryClient.EE_ONLY);
-  }
-
-  generateAggregateQuery(_params: AggregationGeneratorParams): string {
     throw new Error(MssqlDBQueryClient.EE_ONLY);
   }
 

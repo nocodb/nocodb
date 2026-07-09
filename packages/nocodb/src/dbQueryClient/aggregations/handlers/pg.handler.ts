@@ -1,5 +1,4 @@
 import {
-  AllAggregations,
   AttachmentAggregations,
   BooleanAggregations,
   CommonAggregations,
@@ -8,71 +7,61 @@ import {
   NumericalAggregations,
   UITypes,
 } from 'nocodb-sdk';
-import type { Knex } from 'knex';
-import type { Column } from '~/models';
-import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Knex } from '~/db/CustomKnex';
+import type { AggregationGeneratorParams } from '~/dbQueryClient/types';
+import type { AggregationSqlContext } from '~/dbQueryClient/aggregations/aggregation-handler.interface';
+import { GenericAggregationHandler } from '~/dbQueryClient/aggregations/handlers/generic';
 
-export function genPgAggregateQuery({
-  column,
-  baseModelSqlv2,
-  aggregation,
-  column_query,
-  parsedFormulaType,
-  aggType,
-  alias,
-}: {
-  column: Column;
-  column_query: string | Knex.QueryBuilder;
-  baseModelSqlv2: IBaseModelSqlV2;
-  aggregation: string;
-  parsedFormulaType?: FormulaDataTypes;
-  aggType:
-    | 'common'
-    | 'numerical'
-    | 'boolean'
-    | 'date'
-    | 'attachment'
-    | 'unknown';
-  alias?: string;
-}) {
-  let aggregationSql: Knex.Raw | undefined;
+/** PostgreSQL aggregation SQL — `FILTER (WHERE ...)` based. */
+export class PgAggregationHandler extends GenericAggregationHandler {
+  protected buildContext(
+    params: AggregationGeneratorParams,
+  ): AggregationSqlContext {
+    const { column, baseModelSqlv2, parsedFormulaType } = params;
+    const knex = baseModelSqlv2.dbDriver;
 
-  const { dbDriver: knex } = baseModelSqlv2;
+    let condnValue: any = "''";
+    // Native PG enum columns reject '' with "invalid input value for enum",
+    // and an enum cell can't hold '' anyway — IS NULL alone covers "empty".
+    const isNativePgEnum = !!column.internal_meta?.pg_enum_type_name;
+    if (
+      [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Number,
+        UITypes.Decimal,
+        UITypes.Year,
+        UITypes.Currency,
+        UITypes.Duration,
+        UITypes.Time,
+        UITypes.Percent,
+        UITypes.Rollup,
+        UITypes.Links,
+        UITypes.ID,
+        UITypes.AutoNumber,
+        UITypes.UUID,
+      ].includes(column.uidt) ||
+      [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
+        parsedFormulaType,
+      ) ||
+      isNativePgEnum
+    ) {
+      condnValue = 'NULL';
+    } else if ([UITypes.Rating].includes(column.uidt)) {
+      condnValue = 0;
+    }
 
-  let condnValue: any = "''";
-  // Native PG enum columns reject '' with "invalid input value for enum",
-  // and an enum cell can't hold '' anyway — IS NULL alone covers "empty".
-  const isNativePgEnum = !!column.internal_meta?.pg_enum_type_name;
-  if (
-    [
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Number,
-      UITypes.Decimal,
-      UITypes.Year,
-      UITypes.Currency,
-      UITypes.Duration,
-      UITypes.Time,
-      UITypes.Percent,
-      UITypes.Rollup,
-      UITypes.Links,
-      UITypes.ID,
-      UITypes.AutoNumber,
-      UITypes.UUID,
-    ].includes(column.uidt) ||
-    [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
-      parsedFormulaType,
-    ) ||
-    isNativePgEnum
-  ) {
-    condnValue = 'NULL';
-  } else if ([UITypes.Rating].includes(column.uidt)) {
-    condnValue = 0;
+    return { ...params, knex, condnValue };
   }
 
-  if (aggType === 'common') {
+  protected common(ctx: AggregationSqlContext): Knex.Raw | undefined {
+    const { knex, column, aggregation, column_query, parsedFormulaType } = ctx;
+    const condnValue = ctx.condnValue;
+
+    let aggregationSql: Knex.Raw | undefined;
+
     switch (aggregation) {
       case CommonAggregations.Count:
         aggregationSql = knex.raw(`COUNT(*)`);
@@ -282,7 +271,16 @@ export function genPgAggregateQuery({
       case CommonAggregations.None:
         break;
     }
-  } else if (aggType === 'numerical') {
+
+    return aggregationSql;
+  }
+
+  protected numerical(ctx: AggregationSqlContext): Knex.Raw | undefined {
+    const { knex, column, aggregation, column_query } = ctx;
+    const condnValue = ctx.condnValue;
+
+    let aggregationSql: Knex.Raw | undefined;
+
     switch (aggregation) {
       case NumericalAggregations.Avg:
         if (column.uidt === UITypes.Rating) {
@@ -350,7 +348,15 @@ export function genPgAggregateQuery({
       default:
         break;
     }
-  } else if (aggType === 'boolean') {
+
+    return aggregationSql;
+  }
+
+  protected boolean(ctx: AggregationSqlContext): Knex.Raw | undefined {
+    const { knex, aggregation, column_query } = ctx;
+
+    let aggregationSql: Knex.Raw | undefined;
+
     switch (aggregation) {
       case BooleanAggregations.Checked:
         aggregationSql = knex.raw(`COUNT(*) FILTER (WHERE (??) = true)`, [
@@ -378,7 +384,15 @@ export function genPgAggregateQuery({
       default:
         break;
     }
-  } else if (aggType === 'date') {
+
+    return aggregationSql;
+  }
+
+  protected date(ctx: AggregationSqlContext): Knex.Raw | undefined {
+    const { knex, aggregation, column_query } = ctx;
+
+    let aggregationSql: Knex.Raw | undefined;
+
     switch (aggregation) {
       case DateAggregations.EarliestDate:
         aggregationSql = knex.raw(`MIN((??))`, [column_query]);
@@ -409,7 +423,15 @@ export function genPgAggregateQuery({
       default:
         break;
     }
-  } else if (aggType === 'attachment') {
+
+    return aggregationSql;
+  }
+
+  protected attachment(ctx: AggregationSqlContext): Knex.Raw | undefined {
+    const { knex, aggregation, column_query } = ctx;
+
+    let aggregationSql: Knex.Raw | undefined;
+
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
@@ -418,21 +440,7 @@ export function genPgAggregateQuery({
         );
         break;
     }
+
+    return aggregationSql;
   }
-
-  if (aggregationSql) {
-    if (
-      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
-        aggregation as any,
-      )
-    ) {
-      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
-    }
-
-    if (alias) {
-      aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
-    }
-  }
-
-  return aggregationSql?.toQuery();
 }

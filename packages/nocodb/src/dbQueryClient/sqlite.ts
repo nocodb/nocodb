@@ -1,13 +1,9 @@
 import { ClientType } from 'nocodb-sdk';
-import type {
-  AggregationGeneratorParams,
-  DBQueryClient,
-} from '~/dbQueryClient/types';
+import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
-import { genSqlite3AggregateQuery } from '~/dbQueryClient/aggregations/sqlite3';
 
 export class SqliteDBQueryClient
   extends GenericDBQueryClient
@@ -21,10 +17,6 @@ export class SqliteDBQueryClient
   }
   simpleCast(field: string, asType: string) {
     return `CAST(${field} as ${asType})`;
-  }
-
-  generateAggregateQuery(params: AggregationGeneratorParams) {
-    return genSqlite3AggregateQuery(params);
   }
 
   bulkAggregateRowSelector(

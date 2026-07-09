@@ -1,12 +1,8 @@
 import { ClientType } from 'nocodb-sdk';
-import type {
-  AggregationGeneratorParams,
-  DBQueryClient,
-} from '~/dbQueryClient/types';
+import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
-import { genMysql2AggregatedQuery } from '~/dbQueryClient/aggregations/mysql2';
 
 export class MySqlDBQueryClient
   extends GenericDBQueryClient
@@ -27,10 +23,6 @@ export class MySqlDBQueryClient
   simpleCast(field: string, asType: string) {
     const useAsType = asType.toUpperCase() === 'TEXT' ? 'CHAR' : asType;
     return `CAST(${field} as ${useAsType})`;
-  }
-
-  generateAggregateQuery(params: AggregationGeneratorParams) {
-    return genMysql2AggregatedQuery(params);
   }
 
   bulkAggregateRowSelector(

@@ -1291,6 +1291,10 @@ export class SnowflakeUi implements SqlUi {
       'ARRAYUNIQUE',
       'ARRAYSLICE',
       'ARRAYCOMPACT',
+      // Checksum functions are only mapped for PostgreSQL and MySQL.
+      'MD5',
+      'SHA256',
+      'SHA512',
     ];
   }
 

@@ -1057,6 +1057,51 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#regex_replace`,
   },
+  MD5: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Computes the MD5 hash (as a 32-character hexadecimal string) of the input value. Useful for checksums and verifying data integrity.',
+    syntax: 'MD5(value)',
+    examples: [
+      'MD5({title})',
+      'MD5("nocodb") => "d867ba3554696af54e71a5b42ccd4947"',
+    ],
+    returnType: FormulaDataTypes.STRING,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#md5`,
+  },
+  SHA256: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Computes the SHA-256 hash (as a 64-character hexadecimal string) of the input value. Useful for checksums and verifying data integrity.',
+    syntax: 'SHA256(value)',
+    examples: ['SHA256({title})', 'SHA256("nocodb")'],
+    returnType: FormulaDataTypes.STRING,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#sha256`,
+  },
+  SHA512: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Computes the SHA-512 hash (as a 128-character hexadecimal string) of the input value. Useful for checksums and verifying data integrity.',
+    syntax: 'SHA512(value)',
+    examples: ['SHA512({title})', 'SHA512("nocodb")'],
+    returnType: FormulaDataTypes.STRING,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#sha512`,
+  },
   BLANK: {
     validation: {
       args: {

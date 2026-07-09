@@ -393,6 +393,28 @@ const pg = {
       ]),
     };
   },
+  MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`MD5(?::TEXT)`, [source]),
+    };
+  },
+  SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`ENCODE(SHA256(CONVERT_TO(?::TEXT, 'UTF8')), 'hex')`, [
+        source,
+      ]),
+    };
+  },
+  SHA512: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`ENCODE(SHA512(CONVERT_TO(?::TEXT, 'UTF8')), 'hex')`, [
+        source,
+      ]),
+    };
+  },
   XOR: async ({ fn, knex, pt }: MapFnArgs) => {
     const predicates = (pt.arguments.map(() => '?') as string[]).join(' # ');
     const parsedArguments = await Promise.all(

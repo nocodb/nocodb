@@ -201,6 +201,24 @@ const mysql2 = {
       ]),
     };
   },
+  MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`MD5(?)`, [source]),
+    };
+  },
+  SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`SHA2(?, 256)`, [source]),
+    };
+  },
+  SHA512: async ({ fn, knex, pt }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`SHA2(?, 512)`, [source]),
+    };
+  },
   XOR: async ({ fn, knex, pt }: MapFnArgs) => {
     const args = await Promise.all(
       pt.arguments.map(async (arg) => {

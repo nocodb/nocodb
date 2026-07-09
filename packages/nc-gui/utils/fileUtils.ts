@@ -38,11 +38,11 @@ const videoExt = [
   'mp4a',
 ]
 
-const wordExt = ['txt', 'doc', 'docx']
+const wordExt = ['txt', 'doc', 'docx', 'odt']
 
-const excelExt = ['xls', 'xlsx', 'csv']
+const excelExt = ['xls', 'xlsx', 'csv', 'ods']
 
-const presentationExt = ['ppt', 'pptx']
+const presentationExt = ['ppt', 'pptx', 'odp']
 
 const zipExt = ['zip', 'rar']
 

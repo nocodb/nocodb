@@ -94,6 +94,38 @@ export function getDateTimeFormat(v: string) {
   return 'YYYY/MM/DD HH:mm';
 }
 
+// dayjs' customParseFormat plugin only accepts zero-padded month/day/hour/
+// minute/second segments when the format string uses the padded tokens (MM,
+// DD, HH, ...). Users routinely type or paste unpadded dates (e.g. "5/5/2026"
+// for an MM/DD/YYYY column). This returns an unpadded variant of a format
+// (MM -> M, DD -> D, ...) so those values parse the same way the padded form
+// does. Month-name (MMM/MMMM) and weekday (ddd/dddd) tokens are left untouched.
+export function getUnpaddedDateFormat(format: string) {
+  return format
+    .replace(/(?<!M)MM(?!M)/g, 'M')
+    .replace(/(?<!D)DD(?!D)/g, 'D')
+    .replace(/(?<!H)HH(?!H)/g, 'H')
+    .replace(/(?<!h)hh(?!h)/g, 'h')
+    .replace(/(?<!m)mm(?!m)/g, 'm')
+    .replace(/(?<!s)ss(?!s)/g, 's');
+}
+
+// Parse a date/datetime string against the column's configured format, also
+// accepting the same value without zero-padding on month/day/hour/etc. The
+// padded format is tried first (non-strict, preserving existing behaviour);
+// only if that fails do we retry with the unpadded variant in strict mode, so
+// genuinely invalid values (e.g. "hello") are still rejected rather than
+// silently coerced.
+export function parseDateWithFormat(value: string, format: string) {
+  let parsed = dayjs(value, format);
+
+  if (!parsed.isValid()) {
+    parsed = dayjs(value, getUnpaddedDateFormat(format), true);
+  }
+
+  return parsed;
+}
+
 export function parseStringDate(v: string, dateFormat: string) {
   const dayjsObj = dayjs(v);
   if (dayjsObj.isValid()) {

@@ -5,6 +5,7 @@ import {
   constructDateTimeFormat,
   getDateFormat,
   getDateTimeFormat,
+  parseDateWithFormat,
 } from '~/lib/dateTimeHelper';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
@@ -41,7 +42,9 @@ export const parseDayjsWithJalaliSupport = (
   format: string
 ): dayjs.Dayjs => {
   if (!isJalaliFormat(format)) {
-    return dayjs(value, format);
+    // parseDateWithFormat also accepts the same value without zero-padding on
+    // month/day/hour (e.g. "5/5/2026" for an MM/DD/YYYY column).
+    return parseDateWithFormat(value, format);
   }
 
   const gregorian = parseJalaliToGregorian(value, format);
@@ -163,7 +166,11 @@ export const serializeDateOrDateTimeValue = (
       : constructDateTimeFormat(params.col);
 
     // Jalali-aware: a Jalali display string (e.g. `1405/04/23`) must be
-    // converted from Jalali, not misread as the Gregorian year 1405.
+    // converted from Jalali, not misread as the Gregorian year 1405. For
+    // non-Jalali formats this also accepts unpadded month/day input (e.g.
+    // "5/5/2026" for an MM/DD/YYYY column) via parseDateWithFormat, so pasting
+    // an unpadded date normalizes correctly instead of failing validation and
+    // silently wiping the existing cell value.
     parsedDateOrDateTime = parseDayjsWithJalaliSupport(value, formatting);
   }
 

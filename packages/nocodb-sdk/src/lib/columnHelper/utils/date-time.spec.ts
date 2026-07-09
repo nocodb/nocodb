@@ -142,6 +142,39 @@ describe('serialize', () => {
       expected
     );
   });
+
+  it('should serialize an unpadded date for an MM/DD/YYYY column', () => {
+    const col = {
+      uidt: UITypes.Date,
+      meta: { date_format: 'MM/DD/YYYY' },
+    };
+    expect(serializeDateOrDateTimeValue('5/5/2026', { col: col as any })).toBe(
+      '2026-05-05'
+    );
+    expect(serializeDateOrDateTimeValue('6/2/2026', { col: col as any })).toBe(
+      '2026-06-02'
+    );
+  });
+
+  it('should serialize an unpadded date for a DD/MM/YYYY column', () => {
+    const col = {
+      uidt: UITypes.Date,
+      meta: { date_format: 'DD/MM/YYYY' },
+    };
+    expect(serializeDateOrDateTimeValue('5/6/2026', { col: col as any })).toBe(
+      '2026-06-05'
+    );
+  });
+
+  it('should return null for a value that is not a date', () => {
+    const col = {
+      uidt: UITypes.Date,
+      meta: { date_format: 'MM/DD/YYYY' },
+    };
+    expect(
+      serializeDateOrDateTimeValue('not-a-date', { col: col as any })
+    ).toBeNull();
+  });
 });
 
 // Regression tests for the Jalali (Persian) paste / fill / aggregation paths.

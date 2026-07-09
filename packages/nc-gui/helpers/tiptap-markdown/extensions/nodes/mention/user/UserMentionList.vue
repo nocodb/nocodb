@@ -122,7 +122,7 @@ export default {
           <div class="truncate leading-4">
             {{ extractUserDisplayNameOrEmail({ display_name: item.name, email: item.email }) }}
           </div>
-          <div v-if="item.email" class="truncate text-xs leading-4 text-nc-content-gray-subtle2">
+          <div v-if="item.email" class="truncate text-xs leading-4 text-nc-content-gray-muted">
             {{ item.email }}
           </div>
         </div>

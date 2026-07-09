@@ -189,8 +189,10 @@ const cardShadow = computed(() => {
   background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
 
+  // Colour applied: deepen the accent tint on hover instead of washing it out
+  // with neutral gray (which dropped the event colour entirely).
   &.nc-vcard--hover {
-    @apply !bg-nc-bg-gray-light;
+    background: color-mix(in srgb, var(--cal-accent) 24%, transparent);
   }
 }
 
@@ -199,6 +201,10 @@ const cardShadow = computed(() => {
 .nc-vcard--bordered.nc-vcard--uncolored {
   background: var(--nc-bg-default);
   border-color: var(--nc-border-gray-dark);
+
+  &.nc-vcard--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
 }
 
 // Solid — fill edge-to-edge, readable text on the accent. Horizontal padding so

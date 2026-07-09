@@ -231,8 +231,10 @@ const cardShadow = computed(() => {
   background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
 
+  // Colour applied: deepen the accent tint on hover instead of washing it out
+  // with neutral gray (which dropped the event colour entirely).
   &.nc-cal-card--hover {
-    @apply !bg-nc-bg-gray-light;
+    background: color-mix(in srgb, var(--cal-accent) 24%, transparent);
   }
 }
 
@@ -241,6 +243,10 @@ const cardShadow = computed(() => {
 .nc-cal-card--bordered.nc-cal-card--uncolored {
   background: var(--nc-bg-default);
   border-color: var(--nc-border-gray-dark);
+
+  &.nc-cal-card--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
 }
 
 .nc-cal-card--solid {

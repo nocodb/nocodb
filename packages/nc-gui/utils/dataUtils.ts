@@ -460,7 +460,7 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
     return idsOrMails
       .map((idOrMail) => {
         const user = baseUsers.find((u) => u.id === idOrMail || u.email === idOrMail)
-        return user ? user.display_name || user.email : idOrMail.id
+        return user ? extractUserDisplayNameOrEmail(user) : idOrMail.id
       })
       .join(', ')
   } else {
@@ -468,11 +468,11 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
       return modelValue
         .map((idOrMail) => {
           const user = baseUsers.find((u) => u.id === idOrMail.id || u.email === idOrMail.email)
-          return user ? user.display_name || user.email : idOrMail.id
+          return user ? extractUserDisplayNameOrEmail(user) : idOrMail.id
         })
         .join(', ')
     } else {
-      return modelValue ? modelValue.display_name || modelValue.email : ''
+      return modelValue ? extractUserDisplayNameOrEmail(modelValue) : ''
     }
   }
 }

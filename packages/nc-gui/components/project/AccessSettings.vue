@@ -723,9 +723,9 @@ onBeforeUnmount(() => {
                 <div class="flex gap-3">
                   <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
-                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                      {{ extractUserDisplayNameOrEmail(record) }}
                     </template>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    {{ extractUserDisplayNameOrEmail(record) }}
                   </NcTooltip>
                 </div>
                 <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>

@@ -76,9 +76,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         return {
           ...comment,
           created_display_name: user?.display_name,
-          created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
+          created_display_name_short: extractUserDisplayNameOrEmail(user),
           resolved_display_name: resolvedUser?.display_name,
-          resolved_display_name_short: resolvedUser?.display_name ?? extractNameFromEmail(resolvedUser?.email),
+          resolved_display_name_short: extractUserDisplayNameOrEmail(resolvedUser),
           created_by_meta: user?.meta,
           resolved_by_meta: resolvedUser?.meta,
         }
@@ -150,9 +150,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
             resolved_by: tempC.resolved_by ? undefined : $state.user?.value?.id,
             resolved_by_email: tempC.resolved_by ? undefined : $state.user?.value?.email,
             resolved_display_name: tempC.resolved_by ? undefined : $state.user?.value?.display_name,
-            resolved_display_name_short: tempC.resolved_by
-              ? undefined
-              : $state.user?.value?.display_name ?? extractNameFromEmail($state.user?.value?.email),
+            resolved_display_name_short: tempC.resolved_by ? undefined : extractUserDisplayNameOrEmail($state.user?.value),
             resolved_by_meta: tempC.resolved_by ? undefined : $state.user?.value?.meta,
           }
         }

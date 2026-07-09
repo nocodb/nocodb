@@ -628,9 +628,9 @@ watch(inviteDlg, (newVal) => {
                 <div class="flex items-center gap-1">
                   <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
-                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                      {{ extractUserDisplayNameOrEmail(record) }}
                     </template>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    {{ extractUserDisplayNameOrEmail(record) }}
                   </NcTooltip>
                   <NcTooltip
                     v-if="(isPaymentEnabled || appInfo.isOnPrem) && parseProp(record.meta).billable"

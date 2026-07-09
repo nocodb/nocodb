@@ -119,7 +119,7 @@ export default {
           size="auto"
         />
         <div class="max-w-64 truncate">
-          {{ item.name && item.name.length > 0 ? item.name : item.email }}
+          {{ extractUserDisplayNameOrEmail({ display_name: item.name, email: item.email }) }}
         </div>
       </div>
     </template>

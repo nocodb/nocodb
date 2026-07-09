@@ -55,6 +55,7 @@ export interface DataInsertParams {
   modelId: string;
   body: DataInsertRequest | DataInsertRequest[];
   cookie: any;
+  maxPayloadOverride?: number;
 }
 
 export interface DataUpdateParams {
@@ -63,6 +64,7 @@ export interface DataUpdateParams {
   viewId?: string;
   body: DataUpdateRequest | DataUpdateRequest[];
   cookie: any;
+  maxPayloadOverride?: number;
 }
 
 export interface DataDeleteParams {

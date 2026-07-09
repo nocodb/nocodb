@@ -662,8 +662,10 @@ export class DataV3Service {
           ),
         ];
 
-    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const insertPayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (transformedBody.length > insertPayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(insertPayloadLimit);
     }
 
     const result = await this.dataTableService.dataInsert(context, {
@@ -1033,8 +1035,10 @@ export class DataV3Service {
         ];
     profiler.log(`transformLTARFieldsToInternal done`);
 
-    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const updatePayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (transformedBody.length > updatePayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(updatePayloadLimit);
     }
 
     await this.dataTableService.dataUpdate(context, {

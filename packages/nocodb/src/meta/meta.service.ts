@@ -194,6 +194,7 @@ export class MetaService {
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
+      [MetaTable.SNAPSHOT_SCHEDULE]: 'snsc',
       [MetaTable.SYNC_CONFIGS]: 'sync',
       [MetaTable.TABLE_SYNCS]: 'tss',
       [MetaTable.TABLE_SYNC_MAPPINGS]: 'tsm',

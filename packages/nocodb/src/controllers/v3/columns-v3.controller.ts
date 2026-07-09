@@ -10,7 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { FieldUpdateV3Type, FieldV3Type } from 'nocodb-sdk';
+import {
+  FieldOptionsAddReqV3Type,
+  FieldOptionsDeleteReqV3Type,
+  FieldUpdateV3Type,
+  FieldV3Type,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -86,5 +91,39 @@ export class ColumnsV3Controller {
     @Param('columnId') columnId: string,
   ) {
     return await this.columnsV3Service.columnGet(context, { columnId });
+  }
+
+  @Post([`${PREFIX_APIV3_METABASE}/fields/:columnId/options`])
+  @HttpCode(200)
+  @Acl('columnUpdate')
+  async columnOptionsAdd(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+    @Body() body: FieldOptionsAddReqV3Type,
+    @Req() req: NcRequest,
+  ) {
+    return await this.columnsV3Service.columnOptionsAdd(context, {
+      columnId,
+      choices: body.choices,
+      req,
+      user: req.user,
+    });
+  }
+
+  @Delete([`${PREFIX_APIV3_METABASE}/fields/:columnId/options`])
+  @HttpCode(200)
+  @Acl('columnUpdate')
+  async columnOptionsDelete(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+    @Body() body: FieldOptionsDeleteReqV3Type,
+    @Req() req: NcRequest,
+  ) {
+    return await this.columnsV3Service.columnOptionsDelete(context, {
+      columnId,
+      choices: body.choices,
+      req,
+      user: req.user,
+    });
   }
 }

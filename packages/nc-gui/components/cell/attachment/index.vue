@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
+import type { ColumnType } from 'nocodb-sdk'
+import { getAttachmentAnnotationKey } from 'nocodb-sdk'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 
@@ -98,6 +100,23 @@ const meta = inject(MetaInj, ref())
 if (!isPublic.value && !isForm.value && meta.value) {
   useProvideRowComments(meta, row)
 }
+
+// A comment list outside the carousel (expanded record sidebar) can request
+// focus on an annotated attachment — open this cell's carousel when the
+// request targets our row and one of our files.
+const { request: annotationFocusRequest } = useAnnotationFocusRequest()
+
+watch(annotationFocusRequest, (req) => {
+  if (!req || selectedFile.value) return
+
+  const rowId = extractPkFromRow(row.value?.row, (meta.value?.columns ?? []) as ColumnType[])
+  if (!rowId || rowId !== req.rowId) return
+
+  const match = visibleItems.value.find((item: any) => getAttachmentAnnotationKey(item) === req.attachmentKey)
+  if (match) {
+    selectedFile.value = { ...match }
+  }
+})
 
 const onDropAction = function (...args: any[]) {
   const draggingBool = unref(dragging)

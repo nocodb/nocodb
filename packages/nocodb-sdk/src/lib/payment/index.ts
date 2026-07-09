@@ -136,6 +136,8 @@ export enum PlanFeatureTypes {
   FEATURE_ORACLE = 'feature_oracle',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
+  /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
+  FEATURE_SCHEDULED_SNAPSHOTS = 'feature_scheduled_snapshots',
 }
 
 export enum PlanAddonTypes {
@@ -144,6 +146,7 @@ export enum PlanAddonTypes {
   ADDON_MSSQL = 'addon_mssql',
   ADDON_SANDBOX = 'addon_sandbox',
   ADDON_ORACLE = 'addon_oracle',
+  ADDON_SCHEDULED_SNAPSHOTS = 'addon_scheduled_snapshots',
 }
 
 export enum PlanTitles {
@@ -504,6 +507,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_ORACLE]: 'to connect Oracle Database sources.',
   [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
     'to white-label this instance with your own logo, product name, and brand color.',
+  [PlanFeatureTypes.FEATURE_SCHEDULED_SNAPSHOTS]:
+    'to schedule automatic snapshots.',
 };
 
 export const getUpgradeMessage = (

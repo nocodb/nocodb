@@ -127,6 +127,17 @@ function isFilterDisabled(
   return supportToggle && (filter.enabled === false || filter.enabled === 0);
 }
 
+// Resolve a btw/nbtw filter value into the [lower, upper] range that
+// whereBetween/whereNotBetween expect. The value is normally a "lower,upper"
+// CSV string, but a non-string value (array/number) can reach here via
+// filterArrJson or the numeric coercion in the clause builder — guarding here
+// keeps `.split` from throwing at query-compile time. An array is used as-is;
+// anything else is stringified before splitting.
+function extractArray(val: unknown): [Knex.Value, Knex.Value] {
+  const arr = Array.isArray(val) ? val : `${val ?? ''}`.split(',');
+  return [arr[0], arr[1]];
+}
+
 const parseConditionV2 = async (
   baseModelSqlv2: IBaseModelSqlV2,
   _filter: Filter | FilterType | FilterType[] | Filter[],
@@ -807,21 +818,14 @@ const parseConditionV2 = async (
               });
               break;
             case 'btw':
-              // `val` is normally a "lower,upper" CSV string, but a non-string
-              // value (array/number) can reach here via filterArrJson or the
-              // numeric coercion above — guard like the anyof/allof branch so
-              // `.split` never throws at query-compile time. An array is passed
-              // straight through (whereBetween already wants [lower, upper]).
-              qb = qb.whereBetween(
-                field,
-                Array.isArray(val) ? val : `${val ?? ''}`.split(','),
-              );
+              // `val` is normally a "lower,upper" CSV string; extractArray
+              // guards against a non-string value reaching `.split` and passes
+              // an array straight through (whereBetween already wants
+              // [lower, upper]).
+              qb = qb.whereBetween(field, extractArray(val));
               break;
             case 'nbtw':
-              qb = qb.whereNotBetween(
-                field,
-                Array.isArray(val) ? val : `${val ?? ''}`.split(','),
-              );
+              qb = qb.whereNotBetween(field, extractArray(val));
               break;
             // `isWithin` is date-only (pastWeek/Month/Year/NumberOfDays and
             // nextWeek/Month/Year/NumberOfDays). DateTime/Date/CreatedTime/

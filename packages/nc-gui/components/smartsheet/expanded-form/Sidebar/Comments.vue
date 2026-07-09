@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import tippy from 'tippy.js'
-import { ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
-import type { CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectRoles, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
+import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const { user, appInfo } = useGlobal()
 
@@ -37,6 +37,7 @@ const {
   saveComment: _saveComment,
   primaryKey,
   parsedHtmlComments,
+  row,
 } = useRowCommentsOrThrow()
 
 const {
@@ -61,6 +62,78 @@ const {
   removeAttachment: removeEditAttachment,
   clearAttachments: clearEditAttachments,
 } = useCommentAttachments()
+
+// Present only inside the attachment carousel — exposes image-annotation state.
+const imageAnnotations = useImageAnnotations()
+
+const { request: annotationFocusRequest } = useAnnotationFocusRequest()
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
+// Annotations are EE-only — hide the label pills entirely in CE.
+const annotationLabels = computed(() => (isEeUI ? imageAnnotations?.labelByCommentId.value ?? {} : {}))
+
+// Row attachments keyed by their annotation key — resolves a comment's stored
+// annotation back to the live cell attachment (signed URLs, thumbnails).
+const rowAttachmentByKey = computed<Record<string, any>>(() => {
+  const map: Record<string, any> = {}
+  for (const col of (meta.value?.columns ?? []) as ColumnType[]) {
+    if (col.uidt !== UITypes.Attachment) continue
+
+    let value: any = row?.value?.row?.[col.title!]
+    if (ncIsString(value)) {
+      try {
+        value = JSON.parse(value)
+      } catch {
+        continue
+      }
+    }
+    if (!ncIsArray(value)) continue
+
+    for (const att of value) {
+      const key = getAttachmentAnnotationKey(att)
+      if (key && !(key in map)) map[key] = att
+    }
+  }
+  return map
+})
+
+// Attachment context (thumbnail + filename) for annotation comments — shown on
+// the comment so it's clear which image it was made on. Replies don't carry
+// their own annotation; they inherit the anchor of their (root) parent.
+const annotationRefByCommentId = computed(() => {
+  const map: Record<string, { title: string; key: string; thumbnailSrc?: string; matched: boolean; rootId: string }> = {}
+  if (!isEeUI) return map
+
+  const annotationById: Record<string, CommentImageAnnotation> = {}
+  for (const c of comments.value) {
+    if (!c.id) continue
+    const annotation = extractCommentAnnotation(c)
+    if (annotation?.attachment) annotationById[c.id] = annotation
+  }
+
+  for (const c of comments.value) {
+    if (!c.id) continue
+    const rootId = annotationById[c.id]
+      ? c.id
+      : c.parent_comment_id && annotationById[c.parent_comment_id]
+      ? c.parent_comment_id
+      : undefined
+    if (!rootId) continue
+
+    const annotation = annotationById[rootId]!
+    const key = getAttachmentAnnotationKey(annotation.attachment) ?? ''
+    const matched = key ? rowAttachmentByKey.value[key] : undefined
+    map[c.id] = {
+      title: annotation.attachment.title || matched?.title || '',
+      key,
+      thumbnailSrc: matched ? getPossibleAttachmentSrc(matched, 'tiny')[0] : undefined,
+      matched: !!matched,
+      rootId,
+    }
+  }
+  return map
+})
 
 const editCommentValue = ref<CommentType>()
 
@@ -174,6 +247,29 @@ const copyComment = async (comment: CommentType) => {
       }?rowId=${primaryKey.value}&commentId=${comment.id}${pathParam}`,
     ),
   )
+}
+
+function viewAnnotationComment(commentItem: CommentType) {
+  if (!commentItem.id) return
+
+  // Inside the carousel — focus the annotation directly.
+  if (imageAnnotations) {
+    imageAnnotations.viewAnnotation(commentItem)
+    return
+  }
+
+  // Outside (expanded record sidebar) — ask the owning attachment cell to open
+  // its carousel focused on this annotation.
+  const refInfo = annotationRefByCommentId.value[commentItem.id]
+  if (!refInfo?.matched || !primaryKey.value) return
+
+  annotationFocusRequest.value = {
+    rowId: primaryKey.value,
+    attachmentKey: refInfo.key,
+    // Replies resolve to their root annotation comment — that's what the
+    // carousel focuses (same conversation, same region).
+    commentId: refInfo.rootId,
+  }
 }
 
 function scrollToComment(commentId: string) {
@@ -441,11 +537,17 @@ onBeforeUnmount(() => {
           ]"
           class="nc-comment-item"
           @mouseover="handleResetHoverEffect"
+          @mouseenter="imageAnnotations?.setHovered(commentItem.id!)"
+          @mouseleave="imageAnnotations?.setHovered(null)"
         >
           <div
             :class="{
               'hover:bg-nc-bg-gray-light': editCommentValue?.id !== commentItem!.id,
-              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id
+              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id,
+              'bg-nc-bg-gray-light':
+                imageAnnotations &&
+                (imageAnnotations.activeAnnotationId.value === commentItem.id ||
+                  imageAnnotations.hoveredAnnotationId.value === commentItem.id),
         }"
             class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
           >
@@ -640,7 +742,7 @@ onBeforeUnmount(() => {
                         data-testid="nc-comment-attach-btn"
                         @click="openEditFilePicker"
                       >
-                        <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="text-md" />
+                        <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
                       </NcButton>
                     </NcTooltip>
                   </template>
@@ -648,6 +750,26 @@ onBeforeUnmount(() => {
               </div>
 
               <div v-else class="space-y-1 pl-9">
+                <div
+                  v-if="annotationRefByCommentId[commentItem.id!]"
+                  class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-1"
+                  :class="{
+                    'cursor-pointer hover:bg-nc-bg-gray-light':
+                      !!imageAnnotations || annotationRefByCommentId[commentItem.id!].matched,
+                  }"
+                  :data-testid="`nc-annotation-attachment-${commentItem.id}`"
+                  @click="viewAnnotationComment(commentItem)"
+                >
+                  <img
+                    v-if="annotationRefByCommentId[commentItem.id!].thumbnailSrc"
+                    :src="annotationRefByCommentId[commentItem.id!].thumbnailSrc"
+                    class="h-6 w-6 flex-none rounded object-cover"
+                  />
+                  <GeneralIcon v-else icon="image" class="h-4 w-4 flex-none text-nc-content-gray-muted" />
+                  <NcTooltip show-on-truncate-only class="truncate text-small text-nc-content-gray">
+                    {{ annotationRefByCommentId[commentItem.id!].title }}
+                  </NcTooltip>
+                </div>
                 <div
                   v-if="parsedHtmlComments[commentItem.id]"
                   v-dompurify-html="parsedHtmlComments[commentItem.id]"
@@ -660,6 +782,23 @@ onBeforeUnmount(() => {
                   :comment-id="commentItem.id"
                   class="mt-1"
                 />
+
+                <div
+                  v-if="annotationLabels[commentItem.id] || annotationRefByCommentId[commentItem.id!]?.matched"
+                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
+                  :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id] ?? commentItem.id}`"
+                  @click="viewAnnotationComment(commentItem)"
+                >
+                  <span
+                    v-if="annotationLabels[commentItem.id]"
+                    class="flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full bg-nc-fill-primary text-white text-[9px] font-semibold"
+                  >
+                    {{ annotationLabels[commentItem.id] }}
+                  </span>
+                  <span v-e="['c:attachment:annotation:view']" class="text-[11px] font-medium text-nc-content-brand">
+                    {{ $t('general.view') }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -706,7 +845,7 @@ onBeforeUnmount(() => {
                 data-testid="nc-comment-attach-btn"
                 @click="openFilePicker"
               >
-                <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="text-md" />
+                <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
               </NcButton>
             </NcTooltip>
           </template>

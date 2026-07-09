@@ -4140,6 +4140,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
       apiVersion?: NcApiVersion;
       onInsertedPks?: (pks: (string | number)[]) => void;
+      /** Consumed by the EE override to skip per-field edit-permission checks. */
+      skipPermissionCheck?: boolean;
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);
@@ -8725,6 +8727,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       before?: string;
       undo?: boolean;
       allowSystemColumn?: boolean;
+      // Consumed by the EE override to skip per-field edit-permission checks
+      // on trusted internal data-load paths (duplication / snapshot / import).
+      skipPermissionCheck?: boolean;
     },
   ): Promise<void> {
     const runAfterForLoop = [];

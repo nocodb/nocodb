@@ -10,6 +10,8 @@ import PQueue from 'p-queue';
 import axios from 'axios';
 import hash from 'object-hash';
 import moment from 'moment';
+import { imageSize } from 'image-size';
+import { imageSizeFromFile } from 'image-size/fromFile';
 import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { getFilteredAgents } from '~/utils/ssrf';
@@ -26,7 +28,6 @@ import { RootScopes } from '~/utils/globals';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
-import Noco from '~/Noco';
 import { UseWorker } from '~/decorators/use-worker.decorator';
 
 interface AttachmentObject {
@@ -133,21 +134,21 @@ export class AttachmentsService {
           } = {};
 
           if (file.mimetype.includes('image')) {
-            const sharp = Noco.sharp;
+            // Pure-JS header parse — reads only the bytes needed for dimensions.
+            // Replaces sharp().metadata(), which decoded the full image via native
+            // libvips SIMD on the web tier and could crash the process with SIGILL
+            // (uncatchable by this try/catch). Also removes the limitInputPixels:false
+            // full-decode DoS vector. Thumbnail generation still runs sharp, but only
+            // on the worker tier via a job.
+            try {
+              const { width, height } = await imageSizeFromFile(file.path);
 
-            if (sharp) {
-              try {
-                const metadata = await sharp(file.path, {
-                  limitInputPixels: false,
-                }).metadata();
-
-                if (metadata.width && metadata.height) {
-                  tempMetadata.width = metadata.width;
-                  tempMetadata.height = metadata.height;
-                }
-              } catch (e) {
-                this.logger.error(`${file.path} is not an image file`);
+              if (width && height) {
+                tempMetadata.width = width;
+                tempMetadata.height = height;
               }
+            } catch (e) {
+              this.logger.error(`${file.path} is not an image file`);
             }
           }
 
@@ -413,21 +414,17 @@ export class AttachmentsService {
           } = {};
 
           if (mimeType.includes('image')) {
-            const sharp = Noco.sharp;
+            // Pure-JS header parse (no native libvips on the web tier) — see the
+            // multipart path above. `file` is already a Buffer here.
+            try {
+              const { width, height } = imageSize(file);
 
-            if (sharp) {
-              try {
-                const metadata = await sharp(file, {
-                  limitInputPixels: true,
-                }).metadata();
-
-                if (metadata.width && metadata.height) {
-                  tempMetadata.width = metadata.width;
-                  tempMetadata.height = metadata.height;
-                }
-              } catch (e) {
-                this.logger.error(`${file.path} is not an image file`);
+              if (width && height) {
+                tempMetadata.width = width;
+                tempMetadata.height = height;
               }
+            } catch (e) {
+              this.logger.error(`${file.path} is not an image file`);
             }
           }
 

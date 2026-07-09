@@ -1,4 +1,4 @@
-import type { AttachmentType, CommentType } from 'nocodb-sdk';
+import type { AttachmentType, CommentType, MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -26,6 +26,7 @@ export default class Comment implements CommentType {
   resolved_by_email?: string;
   is_deleted?: boolean;
   attachments?: AttachmentType[];
+  meta?: MetaType;
 
   constructor(comment: Partial<Comment>) {
     Object.assign(this, comment);
@@ -33,6 +34,10 @@ export default class Comment implements CommentType {
     // `attachments` is persisted as a JSON string — parse it back to an array.
     // parseMetaProp is a no-op when the value is already an array / nullish.
     this.attachments = parseMetaProp(this, 'attachments', null);
+
+    if (this.meta) {
+      this.meta = parseMetaProp(this, 'meta');
+    }
   }
 
   public static async get(
@@ -119,6 +124,7 @@ export default class Comment implements CommentType {
       'created_by',
       'created_by_email',
       'attachments',
+      'meta',
     ]);
 
     if (Array.isArray(insertObj.attachments)) {
@@ -142,7 +148,7 @@ export default class Comment implements CommentType {
       context.workspace_id,
       context.base_id,
       MetaTable.COMMENTS,
-      prepareForDb(insertObj, ['attachments']),
+      prepareForDb(insertObj, ['attachments', 'meta']),
     );
 
     const commentObj = new Comment(res);
@@ -174,6 +180,7 @@ export default class Comment implements CommentType {
       'resolved_by',
       'resolved_by_email',
       'attachments',
+      'meta',
     ]);
 
     const attachmentsChanged = Array.isArray(updateObj.attachments);
@@ -187,7 +194,7 @@ export default class Comment implements CommentType {
       context.workspace_id,
       context.base_id,
       MetaTable.COMMENTS,
-      prepareForDb(updateObj, ['attachments']),
+      prepareForDb(updateObj, ['attachments', 'meta']),
       commentId,
     );
 

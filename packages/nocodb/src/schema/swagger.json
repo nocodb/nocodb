@@ -22779,6 +22779,10 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         },
         "required": [
@@ -22820,6 +22824,10 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         }
       },
@@ -30423,6 +30431,10 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         }
       },
@@ -30597,6 +30609,101 @@
           "status": {
             "type": "string",
             "description": "Status of the Snapshot"
+          },
+          "is_auto": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the snapshot was created by a schedule"
+          }
+        }
+      },
+      "SnapshotSchedule": {
+        "description": "Model for Snapshot Schedule",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Base"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Workspace"
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the schedule is active"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["hourly", "daily", "weekly", "monthly", "cron"],
+            "description": "Schedule frequency preset or custom cron"
+          },
+          "config": {
+            "type": "object",
+            "description": "Frequency-specific configuration",
+            "properties": {
+              "minute": {
+                "type": "integer",
+                "description": "Minute of the hour (hourly)"
+              },
+              "time": {
+                "type": "string",
+                "description": "Time of day HH:mm (daily/weekly/monthly)"
+              },
+              "dayOfWeek": {
+                "type": "integer",
+                "description": "Day of week 0-6, Sunday=0 (weekly)"
+              },
+              "dayOfMonth": {
+                "type": "integer",
+                "description": "Day of month 1-31 (monthly)"
+              },
+              "cron": {
+                "type": "string",
+                "description": "Custom cron expression (cron frequency)"
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone the schedule is evaluated in"
+          },
+          "cron_expression": {
+            "type": "string",
+            "description": "Normalized cron expression (server-computed)"
+          },
+          "keep_last": {
+            "type": "integer",
+            "description": "Retention: number of automatic snapshots to keep"
+          },
+          "delete_after_days": {
+            "type": "integer",
+            "description": "Retention: delete automatic snapshots older than this many days"
+          },
+          "next_run_at": {
+            "type": "string",
+            "description": "Next scheduled run time (ISO, UTC)"
+          },
+          "last_run_at": {
+            "type": "string",
+            "description": "Last scheduled run time (ISO, UTC)"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "created_at": {
+            "format": "date",
+            "type": "string",
+            "description": "Date of creation"
+          },
+          "updated_at": {
+            "format": "date",
+            "type": "string",
+            "description": "Date of last update"
           }
         }
       },

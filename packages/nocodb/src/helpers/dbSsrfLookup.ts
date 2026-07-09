@@ -29,19 +29,34 @@ const BLOCKED_RANGES = new Set<string>([
   'unspecified',
   'broadcast',
   'carrierGradeNat',
+  // IPv6 transition prefixes with no cleanly-decodable embedded IPv4 here —
+  // never a legitimate external DB host, so block the prefix wholesale.
+  'teredo', // RFC 4380, 2001::/32
+  'rfc6145', // ::ffff:0:0:0/96 (stateless IP/ICMP translation)
 ]);
 
 /** True if a string IP resolves into a blocked (internal / non-routable) range. */
 export function isBlockedIp(addr: string): boolean {
   if (!ipaddr.isValid(addr)) return false; // unparseable → let the driver surface it
   let parsed = ipaddr.parse(addr);
-  // Normalise IPv4-mapped IPv6 (::ffff:192.168.1.1 -> 192.168.1.1).
-  if (
-    parsed.kind() === 'ipv6' &&
-    (parsed as ipaddr.IPv6).isIPv4MappedAddress()
-  ) {
-    parsed = (parsed as ipaddr.IPv6).toIPv4Address();
+
+  // Normalise IPv6 forms that embed an IPv4 so the IPv4 blocklist below catches
+  // an internal target wrapped in an IPv6 transition encoding (CWE-918).
+  if (parsed.kind() === 'ipv6') {
+    const v6 = parsed as ipaddr.IPv6;
+    if (v6.isIPv4MappedAddress()) {
+      parsed = v6.toIPv4Address(); // ::ffff:a.b.c.d
+    } else if (v6.range() === '6to4') {
+      // 2002:WWXX:YYZZ::/16 — embedded IPv4 in bytes 2..5 (RFC 3056).
+      const b = v6.toByteArray();
+      parsed = new ipaddr.IPv4([b[2], b[3], b[4], b[5]]);
+    } else if (v6.range() === 'rfc6052') {
+      // NAT64 well-known prefix 64:ff9b::/96 — embedded IPv4 in bytes 12..15.
+      const b = v6.toByteArray();
+      parsed = new ipaddr.IPv4([b[12], b[13], b[14], b[15]]);
+    }
   }
+
   return BLOCKED_RANGES.has(parsed.range());
 }
 

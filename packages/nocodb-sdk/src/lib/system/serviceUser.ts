@@ -5,6 +5,7 @@ const ServiceUserType = {
   SYNC_USER: 'SYNC_USER',
   WORKFLOW_USER: 'WORKFLOW_USER',
   TRASH_CLEANUP_USER: 'TRASH_CLEANUP_USER',
+  SNAPSHOT_USER: 'SNAPSHOT_USER',
 } as const;
 
 const NOCO_SERVICE_USERS = {
@@ -44,6 +45,12 @@ const NOCO_SERVICE_USERS = {
     id: 'usrtrashcleanup',
     email: 'trash-cleanup@nocodb.com',
     display_name: 'NocoDB Trash Cleanup',
+    email_verified: true,
+  },
+  [ServiceUserType.SNAPSHOT_USER]: {
+    id: 'usrsnapshot',
+    email: 'snapshot-service@nocodb.com',
+    display_name: 'NocoDB Snapshot',
     email_verified: true,
   },
 } as const;

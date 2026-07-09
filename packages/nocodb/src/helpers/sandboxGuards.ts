@@ -13,6 +13,11 @@ export async function assertNotSandboxProduction(
   _message?: string,
 ): Promise<void> {}
 
+export async function assertNotSandboxRelated(
+  _context: NcContext,
+  _message?: string,
+): Promise<void> {}
+
 export async function assertNotLockedViewOnSandboxProduction(
   _context: NcContext,
   _viewId: string,

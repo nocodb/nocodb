@@ -254,6 +254,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       undo = false,
       apiVersion = NcApiVersion.V2,
       onInsertedPks,
+      skipPermissionCheck = false,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -275,6 +276,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
        * preserve order.
        */
       onInsertedPks?: (pks: (string | number)[]) => void;
+      /** Consumed by the EE override to skip per-field edit-permission checks. */
+      skipPermissionCheck?: boolean;
     } = {},
   ) => {
     const capturePks = typeof onInsertedPks === 'function';
@@ -321,6 +324,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             ncOrder: order?.plus(index),
             undo,
             allowSystemColumn,
+            skipPermissionCheck,
           });
 
           // prepare nested link data for insert only if it is single record insertion
@@ -374,6 +378,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 undo: undo,
                 ncOrder: order?.plus(i),
                 allowSystemColumn,
+                skipPermissionCheck,
               }),
           ),
         );

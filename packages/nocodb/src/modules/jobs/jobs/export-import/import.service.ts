@@ -2433,6 +2433,9 @@ export class ImportService {
                     raw: true,
                     // this is to avoid skipping autoincrement column
                     undo: true,
+                    // import/duplication copies rows verbatim — not user field
+                    // edits — so bypass per-field edit-permission enforcement
+                    skipPermissionCheck: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2459,6 +2462,9 @@ export class ImportService {
                 raw: true,
                 // this is to avoid skipping autoincrement column
                 undo: true,
+                // import/duplication copies rows verbatim — not user field
+                // edits — so bypass per-field edit-permission enforcement
+                skipPermissionCheck: true,
               });
             } catch (e) {
               // stop the stream

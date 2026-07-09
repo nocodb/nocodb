@@ -58,6 +58,7 @@ export class BulkDataAliasService {
       raw?: boolean;
       allowSystemColumn?: boolean;
       undo?: boolean;
+      skipPermissionCheck?: boolean;
       onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
@@ -75,6 +76,7 @@ export class BulkDataAliasService {
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
           undo: param.undo,
+          skipPermissionCheck: param.skipPermissionCheck,
           onInsertedPks: param.onInsertedPks,
         },
       ],

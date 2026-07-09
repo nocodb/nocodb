@@ -136,7 +136,7 @@ export enum PlanFeatureTypes {
   FEATURE_ORACLE = 'feature_oracle',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
-  /** Scheduled (periodic) base snapshots. Enterprise-only on both cloud and on-prem. */
+  /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
   FEATURE_SCHEDULED_SNAPSHOTS = 'feature_scheduled_snapshots',
 }
 
@@ -146,6 +146,7 @@ export enum PlanAddonTypes {
   ADDON_MSSQL = 'addon_mssql',
   ADDON_SANDBOX = 'addon_sandbox',
   ADDON_ORACLE = 'addon_oracle',
+  ADDON_SCHEDULED_SNAPSHOTS = 'addon_scheduled_snapshots',
 }
 
 export enum PlanTitles {

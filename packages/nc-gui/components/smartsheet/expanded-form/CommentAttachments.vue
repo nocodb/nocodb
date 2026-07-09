@@ -30,6 +30,23 @@ const meta = inject(MetaInj, ref())
 
 const baseId = computed(() => meta.value?.base_id)
 
+// Track blob: URLs created via createObjectURL so we can revoke them — both
+// the previous batch when imageSrcs recomputes and any leftovers on unmount.
+// Without this each recompute (attachments change, thread reload) leaks URLs.
+const objectUrls = new Set<string>()
+
+function trackObjectUrl(url: string): string {
+  objectUrls.add(url)
+  return url
+}
+
+function revokeObjectUrl(url?: string) {
+  if (url?.startsWith('blob:')) {
+    URL.revokeObjectURL(url)
+    objectUrls.delete(url)
+  }
+}
+
 // Files attached to a saved comment carry a FileReference id and are served
 // through the cookie/header-authenticated proxy — same mechanism docs use.
 // An <img> tag can't send the auth header itself, so we fetch + blob.
@@ -45,7 +62,7 @@ async function resolveSrc(item: AttachmentType): Promise<string> {
   if (proxyUrl) {
     try {
       const response = await fetch(proxyUrl, { headers: { 'xc-auth': token.value || '' } })
-      if (response.ok) return URL.createObjectURL(await response.blob())
+      if (response.ok) return trackObjectUrl(URL.createObjectURL(await response.blob()))
     } catch {
       // fall through to the preview source below
     }
@@ -78,6 +95,18 @@ async function onOpen(item: AttachmentType) {
 
   openAttachment(item)
 }
+
+// When imageSrcs recomputes, the previous result's blob URLs are orphaned —
+// revoke them so they don't accumulate (resolveSrc always mints fresh ones).
+watch(imageSrcs, (_newSrcs, oldSrcs) => {
+  if (!oldSrcs) return
+  for (const src of Object.values(oldSrcs)) revokeObjectUrl(src)
+})
+
+onBeforeUnmount(() => {
+  for (const url of objectUrls) URL.revokeObjectURL(url)
+  objectUrls.clear()
+})
 </script>
 
 <template>

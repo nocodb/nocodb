@@ -42,6 +42,10 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     // canvas highlight + prev/next. Returns null when the row isn't loaded
     // anywhere yet (collapsed group, infinite-scroll cache miss).
     findRowLocation?: (rowId: string) => { index: number; path: number[] } | null
+    // Updates the comment-count badge on the grid's cached row. The docked panel
+    // works on a cloned row, so it must call this to reflect count changes back
+    // onto the live grid row (the modal path goes through @update-row-comment-count).
+    updateCommentCount?: (rowId: string, count: number) => void
   } | null>(null)
 
   const hasPrev = computed(() => activeRowIndex.value != null && activeRowIndex.value > 0)

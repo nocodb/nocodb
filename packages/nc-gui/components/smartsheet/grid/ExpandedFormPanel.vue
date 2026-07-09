@@ -133,11 +133,24 @@ const {
   save: _save,
   formatSaveError,
   loadComments,
+  comments,
   clearColumns,
   baseRoles,
   fields,
   hiddenFields,
 } = expandedFormStore
+
+// The docked panel works on a cloned row, so comment-count changes here don't
+// reach the grid's live row (unlike the modal, which goes through
+// @update-row-comment-count). Push the count back onto the grid's cached row.
+watch(
+  () => comments.value.length,
+  (count) => {
+    const rowId = activeRowId.value
+    if (!rowId) return
+    panelStore.rowNavigator.value?.updateCommentCount?.(rowId, count)
+  },
+)
 
 const { isSqlView } = useProvideSmartsheetStore(view as Ref<ViewType>, meta)
 

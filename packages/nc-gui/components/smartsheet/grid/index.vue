@@ -608,6 +608,27 @@ expandedFormPanelRowNavigator.value = {
     const idx = pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
     return idx >= 0 ? { index: idx, path: [] } : null
   },
+  updateCommentCount: (rowId: string, count: number) => {
+    if (isInfiniteScrollingEnabled.value) {
+      const rowCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()).map((g) => g.cachedRows) : [cachedRows]
+
+      for (const cache of rowCaches) {
+        for (const row of cache.value.values()) {
+          if (extractPkFromRow(row.row, meta.value!.columns!) === rowId) {
+            row.rowMeta.commentCount = count
+            syncVisibleData?.()
+            return
+          }
+        }
+      }
+    } else {
+      const currentRowIndex = pData.value.findIndex(
+        (row: Row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === rowId,
+      )
+      if (currentRowIndex === -1) return
+      pData.value[currentRowIndex]!.rowMeta.commentCount = count
+    }
+  },
 }
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)

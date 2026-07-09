@@ -344,6 +344,24 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   }
 
   /**
+   * Decides whether a config edit invalidates the persisted incremental cursor
+   * (`_vars`), forcing the next run to perform a fresh full sync.
+   *
+   * The default keeps the cursor across edits (incremental sync continues).
+   * Override when the cursor is bound to a config value — e.g. calendar syncs
+   * whose provider delta/sync token is anchored to the date window
+   * (`syncStart`/`syncEnd`) it was minted against, so widening the window would
+   * otherwise be silently ignored by the replayed cursor.
+   *
+   * @param _oldConfig - the currently persisted config (without `_vars`)
+   * @param _newConfig - the incoming config (without `_vars`)
+   * @returns true to discard `_vars` before persisting the edit
+   */
+  shouldResetVarsOnConfigChange(_oldConfig: T, _newConfig: T): boolean {
+    return false;
+  }
+
+  /**
    * Fetches available options for a configuration field.
    * Used to populate dropdowns and selection fields in the UI.
    *

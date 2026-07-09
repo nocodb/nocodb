@@ -283,7 +283,11 @@ export const formatUserNameFromEmail = (email?: string) => {
 export const extractUserDisplayNameOrEmail = (user?: UserType | Record<string, string>) => {
   if (!user) return ''
 
-  if (user?.display_name?.trim()) return user.display_name.trim()
+  // Guard the type explicitly — `display_name` is typed as string but this helper
+  // runs against loosely-typed objects too; `nonString?.trim()` would throw.
+  const displayName = typeof user.display_name === 'string' ? user.display_name.trim() : ''
+
+  if (displayName) return displayName
 
   return formatUserNameFromEmail(user.email)
 }

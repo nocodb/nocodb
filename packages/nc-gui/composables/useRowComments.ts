@@ -185,7 +185,12 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  const saveComment = async (comment: string, attachments?: AttachmentType[]) => {
+  const saveComment = async (
+    comment: string,
+    attachments?: AttachmentType[],
+    commentMeta?: CommentType['meta'],
+    parentCommentId?: string,
+  ) => {
     try {
       if (!row.value || (!comment && !attachments?.length)) {
         comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
@@ -207,6 +212,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           row_id: rowId,
           comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
           ...(attachments?.length ? { attachments } : {}),
+          ...(commentMeta !== undefined ? { meta: commentMeta } : {}),
+          ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}),
         },
       )
 
@@ -291,10 +298,11 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     isCommentsLoading,
     primaryKey,
     parsedHtmlComments,
+    row,
   }
 })
 
-export { useProvideRowComments }
+export { useProvideRowComments, useRowComments }
 
 export function useRowCommentsOrThrow() {
   const rowComments = useRowComments()

@@ -68,6 +68,9 @@ export interface IBaseModelSqlV2 {
       before?: string;
       undo?: boolean;
       allowSystemColumn?: boolean;
+      // Consumed by the EE override to skip per-field edit-permission checks
+      // on trusted internal data-load paths (duplication / snapshot / import).
+      skipPermissionCheck?: boolean;
     },
   ): Promise<void>;
 

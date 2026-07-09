@@ -1,5 +1,10 @@
 import groupBy from 'lodash/groupBy';
-import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  getFirstNonPersonalView,
+  NcApiVersion,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -59,29 +64,22 @@ export const relationDataFetcher = (param: {
       return data;
     }
 
-    if (!context.cacheMap) {
-      context.cacheMap = new Map();
-    }
-
-    let postProcessModels: Set<string> = context.cacheMap.get(
-      'relation_postProcessData_models',
-    );
-    if (!postProcessModels) {
-      postProcessModels = new Set();
-      context.cacheMap.set('relation_postProcessData_models', postProcessModels);
-    }
-
-    const extractOnlyPrimaries = postProcessModels.has(model.id);
-
     const { ast, parsedQuery } = await getAst(context, {
       model,
       query,
-      extractOnlyPrimaries,
+      extractOnlyPrimaries:
+        context.cacheMap?.get('relation_postProcessData') ?? false,
     });
 
-    postProcessModels.add(model.id);
+    if (!context.cacheMap) {
+      context.cacheMap = new Map();
+    }
+    // set context.cacheMap `relation_postProcessData` to ensure non-infinite loop
+    context.cacheMap.set('relation_postProcessData', true);
 
-    return await nocoExecute(ast, data, {}, parsedQuery);
+    // nocoexecute
+    const result = await nocoExecute(ast, data, {}, parsedQuery);
+    return result;
   }
 
   return {
@@ -324,7 +322,10 @@ export const relationDataFetcher = (param: {
 
       await refTable.getViews(refContext);
       const viewId =
-        relColumn.colOptions?.fk_target_view_id ?? refTable.views?.[0]?.id;
+        relColumn.colOptions?.fk_target_view_id ??
+        getFirstNonPersonalView([...(refTable.views ?? [])], {
+          includeViewType: ViewTypes.GRID,
+        })?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(refContext, viewId);
 
@@ -641,7 +642,10 @@ export const relationDataFetcher = (param: {
 
         await childTable.getViews(childBaseModel.context);
         const viewId =
-          relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
+          relColumn.colOptions?.fk_target_view_id ??
+          getFirstNonPersonalView([...(childTable.views ?? [])], {
+            includeViewType: ViewTypes.GRID,
+          })?.id;
         let view: View | null = null;
         if (viewId) view = await View.get(childBaseModel.context, viewId);
 

@@ -432,7 +432,13 @@ export class FiltersV3Service {
       NcError.badRequest('Filter not found');
     }
 
-    await this.filtersService.filterDelete(context, param);
+    // `viewId` isn't consumed by the v2 filterDelete (the filter is resolved by
+    // id) and isn't in the strict filterDelete command schema — pass only the
+    // recognized keys so a sandbox changelog entry isn't polluted / dropped.
+    await this.filtersService.filterDelete(context, {
+      filterId: param.filterId,
+      req: param.req,
+    });
 
     return {};
   }

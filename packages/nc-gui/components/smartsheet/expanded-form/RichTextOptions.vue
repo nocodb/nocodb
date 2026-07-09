@@ -111,7 +111,7 @@ const newMentionNode = () => {
         type="text"
         @click="editor?.chain().focus().toggleBold().run()"
       >
-        <GeneralIcon icon="lucideBold" />
+        <GeneralIcon icon="lucideBold" class="h-3.5 w-3.5" />
       </NcButton>
     </NcTooltip>
 
@@ -132,7 +132,7 @@ const newMentionNode = () => {
         type="text"
         @click=";(editor?.chain().focus() as any).toggleItalic().run()"
       >
-        <GeneralIcon icon="lucideItalic" />
+        <GeneralIcon icon="lucideItalic" class="h-3.5 w-3.5" />
       </NcButton>
     </NcTooltip>
     <NcTooltip hide-on-click>
@@ -153,7 +153,7 @@ const newMentionNode = () => {
         type="text"
         @click="editor?.chain().focus().toggleUnderline().run()"
       >
-        <GeneralIcon icon="lucideUnderline" />
+        <GeneralIcon icon="lucideUnderline" class="h-3.5 w-3.5" />
       </NcButton>
     </NcTooltip>
     <NcTooltip hide-on-click>
@@ -173,7 +173,7 @@ const newMentionNode = () => {
         type="text"
         @click="editor?.chain().focus().toggleStrike().run()"
       >
-        <GeneralIcon icon="lucideStrikethrough" />
+        <GeneralIcon icon="lucideStrikethrough" class="h-3.5 w-3.5" />
       </NcButton>
     </NcTooltip>
 
@@ -187,7 +187,7 @@ const newMentionNode = () => {
         type="text"
         @click="onToggleLink"
       >
-        <GeneralIcon icon="lucideLink"></GeneralIcon>
+        <GeneralIcon icon="lucideLink" class="h-3.5 w-3.5"></GeneralIcon>
       </NcButton>
     </NcTooltip>
     <NcTooltip v-if="appInfo.ee && !disableMention" hide-on-click>
@@ -207,7 +207,7 @@ const newMentionNode = () => {
         type="text"
         @click="newMentionNode"
       >
-        <GeneralIcon icon="lucideAtSign" />
+        <GeneralIcon icon="lucideAtSign" class="h-3.5 w-3.5" />
       </NcButton>
     </NcTooltip>
   </div>

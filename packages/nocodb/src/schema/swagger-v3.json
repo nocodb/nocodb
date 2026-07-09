@@ -2439,6 +2439,152 @@
         }
       }
     },
+    "/api/v3/meta/bases/{baseId}/fields/{fieldId}/options": {
+      "post": {
+        "summary": "Add field options",
+        "description": "Add one or more choices (options) to a SingleSelect or MultiSelect field. Existing choices are kept. Choices whose `title` already exists on the field are skipped (idempotent). Returns the updated field.",
+        "operationId": "field-options-create",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the field."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldOptionsAddReq"
+              },
+              "examples": {
+                "Add choices": {
+                  "value": {
+                    "choices": [
+                      {
+                        "title": "In Progress"
+                      },
+                      {
+                        "title": "Done",
+                        "color": "#36BFFF"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Choices were added. Returns the updated field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body, or the field is not a select field."
+          },
+          "422": {
+            "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove field options",
+        "description": "Remove one or more choices (options) from a SingleSelect or MultiSelect field, addressed by `id`. Ids not present on the field are ignored (idempotent). Removing a choice clears that value from existing records. At least one choice must remain. Returns the updated field.",
+        "operationId": "field-options-delete",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the field."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldOptionsDeleteReq"
+              },
+              "examples": {
+                "Remove choices": {
+                  "value": {
+                    "choices": [
+                      {
+                        "id": "sl_xxxxxxxxxxxxxx"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Choices were removed. Returns the updated field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body, the field is not a select field, or the request would remove the last remaining choice."
+          },
+          "422": {
+            "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
     "/api/v3/meta/bases/{baseId}/tables/{tableId}/hooks": {
       "get": {
         "summary": "List hooks",
@@ -12568,6 +12714,72 @@
         "errorMessage": {
           "oneOf": "Must match either a Filter or a FilterGroup schema."
         }
+      },
+      "FieldOptionAddItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Choice title."
+          },
+          "color": {
+            "type": "string",
+            "description": "Tile color for the choice as a hex code (e.g. `#36BFFF`). Defaults to a palette color when omitted.",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "FieldOptionDeleteItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier of the choice to remove."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "FieldOptionsAddReq": {
+        "type": "object",
+        "description": "Add choices (options) to a SingleSelect/MultiSelect field. Titles that already exist on the field are skipped (idempotent).",
+        "properties": {
+          "choices": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/FieldOptionAddItem"
+            }
+          }
+        },
+        "required": [
+          "choices"
+        ],
+        "additionalProperties": false
+      },
+      "FieldOptionsDeleteReq": {
+        "type": "object",
+        "description": "Remove choices (options) from a SingleSelect/MultiSelect field by id. Ids not present on the field are ignored (idempotent).",
+        "properties": {
+          "choices": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/FieldOptionDeleteItem"
+            }
+          }
+        },
+        "required": [
+          "choices"
+        ],
+        "additionalProperties": false
       },
       "FieldUpdate": {
         "allOf": [

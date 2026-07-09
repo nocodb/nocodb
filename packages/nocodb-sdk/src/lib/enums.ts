@@ -292,6 +292,7 @@ export enum AppEvents {
   SNAPSHOT_CREATE = 'snapshot.create',
   SNAPSHOT_DELETE = 'snapshot.delete',
   SNAPSHOT_RESTORE = 'snapshot.restore',
+  SNAPSHOT_SCHEDULE_UPDATE = 'snapshot.schedule.update',
 
   DATA_EXPORT = 'data.export',
   DATA_IMPORT = 'data.import',

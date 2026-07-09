@@ -277,8 +277,8 @@ export const getViewSettingOverrideOptionsByViewType = (
  *   excludeViewType: [ViewTypes.GALLERY, ViewTypes.KANBAN]
  * });
  */
-export const getFirstNonPersonalView = (
-  views: Array<ViewType>,
+export const getFirstNonPersonalView = <T extends ViewType>(
+  views: Array<T>,
   {
     excludeViewType,
     includeViewType,
@@ -286,7 +286,7 @@ export const getFirstNonPersonalView = (
     excludeViewType?: ViewTypes | Array<ViewTypes>;
     includeViewType?: ViewTypes | Array<ViewTypes>;
   } = {}
-): ViewType | undefined => {
+): T | undefined => {
   if (!views?.length) return undefined;
 
   return views

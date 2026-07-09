@@ -16,6 +16,7 @@ import queries from './mysql.queries';
 import fakerFunctionList from './fakerFunctionList';
 import * as findDataType from './findDataTypeMapping';
 import deepClone from '~/helpers/deepClone';
+import { sanitiseDataTypePrecision } from '~/helpers/sqlSanitize';
 
 const log = new Debug('MysqlClient');
 const evt = new Emit();
@@ -2686,7 +2687,7 @@ class MysqlClient extends KnexClient {
       query += this.genQuery(` ?? ${this.sanitiseDataType(n.dt)}`, [n.cn]);
     }
     if (!n.dt.endsWith('text')) {
-      query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';
+      query += n.dtxp && n.dtxp !== ' ' ? `(${sanitiseDataTypePrecision(n.dtxp)}` : '';
       query += scale ? `,${scale}` : '';
       query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
     }

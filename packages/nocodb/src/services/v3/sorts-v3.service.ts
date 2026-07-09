@@ -51,7 +51,19 @@ export class SortsV3Service {
       NcError.notFound('Sort not found');
     }
 
-    await this.sortsService.sortDelete(context, param, ncMeta);
+    // Pass only the keys the v2 sortDelete consumes. `viewId` isn't used there
+    // (the sort is resolved by id) and isn't in the strict sortDelete command
+    // schema, so leaking it would pollute / silently drop the sandbox changelog
+    // entry on a sandbox base.
+    await this.sortsService.sortDelete(
+      context,
+      {
+        sortId: param.sortId,
+        req: param.req,
+        viewWebhookManager: param.viewWebhookManager,
+      },
+      ncMeta,
+    );
     return {};
   }
 
@@ -99,12 +111,16 @@ export class SortsV3Service {
     }
 
     const updateObj = this.revBuilder().build(param.sort);
+    // Build the v2 payload explicitly rather than spreading `...param`: `viewId`
+    // (and any other V3-only key) isn't consumed by sortUpdate and isn't in the
+    // strict sortUpdate command schema, so spreading it would pollute / silently
+    // drop the sandbox changelog entry on a sandbox base.
     await this.sortsService.sortUpdate(
       context,
       {
-        ...param,
         sortId: sort.id,
         sort: updateObj as SortReqType,
+        req: param.req,
         viewWebhookManager: param.viewWebhookManager,
       },
       ncMeta,

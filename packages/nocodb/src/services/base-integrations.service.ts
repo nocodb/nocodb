@@ -121,15 +121,21 @@ export class BaseIntegrationsService {
       );
     }
 
-    if (param.includeConfig) {
-      // Only the creator can see config
-      if (integration.is_private && param.userId !== integration.created_by) {
-        integration.config = undefined;
-      } else {
-        integration.config = await integration.getConnectionConfig();
-      }
+    // Clear config unless the caller explicitly requested it AND is allowed to
+    // see it. The safe behavior must NOT depend on `includeConfig` being present
+    // — otherwise omitting it leaks the raw stored config. Mirrors the
+    // workspace-scoped read in integrations.controller.ts.
+    if (
+      !param.includeConfig ||
+      (integration.is_private && param.userId !== integration.created_by)
+    ) {
+      integration.config = undefined;
+    } else {
+      integration.config = await integration.getConnectionConfig();
     }
 
+    // Runs only on the decrypted config object (or `undefined`) — never on the
+    // raw stored string, so the DB password mask actually takes effect.
     if (integration.type === IntegrationsTypeEnum.Database) {
       maskKnexConfig(integration);
     }

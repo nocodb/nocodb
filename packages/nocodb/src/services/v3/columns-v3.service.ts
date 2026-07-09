@@ -8,6 +8,8 @@ import {
 } from 'nocodb-sdk';
 import type {
   ColumnReqType,
+  FieldOptionAddItemV3Type,
+  FieldOptionDeleteItemV3Type,
   FieldUpdateV3Type,
   FieldV3Type,
   UserType,
@@ -33,6 +35,8 @@ type ColumnReqWithMeta = ColumnReqType & {
   colOptions?: any;
   dtxp?: string;
 };
+
+type SelectChoiceV3 = { id?: string; title: string; color?: string };
 
 const META_ONLY_PROPS = new Set(['description']);
 
@@ -253,5 +257,160 @@ export class ColumnsV3Service {
     await this.columnsService.columnDelete(context, param, ncMeta);
 
     return {};
+  }
+
+  // Read the current select choices from the v3 read representation so they
+  // carry their stable `id`s — passing those ids back through columnUpdate is
+  // what makes the underlying option diff preserve them (no data loss).
+  private getSelectColumnChoices(
+    context: NcContext,
+    columnId: string,
+    column: Column,
+  ): { current: FieldV3Type; choices: SelectChoiceV3[] } {
+    if (![UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+      NcError.get(context).invalidRequestBody(
+        'Options can only be managed on SingleSelect or MultiSelect fields.',
+      );
+    }
+
+    const current = columnBuilder().build(column) as FieldV3Type;
+    const choices =
+      (current as { options?: { choices?: SelectChoiceV3[] } }).options
+        ?.choices ?? [];
+
+    return { current, choices };
+  }
+
+  async columnOptionsAdd(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      columnId: string;
+      choices: FieldOptionAddItemV3Type[];
+      user: UserType;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FieldOptionsAddReq',
+      { choices: param.choices },
+      true,
+      context,
+    );
+
+    const column = await Column.get(context, { colId: param.columnId }, ncMeta);
+
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const { current, choices: existingChoices } = this.getSelectColumnChoices(
+      context,
+      param.columnId,
+      column,
+    );
+
+    // Reject duplicate titles *within* the request body. The schema's
+    // `uniqueItems` only dedupes identical objects, not same-title-different-color.
+    const seenTitles = new Set<string>();
+    for (const choice of param.choices) {
+      const title = choice.title.trim();
+      if (seenTitles.has(title)) {
+        NcError.get(context).invalidRequestBody(
+          `Duplicate choice title in request: '${title}'`,
+        );
+      }
+      seenTitles.add(title);
+    }
+
+    // Idempotent add: skip incoming titles that already exist on the field.
+    const existingTitles = new Set(existingChoices.map((c) => c.title));
+    const choicesToAdd = param.choices
+      .filter((choice) => !existingTitles.has(choice.title.trim()))
+      .map((choice) => ({
+        title: choice.title.trim(),
+        ...(choice.color ? { color: choice.color } : {}),
+      }));
+
+    // Every incoming title already exists — idempotent no-op, return as-is
+    // (also avoids a needless column rebuild).
+    if (choicesToAdd.length === 0) {
+      return current;
+    }
+
+    const mergedChoices = [...existingChoices, ...choicesToAdd];
+
+    return this.columnUpdate(
+      context,
+      {
+        req: param.req,
+        columnId: param.columnId,
+        column: {
+          type: current.type,
+          options: { choices: mergedChoices },
+        } as FieldUpdateV3Type,
+        user: param.user,
+      },
+      ncMeta,
+    );
+  }
+
+  async columnOptionsDelete(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      columnId: string;
+      choices: FieldOptionDeleteItemV3Type[];
+      user: UserType;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FieldOptionsDeleteReq',
+      { choices: param.choices },
+      true,
+      context,
+    );
+
+    const column = await Column.get(context, { colId: param.columnId }, ncMeta);
+
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const { current, choices: existingChoices } = this.getSelectColumnChoices(
+      context,
+      param.columnId,
+      column,
+    );
+
+    // Idempotent delete: ignore ids that aren't present on the field.
+    const idsToRemove = new Set(param.choices.map((choice) => choice.id));
+    const mergedChoices = existingChoices.filter(
+      (choice) => !choice.id || !idsToRemove.has(choice.id),
+    );
+
+    // No id matched an existing choice — idempotent no-op, return as-is.
+    if (mergedChoices.length === existingChoices.length) {
+      return current;
+    }
+
+    if (mergedChoices.length === 0) {
+      NcError.get(context).badRequest('At least one option is required.');
+    }
+
+    return this.columnUpdate(
+      context,
+      {
+        req: param.req,
+        columnId: param.columnId,
+        column: {
+          type: current.type,
+          options: { choices: mergedChoices },
+        } as FieldUpdateV3Type,
+        user: param.user,
+      },
+      ncMeta,
+    );
   }
 }

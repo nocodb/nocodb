@@ -761,6 +761,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (activeViewId === view.id) {
         const key = getViewsKey(view.base_id, view.fk_model_id)
         const remainingViews = viewsByTable.value.get(key) || []
+        // TODO: use getFirstNonPersonalView(remainingViews, { includeViewType: ViewTypes.GRID }) so we don't default to a personal or non-grid view
         const defaultView = remainingViews[0]
 
         if (defaultView && activeTable.value) {

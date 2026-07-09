@@ -267,6 +267,9 @@ type NcProject = BaseType & {
   managed_app_published_at?: string
   auto_update?: boolean
   managed_app_schema_locked?: boolean
+  // Set only for sandbox bases — the production base this sandbox belongs to.
+  // Used to decide whether to surface a sandbox base in the base list.
+  production_base_id?: string
 }
 
 interface ImportWorkerPayload {

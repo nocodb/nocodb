@@ -9,6 +9,7 @@ import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './sqlite.queries';
+import { sanitiseDataTypePrecision } from '~/helpers/sqlSanitize';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
 
@@ -2132,7 +2133,9 @@ class SqliteClient extends KnexClient {
         shouldSanitize,
       );
       addNewColumnQuery +=
-        n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
+        n.dtxp && n.dt !== 'text'
+        ? `(${this.genRaw(sanitiseDataTypePrecision(n.dtxp))})`
+        : '';
       addNewColumnQuery += n.cdf
         ? ` DEFAULT ${this.genValue(n.cdf)}`
         : !n.rqd
@@ -2166,7 +2169,9 @@ class SqliteClient extends KnexClient {
         [n.cn],
         shouldSanitize,
       );
-      query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
+      query += n.dtxp && n.dt !== 'text'
+        ? `(${this.genRaw(sanitiseDataTypePrecision(n.dtxp))})`
+        : '';
       query += n.cdf ? ` DEFAULT ${this.genValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
       // todo: unique constraint should be added using index
@@ -2178,7 +2183,9 @@ class SqliteClient extends KnexClient {
         [n.cn],
         shouldSanitize,
       );
-      query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
+      query += n.dtxp && n.dt !== 'text'
+        ? `(${this.genRaw(sanitiseDataTypePrecision(n.dtxp))})`
+        : '';
       query += n.cdf
         ? ` DEFAULT ${this.genValue(n.cdf)}`
         : !n.rqd

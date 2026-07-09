@@ -18,13 +18,6 @@ const selectedIndex = ref()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-useEventListener(container, 'click', (e) => {
-  const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') && !target.closest('.nc-button') && !target.closest('img') && !target.closest('video')) {
-    selectedFile.value = false
-  }
-})
-
 const onThumbClick = (index: number) => {
   if (!emblaMainApi.value || !emblaThumbnailApi.value) return
 
@@ -120,17 +113,116 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const openComments = ref(false)
 
+// Carousel comments + annotations are available whenever the full-screen
+// viewer is open — including over the expanded record (the most common way to
+// open an attachment). The viewer sits on top, so its own comments panel is
+// the active one regardless of how it was opened.
+const carouselCommentsEnabled = computed(
+  () => !isPublic.value && isUIAllowed('commentList') && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS),
+)
+
+// Image annotations are EE-only; plain carousel comments stay available in CE.
+const annotationEnabled = computed(() => isEeUI && carouselCommentsEnabled.value)
+
+// Bottom-left file meta (type • size) for the current attachment.
+const fileTypeLabel = computed(() => {
+  if (!selectedFile.value) return ''
+  const fromMime = getReadableFileType(selectedFile.value.mimetype)
+  if (fromMime) return fromMime
+  const title = `${selectedFile.value.title || ''}`
+  const ext = title.includes('.') ? title.split('.').pop() : ''
+  return ext ? ext.toUpperCase() : ''
+})
+
+const fileSizeLabel = computed(() =>
+  selectedFile.value && selectedFile.value.size ? formatFileSize(selectedFile.value.size, 1) : '',
+)
+
+const {
+  markers,
+  draft,
+  activeAnnotationId,
+  hoveredAnnotationId,
+  focusTarget,
+  startDraft,
+  cancelDraft,
+  setHovered,
+  setActive,
+  clearFocus,
+} = useProvideImageAnnotations(selectedFile, visibleItems)
+
+// Clicks in the carousel area (outside the image/chrome): close an open comment
+// modal first, otherwise close the carousel. Marker/popup clicks use @click.stop
+// so they never reach here.
+useEventListener(container, 'click', (e) => {
+  const target = e.target as HTMLElement
+  if (
+    target.closest('.keep-open') ||
+    target.closest('.nc-button') ||
+    target.closest('img') ||
+    target.closest('video') ||
+    target.closest('.nc-annotation-comment-box') ||
+    target.closest('.nc-annotation-comment-view') ||
+    target.closest('.nc-annotation-marker')
+  ) {
+    return
+  }
+
+  if (draft.value || activeAnnotationId.value) {
+    cancelDraft()
+    setActive(null)
+    return
+  }
+
+  selectedFile.value = false
+})
+
 const toggleComment = () => {
   openComments.value = !openComments.value
 }
 
+// Switching the previewed image invalidates any in-progress draft (its
+// coordinates belong to the previous file). A stale active id is harmless —
+// no marker on another file matches it.
+watch(selectedIndex, () => {
+  cancelDraft()
+  setHovered(null)
+})
+
+function onCreateAnnotation(payload: { region: any; anchor: { x: number; y: number } }) {
+  // Don't auto-open the comments panel — opening it resizes the image and
+  // would shift the just-placed marker. The anchored popup is enough; the
+  // saved comment shows in the panel once the user opens it.
+  startDraft(payload.region, payload.anchor)
+}
+
+function onSelectAnnotation(commentId: string) {
+  // Clicking a marker opens its conversation popup on the image. Don't force
+  // the side panel open — opening it resizes the image and shifts the marker.
+  setActive(commentId)
+}
+
+// "View" from the comments sidebar — switch to the annotated file + highlight.
+watch(focusTarget, (target) => {
+  if (!target) return
+
+  if (target.attachment) {
+    const idx = visibleItems.value.findIndex(
+      (item) => item?.path === target.attachment?.path && item?.url === target.attachment?.url,
+    )
+    if (idx >= 0 && idx !== selectedIndex.value) {
+      emblaMainApi.value?.scrollTo(idx)
+      emblaThumbnailApi.value?.scrollTo(idx)
+    }
+  }
+
+  setActive(target.commentId)
+  openComments.value = true
+  clearFocus()
+})
+
 onMounted(() => {
-  if (
-    !isPublic.value &&
-    !isExpandedFormOpen.value &&
-    isUIAllowed('commentList') &&
-    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)
-  ) {
+  if (carouselCommentsEnabled.value) {
     const { loadComments } = useRowCommentsOrThrow()
     loadComments()
   }
@@ -143,7 +235,10 @@ const initEmblaApi = (val: any) => {
 
 <template>
   <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 504" class="bg-black bg-opacity-90">
-    <div class="flex w-full h-full">
+    <!-- The carousel is always dark; force the dark theme on its subtree (the
+         comment popup + comments side-panel) regardless of the app theme.
+         `theme="dark"` switches the CSS variables; `dark` enables Windi dark: variants. -->
+    <div class="flex w-full h-full dark" theme="dark">
       <div
         v-if="selectedFile"
         ref="container"
@@ -181,8 +276,23 @@ const initEmblaApi = (val: any) => {
                   controls
                   :alt="item.title"
                   :srcs="getPossibleAttachmentSrc(item)"
+                  :annotatable="annotationEnabled"
+                  :markers="markers"
+                  :draft="draft"
+                  :active-id="activeAnnotationId"
+                  :hovered-id="hoveredAnnotationId"
                   @error="triggerReload"
-                />
+                  @create-annotation="onCreateAnnotation"
+                  @select-annotation="onSelectAnnotation"
+                  @hover-annotation="setHovered"
+                >
+                  <template #popup>
+                    <CellAttachmentAnnotationCommentBox />
+                  </template>
+                  <template #viewPopup>
+                    <CellAttachmentAnnotationCommentView />
+                  </template>
+                </CellAttachmentPreviewImage>
 
                 <CellAttachmentPreviewVideo
                   v-else-if="isVideo(item.title, item.mimetype)"
@@ -240,10 +350,7 @@ const initEmblaApi = (val: any) => {
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
-        <div
-          v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
-          class="absolute top-2 right-2"
-        >
+        <div v-if="carouselCommentsEnabled" class="absolute top-2 right-2">
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
               {{ $t('general.comments') }}
@@ -253,6 +360,15 @@ const initEmblaApi = (val: any) => {
         </div>
 
         <div class="text-white absolute right-2 top-2 cursor-pointer"></div>
+
+        <div
+          v-if="fileTypeLabel || fileSizeLabel"
+          class="nc-attachment-file-meta absolute left-4 bottom-3 z-30 flex items-center gap-1.5 text-small font-medium text-gray-300 select-none pointer-events-none"
+        >
+          <span v-if="fileTypeLabel">{{ fileTypeLabel }}</span>
+          <span v-if="fileTypeLabel && fileSizeLabel">•</span>
+          <span v-if="fileSizeLabel">{{ fileSizeLabel }}</span>
+        </div>
 
         <div class="absolute w-full !bottom-2 max-h-18 z-30 flex items-center justify-center">
           <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
@@ -333,7 +449,7 @@ const initEmblaApi = (val: any) => {
         </GeneralDeleteModal>
       </div>
       <div
-        v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
+        v-if="carouselCommentsEnabled"
         :class="{
           'w-0': !openComments,
           '!w-88': openComments,

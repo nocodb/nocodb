@@ -179,6 +179,7 @@ enum AuditV1OperationTypes {
   SNAPSHOT_DELETE = 'SNAPSHOT_DELETE',
   SNAPSHOT_CREATE = 'SNAPSHOT_CREATE',
   SNAPSHOT_RESTORE = 'SNAPSHOT_RESTORE',
+  SNAPSHOT_SCHEDULE_UPDATE = 'SNAPSHOT_SCHEDULE_UPDATE',
 
   DATA_IMPORT = 'DATA_IMPORT',
   DATA_EXPORT = 'DATA_EXPORT',
@@ -1145,6 +1146,15 @@ export interface SnapshotPayload {
   snapshot_id: string;
   base_title: string;
   snapshot_base_id: string;
+}
+export interface SnapshotSchedulePayload {
+  base_title: string;
+  enabled: boolean;
+  frequency: string;
+  cron_expression: string;
+  timezone: string;
+  keep_last: number;
+  delete_after_days: number;
 }
 export interface SnapshotRestorePayload {
   snapshot_title: string;

@@ -1,5 +1,6 @@
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column } from '~/models';
+import { sanitiseDataTypePrecision } from '~/helpers/sqlSanitize';
 
 export function buildBackupColumnTypeExpr(
   sourceColumn: Column<any>,
@@ -31,14 +32,11 @@ export function buildBackupColumnTypeExpr(
     return dt;
   }
 
-  // dtxp can be numeric (`255`, `10,2`) or an enum/set value list
-  // (`'a','b'`) — reject statement terminators / comment markers.
-  const dtxpStr = String(dtxp);
-  if (/[;\\]|--|\/\*|\*\//.test(dtxpStr)) {
-    throw new Error(`Invalid data type precision: ${dtxpStr}`);
-  }
-
-  return `${dt}(${dtxpStr})`;
+  // dtxp can be numeric (`255`, `10,2`) or an enum/set value list (`'a','b'`).
+  // Validate against the strict allowlist rather than a blacklist — a payload
+  // like `1) CHECK(1=0` slips past a comment/terminator blacklist and would
+  // inject a constraint into the backup column's DDL.
+  return `${dt}(${sanitiseDataTypePrecision(dtxp)})`;
 }
 
 /**

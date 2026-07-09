@@ -2,10 +2,7 @@ import { ClientType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type {
-  AggregationGeneratorParams,
-  DBQueryClient,
-} from '~/dbQueryClient/types';
+import type { DBQueryClient } from '~/dbQueryClient/types';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
 export class OracleDBQueryClient
@@ -33,10 +30,6 @@ export class OracleDBQueryClient
     rows: Record<string, any>[];
     pkColumnName: string;
   }): Knex.QueryBuilder | Knex.Raw | null {
-    throw new Error(OracleDBQueryClient.EE_ONLY);
-  }
-
-  generateAggregateQuery(_params: AggregationGeneratorParams): string {
     throw new Error(OracleDBQueryClient.EE_ONLY);
   }
 

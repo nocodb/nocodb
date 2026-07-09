@@ -21,6 +21,7 @@ import type { Model } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { aggregate as aggregateOrchestration } from '~/dbQueryClient/cross-db-utils/aggregate';
 import { bulkAggregate as bulkAggregateOrchestration } from '~/dbQueryClient/cross-db-utils/bulk-aggregate';
+import { getAggregationHandler } from '~/dbQueryClient/aggregations';
 
 export abstract class GenericDBQueryClient implements DBQueryClient {
   dbVersion?: string;
@@ -202,13 +203,17 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
     throw new Error('Not implemented');
   }
   /**
-   * Dialect-specific aggregation SQL generator.
-   * Each subclass forwards to its own
-   * `gen{Pg,Mysql2,Sqlite3,Mssql}AggregateQuery`.
+   * Dialect-specific aggregation SQL generator. Resolves the per-dialect
+   * aggregation strategy from the registry (see
+   * `~/dbQueryClient/aggregations`) — the aggregation analogue of the
+   * `field-handler` dispatch. Subclasses no longer override this; instead each
+   * dialect ships an `AggregationHandler` class.
    */
-  abstract generateAggregateQuery(
+  generateAggregateQuery(
     params: AggregationGeneratorParams,
-  ): string | undefined;
+  ): string | undefined {
+    return getAggregationHandler(this.clientType).generate(params);
+  }
 
   aggregate(
     context: NcContext,

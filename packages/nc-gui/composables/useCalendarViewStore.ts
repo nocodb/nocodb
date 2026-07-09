@@ -779,13 +779,21 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fromDate = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
         toDate = timezoneDayjs.timezonize(pageDate.value.endOf('month').endOf('week'))
         prevDate = fromDate.subtract(1, 'day').endOf('day')
-        nextDate = toDate.startOf('day')
+        // Include the whole last day of the range: buildFilterArr filters `fromCol < next_date`,
+        // so `startOf('day')` would drop every record ON the last day (e.g. a month that ends on the
+        // week boundary like Sun 31 May → its records vanish from the date-picker dots). Mirrors the
+        // record fetch above.
+        nextDate = toDate.add(1, 'day').startOf('day')
       } else if (activeCalendarView.value === 'year') {
         const startOfYear = timezoneDayjs.timezonize(selectedDate.value.startOf('year'))
         fromDate = timezoneDayjs.timezonize(startOfYear.startOf('week'))
         toDate = timezoneDayjs.timezonize(selectedDate.value.endOf('year')).endOf('week')
         prevDate = fromDate.subtract(1, 'day').endOf('day')
-        nextDate = toDate.startOf('day')
+        // Include the whole last day of the range: buildFilterArr filters `fromCol < next_date`,
+        // so `startOf('day')` would drop every record ON the last day (e.g. a month that ends on the
+        // week boundary like Sun 31 May → its records vanish from the date-picker dots). Mirrors the
+        // record fetch above.
+        nextDate = toDate.add(1, 'day').startOf('day')
       }
 
       prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')

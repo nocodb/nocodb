@@ -627,6 +627,16 @@ const positionedRecords = computed<Row[]>(() => {
   })
 })
 
+// Expanded row-height grows the grid to fit every lane, so a dense day would mount hundreds of DOM
+// nodes and lag the tab. Render only the records whose vertical band is within the scrolled
+// viewport (the grid height is set by CSS gridTemplateRows, so the scroll range is unaffected).
+const calendarScrollContainer = inject<Ref<HTMLElement | undefined>>('calendarScrollContainer', ref())
+
+const visibleRecords = useCalendarWindow(calendarScrollContainer, positionedRecords, {
+  alwaysInclude: (record) =>
+    record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id,
+})
+
 // Map a vertical pixel offset (within the grid) to a week index — honours the variable
 // per-week row heights in Expanded; falls back to uniform division in Compact.
 const weekFromY = (y: number) => {
@@ -1176,7 +1186,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <template v-for="record in positionedRecords">
+      <template v-for="record in visibleRecords">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :key="record.rowMeta.id"

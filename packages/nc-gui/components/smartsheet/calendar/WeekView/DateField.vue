@@ -348,6 +348,22 @@ const isDragging = ref(false)
 
 const dragRecord = ref<Row>()
 
+// Scroll container for windowing: compact scrolls the record layer itself; expanded lets it grow
+// and the calendar body (provided by calendar/index.vue) scrolls instead.
+const recordScrollContainer = ref<HTMLElement | null>(null)
+
+const calendarScrollContainer = inject<Ref<HTMLElement | undefined>>('calendarScrollContainer', ref())
+
+const windowScrollContainer = computed<HTMLElement | null | undefined>(() =>
+  isExpanded.value ? calendarScrollContainer.value : recordScrollContainer.value,
+)
+
+// A dense day fans out into hundreds of lane rows; render only the records whose vertical band is
+// within the scrolled viewport so the DOM stays small (the layout/scroll range is unchanged).
+const visibleRecords = useCalendarWindow(windowScrollContainer, calendarData, {
+  alwaysInclude: (record) => record.rowMeta.id === dragRecord.value?.rowMeta.id,
+})
+
 const resizeDirection = ref<'right' | 'left' | null>()
 
 const resizeRecord = ref<Row | null>(null)
@@ -722,11 +738,12 @@ const addRecord = (date: dayjs.Dayjs) => {
       ></div>
     </div>
     <div
+      ref="recordScrollContainer"
       class="absolute z-2 mt-6 pointer-events-none inset-0"
       :class="isExpanded ? 'overflow-visible' : 'nc-scrollbar-md overflow-y-auto'"
       data-testid="nc-calendar-week-record-container"
     >
-      <template v-for="(record, id) in calendarData" :key="id">
+      <template v-for="(record, id) in visibleRecords" :key="id">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"

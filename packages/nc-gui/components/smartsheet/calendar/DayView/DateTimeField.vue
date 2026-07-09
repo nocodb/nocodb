@@ -182,43 +182,6 @@ const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => {
     to: getGridTime(to, true) - 1,
   }
 }
-
-const hasSlotForRecord = (
-  columnArray: Row[],
-  dates: {
-    fromDate: dayjs.Dayjs
-    toDate: dayjs.Dayjs
-  },
-) => {
-  const { fromDate, toDate } = dates
-
-  if (!fromDate || !toDate) return false
-
-  for (const column of columnArray) {
-    const columnFromCol = column.rowMeta.range?.fk_from_col
-    const columnToCol = column.rowMeta.range?.fk_to_col
-
-    if (!columnFromCol) return false
-
-    const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
-      startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
-      endDate:
-        columnToCol && dayjs(column.row[columnToCol.title!])?.isValid()
-          ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
-          : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: timezoneDayjs.dayjsTz(selectedDate.value).startOf('day'),
-      scheduleEnd: timezoneDayjs.dayjsTz(selectedDate.value).endOf('day'),
-    })
-
-    if (
-      fromDate.isBetween(columnFromDate, columnToDate, null, '[]') ||
-      toDate.isBetween(columnFromDate, columnToDate, null, '[]')
-    ) {
-      return false
-    }
-  }
-  return true
-}
 const dragRecord = ref<Row | null>(null)
 
 const isDragging = ref(false)
@@ -236,31 +199,13 @@ const hoverRecord = ref<string | null>(null)
 const recordsAcrossAllRange = computed<{
   record: Row[]
   spanningRecords: Row[]
-  gridTimeMap: Map<
-    number,
-    {
-      count: number
-      id: string[]
-      overflowRecords: Row[]
-    }
-  >
 }>(() => {
-  if (!calendarRange.value || !formattedData.value) return { record: [], spanningRecords: [], gridTimeMap: new Map() }
+  if (!calendarRange.value || !formattedData.value) return { record: [], spanningRecords: [] }
 
   const scheduleStart = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
   const scheduleEnd = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
 
   const perRecordHeight = 52
-
-  const columnArray: Array<Array<Row>> = [[]]
-  const gridTimeMap = new Map<
-    number,
-    {
-      count: number
-      id: string[]
-      overflowRecords: Row[]
-    }
-  >()
 
   const recordsByRange: Array<Row> = []
   const recordSpanningDays: Array<Row> = []
@@ -378,6 +323,10 @@ const recordsAcrossAllRange = computed<{
     return timezoneDayjs.timezonize(a.row[fromColA.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromColB.title!])) ? -1 : 1
   })
 
+  // Precompute each record's integer time-slot span (minutes since midnight). Doing the dayjs
+  // work ONCE per record here — instead of inside an O(N^2) column scan — keeps the packing
+  // loop below integer-only.
+  const intervals: Array<{ record: Row; from: number; to: number }> = []
   for (const record of recordsByRange) {
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
@@ -394,107 +343,161 @@ const recordsAcrossAllRange = computed<{
       scheduleEnd,
     })
 
-    const gridTimes = getGridTimeSlots(startDate, endDate)
+    const { from, to } = getGridTimeSlots(startDate, endDate)
+    intervals.push({ record, from, to })
+  }
 
-    for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
-      if (!gridTimeMap.has(gridCounter)) {
-        gridTimeMap.set(gridCounter, {
-          count: 1,
-          id: [record.rowMeta.id!],
-          overflowRecords: [],
-        })
-      } else {
-        gridTimeMap.set(gridCounter, {
-          count: gridTimeMap.get(gridCounter)!.count + 1,
-          id: [...gridTimeMap.get(gridCounter)!.id, record.rowMeta.id!],
-          overflowRecords: [],
-        })
+  // Sweep-line interval partitioning. Sort by start, then greedily pack each record into the
+  // lowest-indexed column whose previous record has already ended; a record that starts after
+  // every open column has ended begins a fresh overlap cluster. Every record in a connected
+  // cluster gets the SAME denominator (`numberOfOverlaps` = the cluster's column count) so
+  // `width` (100% / N) and the `overLapIteration` offset tile on one grid and never collide —
+  // cards fill the width when a cluster is sparse and shrink to the 48px min (outer wrapper
+  // scrolls) when it is busy. This replaces the old per-minute gridTimeMap array-spread +
+  // dayjs-based O(N^2) column scan + union-find, which froze the tab on dense days.
+  intervals.sort((a, b) => a.from - b.from || a.to - b.to)
+
+  const columnsEnd: number[] = [] // columnsEnd[i] = last occupied slot of column i in the current cluster
+  let clusterEnd = -Infinity
+  let clusterMembers: Row[] = []
+
+  const flushCluster = () => {
+    const denom = columnsEnd.length || 1
+    for (const rec of clusterMembers) {
+      rec.rowMeta.numberOfOverlaps = denom
+      rec.rowMeta.style = {
+        ...rec.rowMeta.style,
+        display: 'block',
       }
     }
+  }
 
-    let foundAColumn = false
+  for (const { record, from, to } of intervals) {
+    // A gap (this record starts after every open column has ended) closes the current cluster.
+    if (from > clusterEnd) {
+      flushCluster()
+      columnsEnd.length = 0
+      clusterMembers = []
+      clusterEnd = -Infinity
+    }
 
-    for (const column in columnArray) {
-      if (
-        hasSlotForRecord(columnArray[column], {
-          fromDate: startDate,
-          toDate: endDate,
-        })
-      ) {
-        columnArray[column].push(record)
-        foundAColumn = true
+    // Reuse the lowest-indexed column that has freed up; otherwise open a new one.
+    let col = -1
+    for (let i = 0; i < columnsEnd.length; i++) {
+      if (columnsEnd[i] < from) {
+        col = i
         break
       }
     }
-
-    if (!foundAColumn) {
-      columnArray.push([record])
+    if (col === -1) {
+      col = columnsEnd.length
+      columnsEnd.push(to)
+    } else {
+      columnsEnd[col] = to
     }
-  }
-  for (const columnIndex in columnArray) {
-    for (const record of columnArray[columnIndex]) {
-      record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
-    }
-  }
 
-  // Overlap denominator: every card in a connected overlap cluster must divide by the SAME
-  // column count, or `width` (100% / N) and the column offset (`overLapIteration`) tile on
-  // different grids — a long record spanning from a sparse region into a denser one gets a
-  // smaller width unit than its short neighbours and renders on top of them. The greedy
-  // column packing above already colours each cluster with exactly its max-concurrency
-  // number of columns, so we union every record that co-occurs in a grid slot and give all
-  // members of a cluster its highest column index as `numberOfOverlaps`. Cards therefore
-  // fill the width when a cluster is sparse and shrink to the 48px min (outer wrapper
-  // scrolls) when it is busy — without ever overlapping.
-  const parent = new Map<string, string>()
-  const find = (x: string): string => {
-    let root = x
-    while (parent.get(root) !== root) root = parent.get(root)!
-    let cur = x
-    while (cur !== root) {
-      const next = parent.get(cur)!
-      parent.set(cur, root)
-      cur = next
-    }
-    return root
+    record.rowMeta.overLapIteration = col + 1
+    clusterMembers.push(record)
+    clusterEnd = Math.max(clusterEnd, to)
   }
-  const union = (a: string, b: string) => {
-    const ra = find(a)
-    const rb = find(b)
-    if (ra !== rb) parent.set(ra, rb)
-  }
-
-  for (const record of recordsByRange) {
-    const id = `${record.rowMeta.id}`
-    if (!parent.has(id)) parent.set(id, id)
-  }
-  // Records sharing any grid slot are mutually overlapping; union them so a long record
-  // bridging two busy regions pulls both into one cluster (transitive via union-find).
-  for (const { id: slotIds } of gridTimeMap.values()) {
-    for (let i = 1; i < slotIds.length; i++) union(`${slotIds[0]}`, `${slotIds[i]}`)
-  }
-
-  const clusterMaxColumns = new Map<string, number>()
-  for (const record of recordsByRange) {
-    const root = find(`${record.rowMeta.id}`)
-    clusterMaxColumns.set(root, Math.max(clusterMaxColumns.get(root) ?? 1, record.rowMeta.overLapIteration ?? 1))
-  }
-
-  for (const record of recordsByRange) {
-    record.rowMeta.numberOfOverlaps = clusterMaxColumns.get(find(`${record.rowMeta.id}`)) ?? 1
-
-    record.rowMeta.style = {
-      ...record.rowMeta.style,
-      display: 'block',
-    }
-  }
+  flushCluster()
 
   return {
-    gridTimeMap,
     record: recordsByRange,
     spanningRecords: recordSpanningDays,
   }
 })
+
+// Windowing: a dense day is fetched with limitOverride=3000, so the grid can hold hundreds of
+// overlapping cards. Mounting them all froze the tab, so we render only the records whose
+// laid-out box intersects the visible scroll viewport (plus an overscan margin). Horizontal is
+// the big win — a busy time-slot fans one 48px column out per record, far wider than the screen —
+// but we window both axes so it stays robust to any distribution. The dragged / resized record is
+// always kept mounted so an in-flight gesture never unmounts mid-drag.
+const scrollContainer = ref<HTMLElement | null>(null)
+
+const { x: scrollX, y: scrollY } = useScroll(scrollContainer, { throttle: 100 })
+
+const { width: viewportWidth, height: viewportHeight } = useElementSize(scrollContainer)
+
+// Left offset of the record area within the scroll content: sticky time gutter (64px, `w-16`)
+// + the record layer's own left inset (8px, `left-2`).
+const RECORD_AREA_OFFSET = 72
+
+// Mount a screenful beyond the viewport on every side so scrolling never reveals a blank gap
+// before the next throttled recompute lands.
+const RECORD_OVERSCAN = 1000
+
+const visibleRecords = computed(() => {
+  const all = recordsAcrossAllRange.value.record
+  if (all.length <= 1) return all
+
+  const vpW = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : 1280)
+  const vpH = viewportHeight.value || (typeof window !== 'undefined' ? window.innerHeight : 800)
+  const areaWidth = Math.max(vpW - RECORD_AREA_OFFSET, 1)
+
+  const winLeft = scrollX.value - RECORD_AREA_OFFSET - RECORD_OVERSCAN
+  const winRight = scrollX.value - RECORD_AREA_OFFSET + vpW + RECORD_OVERSCAN
+  const winTop = scrollY.value - RECORD_OVERSCAN
+  const winBottom = scrollY.value + vpH + RECORD_OVERSCAN
+
+  const dragId = dragRecord.value?.rowMeta.id
+  const resizeId = resizeRecord.value?.rowMeta.id
+
+  return all.filter((record) => {
+    if (record.rowMeta.id === dragId || record.rowMeta.id === resizeId) return true
+
+    const overlaps = record.rowMeta.numberOfOverlaps || 1
+    const cardWidth = Math.max(areaWidth / overlaps, 48)
+    const cardLeft = cardWidth * ((record.rowMeta.overLapIteration || 1) - 1)
+    if (cardLeft + cardWidth < winLeft || cardLeft > winRight) return false
+
+    const cardTop = Number.parseFloat(`${record.rowMeta.style?.top ?? 0}`)
+    const cardHeight = Number.parseFloat(`${record.rowMeta.style?.height ?? 0}`)
+    if (cardTop + cardHeight < winTop || cardTop > winBottom) return false
+
+    return true
+  })
+})
+
+// Full laid-out extent of ALL records (max card right edge, in record-layer coords). Used to size
+// the hour-grid background below so it — and the horizontal scroll range — span every overlap
+// column even though off-screen cards are unmounted (virtualization). Without this the grid would
+// end at the viewport and scrolling right would reveal cards over blank space; and the scrollWidth
+// would collapse to just the mounted cards, so the rest could never be scrolled to.
+const recordsContentWidth = computed(() => {
+  const all = recordsAcrossAllRange.value.record
+  if (all.length <= 1) return 0
+
+  const vpW = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : 1280)
+  const areaWidth = Math.max(vpW - RECORD_AREA_OFFSET, 1)
+
+  let width = 0
+  for (const record of all) {
+    const overlaps = record.rowMeta.numberOfOverlaps || 1
+    const cardWidth = Math.max(areaWidth / overlaps, 48)
+    const right = cardWidth * ((record.rowMeta.overLapIteration || 1) - 1) + cardWidth
+    if (right > width) width = right
+  }
+  return width
+})
+
+// Inner-grid min-width: the flex row (time gutter + hour grid + record layer) is stretched to span
+// the widest record so it holds the outer horizontal scroll range open, the hour grid covers every
+// column, AND — critically — the sticky time gutter stays pinned instead of scrolling away (a
+// viewport-width row would let the gutter scroll off after one screen). At least the viewport width.
+const dayScrollWidth = computed(() => {
+  const vpW = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : 1280)
+  return `${Math.max(recordsContentWidth.value + RECORD_AREA_OFFSET, vpW)}px`
+})
+
+// Card width in px, viewport-relative (NOT % of the now-content-wide grid): a busy time-slot's
+// cards divide the visible area by their overlap count down to a 48px floor; the left offset tiles
+// them. Kept in JS so widening the grid for the sticky gutter doesn't blow up sparse-day card widths.
+function cardWidthPx(overlaps: number): number {
+  const vpW = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : 1280)
+  return Math.max((vpW - RECORD_AREA_OFFSET) / (overlaps || 1), 48)
+}
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
@@ -911,7 +914,7 @@ const expandRecord = (record: Row) => {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-5.3rem)] nc-scrollbar-md nc-scrollbar-x-md">
+  <div ref="scrollContainer" class="h-[calc(100vh-5.3rem)] nc-scrollbar-md nc-scrollbar-x-md">
     <SmartsheetCalendarDateTimeSpanningContainer
       v-if="
         calendarRange.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined) &&
@@ -923,9 +926,18 @@ const expandRecord = (record: Row) => {
     <!-- Inner wrapper: free size — grows to fit the flex-1 columns. The OUTER wrapper (above)
          has the scrollbar; this never does. Records are laid out by CSS flex (no JS width
          measurement → no ResizeObserver loop) and nothing is hidden behind "+N more". -->
-    <div ref="container" class="flex relative no-selection w-full" data-testid="nc-calendar-day-view" @drop="dropEvent">
-      <!-- Time-axis gutter: sticky so it stays put while the grid scrolls horizontally -->
-      <div class="sticky left-0 z-20 bg-nc-bg-default flex-none">
+    <div
+      ref="container"
+      class="flex relative no-selection w-full"
+      :style="{ minWidth: dayScrollWidth }"
+      data-testid="nc-calendar-day-view"
+      @drop="dropEvent"
+    >
+      <!-- Time-axis gutter: sticky so it stays put while the grid scrolls horizontally. It sits above
+           the grid (z-20) purely for painting when scrolled, so it must NOT swallow pointer events —
+           its high z-index would otherwise intercept clicks on the leftmost hour-cell column (the
+           axis can overlap the grid edge by a sub-pixel), breaking hour selection. -->
+      <div class="sticky left-0 z-20 bg-nc-bg-default flex-none pointer-events-none">
         <div
           v-for="(hour, index) in hours"
           :key="index"
@@ -940,7 +952,8 @@ const expandRecord = (record: Row) => {
       <!-- Time area: hour-grid background + current-time line + record columns. Grows to fit
            the columns; the outer wrapper scrolls horizontally when they exceed the viewport. -->
       <div class="relative flex-1">
-        <!-- Hour grid background (clickable rows + add-record button) -->
+        <!-- Hour grid background (clickable rows + add-record button). Fills the time area, which the
+             container's dayScrollWidth min-width stretches to cover every record column. -->
         <div class="absolute inset-0 z-1">
           <div
             v-for="(hour, index) in hours"
@@ -1031,17 +1044,15 @@ const expandRecord = (record: Row) => {
              cards (and on the left rail) fall through to the hour grid below — keeping every
              hour selectable even when a full-width record covers it. -->
         <div class="absolute z-2 inset-y-0 left-2 right-0 pointer-events-none" data-testid="nc-calendar-day-record-container">
-          <template v-for="record in recordsAcrossAllRange.record" :key="record.rowMeta.id">
+          <template v-for="record in visibleRecords" :key="record.rowMeta.id">
             <div
               v-if="record.rowMeta.style?.display !== 'none'"
               :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
               :data-unique-id="record.rowMeta.id"
               :style="{
                 ...record.rowMeta.style,
-                width: `max(calc(100% / ${record.rowMeta.numberOfOverlaps || 1}), 48px)`,
-                left: `calc(max(calc(100% / ${record.rowMeta.numberOfOverlaps || 1}), 48px) * ${
-                  (record.rowMeta.overLapIteration || 1) - 1
-                })`,
+                width: `${cardWidthPx(record.rowMeta.numberOfOverlaps || 1)}px`,
+                left: `${cardWidthPx(record.rowMeta.numberOfOverlaps || 1) * ((record.rowMeta.overLapIteration || 1) - 1)}px`,
                 opacity:
                   (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
                   (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)

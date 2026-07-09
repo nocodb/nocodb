@@ -122,7 +122,9 @@ export default class Comment implements CommentType {
     ]);
 
     if (Array.isArray(insertObj.attachments)) {
-      insertObj.attachments = Comment.sanitizeAttachments(insertObj.attachments);
+      insertObj.attachments = Comment.sanitizeAttachments(
+        insertObj.attachments,
+      );
     }
 
     if (!insertObj.fk_model_id) NcError.tableNotFound(insertObj.fk_model_id);
@@ -176,7 +178,9 @@ export default class Comment implements CommentType {
 
     const attachmentsChanged = Array.isArray(updateObj.attachments);
     if (attachmentsChanged) {
-      updateObj.attachments = Comment.sanitizeAttachments(updateObj.attachments);
+      updateObj.attachments = Comment.sanitizeAttachments(
+        updateObj.attachments,
+      );
     }
 
     await ncMeta.metaUpdate(
@@ -241,6 +245,17 @@ export default class Comment implements CommentType {
       { is_deleted: true },
       commentId,
     );
+
+    // Comments have no restore path, so reclaim attachment refs immediately —
+    // otherwise they stay counted against workspace storage forever.
+    const refIds = await FileReference.listIdsForComment(
+      context,
+      commentId,
+      ncMeta,
+    );
+    if (refIds.length) {
+      await FileReference.delete(context, refIds, ncMeta);
+    }
 
     return true;
   }
@@ -426,13 +441,21 @@ export default class Comment implements CommentType {
 
     const refById = new Map<string, FileReference>();
     if (preExistingIds.length) {
-      const refs = await FileReference.listByIds(context, preExistingIds, ncMeta);
+      const refs = await FileReference.listByIds(
+        context,
+        preExistingIds,
+        ncMeta,
+      );
       for (const ref of refs) refById.set(ref.id, ref);
     }
 
     for (const att of attachments) {
       const existing = att.id ? refById.get(att.id) : undefined;
-      if (existing && !existing.deleted && existing.fk_comment_id === comment.id) {
+      if (
+        existing &&
+        !existing.deleted &&
+        existing.fk_comment_id === comment.id
+      ) {
         continue;
       }
 
@@ -444,6 +467,9 @@ export default class Comment implements CommentType {
           file_size: att.size || 0,
           fk_user_id: comment.created_by || 'anonymous',
           source_id: comment.source_id,
+          // fk_model_id lets Model.delete's bulkDelete({ fk_model_id })
+          // reclaim these refs when the table is deleted.
+          fk_model_id: comment.fk_model_id,
           fk_comment_id: comment.id,
         },
         ncMeta,

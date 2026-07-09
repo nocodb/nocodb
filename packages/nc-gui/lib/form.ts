@@ -38,6 +38,11 @@ export function buildFormConditionSourceColumns(formColumns: FormViewColumn[], m
   for (const col of metaColumns) {
     if (col.uidt !== UITypes.Lookup) continue
 
+    // Already a rendered form field — it's in the map keyed by its own fk_column_id
+    // with its real order/show. Don't append a synthesized entry with the same
+    // fk_column_id, which would override it in localColumnsMapByFkColumnId.
+    if (col.id && formColByColId.has(col.id)) continue
+
     const relationColId = (col.colOptions as LookupType | undefined)?.fk_relation_column_id
     if (!relationColId) continue
 

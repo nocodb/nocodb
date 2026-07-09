@@ -109,6 +109,32 @@ describe('buildFormConditionSourceColumns', () => {
     const formColumns = makeFormColumns()
     expect(buildFormConditionSourceColumns(formColumns, undefined)).toBe(formColumns)
   })
+
+  it('does not duplicate/override a Lookup that is already a rendered form field', () => {
+    // The lookup is placed in the form itself (with its own order/show), so it must
+    // not get a second synthesized entry that would override it in the source map.
+    const formColumns = [
+      ...makeFormColumns(),
+      {
+        fk_column_id: 'col_lookup',
+        title: 'Creative Type',
+        uidt: UITypes.Lookup,
+        colOptions: lookupCol.colOptions,
+        order: 5,
+        show: true,
+        visible: true,
+        permissions: { isAllowedToEdit: true },
+      },
+    ] as any[]
+
+    const result = buildFormConditionSourceColumns(formColumns, metaColumns)
+    const lookups = result.filter((c) => c.fk_column_id === 'col_lookup')
+
+    expect(lookups).toHaveLength(1)
+    // the rendered form column is preserved, not overridden by the synthesized one
+    expect(lookups[0].order).toBe(5)
+    expect(lookups[0].isFormConditionLookup).toBeUndefined()
+  })
 })
 
 describe('FormFilters — Lookup condition source', () => {

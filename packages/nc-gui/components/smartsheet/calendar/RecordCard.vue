@@ -117,7 +117,17 @@ const cardShadow = computed(() => {
     ></div>
 
     <div class="overflow-hidden gap-2 flex w-full" :class="multiline ? 'items-start py-1' : 'items-center justify-center'">
-      <span v-if="(position === 'leftRounded' || position === 'rounded') && isDot" class="nc-cal-dot ml-1.5"></span>
+      <!-- Centre the dot on the first line, not the whole card: wrap it in a box
+           that matches the first line's line-height (leading-5 → h-5) and centre
+           the dot inside. Single-line relies on the row's own items-center, so the
+           matched height only kicks in for the multiline (items-start) layout. -->
+      <span
+        v-if="(position === 'leftRounded' || position === 'rounded') && isDot"
+        class="flex items-center flex-none ml-1.5"
+        :class="{ 'h-4.5': multiline }"
+      >
+        <span class="nc-cal-dot"></span>
+      </span>
       <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
       <span v-if="isPill && $slots.time" class="nc-cal-time-pill">
         <slot name="time" />

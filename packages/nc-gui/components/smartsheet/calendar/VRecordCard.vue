@@ -60,8 +60,6 @@ const themeVars = computed(() => ({
 
 const isBordered = computed(() => eventDisplayTheme.value === CalendarEventTheme.BORDERED)
 
-const isSolid = computed(() => eventDisplayTheme.value === CalendarEventTheme.SOLID)
-
 const isPill = computed(() => eventDisplayTheme.value === CalendarEventTheme.PILL)
 
 const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
@@ -105,11 +103,16 @@ const cardShadow = computed(() => {
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
     <div v-if="showLeftBar" class="nc-vcard-leftbar h-full min-h-3 w-1.25 -ml-0.25"></div>
-    <span v-else-if="isDot" class="nc-vcard-dot self-start mt-1.5 ml-1 flex-none"></span>
+    <!-- Centre the dot on the first line, not the whole card: a box matching the
+         title's line-height (18px), offset by the body's top padding (pt-1) and
+         centred vertically, so it tracks the first line whatever sits below it. -->
+    <span v-else-if="isDot" class="self-start mt-1 h-[18px] ml-1 flex items-center flex-none">
+      <span class="nc-vcard-dot"></span>
+    </span>
 
     <div
       class="flex pt-1 w-full flex-col gap-1 overflow-hidden h-full"
-      :class="[{ 'overflow-x-hidden whitespace-nowrap text-ellipsis truncate': !isMultiline }, isSolid ? 'pr-1' : '']"
+      :class="{ 'overflow-x-hidden whitespace-nowrap text-ellipsis truncate': !isMultiline }"
     >
       <NcTooltip
         wrap-child="div"
@@ -191,8 +194,10 @@ const cardShadow = computed(() => {
   border-color: var(--nc-border-gray-dark);
 }
 
-// Solid — fill edge-to-edge, readable text on the accent.
+// Solid — fill edge-to-edge, readable text on the accent. Horizontal padding so
+// the text/time don't hug the cell edge (mirrors RecordCard's solid theme).
 .nc-vcard--solid {
+  @apply px-2;
   background: var(--cal-accent);
 
   :deep(.plain-cell),

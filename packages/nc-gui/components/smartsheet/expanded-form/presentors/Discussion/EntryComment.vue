@@ -54,7 +54,7 @@ const createdBy = (
   } else if (comment.created_display_name_short?.trim()) {
     return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.created_by_email) {
-    return comment.created_by_email
+    return formatUserNameFromEmail(comment.created_by_email)
   } else {
     return t('labels.sharedSource')
   }

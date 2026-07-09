@@ -57,7 +57,7 @@ const triggerLabel = computed(() => {
   if (selectedCount.value === 1) {
     const email = selectedEmails.value[0]
     const collab = collaborators.value.find((c) => c.email === email)
-    return collab?.display_name || email
+    return extractUserDisplayNameOrEmail(collab) || formatUserNameFromEmail(email)
   }
 
   return t('labels.peopleSelected', { count: selectedCount.value }, selectedCount.value)

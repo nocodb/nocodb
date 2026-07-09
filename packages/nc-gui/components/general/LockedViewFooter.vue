@@ -30,7 +30,7 @@ const personalViewOwnerLabel = computed(() => {
   if (view.value?.lock_type !== ViewLockType.Personal || !view.value?.owned_by) return ''
   const users = view.value.base_id ? basesUser.value.get(view.value.base_id) || [] : []
   const owner = users.find((u) => u.id === view.value!.owned_by)
-  return owner?.display_name || owner?.email || ''
+  return extractUserDisplayNameOrEmail(owner)
 })
 
 const handleUnlockView = () => {

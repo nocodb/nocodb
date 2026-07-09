@@ -266,7 +266,7 @@ const viewModeInfo = computed(() => {
         isViewOwner.value
           ? `(${t('general.you')})`
           : vModel.value?.owned_by && idUserMap.value[vModel.value.owned_by]
-          ? `(${idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email})`
+          ? `(${extractUserDisplayNameOrEmail(idUserMap.value[vModel.value.owned_by])})`
           : ''
       }`
     case ViewLockType.Locked:
@@ -333,7 +333,7 @@ watch(isDropdownOpen, async () => {
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
                   ? $t('general.you')
-                  : idUserMap[vModel?.created_by]?.display_name || idUserMap[vModel?.created_by]?.email
+                  : extractUserDisplayNameOrEmail(idUserMap[vModel?.created_by])
               }}
             </div>
           </div>

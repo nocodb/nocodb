@@ -236,10 +236,12 @@ const cardShadow = computed(() => {
 }
 
 // Blank thin cards (dense week clusters) render no title/time, so pill's only
-// colour cue — the time pill — is gone and the card would be invisible. Fill the
-// sliver with the accent (the time-pill background) so it still reads as an event.
+// colour cue — the time pill — is gone and the card would be invisible. Outline
+// the sliver with the accent so it still reads as an event, without a fill (keeps
+// the pill theme flat).
 .nc-vcard--pill.nc-vcard--blank {
-  background: var(--cal-accent);
+  @apply border-1;
+  border-color: var(--cal-accent);
 }
 
 .plain-cell {

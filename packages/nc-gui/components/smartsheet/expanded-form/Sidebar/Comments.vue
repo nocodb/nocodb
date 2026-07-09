@@ -65,7 +65,8 @@ const {
 // Present only inside the attachment carousel — exposes image-annotation state.
 const imageAnnotations = useImageAnnotations()
 
-const annotationLabels = computed(() => imageAnnotations?.labelByCommentId.value ?? {})
+// Annotations are EE-only — hide the label pills entirely in CE.
+const annotationLabels = computed(() => (isEeUI ? imageAnnotations?.labelByCommentId.value ?? {} : {}))
 
 const editCommentValue = ref<CommentType>()
 
@@ -651,7 +652,7 @@ onBeforeUnmount(() => {
                         data-testid="nc-comment-attach-btn"
                         @click="openEditFilePicker"
                       >
-                        <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="text-md" />
+                        <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
                       </NcButton>
                     </NcTooltip>
                   </template>
@@ -733,7 +734,7 @@ onBeforeUnmount(() => {
                 data-testid="nc-comment-attach-btn"
                 @click="openFilePicker"
               >
-                <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="text-md" />
+                <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
               </NcButton>
             </NcTooltip>
           </template>

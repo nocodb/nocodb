@@ -121,7 +121,8 @@ const carouselCommentsEnabled = computed(
   () => !isPublic.value && isUIAllowed('commentList') && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS),
 )
 
-const annotationEnabled = carouselCommentsEnabled
+// Image annotations are EE-only; plain carousel comments stay available in CE.
+const annotationEnabled = computed(() => isEeUI && carouselCommentsEnabled.value)
 
 // Bottom-left file meta (type • size) for the current attachment.
 const fileTypeLabel = computed(() => {
@@ -453,7 +454,7 @@ const initEmblaApi = (val: any) => {
           'w-0': !openComments,
           '!w-88': openComments,
         }"
-        class="bg-nc-bg-gray-light max-w-88 transition-all"
+        class="bg-nc-bg-default max-w-88 transition-all"
       >
         <SmartsheetExpandedFormSidebarComments />
       </div>

@@ -201,8 +201,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     return (columns.value || [])?.filter((c) => supportedFields(c))
   })
 
+  // Condition sources = rendered form columns + resolvable Lookup columns (see
+  // buildFormConditionSourceColumns), so "Show on conditions" can be driven by a
+  // value pulled through a link the form filler selects.
   const localColumnsMapByFkColumnId = computed(() => {
-    return localColumns.value.reduce((acc, c) => {
+    return buildFormConditionSourceColumns(localColumns.value, meta.value?.columns).reduce((acc, c) => {
       acc[c.fk_column_id] = c
 
       return acc

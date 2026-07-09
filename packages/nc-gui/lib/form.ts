@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import {
   type FilterType,
   type LinkToAnotherRecordType,
+  type LookupType,
   type TableType,
   UITypes,
   isBtLikeV2Junction,
@@ -12,6 +13,60 @@ import {
 } from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
+
+/**
+ * Build the set of columns that can be used as a "Show on conditions" source in a
+ * form view. This is the rendered form columns plus any Lookup column whose relation
+ * link field is itself a form field — those resolve to a value client-side from the
+ * linked record the user selects while filling the form (mirroring how LTAR sources
+ * are evaluated), so visibility can be driven by a value pulled through a link.
+ *
+ * The synthesized Lookup entry inherits its form position (`order`), `show` and edit
+ * `permissions` from the link field it resolves through (the lookup itself is never
+ * rendered as an editable form input), and keeps a back-reference to that link column
+ * so cascading visibility can follow the link field's computed visibility.
+ */
+export function buildFormConditionSourceColumns(formColumns: FormViewColumn[], metaColumns?: ColumnType[]): FormViewColumn[] {
+  if (!metaColumns?.length) return formColumns
+
+  const formColByColId = new Map<string, FormViewColumn>()
+  for (const c of formColumns) {
+    if (c.fk_column_id) formColByColId.set(c.fk_column_id, c)
+  }
+
+  const lookupSources: FormViewColumn[] = []
+  for (const col of metaColumns) {
+    if (col.uidt !== UITypes.Lookup) continue
+
+    // Already a rendered form field — it's in the map keyed by its own fk_column_id
+    // with its real order/show. Don't append a synthesized entry with the same
+    // fk_column_id, which would override it in localColumnsMapByFkColumnId.
+    if (col.id && formColByColId.has(col.id)) continue
+
+    const relationColId = (col.colOptions as LookupType | undefined)?.fk_relation_column_id
+    if (!relationColId) continue
+
+    // the link field the lookup resolves through must be present in the form so its
+    // selected record (and hence the looked-up value) is available client-side
+    const relationFormCol = formColByColId.get(relationColId)
+    if (!relationFormCol) continue
+
+    lookupSources.push({
+      ...(col as FormViewColumn),
+      fk_column_id: col.id,
+      order: relationFormCol.order,
+      show: relationFormCol.show,
+      visible: relationFormCol.visible ?? true,
+      permissions: relationFormCol.permissions,
+      isFormConditionLookup: true,
+      fk_relation_column_id: relationColId,
+    })
+  }
+
+  if (!lookupSources.length) return formColumns
+
+  return [...formColumns, ...lookupSources]
+}
 
 // Shallow-compare two visibility-error maps so validateVisibility can skip
 // reassigning `column.meta` when nothing changed (a no-op reassignment still
@@ -178,6 +233,57 @@ export class FormFilters {
     return null
   }
 
+  // Resolve a Lookup column's value for a form condition from the linked record(s)
+  // selected in the form. The lookup's relation link field is read from `formState`,
+  // then the lookup target column is pulled out of the linked row(s). Single-record
+  // relations (bt / oo / mo) return the raw value (so numeric comparisons work);
+  // multi-record relations (hm / mm / om) return the joined display values.
+  async getLookupValue(column: FormViewColumn): Promise<any> {
+    const colOptions = column?.colOptions as LookupType | undefined
+    const relationColId = colOptions?.fk_relation_column_id
+    const lookupColId = colOptions?.fk_lookup_column_id
+
+    if (!relationColId || !lookupColId) return null
+
+    const relationCol = this.formViewColumnsMapByFkColumnId[relationColId]
+    if (!relationCol) return null
+
+    const relColOptions = relationCol.colOptions as LinkToAnotherRecordType | undefined
+    const fk_related_model_id = relColOptions?.fk_related_model_id
+
+    if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
+
+    const relatedBaseId = relColOptions?.fk_related_base_id || this.baseId
+    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
+
+    if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
+
+    const targetCol = relatedTableMeta.columns.find((c) => c.id === lookupColId)
+    const targetTitle = targetCol?.title
+    if (!targetTitle) return null
+
+    const value = this.formState[relationCol.title] as Record<string, any> | Record<string, any>[] | null | undefined
+
+    if (value === null || value === undefined) return null
+
+    // Multi-record relations — value is an array of linked rows
+    if (Array.isArray(value)) {
+      const lookedUpValues = value
+        .map((row) => (row && typeof row === 'object' ? row[targetTitle] : undefined))
+        .filter((v) => v !== undefined && v !== null)
+        .map((v) => `${v}`)
+
+      return lookedUpValues.length ? lookedUpValues.join(', ') : null
+    }
+
+    // Single-record relation — value is a single linked row
+    if (typeof value === 'object') {
+      return value[targetTitle] ?? null
+    }
+
+    return null
+  }
+
   async validateCondition(
     filters: FilterType[] = [],
     parentCol: FormViewColumn,
@@ -224,8 +330,13 @@ export class FormFilters {
 
         // Read the freshly-computed visibility from the in-progress local map
         // when available (so cascading conditions are correct), falling back to
-        // the reactive value outside a validateVisibility pass.
-        const isReferencedColVisible = visibilityState ? visibilityState[column.fk_column_id] ?? !!column.visible : column.visible
+        // the reactive value outside a validateVisibility pass. A Lookup source is
+        // not iterated itself, so follow the visibility of the link field it
+        // resolves through — if that link field is conditionally hidden, the lookup
+        // value can't be filled and the condition must not hold.
+        const visibilityKey =
+          column.uidt === UITypes.Lookup && column.fk_relation_column_id ? column.fk_relation_column_id : column.fk_column_id
+        const isReferencedColVisible = visibilityState ? visibilityState[visibilityKey] ?? !!column.visible : column.visible
         if (!isReferencedColVisible) {
           res = false
         }
@@ -375,9 +486,12 @@ export class FormFilters {
                 break
             }
 
+            // Lookup source → value resolved from the linked record selected in the form.
             // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
             // uidt=Links → count cell; everything else LTAR → linked-row display value(s).
-            if (isBtLikeV2Junction(column)) {
+            if (column.uidt === UITypes.Lookup) {
+              val = await this.getLookupValue(column)
+            } else if (isBtLikeV2Junction(column)) {
               val = await this.getLtarDisplayValue(column)
             } else if (isLink(column)) {
               val = (this.formState[field] ?? []).length

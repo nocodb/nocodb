@@ -1,4 +1,4 @@
-import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
   RelationTypes,
   UITypes,
@@ -408,8 +408,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       ].filter((c) => c)
     })
 
+    // In a form, a Lookup that resolves through this link can be a "Show on
+    // conditions" source (see buildFormConditionSourceColumns). Its value is read
+    // client-side off the linked record held in form state, so the lookup's target
+    // column must be loaded onto that record here — otherwise the picker's limited
+    // field set omits it and the condition can never resolve. Only target column ids
+    // are added to the API `fields` param; the dropdown/display set is unchanged.
+    const formConditionLookupTargetColIds = computed(() => {
+      const linkColId = column.value?.id
+      if (!isForm.value || !linkColId) return [] as string[]
+
+      return (meta.value?.columns || [])
+        .filter((c) => c.uidt === UITypes.Lookup && (c.colOptions as LookupType)?.fk_relation_column_id === linkColId)
+        .map((c) => (c.colOptions as LookupType)?.fk_lookup_column_id)
+        .filter((id): id is string => !!id)
+    })
+
     const requiredFieldsToLoad = computed(() => {
-      return Array.from(new Set(fieldsToLoad.value?.map((f) => f.id as string)))
+      return Array.from(
+        new Set([...(fieldsToLoad.value?.map((f) => f.id as string) || []), ...formConditionLookupTargetColIds.value]),
+      )
     })
 
     // extract external base roles if cross base link

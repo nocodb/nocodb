@@ -185,7 +185,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  const saveComment = async (comment: string, attachments?: AttachmentType[]) => {
+  const saveComment = async (comment: string, attachments?: AttachmentType[], commentMeta?: CommentType['meta']) => {
     try {
       if (!row.value || (!comment && !attachments?.length)) {
         comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
@@ -207,6 +207,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           row_id: rowId,
           comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
           ...(attachments?.length ? { attachments } : {}),
+          ...(commentMeta !== undefined ? { meta: commentMeta } : {}),
         },
       )
 
@@ -294,7 +295,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   }
 })
 
-export { useProvideRowComments }
+export { useProvideRowComments, useRowComments }
 
 export function useRowCommentsOrThrow() {
   const rowComments = useRowComments()

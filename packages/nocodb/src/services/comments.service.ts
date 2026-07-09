@@ -185,6 +185,7 @@ export class CommentsService {
       ...(param.body.attachments !== undefined
         ? { attachments: param.body.attachments }
         : {}),
+      ...(param.body.meta !== undefined ? { meta: param.body.meta } : {}),
     });
 
     const model = await Model.getByIdOrName(context, {

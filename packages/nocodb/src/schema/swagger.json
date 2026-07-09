@@ -22779,6 +22779,10 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         },
         "required": [
@@ -22820,6 +22824,10 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         }
       },
@@ -30423,6 +30431,10 @@
             "items": {
               "$ref": "#/components/schemas/Attachment"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info for the comment (e.g. image annotation anchor)"
           }
         }
       },

@@ -120,17 +120,74 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const openComments = ref(false)
 
+// Carousel comments + annotations are available whenever the full-screen
+// viewer is open — including over the expanded record (the most common way to
+// open an attachment). The viewer sits on top, so its own comments panel is
+// the active one regardless of how it was opened.
+const carouselCommentsEnabled = computed(
+  () => !isPublic.value && isUIAllowed('commentList') && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS),
+)
+
+const annotationEnabled = carouselCommentsEnabled
+
+const {
+  markers,
+  draft,
+  activeAnnotationId,
+  hoveredAnnotationId,
+  focusTarget,
+  startDraft,
+  cancelDraft,
+  setHovered,
+  setActive,
+  clearFocus,
+} = useProvideImageAnnotations(selectedFile, visibleItems)
+
 const toggleComment = () => {
   openComments.value = !openComments.value
 }
 
+// Switching the previewed image invalidates any in-progress draft (its
+// coordinates belong to the previous file). A stale active id is harmless —
+// no marker on another file matches it.
+watch(selectedIndex, () => {
+  cancelDraft()
+  setHovered(null)
+})
+
+function onCreateAnnotation(payload: { region: any; anchor: { x: number; y: number } }) {
+  // Don't auto-open the comments panel — opening it resizes the image and
+  // would shift the just-placed marker. The anchored popup is enough; the
+  // saved comment shows in the panel once the user opens it.
+  startDraft(payload.region, payload.anchor)
+}
+
+function onSelectAnnotation(commentId: string) {
+  setActive(commentId)
+  openComments.value = true
+}
+
+// "View" from the comments sidebar — switch to the annotated file + highlight.
+watch(focusTarget, (target) => {
+  if (!target) return
+
+  if (target.attachment) {
+    const idx = visibleItems.value.findIndex(
+      (item) => item?.path === target.attachment?.path && item?.url === target.attachment?.url,
+    )
+    if (idx >= 0 && idx !== selectedIndex.value) {
+      emblaMainApi.value?.scrollTo(idx)
+      emblaThumbnailApi.value?.scrollTo(idx)
+    }
+  }
+
+  setActive(target.commentId)
+  openComments.value = true
+  clearFocus()
+})
+
 onMounted(() => {
-  if (
-    !isPublic.value &&
-    !isExpandedFormOpen.value &&
-    isUIAllowed('commentList') &&
-    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)
-  ) {
+  if (carouselCommentsEnabled.value) {
     const { loadComments } = useRowCommentsOrThrow()
     loadComments()
   }
@@ -181,8 +238,20 @@ const initEmblaApi = (val: any) => {
                   controls
                   :alt="item.title"
                   :srcs="getPossibleAttachmentSrc(item)"
+                  :annotatable="annotationEnabled"
+                  :markers="markers"
+                  :draft="draft"
+                  :active-id="activeAnnotationId"
+                  :hovered-id="hoveredAnnotationId"
                   @error="triggerReload"
-                />
+                  @create-annotation="onCreateAnnotation"
+                  @select-annotation="onSelectAnnotation"
+                  @hover-annotation="setHovered"
+                >
+                  <template #popup>
+                    <CellAttachmentAnnotationCommentBox />
+                  </template>
+                </CellAttachmentPreviewImage>
 
                 <CellAttachmentPreviewVideo
                   v-else-if="isVideo(item.title, item.mimetype)"
@@ -240,10 +309,7 @@ const initEmblaApi = (val: any) => {
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
-        <div
-          v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
-          class="absolute top-2 right-2"
-        >
+        <div v-if="carouselCommentsEnabled" class="absolute top-2 right-2">
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
               {{ $t('general.comments') }}
@@ -333,7 +399,7 @@ const initEmblaApi = (val: any) => {
         </GeneralDeleteModal>
       </div>
       <div
-        v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
+        v-if="carouselCommentsEnabled"
         :class="{
           'w-0': !openComments,
           '!w-88': openComments,

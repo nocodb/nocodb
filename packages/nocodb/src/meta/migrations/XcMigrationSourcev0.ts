@@ -83,6 +83,8 @@ import * as nc_202606271200_hook_comment_config from './v0/nc_202606271200_hook_
 import * as nc_202606290001_sort_lookup_col from './v0/nc_202606290001_sort_lookup_col';
 import * as nc_202607030001_ltar_order_columns from './v0/nc_202607030001_ltar_order_columns';
 import * as nc_202607071200_comment_attachments from './v0/nc_202607071200_comment_attachments';
+import * as nc_202607090505_snapshot_schedule from './v0/nc_202607090505_snapshot_schedule';
+import * as nc_202607091000_comments_meta from './v0/nc_202607091000_comments_meta';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -177,6 +179,8 @@ export default class XcMigrationSourcev0 {
       'nc_202606290001_sort_lookup_col',
       'nc_202607030001_ltar_order_columns',
       'nc_202607071200_comment_attachments',
+      'nc_202607090505_snapshot_schedule',
+      'nc_202607091000_comments_meta',
     ]);
   }
 
@@ -356,6 +360,10 @@ export default class XcMigrationSourcev0 {
         return nc_202607030001_ltar_order_columns;
       case 'nc_202607071200_comment_attachments':
         return nc_202607071200_comment_attachments;
+      case 'nc_202607090505_snapshot_schedule':
+        return nc_202607090505_snapshot_schedule;
+      case 'nc_202607091000_comments_meta':
+        return nc_202607091000_comments_meta;
     }
   }
 }

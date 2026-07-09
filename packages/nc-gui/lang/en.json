@@ -407,6 +407,7 @@
     "slack": "Slack",
     "comment": "Comment",
     "comments": "Comments",
+    "view": "View",
     "resolve": "Resolve",
     "resolved": "Resolved",
     "microsoftTeams": "Microsoft Teams",

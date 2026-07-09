@@ -62,6 +62,11 @@ const {
   clearAttachments: clearEditAttachments,
 } = useCommentAttachments()
 
+// Present only inside the attachment carousel — exposes image-annotation state.
+const imageAnnotations = useImageAnnotations()
+
+const annotationLabels = computed(() => imageAnnotations?.labelByCommentId.value ?? {})
+
 const editCommentValue = ref<CommentType>()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
@@ -441,11 +446,17 @@ onBeforeUnmount(() => {
           ]"
           class="nc-comment-item"
           @mouseover="handleResetHoverEffect"
+          @mouseenter="imageAnnotations?.setHovered(commentItem.id!)"
+          @mouseleave="imageAnnotations?.setHovered(null)"
         >
           <div
             :class="{
               'hover:bg-nc-bg-gray-light': editCommentValue?.id !== commentItem!.id,
-              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id
+              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id,
+              'bg-nc-bg-gray-light':
+                imageAnnotations &&
+                (imageAnnotations.activeAnnotationId.value === commentItem.id ||
+                  imageAnnotations.hoveredAnnotationId.value === commentItem.id),
         }"
             class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
           >
@@ -660,6 +671,22 @@ onBeforeUnmount(() => {
                   :comment-id="commentItem.id"
                   class="mt-1"
                 />
+
+                <div
+                  v-if="annotationLabels[commentItem.id]"
+                  class="nc-annotation-ref mt-1 inline-flex items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-2 py-1 cursor-pointer hover:bg-nc-bg-gray-light"
+                  :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id]}`"
+                  @click="imageAnnotations?.viewAnnotation(commentItem)"
+                >
+                  <span
+                    class="flex h-4 w-4 flex-none items-center justify-center rounded-full bg-nc-fill-primary text-white text-[10px] font-semibold"
+                  >
+                    {{ annotationLabels[commentItem.id] }}
+                  </span>
+                  <span v-e="['c:attachment:annotation:view']" class="text-small font-medium text-nc-content-brand">
+                    {{ $t('general.view') }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

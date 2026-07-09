@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 defineProps<{
   showFullScreenToggle?: boolean
 }>()
@@ -196,6 +198,7 @@ function triggerToolbarControl(selector: string) {
         <SmartsheetToolbarColumnFilterMenu v-if="isViewOperationsAllowed" />
         <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
         <SmartsheetToolbarCalendarRecordHeight />
+        <SmartsheetToolbarCalendarEventTheme v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures" />
         <SmartsheetToolbarCalendarRange v-if="isViewOperationsAllowed" />
       </div>
 
@@ -244,6 +247,24 @@ function triggerToolbarControl(selector: string) {
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="rowHeight" class="!h-4 !w-4 text-nc-content-gray-subtle" />
                 {{ $t('objects.rowHeight') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures"
+              data-testid="nc-calendar-more-event-theme"
+              inner-class="w-full"
+              @click="triggerToolbarControl('[data-testid=nc-calendar-event-theme]')"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <GeneralIcon icon="palette" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('activity.eventTheme') }}
+                <LazyPaymentUpgradeBadge
+                  class="ml-auto"
+                  :feature="PlanFeatureTypes.FEATURE_CALENDAR_EVENT_THEME"
+                  :feature-enabled-callback="() => !isEEFeatureBlocked"
+                  show-as-lock
+                  remove-click
+                />
               </div>
             </NcMenuItem>
             <NcMenuItem

@@ -30,6 +30,17 @@ const {
 
 const { isUIAllowed } = useRoles()
 
+const {
+  isCommentAttachmentsEnabled,
+  pendingAttachments,
+  isUploading: isAttachmentUploading,
+  openFilePicker,
+  handlePaste: handleAttachmentPaste,
+  handleDrop: handleAttachmentDrop,
+  removeAttachment,
+  clearAttachments,
+} = useCommentAttachments()
+
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
@@ -58,8 +69,12 @@ const newCommentText = ref('')
 const shouldSkipAuditsScroll = ref(false)
 
 function handleCreatingNewComment() {
-  saveComment(newCommentText.value)
+  if (isAttachmentUploading.value) return
+  if (!newCommentText.value.trim() && !pendingAttachments.value.length) return
+
+  saveComment(newCommentText.value, [...pendingAttachments.value])
   newCommentText.value = ''
+  clearAttachments()
 
   refRichComment?.value?.setEditorContent('', true)
 }
@@ -135,20 +150,50 @@ export default {
           class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
         >
           <div class="font-bold my-3">{{ $t('activity.addComment') }}</div>
-          <SmartsheetExpandedFormRichComment
-            ref="refRichComment"
-            v-model:value="newCommentText"
-            :hide-options="false"
-            :placeholder="$t('placeholder.comment')"
-            class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
-            data-testid="expanded-form-comment-input"
-            :autofocus="isExpandedFormCommentMode"
-            @focus="isExpandedFormCommentMode = false"
-            @update:value="scrollToBottom()"
-            @keydown.stop
-            @save="handleCreatingNewComment"
-            @keydown.enter.exact.prevent="handleCreatingNewComment"
-          />
+          <div
+            @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
+            @dragover.prevent
+            @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
+          >
+            <SmartsheetExpandedFormRichComment
+              ref="refRichComment"
+              v-model:value="newCommentText"
+              :hide-options="false"
+              :extra-save-enabled="pendingAttachments.length > 0"
+              :placeholder="$t('placeholder.comment')"
+              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
+              data-testid="expanded-form-comment-input"
+              :autofocus="isExpandedFormCommentMode"
+              @focus="isExpandedFormCommentMode = false"
+              @update:value="scrollToBottom()"
+              @keydown.stop
+              @save="handleCreatingNewComment"
+              @keydown.enter.exact.prevent="handleCreatingNewComment"
+            >
+              <template v-if="pendingAttachments.length" #attachments>
+                <SmartsheetExpandedFormCommentAttachments
+                  :attachments="pendingAttachments"
+                  editable
+                  class="px-1 pt-1"
+                  @remove="removeAttachment"
+                />
+              </template>
+              <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+                <NcButton
+                  v-e="['c:comment:attach-file']"
+                  type="text"
+                  size="xsmall"
+                  class="nc-comment-attach-btn !h-7 !w-7"
+                  :loading="isAttachmentUploading"
+                  :disabled="isAttachmentUploading"
+                  data-testid="nc-comment-attach-btn"
+                  @click="openFilePicker"
+                >
+                  <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
+                </NcButton>
+              </template>
+            </SmartsheetExpandedFormRichComment>
+          </div>
         </div>
         <div v-else class="w-full pl-3 pr-6 2xl:px-0">
           <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-nc-border-gray-dark" />

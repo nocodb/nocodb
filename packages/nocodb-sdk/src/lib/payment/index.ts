@@ -48,6 +48,7 @@ export enum PlanFeatureTypes {
   FEATURE_AT_MENTION = 'feature_at_mention',
   FEATURE_AUDIT_WORKSPACE = 'feature_audit_workspace',
   FEATURE_COMMENT_RESOLVE = 'feature_comment_resolve',
+  FEATURE_COMMENT_ATTACHMENTS = 'feature_comment_attachments',
   FEATURE_CUSTOM_URL = 'feature_custom_url',
   FEATURE_DISCUSSION_MODE = 'feature_discussion_mode',
   FEATURE_EXTENSIONS = 'feature_extensions',
@@ -387,6 +388,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_AT_MENTION]: 'to use @mention in comments.',
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: 'to access workspace audit logs.',
   [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: 'to enable comment resolution.',
+  [PlanFeatureTypes.FEATURE_COMMENT_ATTACHMENTS]:
+    'to attach files to comments.',
   [PlanFeatureTypes.FEATURE_CUSTOM_URL]: 'to use a custom URL.',
   [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: 'to use discussion mode.',
   [PlanFeatureTypes.FEATURE_EXTENSIONS]: 'to enable extensions.',

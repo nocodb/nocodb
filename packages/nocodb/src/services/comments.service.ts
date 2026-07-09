@@ -180,6 +180,11 @@ export class CommentsService {
 
     const res = await Comment.update(context, param.commentId, {
       comment: sanitizedComment,
+      // only overwrite attachments when explicitly provided, so a text-only
+      // edit doesn't wipe existing files
+      ...(param.body.attachments !== undefined
+        ? { attachments: param.body.attachments }
+        : {}),
     });
 
     const model = await Model.getByIdOrName(context, {

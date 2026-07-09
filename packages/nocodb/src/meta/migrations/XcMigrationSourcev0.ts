@@ -80,6 +80,7 @@ import * as nc_202606240001_chat_ui_context_record from './v0/nc_202606240001_ch
 import * as nc_202606251200_form_save_draft_to_browser from './v0/nc_202606251200_form_save_draft_to_browser';
 import * as nc_202606260001_dedupe_user_emails from './v0/nc_202606260001_dedupe_user_emails';
 import * as nc_202606271200_hook_comment_config from './v0/nc_202606271200_hook_comment_config';
+import * as nc_202606270001_comment_attachments from './v0/nc_202606270001_comment_attachments';
 import * as nc_202606290001_sort_lookup_col from './v0/nc_202606290001_sort_lookup_col';
 import * as nc_202607030001_ltar_order_columns from './v0/nc_202607030001_ltar_order_columns';
 
@@ -173,6 +174,7 @@ export default class XcMigrationSourcev0 {
       'nc_202606251200_form_save_draft_to_browser',
       'nc_202606260001_dedupe_user_emails',
       'nc_202606271200_hook_comment_config',
+      'nc_202606270001_comment_attachments',
       'nc_202606290001_sort_lookup_col',
       'nc_202607030001_ltar_order_columns',
     ]);
@@ -348,6 +350,8 @@ export default class XcMigrationSourcev0 {
         return nc_202606260001_dedupe_user_emails;
       case 'nc_202606271200_hook_comment_config':
         return nc_202606271200_hook_comment_config;
+      case 'nc_202606270001_comment_attachments':
+        return nc_202606270001_comment_attachments;
       case 'nc_202606290001_sort_lookup_col':
         return nc_202606290001_sort_lookup_col;
       case 'nc_202607030001_ltar_order_columns':

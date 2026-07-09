@@ -39,6 +39,17 @@ const {
   parsedHtmlComments,
 } = useRowCommentsOrThrow()
 
+const {
+  isCommentAttachmentsEnabled,
+  pendingAttachments,
+  isUploading: isAttachmentUploading,
+  openFilePicker,
+  handlePaste: handleAttachmentPaste,
+  handleDrop: handleAttachmentDrop,
+  removeAttachment,
+  clearAttachments,
+} = useCommentAttachments()
+
 const editCommentValue = ref<CommentType>()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
@@ -79,7 +90,10 @@ function scrollComments() {
 }
 
 const saveComment = async () => {
-  if (!comment.value.trim()) return
+  if (!comment.value.trim() && !pendingAttachments.value.length) return
+
+  // don't post mid-upload — wait for files to finish
+  if (isAttachmentUploading.value) return
 
   while (comment.value.endsWith('<br />') || comment.value.endsWith('\n')) {
     if (comment.value.endsWith('<br />')) {
@@ -95,12 +109,15 @@ const saveComment = async () => {
 
   isCommentMode.value = true
 
+  const tempAttachments = [...pendingAttachments.value]
+
   // Optimistic Insert
   comments.value = [
     ...comments.value,
     {
       id: `temp-${new Date().getTime()}`,
       comment: comment.value,
+      attachments: tempAttachments,
       created_at: new Date().toISOString(),
       created_by: user.value?.id,
       created_by_email: user.value?.email,
@@ -112,6 +129,7 @@ const saveComment = async () => {
 
   const tempCom = comment.value
   comment.value = ''
+  clearAttachments()
 
   commentInputRef?.value?.setEditorContent('', true)
   await nextTick(() => {
@@ -119,7 +137,7 @@ const saveComment = async () => {
   })
 
   try {
-    await _saveComment(tempCom)
+    await _saveComment(tempCom, tempAttachments)
     await nextTick(() => {
       isExpandedFormCommentMode.value = true
     })
@@ -573,20 +591,34 @@ onBeforeUnmount(() => {
 
               <div v-else class="space-y-1 pl-9">
                 <div
+                  v-if="parsedHtmlComments[commentItem.id]"
                   v-dompurify-html="parsedHtmlComments[commentItem.id]"
                   class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
                   @click="handleDompurifyLinkClick"
                 ></div>
+                <SmartsheetExpandedFormCommentAttachments
+                  v-if="commentItem.attachments?.length"
+                  :attachments="commentItem.attachments"
+                  :comment-id="commentItem.id"
+                  class="mt-1"
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div v-if="hasEditPermission" class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex">
+      <div
+        v-if="hasEditPermission"
+        class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex"
+        @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
+        @dragover.prevent
+        @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
+      >
         <SmartsheetExpandedFormRichComment
           ref="commentInputRef"
           v-model:value="comment"
           :hide-options="false"
+          :extra-save-enabled="pendingAttachments.length > 0"
           :placeholder="`${$t('general.comment')}...`"
           class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
           :autofocus="isExpandedFormCommentMode"
@@ -595,7 +627,30 @@ onBeforeUnmount(() => {
           @keydown="handleKeyPress"
           @save="saveComment"
           @keydown.enter.exact.prevent="saveComment"
-        />
+        >
+          <template v-if="pendingAttachments.length" #attachments>
+            <SmartsheetExpandedFormCommentAttachments
+              :attachments="pendingAttachments"
+              editable
+              class="px-1 pt-1"
+              @remove="removeAttachment"
+            />
+          </template>
+          <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+            <NcButton
+              v-e="['c:comment:attach-file']"
+              type="text"
+              size="xsmall"
+              class="nc-comment-attach-btn !h-7 !w-7"
+              :loading="isAttachmentUploading"
+              :disabled="isAttachmentUploading"
+              data-testid="nc-comment-attach-btn"
+              @click="openFilePicker"
+            >
+              <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
+            </NcButton>
+          </template>
+        </SmartsheetExpandedFormRichComment>
       </div>
     </div>
   </div>

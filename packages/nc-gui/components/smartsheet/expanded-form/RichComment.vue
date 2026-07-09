@@ -17,9 +17,13 @@ const props = withDefaults(
     autofocusToEnd?: boolean
     placeholder?: string
     renderAsText?: boolean
+    // Keep the send button enabled even when the editor is empty (e.g. a
+    // comment that only carries attachments).
+    extraSaveEnabled?: boolean
   }>(),
   {
     hideOptions: true,
+    extraSaveEnabled: false,
   },
 )
 
@@ -314,11 +318,16 @@ defineExpose({
         @keydown.stop="handleKeyPress"
       />
 
+      <slot name="attachments" />
+
       <div v-if="!hideOptions" class="flex justify-between pt-1 rich-text-bottom-bar items-center">
-        <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
+        <div class="flex items-center gap-1">
+          <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
+          <slot name="bottom-bar-start" />
+        </div>
         <NcButton
           v-e="['a:row-expand:comment:save']"
-          :disabled="!vModel?.length"
+          :disabled="!vModel?.length && !extraSaveEnabled"
           class="!disabled:bg-nc-bg-gray-light nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
           @click="saveComment"

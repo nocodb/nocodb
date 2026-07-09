@@ -262,14 +262,21 @@ async function copyComment(comment: CommentType) {
         @blur="onCommentBlur"
         @keydown.enter.exact.prevent="onEditComment"
       />
-      <SmartsheetExpandedFormRichComment
-        v-else
-        :key="`${props.comment.id}-${props.comment.comment}`"
-        :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-        class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
-        read-only
-        sync-value-change
-      />
+      <template v-else>
+        <SmartsheetExpandedFormRichComment
+          :key="`${props.comment.id}-${props.comment.comment}`"
+          :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
+          class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
+          read-only
+          sync-value-change
+        />
+        <SmartsheetExpandedFormCommentAttachments
+          v-if="props.comment.attachments?.length"
+          :attachments="props.comment.attachments"
+          :comment-id="props.comment.id"
+          class="px-4 pb-3"
+        />
+      </template>
     </div>
   </div>
 </template>

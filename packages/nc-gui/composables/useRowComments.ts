@@ -1,4 +1,4 @@
-import type { ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 export interface CommentTypeExtended extends CommentType {
@@ -185,9 +185,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  const saveComment = async (comment: string) => {
+  const saveComment = async (comment: string, attachments?: AttachmentType[]) => {
     try {
-      if (!row.value || !comment) {
+      if (!row.value || (!comment && !attachments?.length)) {
         comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
         return
       }
@@ -206,6 +206,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           fk_model_id: meta.value?.id as string,
           row_id: rowId,
           comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
+          ...(attachments?.length ? { attachments } : {}),
         },
       )
 

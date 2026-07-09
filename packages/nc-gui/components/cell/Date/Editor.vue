@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isDateMonthFormat, isJalaliFormat, isSystemColumn, parseJalaliToGregorian } from 'nocodb-sdk'
+import { isDateMonthFormat, isJalaliFormat, isSystemColumn, parseDateWithFormat, parseJalaliToGregorian } from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -57,7 +57,9 @@ function parseTypedDate(str: string): dayjs.Dayjs | null {
     if (!g) return null
     return dayjs(`${g.y}-${String(g.m).padStart(2, '0')}-${String(g.d).padStart(2, '0')}`)
   }
-  const parsed = dayjs(str, dateFormat.value)
+  // parseDateWithFormat also accepts unpadded input (e.g. "5/5/2026" for an
+  // MM/DD/YYYY column) so typing an unpadded date normalizes like a padded one.
+  const parsed = parseDateWithFormat(str, dateFormat.value)
   return parsed.isValid() ? parsed : null
 }
 

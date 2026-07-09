@@ -30659,6 +30659,10 @@
             "type": "string",
             "description": "IANA timezone the schedule is evaluated in"
           },
+          "cron_expression": {
+            "type": "string",
+            "description": "Normalized cron expression (server-computed)"
+          },
           "keep_last": {
             "type": "integer",
             "description": "Retention: number of automatic snapshots to keep"

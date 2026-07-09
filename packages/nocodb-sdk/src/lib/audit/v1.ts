@@ -1151,6 +1151,8 @@ export interface SnapshotSchedulePayload {
   base_title: string;
   enabled: boolean;
   frequency: string;
+  cron_expression: string;
+  timezone: string;
   keep_last: number;
   delete_after_days: number;
 }

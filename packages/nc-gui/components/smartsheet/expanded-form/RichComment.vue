@@ -313,14 +313,20 @@ defineExpose({
         :class="{
           'p-1': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
+          'min-h-[2.5rem]': !hideOptions,
         }"
         class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-rich-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
-      <slot name="attachments" />
+      <div
+        v-if="$slots.attachments"
+        class="nc-comment-attachments-wrap flex-none max-h-[124px] overflow-y-auto nc-scrollbar-thin"
+      >
+        <slot name="attachments" />
+      </div>
 
-      <div v-if="!hideOptions" class="flex justify-between pt-1 rich-text-bottom-bar items-center">
+      <div v-if="!hideOptions" class="flex flex-none justify-between pt-1 rich-text-bottom-bar items-center">
         <div class="flex items-center gap-1">
           <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
           <slot name="bottom-bar-start" />

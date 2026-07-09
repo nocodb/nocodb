@@ -1114,4 +1114,11 @@ export class NcErrorBase {
       }
     );
   }
+
+  snapshotBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SNAPSHOT_BLOCKED, {
+      params: message || '',
+      ...args,
+    });
+  }
 }

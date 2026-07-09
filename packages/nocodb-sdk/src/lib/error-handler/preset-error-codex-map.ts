@@ -506,4 +506,10 @@ export const presetErrorCodexMap: Partial<
       'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
     code: 403,
   },
+  [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This base is a snapshot and cannot be accessed directly. Restore the snapshot to a new base to view or edit its contents.',
+    code: 403,
+  },
 };

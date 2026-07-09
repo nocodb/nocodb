@@ -36,8 +36,11 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const localColumns = ref<Record<string, any>[]>([])
 
+    // Condition sources = rendered form columns + resolvable Lookup columns (see
+    // buildFormConditionSourceColumns). The rendered form (`localColumns`/`visibleColumns`)
+    // is unchanged — lookups are only added to this map, used for "Show on conditions".
     const localColumnsMapByFkColumnId = computed(() => {
-      return localColumns.value.reduce((acc, c) => {
+      return buildFormConditionSourceColumns(localColumns.value, _meta.value?.columns).reduce((acc, c) => {
         acc[c.fk_column_id] = c
 
         return acc

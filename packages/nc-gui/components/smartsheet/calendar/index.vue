@@ -88,6 +88,10 @@ const { height: calendarBodyHeight } = useElementSize(calendarBody)
 
 provide('calendarBodyHeight', calendarBodyHeight)
 
+// The scroll container for the expanded (grid-grows-and-scrolls) views. Provided so Month/Week
+// can window their records to the visible band instead of rendering every lane on a dense day.
+provide('calendarScrollContainer', calendarBody)
+
 const router = useRouter()
 
 const route = useRoute()

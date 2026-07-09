@@ -366,7 +366,7 @@ export class HooksService {
   ) {
     const hook = await Hook.get(context, param.hookId);
 
-    if (!hook && hook.event !== 'manual') {
+    if (!hook || hook.event !== 'manual') {
       NcError.get(context).badRequest('Hook not found');
     }
 

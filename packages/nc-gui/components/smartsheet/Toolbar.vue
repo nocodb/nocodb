@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes } from 'nocodb-sdk'
-
 defineProps<{
   showFullScreenToggle?: boolean
 }>()
@@ -258,13 +256,6 @@ function triggerToolbarControl(selector: string) {
               <div class="flex items-center gap-2 w-full">
                 <GeneralIcon icon="palette" class="!h-4 !w-4 text-nc-content-gray-subtle" />
                 {{ $t('activity.eventTheme') }}
-                <LazyPaymentUpgradeBadge
-                  class="ml-auto"
-                  :feature="PlanFeatureTypes.FEATURE_CALENDAR_EVENT_THEME"
-                  :feature-enabled-callback="() => !isEEFeatureBlocked"
-                  show-as-lock
-                  remove-click
-                />
               </div>
             </NcMenuItem>
             <NcMenuItem

@@ -79,7 +79,6 @@ export enum PlanFeatureTypes {
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_API_WEBHOOK_V3 = 'feature_api_webhook_v3',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
-  FEATURE_CALENDAR_EVENT_THEME = 'feature_calendar_event_theme',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
   FEATURE_BUTTON_VISIBILITY = 'feature_button_visibility',
@@ -433,8 +432,6 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
-  [PlanFeatureTypes.FEATURE_CALENDAR_EVENT_THEME]:
-    'to customise calendar event themes.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
   [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]:

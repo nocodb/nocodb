@@ -118,10 +118,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       viewMetaProperties.value?.record_height_mode === 'expanded' ? 'expanded' : 'compact',
     )
 
-    // EE-gated: when the feature isn't in the plan (CE / unlicensed / downgrade),
-    // a previously-saved theme degrades gracefully back to BORDERED.
-    const { blockCalendarEventTheme } = useEeConfig()
-
     // The range of columns that are used for the calendar view
     const calendarRange = computed<
       Array<{
@@ -189,7 +185,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // Pill theme renders the time as a colour pill, so on date-only calendars
     // (no time component) it degrades back to BORDERED — the picker hides it too.
     const eventDisplayTheme = computed<CalendarEventTheme>(() => {
-      if (blockCalendarEventTheme.value) return DEFAULT_CALENDAR_EVENT_THEME
+      // EE-only: in CE a previously-saved theme degrades gracefully back to BORDERED.
+      if (!isEeUI) return DEFAULT_CALENDAR_EVENT_THEME
 
       const stored = viewMetaProperties.value?.event_display_theme
       const resolved = stored && CALENDAR_EVENT_THEMES.includes(stored) ? stored : DEFAULT_CALENDAR_EVENT_THEME

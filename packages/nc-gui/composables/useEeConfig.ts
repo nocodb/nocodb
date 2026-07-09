@@ -59,8 +59,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockRowColoring = computed(() => true)
 
-  const blockCalendarEventTheme = computed(() => true)
-
   const blockToggleFilter = computed(() => true)
 
   const blockToggleGroupBy = computed(() => true)
@@ -193,8 +191,6 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseCurrentUserFilter = (..._args: any[]) => {}
 
   const showUpgradeToUseRowColoring = (..._args: any[]) => {}
-
-  const showUpgradeToUseCalendarEventTheme = (..._args: any[]) => {}
 
   const showUpgradeToUseToggleFilter = (..._args: any[]) => {}
 
@@ -441,8 +437,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCurrentUserFilter,
     blockRowColoring,
     showUpgradeToUseRowColoring,
-    blockCalendarEventTheme,
-    showUpgradeToUseCalendarEventTheme,
     blockToggleFilter,
     showUpgradeToUseToggleFilter,
     blockToggleGroupBy,

@@ -1173,6 +1173,15 @@ export class PublicDatasService {
       NcError.badRequest('Column not accessible in this shared view');
     }
 
+    // Strip caller-supplied where/sort references to columns the related table
+    // doesn't expose. The /nested/ list is `extractOnlyPrimaries`-restricted
+    // (pk/pv only), but its `count` still compiles `where` against the related
+    // model's full column set, so an unsanitized predicate on a hidden related
+    // column is a boolean-blind count oracle (GHSA-qqxm-7cj9-5fr2) — the same
+    // one the hm/mm siblings close. Mutates `param.query`, which getAst
+    // (→ listArgs) and the count both read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
     await currentModel.getColumns(context);
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,

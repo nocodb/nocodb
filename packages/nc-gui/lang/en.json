@@ -3402,6 +3402,7 @@
     "eventThemeMinimalSubtext": "Colour bar with no border or fill",
     "eventThemePill": "Pill",
     "eventThemePillSubtext": "Time shown as a colour pill",
+    "eventThemePillDateHint": "Available only for date-time fields",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",
     "deactivate": "De-activate",

@@ -58,16 +58,29 @@ const themeVars = computed(() => ({
   '--cal-on-accent': colors.value.onAccent,
 }))
 
+const isBordered = computed(() => eventDisplayTheme.value === CalendarEventTheme.BORDERED)
+
 const isSolid = computed(() => eventDisplayTheme.value === CalendarEventTheme.SOLID)
 
 const isPill = computed(() => eventDisplayTheme.value === CalendarEventTheme.PILL)
 
-// Tall duration blocks can't carry a dot/pill the way a single-line month row
-// can, so the theme collapses to a fill axis: solid fills, the chip themes
-// (bordered/pill) keep tint+border, and the flat themes (minimal/dot) drop to a
-// bare accent bar on a transparent block. The left accent bar shows for every
-// theme except solid (which is already the accent colour edge-to-edge).
-const showLeftBar = computed(() => !isSolid.value)
+const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
+
+const isMinimal = computed(() => eventDisplayTheme.value === CalendarEventTheme.MINIMAL)
+
+// Match the month-view (RecordCard) look in every timeline view: the left accent
+// bar belongs to the bordered + minimal themes; dot shows a colour dot, pill is
+// flat text with a colour time pill, and solid fills edge-to-edge.
+const showLeftBar = computed(() => isBordered.value || isMinimal.value)
+
+// Only the bordered theme carries the drop shadow (mirrors RecordCard); the flat
+// themes (dot / minimal / pill) and solid stay flush.
+const cardShadow = computed(() => {
+  if (!isBordered.value) return undefined
+  return props.hover || props.dragging
+    ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+    : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)'
+})
 </script>
 
 <template>
@@ -76,15 +89,13 @@ const showLeftBar = computed(() => !isSolid.value)
       `nc-vcard nc-vcard--${eventDisplayTheme}`,
       {
         'nc-vcard--hover': hover || dragging,
+        'nc-vcard--uncolored': !colors.hasColor,
         'z-90': hover,
       },
     ]"
     :style="{
       ...themeVars,
-      boxShadow:
-        hover || dragging
-          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
+      boxShadow: cardShadow,
     }"
     class="relative flex-none flex gap-1 rounded-md h-full overflow-hidden"
   >
@@ -94,6 +105,7 @@ const showLeftBar = computed(() => !isSolid.value)
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
     <div v-if="showLeftBar" class="nc-vcard-leftbar h-full min-h-3 w-1.25 -ml-0.25"></div>
+    <span v-else-if="isDot" class="nc-vcard-dot self-start mt-1.5 ml-1 flex-none"></span>
 
     <div
       class="flex pt-1 w-full flex-col gap-1 overflow-hidden h-full"
@@ -146,6 +158,11 @@ const showLeftBar = computed(() => !isSolid.value)
   background: var(--cal-accent);
 }
 
+.nc-vcard-dot {
+  @apply w-2 h-2 rounded-full flex-none;
+  background: var(--cal-accent);
+}
+
 .nc-vcard-time-pill {
   @apply inline-flex items-center px-1.5 rounded-full leading-4;
   background: var(--cal-accent);
@@ -155,10 +172,9 @@ const showLeftBar = computed(() => !isSolid.value)
   }
 }
 
-// Chip themes — accent-derived tint + border (stays visible in dark mode, where
-// the row-colouring tint resolves to near-black; see RecordCard for rationale).
-.nc-vcard--bordered,
-.nc-vcard--pill {
+// Bordered — accent-derived tint + border (stays visible in dark mode, where the
+// row-colouring tint resolves to near-black; see RecordCard for rationale).
+.nc-vcard--bordered {
   @apply border-1;
   background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
@@ -166,6 +182,13 @@ const showLeftBar = computed(() => !isSolid.value)
   &.nc-vcard--hover {
     @apply !bg-nc-bg-gray-light;
   }
+}
+
+// Uncoloured events keep the classic white card (not the gray accent wash) so the
+// default look matches the pre-theme calendar; hover still goes light-gray.
+.nc-vcard--bordered.nc-vcard--uncolored {
+  background: var(--nc-bg-default);
+  border-color: var(--nc-border-gray-dark);
 }
 
 // Solid — fill edge-to-edge, readable text on the accent.
@@ -183,14 +206,21 @@ const showLeftBar = computed(() => !isSolid.value)
   }
 }
 
-// Flat themes — transparent block, accent bar only.
+// Flat themes — transparent block. Dot shows a colour dot, minimal a left bar,
+// pill a colour time pill (matches the month-view RecordCard look).
 .nc-vcard--minimal,
-.nc-vcard--dot {
+.nc-vcard--dot,
+.nc-vcard--pill {
   @apply bg-transparent;
 
   &.nc-vcard--hover {
     @apply !bg-nc-bg-gray-light;
   }
+}
+
+// Pill has no bar/dot, so inset the text slightly off the cell edge.
+.nc-vcard--pill {
+  @apply pl-1;
 }
 
 .plain-cell {

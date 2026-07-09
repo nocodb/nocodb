@@ -92,6 +92,7 @@ const cardShadow = computed(() => {
         'rounded-lg ml-0.8 mr-1': position === 'rounded' && multiline,
         'rounded-none !border-x-0': position === 'none',
         'nc-cal-card--hover': hover || dragging,
+        'nc-cal-card--uncolored': !colors.hasColor,
         'items-start': multiline,
         'items-center': !multiline,
       },
@@ -223,6 +224,13 @@ const cardShadow = computed(() => {
   &.nc-cal-card--hover {
     @apply !bg-nc-bg-gray-light;
   }
+}
+
+// Uncoloured events keep the classic white card (not the gray accent wash) so the
+// default look matches the pre-theme calendar; hover still goes light-gray.
+.nc-cal-card--bordered.nc-cal-card--uncolored {
+  background: var(--nc-bg-default);
+  border-color: var(--nc-border-gray-dark);
 }
 
 .nc-cal-card--solid {

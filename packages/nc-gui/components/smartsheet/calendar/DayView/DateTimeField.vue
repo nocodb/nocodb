@@ -1079,13 +1079,13 @@ const expandRecord = (record: Row) => {
                     <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
                   </template>
                   <template #time>
-                    <div class="text-xs font-medium text-nc-content-gray-disabled">
+                    <span class="text-xs font-medium text-nc-content-gray-disabled">
                       {{
                         timezoneDayjs
                           .timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!])
                           .format(is12hrTimeColumn(record.rowMeta.range?.fk_from_col) ? 'h:mm a' : 'HH:mm')
                       }}
-                    </div>
+                    </span>
                   </template>
                 </LazySmartsheetCalendarVRecordCard>
               </LazySmartsheetRow>

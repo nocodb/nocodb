@@ -1281,13 +1281,13 @@ watch(
                   <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
                 </template>
                 <template #time>
-                  <div v-if="!isCardTooThinToRender(record)" class="text-xs font-medium text-nc-content-gray-disabled">
+                  <span v-if="!isCardTooThinToRender(record)" class="text-xs font-medium text-nc-content-gray-disabled">
                     {{
                       timezoneDayjs
                         .timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!])
                         .format(is12hrTimeColumn(record.rowMeta.range?.fk_from_col) ? 'h:mm a' : 'HH:mm')
                     }}
-                  </div>
+                  </span>
                 </template>
               </LazySmartsheetCalendarVRecordCard>
             </LazySmartsheetRow>

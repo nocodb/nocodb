@@ -30,9 +30,11 @@ const isSolid = computed(() => eventDisplayTheme.value === CalendarEventTheme.SO
 
 const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
 
-// Solid fills the whole card (no separate marker); dot swaps the bar for a dot;
-// every other theme keeps the full-height accent bar.
-const showLeftBar = computed(() => !isSolid.value && !isDot.value)
+const isPill = computed(() => eventDisplayTheme.value === CalendarEventTheme.PILL)
+
+// Match the month-view look: the accent bar belongs to bordered + minimal; dot
+// shows a colour dot, solid fills, and pill is flat (no bar, no border).
+const showLeftBar = computed(() => !isSolid.value && !isDot.value && !isPill.value)
 
 const { t } = useI18n()
 
@@ -110,9 +112,9 @@ const errorInfo = computed(() => {
 
 <template>
   <div
-    :class="`nc-side-card nc-side-card--${eventDisplayTheme}`"
+    :class="[`nc-side-card--${eventDisplayTheme}`, { 'nc-side-card--uncolored': !colors.hasColor }]"
     :style="themeVars"
-    class="cursor-pointer h-12.5 flex-none flex gap-2 flex-col rounded-lg overflow-hidden"
+    class="nc-side-card cursor-pointer h-12.5 flex-none flex gap-2 flex-col rounded-lg overflow-hidden"
   >
     <div class="flex relative items-center gap-2">
       <span v-if="showLeftBar" class="nc-side-card-leftbar block h-12 w-1"></span>
@@ -185,13 +187,19 @@ const errorInfo = computed(() => {
   background: var(--cal-accent);
 }
 
-// Chip themes — accent-derived tint + border (stays visible in dark mode, where
-// the row-colouring tint resolves to near-black; see RecordCard for rationale).
-.nc-side-card--bordered,
-.nc-side-card--pill {
+// Bordered — accent-derived tint + border (stays visible in dark mode, where the
+// row-colouring tint resolves to near-black; see RecordCard for rationale).
+.nc-side-card--bordered {
   @apply border-1;
   background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
+}
+
+// Uncoloured events keep the classic white card (not the gray accent wash) so the
+// default look matches the pre-theme calendar.
+.nc-side-card--bordered.nc-side-card--uncolored {
+  background: var(--nc-bg-default);
+  border-color: var(--nc-border-gray-medium);
 }
 
 // Solid — fill, readable text on the accent.
@@ -204,12 +212,11 @@ const errorInfo = computed(() => {
   }
 }
 
-// Flat themes — transparent, marker only (bar for minimal, dot for dot).
-.nc-side-card--minimal {
-  @apply bg-transparent border-1 border-transparent;
-}
-
-.nc-side-card--dot {
+// Flat themes — transparent, marker only (bar for minimal, dot for dot, nothing
+// for pill — matches the month-view RecordCard look).
+.nc-side-card--minimal,
+.nc-side-card--dot,
+.nc-side-card--pill {
   @apply bg-transparent border-1 border-transparent;
 }
 </style>

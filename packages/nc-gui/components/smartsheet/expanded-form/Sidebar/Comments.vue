@@ -629,18 +629,20 @@ onBeforeUnmount(() => {
                     />
                   </template>
                   <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
-                    <NcButton
-                      v-e="['c:comment:attach-file']"
-                      type="text"
-                      size="xsmall"
-                      class="nc-comment-attach-btn !h-7 !w-7"
-                      :loading="isEditAttachmentUploading"
-                      :disabled="isEditAttachmentUploading"
-                      data-testid="nc-comment-attach-btn"
-                      @click="openEditFilePicker"
-                    >
-                      <GeneralIcon v-if="!isEditAttachmentUploading" icon="ncPaperclip" class="text-md" />
-                    </NcButton>
+                    <NcTooltip :title="$t('activity.attachFile')" placement="top">
+                      <NcButton
+                        v-e="['c:comment:attach-file']"
+                        type="text"
+                        size="xsmall"
+                        class="nc-comment-attach-btn !h-7 !w-7"
+                        :loading="isEditAttachmentUploading"
+                        :disabled="isEditAttachmentUploading"
+                        data-testid="nc-comment-attach-btn"
+                        @click="openEditFilePicker"
+                      >
+                        <GeneralIcon v-if="!isEditAttachmentUploading" icon="ncPaperclip" class="text-md" />
+                      </NcButton>
+                    </NcTooltip>
                   </template>
                 </SmartsheetExpandedFormRichComment>
               </div>
@@ -665,7 +667,7 @@ onBeforeUnmount(() => {
       </div>
       <div
         v-if="hasEditPermission"
-        class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex"
+        class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-default"
         @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
         @dragover.prevent
         @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
@@ -693,18 +695,20 @@ onBeforeUnmount(() => {
             />
           </template>
           <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
-            <NcButton
-              v-e="['c:comment:attach-file']"
-              type="text"
-              size="xsmall"
-              class="nc-comment-attach-btn !h-7 !w-7"
-              :loading="isAttachmentUploading"
-              :disabled="isAttachmentUploading"
-              data-testid="nc-comment-attach-btn"
-              @click="openFilePicker"
-            >
-              <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
-            </NcButton>
+            <NcTooltip :title="$t('activity.attachFile')" placement="top">
+              <NcButton
+                v-e="['c:comment:attach-file']"
+                type="text"
+                size="xsmall"
+                class="nc-comment-attach-btn !h-7 !w-7"
+                :loading="isAttachmentUploading"
+                :disabled="isAttachmentUploading"
+                data-testid="nc-comment-attach-btn"
+                @click="openFilePicker"
+              >
+                <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
+              </NcButton>
+            </NcTooltip>
           </template>
         </SmartsheetExpandedFormRichComment>
       </div>

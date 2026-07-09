@@ -179,18 +179,20 @@ export default {
                 />
               </template>
               <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
-                <NcButton
-                  v-e="['c:comment:attach-file']"
-                  type="text"
-                  size="xsmall"
-                  class="nc-comment-attach-btn !h-7 !w-7"
-                  :loading="isAttachmentUploading"
-                  :disabled="isAttachmentUploading"
-                  data-testid="nc-comment-attach-btn"
-                  @click="openFilePicker"
-                >
-                  <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
-                </NcButton>
+                <NcTooltip :title="$t('activity.attachFile')" placement="top">
+                  <NcButton
+                    v-e="['c:comment:attach-file']"
+                    type="text"
+                    size="xsmall"
+                    class="nc-comment-attach-btn !h-7 !w-7"
+                    :loading="isAttachmentUploading"
+                    :disabled="isAttachmentUploading"
+                    data-testid="nc-comment-attach-btn"
+                    @click="openFilePicker"
+                  >
+                    <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
+                  </NcButton>
+                </NcTooltip>
               </template>
             </SmartsheetExpandedFormRichComment>
           </div>

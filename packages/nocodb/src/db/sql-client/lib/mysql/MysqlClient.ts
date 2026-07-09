@@ -2687,7 +2687,8 @@ class MysqlClient extends KnexClient {
       query += this.genQuery(` ?? ${this.sanitiseDataType(n.dt)}`, [n.cn]);
     }
     if (!n.dt.endsWith('text')) {
-      query += n.dtxp && n.dtxp !== ' ' ? `(${sanitiseDataTypePrecision(n.dtxp)}` : '';
+      query +=
+        n.dtxp && n.dtxp !== ' ' ? `(${sanitiseDataTypePrecision(n.dtxp)}` : '';
       query += scale ? `,${scale}` : '';
       query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
     }

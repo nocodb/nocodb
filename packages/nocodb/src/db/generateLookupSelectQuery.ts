@@ -775,7 +775,9 @@ export default async function generateLookupSelectQuery({
         // (set above), select it into the subquery and ORDER the json_agg by it
         // so the aggregated value reflects link order. Unchanged otherwise.
         if (mmLinkOrderRef) {
-          selectQb.select(knex.raw('?? as ??', [mmLinkOrderRef, '__nc_lorder']));
+          selectQb.select(
+            knex.raw('?? as ??', [mmLinkOrderRef, '__nc_lorder']),
+          );
           return {
             builder: knex
               .select(

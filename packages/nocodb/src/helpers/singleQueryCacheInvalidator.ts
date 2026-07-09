@@ -100,7 +100,12 @@ export async function clearSingleQueryCacheForReferencingModels(
   );
 
   // Cross-base: models in other bases that join this renamed table.
-  await clearCrossBaseReferringModels(context, modelId, new Set<string>(), ncMeta);
+  await clearCrossBaseReferringModels(
+    context,
+    modelId,
+    new Set<string>(),
+    ncMeta,
+  );
 }
 
 /**

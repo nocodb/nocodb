@@ -629,10 +629,7 @@ export class LinkPlaceholderService {
           )} = ${relAliasQ}.${qi(relJoinCol)} SET ${qCol(
             srcTn,
             phCn,
-          )} = ${pvExprAliased} WHERE ${qCol(
-            srcTn,
-            srcJoinCol,
-          )} IS NOT NULL`,
+          )} = ${pvExprAliased} WHERE ${qCol(srcTn, srcJoinCol)} IS NOT NULL`,
           null,
           { raw: true },
         );

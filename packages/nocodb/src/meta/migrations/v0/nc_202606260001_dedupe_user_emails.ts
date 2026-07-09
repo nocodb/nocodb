@@ -1,5 +1,5 @@
-import type { Knex } from 'knex';
 import { Logger } from '@nestjs/common';
+import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
 
@@ -202,7 +202,14 @@ const up = async (knex: Knex) => {
 
   for (const { canonical_email } of dupGroups) {
     const rows: UserRow[] = await knex(MetaTable.USERS)
-      .select('id', 'email', 'canonical_email', 'password', 'is_deleted', 'created_at')
+      .select(
+        'id',
+        'email',
+        'canonical_email',
+        'password',
+        'is_deleted',
+        'created_at',
+      )
       .where('canonical_email', canonical_email)
       .where(function () {
         this.where('is_deleted', false).orWhereNull('is_deleted');

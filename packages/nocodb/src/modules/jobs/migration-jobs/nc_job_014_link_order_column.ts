@@ -52,7 +52,11 @@ const partitionedOrderSql = {
 const memoizedOrderProps = async (source: Source) => {
   if (!propsByClientType[source.type]) {
     propsByClientType[source.type] = await getColumnPropsFromUIDT(
-      { uidt: UITypes.Order, column_name: 'nc_order', title: 'nc_order' } as any,
+      {
+        uidt: UITypes.Order,
+        column_name: 'nc_order',
+        title: 'nc_order',
+      } as any,
       source,
     );
   }
@@ -163,13 +167,18 @@ export class LinkOrderColumnMigration {
         if (!models?.length) break;
 
         for (const model of models.splice(0)) {
-          this.processingModels.push({ fk_model_id: model.id, processing: true });
-          queue.add(() => wrapper(model)).catch((e) => {
-            this.logger.error(
-              `Error processing junction ${model.id}: ${e.message}`,
-              e.stack,
-            );
+          this.processingModels.push({
+            fk_model_id: model.id,
+            processing: true,
           });
+          queue
+            .add(() => wrapper(model))
+            .catch((e) => {
+              this.logger.error(
+                `Error processing junction ${model.id}: ${e.message}`,
+                e.stack,
+              );
+            });
         }
       }
 
@@ -247,7 +256,11 @@ export class LinkOrderColumnMigration {
       dbDriver,
     });
     const tnPath = baseModel.getTnPath(model.table_name);
-    const sqlMgr = ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta);
+    const sqlMgr = ProjectMgrv2.getSqlMgr(
+      context,
+      { id: source.base_id },
+      ncMeta,
+    );
 
     // Build the two Order columns with distinct names.
     const orderProps = await memoizedOrderProps(source);
@@ -278,7 +291,11 @@ export class LinkOrderColumnMigration {
         cn: c.column_name,
       })),
     };
-    await (sqlMgr as SqlMgrv2).sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+    await (sqlMgr as SqlMgrv2).sqlOpPlus(
+      source,
+      'tableUpdate',
+      tableUpdateBody,
+    );
 
     // Meta rows for the two columns.
     const insertedA = await Column.insert(
@@ -420,7 +437,9 @@ export class LinkOrderColumnMigration {
       ],
     };
     source.upgraderQueries.push(
-      dbDriver.raw(partitionedOrderSql[source.type], params[source.type]).toQuery(),
+      dbDriver
+        .raw(partitionedOrderSql[source.type], params[source.type])
+        .toQuery(),
     );
   }
 

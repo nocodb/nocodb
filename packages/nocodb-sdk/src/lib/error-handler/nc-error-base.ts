@@ -1115,8 +1115,8 @@ export class NcErrorBase {
     );
   }
 
-  snapshotReadonly(message?: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_SNAPSHOT_READONLY, {
+  snapshotBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SNAPSHOT_BLOCKED, {
       params: message || '',
       ...args,
     });

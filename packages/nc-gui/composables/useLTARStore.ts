@@ -1588,7 +1588,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     return {
       canReorder,
       reorderLink,
-      getRelatedTableRowId,
       relatedTableMeta,
       isLinkedTableAccessible,
       loadRelatedTableMeta,

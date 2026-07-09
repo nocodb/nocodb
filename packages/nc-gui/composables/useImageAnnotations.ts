@@ -41,6 +41,18 @@ export function extractCommentAnnotation(comment?: CommentType | null): CommentI
   return meta?.annotation as CommentImageAnnotation | undefined
 }
 
+/**
+ * One-shot request to open an attachment carousel focused on an annotation
+ * comment. Set by comment lists rendered outside the carousel (expanded record
+ * sidebar); the owning attachment cell watches it to open its carousel, and
+ * the annotation provider consumes the comment id to focus the region.
+ */
+const useAnnotationFocusRequest = createGlobalState(() => {
+  const request = ref<{ rowId: string; attachmentKey: string; commentId: string } | null>(null)
+
+  return { request }
+})
+
 const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
   (selectedFile: Ref<AttachmentType | false>, visibleItems: Ref<AttachmentType[]>) => {
     // May be absent (e.g. public views) — annotations then stay read-only/empty.
@@ -61,6 +73,15 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
 
     /** Set by the sidebar "View" action; the Carousel watches and focuses it. */
     const pendingFocusCommentId = ref<string | null>(null)
+
+    // Consume any external focus request — it's what opened this carousel, so
+    // focus the annotation it points at (focusTarget resolves once comments load).
+    const { request: externalFocusRequest } = useAnnotationFocusRequest()
+
+    if (externalFocusRequest.value) {
+      pendingFocusCommentId.value = externalFocusRequest.value.commentId
+      externalFocusRequest.value = null
+    }
 
     // ─── derived ─────────────────────────────────────────────────────────
     const selectedFileKey = computed(() => (selectedFile.value ? getAttachmentAnnotationKey(selectedFile.value) : undefined))
@@ -241,4 +262,4 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
   },
 )
 
-export { useProvideImageAnnotations, useImageAnnotations }
+export { useProvideImageAnnotations, useImageAnnotations, useAnnotationFocusRequest }

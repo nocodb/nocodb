@@ -298,6 +298,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     isCommentsLoading,
     primaryKey,
     parsedHtmlComments,
+    row,
   }
 })
 

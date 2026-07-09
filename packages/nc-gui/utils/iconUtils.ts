@@ -470,6 +470,13 @@ import NcSaveIcon from '~icons/nc-icons-v2/save.svg'
 import NcSmileIcon from '~icons/nc-icons-v2/smile.svg'
 import NcNavigationIcon from '~icons/nc-icons-v2/navigation.svg'
 import NcPaperclipIcon from '~icons/nc-icons-v2/paperclip.svg'
+import NcLucideBold from '~icons/nc-icons-v2/lucide-bold.svg'
+import NcLucideItalic from '~icons/nc-icons-v2/lucide-italic.svg'
+import NcLucideUnderline from '~icons/nc-icons-v2/lucide-underline.svg'
+import NcLucideStrikethrough from '~icons/nc-icons-v2/lucide-strikethrough.svg'
+import NcLucideLink from '~icons/nc-icons-v2/lucide-link.svg'
+import NcLucideAtSign from '~icons/nc-icons-v2/lucide-at-sign.svg'
+import NcLucidePaperclip from '~icons/nc-icons-v2/lucide-paperclip.svg'
 import NcFastForwardIcon from '~icons/nc-icons-v2/fast-forward.svg'
 import NcXSquareIcon from '~icons/nc-icons-v2/x-square.svg'
 import NcAwardIcon from '~icons/nc-icons-v2/award.svg'
@@ -1561,6 +1568,13 @@ export const iconMap = {
   'ncSmile': NcSmileIcon,
   'ncNavigation': NcNavigationIcon,
   'ncPaperclip': NcPaperclipIcon,
+  'lucideBold': NcLucideBold,
+  'lucideItalic': NcLucideItalic,
+  'lucideUnderline': NcLucideUnderline,
+  'lucideStrikethrough': NcLucideStrikethrough,
+  'lucideLink': NcLucideLink,
+  'lucideAtSign': NcLucideAtSign,
+  'lucidePaperclip': NcLucidePaperclip,
   'ncFastForward': NcFastForwardIcon,
   'ncXSquare': NcXSquareIcon,
   'ncAward': NcAwardIcon,

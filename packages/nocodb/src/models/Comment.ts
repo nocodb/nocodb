@@ -1,10 +1,12 @@
-import type { CommentType } from 'nocodb-sdk';
+import type { AttachmentType, CommentType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { prepareForDb } from '~/utils/modelUtils';
+import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 import { extractProps } from '~/helpers/extractProps';
 import Model from '~/models/Model';
+import FileReference from '~/models/FileReference';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 
 export default class Comment implements CommentType {
@@ -23,9 +25,14 @@ export default class Comment implements CommentType {
   created_by_email?: string;
   resolved_by_email?: string;
   is_deleted?: boolean;
+  attachments?: AttachmentType[];
 
   constructor(comment: Partial<Comment>) {
     Object.assign(this, comment);
+
+    // `attachments` is persisted as a JSON string — parse it back to an array.
+    // parseMetaProp is a no-op when the value is already an array / nullish.
+    this.attachments = parseMetaProp(this, 'attachments', null);
   }
 
   public static async get(
@@ -111,7 +118,14 @@ export default class Comment implements CommentType {
       'fk_model_id',
       'created_by',
       'created_by_email',
+      'attachments',
     ]);
+
+    if (Array.isArray(insertObj.attachments)) {
+      insertObj.attachments = Comment.sanitizeAttachments(
+        insertObj.attachments,
+      );
+    }
 
     if (!insertObj.fk_model_id) NcError.tableNotFound(insertObj.fk_model_id);
 
@@ -128,10 +142,26 @@ export default class Comment implements CommentType {
       context.workspace_id,
       context.base_id,
       MetaTable.COMMENTS,
-      prepareForDb(insertObj),
+      prepareForDb(insertObj, ['attachments']),
     );
 
-    return res;
+    const commentObj = new Comment(res);
+
+    // Link each attachment to a FileReference (keyed by comment id) so it can be
+    // served through the authenticated attachment proxy, then persist the
+    // injected ids back onto the comment.
+    if (commentObj.attachments?.length) {
+      await Comment.reconcileAttachments(context, commentObj, ncMeta);
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COMMENTS,
+        prepareForDb({ attachments: commentObj.attachments }, ['attachments']),
+        commentObj.id,
+      );
+    }
+
+    return commentObj;
   }
   public static async update(
     context: NcContext,
@@ -143,17 +173,40 @@ export default class Comment implements CommentType {
       'comment',
       'resolved_by',
       'resolved_by_email',
+      'attachments',
     ]);
+
+    const attachmentsChanged = Array.isArray(updateObj.attachments);
+    if (attachmentsChanged) {
+      updateObj.attachments = Comment.sanitizeAttachments(
+        updateObj.attachments,
+      );
+    }
 
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.COMMENTS,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, ['attachments']),
       commentId,
     );
 
-    return Comment.get(context, commentId, ncMeta);
+    const updated = await Comment.get(context, commentId, ncMeta);
+
+    // Reconcile FileReferences only when attachments were part of this update —
+    // creates refs for new files, soft-deletes ones that were removed.
+    if (attachmentsChanged && updated) {
+      await Comment.reconcileAttachments(context, updated, ncMeta);
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COMMENTS,
+        prepareForDb({ attachments: updated.attachments }, ['attachments']),
+        commentId,
+      );
+    }
+
+    return updated;
   }
 
   public static async resolve(
@@ -192,6 +245,17 @@ export default class Comment implements CommentType {
       { is_deleted: true },
       commentId,
     );
+
+    // Comments have no restore path, so reclaim attachment refs immediately —
+    // otherwise they stay counted against workspace storage forever.
+    const refIds = await FileReference.listIdsForComment(
+      context,
+      commentId,
+      ncMeta,
+    );
+    if (refIds.length) {
+      await FileReference.delete(context, refIds, ncMeta);
+    }
 
     return true;
   }
@@ -321,5 +385,109 @@ export default class Comment implements CommentType {
       .groupBy('fk_doc_id');
 
     return results?.map((r) => new Comment(r));
+  }
+
+  /**
+   * Keep only the canonical, persistable attachment fields — drops transient
+   * ones (signedUrl/signedPath/data/thumbnails) so we never store time-limited
+   * URLs. Files are served through the authenticated attachment proxy via their
+   * FileReference id (see reconcileAttachments). Invalid entries (no url/path)
+   * are filtered out.
+   */
+  protected static sanitizeAttachments(
+    attachments: AttachmentType[],
+  ): AttachmentType[] {
+    return (attachments || [])
+      .filter((att) => att && (att.url || att.path))
+      .map((att) =>
+        extractProps(att, [
+          'id',
+          'url',
+          'path',
+          'title',
+          'mimetype',
+          'size',
+          'icon',
+          'width',
+          'height',
+        ]),
+      );
+  }
+
+  /**
+   * Link a comment's attachments to FileReference rows (keyed by comment id),
+   * mutating each attachment's `id` in place. Mirrors how docs / SmartText track
+   * attachments so they can be served through the authenticated attachment proxy
+   * — no time-limited signed URLs involved.
+   *
+   * - New attachments (no/invalid id) get a fresh FileReference.
+   * - FileReferences whose file is no longer present are soft-deleted.
+   */
+  protected static async reconcileAttachments(
+    context: NcContext,
+    comment: Comment,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const attachments = comment.attachments || [];
+
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+    // Validate any pre-existing ids actually belong to this comment (e.g. an
+    // attachment copied from another comment carries a foreign id) — treat
+    // those as new and fork a fresh reference.
+    const preExistingIds = attachments
+      .map((att) => att.id)
+      .filter((id): id is string => !!id);
+
+    const refById = new Map<string, FileReference>();
+    if (preExistingIds.length) {
+      const refs = await FileReference.listByIds(
+        context,
+        preExistingIds,
+        ncMeta,
+      );
+      for (const ref of refs) refById.set(ref.id, ref);
+    }
+
+    for (const att of attachments) {
+      const existing = att.id ? refById.get(att.id) : undefined;
+      if (
+        existing &&
+        !existing.deleted &&
+        existing.fk_comment_id === comment.id
+      ) {
+        continue;
+      }
+
+      att.id = await FileReference.insert(
+        context,
+        {
+          storage: storageAdapter.name,
+          file_url: att.path || att.url,
+          file_size: att.size || 0,
+          fk_user_id: comment.created_by || 'anonymous',
+          source_id: comment.source_id,
+          // fk_model_id lets Model.delete's bulkDelete({ fk_model_id })
+          // reclaim these refs when the table is deleted.
+          fk_model_id: comment.fk_model_id,
+          fk_comment_id: comment.id,
+        },
+        ncMeta,
+      );
+    }
+
+    // Soft-delete references that are no longer attached to the comment.
+    const newIds = new Set(attachments.map((att) => att.id).filter(Boolean));
+    const existingIds = await FileReference.listIdsForComment(
+      context,
+      comment.id,
+      ncMeta,
+    );
+    const removedIds = existingIds.filter((id) => !newIds.has(id));
+    if (removedIds.length) {
+      await FileReference.delete(context, removedIds, ncMeta);
+    }
+
+    return comment;
   }
 }

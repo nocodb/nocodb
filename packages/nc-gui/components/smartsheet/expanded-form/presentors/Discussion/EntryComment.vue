@@ -25,6 +25,17 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { loadComments, resolveComment, updateComment, deleteComment, primaryKey } = useRowCommentsOrThrow()
 
+const {
+  isCommentAttachmentsEnabled,
+  pendingAttachments: editAttachments,
+  isUploading: isEditAttachmentUploading,
+  openFilePicker: openEditFilePicker,
+  handlePaste: handleEditAttachmentPaste,
+  handleDrop: handleEditAttachmentDrop,
+  removeAttachment: removeEditAttachment,
+  clearAttachments: clearEditAttachments,
+} = useCommentAttachments()
+
 const { isUIAllowed } = useRoles()
 
 /* flags */
@@ -70,6 +81,7 @@ function editComment(comment: CommentType) {
   editCommentValue.value = {
     ...comment,
   }
+  editAttachments.value = [...(comment.attachments ?? [])]
   isEditing.value = true
 }
 
@@ -78,6 +90,7 @@ function onCancel(e: KeyboardEvent) {
   e.preventDefault()
   e.stopPropagation()
   editCommentValue.value = undefined
+  clearEditAttachments()
   loadComments()
   isEditing.value = false
   editCommentValue.value = undefined
@@ -94,9 +107,16 @@ const value = computed({
 })
 
 async function onEditComment() {
-  if (!isEditing.value || !editCommentValue.value?.comment) return
+  if (!isEditing.value) return
 
-  while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
+  if (isEditAttachmentUploading.value) return
+
+  if (!editCommentValue.value?.comment && !editAttachments.value.length) return
+
+  while (
+    editCommentValue.value?.comment &&
+    (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n'))
+  ) {
     if (editCommentValue.value.comment.endsWith('<br />')) {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
     } else {
@@ -109,11 +129,14 @@ async function onEditComment() {
   const tempCom = {
     ...editCommentValue.value,
   }
+  const tempAttachments = [...editAttachments.value]
 
   isEditing.value = false
   editCommentValue.value = undefined
+  clearEditAttachments()
   await updateComment(tempCom.id!, {
     comment: tempCom.comment,
+    attachments: tempAttachments,
   })
   loadComments()
 }
@@ -121,6 +144,7 @@ async function onEditComment() {
 function onCommentBlur() {
   isEditing.value = false
   editCommentValue.value = undefined
+  clearEditAttachments()
 }
 
 async function copyComment(comment: CommentType) {
@@ -248,28 +272,66 @@ async function copyComment(comment: CommentType) {
           </NcTooltip>
         </div>
       </div>
-      <SmartsheetExpandedFormRichComment
+      <div
         v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
-        v-model:value="value"
-        autofocus
-        autofocus-to-end
-        :hide-options="false"
-        class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-        data-testid="expanded-form-comment-input"
-        sync-value-change
-        @save="onEditComment"
-        @keydown.esc="onCancel"
-        @blur="onCommentBlur"
-        @keydown.enter.exact.prevent="onEditComment"
-      />
-      <SmartsheetExpandedFormRichComment
-        v-else
-        :key="`${props.comment.id}-${props.comment.comment}`"
-        :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-        class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
-        read-only
-        sync-value-change
-      />
+        @paste="isCommentAttachmentsEnabled ? handleEditAttachmentPaste($event) : undefined"
+        @dragover.prevent
+        @drop="isCommentAttachmentsEnabled ? handleEditAttachmentDrop($event) : undefined"
+      >
+        <SmartsheetExpandedFormRichComment
+          v-model:value="value"
+          autofocus
+          autofocus-to-end
+          :hide-options="false"
+          :extra-save-enabled="editAttachments.length > 0"
+          class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+          data-testid="expanded-form-comment-input"
+          sync-value-change
+          @save="onEditComment"
+          @keydown.esc="onCancel"
+          @blur="onCommentBlur"
+          @keydown.enter.exact.prevent="onEditComment"
+        >
+          <template v-if="editAttachments.length" #attachments>
+            <SmartsheetExpandedFormCommentAttachments
+              :attachments="editAttachments"
+              :comment-id="editCommentValue?.id"
+              editable
+              class="px-1 pt-1"
+              @remove="removeEditAttachment"
+            />
+          </template>
+          <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+            <NcButton
+              v-e="['c:comment:attach-file']"
+              type="text"
+              size="xsmall"
+              class="nc-comment-attach-btn !h-7 !w-7"
+              :loading="isEditAttachmentUploading"
+              :disabled="isEditAttachmentUploading"
+              data-testid="nc-comment-attach-btn"
+              @click="openEditFilePicker"
+            >
+              <GeneralIcon v-if="!isEditAttachmentUploading" icon="ncPaperclip" class="text-md" />
+            </NcButton>
+          </template>
+        </SmartsheetExpandedFormRichComment>
+      </div>
+      <template v-else>
+        <SmartsheetExpandedFormRichComment
+          :key="`${props.comment.id}-${props.comment.comment}`"
+          :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
+          class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
+          read-only
+          sync-value-change
+        />
+        <SmartsheetExpandedFormCommentAttachments
+          v-if="props.comment.attachments?.length"
+          :attachments="props.comment.attachments"
+          :comment-id="props.comment.id"
+          class="px-4 pb-3"
+        />
+      </template>
     </div>
   </div>
 </template>

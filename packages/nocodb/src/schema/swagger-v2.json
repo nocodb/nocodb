@@ -12743,6 +12743,10 @@
         "title": "Attachment Model",
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "FileReference ID for the attachment"
+          },
           "data": {
             "description": "Data for uploading"
           },
@@ -12924,6 +12928,13 @@
             "type": "string",
             "example": "2020-05-20T12:00:00.000000Z",
             "description": "Updated At"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
           }
         }
       },
@@ -13789,6 +13800,13 @@
             "type": "string",
             "description": "Row ID",
             "example": "3"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
           }
         },
         "required": [
@@ -13823,6 +13841,13 @@
             "type": "string",
             "description": "Foreign Key to Model",
             "example": "md_ehn5izr99m7d45"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Files attached to the comment",
+            "items": {
+              "$ref": "#/components/schemas/Attachment"
+            }
           }
         },
         "required": [

@@ -240,6 +240,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseDocsResolveComments = (..._args: any[]) => {}
 
+  const blockCommentAttachments = computed(() => true)
+
+  const showUpgradeToUseCommentAttachments = (..._args: any[]) => {}
+
   const showUpgradeToUseDocsExportPdf = (..._args: any[]) => {}
 
   const revisionRetentionLadder = computed<{ title: string; days: number }[]>(() => [])
@@ -471,6 +475,8 @@ export const useEeConfig = createSharedComposable(() => {
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,
+    blockCommentAttachments,
+    showUpgradeToUseCommentAttachments,
     showUpgradeToUseDocsExportPdf,
     revisionRetentionLadder,
     requiredPlanForRevisionAge,

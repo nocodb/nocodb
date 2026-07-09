@@ -21,6 +21,7 @@ export default class FileReference {
   fk_column_id: string;
   fk_row_id: string;
   fk_doc_id: string;
+  fk_comment_id: string;
   fk_revision_id: string;
   fk_session_id: string;
   is_external: boolean;
@@ -49,6 +50,7 @@ export default class FileReference {
       'fk_column_id',
       'fk_row_id',
       'fk_doc_id',
+      'fk_comment_id',
       'fk_revision_id',
       'fk_session_id',
       'is_external',
@@ -136,6 +138,7 @@ export default class FileReference {
       'fk_column_id',
       'fk_row_id',
       'fk_doc_id',
+      'fk_comment_id',
       'fk_revision_id',
       'fk_session_id',
       'is_external',
@@ -680,6 +683,27 @@ export default class FileReference {
    * List non-deleted FileReference IDs for a SmartText cell (model + column + row).
    * Uses nc_fr_row_idx (base_id, fk_column_id, fk_row_id).
    */
+  /**
+   * Active FileReference IDs for a comment's attachments. Used by the comment
+   * attachment reconcile to soft-delete refs that were removed from the comment.
+   */
+  public static async listIdsForComment(
+    context: NcContext,
+    commentId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string[]> {
+    const rows = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_comment_id: commentId,
+        deleted: false,
+      })
+      .select('id');
+
+    return rows.map((r: any) => r.id);
+  }
+
   public static async listIdsForCell(
     context: NcContext,
     modelId: string,

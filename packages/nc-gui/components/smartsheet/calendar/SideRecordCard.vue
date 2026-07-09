@@ -118,7 +118,13 @@ const errorInfo = computed(() => {
   >
     <div class="flex relative items-center gap-2">
       <span v-if="showLeftBar" class="nc-side-card-leftbar block h-12 w-1"></span>
-      <span v-else-if="isDot" class="nc-side-card-dot ml-2 flex-none"></span>
+      <!-- Align the dot with the first line (title), matching the calendar view's
+           dot theme: a box the height of the title line (leading-4 → h-4), offset
+           by the body's top padding (py-1) and centred, so it sits on the title
+           rather than the middle of the 2-line card. -->
+      <span v-else-if="isDot" class="self-start mt-1 h-4 ml-2 flex items-center flex-none">
+        <span class="nc-side-card-dot"></span>
+      </span>
       <slot name="image" />
       <div class="flex gap-1 py-1 flex-col" :class="{ 'pl-2': isSolid }">
         <NcTooltip

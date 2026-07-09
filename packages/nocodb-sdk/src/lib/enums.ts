@@ -688,6 +688,26 @@ export enum ViewLockType {
   Collaborative = 'collaborative',
 }
 
+// Calendar event-display themes — how each event/record is drawn in the grid.
+// Persisted per calendar view in `meta.event_display_theme`. `BORDERED` is the
+// default (and the only look prior to this feature).
+export enum CalendarEventTheme {
+  // Bordered chip: border + faint background tint + left colour bar (default).
+  BORDERED = 'bordered',
+  // Borderless row: colour dot + time + title on a transparent background.
+  DOT = 'dot',
+  // Whole chip filled with the event accent colour, contrast (white) text.
+  SOLID = 'solid',
+  // No border/fill — just a thicker left colour bar + text.
+  MINIMAL = 'minimal',
+  // Plain text with the time rendered as a small colour pill/badge.
+  PILL = 'pill',
+}
+
+export const CALENDAR_EVENT_THEMES = Object.values(CalendarEventTheme);
+
+export const DEFAULT_CALENDAR_EVENT_THEME = CalendarEventTheme.BORDERED;
+
 export enum PublicAttachmentScope {
   WORKSPACEPICS = 'workspacePics',
   PROFILEPICS = 'profilePics',

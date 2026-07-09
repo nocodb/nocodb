@@ -184,6 +184,10 @@ function triggerToolbarControl(selector: string) {
 
       <SmartsheetToolbarCalendarRecordHeight v-if="isCalendar && !isMobileMode" />
 
+      <SmartsheetToolbarCalendarEventTheme
+        v-if="isCalendar && !isMobileMode && !isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures"
+      />
+
       <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed && !isMobileMode" />
 
       <!-- Mobile: the calendar config controls stay mounted but visually hidden; the "more" menu
@@ -192,6 +196,7 @@ function triggerToolbarControl(selector: string) {
         <SmartsheetToolbarColumnFilterMenu v-if="isViewOperationsAllowed" />
         <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
         <SmartsheetToolbarCalendarRecordHeight />
+        <SmartsheetToolbarCalendarEventTheme v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures" />
         <SmartsheetToolbarCalendarRange v-if="isViewOperationsAllowed" />
       </div>
 
@@ -240,6 +245,17 @@ function triggerToolbarControl(selector: string) {
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="rowHeight" class="!h-4 !w-4 text-nc-content-gray-subtle" />
                 {{ $t('objects.rowHeight') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures"
+              data-testid="nc-calendar-more-event-theme"
+              inner-class="w-full"
+              @click="triggerToolbarControl('[data-testid=nc-calendar-event-theme]')"
+            >
+              <div class="flex items-center gap-2 w-full">
+                <GeneralIcon icon="palette" class="!h-4 !w-4 text-nc-content-gray-subtle" />
+                {{ $t('activity.eventTheme') }}
               </div>
             </NcMenuItem>
             <NcMenuItem

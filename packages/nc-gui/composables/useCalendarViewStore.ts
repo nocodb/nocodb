@@ -1,6 +1,17 @@
 import type { ComputedRef, Ref } from 'vue'
 import { isClient } from '@vueuse/core'
-import { EventType, FormulaDataTypes, UITypes, ViewTypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
+import {
+  CALENDAR_EVENT_THEMES,
+  CalendarEventTheme,
+  DEFAULT_CALENDAR_EVENT_THEME,
+  EventType,
+  FormulaDataTypes,
+  UITypes,
+  ViewTypes,
+  isSystemColumn,
+  isVirtualCol,
+  workerWithTimezone,
+} from 'nocodb-sdk'
 import type {
   Api,
   CalendarRangeType,
@@ -81,6 +92,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       // Custom timescale (active_view === 'custom'): a user-picked count of days or weeks.
       custom_count: number
       custom_unit: 'day' | 'week'
+      // How each event/record is drawn in the grid (bordered/dot/solid/minimal/pill).
+      // Absent → BORDERED (the only look before this feature). EE-gated (Business+).
+      event_display_theme: CalendarEventTheme
     }>(() => {
       let meta = calendarMetaData.value?.meta ?? {}
 
@@ -95,6 +109,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         record_height_mode: 'compact' | 'expanded'
         custom_count: number
         custom_unit: 'day' | 'week'
+        event_display_theme: CalendarEventTheme
       }
     })
 
@@ -163,6 +178,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
       return calendarRange.value[0]?.fk_from_col?.uidt
+    })
+
+    // Effective event-display theme — what the cards and picker should render.
+    // Defaults to BORDERED when absent or when an unknown value is stored. The
+    // Pill theme renders the time as a colour pill, so on date-only calendars
+    // (no time component) it degrades back to BORDERED — the picker hides it too.
+    const eventDisplayTheme = computed<CalendarEventTheme>(() => {
+      // EE-only: in CE a previously-saved theme degrades gracefully back to BORDERED.
+      if (!isEeUI) return DEFAULT_CALENDAR_EVENT_THEME
+
+      const stored = viewMetaProperties.value?.event_display_theme
+      const resolved = stored && CALENDAR_EVENT_THEMES.includes(stored) ? stored : DEFAULT_CALENDAR_EVENT_THEME
+
+      if (resolved === CalendarEventTheme.PILL && calDataType.value === UITypes.Date) {
+        return DEFAULT_CALENDAR_EVENT_THEME
+      }
+
+      return resolved
     })
 
     const timezone = computed(() => {
@@ -1745,6 +1778,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       paginateCalendarView,
       viewMetaProperties,
       recordHeightMode,
+      eventDisplayTheme,
       updateFormat,
       timezoneDayjs,
       timezone,

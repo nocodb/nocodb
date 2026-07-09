@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
-import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
+import { CalendarEventTheme, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
@@ -25,7 +25,31 @@ const {
   weeksInRange,
   isMultiWeekRange,
   recordHeightMode,
+  eventDisplayTheme,
 } = useCalendarViewStoreOrThrow()
+
+// Flat themes (dot / minimal / pill) render a single text line, so they stack
+// tighter than the bordered / solid chip themes (which keep the taller chip).
+const isCompactRowTheme = computed(() =>
+  [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(eventDisplayTheme.value),
+)
+
+// Per-record lane height (px) — drives both stacking offsets and the lane cap.
+// Kept in sync with the card height in RecordCard.vue.
+const perRecordHeightPx = computed(() => (isCompactRowTheme.value ? 22 : 28))
+
+// The calendar range (start/end date) columns are already represented by the
+// event's time prefix + grid position, so rendering them again in the card body
+// is pure duplication (the old "• 2026-06-05 08:00 • …" noise). Exclude them so
+// the card defaults to a clean title line for every theme.
+const rangeFieldIds = computed(() => {
+  const ids = new Set<string>()
+  for (const r of calendarRange.value || []) {
+    if (r.fk_from_col?.id) ids.add(r.fk_from_col.id)
+    if (r.fk_to_col?.id) ids.add(r.fk_to_col.id)
+  }
+  return ids
+})
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
@@ -218,7 +242,7 @@ const recordsToDisplay = computed<{
   if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
-  const perRecordHeight = 28
+  const perRecordHeight = perRecordHeightPx.value
 
   const spaceBetweenRecords = 27
   // Expanded: never cap lanes — every record gets a lane (no "+N more"), and the grid
@@ -517,9 +541,7 @@ const recordsToDisplay = computed<{
 
 // --- Expanded per-week row heights ------------------------------------------
 // Each week row grows to fit its OWN busiest day (lanes), with a floor of the compact
-// row height, so empty weeks stay compact and busy weeks expand — matching Airtable.
-const PER_RECORD_HEIGHT = 28
-
+// row height, so empty weeks stay compact and busy weeks expand.
 const RECORD_GAP = 8 // matches the compact maxLanes spacing (perRecordHeight + 8)
 
 const ROW_TOP_PADDING = 27 // spaceBetweenRecords — date number + top gap
@@ -552,7 +574,9 @@ const perWeekLanes = computed(() => {
 
 const perWeekHeights = computed(() =>
   perWeekLanes.value.map((lanes) =>
-    Math.max(compactRowHeight.value, ROW_TOP_PADDING + lanes * (PER_RECORD_HEIGHT + RECORD_GAP) + ROW_BOTTOM_PADDING),
+    // Use the theme-aware lane height so expanded rows track the same density
+    // as compact (flat themes pack tighter — see perRecordHeightPx).
+    Math.max(compactRowHeight.value, ROW_TOP_PADDING + lanes * (perRecordHeightPx.value + RECORD_GAP) + ROW_BOTTOM_PADDING),
   ),
 )
 
@@ -1198,9 +1222,12 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                   }}
                 </span>
               </template>
+              <!-- Range (date) columns are shown as the time prefix already, so
+                   they're excluded here — the card body stays a clean title line
+                   by default across every theme. -->
               <template v-for="field in fields" :key="field.id">
                 <LazySmartsheetPlainCell
-                  v-if="!isRowEmpty(record, field!)"
+                  v-if="!isRowEmpty(record, field!) && !rangeFieldIds.has(field!.id)"
                   v-model="record.row[field!.title!]"
                   class="text-xs"
                   :bold="fieldStyles[field.id].bold"

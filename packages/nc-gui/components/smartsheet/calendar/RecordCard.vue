@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { CalendarEventTheme } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 interface Props {
@@ -32,64 +33,88 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['resizeStart'])
 
-const rowColorInfo = computed(() => {
-  return extractRowBackgroundColorStyle(props.record as Row)
+const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
+
+const slots = useSlots()
+
+// Pill's colour lives in its time pill; the all-day / spanning rows pass no #time
+// slot, so a pill card would show no colour at all there. Fall back to bordered in
+// that case (same as the sidebar) — every timed surface passes #time and keeps pill.
+const effectiveTheme = computed(() =>
+  eventDisplayTheme.value === CalendarEventTheme.PILL && !slots.time ? CalendarEventTheme.BORDERED : eventDisplayTheme.value,
+)
+
+// Resolved colours for this event (rowMeta hex, or neutral gray default).
+const colors = computed(() => getCalendarEventColors(props.record))
+
+// Exposed to scoped CSS as custom properties so each theme can style itself
+// from the per-record colours (scoped CSS can't take dynamic values directly).
+const themeVars = computed(() => ({
+  '--cal-accent': colors.value.accent,
+  '--cal-tint': colors.value.tint,
+  '--cal-border': colors.value.border,
+  '--cal-on-accent': colors.value.onAccent,
+}))
+
+const isBordered = computed(() => effectiveTheme.value === CalendarEventTheme.BORDERED)
+const isDot = computed(() => effectiveTheme.value === CalendarEventTheme.DOT)
+const isPill = computed(() => effectiveTheme.value === CalendarEventTheme.PILL)
+const isMinimal = computed(() => effectiveTheme.value === CalendarEventTheme.MINIMAL)
+
+// Flat themes render a single dense text line; they stack shorter than the
+// bordered / solid chips. Height here is kept in sync with `perRecordHeightPx`
+// in MonthView (22px flat vs 28px chip).
+const isFlat = computed(() =>
+  [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(effectiveTheme.value),
+)
+
+// The left colour bar belongs to the bordered + minimal themes, and only on the
+// card's leading edge (rounded / leftRounded positions of a spanning event).
+const showLeftBar = computed(
+  () => (isBordered.value || isMinimal.value) && (props.position === 'leftRounded' || props.position === 'rounded'),
+)
+
+// Only the bordered theme carries the drop shadow; the flat themes stay flush.
+const cardShadow = computed(() => {
+  if (!isBordered.value) return undefined
+  return props.hover || props.dragging
+    ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+    : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)'
 })
 </script>
 
 <template>
   <div
-    :class="{
-      'h-7': size === 'small',
-      'h-full': size === 'auto',
-      'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded' && !multiline,
-      'rounded-l-lg !border-r-0 ml-1': position === 'leftRounded' && multiline,
-      'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded' && !multiline,
-      'rounded-r-lg !border-l-0 mr-1': position === 'rightRounded' && multiline,
-      'rounded-[4px] ml-0.8 mr-1': position === 'rounded' && !multiline,
-      'rounded-lg ml-0.8 mr-1': position === 'rounded' && multiline,
-      'rounded-none !border-x-0': position === 'none',
-      'bg-nc-maroon-50': props.color === 'maroon',
-      'bg-nc-blue-50': props.color === 'blue',
-      'bg-nc-green-50': props.color === 'green',
-      'bg-nc-yellow-50': props.color === 'yellow',
-      'bg-nc-pink-50': props.color === 'pink',
-      'bg-nc-purple-50': props.color === 'purple',
-      'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
-      '!bg-nc-bg-gray-light': hover || dragging,
-      'items-start': multiline,
-      'items-center': !multiline,
-    }"
+    :class="[
+      `nc-cal-card nc-cal-card--${effectiveTheme}`,
+      {
+        'h-7': size === 'small' && !isFlat,
+        'h-[22px]': size === 'small' && isFlat,
+        'h-full': size === 'auto',
+        'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded' && !multiline,
+        'rounded-l-lg !border-r-0 ml-1': position === 'leftRounded' && multiline,
+        'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded' && !multiline,
+        'rounded-r-lg !border-l-0 mr-1': position === 'rightRounded' && multiline,
+        'rounded-[4px] ml-0.8 mr-1': position === 'rounded' && !multiline,
+        'rounded-lg ml-0.8 mr-1': position === 'rounded' && multiline,
+        'rounded-none !border-x-0': position === 'none',
+        'nc-cal-card--hover': hover || dragging,
+        'nc-cal-card--uncolored': !colors.hasColor,
+        'items-start': multiline,
+        'items-center': !multiline,
+      },
+    ]"
     :style="{
-      boxShadow:
-        hover || dragging
-          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
-
-      ...rowColorInfo.rowBgColor,
+      ...themeVars,
+      boxShadow: cardShadow,
     }"
-    class="relative transition-all border-1 flex-none flex gap-2 group overflow-hidden"
   >
+    <!-- Minimal makes the bar its defining mark, so it runs the full card height
+         (flush); bordered keeps the original short, centred tick. -->
     <div
-      v-if="position === 'leftRounded' || position === 'rounded'"
-      :class="{
-        'bg-nc-maroon-500': props.color === 'maroon',
-        'bg-nc-blue-500': props.color === 'blue',
-        'bg-nc-green-500': props.color === 'green',
-        'bg-nc-yellow-500': props.color === 'yellow',
-        'bg-nc-pink-500': props.color === 'pink',
-        'bg-nc-purple-500': props.color === 'purple',
-        'bg-nc-gray-900': color === 'gray',
-        // Multiline: full-height colored left edge pulled flush to the card
-        // border (-my-px/-ml-px); the card's overflow-hidden + radius clips its
-        // corners to follow the rounding. No explicit rounding here, so the
-        // strip stays a consistent width on short and tall cards alike.
-        'self-stretch -my-px -ml-px': multiline,
-        // Single-line: original short centered bar.
-        'min-h-6.5': !multiline,
-      }"
-      class="w-1"
-      :style="rowColorInfo.rowLeftBorderColor"
+      v-if="showLeftBar"
+      class="nc-cal-leftbar"
+      :class="{ 'self-stretch -my-px -ml-px': multiline || isMinimal, 'min-h-6.5': !multiline && !isMinimal }"
     ></div>
 
     <div
@@ -99,8 +124,22 @@ const rowColorInfo = computed(() => {
     ></div>
 
     <div class="overflow-hidden gap-2 flex w-full" :class="multiline ? 'items-start py-1' : 'items-center justify-center'">
+      <!-- Centre the dot on the first line, not the whole card: wrap it in a box
+           that matches the first line's line-height (leading-5 → h-5) and centre
+           the dot inside. Single-line relies on the row's own items-center, so the
+           matched height only kicks in for the multiline (items-start) layout. -->
+      <span
+        v-if="(position === 'leftRounded' || position === 'rounded') && isDot"
+        class="flex items-center flex-none ml-1.5"
+        :class="{ 'h-4.5': multiline }"
+      >
+        <span class="nc-cal-dot"></span>
+      </span>
       <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
-      <slot name="time" />
+      <span v-if="isPill && $slots.time" class="nc-cal-time-pill">
+        <slot name="time" />
+      </span>
+      <slot v-else name="time" />
       <div
         :class="[{ 'pr-8.5': position === 'leftRounded' }, multiline ? 'overflow-hidden' : 'mb-0.5 overflow-x-hidden truncate']"
         class="flex w-full flex-col gap-1"
@@ -161,6 +200,95 @@ const rowColorInfo = computed(() => {
 <style lang="scss" scoped>
 .resize {
   cursor: ew-resize;
+}
+
+.nc-cal-card {
+  @apply relative transition-all flex-none flex gap-2 group overflow-hidden;
+}
+
+// Left colour bar (bordered + minimal themes).
+.nc-cal-leftbar {
+  @apply w-1 flex-none;
+  background: var(--cal-accent);
+}
+
+// Colour dot (dot theme).
+.nc-cal-dot {
+  @apply w-2 h-2 rounded-full flex-none;
+  background: var(--cal-accent);
+}
+
+// Time badge (pill theme).
+.nc-cal-time-pill {
+  @apply inline-flex items-center px-1.5 rounded-full flex-none leading-4;
+  background: var(--cal-accent);
+
+  :deep(*) {
+    color: var(--cal-on-accent) !important;
+  }
+}
+
+// --- Themes -----------------------------------------------------------------
+
+.nc-cal-card--bordered {
+  @apply border-1;
+  // Derive the fill + border from the accent so the chip stays visibly distinct
+  // from the bar-only Minimal theme in BOTH light and dark (the row-colouring
+  // tint resolves to near-black in dark mode and would read as transparent).
+  background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
+
+  // Colour applied: deepen the accent tint on hover instead of washing it out
+  // with neutral gray (which dropped the event colour entirely).
+  &.nc-cal-card--hover {
+    background: color-mix(in srgb, var(--cal-accent) 24%, transparent);
+  }
+}
+
+// Uncoloured events keep the classic white card (not the gray accent wash) so the
+// default look matches the pre-theme calendar; hover still goes light-gray.
+.nc-cal-card--bordered.nc-cal-card--uncolored {
+  background: var(--nc-bg-default);
+  border-color: var(--nc-border-gray-dark);
+
+  &.nc-cal-card--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
+}
+
+.nc-cal-card--solid {
+  @apply px-2;
+  background: var(--cal-accent);
+
+  // Force every text/icon inside onto the readable on-accent colour, including
+  // the multiline "+N more" line (a div, so not covered by the selectors above).
+  :deep(.plain-cell),
+  :deep(.plain-cell .bold),
+  :deep(.nc-calendar-card-more),
+  :deep(span) {
+    color: var(--cal-on-accent) !important;
+  }
+
+  &.nc-cal-card--hover {
+    @apply brightness-95;
+  }
+}
+
+// Pill / dot text starts at the cell edge otherwise — give a small left inset
+// so the time badge / dot doesn't hug the day-cell border.
+.nc-cal-card--pill,
+.nc-cal-card--dot {
+  @apply pl-1;
+}
+
+.nc-cal-card--dot,
+.nc-cal-card--minimal,
+.nc-cal-card--pill {
+  @apply bg-transparent;
+
+  &.nc-cal-card--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
 }
 
 .plain-cell {

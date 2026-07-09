@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
 import { jalaaliMonthLength, toGregorian, toJalaali } from 'nocodb-sdk'
 
 /**

@@ -506,4 +506,10 @@ export const presetErrorCodexMap: Partial<
       'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
     code: 403,
   },
+  [NcErrorType.ERR_SNAPSHOT_READONLY]: {
+    message: (message: string) =>
+      message ||
+      'This base is a snapshot and is read-only. Restore the snapshot to make changes.',
+    code: 403,
+  },
 };

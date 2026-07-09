@@ -114,7 +114,8 @@ async function onOpen(item: AttachmentType) {
         v-if="editable"
         type="text"
         size="xxsmall"
-        class="nc-comment-attachment-remove !absolute -top-2 -right-2 !hidden group-hover:!flex !bg-nc-bg-default !border-1 !border-nc-border-gray-medium !rounded-full !h-5 !w-5"
+        class="nc-comment-attachment-remove !absolute -top-2 -right-2 !flex !bg-nc-bg-default !border-1 !border-nc-border-gray-medium !rounded-full !h-5 !w-5 !shadow-sm"
+        data-testid="nc-comment-attachment-remove"
         @click.stop="emits('remove', index)"
       >
         <GeneralIcon icon="close" class="text-tiny" />

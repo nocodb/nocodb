@@ -129,7 +129,7 @@ watch(
         {{ $t('title.unlockViewTitleSubtitle') }}
         <span v-if="idUserMap[view?.meta?.lockedByUserId]?.id === user?.id" class="font-bold"> {{ $t('general.you') }} </span>
         <span v-else class="font-bold">
-          {{ idUserMap[view?.meta?.lockedByUserId]?.display_name || idUserMap[view?.meta?.lockedByUserId]?.email }}
+          {{ extractUserDisplayNameOrEmail(idUserMap[view?.meta?.lockedByUserId]) }}
         </span>
       </div>
     </div>
@@ -201,7 +201,7 @@ watch(
           {{ $t('title.unlockViewTitleSubtitle') }}
           <span v-if="idUserMap[view?.meta?.lockedByUserId]?.id === user.id" class="font-bold"> {{ $t('general.you') }} </span>
           <span v-else class="font-bold">
-            {{ idUserMap[view?.meta?.lockedByUserId]?.display_name || idUserMap[view?.meta?.lockedByUserId]?.email }}
+            {{ extractUserDisplayNameOrEmail(idUserMap[view?.meta?.lockedByUserId]) }}
           </span>
         </div>
       </div>

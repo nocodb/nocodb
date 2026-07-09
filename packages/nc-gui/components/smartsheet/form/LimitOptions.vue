@@ -281,7 +281,7 @@ const showOrHideAll = (showAll: boolean) => {
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
-                  {{ element.display_name?.trim() || element?.email }}
+                  {{ extractUserDisplayNameOrEmail(element) }}
                 </template>
                 <span
                   class="text-ellipsis overflow-hidden"
@@ -291,7 +291,7 @@ const showOrHideAll = (showAll: boolean) => {
                     display: 'inline',
                   }"
                 >
-                  {{ element.display_name?.trim() || element?.email }}
+                  {{ extractUserDisplayNameOrEmail(element) }}
                 </span>
               </NcTooltip>
             </span>

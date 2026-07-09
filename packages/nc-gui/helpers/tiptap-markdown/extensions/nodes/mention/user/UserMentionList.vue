@@ -115,11 +115,16 @@ export default {
             ...item,
             display_name: item.name,
           }"
-          class="mr-2 !text-[0.65rem] !h-[16.8px]"
+          class="mr-2 flex-none !text-[0.65rem] !h-[16.8px]"
           size="auto"
         />
-        <div class="max-w-64 truncate">
-          {{ item.name && item.name.length > 0 ? item.name : item.email }}
+        <div class="flex flex-col min-w-0 flex-1">
+          <div class="truncate leading-4">
+            {{ extractUserDisplayNameOrEmail({ display_name: item.name, email: item.email }) }}
+          </div>
+          <div v-if="item.email" class="truncate text-xs leading-4 text-nc-content-gray-muted">
+            {{ item.email }}
+          </div>
         </div>
       </div>
     </template>

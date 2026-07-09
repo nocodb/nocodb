@@ -150,7 +150,7 @@ const collaboratorsMap = computed<Map<string, any>>(() => {
 const getUserName = (userId: string) => {
   const user = collaboratorsMap.value.get(userId)
   if (!user) return userId
-  return user.display_name || user.email?.split('@')[0] || userId
+  return extractUserDisplayNameOrEmail(user) || userId
 }
 
 const linkedColumns = computed<NcTableColumnProps[]>(

@@ -35,7 +35,7 @@ const viewModeInfo = computed(() => {
         isViewOwner.value
           ? `(${t('general.you')})`
           : activeView.value?.owned_by && idUserMap.value[activeView.value.owned_by]
-          ? `(${idUserMap.value[activeView.value.owned_by]?.display_name || idUserMap.value[activeView.value.owned_by]?.email})`
+          ? `(${extractUserDisplayNameOrEmail(idUserMap.value[activeView.value.owned_by])})`
           : ''
       }`
     case ViewLockType.Locked:
@@ -218,7 +218,7 @@ const viewModeInfo = computed(() => {
                   {{
                     idUserMap[activeView?.created_by]?.id === user?.id
                       ? $t('general.you')
-                      : idUserMap[activeView?.created_by]?.display_name || idUserMap[activeView?.created_by]?.email
+                      : extractUserDisplayNameOrEmail(idUserMap[activeView?.created_by])
                   }}
                 </div>
               </div>

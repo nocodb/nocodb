@@ -159,7 +159,7 @@ onMounted(() => {
 
       <div class="flex items-center justify-center my-6 gap-2">
         <GeneralUserIcon :user="user" size="medium" />
-        {{ user.display_name || user.email }}
+        {{ extractUserDisplayNameOrEmail(user) }}
       </div>
 
       <NcDivider />

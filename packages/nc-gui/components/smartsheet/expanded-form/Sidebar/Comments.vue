@@ -207,7 +207,7 @@ const saveComment = async () => {
       created_by: user.value?.id,
       created_by_email: user.value?.email,
       created_display_name: user.value?.display_name ?? '',
-      created_display_name_short: user.value?.display_name ?? extractNameFromEmail(user.value?.email),
+      created_display_name_short: extractUserDisplayNameOrEmail(user.value),
       created_by_meta: user.value?.meta ?? '',
     },
   ]

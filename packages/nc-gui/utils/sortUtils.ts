@@ -179,10 +179,10 @@ export const sortByUIType = ({
     case UITypes.LastModifiedBy: {
       const getUserValue = (user) => {
         if (Array.isArray(user) && user.length > 0) {
-          return user[0].display_name || user[0].email || ''
+          return extractUserDisplayNameOrEmail(user[0])
         }
         if (user && typeof user === 'object') {
-          return user.display_name || user.email || ''
+          return extractUserDisplayNameOrEmail(user)
         }
         return String(user)
       }

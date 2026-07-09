@@ -75,7 +75,7 @@ export const useCommandPalette = createSharedComposable(() => {
     staticCmd.map((cmd) => {
       if (cmd.id === 'user') {
         if (user.value && user.value.display_name && user.value.email) {
-          cmd.title = user.value.display_name ?? user.value.email.split('@')[0] ?? 'User'
+          cmd.title = extractUserDisplayNameOrEmail(user.value) || 'User'
         }
       } else if (cmd.id === 'user_account-logout') {
         cmd.handler = async () => {

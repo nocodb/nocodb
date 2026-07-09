@@ -287,9 +287,9 @@ const columns = computed(() => {
                   <div class="flex items-center gap-1">
                     <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                       <template #title>
-                        {{ el.display_name || el.email.slice(0, el.email.indexOf('@')) }}
+                        {{ extractUserDisplayNameOrEmail(el) }}
                       </template>
-                      {{ el.display_name || el.email.slice(0, el.email.indexOf('@')) }}
+                      {{ extractUserDisplayNameOrEmail(el) }}
                     </NcTooltip>
                     <NcBadge
                       v-if="el.roles?.includes('super')"

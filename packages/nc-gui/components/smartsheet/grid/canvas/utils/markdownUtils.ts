@@ -309,7 +309,7 @@ function updateMentionsWithUserData(
       if (foundUser) {
         return {
           ...token,
-          value: `${foundUser.display_name || foundUser.email || id}`,
+          value: `${extractUserDisplayNameOrEmail(foundUser) || id}`,
           mentionData: {
             ...token.mentionData,
             email: foundUser.email,

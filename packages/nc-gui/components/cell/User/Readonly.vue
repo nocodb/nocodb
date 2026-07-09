@@ -122,7 +122,7 @@ const isCollaborator = (userIdOrEmail) => {
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
-                    {{ op.display_name?.trim() || op.email }}
+                    {{ extractUserDisplayNameOrEmail(op) }}
                   </template>
                   <span
                     :class="{
@@ -135,7 +135,7 @@ const isCollaborator = (userIdOrEmail) => {
                     }"
                     class="text-ellipsis overflow-hidden"
                   >
-                    {{ op.display_name?.trim() || op.email }}
+                    {{ extractUserDisplayNameOrEmail(op) }}
                   </span>
                 </NcTooltip>
               </span>
@@ -201,7 +201,7 @@ const isCollaborator = (userIdOrEmail) => {
             </div>
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
               <template #title>
-                {{ selectedOpt.label }}
+                {{ selectedOpt.value === CURRENT_USER_TOKEN ? selectedOpt.label : extractUserDisplayNameOrEmail(selectedOpt) }}
               </template>
               <span
                 :class="{
@@ -216,7 +216,7 @@ const isCollaborator = (userIdOrEmail) => {
                 }"
                 class="text-ellipsis overflow-hidden"
               >
-                {{ selectedOpt.label }}
+                {{ selectedOpt.value === CURRENT_USER_TOKEN ? selectedOpt.label : extractUserDisplayNameOrEmail(selectedOpt) }}
               </span>
             </NcTooltip>
           </span>

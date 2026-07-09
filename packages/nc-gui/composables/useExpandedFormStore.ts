@@ -287,7 +287,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             return {
               ...audit,
               created_display_name: user?.display_name,
-              created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
+              created_display_name_short: extractUserDisplayNameOrEmail(user),
               created_by_email: user?.email,
               created_by_meta: user?.meta,
             }
@@ -890,7 +890,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 const finalPayload = {
                   ...payload,
                   created_display_name: user?.display_name,
-                  created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
+                  created_display_name_short: extractUserDisplayNameOrEmail(user),
                   created_by_email: user?.email,
                   created_by_meta: user?.meta,
                 }

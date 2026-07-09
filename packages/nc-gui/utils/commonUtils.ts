@@ -236,22 +236,60 @@ export const extractNameFromEmail = (email?: string) => {
 }
 
 /**
- * Extracts the display name or email from a user object.
+ * Derives a human-friendly display name from an email address, used as the
+ * fallback when a user has no `display_name` set.
  *
- * @param user - The user object to extract the display name or email from.
- * @returns The display name or email extracted from the user object.
+ * Takes the local part (before `@`), splits on common separators (`.`, `_`,
+ * `-`, `+`), and capitalises each word — so `kalp.soni@nocodb.com` becomes
+ * `Kalp Soni`. This keeps user names consistent across the app instead of
+ * showing raw `firstname.lastname` or full email addresses.
+ *
+ * @param email - The email address to derive the name from.
+ * @returns A capitalised, space-separated name (empty string if no email).
  *
  * @example
  * ```typescript
- * const name = extractUserDisplayNameOrEmail({ display_name: 'John Doe', email: 'john.doe@example.com' });
- * console.log(name); // Output: 'John Doe'
+ * formatUserNameFromEmail('kalp.soni@nocodb.com'); // => 'Kalp Soni'
+ * ```
+ */
+export const formatUserNameFromEmail = (email?: string) => {
+  const localPart = extractNameFromEmail(email)
+
+  if (!localPart) return ''
+
+  return localPart
+    .split(/[._\-+]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+/**
+ * Extracts the display name from a user object, falling back to a
+ * human-friendly name derived from the email when `display_name` is absent.
+ *
+ * This is the canonical helper for rendering a user's name anywhere in the UI —
+ * prefer it (or the `<GeneralUserName>` component) over hand-rolled
+ * `display_name || email` fallbacks so names render consistently.
+ *
+ * @param user - The user object to extract the display name from.
+ * @returns The display name, or a name derived from the email.
+ *
+ * @example
+ * ```typescript
+ * extractUserDisplayNameOrEmail({ display_name: 'John Doe', email: 'j.doe@x.com' }); // => 'John Doe'
+ * extractUserDisplayNameOrEmail({ email: 'kalp.soni@x.com' });                       // => 'Kalp Soni'
  */
 export const extractUserDisplayNameOrEmail = (user?: UserType | Record<string, string>) => {
   if (!user) return ''
 
-  if (user?.display_name) return user.display_name.trim()
+  // Guard the type explicitly — `display_name` is typed as string but this helper
+  // runs against loosely-typed objects too; `nonString?.trim()` would throw.
+  const displayName = typeof user.display_name === 'string' ? user.display_name.trim() : ''
 
-  return extractNameFromEmail(user.email)
+  if (displayName) return displayName
+
+  return formatUserNameFromEmail(user.email)
 }
 
 /**

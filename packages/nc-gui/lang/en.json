@@ -2347,6 +2347,31 @@
     "mention": "Mention",
     "today": "Today",
     "currentDate": "Current date",
+    "currentTime": "Current time",
+    "currentDateTime": "Current date and time",
+    "image": "Image",
+    "blockquote": "Blockquote",
+    "fileAttachment": "File attachment",
+    "divider": "Divider",
+    "webBookmark": "Web bookmark",
+    "twoColumns": "2 Columns",
+    "tabs": "Tabs",
+    "equation": "Equation",
+    "typeToSearch": "Type to search",
+    "callout": {
+      "note": "Note",
+      "warning": "Warning",
+      "tip": "Tip",
+      "important": "Important"
+    },
+    "docSlashGroup": {
+      "headings": "Headings",
+      "lists": "Lists",
+      "blocks": "Blocks",
+      "callouts": "Callouts",
+      "dateTime": "Date & Time",
+      "embeds": "Embeds"
+    },
     "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
@@ -4659,6 +4684,8 @@
       "noOutputFieldsSelected": "No output fields selected"
     },
     "error": {
+      "noResultReturned": "No result returned",
+      "somethingWentWrongTryAgain": "Something went wrong. Please try again.",
       "failedToCreateSync": "Failed to create sync",
       "failedToResolveLink": "Failed to resolve shared view link",
       "sourceViewNotFound": "Source view not found",

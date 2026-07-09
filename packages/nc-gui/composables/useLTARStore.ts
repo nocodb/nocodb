@@ -2,7 +2,9 @@ import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams,
 import {
   RelationTypes,
   UITypes,
+  ViewTypes,
   dateFormats,
+  getFirstNonPersonalView,
   hideExtraFieldsMetaKey,
   isBtLikeV2Junction,
   isDateOrDateTimeCol,
@@ -266,7 +268,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       await nextTick()
 
-      const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value?.views?.[0]?.id ?? ''
+      const viewId =
+        colOptions.value.fk_target_view_id ??
+        getFirstNonPersonalView(relatedTableMeta.value?.views ?? [], { includeViewType: ViewTypes.GRID })?.id ??
+        ''
       if (!viewId) return
 
       try {

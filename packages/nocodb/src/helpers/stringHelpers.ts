@@ -41,9 +41,7 @@ export function stripWrappingQuotes(value: string): string {
         result.startsWith(open) &&
         result.endsWith(close)
       ) {
-        result = result
-          .slice(open.length, result.length - close.length)
-          .trim();
+        result = result.slice(open.length, result.length - close.length).trim();
         stripped = true;
         break;
       }

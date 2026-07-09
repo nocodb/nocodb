@@ -106,14 +106,9 @@ export default class MapView implements MapType {
         (mapViewColumn) =>
           mapViewColumn.fk_column_id === body.fk_geo_data_col_id,
       );
-      await View.updateColumn(
-        context,
-        mapId,
-        mapViewMappedByColumn.id,
-        {
-          show: true,
-        },
-      );
+      await View.updateColumn(context, mapId, mapViewMappedByColumn.id, {
+        show: true,
+      });
     }
 
     // update meta

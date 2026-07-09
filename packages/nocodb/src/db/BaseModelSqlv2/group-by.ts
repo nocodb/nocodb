@@ -100,9 +100,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     sub: Knex.QueryBuilder | Knex.Raw,
     alias: string,
   ): Knex.Raw =>
-    DBQueryClient.get(
-      baseModel.dbDriver.clientType() as ClientType,
-    ).tableAlias(
+    DBQueryClient.get(baseModel.dbDriver.clientType() as ClientType).tableAlias(
       baseModel.dbDriver,
       baseModel.dbDriver.raw('(??)', [sub]),
       alias,

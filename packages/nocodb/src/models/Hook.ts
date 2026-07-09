@@ -256,7 +256,9 @@ export default class Hook implements HookType {
       insertObj.comment_config &&
       typeof insertObj.comment_config === 'object'
     ) {
-      insertObj.comment_config = JSON.stringify(insertObj.comment_config) as any;
+      insertObj.comment_config = JSON.stringify(
+        insertObj.comment_config,
+      ) as any;
     }
 
     // Replay-only: preserve sandbox entity ID for idempotent merge
@@ -357,7 +359,9 @@ export default class Hook implements HookType {
       insertObj.comment_config &&
       typeof insertObj.comment_config === 'object'
     ) {
-      insertObj.comment_config = JSON.stringify(insertObj.comment_config) as any;
+      insertObj.comment_config = JSON.stringify(
+        insertObj.comment_config,
+      ) as any;
     }
 
     // Replay-only: preserve sandbox entity ID for idempotent merge

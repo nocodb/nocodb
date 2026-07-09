@@ -1,4 +1,4 @@
-import { isMMOrMMLike, parseProp, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
 import type { ClientType, NcContext } from 'nocodb-sdk';

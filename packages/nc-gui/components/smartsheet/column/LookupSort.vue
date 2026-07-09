@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-  type ColumnType,
-  type SortType,
-  type TableType,
-  UITypes,
-  UITypesName,
-  isColumnInError,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { type ColumnType, type SortType, type TableType, UITypes, UITypesName, isColumnInError, isVirtualCol } from 'nocodb-sdk'
 
 // Local, status-tagged sort collection for a Lookup column — the sort analogue of
 // how LTAR limit-by-filter works: NOTHING is persisted here. The field editor

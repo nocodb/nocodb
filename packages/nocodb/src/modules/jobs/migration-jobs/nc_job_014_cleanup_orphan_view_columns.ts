@@ -39,9 +39,7 @@ export class CleanupOrphanViewColumnsMigration {
   private readonly debugLog = debug(
     'nc:migration-jobs:cleanup-orphan-view-columns',
   );
-  private readonly logger = new Logger(
-    CleanupOrphanViewColumnsMigration.name,
-  );
+  private readonly logger = new Logger(CleanupOrphanViewColumnsMigration.name);
 
   async job() {
     const knex = Noco.ncMeta.knexConnection;

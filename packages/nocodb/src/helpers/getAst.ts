@@ -665,7 +665,8 @@ const extractLookupDependencies = async (
     dependencyFields.nested[relationColumn.title] || {};
   const nestedDependencyFields = dependencyFields.nested[relationColumn.title];
   nestedDependencyFields.nested = nestedDependencyFields.nested || {};
-  nestedDependencyFields.fieldsSet = nestedDependencyFields.fieldsSet || new Set();
+  nestedDependencyFields.fieldsSet =
+    nestedDependencyFields.fieldsSet || new Set();
 
   await extractDependencies(
     refContext,

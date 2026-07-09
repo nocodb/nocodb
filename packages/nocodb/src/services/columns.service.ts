@@ -1496,7 +1496,10 @@ export class ColumnsService implements IColumnsService {
             });
           } catch (e) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            this.logger.error(`Failed to update column: ${e?.message ?? e}`, e?.stack);
+            this.logger.error(
+              `Failed to update column: ${e?.message ?? e}`,
+              e?.stack,
+            );
             NcError.get(context).internalServerError('Failed to update column');
           }
 
@@ -4186,7 +4189,10 @@ export class ColumnsService implements IColumnsService {
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            this.logger.error(`Failed to update column: ${e?.message ?? e}`, e?.stack);
+            this.logger.error(
+              `Failed to update column: ${e?.message ?? e}`,
+              e?.stack,
+            );
             NcError.get(context).internalServerError('Failed to update column');
           }
         }
@@ -5594,9 +5600,8 @@ export class ColumnsService implements IColumnsService {
                     // not user-added data, so their presence must not block the
                     // junction purge.
                     if (
-                      mmTable.columns.filter(
-                        (c) => c.uidt !== UITypes.Order,
-                      ).length === 2
+                      mmTable.columns.filter((c) => c.uidt !== UITypes.Order)
+                        .length === 2
                     ) {
                       const mmSource =
                         relationColOpt.fk_mm_source_id &&
@@ -7952,7 +7957,11 @@ export class ColumnsService implements IColumnsService {
       // Disambiguate by fk_index_name when an external source has multiple FK
       // constraints over the same column pair, otherwise the wrong counterpart
       // is picked (#13781).
-      const paired = pickPairedLtarColumn(candidates, colOptions, pairedRelType);
+      const paired = pickPairedLtarColumn(
+        candidates,
+        colOptions,
+        pairedRelType,
+      );
       if (paired) {
         hmColumn = paired.column;
         hmColOptions = paired.colOptions;
@@ -7992,7 +8001,11 @@ export class ColumnsService implements IColumnsService {
       // Disambiguate by fk_index_name when an external source has multiple FK
       // constraints over the same column pair, otherwise the wrong counterpart
       // is picked (#13781).
-      const paired = pickPairedLtarColumn(candidates, colOptions, pairedRelType);
+      const paired = pickPairedLtarColumn(
+        candidates,
+        colOptions,
+        pairedRelType,
+      );
       if (paired) {
         btColumn = paired.column;
         btColOptions = paired.colOptions;

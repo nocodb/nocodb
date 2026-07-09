@@ -142,7 +142,37 @@ const drawingStyle = computed(() => {
 })
 
 const POPUP_W = 288
+const POPUP_H = 168
+const VIEW_POPUP_W = 320
+const VIEW_POPUP_H = 320
 const POPUP_MARGIN = 8
+// Clearance between the marker and the popup — large enough that the circle
+// pill (badge, ~13px radius incl. border) stays fully visible below the marker.
+const POPUP_GAP = 34
+
+// Place a popup of size (w, h) anchored to a region: below the marker when
+// there's room, otherwise above; centered horizontally on it; clamped to stay
+// fully visible. Reused by the draft popup and the conversation popup.
+const placePopup = (region: CommentAnnotationRegion, popupW: number, popupH: number) => {
+  const rect = displayRect.value
+  if (!rect) return null
+
+  const isRect = region.type === CommentAnnotationRegionType.RECT
+  const topY = toScreen(region.x, region.y).y
+  const bottomY = isRect ? toScreen(region.x, region.y + (region.h ?? 0)).y : topY
+  const centerX = isRect ? toScreen(region.x + (region.w ?? 0) / 2, region.y).x : toScreen(region.x, region.y).x
+
+  let top = bottomY + POPUP_GAP
+  if (top + popupH + POPUP_MARGIN > containerSize.value.h) {
+    top = topY - POPUP_GAP - popupH
+  }
+  top = Math.min(Math.max(top, POPUP_MARGIN), Math.max(POPUP_MARGIN, containerSize.value.h - popupH - POPUP_MARGIN))
+
+  const maxLeft = Math.max(POPUP_MARGIN, containerSize.value.w - popupW - POPUP_MARGIN)
+  const left = Math.min(Math.max(centerX - popupW / 2, POPUP_MARGIN), maxLeft)
+
+  return { left: `${left}px`, top: `${top}px` }
+}
 
 // Outline of the in-progress draft region so the user sees what they're
 // commenting on while the popup is open.
@@ -164,24 +194,15 @@ const draftRegionStyle = computed(() => {
 
 const draftIsRect = computed(() => props.draft?.region.type === CommentAnnotationRegionType.RECT)
 
-// Popup anchor derived reactively from the region (not a stored pixel), so it
-// stays aligned if the layout shifts (e.g. comments panel opens). Clamped to
-// stay fully visible inside the container.
-const draftStyle = computed(() => {
-  const region = props.draft?.region
-  const rect = displayRect.value
-  if (!region || !rect) return null
+// Draft popup — anchored to the in-progress region.
+const draftStyle = computed(() => (props.draft?.region ? placePopup(props.draft.region, POPUP_W, POPUP_H) : null))
 
-  const anchor =
-    region.type === CommentAnnotationRegionType.RECT
-      ? toScreen(region.x + (region.w ?? 0), region.y)
-      : toScreen(region.x, region.y)
+// Active conversation popup — anchored to the active marker's region.
+const activeMarker = computed(() => (props.activeId ? props.markers.find((m) => m.commentId === props.activeId) ?? null : null))
 
-  const maxLeft = Math.max(POPUP_MARGIN, containerSize.value.w - POPUP_W - POPUP_MARGIN)
-  const left = Math.min(Math.max(anchor.x + 8, POPUP_MARGIN), maxLeft)
-  const top = Math.min(Math.max(anchor.y, POPUP_MARGIN), Math.max(POPUP_MARGIN, containerSize.value.h - 170))
-  return { left: `${left}px`, top: `${top}px` }
-})
+const activeStyle = computed(() =>
+  activeMarker.value && !props.draft ? placePopup(activeMarker.value.region, VIEW_POPUP_W, VIEW_POPUP_H) : null,
+)
 
 function clamp01(v: number) {
   return Math.max(0, Math.min(1, v))
@@ -448,6 +469,11 @@ onMounted(() => {
         <div v-if="draft && draftStyle" class="nc-annotation-popup pointer-events-auto absolute z-20" :style="draftStyle">
           <slot name="popup" />
         </div>
+
+        <!-- conversation popup for the active marker -->
+        <div v-if="!draft && activeStyle" class="nc-annotation-view-popup pointer-events-auto absolute z-20" :style="activeStyle">
+          <slot name="viewPopup" />
+        </div>
       </div>
     </div>
 
@@ -474,7 +500,8 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .nc-annotation-badge {
-  @apply absolute -left-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-nc-fill-primary text-white text-[11px] font-semibold shadow;
+  @apply absolute -left-2.5 -top-2.5 flex h-5.5 w-5.5 items-center justify-center rounded-full bg-nc-fill-primary text-white text-[11px] font-semibold border-2 border-white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .nc-annotation-point .nc-annotation-badge {
@@ -482,6 +509,6 @@ onMounted(() => {
 }
 
 .nc-annotation-badge-active {
-  @apply ring-2 ring-white;
+  @apply ring-2 ring-nc-fill-primary;
 }
 </style>

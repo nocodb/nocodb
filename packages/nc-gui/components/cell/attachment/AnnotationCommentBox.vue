@@ -63,7 +63,7 @@ function onKeyDown(e: KeyboardEvent) {
 <template>
   <div
     ref="containerRef"
-    class="nc-annotation-comment-box w-72 rounded-xl bg-nc-bg-default shadow-lg border-1 border-nc-border-gray-medium p-2"
+    class="nc-annotation-comment-box w-72 rounded-xl bg-nc-bg-default shadow-lg border-1 border-nc-border-gray-medium p-2 text-left"
     data-testid="nc-annotation-comment-box"
     @mousedown.stop
     @click.stop
@@ -78,28 +78,21 @@ function onKeyDown(e: KeyboardEvent) {
       @keydown.enter.exact.prevent="onSave"
       @keydown.esc.stop.prevent="onCancel"
     />
-    <div class="flex justify-end gap-2 mt-2">
-      <NcButton size="xsmall" type="text" @click="onCancel">{{ t('general.cancel') }}</NcButton>
-      <NcButton
-        v-e="['c:attachment:annotation:comment']"
-        size="xsmall"
-        :loading="isSaving"
-        :disabled="!comment.trim()"
-        data-testid="nc-annotation-comment-submit"
-        @click="onSave"
-      >
-        {{ t('general.comment') }}
-      </NcButton>
-    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 :deep(.nc-annotation-comment-input) {
-  @apply min-h-8;
+  @apply min-h-8 text-left;
   box-shadow: none;
   &::placeholder {
     @apply !text-gray-400;
+  }
+
+  // Left-align the editor content (carousel container is text-center).
+  .ProseMirror,
+  .tiptap {
+    @apply text-left;
   }
 }
 </style>

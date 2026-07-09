@@ -407,6 +407,7 @@
     "slack": "Slack",
     "comment": "Comment",
     "comments": "Comments",
+    "leaveComment": "Leave a comment",
     "view": "View",
     "resolve": "Resolve",
     "resolved": "Resolved",

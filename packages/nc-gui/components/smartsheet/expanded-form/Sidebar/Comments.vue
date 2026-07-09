@@ -674,16 +674,16 @@ onBeforeUnmount(() => {
 
                 <div
                   v-if="annotationLabels[commentItem.id]"
-                  class="nc-annotation-ref mt-1 inline-flex items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-2 py-1 cursor-pointer hover:bg-nc-bg-gray-light"
+                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
                   :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id]}`"
                   @click="imageAnnotations?.viewAnnotation(commentItem)"
                 >
                   <span
-                    class="flex h-4 w-4 flex-none items-center justify-center rounded-full bg-nc-fill-primary text-white text-[10px] font-semibold"
+                    class="flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full bg-nc-fill-primary text-white text-[9px] font-semibold"
                   >
                     {{ annotationLabels[commentItem.id] }}
                   </span>
-                  <span v-e="['c:attachment:annotation:view']" class="text-small font-medium text-nc-content-brand">
+                  <span v-e="['c:attachment:annotation:view']" class="text-[11px] font-medium text-nc-content-brand">
                     {{ $t('general.view') }}
                   </span>
                 </div>

@@ -163,8 +163,9 @@ function onCreateAnnotation(payload: { region: any; anchor: { x: number; y: numb
 }
 
 function onSelectAnnotation(commentId: string) {
+  // Clicking a marker opens its conversation popup on the image. Don't force
+  // the side panel open — opening it resizes the image and shifts the marker.
   setActive(commentId)
-  openComments.value = true
 }
 
 // "View" from the comments sidebar — switch to the annotated file + highlight.
@@ -200,7 +201,10 @@ const initEmblaApi = (val: any) => {
 
 <template>
   <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 504" class="bg-black bg-opacity-90">
-    <div class="flex w-full h-full">
+    <!-- The carousel is always dark; force the dark theme on its subtree (the
+         comment popup + comments side-panel) regardless of the app theme.
+         `theme="dark"` switches the CSS variables; `dark` enables Windi dark: variants. -->
+    <div class="flex w-full h-full dark" theme="dark">
       <div
         v-if="selectedFile"
         ref="container"
@@ -250,6 +254,9 @@ const initEmblaApi = (val: any) => {
                 >
                   <template #popup>
                     <CellAttachmentAnnotationCommentBox />
+                  </template>
+                  <template #viewPopup>
+                    <CellAttachmentAnnotationCommentView />
                   </template>
                 </CellAttachmentPreviewImage>
 
@@ -404,7 +411,7 @@ const initEmblaApi = (val: any) => {
           'w-0': !openComments,
           '!w-88': openComments,
         }"
-        class="bg-nc-bg-default max-w-88 transition-all"
+        class="bg-nc-bg-gray-light max-w-88 transition-all"
       >
         <SmartsheetExpandedFormSidebarComments />
       </div>

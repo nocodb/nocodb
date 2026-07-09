@@ -50,6 +50,8 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
 
     const saveComment = rowComments?.saveComment ?? (async () => {})
 
+    const parsedHtmlComments = computed<Record<string, string>>(() => rowComments?.parsedHtmlComments.value ?? {})
+
     // ─── state ───────────────────────────────────────────────────────────
     const draft = ref<AnnotationDraft | null>(null)
 
@@ -63,32 +65,55 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
     // ─── derived ─────────────────────────────────────────────────────────
     const selectedFileKey = computed(() => (selectedFile.value ? getAttachmentAnnotationKey(selectedFile.value) : undefined))
 
-    /** All comments that carry an annotation, in creation order. */
+    /** Root annotation comments (carry meta.annotation), in creation order. */
     const annotatedComments = computed(() =>
       comments.value
         .filter((c) => c.id && !`${c.id}`.startsWith('temp-') && extractCommentAnnotation(c))
         .map((c) => ({ comment: c, annotation: extractCommentAnnotation(c)! })),
     )
 
+    const rootIds = computed(() => new Set(annotatedComments.value.map((e) => e.comment.id)))
+
     /**
-     * commentId → label, scoped per attachment (each image's annotations are
-     * labelled A, B, C … in their own creation order).
+     * Every comment id → the root annotation comment id of its thread. A root
+     * maps to itself; a reply maps to its (annotated) parent. Lets the whole
+     * conversation resolve back to one pill.
      */
-    const labelByCommentId = computed(() => {
+    const rootIdByCommentId = computed(() => {
+      const map: Record<string, string> = {}
+      for (const c of comments.value) {
+        if (!c.id) continue
+        if (rootIds.value.has(c.id)) map[c.id] = c.id
+        else if (c.parent_comment_id && rootIds.value.has(c.parent_comment_id)) map[c.id] = c.parent_comment_id
+      }
+      return map
+    })
+
+    /** Root id → label (A, B, C …), scoped per attachment, in creation order. */
+    const labelByRootId = computed(() => {
       const perFileCount = new Map<string, number>()
       const map: Record<string, string> = {}
-
       for (const { comment, annotation } of annotatedComments.value) {
         const key = getAttachmentAnnotationKey(annotation.attachment) ?? '__unknown__'
         const idx = perFileCount.get(key) ?? 0
         map[comment.id!] = indexToLabel(idx)
         perFileCount.set(key, idx + 1)
       }
-
       return map
     })
 
-    /** Markers to render on the currently-selected image. */
+    /** Every comment id (root OR reply) → its pill label (replies inherit root). */
+    const labelByCommentId = computed(() => {
+      const map: Record<string, string> = {}
+      for (const c of comments.value) {
+        if (!c.id) continue
+        const root = rootIdByCommentId.value[c.id]
+        if (root && labelByRootId.value[root]) map[c.id] = labelByRootId.value[root]
+      }
+      return map
+    })
+
+    /** Markers (one pill per root annotation) on the currently-selected image. */
     const markers = computed<AnnotationMarker[]>(() => {
       if (!selectedFileKey.value) return []
 
@@ -96,9 +121,23 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
         .filter(({ annotation }) => getAttachmentAnnotationKey(annotation.attachment) === selectedFileKey.value)
         .map(({ comment, annotation }) => ({
           commentId: comment.id!,
-          label: labelByCommentId.value[comment.id!] ?? '',
+          label: labelByRootId.value[comment.id!] ?? '',
           region: annotation.region,
         }))
+    })
+
+    /** The active pill's root comment. */
+    const activeComment = computed(() =>
+      activeAnnotationId.value ? comments.value.find((c) => c.id === activeAnnotationId.value) ?? null : null,
+    )
+
+    /** Full conversation for the active pill: root + replies, oldest first. */
+    const activeThread = computed<CommentType[]>(() => {
+      const rootId = activeAnnotationId.value
+      if (!rootId) return []
+      return comments.value
+        .filter((c) => c.id && rootIdByCommentId.value[c.id] === rootId)
+        .sort((a, b) => `${a.created_at ?? ''}`.localeCompare(`${b.created_at ?? ''}`))
     })
 
     // ─── actions ─────────────────────────────────────────────────────────
@@ -136,13 +175,29 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
     }
 
     function setActive(commentId: string | null) {
-      activeAnnotationId.value = commentId
+      // Always resolve to the thread's root so the whole conversation opens.
+      activeAnnotationId.value = commentId ? rootIdByCommentId.value[commentId] ?? commentId : null
     }
 
-    /** Triggered by the sidebar "View" link — focus the comment's region. */
+    function closeActive() {
+      activeAnnotationId.value = null
+    }
+
+    /** Reply within the active pill's conversation. */
+    async function replyToActive(text: string) {
+      const rootId = activeAnnotationId.value
+      if (!rootId || !text?.trim()) return
+      await saveComment(text, undefined, undefined, rootId)
+    }
+
+    /**
+     * Sidebar "View" — open the whole conversation. The clicked comment may be
+     * a reply; resolve it to its root pill so any thread item opens the same
+     * conversation + focuses the same region.
+     */
     function viewAnnotation(comment: CommentType) {
       if (!comment.id) return
-      pendingFocusCommentId.value = comment.id
+      pendingFocusCommentId.value = rootIdByCommentId.value[comment.id] ?? comment.id
     }
 
     /** Resolved focus request — Carousel watches this to switch file + highlight. */
@@ -168,11 +223,16 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
       selectedFileKey,
       annotatedComments,
       labelByCommentId,
+      activeComment,
+      activeThread,
+      parsedHtmlComments,
       startDraft,
       cancelDraft,
       commitDraft,
       setHovered,
       setActive,
+      closeActive,
+      replyToActive,
       viewAnnotation,
       focusTarget,
       clearFocus,

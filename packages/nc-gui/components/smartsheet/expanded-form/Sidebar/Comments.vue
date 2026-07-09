@@ -50,6 +50,18 @@ const {
   clearAttachments,
 } = useCommentAttachments()
 
+// Independent attachment state for the edit composer (initialised from the
+// comment being edited so the user can add/remove files).
+const {
+  pendingAttachments: editAttachments,
+  isUploading: isEditAttachmentUploading,
+  openFilePicker: openEditFilePicker,
+  handlePaste: handleEditAttachmentPaste,
+  handleDrop: handleEditAttachmentDrop,
+  removeAttachment: removeEditAttachment,
+  clearAttachments: clearEditAttachments,
+} = useCommentAttachments()
+
 const editCommentValue = ref<CommentType>()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
@@ -213,6 +225,7 @@ function onCancel(e: KeyboardEvent) {
   e.preventDefault()
   e.stopPropagation()
   editCommentValue.value = undefined
+  clearEditAttachments()
   loadComments()
   isEditing.value = false
   editCommentValue.value = undefined
@@ -222,6 +235,7 @@ function editComment(comment: CommentType) {
   editCommentValue.value = {
     ...comment,
   }
+  editAttachments.value = [...(comment.attachments ?? [])]
   isEditing.value = true
   nextTick(() => {
     scrollToComment(comment.id!)
@@ -239,9 +253,16 @@ const value = computed({
 })
 
 async function onEditComment() {
-  if (!isEditing.value || !editCommentValue.value?.comment) return
+  if (!isEditing.value) return
 
-  while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
+  if (isEditAttachmentUploading.value) return
+
+  if (!editCommentValue.value?.comment && !editAttachments.value.length) return
+
+  while (
+    editCommentValue.value?.comment &&
+    (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n'))
+  ) {
     if (editCommentValue.value.comment.endsWith('<br />')) {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
     } else {
@@ -254,11 +275,14 @@ async function onEditComment() {
   const tempCom = {
     ...editCommentValue.value,
   }
+  const tempAttachments = [...editAttachments.value]
 
   isEditing.value = false
   editCommentValue.value = undefined
+  clearEditAttachments()
   await updateComment(tempCom.id!, {
     comment: tempCom.comment,
+    attachments: tempAttachments,
   })
 
   loadComments()
@@ -569,25 +593,57 @@ onBeforeUnmount(() => {
               }"
               class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
             >
-              <SmartsheetExpandedFormRichComment
+              <div
                 v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
-                v-model:value="value"
-                autofocus
-                autofocus-to-end
-                :hide-options="false"
-                class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-                data-testid="expanded-form-comment-input"
-                @save="onEditComment"
-                @keydown.esc="onCancel"
-                @keydown="handleKeyPress"
-                @blur="
-                  () => {
-                    editCommentValue = undefined
-                    isEditing = false
-                  }
-                "
-                @keydown.enter.exact.prevent="onEditComment"
-              />
+                @paste="isCommentAttachmentsEnabled ? handleEditAttachmentPaste($event) : undefined"
+                @dragover.prevent
+                @drop="isCommentAttachmentsEnabled ? handleEditAttachmentDrop($event) : undefined"
+              >
+                <SmartsheetExpandedFormRichComment
+                  v-model:value="value"
+                  autofocus
+                  autofocus-to-end
+                  :hide-options="false"
+                  :extra-save-enabled="editAttachments.length > 0"
+                  class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+                  data-testid="expanded-form-comment-input"
+                  @save="onEditComment"
+                  @keydown.esc="onCancel"
+                  @keydown="handleKeyPress"
+                  @blur="
+                    () => {
+                      editCommentValue = undefined
+                      isEditing = false
+                      clearEditAttachments()
+                    }
+                  "
+                  @keydown.enter.exact.prevent="onEditComment"
+                >
+                  <template v-if="editAttachments.length" #attachments>
+                    <SmartsheetExpandedFormCommentAttachments
+                      :attachments="editAttachments"
+                      :comment-id="editCommentValue?.id"
+                      editable
+                      class="px-1 pt-1"
+                      @remove="removeEditAttachment"
+                    />
+                  </template>
+                  <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+                    <NcButton
+                      v-e="['c:comment:attach-file']"
+                      type="text"
+                      size="xsmall"
+                      class="nc-comment-attach-btn !h-7 !w-7"
+                      :loading="isEditAttachmentUploading"
+                      :disabled="isEditAttachmentUploading"
+                      data-testid="nc-comment-attach-btn"
+                      @click="openEditFilePicker"
+                    >
+                      <GeneralIcon v-if="!isEditAttachmentUploading" icon="ncPaperclip" class="text-md" />
+                    </NcButton>
+                  </template>
+                </SmartsheetExpandedFormRichComment>
+              </div>
 
               <div v-else class="space-y-1 pl-9">
                 <div

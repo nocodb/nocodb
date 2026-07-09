@@ -14,6 +14,11 @@ interface Props {
   // the title wraps and is clamped to this many lines with a trailing ellipsis.
   // 1 (or unset) keeps the single-line + tooltip layout for short cards.
   clampLines?: number
+  // Dense week clusters render cards too thin to show any title/time (the parent
+  // gates the slots off). Pill's only colour cue is its time pill, so a blank pill
+  // card would be invisible — this flag fills it with the accent so it still reads
+  // as "an event is here". Other themes already show their bg/bar/dot.
+  blank?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'gray',
   dragging: false,
   clampLines: 1,
+  blank: false,
 })
 
 const emit = defineEmits(['resizeStart'])
@@ -88,6 +94,7 @@ const cardShadow = computed(() => {
       {
         'nc-vcard--hover': hover || dragging,
         'nc-vcard--uncolored': !colors.hasColor,
+        'nc-vcard--blank': blank,
         'z-90': hover,
       },
     ]"
@@ -226,6 +233,13 @@ const cardShadow = computed(() => {
 // Pill has no bar/dot, so inset the text slightly off the cell edge.
 .nc-vcard--pill {
   @apply pl-1;
+}
+
+// Blank thin cards (dense week clusters) render no title/time, so pill's only
+// colour cue — the time pill — is gone and the card would be invisible. Fill the
+// sliver with the accent (the time-pill background) so it still reads as an event.
+.nc-vcard--pill.nc-vcard--blank {
+  background: var(--cal-accent);
 }
 
 .plain-cell {

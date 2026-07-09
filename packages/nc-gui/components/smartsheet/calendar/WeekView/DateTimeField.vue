@@ -1262,6 +1262,7 @@ watch(
                 :record="record"
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
                 :clamp-lines="cardClampLines(record)"
+                :blank="isCardTooThinToRender(record)"
                 @resize-start="onResizeStart"
               >
                 <template v-if="!isCardTooThinToRender(record)">

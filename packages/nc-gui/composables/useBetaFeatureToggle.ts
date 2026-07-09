@@ -88,9 +88,9 @@ const FEATURES = [
     id: 'attachment_carousel_comments',
     title: 'Comments in attachment carousel',
     description: 'Enable comments in attachment carousel.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
+    isEngineering: false,
   },
   {
     id: 'cross_base_link',

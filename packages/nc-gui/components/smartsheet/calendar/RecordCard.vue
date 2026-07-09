@@ -35,6 +35,15 @@ const emit = defineEmits(['resizeStart'])
 
 const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
 
+const slots = useSlots()
+
+// Pill's colour lives in its time pill; the all-day / spanning rows pass no #time
+// slot, so a pill card would show no colour at all there. Fall back to bordered in
+// that case (same as the sidebar) — every timed surface passes #time and keeps pill.
+const effectiveTheme = computed(() =>
+  eventDisplayTheme.value === CalendarEventTheme.PILL && !slots.time ? CalendarEventTheme.BORDERED : eventDisplayTheme.value,
+)
+
 // Resolved colours for this event (rowMeta hex, or neutral gray default).
 const colors = computed(() => getCalendarEventColors(props.record))
 
@@ -47,24 +56,22 @@ const themeVars = computed(() => ({
   '--cal-on-accent': colors.value.onAccent,
 }))
 
-const isBordered = computed(() => eventDisplayTheme.value === CalendarEventTheme.BORDERED)
-const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
-const isPill = computed(() => eventDisplayTheme.value === CalendarEventTheme.PILL)
-const isMinimal = computed(() => eventDisplayTheme.value === CalendarEventTheme.MINIMAL)
+const isBordered = computed(() => effectiveTheme.value === CalendarEventTheme.BORDERED)
+const isDot = computed(() => effectiveTheme.value === CalendarEventTheme.DOT)
+const isPill = computed(() => effectiveTheme.value === CalendarEventTheme.PILL)
+const isMinimal = computed(() => effectiveTheme.value === CalendarEventTheme.MINIMAL)
 
 // Flat themes render a single dense text line; they stack shorter than the
 // bordered / solid chips. Height here is kept in sync with `perRecordHeightPx`
 // in MonthView (22px flat vs 28px chip).
 const isFlat = computed(() =>
-  [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(eventDisplayTheme.value),
+  [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(effectiveTheme.value),
 )
 
 // The left colour bar belongs to the bordered + minimal themes, and only on the
 // card's leading edge (rounded / leftRounded positions of a spanning event).
 const showLeftBar = computed(
-  () =>
-    (isBordered.value || eventDisplayTheme.value === CalendarEventTheme.MINIMAL) &&
-    (props.position === 'leftRounded' || props.position === 'rounded'),
+  () => (isBordered.value || isMinimal.value) && (props.position === 'leftRounded' || props.position === 'rounded'),
 )
 
 // Only the bordered theme carries the drop shadow; the flat themes stay flush.
@@ -79,7 +86,7 @@ const cardShadow = computed(() => {
 <template>
   <div
     :class="[
-      `nc-cal-card nc-cal-card--${eventDisplayTheme}`,
+      `nc-cal-card nc-cal-card--${effectiveTheme}`,
       {
         'h-7': size === 'small' && !isFlat,
         'h-[22px]': size === 'small' && isFlat,
@@ -253,9 +260,11 @@ const cardShadow = computed(() => {
   @apply px-2;
   background: var(--cal-accent);
 
-  // Force every text/icon inside onto the readable on-accent colour.
+  // Force every text/icon inside onto the readable on-accent colour, including
+  // the multiline "+N more" line (a div, so not covered by the selectors above).
   :deep(.plain-cell),
   :deep(.plain-cell .bold),
+  :deep(.nc-calendar-card-more),
   :deep(span) {
     color: var(--cal-on-accent) !important;
   }

@@ -9,8 +9,6 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const containerRef = ref<HTMLElement | null>(null)
-
 const threadRef = ref<HTMLElement | null>(null)
 
 const replyInputRef = ref<any>()
@@ -18,9 +16,6 @@ const replyInputRef = ref<any>()
 const reply = ref('')
 
 const isSaving = ref(false)
-
-// Ignore the click/drag that opened this popup (see AnnotationCommentBox).
-const isReady = ref(false)
 
 function createdBy(comment: CommentType & { created_display_name_short?: string }) {
   if (comment.created_by === user.value?.id) return 'You'
@@ -53,22 +48,11 @@ function onClose() {
   closeActive()
 }
 
-onClickOutside(
-  containerRef,
-  () => {
-    // Close on outside click once settled, but never while a reply is in progress.
-    if (isReady.value && !reply.value.trim()) closeActive()
-  },
-  // Clicking another marker should switch threads (handled by the marker), not close.
-  { ignore: ['.nc-annotation-marker'] },
-)
-
+// Outside-click dismissal is handled centrally by the Carousel (close modal
+// first, else close the carousel). Here we only handle Esc.
 onMounted(() => {
   document.addEventListener('keydown', onKeyDown)
   scrollToBottom()
-  setTimeout(() => {
-    isReady.value = true
-  }, 250)
 })
 
 onBeforeUnmount(() => {
@@ -90,7 +74,6 @@ watch(
 
 <template>
   <div
-    ref="containerRef"
     class="nc-annotation-comment-view w-80 rounded-xl bg-nc-bg-default shadow-lg border-1 border-nc-border-gray-medium text-left flex flex-col max-h-[360px]"
     data-testid="nc-annotation-comment-view"
     @mousedown.stop
@@ -150,5 +133,12 @@ watch(
   p {
     @apply !m-0 !leading-5;
   }
+}
+
+// Smaller, lighter initials inside the comment avatars (scoped to this popup).
+:deep(.nc-user-avatar .font-semibold) {
+  font-size: 9px;
+  font-weight: 500 !important;
+  line-height: 1;
 }
 </style>

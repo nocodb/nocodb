@@ -18,13 +18,6 @@ const selectedIndex = ref()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-useEventListener(container, 'click', (e) => {
-  const target = e.target as HTMLElement
-  if (!target.closest('.keep-open') && !target.closest('.nc-button') && !target.closest('img') && !target.closest('video')) {
-    selectedFile.value = false
-  }
-})
-
 const onThumbClick = (index: number) => {
   if (!emblaMainApi.value || !emblaThumbnailApi.value) return
 
@@ -130,6 +123,20 @@ const carouselCommentsEnabled = computed(
 
 const annotationEnabled = carouselCommentsEnabled
 
+// Bottom-left file meta (type • size) for the current attachment.
+const fileTypeLabel = computed(() => {
+  if (!selectedFile.value) return ''
+  const fromMime = getReadableFileType(selectedFile.value.mimetype)
+  if (fromMime) return fromMime
+  const title = `${selectedFile.value.title || ''}`
+  const ext = title.includes('.') ? title.split('.').pop() : ''
+  return ext ? ext.toUpperCase() : ''
+})
+
+const fileSizeLabel = computed(() =>
+  selectedFile.value && selectedFile.value.size ? formatFileSize(selectedFile.value.size, 1) : '',
+)
+
 const {
   markers,
   draft,
@@ -142,6 +149,32 @@ const {
   setActive,
   clearFocus,
 } = useProvideImageAnnotations(selectedFile, visibleItems)
+
+// Clicks in the carousel area (outside the image/chrome): close an open comment
+// modal first, otherwise close the carousel. Marker/popup clicks use @click.stop
+// so they never reach here.
+useEventListener(container, 'click', (e) => {
+  const target = e.target as HTMLElement
+  if (
+    target.closest('.keep-open') ||
+    target.closest('.nc-button') ||
+    target.closest('img') ||
+    target.closest('video') ||
+    target.closest('.nc-annotation-comment-box') ||
+    target.closest('.nc-annotation-comment-view') ||
+    target.closest('.nc-annotation-marker')
+  ) {
+    return
+  }
+
+  if (draft.value || activeAnnotationId.value) {
+    cancelDraft()
+    setActive(null)
+    return
+  }
+
+  selectedFile.value = false
+})
 
 const toggleComment = () => {
   openComments.value = !openComments.value
@@ -326,6 +359,15 @@ const initEmblaApi = (val: any) => {
         </div>
 
         <div class="text-white absolute right-2 top-2 cursor-pointer"></div>
+
+        <div
+          v-if="fileTypeLabel || fileSizeLabel"
+          class="nc-attachment-file-meta absolute left-4 bottom-3 z-30 flex items-center gap-1.5 text-small font-medium text-gray-300 select-none pointer-events-none"
+        >
+          <span v-if="fileTypeLabel">{{ fileTypeLabel }}</span>
+          <span v-if="fileTypeLabel && fileSizeLabel">•</span>
+          <span v-if="fileSizeLabel">{{ fileSizeLabel }}</span>
+        </div>
 
         <div class="absolute w-full !bottom-2 max-h-18 z-30 flex items-center justify-center">
           <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">

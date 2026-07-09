@@ -9,14 +9,6 @@ const comment = ref('')
 
 const isSaving = ref(false)
 
-const containerRef = ref<HTMLElement | null>(null)
-
-// The popup mounts on the tick after the creating click/drag. That gesture's
-// trailing `click` then bubbles to the document — onClickOutside would see it
-// as an outside click and cancel the (empty) draft instantly. Ignore outside
-// clicks until the creating gesture has fully settled.
-const isReady = ref(false)
-
 async function onSave() {
   const text = comment.value.trim()
   if (!text || isSaving.value) return
@@ -35,17 +27,10 @@ function onCancel() {
   cancelDraft()
 }
 
-onClickOutside(containerRef, () => {
-  // Don't discard mid-typing — only cancel an empty draft on outside click,
-  // and only after the creating gesture has settled (see isReady above).
-  if (isReady.value && !comment.value.trim()) cancelDraft()
-})
-
+// Outside-click dismissal is handled centrally by the Carousel (close modal
+// first, else close the carousel). Here we only handle Esc.
 onMounted(() => {
   document.addEventListener('keydown', onKeyDown)
-  setTimeout(() => {
-    isReady.value = true
-  }, 250)
 })
 
 onBeforeUnmount(() => {
@@ -62,7 +47,6 @@ function onKeyDown(e: KeyboardEvent) {
 
 <template>
   <div
-    ref="containerRef"
     class="nc-annotation-comment-box w-72 rounded-xl bg-nc-bg-default shadow-lg border-1 border-nc-border-gray-medium p-2 text-left"
     data-testid="nc-annotation-comment-box"
     @mousedown.stop

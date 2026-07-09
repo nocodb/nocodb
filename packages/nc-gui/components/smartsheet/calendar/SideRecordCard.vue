@@ -26,15 +26,22 @@ const themeVars = computed(() => ({
   '--cal-on-accent': colors.value.onAccent,
 }))
 
-const isSolid = computed(() => eventDisplayTheme.value === CalendarEventTheme.SOLID)
+// Pill's only colour cue is its time pill, but the sidebar shows the date as
+// plain text (no pill) — so a pill card would render with no colour at all here.
+// Fall back to the bordered look (the intentional default) for the sidebar only;
+// the grid pill look is untouched.
+const sideTheme = computed(() =>
+  eventDisplayTheme.value === CalendarEventTheme.PILL ? CalendarEventTheme.BORDERED : eventDisplayTheme.value,
+)
 
-const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
+const isSolid = computed(() => sideTheme.value === CalendarEventTheme.SOLID)
 
-const isPill = computed(() => eventDisplayTheme.value === CalendarEventTheme.PILL)
+const isDot = computed(() => sideTheme.value === CalendarEventTheme.DOT)
 
-// Match the month-view look: the accent bar belongs to bordered + minimal; dot
-// shows a colour dot, solid fills, and pill is flat (no bar, no border).
-const showLeftBar = computed(() => !isSolid.value && !isDot.value && !isPill.value)
+// The accent bar belongs to bordered + minimal; dot shows a colour dot, solid fills.
+const showLeftBar = computed(
+  () => sideTheme.value === CalendarEventTheme.BORDERED || sideTheme.value === CalendarEventTheme.MINIMAL,
+)
 
 const { t } = useI18n()
 
@@ -112,7 +119,7 @@ const errorInfo = computed(() => {
 
 <template>
   <div
-    :class="[`nc-side-card--${eventDisplayTheme}`, { 'nc-side-card--uncolored': !colors.hasColor }]"
+    :class="[`nc-side-card--${sideTheme}`, { 'nc-side-card--uncolored': !colors.hasColor }]"
     :style="themeVars"
     class="nc-side-card cursor-pointer h-12.5 flex-none flex gap-2 flex-col rounded-lg overflow-hidden"
   >

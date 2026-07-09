@@ -509,7 +509,7 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_SNAPSHOT_READONLY]: {
     message: (message: string) =>
       message ||
-      'This base is a snapshot and is read-only. Restore the snapshot to make changes.',
+      'This base is a snapshot and cannot be accessed directly. Restore the snapshot to a new base to view or edit its contents.',
     code: 403,
   },
 };

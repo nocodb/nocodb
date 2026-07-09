@@ -1,6 +1,17 @@
 import type { ComputedRef, Ref } from 'vue'
 import { isClient } from '@vueuse/core'
-import { EventType, FormulaDataTypes, UITypes, ViewTypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
+import {
+  CALENDAR_EVENT_THEMES,
+  type CalendarEventTheme,
+  DEFAULT_CALENDAR_EVENT_THEME,
+  EventType,
+  FormulaDataTypes,
+  UITypes,
+  ViewTypes,
+  isSystemColumn,
+  isVirtualCol,
+  workerWithTimezone,
+} from 'nocodb-sdk'
 import type {
   Api,
   CalendarRangeType,
@@ -81,6 +92,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       // Custom timescale (active_view === 'custom'): a user-picked count of days or weeks.
       custom_count: number
       custom_unit: 'day' | 'week'
+      // How each event/record is drawn in the grid (bordered/dot/solid/minimal/pill).
+      // Absent → BORDERED (the only look before this feature). EE-gated (Business+).
+      event_display_theme: CalendarEventTheme
     }>(() => {
       let meta = calendarMetaData.value?.meta ?? {}
 
@@ -95,6 +109,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         record_height_mode: 'compact' | 'expanded'
         custom_count: number
         custom_unit: 'day' | 'week'
+        event_display_theme: CalendarEventTheme
       }
     })
 
@@ -102,6 +117,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const recordHeightMode = computed<'compact' | 'expanded'>(() =>
       viewMetaProperties.value?.record_height_mode === 'expanded' ? 'expanded' : 'compact',
     )
+
+    // EE-gated: when the feature isn't in the plan (CE / unlicensed / downgrade),
+    // a previously-saved theme degrades gracefully back to BORDERED.
+    const { blockCalendarEventTheme } = useEeConfig()
+
+    // Effective event-display theme — what the cards and picker should render.
+    // Defaults to BORDERED when absent or when an unknown value is stored.
+    const eventDisplayTheme = computed<CalendarEventTheme>(() => {
+      if (blockCalendarEventTheme.value) return DEFAULT_CALENDAR_EVENT_THEME
+
+      const stored = viewMetaProperties.value?.event_display_theme
+      return stored && CALENDAR_EVENT_THEMES.includes(stored) ? stored : DEFAULT_CALENDAR_EVENT_THEME
+    })
 
     // The range of columns that are used for the calendar view
     const calendarRange = computed<
@@ -1745,6 +1773,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       paginateCalendarView,
       viewMetaProperties,
       recordHeightMode,
+      eventDisplayTheme,
       updateFormat,
       timezoneDayjs,
       timezone,

@@ -21,6 +21,17 @@ const {
   isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
 
+// Range (date) columns are already conveyed by the block's time + position, so
+// they're excluded from the card body — keeps it a clean title line by default.
+const rangeFieldIds = computed(() => {
+  const ids = new Set<string>()
+  for (const r of calendarRange.value || []) {
+    if (r.fk_from_col?.id) ids.add(r.fk_from_col.id)
+    if (r.fk_to_col?.id) ids.add(r.fk_to_col.id)
+  }
+  return ids
+})
+
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
@@ -1055,7 +1066,7 @@ const expandRecord = (record: Row) => {
                 >
                   <template v-for="(field, id) in fields" :key="id">
                     <LazySmartsheetPlainCell
-                      v-if="!isRowEmpty(record, field!)"
+                      v-if="!isRowEmpty(record, field!) && !rangeFieldIds.has(field!.id)"
                       v-model="record.row[field!.title!]"
                       class="text-xs font-medium"
                       :bold="getFieldStyle(field).bold"

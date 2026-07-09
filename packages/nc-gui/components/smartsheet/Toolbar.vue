@@ -184,6 +184,10 @@ function triggerToolbarControl(selector: string) {
 
       <SmartsheetToolbarCalendarRecordHeight v-if="isCalendar && !isMobileMode" />
 
+      <SmartsheetToolbarCalendarEventTheme
+        v-if="isCalendar && !isMobileMode && !isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures"
+      />
+
       <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed && !isMobileMode" />
 
       <!-- Mobile: the calendar config controls stay mounted but visually hidden; the "more" menu

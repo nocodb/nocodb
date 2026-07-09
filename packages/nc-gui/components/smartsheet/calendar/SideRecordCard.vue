@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { CalendarEventTheme } from 'nocodb-sdk'
+import type { Row } from '~/lib/types'
 
 interface Props {
   row?: Record<string, any>
@@ -13,11 +15,24 @@ const props = withDefaults(defineProps<Props>(), {
   showDate: true,
 })
 
-const rowColorInfo = computed(() => {
-  return extractRowBackgroundColorStyle(props.row as Row)
-})
+const { timezoneDayjs, eventDisplayTheme } = useCalendarViewStoreOrThrow()
 
-const { timezoneDayjs } = useCalendarViewStoreOrThrow()
+const colors = computed(() => getCalendarEventColors(props.row as Row))
+
+const themeVars = computed(() => ({
+  '--cal-accent': colors.value.accent,
+  '--cal-tint': colors.value.tint,
+  '--cal-border': colors.value.border,
+  '--cal-on-accent': colors.value.onAccent,
+}))
+
+const isSolid = computed(() => eventDisplayTheme.value === CalendarEventTheme.SOLID)
+
+const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
+
+// Solid fills the whole card (no separate marker); dot swaps the bar for a dot;
+// every other theme keeps the full-height accent bar.
+const showLeftBar = computed(() => !isSolid.value && !isDot.value)
 
 const { t } = useI18n()
 
@@ -95,25 +110,15 @@ const errorInfo = computed(() => {
 
 <template>
   <div
-    class="border-1 cursor-pointer h-12.5 flex-none border-nc-border-gray-medium flex gap-2 flex-col rounded-lg overflow-hidden"
-    :style="rowColorInfo.rowBgColor"
+    :class="`nc-side-card nc-side-card--${eventDisplayTheme}`"
+    :style="themeVars"
+    class="cursor-pointer h-12.5 flex-none flex gap-2 flex-col rounded-lg overflow-hidden"
   >
     <div class="flex relative items-center gap-2">
-      <span
-        :class="{
-          'bg-nc-maroon-500': props.color === 'maroon',
-          'bg-nc-blue-500': props.color === 'blue',
-          'bg-nc-green-500': props.color === 'green',
-          'bg-nc-yellow-500': props.color === 'yellow',
-          'bg-nc-pink-500': props.color === 'pink',
-          'bg-nc-purple-500': props.color === 'purple',
-          'bg-nc-gray-900': props.color === 'gray',
-        }"
-        class="block h-12 w-1"
-        :style="rowColorInfo.rowLeftBorderColor"
-      ></span>
+      <span v-if="showLeftBar" class="nc-side-card-leftbar block h-12 w-1"></span>
+      <span v-else-if="isDot" class="nc-side-card-dot ml-2 flex-none"></span>
       <slot name="image" />
-      <div class="flex gap-1 py-1 flex-col">
+      <div class="flex gap-1 py-1 flex-col" :class="{ 'pl-2': isSolid }">
         <NcTooltip
           wrap-child="span"
           :disabled="!$slots.tooltip"
@@ -142,7 +147,7 @@ const errorInfo = computed(() => {
         <NcTooltip
           v-if="showDate"
           show-on-truncate-only
-          class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
+          class="nc-side-card-date text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
         >
           {{
             fromDate && toDate
@@ -170,4 +175,41 @@ const errorInfo = computed(() => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.nc-side-card-leftbar {
+  background: var(--cal-accent);
+}
+
+.nc-side-card-dot {
+  @apply w-2 h-2 rounded-full;
+  background: var(--cal-accent);
+}
+
+// Chip themes — accent-derived tint + border (stays visible in dark mode, where
+// the row-colouring tint resolves to near-black; see RecordCard for rationale).
+.nc-side-card--bordered,
+.nc-side-card--pill {
+  @apply border-1;
+  background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
+}
+
+// Solid — fill, readable text on the accent.
+.nc-side-card--solid {
+  background: var(--cal-accent);
+
+  :deep(.nc-side-card-date),
+  :deep(span) {
+    color: var(--cal-on-accent) !important;
+  }
+}
+
+// Flat themes — transparent, marker only (bar for minimal, dot for dot).
+.nc-side-card--minimal {
+  @apply bg-transparent border-1 border-transparent;
+}
+
+.nc-side-card--dot {
+  @apply bg-transparent border-1 border-transparent;
+}
+</style>

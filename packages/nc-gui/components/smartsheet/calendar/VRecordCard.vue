@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { CalendarEventTheme } from 'nocodb-sdk'
+import type { Row } from '~/lib/types'
+
 interface Props {
   record: Record<string, string>
   color?: string
@@ -24,6 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['resizeStart'])
 
+const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
+
 // Wrap (multi-line) only when the card is tall enough for 2+ lines.
 const isMultiline = computed(() => (props.clampLines ?? 1) >= 2)
 
@@ -44,56 +49,55 @@ const clampStyle = computed(() =>
     : undefined,
 )
 
-const rowColorInfo = computed(() => {
-  return extractRowBackgroundColorStyle(props.record as Row)
-})
+const colors = computed(() => getCalendarEventColors(props.record as Row))
+
+const themeVars = computed(() => ({
+  '--cal-accent': colors.value.accent,
+  '--cal-tint': colors.value.tint,
+  '--cal-border': colors.value.border,
+  '--cal-on-accent': colors.value.onAccent,
+}))
+
+const isSolid = computed(() => eventDisplayTheme.value === CalendarEventTheme.SOLID)
+
+const isPill = computed(() => eventDisplayTheme.value === CalendarEventTheme.PILL)
+
+// Tall duration blocks can't carry a dot/pill the way a single-line month row
+// can, so the theme collapses to a fill axis: solid fills, the chip themes
+// (bordered/pill) keep tint+border, and the flat themes (minimal/dot) drop to a
+// bare accent bar on a transparent block. The left accent bar shows for every
+// theme except solid (which is already the accent colour edge-to-edge).
+const showLeftBar = computed(() => !isSolid.value)
 </script>
 
 <template>
   <div
+    :class="[
+      `nc-vcard nc-vcard--${eventDisplayTheme}`,
+      {
+        'nc-vcard--hover': hover || dragging,
+        'z-90': hover,
+      },
+    ]"
     :style="{
+      ...themeVars,
       boxShadow:
         hover || dragging
           ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
           : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
-
-      ...rowColorInfo.rowBgColor,
     }"
-    :class="{
-      'bg-nc-maroon-50': props.color === 'maroon',
-      'bg-nc-blue-50': props.color === 'blue',
-      'bg-nc-green-50': props.color === 'green',
-      'bg-nc-yellow-50': props.color === 'yellow',
-      'bg-nc-pink-50': props.color === 'pink',
-      'bg-nc-purple-50': props.color === 'purple',
-      'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
-      'z-90': hover,
-      '!bg-nc-bg-gray-light': hover || dragging,
-    }"
-    class="relative flex-none flex gap-1 border-1 rounded-md h-full overflow-hidden"
+    class="relative flex-none flex gap-1 rounded-md h-full overflow-hidden"
   >
     <div
       v-if="resize"
       class="absolute w-full h-1 z-20 top-0 cursor-row-resize"
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
-    <div
-      :class="{
-        'bg-nc-maroon-500': props.color === 'maroon',
-        'bg-nc-blue-500': props.color === 'blue',
-        'bg-nc-green-500': props.color === 'green',
-        'bg-nc-yellow-500': props.color === 'yellow',
-        'bg-nc-pink-500': props.color === 'pink',
-        'bg-nc-purple-500': props.color === 'purple',
-        'bg-nc-gray-900': props.color === 'gray',
-      }"
-      class="h-full min-h-3 w-1.25 -ml-0.25"
-      :style="rowColorInfo.rowLeftBorderColor"
-    ></div>
+    <div v-if="showLeftBar" class="nc-vcard-leftbar h-full min-h-3 w-1.25 -ml-0.25"></div>
 
     <div
       class="flex pt-1 w-full flex-col gap-1 overflow-hidden h-full"
-      :class="{ 'overflow-x-hidden whitespace-nowrap text-ellipsis truncate': !isMultiline }"
+      :class="[{ 'overflow-x-hidden whitespace-nowrap text-ellipsis truncate': !isMultiline }, isSolid ? 'pr-1' : '']"
     >
       <NcTooltip
         wrap-child="div"
@@ -119,7 +123,10 @@ const rowColorInfo = computed(() => {
       </NcTooltip>
 
       <div class="flex-shrink-0 mt-auto">
-        <slot name="time" />
+        <span v-if="isPill && $slots.time" class="nc-vcard-time-pill">
+          <slot name="time" />
+        </span>
+        <slot v-else name="time" />
       </div>
     </div>
     <div
@@ -133,6 +140,57 @@ const rowColorInfo = computed(() => {
 <style lang="scss" scoped>
 .cursor-row-resize {
   cursor: ns-resize;
+}
+
+.nc-vcard-leftbar {
+  background: var(--cal-accent);
+}
+
+.nc-vcard-time-pill {
+  @apply inline-flex items-center px-1.5 rounded-full leading-4;
+  background: var(--cal-accent);
+
+  :deep(*) {
+    color: var(--cal-on-accent) !important;
+  }
+}
+
+// Chip themes — accent-derived tint + border (stays visible in dark mode, where
+// the row-colouring tint resolves to near-black; see RecordCard for rationale).
+.nc-vcard--bordered,
+.nc-vcard--pill {
+  @apply border-1;
+  background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
+
+  &.nc-vcard--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
+}
+
+// Solid — fill edge-to-edge, readable text on the accent.
+.nc-vcard--solid {
+  background: var(--cal-accent);
+
+  :deep(.plain-cell),
+  :deep(.plain-cell .bold),
+  :deep(span) {
+    color: var(--cal-on-accent) !important;
+  }
+
+  &.nc-vcard--hover {
+    @apply brightness-95;
+  }
+}
+
+// Flat themes — transparent block, accent bar only.
+.nc-vcard--minimal,
+.nc-vcard--dot {
+  @apply bg-transparent;
+
+  &.nc-vcard--hover {
+    @apply !bg-nc-bg-gray-light;
+  }
 }
 
 .plain-cell {

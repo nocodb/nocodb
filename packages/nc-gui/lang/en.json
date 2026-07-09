@@ -2771,6 +2771,7 @@
     "jsonCapitalized": "Json",
     "jsonFile": "JSON File",
     "excel": "Excel",
+    "icsCalendar": "iCalendar (.ics)",
     "microsoftExcel": "Microsoft Excel",
     "email": "E-mail",
     "storage": "Storage",

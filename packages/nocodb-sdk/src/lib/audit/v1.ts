@@ -1160,7 +1160,7 @@ export interface DataExportPayload {
   view_title: string;
   table_id: string;
   table_title: string;
-  export_type: 'excel' | 'csv' | 'json';
+  export_type: 'excel' | 'csv' | 'json' | 'ics';
 }
 
 export interface DataImportPayload {

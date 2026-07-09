@@ -55,6 +55,13 @@ import {
   Source,
   View,
 } from '~/models';
+import CalendarRange from '~/models/CalendarRange';
+import {
+  buildVEvent,
+  ICS_CALENDAR_FOOTER,
+  ICS_NEWLINE,
+  icsCalendarHeader,
+} from '~/helpers/icsHelpers';
 import { DatasService } from '~/services/datas.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
@@ -1373,6 +1380,221 @@ export class ExportService {
       );
     } catch (e) {
       this.debugLog(e);
+      throw e;
+    }
+  }
+
+  async streamModelDataAsIcs(
+    context: NcContext,
+    param: {
+      dataStream: Readable;
+      baseId: string;
+      modelId: string;
+      viewId?: string;
+      ncSiteUrl?: string;
+      filterArrJson?: any;
+      sortArrJson?: any;
+      locale?: string;
+    },
+  ) {
+    context = { ...context, cache: true };
+
+    const { dataStream } = param;
+
+    const { model, view } = await getViewAndModelByAliasOrId(context, {
+      baseName: param.baseId,
+      tableName: param.modelId,
+      viewName: param.viewId,
+    });
+
+    if (!view || view.type !== ViewTypes.CALENDAR) {
+      NcError.get(context).badRequest(
+        'ICS export is only supported for calendar views',
+      );
+    }
+
+    const calendarRange = await CalendarRange.read(context, view.id);
+
+    const range = calendarRange?.ranges?.[0];
+
+    if (!range?.fk_from_column_id) {
+      NcError.get(context).badRequest(
+        'Calendar view has no date field configured for export',
+      );
+    }
+
+    const source = await Source.get(context, model.source_id);
+
+    await model.getColumns(context);
+
+    model.columns = this.filterOutCrossBaseColumns(model);
+
+    const fromColumn = model.columns.find(
+      (c) => c.id === range.fk_from_column_id,
+    );
+    // fk_to_column_id is an EE-only field on the calendar range
+    const toColumnId = (range as { fk_to_column_id?: string }).fk_to_column_id;
+    const toColumn = toColumnId
+      ? model.columns.find((c) => c.id === toColumnId)
+      : undefined;
+
+    if (!fromColumn) {
+      NcError.get(context).badRequest(
+        'Calendar view date field is no longer available',
+      );
+    }
+
+    const dateOnlyTypes: string[] = [UITypes.Date];
+    const fromIsDateOnly = dateOnlyTypes.includes(fromColumn.uidt);
+
+    const displayColumn =
+      model.columns.find((c) => c.pv) ?? model.columns.find((c) => c.pk);
+
+    const pkColumn = model.columns.find((c) => c.pk);
+
+    // Non-system, non-virtual data columns (in field order) used to build the
+    // event description so the exported event keeps the row's context. The
+    // range fields and the display value are excluded — they map to dedicated
+    // ICS properties. Calendar views usually hide every non-date field, so the
+    // description is built from the model columns (fetched via getHiddenColumns)
+    // rather than the view's visible columns.
+    const descriptionColumns = model.columns.filter(
+      (c) =>
+        !isSystemColumn(c) &&
+        !isLinksOrLTAR(c) &&
+        !isVirtualCol(c) &&
+        c.id !== fromColumn.id &&
+        (!toColumn || c.id !== toColumn.id) &&
+        (!displayColumn || c.id !== displayColumn.id),
+    );
+
+    dataStream.setEncoding('utf8');
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const dtstamp = new Date().toISOString();
+
+    const serializeForDescription = async (value: any, column: Column) => {
+      return serializeCellValue(context, {
+        value,
+        column,
+        siteUrl: param.ncSiteUrl,
+        locale: param.locale,
+      });
+    };
+
+    dataStream.push(icsCalendarHeader(`${model.title} (${view.title})`));
+
+    const limit = 200;
+    let offset = 0;
+
+    try {
+      for (;;) {
+        const result = await this.datasService.dataList(context, {
+          model,
+          view,
+          query: {
+            limit,
+            offset,
+            filterArrJson: param.filterArrJson,
+            sortArrJson: param.sortArrJson,
+          },
+          baseModel,
+          // Calendar views hide all non-date fields; include them so the event
+          // title and details are exported, while still honouring view filters.
+          getHiddenColumns: true,
+          ignoreViewFilterAndSort: false,
+          limitOverride: limit,
+          skipSortBasedOnOrderCol: true,
+        });
+
+        for (let i = 0; i < result.list.length; i++) {
+          const row = result.list[i];
+          const startValue = row[fromColumn.title];
+
+          // Skip records without a start date — they can't be a calendar event.
+          if (
+            startValue === null ||
+            startValue === undefined ||
+            startValue === ''
+          ) {
+            continue;
+          }
+
+          const summary = displayColumn
+            ? await serializeForDescription(
+                row[displayColumn.title],
+                displayColumn,
+              )
+            : undefined;
+
+          const descriptionParts: string[] = [];
+          for (const col of descriptionColumns) {
+            const serialized = await serializeForDescription(
+              row[col.title],
+              col,
+            );
+            if (
+              serialized !== null &&
+              serialized !== undefined &&
+              serialized !== ''
+            ) {
+              descriptionParts.push(`${col.title}: ${serialized}`);
+            }
+          }
+
+          // RFC 5545 requires UID to be globally unique. Use the primary key
+          // when present (guarding against an empty value, which `&&`/`??`
+          // would otherwise let through), else fall back to the page offset +
+          // row index.
+          const pkValue = pkColumn ? row[pkColumn.title] : undefined;
+          const hasRealPk =
+            pkValue !== null && pkValue !== undefined && pkValue !== '';
+          const recordId = hasRealPk ? pkValue : `${offset}-${i}`;
+
+          // Deep link back to the record, mirroring the dashboard's
+          // copy-record-URL route: {site}/{workspace}/{base}/{table}/{view}?rowId.
+          // Only emitted when we have a site URL and a real primary key (the
+          // fallback id wouldn't resolve to a record).
+          const recordUrl =
+            param.ncSiteUrl && hasRealPk
+              ? `${param.ncSiteUrl}/${context.workspace_id}/${model.base_id}/${
+                  model.id
+                }/${view.id}?rowId=${encodeURIComponent(String(pkValue))}`
+              : undefined;
+
+          const vEvent = buildVEvent({
+            uid: `${recordId}@${view.id}.nocodb`,
+            dtstamp,
+            summary,
+            description: descriptionParts.join('\n') || undefined,
+            start: startValue,
+            end: toColumn ? row[toColumn.title] : undefined,
+            startIsDateOnly: fromIsDateOnly,
+            url: recordUrl,
+          });
+
+          if (vEvent) {
+            dataStream.push(vEvent + ICS_NEWLINE);
+          }
+        }
+
+        if (result.pageInfo.isLastPage || result.list.length === 0) {
+          break;
+        }
+
+        offset += limit;
+      }
+
+      dataStream.push(ICS_CALENDAR_FOOTER);
+      dataStream.push(null);
+    } catch (e) {
+      this.debugLog(e);
+      dataStream.push(null);
       throw e;
     }
   }

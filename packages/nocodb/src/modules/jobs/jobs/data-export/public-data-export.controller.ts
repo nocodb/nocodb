@@ -35,7 +35,7 @@ export class PublicDataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('publicDataUuid') publicDataUuid: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel' | 'ics',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.getByUUID(context, publicDataUuid);

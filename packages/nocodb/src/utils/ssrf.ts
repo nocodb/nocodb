@@ -40,6 +40,12 @@ export function isSsrfProtectionEnabled({
   )
     return false;
 
+  if (
+    source === OperationSource.DATA_IMPORT &&
+    process.env.NC_ALLOW_LOCAL_DATA_IMPORT === 'true'
+  )
+    return false;
+
   return true;
 }
 

@@ -812,4 +812,8 @@ export enum OperationSource {
   WORKFLOW = 'workflow',
   PLUGINS = 'plugins',
   SYNC = 'sync',
+  // Editor-accessible "fetch via URL" data import (axiosRequestMake).
+  // Kept separate from HOOKS so the webhook SSRF bypass (NC_ALLOW_LOCAL_HOOKS)
+  // does not also loosen the lower-privilege data-import path.
+  DATA_IMPORT = 'data_import',
 }

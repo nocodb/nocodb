@@ -182,7 +182,10 @@ export class UtilsService {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      ...getFilteredAgents({ url: apiMeta.url, source: OperationSource.HOOKS }),
+      ...getFilteredAgents({
+        url: apiMeta.url,
+        source: OperationSource.DATA_IMPORT,
+      }),
     };
     const data = await axios(_req);
     return data?.data;

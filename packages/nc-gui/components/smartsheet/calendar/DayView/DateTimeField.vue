@@ -933,8 +933,11 @@ const expandRecord = (record: Row) => {
       data-testid="nc-calendar-day-view"
       @drop="dropEvent"
     >
-      <!-- Time-axis gutter: sticky so it stays put while the grid scrolls horizontally -->
-      <div class="sticky left-0 z-20 bg-nc-bg-default flex-none">
+      <!-- Time-axis gutter: sticky so it stays put while the grid scrolls horizontally. It sits above
+           the grid (z-20) purely for painting when scrolled, so it must NOT swallow pointer events —
+           its high z-index would otherwise intercept clicks on the leftmost hour-cell column (the
+           axis can overlap the grid edge by a sub-pixel), breaking hour selection. -->
+      <div class="sticky left-0 z-20 bg-nc-bg-default flex-none pointer-events-none">
         <div
           v-for="(hour, index) in hours"
           :key="index"

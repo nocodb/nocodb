@@ -190,7 +190,7 @@ export default {
                     data-testid="nc-comment-attach-btn"
                     @click="openFilePicker"
                   >
-                    <GeneralIcon v-if="!isAttachmentUploading" icon="ncPaperclip" class="text-md" />
+                    <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="text-md" />
                   </NcButton>
                 </NcTooltip>
               </template>

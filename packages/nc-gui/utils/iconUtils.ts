@@ -4515,37 +4515,9 @@ export const searchableMap = {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
   },
-  ncLogoBaserowColored: {
-    icon: h(NcLogoBaserowColored, { stroke: 'transparent' }),
-    keywords: ['baserow', 'nocode', 'database', 'table', 'collaboration', 'open-source'],
-  },
-  ncLogoSoftrColored: {
-    icon: h(NcLogoSoftrColored, { stroke: 'transparent' }),
-    keywords: ['softr', 'nocode', 'website', 'app', 'frontend', 'builder'],
-  },
-  ncLogoNotionColored: {
-    icon: h(NcLogoNotionColored, { stroke: 'transparent' }),
-    keywords: ['notion', 'docs', 'wiki', 'notes', 'productivity', 'database', 'collaboration'],
-  },
-  ncLogoCodaColored: {
-    icon: h(NcLogoCodaColored, { stroke: 'transparent' }),
-    keywords: ['coda', 'docs', 'automation', 'spreadsheet', 'teamwork', 'collaboration'],
-  },
-  ncLogoRetoolColored: {
-    icon: h(NcLogoRetoolColored, { stroke: 'transparent' }),
-    keywords: ['retool', 'internal-tools', 'builder', 'frontend', 'admin', 'dashboard', 'crud'],
-  },
-  ncLogoN8nColored: {
-    icon: h(NcLogoN8nColored, { stroke: 'transparent' }),
-    keywords: ['n8n', 'workflow', 'automation', 'integration', 'open-source', 'pipeline'],
-  },
   ncLogoZapierColored: {
     icon: h(NcLogoZapierColored, { stroke: 'transparent' }),
     keywords: ['zapier', 'automation', 'integration', 'workflow', 'task', 'connect'],
-  },
-  ncLogoMakeColored: {
-    icon: h(NcLogoMakeColored, { stroke: 'transparent' }),
-    keywords: ['make', 'automation', 'workflow', 'integration', 'connect', 'nocode'],
   },
   ncLogoCrewAi: {
     icon: h(NcLogoCrewAi, { stroke: 'transparent' }),
@@ -4585,21 +4557,6 @@ export const searchableMap = {
       'machine learning',
       'text generation',
       'open source',
-      'integration',
-    ],
-  },
-  ncLogoReplitAi: {
-    icon: h(NcLogoReplitAi, { stroke: 'transparent' }),
-    keywords: [
-      'replit',
-      'replit.ai',
-      'code',
-      'cloud IDE',
-      'developer tools',
-      'generative AI',
-      'ai coding',
-      'automation',
-      'nocode',
       'integration',
     ],
   },

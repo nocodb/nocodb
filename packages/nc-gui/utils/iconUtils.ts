@@ -4515,24 +4515,6 @@ export const searchableMap = {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
   },
-  ncLogoZapierColored: {
-    icon: h(NcLogoZapierColored, { stroke: 'transparent' }),
-    keywords: ['zapier', 'automation', 'integration', 'workflow', 'task', 'connect'],
-  },
-  ncLogoCrewAi: {
-    icon: h(NcLogoCrewAi, { stroke: 'transparent' }),
-    keywords: [
-      'crew',
-      'crew.ai',
-      'workflow automation',
-      'AI agents',
-      'team collaboration',
-      'autonomous agents',
-      'ai',
-      'nocode',
-      'integration',
-    ],
-  },
   ncLogoManusIm: {
     icon: h(NcLogoManusIm, { stroke: 'transparent' }),
     keywords: [
@@ -4594,22 +4576,6 @@ export const searchableMap = {
     icon: h(NcLogoDockerColored, { stroke: 'transparent' }),
     keywords: ['docker', 'containerization', 'devops', 'cloud', 'infrastructure'],
   },
-  ncLogoHootsuiteColored: {
-    icon: h(NcLogoHootsuiteColored, { stroke: 'transparent' }),
-    keywords: ['hootsuite', 'social', 'marketing', 'automation'],
-  },
-  ncLogoGongColored: {
-    icon: h(NcLogoGongColored, { stroke: 'transparent' }),
-    keywords: ['gong', 'revenue', 'analytics', 'sales'],
-  },
-  ncLogoProductBoardColored: {
-    icon: h(NcLogoProductBoardColored, { stroke: 'transparent' }),
-    keywords: ['productboard', 'roadmap', 'feedback', 'planning'],
-  },
-  ncLogoXeroColored: {
-    icon: h(NcLogoXeroColored, { stroke: 'transparent' }),
-    keywords: ['xero', 'accounting', 'finance', 'invoicing'],
-  },
   ncLogoSketchColored: {
     icon: h(NcLogoSketchColored, { stroke: 'transparent' }),
     keywords: ['sketch', 'design', 'ui', 'prototype'],
@@ -4621,10 +4587,6 @@ export const searchableMap = {
   ncLogoPowerLogoColored: {
     icon: h(NcLogoPowerLogoColored, { stroke: 'transparent' }),
     keywords: ['power', 'design', 'logo', 'branding'],
-  },
-  ncLogoClickupColored: {
-    icon: h(NcLogoClickupColored, { stroke: 'transparent' }),
-    keywords: ['clickup', 'tasks', 'collaboration', 'productivity'],
   },
 
   ncBaseOutline: {

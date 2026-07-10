@@ -38,7 +38,20 @@ export function createCharsetEncodeStream(
   const buffered: string[] = [];
   let bufferedBytes = 0;
 
+  // Stateful encoder for the committed-legacy path, built once and reused. A
+  // fresh `iconv.encode()` per chunk would re-emit any head-of-stream bytes the
+  // codec produces — e.g. UTF-16 writes a BOM, ISO-2022-* reset escape
+  // sequences — corrupting the output by injecting them between every chunk
+  // (encoding "ab" then "cd" separately yields "ab" + BOM + "cd").
+  // Reusing one encoder (as iconv's own encodeStream does) emits them once.
+  let legacyEncoder: ReturnType<typeof iconv.getEncoder> | null = null;
+  const getLegacyEncoder = () => {
+    if (!legacyEncoder) legacyEncoder = iconv.getEncoder(charset);
+    return legacyEncoder;
+  };
+
   // A charset is lossy for `text` if encoding then decoding doesn't round-trip.
+  // Uses stateless encode/decode — this is a representability probe, not output.
   const isLossy = (text: string) =>
     iconv.decode(iconv.encode(text, charset), charset) !== text;
 
@@ -49,7 +62,7 @@ export function createCharsetEncodeStream(
         : String(chunk);
 
       if (mode === 'utf8') return cb(null, Buffer.from(text, 'utf8'));
-      if (mode === 'legacy') return cb(null, iconv.encode(text, charset));
+      if (mode === 'legacy') return cb(null, getLegacyEncoder().write(text));
 
       // deciding: nothing has been emitted yet, so we can still choose the
       // file's encoding (and prepend a BOM) based on what we've seen.
@@ -72,14 +85,20 @@ export function createCharsetEncodeStream(
         mode = 'legacy';
         const pending = buffered.join('');
         buffered.length = 0;
-        return cb(null, iconv.encode(pending, charset));
+        return cb(null, getLegacyEncoder().write(pending));
       }
 
       return cb();
     },
     flush(cb) {
-      if (mode !== 'deciding') return cb();
+      if (mode === 'utf8') return cb();
 
+      if (mode === 'legacy') {
+        // Emit any trailing bytes the stateful encoder is still holding.
+        return cb(null, getLegacyEncoder().end() ?? Buffer.alloc(0));
+      }
+
+      // Still deciding: the whole file fit within the decision buffer.
       const pending = buffered.join('');
       buffered.length = 0;
 
@@ -91,7 +110,14 @@ export function createCharsetEncodeStream(
         );
       }
 
-      return cb(null, iconv.encode(pending, charset));
+      const encoder = getLegacyEncoder();
+      return cb(
+        null,
+        Buffer.concat([
+          encoder.write(pending),
+          encoder.end() ?? Buffer.alloc(0),
+        ]),
+      );
     },
   });
 }

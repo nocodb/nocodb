@@ -164,7 +164,12 @@ if (!localValue.value && allowEmpty !== true) {
 
         <div class="h-full flex items-center w-full justify-between gap-2">
           <div class="flex gap-1.5 flex-1 items-center truncate h-full">
-            <component :is="option.icon" v-if="!isCompact" class="!w-3.5 !h-3.5 !mx-0" color="text-nc-content-gray-muted" />
+            <component
+              :is="option.icon"
+              class="!mx-0"
+              :class="isCompact ? 'nc-field-list-icon-compact' : '!w-3.5 !h-3.5'"
+              color="text-nc-content-gray-muted"
+            />
             <NcTooltip
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               class="field-selection-tooltip-wrapper truncate select-none"
@@ -189,5 +194,15 @@ if (!localValue.value && allowEmpty !== true) {
 <style lang="scss">
 .ant-select-selection-search-input {
   box-shadow: none !important;
+}
+
+// Compact hosts (side-panel filter/sort editors): field-type icons shrink to
+// match the panel's toggle-list icons. SmartsheetHeaderIcon renders the svg as
+// its root, so the class sits on the svg itself.
+.nc-dropdown-toolbar-field-list-compact .nc-field-list-icon-compact,
+.nc-field-list-icon-compact {
+  width: 12px !important;
+  height: 12px !important;
+  opacity: 0.75;
 }
 </style>

@@ -8,7 +8,6 @@ import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn'
 import { NcContext } from '~/interface/config';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -645,6 +644,11 @@ export class DatasService {
       rowId: string;
     },
   ) {
+    // NOTE: view-hidden columns are intentionally NOT stripped from
+    // `param.query` (where/sort/filter) here or in the sibling nested-link
+    // methods below. Field visibility is the column-level ACL, not view
+    // `show`. Do not re-add hidden-column query sanitization — see the
+    // DESIGN NOTE in public-datas.service.ts.
     const view = await View.get(context, param.viewId);
 
     const model = await Model.getByIdOrName(context, {
@@ -662,15 +666,6 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
-
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). Mutates
-    // `param.query`, which both the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
 
     const key = `${model.title}List`;
     const requestObj: any = {
@@ -738,18 +733,6 @@ export class DatasService {
       source,
     });
 
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The excluded
-    // (link-picker) fetch is `pkAndPvOnly`-restricted just like the linked
-    // list, so an unsanitized predicate on a hidden column is the same one-bit
-    // oracle — over the *unlinked* rows here. Mutates `param.query`, which both
-    // the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
-
     const key = 'List';
     const requestObj: any = {
       [key]: 1,
@@ -815,18 +798,6 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
-
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The excluded
-    // (link-picker) fetch is `pkAndPvOnly`-restricted just like the linked
-    // list, so an unsanitized predicate on a hidden column is the same one-bit
-    // oracle — over the *unlinked* rows here. Mutates `param.query`, which both
-    // the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
 
     const key = 'List';
     const requestObj: any = {
@@ -896,18 +867,6 @@ export class DatasService {
       source,
     });
 
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The excluded
-    // (link-picker) fetch is `pkAndPvOnly`-restricted just like the linked
-    // list, so an unsanitized predicate on a hidden column is the same one-bit
-    // oracle — over the *unlinked* rows here. Mutates `param.query`, which both
-    // the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
-
     const key = 'List';
     const requestObj: any = {
       [key]: 1,
@@ -975,14 +934,6 @@ export class DatasService {
     });
 
     const column = await Column.get(context, { colId: param.colId });
-
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The excluded
-    // (link-picker) fetch is `pkAndPvOnly`-restricted just like the linked
-    // list, so an unsanitized predicate on a hidden column is the same one-bit
-    // oracle — over the *unlinked* rows here. Mutates `param.query`, which both
-    // the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = 'List';
     const requestObj: any = {
@@ -1082,15 +1033,6 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
-
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). Mutates
-    // `param.query`, which both the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
 
     const key = `${model.title}List`;
     const requestObj: any = {

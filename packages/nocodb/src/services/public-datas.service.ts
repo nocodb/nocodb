@@ -1,6 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
-  extractFilterFromXwhere,
   isLinksOrLTAR,
   NcBaseError,
   ncIsArray,
@@ -10,7 +9,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import type { ClientType, NcRequest } from 'nocodb-sdk';
-import type { GridViewColumn, LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -19,7 +18,6 @@ import {
   Base,
   Column,
   FormView,
-  KanbanView,
   Model,
   Source,
   View,
@@ -28,7 +26,6 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
-import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
@@ -38,42 +35,36 @@ import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PublicMetasService } from '~/services/public-metas.service';
 
-interface VisibleColumnInfo {
-  /** Set of Column.id values that are visible in the view */
-  visibleColumnIds: Set<string>;
-  /** Set of Column.title values that are visible */
-  visibleColumnTitles: Set<string>;
-  /** Set of Column.column_name values that are visible */
-  visibleColumnNames: Set<string>;
-  /** The actual Column objects for visible columns */
-  visibleColumns: Column[];
-  /** Set of Column.id values used in group-by (grid views only) */
-  groupByColumnIds: Set<string>;
-  /** Set of Column.title values used in group-by (grid views only) */
-  groupByColumnTitles: Set<string>;
-  /** Set of Column.column_name values used in group-by (grid views only) */
-  groupByColumnNames: Set<string>;
-  /** The actual Column objects for group-by columns (grid views only) */
-  groupByColumns: Column[];
-}
-
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
-// Keys that must never be controllable by public/shared-view callers
-const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
-
-function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
-  if (!query) return query;
-  const sanitized = { ...query };
-  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
-    delete sanitized[key];
-  }
-  return sanitized;
-}
-
+/**
+ * DESIGN NOTE — view-hidden columns are intentionally queryable.
+ *
+ * A column being hidden in a view (its view-column `show = false`) is a
+ * display/layout preference, NOT a column-level access-control boundary.
+ * Column-level access is governed separately by FIELD VISIBILITY — that is
+ * the real ACL. So the public/shared-view and nested-link data endpoints
+ * DELIBERATELY do not strip or reject caller-supplied
+ * `where` / `sort` / `filter` / `groupBy` / `fields` / `aggregation`
+ * references just because they point at a column that is hidden in the view.
+ *
+ * Do NOT re-introduce "hidden-column query sanitization" — here, or in
+ * datas.service / data-alias-nested / the export path. It existed once
+ * (previously tracked as CVE-2026-47378 / CVE-2026-47279 /
+ * GHSA-qqxm-7cj9-5fr2) and was removed on purpose: the team's position is
+ * that "hidden in view" does not mean "confidential". A view-hidden column
+ * turning up as filterable/sortable is expected behaviour, not a CWE-200
+ * oracle. Enforce confidentiality with field visibility, not view `show`.
+ *
+ * Separate, still-active concern: the response-shape gate in getAst
+ * (`allowedCols` keyed on view-column `show`) still omits hidden columns
+ * from the default response payload. That is fine and unrelated — hidden
+ * columns are simply not emitted by default, yet remain queryable, which is
+ * the intended behaviour described above.
+ */
 @Injectable()
 export class PublicDatasService {
   constructor(
@@ -83,382 +74,6 @@ export class PublicDatasService {
     protected readonly attachmentsService: AttachmentsService,
     protected readonly publicMetasService: PublicMetasService,
   ) {}
-
-  /**
-   * Returns the set of visible column IDs, titles, and column_names for a
-   * shared view.  Used to enforce column-level access control on all public
-   * endpoints so that hidden columns cannot be leaked via groupBy, filters,
-   * sorts, aggregations, or WHERE clauses.
-   */
-  protected async getVisibleColumnInfo(
-    context: NcContext,
-    view: View,
-    model: Model,
-  ): Promise<VisibleColumnInfo> {
-    const viewColumns = await View.getColumns(context, view.id);
-    const visibleColumnIds = new Set<string>();
-    const groupByColumnIds = new Set<string>();
-
-    for (const vc of viewColumns) {
-      if (vc.show) {
-        visibleColumnIds.add(vc.fk_column_id);
-      }
-
-      if (view.type === ViewTypes.GRID && (vc as GridViewColumn).group_by) {
-        groupByColumnIds.add(vc.fk_column_id);
-      }
-    }
-
-    // Kanban views always group records by `fk_grp_col_id`, even when that
-    // column is hidden from the view. The frontend issues a grouped-data
-    // request keyed on that column id, so it must be accessible via the
-    // shared-view group endpoint regardless of `show`. The values are
-    // already visible in the UI as stack headers, so allowing access here
-    // doesn't leak any data that isn't otherwise rendered.
-    if (view.type === ViewTypes.KANBAN) {
-      const kanbanView = await KanbanView.get(context, view.id);
-      if (kanbanView?.fk_grp_col_id) {
-        groupByColumnIds.add(kanbanView.fk_grp_col_id);
-      }
-    }
-
-    await model.getColumns(context);
-
-    const visibleColumnTitles = new Set<string>();
-    const visibleColumnNames = new Set<string>();
-    const visibleColumns: Column[] = [];
-    const groupByColumnTitles = new Set<string>();
-    const groupByColumnNames = new Set<string>();
-    const groupByColumns: Column[] = [];
-
-    for (const col of model.columns) {
-      if (visibleColumnIds.has(col.id)) {
-        if (col.title) visibleColumnTitles.add(col.title);
-        if (col.column_name) visibleColumnNames.add(col.column_name);
-        visibleColumns.push(col);
-      }
-
-      if (groupByColumnIds.has(col.id)) {
-        if (col.title) groupByColumnTitles.add(col.title);
-        if (col.column_name) groupByColumnNames.add(col.column_name);
-        groupByColumns.push(col);
-      }
-    }
-
-    return {
-      visibleColumnIds,
-      visibleColumnTitles,
-      visibleColumnNames,
-      visibleColumns,
-      groupByColumnIds,
-      groupByColumnTitles,
-      groupByColumnNames,
-      groupByColumns,
-    };
-  }
-
-  /**
-   * Returns the set of column IDs accessible to a public/shared-view caller —
-   * i.e. visible view columns plus the Kanban group-by column (already
-   * exposed via stack headers in the UI).
-   *
-   * Used by the public CSV/JSON/Excel export controller to strip
-   * hidden-column references from caller-supplied filterArrJson /
-   * sortArrJson before the export job runs. Without this the export job
-   * would honor filters targeting hidden columns, creating a yes/no
-   * oracle on hidden values (CWE-200).
-   */
-  protected async getPublicAccessibleColumnIds(
-    context: NcContext,
-    view: View,
-  ): Promise<Set<string>> {
-    const viewColumns = await View.getColumns(context, view.id);
-    const accessibleIds = new Set<string>();
-
-    for (const vc of viewColumns) {
-      if (vc.show) accessibleIds.add(vc.fk_column_id);
-    }
-
-    if (view.type === ViewTypes.KANBAN) {
-      const kanbanView = await KanbanView.get(context, view.id);
-      if (kanbanView?.fk_grp_col_id) {
-        accessibleIds.add(kanbanView.fk_grp_col_id);
-      }
-    }
-
-    return accessibleIds;
-  }
-
-  /**
-   * Strips hidden-column references from caller-supplied filterArrJson /
-   * sortArrJson in a public-share export job payload. Mutates `options`
-   * in place. Same column-visibility semantics as
-   * `sanitizeListArgsForPublicView` so the export endpoint and the rows
-   * endpoint stay in lockstep.
-   */
-  public async sanitizeExportJobOptions(
-    context: NcContext,
-    view: View,
-    options: { filterArrJson?: string; sortArrJson?: string } | undefined,
-  ): Promise<void> {
-    if (!options) return;
-
-    const accessibleColumnIds = await this.getPublicAccessibleColumnIds(
-      context,
-      view,
-    );
-
-    if (typeof options.filterArrJson === 'string') {
-      try {
-        const parsed = JSON.parse(options.filterArrJson);
-        if (ncIsArray(parsed)) {
-          const sanitized = this.stripHiddenColumnsFromFilters(
-            parsed,
-            accessibleColumnIds,
-          );
-          options.filterArrJson = JSON.stringify(sanitized);
-        }
-      } catch {
-        // unparseable JSON — drop it rather than letting the worker
-        // re-parse and silently apply a tampered structure
-        delete options.filterArrJson;
-      }
-    }
-
-    if (typeof options.sortArrJson === 'string') {
-      try {
-        const parsed = JSON.parse(options.sortArrJson);
-        if (ncIsArray(parsed)) {
-          const sanitized = this.stripHiddenColumnsFromSorts(
-            parsed,
-            accessibleColumnIds,
-          );
-          options.sortArrJson = JSON.stringify(sanitized);
-        }
-      } catch {
-        delete options.sortArrJson;
-      }
-    }
-  }
-
-  /**
-   * Recursively removes filter entries that reference hidden columns.
-   */
-  protected stripHiddenColumnsFromFilters(
-    filters: any[],
-    visibleColumnIds: Set<string>,
-  ): any[] {
-    if (!ncIsArray(filters) || !filters.length) return filters;
-
-    return filters
-      .map((f) => {
-        if (f.is_group && ncIsArray(f.children)) {
-          return {
-            ...f,
-            children: this.stripHiddenColumnsFromFilters(
-              f.children,
-              visibleColumnIds,
-            ),
-          };
-        }
-        return f;
-      })
-      .filter((f) => {
-        if (f.is_group && ncIsArray(f.children)) {
-          return f.children.length > 0;
-        }
-        return !f.fk_column_id || visibleColumnIds.has(f.fk_column_id);
-      });
-  }
-
-  /**
-   * Removes sort entries that reference hidden columns.
-   */
-  protected stripHiddenColumnsFromSorts(
-    sorts: any[],
-    visibleColumnIds: Set<string>,
-  ): any[] {
-    if (!ncIsArray(sorts) || !sorts.length) return sorts;
-    return sorts.filter(
-      (s) => !s.fk_column_id || visibleColumnIds.has(s.fk_column_id),
-    );
-  }
-
-  /**
-   * Removes aggregation entries that reference hidden columns.
-   */
-  protected stripHiddenColumnsFromAggregation(
-    aggregation: any[],
-    visibleColumnIds: Set<string>,
-  ): any[] {
-    if (!ncIsArray(aggregation) || !aggregation.length) return aggregation;
-    return aggregation.filter((a) => !a.field || visibleColumnIds.has(a.field));
-  }
-
-  /**
-   * Validates that every column name in a comma-separated `column_name`
-   * string is visible or used in group-by in the shared view.
-   * Throws badRequest if any name references a hidden column.
-   */
-  protected validateGroupByColumnNames(
-    context: NcContext,
-    columnNameCsv: string,
-    visibleInfo: VisibleColumnInfo,
-  ): void {
-    if (!columnNameCsv) return;
-    const names = columnNameCsv.split(',').map((n) => n.trim());
-    for (const name of names) {
-      if (
-        !visibleInfo.visibleColumnTitles.has(name) &&
-        !visibleInfo.visibleColumnNames.has(name) &&
-        !visibleInfo.groupByColumnTitles.has(name) &&
-        !visibleInfo.groupByColumnNames.has(name)
-      ) {
-        NcError.get(context).badRequest(
-          'Column not accessible in this shared view',
-        );
-      }
-    }
-  }
-
-  /**
-   * Validates that a groupColumnId is visible or used in group-by
-   * in the shared view.
-   */
-  protected validateGroupColumnId(
-    context: NcContext,
-    groupColumnId: string,
-    visibleColumnIds: Set<string>,
-    groupByColumnIds: Set<string>,
-  ): void {
-    if (!groupColumnId) return;
-    if (
-      !visibleColumnIds.has(groupColumnId) &&
-      !groupByColumnIds.has(groupColumnId)
-    ) {
-      NcError.get(context).badRequest(
-        'Column not accessible in this shared view',
-      );
-    }
-  }
-
-  /**
-   * Builds an alias-to-column map containing visible and group-by columns.
-   * Same logic as Model.getAliasColObjMap but restricted to the given sets.
-   */
-  protected buildRestrictedAliasColObjMap(
-    visibleInfo: VisibleColumnInfo,
-  ): Record<string, Column> {
-    const columns = [
-      ...visibleInfo.visibleColumns,
-      ...visibleInfo.groupByColumns,
-    ];
-
-    const idReduce = columns.reduce(
-      (agg, c) => ({ ...agg, [c.id]: c }),
-      {} as Record<string, Column>,
-    );
-    const colNameReduce = columns.reduce(
-      (agg, c) => ({ ...agg, [c.column_name]: c }),
-      idReduce,
-    );
-    return columns.reduce(
-      (agg, c) => ({ ...agg, [c.title]: c }),
-      colNameReduce,
-    );
-  }
-
-  /**
-   * Sanitizes all user-controlled query parameters for a public/shared-view
-   * request, stripping references to hidden columns.
-   *
-   * - `where` is parsed with a restricted column map (visible only), merged
-   *   into `filterArr`, then removed so BaseModel doesn't re-parse it
-   * - `filterArr` entries referencing hidden columns are stripped
-   * - `sortArr` entries referencing hidden columns are stripped
-   */
-  protected sanitizeListArgsForPublicView(
-    context: NcContext,
-    listArgs: any,
-    visibleInfo: VisibleColumnInfo,
-  ): void {
-    // Strip keys that must never be controlled by public/shared-view callers
-    // (e.g. getHiddenColumn, nested) — applies to both top-level listArgs and
-    // inner bulkFilterList entries so the full attack surface is covered.
-    for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
-      delete listArgs[key];
-    }
-
-    // Parse `where` with a restricted alias map so only visible columns are
-    // accepted.  The parsed filters are merged into filterArr and the raw
-    // `where` string is deleted so BaseModel won't re-parse it with the
-    // full (unrestricted) column set.
-    if (listArgs.where) {
-      const restrictedMap = this.buildRestrictedAliasColObjMap(visibleInfo);
-      const { filters: parsedWhereFilters } = extractFilterFromXwhere(
-        context,
-        listArgs.where,
-        restrictedMap,
-        true,
-      );
-      if (parsedWhereFilters?.length) {
-        listArgs.filterArr = [
-          ...(listArgs.filterArr || []),
-          ...parsedWhereFilters,
-        ];
-      }
-      delete listArgs.where;
-    }
-
-    // Group-by columns are accessible to public callers: their values are
-    // already exposed as group headers, and the frontend scopes each group's
-    // leaf rows with a `(column,gb_eq,key)` filter. `buildRestrictedAliasColObjMap`
-    // (used to parse `where` above) already includes them, so the filter/sort
-    // strip must too — otherwise a gb_eq filter on a hidden group-by column
-    // (e.g. a lookup used only for grouping) is parsed and then dropped here, and
-    // the leaf query returns unfiltered rows under the wrong group (nocodb#13984).
-    // Note: the `fields`/`f` strip below intentionally stays visible-only — a
-    // public caller must not be able to pull arbitrary hidden columns into the
-    // payload via `fields`. (Group-by column values are still emitted by the
-    // default AST so the client can bucket rows, but that value is already
-    // exposed as the group header, so it is not an additional leak.)
-    const accessibleColumnIds = new Set<string>([
-      ...visibleInfo.visibleColumnIds,
-      ...visibleInfo.groupByColumnIds,
-    ]);
-
-    if (ncIsArray(listArgs.filterArr)) {
-      listArgs.filterArr = this.stripHiddenColumnsFromFilters(
-        listArgs.filterArr,
-        accessibleColumnIds,
-      );
-    }
-
-    if (ncIsArray(listArgs.sortArr)) {
-      listArgs.sortArr = this.stripHiddenColumnsFromSorts(
-        listArgs.sortArr,
-        accessibleColumnIds,
-      );
-    }
-
-    // Strip hidden columns from `fields` / `f` (comma-separated string or array)
-    for (const key of ['fields', 'f']) {
-      if (listArgs[key]) {
-        const fieldsArr: string[] = Array.isArray(listArgs[key])
-          ? listArgs[key]
-          : listArgs[key].split(',');
-        const sanitized = fieldsArr.filter(
-          (f) =>
-            visibleInfo.visibleColumnIds.has(f) ||
-            visibleInfo.visibleColumnTitles.has(f) ||
-            visibleInfo.visibleColumnNames.has(f),
-        );
-        listArgs[key] = Array.isArray(listArgs[key])
-          ? sanitized
-          : sanitized.join(',') || undefined;
-      }
-    }
-  }
 
   async dataList(
     context: NcContext,
@@ -523,8 +138,6 @@ export class PublicDatasService {
       includeRowColorColumns: query.include_row_color === 'true',
     });
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
     const listArgs: any = { ...query, ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
@@ -537,8 +150,6 @@ export class PublicDatasService {
     if (isGanttShared) {
       listArgs.linksAsLtar = 'true';
     }
-
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
 
     let data = [];
     let count = 0;
@@ -610,12 +221,8 @@ export class PublicDatasService {
       source,
     });
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
     const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
     countArgs.filterArr = parseFilterArrJson(context, countArgs.filterArrJson);
-
-    this.sanitizeListArgsForPublicView(context, countArgs, visibleInfo);
 
     const count: number = await baseModel.count(countArgs);
 
@@ -654,8 +261,6 @@ export class PublicDatasService {
 
     const source = await Source.get(context, model.source_id);
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
     const listArgs: any = { ...param.query };
 
     try {
@@ -665,15 +270,6 @@ export class PublicDatasService {
     try {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
-
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
-
-    if (ncIsArray(listArgs.aggregation)) {
-      listArgs.aggregation = this.stripHiddenColumnsFromAggregation(
-        listArgs.aggregation,
-        visibleInfo.visibleColumnIds,
-      );
-    }
 
     return await DBQueryClient.get(
       source.type as unknown as ClientType,
@@ -740,15 +336,6 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
-    this.validateGroupColumnId(
-      context,
-      groupColumnId,
-      visibleInfo.visibleColumnIds,
-      visibleInfo.groupByColumnIds,
-    );
-
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -758,7 +345,7 @@ export class PublicDatasService {
 
     const { ast } = await getAst(context, {
       model,
-      query: sanitizePublicQuery(param.query),
+      query: param.query,
       view,
       includeRowColorColumns: query.include_row_color === 'true',
     });
@@ -773,8 +360,6 @@ export class PublicDatasService {
     try {
       listArgs.options = JSON.parse(listArgs.optionsArrJson);
     } catch (e) {}
-
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
 
     let data = [];
 
@@ -900,12 +485,6 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
-    if (query.column_name) {
-      this.validateGroupByColumnNames(context, query.column_name, visibleInfo);
-    }
-
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -925,8 +504,6 @@ export class PublicDatasService {
         : null;
     }
 
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
-
     return await baseModel.groupByCount(listArgs);
   }
 
@@ -940,16 +517,6 @@ export class PublicDatasService {
       const base = await Base.get(context, view.base_id);
 
       this.publicMetasService.checkViewBaseType(view, base);
-
-      const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
-      if (query.column_name) {
-        this.validateGroupByColumnNames(
-          context,
-          query.column_name,
-          visibleInfo,
-        );
-      }
 
       const source = await Source.get(context, model.source_id);
 
@@ -976,8 +543,6 @@ export class PublicDatasService {
           ? listArgs?.sortArrJson
           : null;
       }
-
-      this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
 
       const data = await baseModel.groupBy(listArgs);
       const count = await baseModel.groupByCount(listArgs);
@@ -1183,15 +748,6 @@ export class PublicDatasService {
       NcError.badRequest('Column not accessible in this shared view');
     }
 
-    // Strip caller-supplied where/sort references to columns the related table
-    // doesn't expose. The /nested/ list is `extractOnlyPrimaries`-restricted
-    // (pk/pv only), but its `count` still compiles `where` against the related
-    // model's full column set, so an unsanitized predicate on a hidden related
-    // column is a boolean-blind count oracle (GHSA-qqxm-7cj9-5fr2) — the same
-    // one the hm/mm siblings close. Mutates `param.query`, which getAst
-    // (→ listArgs) and the count both read from.
-    await restrictNestedLinkQueryForColumn(context, column, param.query);
-
     await currentModel.getColumns(context);
 
     if (!isLinksOrLTAR(column))
@@ -1226,7 +782,7 @@ export class PublicDatasService {
     });
 
     const { ast, dependencyFields } = await getAst(refContext, {
-      query: sanitizePublicQuery(param.query),
+      query: param.query,
       model,
       extractOnlyPrimaries: true,
       fk_display_value_column_id: (colOptions as any)
@@ -1360,14 +916,6 @@ export class PublicDatasService {
       NcError.recordNotFound(param.rowId);
     }
 
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The shared-view
-    // /mm/ fetch is `pkAndPvOnly`-restricted, so an unsanitized predicate on a
-    // hidden related column is the same one-bit oracle the authenticated paths
-    // close. Mutates `param.query`, which both the data fetch and the count
-    // read from.
-    await restrictNestedLinkQueryForColumn(context, column, param.query);
-
     const key = `List`;
     const requestObj: any = {
       [key]: 1,
@@ -1466,14 +1014,6 @@ export class PublicDatasService {
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
-
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The shared-view
-    // /hm/ fetch is `pkAndPvOnly`-restricted, so an unsanitized predicate on a
-    // hidden related column is the same one-bit oracle the authenticated paths
-    // close. Mutates `param.query`, which both the data fetch and the count
-    // read from.
-    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = `List`;
     const requestObj: any = {
@@ -1587,8 +1127,6 @@ export class PublicDatasService {
 
     if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
     const listArgs: any = { ...param.query };
 
     let bulkFilterList = param.body;
@@ -1605,8 +1143,6 @@ export class PublicDatasService {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
 
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
-
     if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
     }
@@ -1615,35 +1151,8 @@ export class PublicDatasService {
       async (accPromise, dF: any) => {
         const acc = await accPromise;
 
-        const sanitizedDf = { ...sanitizePublicQuery(dF) };
-
-        // Parse the per-entry filter/sort JSON up front so the visibility strip
-        // applies to them. `sanitizeListArgsForPublicView` only inspects
-        // `where`/`filterArr`/`sortArr`; getDataList re-parses `filterArrJson`/
-        // `sortArrJson` downstream, so leaving them as raw strings here would
-        // bypass sanitization entirely and let a public caller filter or sort
-        // on hidden columns (CWE-200 value oracle). nocodb#13984
-        try {
-          sanitizedDf.filterArr = JSON.parse(sanitizedDf.filterArrJson);
-        } catch (e) {}
-        try {
-          sanitizedDf.sortArr = JSON.parse(sanitizedDf.sortArrJson);
-        } catch (e) {}
-
-        this.sanitizeListArgsForPublicView(context, sanitizedDf, visibleInfo);
-
-        // Re-serialize the sanitized arrays back into `filterArrJson`/`sortArrJson`
-        // — getDataList re-parses those, and would otherwise overwrite the
-        // sanitized `filterArr`/`sortArr` with the original unsanitized strings.
-        sanitizedDf.filterArrJson = JSON.stringify(
-          ncIsArray(sanitizedDf.filterArr) ? sanitizedDf.filterArr : [],
-        );
-        sanitizedDf.sortArrJson = JSON.stringify(
-          ncIsArray(sanitizedDf.sortArr) ? sanitizedDf.sortArr : [],
-        );
-
         const result = await this.datasService.dataList(context, {
-          query: sanitizedDf,
+          query: dF,
           model,
           view,
         });
@@ -1687,8 +1196,6 @@ export class PublicDatasService {
 
     if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
-    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
-
     let bulkFilterList = param.body;
 
     const listArgs: any = { ...param.query };
@@ -1704,33 +1211,6 @@ export class PublicDatasService {
     try {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
-
-    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
-
-    if (ncIsArray(listArgs.aggregation)) {
-      listArgs.aggregation = this.stripHiddenColumnsFromAggregation(
-        listArgs.aggregation,
-        visibleInfo.visibleColumnIds,
-      );
-    }
-
-    // Sanitize each bulk aggregation bucket. Parse `filterArrJson` up front so
-    // the visibility strip applies to it — the downstream bulk-aggregate handler
-    // applies each bucket's `filterArrJson` directly to the query, so leaving it
-    // as a raw string would bypass sanitization and let a public caller run
-    // aggregations (count/sum/…) filtered on hidden columns (CWE-200 oracle).
-    // Re-serialize the sanitized result back so the handler honors it. nocodb#13984
-    if (ncIsArray(bulkFilterList)) {
-      for (const entry of bulkFilterList) {
-        try {
-          entry.filterArr = JSON.parse(entry.filterArrJson);
-        } catch (e) {}
-        this.sanitizeListArgsForPublicView(context, entry, visibleInfo);
-        entry.filterArrJson = JSON.stringify(
-          ncIsArray(entry.filterArr) ? entry.filterArr : [],
-        );
-      }
-    }
 
     const source = await Source.get(context, model.source_id);
 

@@ -15,7 +15,6 @@ import type { LtarDisplayValueContext } from '~/helpers/ltarDisplayValueResolver
 import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
-import { restrictNestedLinkQuery } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
@@ -503,16 +502,6 @@ export class DataTableService {
 
     const relatedModel = await colOptions.getRelatedTable(refContext);
 
-    // Strip caller-supplied where/sort references to columns the link doesn't expose
-    // (cross-base / visibility-limited related tables). Both the data fetch and the
-    // count read from `param.query`, so sanitizing it here covers both surfaces.
-    await restrictNestedLinkQuery(
-      context,
-      colOptions,
-      relatedModel,
-      param.query,
-    );
-
     const { ast, dependencyFields } = await getAst(refContext, {
       model: relatedModel,
       query: param.query,
@@ -895,18 +884,6 @@ export class DataTableService {
     if (!colOptions.fk_mm_model_id) {
       return { swapEntry: null, feResponse: undefined };
     }
-
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The copy/paste/
-    // deleteAll diff returns the matched related records, so an unsanitized
-    // predicate on a hidden column would be the same one-bit oracle the list
-    // path closes — sanitize before the query reaches getAst/mmList.
-    await restrictNestedLinkQuery(
-      context,
-      colOptions,
-      relatedModel,
-      param.query,
-    );
 
     const { dependencyFields } = await getAst(refContext, {
       model: relatedModel,

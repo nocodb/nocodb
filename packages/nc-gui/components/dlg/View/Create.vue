@@ -1100,7 +1100,7 @@ watch(activeBaseId, () => {
             <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('labels.whoCanEdit') }}</div>
             <a-radio-group
               v-model:value="form.lock_type"
-              class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center gap-x-5"
+              class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center justify-between"
             >
               <template v-for="option in lockTypeOptions" :key="option.value">
                 <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
@@ -1133,7 +1133,15 @@ watch(activeBaseId, () => {
                           {{ $t(viewLockIcons[option.value].title) }}
                           <!-- show-as-lock renders a compact lock icon when gated
                                and auto-hides when the feature is enabled -->
-                          <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
+                          <PaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                            :content="
+                              $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
+                                plan: getPlanTitle(PlanTitles.PLUS),
+                              })
+                            "
+                            show-as-lock
+                          />
                         </span>
                       </a-radio>
                     </template>

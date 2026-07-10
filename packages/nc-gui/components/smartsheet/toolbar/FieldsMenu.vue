@@ -261,6 +261,8 @@ const { blockGalleryCardLayout, showUpgradeToUseGalleryCardLayout, blockCardFiel
 
 const isGalleryView = computed(() => activeView.value?.type === ViewTypes.GALLERY)
 
+const isKanbanView = computed(() => activeView.value?.type === ViewTypes.KANBAN)
+
 const galleryMeta = computed<Record<string, any>>(
   () => parseProp((activeView.value?.view as GalleryType | undefined)?.meta) || {},
 )
@@ -292,13 +294,13 @@ const coverSize = computed<GalleryCoverSize>(() => {
 })
 
 async function updateGalleryMeta(patch: Record<string, any>) {
-  if (!isGalleryView.value || !activeView.value?.id || !activeView.value?.view) return
+  if (!(isGalleryView.value || isKanbanView.value) || !activeView.value?.id || !activeView.value?.view) return
 
   const payload = { ...galleryMeta.value, ...patch }
-  ;(activeView.value.view as GalleryType).meta = payload
+  ;(activeView.value.view as GalleryType | KanbanType).meta = payload
 
   try {
-    await updateViewMeta(activeView.value.id, ViewTypes.GALLERY, { meta: payload })
+    await updateViewMeta(activeView.value.id, activeView.value.type, { meta: payload })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -684,7 +686,7 @@ const onAddColumnDropdownVisibilityChange = () => {
     </template>
     <template #overlay>
       <div
-        class="w-full xs:(h-full flex flex-col) sm:w-[320px] rounded-lg nc-table-toolbar-menu"
+        class="w-full flex flex-col nc-max-h-screen xs:h-full sm:w-[320px] rounded-lg nc-table-toolbar-menu"
         data-testid="nc-fields-menu"
         @click.stop
       >
@@ -792,21 +794,22 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
-        <!-- Card appearance (Gallery, EE): card size + cover height + field header -->
+        <!-- Card appearance (Gallery + Kanban, EE): gallery card size/cover height + the field-header toggle (both view types) -->
         <div
-          v-if="isEeUI && !isPublic && isGalleryView && isUIAllowed('viewCreateOrEdit')"
+          v-if="isEeUI && !isPublic && (isGalleryView || isKanbanView) && isUIAllowed('viewCreateOrEdit')"
           class="flex flex-col gap-2.5 py-2.5 sm:w-80 border-b-1 border-nc-border-gray-light"
         >
           <div class="px-4 flex items-center gap-2">
             <span class="flex-1 text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.cardAppearance') }}</span>
             <LazyPaymentUpgradeBadge
+              v-if="isGalleryView"
               :feature="PlanFeatureTypes.FEATURE_GALLERY_CARD_LAYOUT"
               :feature-enabled-callback="() => !isEEFeatureBlocked"
               size="xs"
             />
           </div>
 
-          <div class="px-4 flex items-center gap-2">
+          <div v-if="isGalleryView" class="px-4 flex items-center gap-2">
             <span class="flex-1 text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.cardSize') }}</span>
             <div class="nc-card-appearance-segmented" data-testid="nc-gallery-card-size">
               <button
@@ -935,7 +938,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         </div>
 
         <div
-          class="flex flex-col nc-scrollbar-thin xs:flex-1 sm:(max-h-[315px] min-h-[240px]) p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
+          class="flex flex-col nc-scrollbar-thin flex-1 min-h-0 sm:max-h-[315px] p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
           style="scrollbar-gutter: stable !important"
         >
           <div class="nc-fields-list">

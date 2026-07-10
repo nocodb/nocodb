@@ -504,8 +504,10 @@ export class DataTableService {
     const relatedModel = await colOptions.getRelatedTable(refContext);
 
     // Strip caller-supplied where/sort references to columns the link doesn't expose
-    // (cross-base / visibility-limited related tables). Both the data fetch and the
-    // count read from `param.query`, so sanitizing it here covers both surfaces.
+    // (cross-base / visibility-limited related tables). This is NOT the view-`show`
+    // dimension (view-hidden columns stay queryable) — it's the cross-base isolation
+    // / table-visibility ACL boundary. Both the data fetch and the count read from
+    // `param.query`, so sanitizing it here covers both surfaces.
     await restrictNestedLinkQuery(
       context,
       colOptions,
@@ -897,10 +899,11 @@ export class DataTableService {
     }
 
     // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose (cross-base / visibility-limited related tables). The copy/paste/
-    // deleteAll diff returns the matched related records, so an unsanitized
-    // predicate on a hidden column would be the same one-bit oracle the list
-    // path closes — sanitize before the query reaches getAst/mmList.
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The copy/paste/deleteAll diff returns the
+    // matched related records, so an unsanitized predicate on a non-exposed column
+    // would be the same one-bit oracle the list path closes — sanitize before the
+    // query reaches getAst/mmList.
     await restrictNestedLinkQuery(
       context,
       colOptions,

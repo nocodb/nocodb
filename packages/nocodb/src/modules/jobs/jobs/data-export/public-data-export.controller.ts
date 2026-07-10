@@ -56,16 +56,6 @@ export class PublicDataExportController {
 
     if (!view) NcError.viewNotFound(publicDataUuid);
 
-    // Strip filterArrJson / sortArrJson entries referencing columns that
-    // are hidden in this shared view. Without this, an unauthenticated
-    // viewer can probe hidden-column values by filtering on them and
-    // observing which visible rows remain in the export (CWE-200).
-    await this.publicDatasService.sanitizeExportJobOptions(
-      context,
-      view,
-      options,
-    );
-
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,
       options: {

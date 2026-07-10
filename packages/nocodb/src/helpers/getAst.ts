@@ -280,6 +280,12 @@ const getAst = async (
     fields = null;
   }
 
+  // This `allowedCols` gate (keyed on view-column `show`) omits view-hidden
+  // columns from the default RESPONSE PAYLOAD only. That is intended and is a
+  // separate concern from query-level filtering: hidden columns stay fully
+  // queryable via where/sort/filter (field visibility is the real ACL, not
+  // view `show`). Do not extend this into query-param sanitization — see the
+  // DESIGN NOTE in services/public-datas.service.ts.
   let allowedCols = null;
   if (view) {
     allowedCols = (await View.getColumns(context, view.id)).reduce(

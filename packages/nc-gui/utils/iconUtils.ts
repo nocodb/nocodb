@@ -308,6 +308,7 @@ import NcAmazonAws from '~icons/nc-icons/amazon_aws'
 // Buttons Icons V2
 
 import NcColumnsIcon from '~icons/nc-icons-v2/columns.svg'
+import NcTabsIcon from '~icons/nc-icons-v2/tabs.svg'
 import NcUnderlineIcon from '~icons/nc-icons-v2/underline.svg'
 import NcGridIcon from '~icons/nc-icons-v2/grid.svg'
 import NcTriangleIcon from '~icons/nc-icons-v2/triangle.svg'
@@ -1407,6 +1408,7 @@ export const iconMap = {
 
   // Nc-IconsV2 Buttons
   'ncColumns': NcColumnsIcon,
+  'ncTabs': NcTabsIcon,
   'ncUnderline': NcUnderlineIcon,
   'ncGrid': NcGridIcon,
   'ncTriangle': NcTriangleIcon,

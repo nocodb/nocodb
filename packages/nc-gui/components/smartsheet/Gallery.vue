@@ -591,14 +591,16 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         v-for="(attachment, index) in attachments(record)"
                         :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
                       >
-                        <LazyCellAttachmentPreviewThumbnail
-                          :attachment="attachment"
-                          :style="{ height: `${coverHeightPx}px` }"
-                          thumbnail="card_cover"
-                          image-class="!w-full"
-                          :object-fit="coverImageObjectFitStyle"
-                          @click="expandFormClick($event, record)"
-                        />
+                        <div class="w-full overflow-hidden">
+                          <LazyCellAttachmentPreviewThumbnail
+                            :attachment="attachment"
+                            :style="{ height: `${coverHeightPx}px` }"
+                            thumbnail="card_cover"
+                            image-class="!w-full"
+                            :object-fit="coverImageObjectFitStyle"
+                            @click="expandFormClick($event, record)"
+                          />
+                        </div>
                       </template>
                     </a-carousel>
                     <div

@@ -2411,8 +2411,12 @@
       "note": "Note",
       "warning": "Warning",
       "tip": "Tip",
-      "important": "Important"
+      "important": "Important",
+      "info": "Info",
+      "success": "Success",
+      "accent": "Accent"
     },
+    "calloutStyle": "Callout style",
     "docSlashGroup": {
       "headings": "Headings",
       "lists": "Lists",
@@ -2635,6 +2639,7 @@
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
     "selectDateField": "Select a date field",
+    "startDateField": "Start date field",
     "endDateField": "End date field",
     "optional": "(Optional)",
     "clickToMake": "Click to make",
@@ -3465,6 +3470,8 @@
     "groupByCount": "{count} field | {count} fields",
     "editRecordsInline": "Edit records inline",
     "addDeleteRecordsInline": "Add/delete records inline",
+    "interfaceCalendarSidePanel": "Side panel with records",
+    "showDependencies": "Show dependencies",
     "allowCsvExport": "Allow export to CSV",
     "allowCsvImport": "Allow import from CSV",
     "groups": "Groups",
@@ -3476,7 +3483,6 @@
     "userFilters": "User filters",
     "userActions": "User actions",
     "elements": "Elements",
-    "tabs": "Tabs",
     "dropdowns": "Dropdowns",
     "buttons": "Buttons",
     "addTab": "Add tab",
@@ -3496,7 +3502,18 @@
     "lastPublished": "Last published {time}",
     "notPublishedYet": "Not published yet",
     "hideFromNavigation": "Hide from navigation",
-    "showFromNavigation": "Show in navigation"
+    "showFromNavigation": "Show in navigation",
+    "interfaceThemeStyles": {
+      "bold": "Bold",
+      "quiet": "Quiet",
+      "wash": "Wash",
+      "ink": "Ink"
+    },
+    "interfaceThemeModes": {
+      "auto": "Auto",
+      "light": "Light",
+      "dark": "Dark"
+    }
   },
   "activity": {
     "useTemplate": "Use template",
@@ -4855,6 +4872,7 @@
       "interfaceLayoutComingSoon": "This layout renderer is coming soon.",
       "interfaceComingSoonAction": "This action is coming soon.",
       "interfaceStackingFieldRequired": "Select a stacking field to render the kanban.",
+      "interfaceDateRangeRequired": "Select a date field to display this visualization.",
       "interfaceLastVisualizationCannotBeRemoved": "A table page needs at least one visualization.",
       "interfacePageNotPublished": "This page isn't published yet.",
       "interfaceDashboardNoGroups": "This dashboard has no groups yet. Add a group to get started.",

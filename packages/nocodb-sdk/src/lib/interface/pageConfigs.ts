@@ -335,6 +335,77 @@ export type InterfaceFormPageConfig = InterfaceFormConfig;
 export type InterfaceRecordDetailPageConfig = InterfaceRecordDetailConfig;
 
 // ────────────────────────────────────────────────────────────────────────────
+// Layout: CUSTOM (sandboxed custom-code page — @nocodb/blocks interface mode)
+// ────────────────────────────────────────────────────────────────────────────
+
+interface InterfaceCustomPropertyBase {
+  key: string;
+  label: string;
+}
+
+/** Builder-exposed custom props a custom-code element can declare. */
+export type InterfaceCustomPropertyConfig =
+  | (InterfaceCustomPropertyBase & {
+      type: 'boolean';
+      default_value: boolean;
+    })
+  | (InterfaceCustomPropertyBase & {
+      type: 'string';
+      default_value?: string;
+    })
+  | (InterfaceCustomPropertyBase & {
+      type: 'enum';
+      possible_values: { value: string; label: string }[];
+      default_value?: string;
+    })
+  | (InterfaceCustomPropertyBase & {
+      type: 'field';
+      table_key: string;
+      allowed_field_ids?: string[];
+      default_value?: string;
+    })
+  | (InterfaceCustomPropertyBase & {
+      type: 'table';
+      default_value?: string;
+    });
+
+/** Each source binds its OWN table (like DASHBOARD groups). */
+export interface InterfaceCustomSourceConfig {
+  id: string;
+  fk_model_id: string;
+  allowed_field_ids?: string[];
+  filters?: InterfaceFilterGroup | null;
+  sorts?: InterfaceSortConfig[] | null;
+  edit_records_inline?: boolean;
+  add_delete_records_inline?: boolean;
+  click_into_record_details?: boolean;
+  fk_detail_page_id?: string | null;
+}
+
+export interface InterfaceCustomPageConfig {
+  description?: string;
+  show_description?: boolean;
+  dev_url?: string | null;
+  custom_props_schema?: InterfaceCustomPropertyConfig[];
+  /** Size-capped (50KB serialized) — rides every config commit. */
+  custom_props?: Record<string, unknown>;
+  /** Size-capped (50KB serialized) — rides every config commit. */
+  kv_store?: Record<string, unknown>;
+  sources: InterfaceCustomSourceConfig[];
+  user_filters?: InterfaceUserFilterConfig;
+  user_actions?: {
+    edit_records_inline?: boolean;
+    add_delete_records_inline?: boolean;
+    click_into_record_details?: boolean;
+    allow_sort?: boolean;
+    allow_search?: boolean;
+    allow_filter?: boolean;
+    buttons?: InterfaceButtonConfig[];
+  };
+  advanced?: InterfaceAdvancedActionsConfig;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Layout → config mapping
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -345,6 +416,7 @@ export interface InterfacePageConfigMap {
   [InterfacePageLayoutTypes.FORM]: InterfaceFormPageConfig;
   [InterfacePageLayoutTypes.OVERVIEW]: InterfaceOverviewPageConfig;
   [InterfacePageLayoutTypes.RECORD_DETAIL]: InterfaceRecordDetailPageConfig;
+  [InterfacePageLayoutTypes.CUSTOM]: InterfaceCustomPageConfig;
 }
 
 export type InterfacePageConfigFor<L extends InterfacePageLayoutTypes> =

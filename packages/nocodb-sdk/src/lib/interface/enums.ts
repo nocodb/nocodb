@@ -11,6 +11,8 @@ export enum InterfacePageLayoutTypes {
   OVERVIEW = 'overview',
   /** Reusable per-table record detail page (unparented, referenced by id). */
   RECORD_DETAIL = 'record_detail',
+  /** Sandboxed custom-code page — sources bind their own tables (like DASHBOARD groups). */
+  CUSTOM = 'custom',
 }
 
 export enum InterfacePageVisualVariants {

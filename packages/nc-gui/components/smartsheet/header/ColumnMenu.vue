@@ -154,10 +154,15 @@ const duplicateVirtualColumn = async () => {
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
-    if (currentColumnIndex === gridViewColumnList.length - 1) {
-      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    if (currentColumnIndex === -1) {
+      // current column is not present in the view column list (e.g. hidden) — append to the end
+      const maxOrder = gridViewColumnList.reduce((max, c) => Math.max(max, c.order ?? 0), 0)
+      newColumnOrder = maxOrder + 1
+    } else if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order ?? 0) + 1
     } else {
-      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+      newColumnOrder =
+        ((gridViewColumnList[currentColumnIndex].order ?? 0) + (gridViewColumnList[currentColumnIndex + 1].order ?? 0)) / 2
     }
 
     await $api.internal.postOperation(
@@ -214,10 +219,15 @@ const openDuplicateDlg = async () => {
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
-    if (currentColumnIndex === gridViewColumnList.length - 1) {
-      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    if (currentColumnIndex === -1) {
+      // current column is not present in the view column list (e.g. hidden) — append to the end
+      const maxOrder = gridViewColumnList.reduce((max, c) => Math.max(max, c.order ?? 0), 0)
+      newColumnOrder = maxOrder + 1
+    } else if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order ?? 0) + 1
     } else {
-      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+      newColumnOrder =
+        ((gridViewColumnList[currentColumnIndex].order ?? 0) + (gridViewColumnList[currentColumnIndex + 1].order ?? 0)) / 2
     }
 
     selectedColumnExtra.value = {
@@ -253,17 +263,23 @@ const addColumn = async (before = false) => {
   const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
 
   let newColumnOrder
-  if (before) {
+  if (currentColumnIndex === -1) {
+    // current column is not present in the view column list (e.g. hidden) — append to the end
+    const maxOrder = gridViewColumnList.reduce((max, c) => Math.max(max, c.order ?? 0), 0)
+    newColumnOrder = maxOrder + 1
+  } else if (before) {
     if (currentColumnIndex === 0) {
-      newColumnOrder = gridViewColumnList[currentColumnIndex].order / 2
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order ?? 0) / 2
     } else {
-      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex - 1]?.order) / 2
+      newColumnOrder =
+        ((gridViewColumnList[currentColumnIndex].order ?? 0) + (gridViewColumnList[currentColumnIndex - 1]?.order ?? 0)) / 2
     }
   } else {
     if (currentColumnIndex === gridViewColumnList.length - 1) {
-      newColumnOrder = gridViewColumnList[currentColumnIndex].order + 1
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order ?? 0) + 1
     } else {
-      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+      newColumnOrder =
+        ((gridViewColumnList[currentColumnIndex].order ?? 0) + (gridViewColumnList[currentColumnIndex + 1]?.order ?? 0)) / 2
     }
   }
 

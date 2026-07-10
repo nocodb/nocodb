@@ -251,6 +251,10 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 const isPublicView = inject(IsPublicInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
+// Present when the grid is hosted on an interface page (synthetic view) —
+// data flows through the adapter and there is no `viewId` route param.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
 // Composables
 const { height, width } = useElementSize(wrapperRef)
 const { height: windowHeight, width: windowWidth } = useWindowSize()
@@ -3000,7 +3004,11 @@ watch(
   view,
   async (next, old) => {
     try {
-      if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
+      if (
+        next &&
+        next.id !== old?.id &&
+        (next.fk_model_id === route.params.viewId || isPublicView.value || !!interfacePageDataApi)
+      ) {
         clearTextCache()
         await until(isViewColumnsLoading).toMatch((c) => !c)
         if (isGroupBy.value) {

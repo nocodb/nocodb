@@ -550,6 +550,7 @@ useResizeObserver(inputWrapperRef, () => {
             }"
             :autofocus="false"
             show-menu
+            sync-value-change
             :read-only="readOnly"
           />
         </div>
@@ -931,7 +932,15 @@ useResizeObserver(inputWrapperRef, () => {
           />
         </div>
 
-        <CellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
+        <CellRichText
+          v-else
+          v-model:value="vModel"
+          show-menu
+          full-mode
+          sync-value-change
+          :read-only="readOnly"
+          @close="handleClose"
+        />
       </div>
     </a-modal>
 

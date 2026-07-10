@@ -4,10 +4,23 @@ import type {
 } from './pageConfigs';
 import { InterfacePageLayoutTypes, InterfacePageVisualVariants } from './enums';
 
+/** Chrome styles for the end-user app shell (nav/frame treatment). */
+export type InterfaceThemeStyle = 'bold' | 'quiet' | 'framed' | 'wash' | 'ink';
+
+/** Per-interface theme — applies to the end-user app shell. */
+export interface InterfaceThemeConfig {
+  /** Curated accent palette key (not a raw hex). */
+  accent?: string | null;
+  style?: InterfaceThemeStyle | null;
+  /** Forces the app light/dark while inside this interface. */
+  mode?: 'auto' | 'light' | 'dark' | null;
+}
+
 /** Interface meta (icon/color etc.) — stored as JSON in `nc_interfaces.meta`. */
 export interface InterfaceMetaType {
   icon?: string | null;
   color?: string | null;
+  theme?: InterfaceThemeConfig | null;
 }
 
 export interface InterfaceType {

@@ -25,6 +25,7 @@ export enum InterfaceVisualizationTypes {
   LIST = 'list',
   CALENDAR = 'calendar',
   TIMELINE = 'timeline',
+  GANTT = 'gantt',
 }
 
 interface InterfaceVizCommon {
@@ -64,6 +65,8 @@ export interface InterfaceGalleryVizConfig extends InterfaceVizCommon {
   title_size?: 'small' | 'large';
   columns_per_row?: 'auto' | number;
   display_field_names?: boolean;
+  /** Skip blank (non-virtual) fields on cards — no empty label/value gaps. */
+  hide_empty_card_fields?: boolean;
 }
 
 export interface InterfaceKanbanVizConfig
@@ -75,6 +78,9 @@ export interface InterfaceKanbanVizConfig
   fit_image?: boolean;
   wrap_cell_values?: boolean;
   hide_empty_stacks?: boolean;
+  display_field_names?: boolean;
+  /** Skip blank (non-virtual) fields on cards — no empty label/value gaps. */
+  hide_empty_card_fields?: boolean;
 }
 
 /** Aligns with the nocohub List view meta (levels over link fields). */
@@ -111,6 +117,8 @@ export interface InterfaceCalendarVizConfig
   label_field_ids?: string[];
   label_image_field_id?: string | null;
   fit_image?: boolean;
+  /** Month-switcher + records side panel — hidden by default. */
+  show_side_panel?: boolean;
   initial_view?: {
     position?: 'today' | 'earliest' | 'latest';
     timescale?: 'day' | 'week' | 'month';
@@ -145,13 +153,36 @@ export interface InterfaceTimelineVizConfig
   };
 }
 
+export interface InterfaceGanttVizConfig
+  extends InterfaceVizCommon,
+    InterfaceVizEditability {
+  type: InterfaceVisualizationTypes.GANTT;
+  date_ranges: InterfaceDateRangeConfig[];
+  label_field_ids?: string[];
+  row_height?: 'small' | 'medium' | 'large';
+  /** Render dependency arrows from the table-level DateDependency rule. */
+  show_dependencies?: boolean;
+  initial_view?: {
+    position?: 'today' | 'earliest' | 'latest';
+    timescale?:
+      | 'day'
+      | 'week'
+      | 'two_weeks'
+      | 'month'
+      | 'quarter'
+      | 'year';
+    set_for_all_visits?: boolean;
+  };
+}
+
 export type InterfaceVisualizationConfig =
   | InterfaceGridVizConfig
   | InterfaceGalleryVizConfig
   | InterfaceKanbanVizConfig
   | InterfaceListVizConfig
   | InterfaceCalendarVizConfig
-  | InterfaceTimelineVizConfig;
+  | InterfaceTimelineVizConfig
+  | InterfaceGanttVizConfig;
 
 // ────────────────────────────────────────────────────────────────────────────
 // Layout: OVERVIEW (landing page — the only layout without a source table)

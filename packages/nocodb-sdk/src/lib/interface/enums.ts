@@ -11,11 +11,6 @@ export enum InterfacePageLayoutTypes {
   OVERVIEW = 'overview',
   /** Reusable per-table record detail page (unparented, referenced by id). */
   RECORD_DETAIL = 'record_detail',
-  /**
-   * Page rendered by sandboxed custom code (@nocodb/blocks interface mode).
-   * Multi-table: sources live in config, so no `fk_model_id` (like OVERVIEW).
-   */
-  CUSTOM = 'custom',
 }
 
 export enum InterfacePageVisualVariants {

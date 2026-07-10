@@ -122,6 +122,8 @@ const onTabClick = async (tabKey: string) => {
 
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
+  } else if (tabKey === 'interfaces') {
+    await navigateTo(`${basePath}/interfaces`)
   } else {
     await navigateTo(basePath)
   }
@@ -164,6 +166,17 @@ const mainItems = computed<NavItem[]>(() => [
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => onTabClick('workflows'),
+        },
+        {
+          key: 'interfaces',
+          icon: 'ncLayout',
+          label: t('general.interfaces'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('interfaceList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('interfaces'),
         },
       ]
     : []),

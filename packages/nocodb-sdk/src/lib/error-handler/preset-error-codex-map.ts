@@ -145,6 +145,14 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_INTERFACE_NOT_FOUND]: {
+    message: (id: string) => `Interface '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND]: {
+    message: (id: string) => `Interface page '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
     message: (id: string) => `Chat session '${id}' not found`,
     code: 404,

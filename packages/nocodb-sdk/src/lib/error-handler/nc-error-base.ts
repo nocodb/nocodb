@@ -98,6 +98,23 @@ export class NcErrorBase {
     });
   }
 
+  interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_INTERFACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
   chatSessionNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_CHAT_SESSION_NOT_FOUND,

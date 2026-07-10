@@ -65,6 +65,14 @@ export class NcError {
     return NcError._.dashboardNotFound(id, args);
   }
 
+  static interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfaceNotFound(id, args);
+  }
+
+  static interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfacePageNotFound(id, args);
+  }
+
   static chatSessionNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.chatSessionNotFound(id, args);
   }

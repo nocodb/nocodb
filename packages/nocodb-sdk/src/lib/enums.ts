@@ -327,6 +327,17 @@ export enum AppEvents {
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
 
+  INTERFACE_CREATE = 'interface.create',
+  INTERFACE_UPDATE = 'interface.update',
+  INTERFACE_DELETE = 'interface.delete',
+  INTERFACE_DUPLICATE = 'interface.duplicate',
+  INTERFACE_PUBLISH = 'interface.publish',
+
+  INTERFACE_PAGE_CREATE = 'interface.page.create',
+  INTERFACE_PAGE_UPDATE = 'interface.page.update',
+  INTERFACE_PAGE_DELETE = 'interface.page.delete',
+  INTERFACE_PAGE_DUPLICATE = 'interface.page.duplicate',
+
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
   PERMISSION_DELETE = 'permission.delete',

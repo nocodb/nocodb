@@ -232,6 +232,8 @@ export enum NcErrorType {
   ERR_TRASH_NOT_FOUND = 'ERR_TRASH_NOT_FOUND',
   ERR_PARENT_IN_TRASH = 'ERR_PARENT_IN_TRASH',
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
+  ERR_INTERFACE_NOT_FOUND = 'ERR_INTERFACE_NOT_FOUND',
+  ERR_INTERFACE_PAGE_NOT_FOUND = 'ERR_INTERFACE_PAGE_NOT_FOUND',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
   ERR_CHAT_SESSION_NOT_FOUND = 'ERR_CHAT_SESSION_NOT_FOUND',
@@ -425,6 +427,7 @@ export enum DependencyTableType {
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
   Bookmark = 'bookmark',
+  InterfacePage = 'interface_page',
 }
 
 export enum BaseVersion {

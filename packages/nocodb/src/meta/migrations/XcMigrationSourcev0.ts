@@ -86,6 +86,7 @@ import * as nc_202607030001_ltar_order_columns from './v0/nc_202607030001_ltar_o
 import * as nc_202607071200_comment_attachments from './v0/nc_202607071200_comment_attachments';
 import * as nc_202607090505_snapshot_schedule from './v0/nc_202607090505_snapshot_schedule';
 import * as nc_202607091000_comments_meta from './v0/nc_202607091000_comments_meta';
+import * as nc_202607061200_interfaces from './v0/nc_202607061200_interfaces';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -183,6 +184,7 @@ export default class XcMigrationSourcev0 {
       'nc_202607071200_comment_attachments',
       'nc_202607090505_snapshot_schedule',
       'nc_202607091000_comments_meta',
+      'nc_202607061200_interfaces',
     ]);
   }
 
@@ -368,6 +370,8 @@ export default class XcMigrationSourcev0 {
         return nc_202607090505_snapshot_schedule;
       case 'nc_202607091000_comments_meta':
         return nc_202607091000_comments_meta;
+      case 'nc_202607061200_interfaces':
+        return nc_202607061200_interfaces;
     }
   }
 }

@@ -46,6 +46,7 @@ export type DependencyFieldsMap = {
   [DependencyTableType.View]: GeneralDependencyFields;
   [DependencyTableType.DateDependency]: GeneralDependencyFields;
   [DependencyTableType.Bookmark]: GeneralDependencyFields;
+  [DependencyTableType.InterfacePage]: WidgetDependencyFields;
 };
 
 /**
@@ -73,6 +74,7 @@ export interface Dependencies {
   columns?: DependencyInfo[];
   models?: DependencyInfo[];
   views?: DependencyInfo[];
+  pages?: DependencyInfo[];
 }
 
 export type WidgetDependencies = Dependencies;
@@ -140,6 +142,15 @@ export default class DependencyTracker implements DependencyTrackerType {
 
   public static async trackDependencies(
     context: NcContext,
+    dependentType: DependencyTableType.InterfacePage,
+    dependentId: string,
+    dependencies: Dependencies,
+    ncMeta?: any,
+    ignoreClear?: boolean,
+  ): Promise<void>;
+
+  public static async trackDependencies(
+    context: NcContext,
     dependentType: DependencyTableType,
     dependentId: string,
     dependencies: Dependencies | WidgetDependencies | WorkflowDependencies,
@@ -153,7 +164,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     const deps: any[] = [];
 
     const sourceTypes: Array<{
-      key: 'columns' | 'models' | 'views' | 'workflows';
+      key: 'columns' | 'models' | 'views' | 'workflows' | 'pages';
       type: DependencyTableType;
     }> = [
       { key: 'columns', type: DependencyTableType.Column },
@@ -163,6 +174,7 @@ export default class DependencyTracker implements DependencyTrackerType {
       },
       { key: 'views', type: DependencyTableType.View },
       { key: 'workflows', type: DependencyTableType.Workflow },
+      { key: 'pages', type: DependencyTableType.InterfacePage },
     ];
 
     for (const { key, type } of sourceTypes) {

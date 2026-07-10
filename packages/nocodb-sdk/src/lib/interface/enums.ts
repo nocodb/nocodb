@@ -22,6 +22,16 @@ export enum InterfacePageVisualVariants {
   SIDESHEET = 'sidesheet',
 }
 
+/**
+ * Which config snapshot an interface data/widget read resolves against.
+ * DRAFT is builder-only (creator+) — everyone else is forced onto PUBLISHED
+ * regardless of what they request.
+ */
+export enum InterfacePageEnvs {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+}
+
 /** Layouts that require a source table (`fk_model_id`). */
 export const INTERFACE_LAYOUTS_WITH_SOURCE: readonly InterfacePageLayoutTypes[] =
   [

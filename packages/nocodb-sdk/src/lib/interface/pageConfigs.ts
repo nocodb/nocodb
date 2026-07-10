@@ -267,14 +267,43 @@ export interface InterfaceRecordReviewPageConfig {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Layout: DASHBOARD (groups of widgets; widgets live in nc_widgets_v2 rows
-// referencing fk_interface_page_id + group_ref)
+// Layout: DASHBOARD (groups of widgets)
 // ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One widget inside a dashboard-page group. `type`/`config` reuse the existing
+ * EE widget vocabulary (`WidgetTypes`, chart/metric configs from
+ * `lib/dashboard`) so the dialect data handlers, renderers and config editors
+ * work unchanged — the backend synthesizes a Widget-shaped object from this
+ * entry when serving `interfaceWidgetDataGet`.
+ */
+export interface InterfaceDashboardWidgetConfig {
+  id: string;
+  title: string;
+  description?: string | null;
+  /** WidgetTypes value ('metric' | 'chart' | ...). */
+  type: string;
+  /** Widget-type-specific config (ChartWidgetConfig / MetricWidgetConfig / ...). */
+  config?: Record<string, unknown> | null;
+  /** Defaults to the group's source table. */
+  fk_model_id?: string | null;
+  fk_view_id?: string | null;
+  /**
+   * Widget-level filters — inline (NOT nc_filter_exp rows), composed with the
+   * group's root filters at query time.
+   */
+  filters?: InterfaceFilterGroup | null;
+  /** grid-layout-plus placement inside the group. */
+  position?: { x: number; y: number; w: number; h: number };
+  /** Dependency-validation flag (mirrors widget.error). */
+  error?: boolean;
+}
 
 export interface InterfaceDashboardGroupConfig {
   id: string;
   title?: string;
   show_title?: boolean;
+  description?: string | null;
   /** Each group binds its OWN source table. */
   fk_model_id: string;
   /** Root filters for every widget in this group. */
@@ -289,11 +318,11 @@ export interface InterfaceDashboardGroupConfig {
     allow_filter?: boolean;
     buttons?: InterfaceButtonConfig[];
   };
+  widgets?: InterfaceDashboardWidgetConfig[];
 }
 
 export interface InterfaceDashboardPageConfig {
   allow_print?: boolean;
-  /** Ordered groups; widgets reference groups via widget.group_ref. */
   groups: InterfaceDashboardGroupConfig[];
 }
 

@@ -99,4 +99,6 @@ export const BATCHABLE_INTERNAL_OPERATIONS: ReadonlySet<string> = new Set([
   'interfaceGet',
   'interfacePageList',
   'interfacePageGet',
+
+  'interfaceWidgetDataGet',
 ]);

@@ -256,8 +256,13 @@ const coverImageObjectFit = computed({
 })
 
 // --- Gallery card appearance (size + cover height) — EE Business ------------
-const { blockGalleryCardLayout, showUpgradeToUseGalleryCardLayout, blockCardFieldHeaderVisibility, isEEFeatureBlocked } =
-  useEeConfig()
+const {
+  blockGalleryCardLayout,
+  showUpgradeToUseGalleryCardLayout,
+  blockCardFieldHeaderVisibility,
+  showUpgradeToUseCardFieldHeaderVisibility,
+  isEEFeatureBlocked,
+} = useEeConfig()
 
 const isGalleryView = computed(() => activeView.value?.type === ViewTypes.GALLERY)
 
@@ -321,7 +326,8 @@ function setCoverSize(val: GalleryCoverSize) {
 const isFieldHeaderVisible = computed(() => galleryMeta.value?.is_field_header_visible ?? true)
 
 function toggleFieldHeader() {
-  if (blockCardFieldHeaderVisibility.value) return
+  if (blockCardFieldHeaderVisibility.value)
+    return showUpgradeToUseCardFieldHeaderVisibility({ triggerSource: 'gallery-field-header' })
   updateGalleryMeta({ is_field_header_visible: !isFieldHeaderVisible.value })
 }
 
@@ -848,12 +854,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               :feature-enabled-callback="() => !isEEFeatureBlocked"
               size="xs"
             />
-            <NcSwitch
-              :checked="isFieldHeaderVisible"
-              :disabled="blockCardFieldHeaderVisibility"
-              data-testid="nc-gallery-field-header-toggle"
-              @change="toggleFieldHeader"
-            />
+            <NcSwitch :checked="isFieldHeaderVisible" data-testid="nc-gallery-field-header-toggle" @change="toggleFieldHeader" />
           </div>
         </div>
 

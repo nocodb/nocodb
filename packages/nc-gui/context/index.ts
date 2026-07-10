@@ -207,6 +207,12 @@ export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId:
 export const InterfacePageDataInj: InjectionKey<InterfacePageDataApi | undefined> = Symbol('interface-page-data')
 
 /**
+ * Compact presentation for the toolbar field-list dropdown (panel-density
+ * text, no field icons) — provided by side-panel filter/sort hosts.
+ */
+export const FieldListCompactInj: InjectionKey<Ref<boolean>> = Symbol('field-list-compact-injection')
+
+/**
  * Resolved download context for an attachment rendered under a Lookup cell.
  * A lookup swaps MetaInj to the related table while RowInj stays the parent
  * row, so the attachment cell's own (model, row) no longer address the

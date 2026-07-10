@@ -21,7 +21,8 @@ const { isUIAllowed } = useRoles()
 const route = useRoute()
 const router = useRouter()
 
-const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord, blockGalleryCardLayout } =
+  useEeConfig()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -74,6 +75,26 @@ const coverImageObjectFitStyle = computed(() => {
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
 })
+
+// Card size + cover height are EE (Business) — when blocked (CE / lower plan)
+// they fall back to the original MEDIUM look so existing views are unchanged.
+const cardSize = computed<GalleryCardSize>(() => {
+  if (blockGalleryCardLayout.value) return DEFAULT_GALLERY_CARD_SIZE
+  const stored = parseProp(galleryData.value?.meta)?.card_size
+  return (Object.values(GalleryCardSize) as string[]).includes(stored) ? stored : DEFAULT_GALLERY_CARD_SIZE
+})
+
+const coverSize = computed<GalleryCoverSize>(() => {
+  if (blockGalleryCardLayout.value) return DEFAULT_GALLERY_COVER_SIZE
+  const stored = parseProp(galleryData.value?.meta)?.cover_image_size
+  return (Object.values(GalleryCoverSize) as string[]).includes(stored) ? stored : DEFAULT_GALLERY_COVER_SIZE
+})
+
+const cardMinWidthPx = computed(() => GALLERY_CARD_MIN_WIDTH[cardSize.value])
+
+const cardMaxWidthPx = computed(() => GALLERY_CARD_MAX_WIDTH[cardSize.value])
+
+const coverHeightPx = computed(() => GALLERY_COVER_HEIGHT[coverSize.value])
 
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
@@ -223,8 +244,13 @@ const rowSlice = reactive({
 const { width: scrollContainerWidth } = useElementSize(scrollContainer)
 
 const columnsPerRow = computed(() => {
-  if (scrollContainerWidth.value <= 537) return 1
-  return Math.floor((scrollContainerWidth.value - 537) / 262) + 2
+  // Generalised from the original (250px / 12px-gap) formula so it tracks the
+  // active card size: colWidth = card min-width + grid gap; base = the width at
+  // which a 2nd column first fits. For MEDIUM this reproduces the old 262 / 537.
+  const colWidth = cardMinWidthPx.value + 12
+  const base = colWidth * 2 + 13
+  if (scrollContainerWidth.value <= base) return 1
+  return Math.floor((scrollContainerWidth.value - base) / colWidth) + 2
 })
 
 const cardHeight = computed(() => {
@@ -242,7 +268,7 @@ const cardHeight = computed(() => {
     return acc + fieldHeight + 12
   }, 0)
 
-  return displayFieldHeight + fieldsHeight + (galleryData.value?.fk_cover_image_col_id ? 208 : 0) + 2
+  return displayFieldHeight + fieldsHeight + (galleryData.value?.fk_cover_image_col_id ? coverHeightPx.value : 0) + 2
 })
 
 const visibleRows = computed(() => {
@@ -494,7 +520,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
       <div class="flex-1">
         <div :key="containerHeight" class="relative" :style="{ height: `${containerHeight}px` }">
           <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
-          <div class="nc-gallery-container grid gap-3 p-3">
+          <div class="nc-gallery-container grid gap-3 p-3" :style="{ '--nc-gallery-card-min': `${cardMinWidthPx}px` }">
             <div
               v-for="record in visibleRows"
               :key="`record-${record.rowMeta.rowIndex}`"
@@ -510,10 +536,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             >
               <LazySmartsheetRow :row="record">
                 <a-card
-                  class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                  class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all cursor-pointer flex flex-col"
                   :body-style="{ padding: '12px !important', flex: 1, display: 'flex' }"
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
                   :style="{
+                    maxWidth: `${cardMaxWidthPx}px`,
                     ...extractRowBackgroundColorStyle(record).rowBgColor,
                     ...extractRowBackgroundColorStyle(record).rowBorderColor,
                   }"
@@ -523,8 +550,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
                       v-if="isMounted && !reloadAttachments && attachments(record).length"
-                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium min-h-52 !bg-nc-bg-default"
+                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
                       :style="{
+                        minHeight: `${coverHeightPx}px`,
                         ...extractRowBackgroundColorStyle(record).rowBgColor,
                         ...extractRowBackgroundColorStyle(record).rowBorderColor,
                       }"
@@ -565,7 +593,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                       >
                         <LazyCellAttachmentPreviewThumbnail
                           :attachment="attachment"
-                          class="h-52"
+                          :style="{ height: `${coverHeightPx}px` }"
                           thumbnail="card_cover"
                           image-class="!w-full"
                           :object-fit="coverImageObjectFitStyle"
@@ -575,7 +603,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     </a-carousel>
                     <div
                       v-else
-                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
+                      :style="{ height: `${coverHeightPx}px` }"
+                      class="w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
                     >
                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                     </div>
@@ -799,7 +828,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 <style lang="scss" scoped>
 .nc-gallery-container,
 .nc-gallery-container-skeleton {
-  @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
+  @apply auto-rows-[1fr];
+  grid-template-columns: repeat(auto-fit, minmax(var(--nc-gallery-card-min, 250px), 1fr));
 }
 
 .has-cell-bg-color {

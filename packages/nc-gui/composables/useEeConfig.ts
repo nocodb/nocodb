@@ -118,6 +118,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCardFieldHeaderVisibility = computed(() => true)
 
+  const blockGalleryCardLayout = computed(() => true)
+
+  const showUpgradeToUseGalleryCardLayout = (..._args: any[]) => {}
+
   const blockAddNewSandbox = computed(() => true)
 
   const blockSync = computed(() => true)
@@ -514,6 +518,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToAddMoreTeams,
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
+    blockGalleryCardLayout,
+    showUpgradeToUseGalleryCardLayout,
     blockSync,
     blockTableSync,
     blockTableSyncAuto,

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GalleryType, KanbanType, ListType, LookupType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { PlanFeatureTypes, UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -254,6 +254,74 @@ const coverImageObjectFit = computed({
     coverImageObjectFitDropdown.value.isOpen = false
   },
 })
+
+// --- Gallery card appearance (size + cover height) — EE Business ------------
+const { blockGalleryCardLayout, showUpgradeToUseGalleryCardLayout, blockCardFieldHeaderVisibility, isEEFeatureBlocked } =
+  useEeConfig()
+
+const isGalleryView = computed(() => activeView.value?.type === ViewTypes.GALLERY)
+
+const galleryMeta = computed<Record<string, any>>(
+  () => parseProp((activeView.value?.view as GalleryType | undefined)?.meta) || {},
+)
+
+const hasCoverImage = computed(
+  () => isGalleryView.value && !!(activeView.value?.view as GalleryType | undefined)?.fk_cover_image_col_id,
+)
+
+const cardSizeOptions = [
+  { value: GalleryCardSize.SMALL, label: t('labels.sizeSmall') },
+  { value: GalleryCardSize.MEDIUM, label: t('labels.sizeMedium') },
+  { value: GalleryCardSize.LARGE, label: t('labels.sizeLarge') },
+]
+
+const coverSizeOptions = [
+  { value: GalleryCoverSize.SMALL, label: t('labels.sizeSmall') },
+  { value: GalleryCoverSize.MEDIUM, label: t('labels.sizeMedium') },
+  { value: GalleryCoverSize.LARGE, label: t('labels.sizeLarge') },
+]
+
+const cardSize = computed<GalleryCardSize>(() => {
+  const stored = galleryMeta.value?.card_size
+  return (Object.values(GalleryCardSize) as string[]).includes(stored) ? stored : DEFAULT_GALLERY_CARD_SIZE
+})
+
+const coverSize = computed<GalleryCoverSize>(() => {
+  const stored = galleryMeta.value?.cover_image_size
+  return (Object.values(GalleryCoverSize) as string[]).includes(stored) ? stored : DEFAULT_GALLERY_COVER_SIZE
+})
+
+async function updateGalleryMeta(patch: Record<string, any>) {
+  if (!isGalleryView.value || !activeView.value?.id || !activeView.value?.view) return
+
+  const payload = { ...galleryMeta.value, ...patch }
+  ;(activeView.value.view as GalleryType).meta = payload
+
+  try {
+    await updateViewMeta(activeView.value.id, ViewTypes.GALLERY, { meta: payload })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+function setCardSize(val: GalleryCardSize) {
+  if (blockGalleryCardLayout.value) return showUpgradeToUseGalleryCardLayout({ triggerSource: 'gallery-card-size' })
+  if (val !== cardSize.value) updateGalleryMeta({ card_size: val })
+}
+
+function setCoverSize(val: GalleryCoverSize) {
+  if (blockGalleryCardLayout.value) return showUpgradeToUseGalleryCardLayout({ triggerSource: 'gallery-cover-size' })
+  if (val !== coverSize.value) updateGalleryMeta({ cover_image_size: val })
+}
+
+// Field header (label) visibility — relocated here from the view ⋮ menu so all
+// card-appearance options live together. Gated separately (Plus+).
+const isFieldHeaderVisible = computed(() => galleryMeta.value?.is_field_header_visible ?? true)
+
+function toggleFieldHeader() {
+  if (blockCardFieldHeaderVisibility.value) return
+  updateGalleryMeta({ is_field_header_visible: !isFieldHeaderVisible.value })
+}
 
 const getSelectedLevelId = () => {
   if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevelId.value) {
@@ -724,6 +792,68 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
+        <!-- Card appearance (Gallery, EE): card size + cover height + field header -->
+        <div
+          v-if="isEeUI && !isPublic && isGalleryView && isUIAllowed('viewCreateOrEdit')"
+          class="flex flex-col gap-2.5 py-2.5 sm:w-80 border-b-1 border-nc-border-gray-light"
+        >
+          <div class="px-4 flex items-center gap-2">
+            <span class="flex-1 text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.cardAppearance') }}</span>
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_GALLERY_CARD_LAYOUT"
+              :feature-enabled-callback="() => !isEEFeatureBlocked"
+              size="xs"
+            />
+          </div>
+
+          <div class="px-4 flex items-center gap-2">
+            <span class="flex-1 text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.cardSize') }}</span>
+            <div class="nc-card-appearance-segmented" data-testid="nc-gallery-card-size">
+              <button
+                v-for="opt in cardSizeOptions"
+                :key="`size-${opt.value}`"
+                class="nc-segment-btn"
+                :class="{ 'nc-segment-btn-active': cardSize === opt.value }"
+                :data-testid="`nc-gallery-card-size-${opt.value}`"
+                @click.stop="setCardSize(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="hasCoverImage" class="px-4 flex items-center gap-2">
+            <span class="flex-1 text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.coverHeight') }}</span>
+            <div class="nc-card-appearance-segmented" data-testid="nc-gallery-cover-size">
+              <button
+                v-for="opt in coverSizeOptions"
+                :key="`cover-${opt.value}`"
+                class="nc-segment-btn"
+                :class="{ 'nc-segment-btn-active': coverSize === opt.value }"
+                :data-testid="`nc-gallery-cover-size-${opt.value}`"
+                @click.stop="setCoverSize(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="px-4 flex items-center gap-2">
+            <span class="flex-1 text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.showFieldHeader') }}</span>
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
+              :feature-enabled-callback="() => !isEEFeatureBlocked"
+              size="xs"
+            />
+            <NcSwitch
+              :checked="isFieldHeaderVisible"
+              :disabled="blockCardFieldHeaderVisibility"
+              data-testid="nc-gallery-field-header-toggle"
+              @change="toggleFieldHeader"
+            />
+          </div>
+        </div>
+
         <!--
         <div v-if="!isPublic && isList" class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light">
           <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.prefixField') }}</div>
@@ -1135,6 +1265,31 @@ const onAddColumnDropdownVisibilityChange = () => {
   }
   &:has(.level-two) {
     @apply max-w-23;
+  }
+}
+
+// Segmented S/M/L control for gallery card appearance.
+.nc-card-appearance-segmented {
+  @apply flex items-stretch border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
+}
+
+.nc-segment-btn {
+  @apply px-2.5 py-0.5 text-bodySm text-nc-content-gray-subtle2 transition-colors cursor-pointer bg-nc-bg-default;
+
+  &:not(:last-child) {
+    @apply border-r-1 border-nc-border-gray-medium;
+  }
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
+}
+
+.nc-segment-btn-active {
+  @apply bg-nc-bg-brand text-nc-content-brand font-medium;
+
+  &:hover {
+    @apply bg-nc-bg-brand;
   }
 }
 </style>

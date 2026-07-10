@@ -207,14 +207,16 @@ function focusEditor() {
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    // Skip only while the user is actively typing in this editor: their keystrokes already flow out
-    // via `onUpdate` → `vModel`, so re-running `setContent` here would reset the document and jump
-    // the caret. We still push external value changes in when the editor is NOT focused (e.g.
-    // switching which record/field this editor is bound to) OR when it's focused but the user hasn't
-    // made any local edits — e.g. someone opened the long-text editor merely to read it while another
-    // user updated the same field. Without this, the open editor keeps showing stale content and the
-    // concurrent change appears to "disappear".
-    if (isFocused.value && hasLocalEdits.value) return
+    // Skip while the user has uncommitted local input that re-running `setContent` would destroy —
+    // either they're actively typing (`hasLocalEdits`, keystrokes already flow out via `onUpdate` →
+    // `vModel`) or they're mid-IME/CJK composition (`view.composing`; ProseMirror defers transactions
+    // until `compositionend`, so `onUpdate` hasn't fired yet and `hasLocalEdits` is still false).
+    // Applying an external change in either case would reset the document and jump/corrupt the caret.
+    // We still push external value changes in when the editor is NOT focused (e.g. switching which
+    // record/field this editor is bound to) OR when it's focused but idle — e.g. someone opened the
+    // long-text editor merely to read it while another user updated the same field. Without this, the
+    // open editor keeps showing stale content and the concurrent change appears to "disappear".
+    if (isFocused.value && (hasLocalEdits.value || editor.value?.view?.composing)) return
 
     setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value)
 

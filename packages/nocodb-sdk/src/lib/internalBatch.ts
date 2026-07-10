@@ -103,4 +103,5 @@ export const BATCHABLE_INTERNAL_OPERATIONS: ReadonlySet<string> = new Set([
   'interfaceWidgetDataGet',
   'interfaceTableDataList',
   'interfaceTableDataCount',
+  'interfaceTableGroupedDataList',
 ]);

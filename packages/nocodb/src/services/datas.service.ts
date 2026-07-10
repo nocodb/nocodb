@@ -491,7 +491,8 @@ export class DatasService {
     context: NcContext,
     param: {
       model;
-      view: View;
+      /** Optional — view-less callers (interface pages) scope via query.filterArrJson. */
+      view?: View;
       query: any;
       columnId: string;
     },

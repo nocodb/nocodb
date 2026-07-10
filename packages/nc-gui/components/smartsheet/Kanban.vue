@@ -565,6 +565,16 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 const resetPointerEvent = (record: RowType, col: ColumnType) => {
   return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
 }
+
+// Skip blank fields entirely (label included) when the view meta opts in —
+// leave field types that render something meaningful while empty (AI, button).
+const hideEmptyCardFields = computed(() => !!parseProp(kanbanMetaData.value?.meta)?.hide_empty_card_fields)
+
+const cardFields = (record: RowType) => {
+  if (!hideEmptyCardFields.value) return fieldsWithoutDisplay.value
+
+  return fieldsWithoutDisplay.value.filter((col) => !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col))
+}
 </script>
 
 <template>
@@ -1019,7 +1029,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       </div>
 
                                       <div
-                                        v-for="col in fieldsWithoutDisplay"
+                                        v-for="col in cardFields(record)"
                                         :key="`record-${record.row.id}-${col.id}`"
                                         class="nc-card-col-wrapper"
                                         :class="{

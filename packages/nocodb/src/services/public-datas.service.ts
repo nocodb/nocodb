@@ -26,6 +26,7 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
+import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
@@ -40,6 +41,22 @@ export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
+// Response-shape keys that must never be controllable by public/shared-view
+// callers. `getHiddenColumn` bypasses the getAst `allowedCols` gate and would
+// emit every non-system column's VALUES; `nested` drives caller-controlled
+// nested-LTAR expansion. Stripping these keeps hidden columns out of the
+// default response payload — see the DESIGN NOTE below, boundary (1).
+const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
+
+function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
+  if (!query) return query;
+  const sanitized = { ...query };
+  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
+    delete sanitized[key];
+  }
+  return sanitized;
+}
+
 /**
  * DESIGN NOTE — view-hidden columns are intentionally queryable.
  *
@@ -51,19 +68,31 @@ export function sanitizeUrlPath(paths) {
  * `where` / `sort` / `filter` / `groupBy` / `fields` / `aggregation`
  * references just because they point at a column that is hidden in the view.
  *
- * Do NOT re-introduce "hidden-column query sanitization" — here, or in
- * datas.service / data-alias-nested / the export path. It existed once
- * (previously tracked as CVE-2026-47378 / CVE-2026-47279 /
- * GHSA-qqxm-7cj9-5fr2) and was removed on purpose: the team's position is
- * that "hidden in view" does not mean "confidential". A view-hidden column
- * turning up as filterable/sortable is expected behaviour, not a CWE-200
- * oracle. Enforce confidentiality with field visibility, not view `show`.
+ * Do NOT re-introduce "hidden-in-view query sanitization" — the gate keyed on
+ * view-column `show` (previously tracked as CVE-2026-47378 / CVE-2026-47279 /
+ * GHSA-qqxm-7cj9-5fr2). It was removed on purpose: the team's position is that
+ * "hidden in view" does not mean "confidential". A view-hidden column turning
+ * up as filterable/sortable is expected behaviour, not a CWE-200 oracle.
+ * Enforce confidentiality with field visibility, not view `show`.
  *
- * Separate, still-active concern: the response-shape gate in getAst
- * (`allowedCols` keyed on view-column `show`) still omits hidden columns
- * from the default response payload. That is fine and unrelated — hidden
- * columns are simply not emitted by default, yet remain queryable, which is
- * the intended behaviour described above.
+ * TWO separate boundaries this reversal does NOT touch — keep them enforced:
+ *
+ *  1. Response-shape gate. The caller-supplied `getHiddenColumn` / `nested`
+ *     keys are still stripped from public/shared-view queries before they
+ *     reach getAst (`sanitizePublicQuery`). `getHiddenColumn` bypasses the
+ *     getAst `allowedCols` gate and would emit every non-system column's
+ *     VALUES to an anonymous caller — that is payload exfiltration, not
+ *     "queryable". Hidden columns remain omitted from the default response
+ *     payload; they are simply queryable via where/sort/filter/groupBy.
+ *
+ *  2. Cross-base / no-visibility-access related tables. Nested-link where/sort
+ *     is still restricted to the link's exposed (pk/pv/display) columns via
+ *     `restrictNestedLinkQuery*` when the related table lives in another base
+ *     or the caller has no visibility access to it at all. That is a genuine
+ *     access boundary (cross-base isolation + table-visibility ACL), distinct
+ *     from "hidden in this view", so it stays enforced across
+ *     datas.service / data-alias-nested / data-table / the public nested-link
+ *     endpoints.
  */
 @Injectable()
 export class PublicDatasService {
@@ -330,6 +359,13 @@ export class PublicDatasService {
     },
   ) {
     const { model, view, query = {}, groupColumnId } = param;
+
+    // ACK (public group-by surface, intentional): `groupColumnId` is no longer
+    // validated against the view's visible columns — grouping by a view-hidden
+    // column is allowed, consistent with the DESIGN NOTE (view `show` is a
+    // display preference, not a column ACL). Confidentiality is enforced by
+    // field visibility; hidden column VALUES are still never emitted because
+    // `getHiddenColumn`/`nested` are stripped before the AST is built (below).
     const source = await Source.get(context, param.model.source_id);
 
     const base = await Base.get(context, view.base_id);
@@ -343,9 +379,14 @@ export class PublicDatasService {
       source,
     });
 
+    // Strip getHiddenColumn/nested before building the AST — this is the
+    // response-shape boundary (see DESIGN NOTE #1). `getHiddenColumn=true`
+    // would otherwise bypass the `allowedCols` gate and emit every non-system
+    // column's VALUES to an anonymous caller on this grouped endpoint. The
+    // where/sort/filter relaxation for view-hidden columns is unaffected.
     const { ast } = await getAst(context, {
       model,
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       view,
       includeRowColorColumns: query.include_row_color === 'true',
     });
@@ -481,6 +522,11 @@ export class PublicDatasService {
   ) {
     const { model, view, query = {} } = param;
 
+    // ACK (public group-by surface, intentional): the group-by `column_name` is
+    // no longer validated against the view's visible columns — grouping by a
+    // view-hidden column is allowed, consistent with the DESIGN NOTE (view
+    // `show` is not a column ACL). Field visibility remains the confidentiality
+    // boundary.
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
@@ -514,6 +560,11 @@ export class PublicDatasService {
     try {
       const { model, view, query = {} } = param;
 
+      // ACK (public group-by surface, intentional): the group-by `column_name`
+      // is no longer validated against the view's visible columns — grouping by
+      // a view-hidden column is allowed, consistent with the DESIGN NOTE (view
+      // `show` is not a column ACL). Field visibility remains the
+      // confidentiality boundary.
       const base = await Base.get(context, view.base_id);
 
       this.publicMetasService.checkViewBaseType(view, base);
@@ -781,8 +832,11 @@ export class PublicDatasService {
       source,
     });
 
+    // `extractOnlyPrimaries` already restricts this AST to pk/pv/display, but
+    // strip getHiddenColumn/nested too so the response-shape boundary (DESIGN
+    // NOTE #1) holds uniformly across every public getAst call site.
     const { ast, dependencyFields } = await getAst(refContext, {
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       model,
       extractOnlyPrimaries: true,
       fk_display_value_column_id: (colOptions as any)
@@ -916,6 +970,14 @@ export class PublicDatasService {
       NcError.recordNotFound(param.rowId);
     }
 
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The shared-view /mm/ fetch is
+    // `pkAndPvOnly`-restricted, so an unsanitized predicate on a non-exposed
+    // related column is the same one-bit oracle the authenticated paths close.
+    // Mutates `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
     const key = `List`;
     const requestObj: any = {
       [key]: 1,
@@ -1014,6 +1076,14 @@ export class PublicDatasService {
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
+
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose (cross-base / visibility-limited related tables — NOT the view-`show`
+    // dimension, which stays queryable). The shared-view /hm/ fetch is
+    // `pkAndPvOnly`-restricted, so an unsanitized predicate on a non-exposed
+    // related column is the same one-bit oracle the authenticated paths close.
+    // Mutates `param.query`, which both the data fetch and the count read from.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = `List`;
     const requestObj: any = {

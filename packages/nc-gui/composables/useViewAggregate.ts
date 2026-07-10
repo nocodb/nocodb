@@ -26,6 +26,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const isPublic = inject(IsPublicInj, ref(false))
 
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
     const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
 
     const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -86,6 +88,9 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         type: string
       }>,
     ) => {
+      // Interface pages have no server-side aggregate op yet — keep values empty.
+      if (interfaceDataApi) return
+
       // Wait for meta to be defined https://vueuse.org/shared/until/
       await until(() => !!meta.value)
         .toBeTruthy({

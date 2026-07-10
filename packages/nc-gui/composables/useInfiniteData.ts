@@ -20,6 +20,7 @@ import {
   isSystemColumn,
 } from 'nocodb-sdk'
 import type { CanvasGroup } from '../lib/types'
+import type { InterfacePageDataApi } from '../lib/interfaceData'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
@@ -117,6 +118,12 @@ export function useInfiniteData(args: {
   const { user } = useGlobal()
 
   const { fetchSharedViewData, fetchCount, fetchBulkListData } = useSharedView()
+
+  /**
+   * Present when mounted inside an interface page — list/count/CRUD calls are
+   * routed through the adapter instead of the view / shared-view endpoints.
+   */
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
   const {
     nestedFilters,
@@ -455,6 +462,35 @@ export function useInfiniteData(args: {
     }
   }
 
+  /**
+   * Interface-page adapter has no bulk list op — emulate the bulk chunk load
+   * with parallel `fetchList` calls, returning the alias-keyed shape the bulk
+   * response consumers expect.
+   */
+  async function fetchInterfaceBulkChunks(
+    dataApi: InterfacePageDataApi,
+    requests: Array<{ alias: string; offset: number; limit: number; where?: string }>,
+    filterArrs: FilterType[][],
+  ) {
+    const chunkResults = await Promise.all(
+      requests.map(async (request, i) => ({
+        alias: request.alias,
+        result: await dataApi.fetchList({
+          offset: request.offset,
+          limit: request.limit,
+          where: request.where,
+          sortsArr: sorts.value,
+          filtersArr: [...(nestedFilters.value ?? []), ...(filterArrs[i] ?? [])],
+        }),
+      })),
+    )
+
+    return chunkResults.reduce((acc, { alias, result }) => {
+      acc[alias] = result
+      return acc
+    }, {} as Record<string, { list: Record<string, any>[]; pageInfo: PaginatedType }>)
+  }
+
   async function processBatch() {
     if (pendingChunkRequests.length === 0) return
 
@@ -468,6 +504,9 @@ export function useInfiniteData(args: {
 
     try {
       const bulkRequests = []
+      // Raw per-chunk filter arrays — the interface-page adapter branch needs
+      // arrays rather than the stringified filterArrJson sent to the bulk op.
+      const bulkFilterArrs: FilterType[][] = []
 
       for (let i = 0; i < batch.length; i++) {
         const req = batch[i]
@@ -485,9 +524,12 @@ export function useInfiniteData(args: {
             ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
             : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value ?? []), ...filterArrJson]) }),
         })
+        bulkFilterArrs.push(filterArrJson)
       }
 
-      const bulkResponse = !isPublic?.value
+      const bulkResponse = interfaceDataApi
+        ? await fetchInterfaceBulkChunks(interfaceDataApi, bulkRequests, bulkFilterArrs)
+        : !isPublic?.value
         ? await $api.internal.postOperation(
             (meta.value as any).fk_workspace_id!,
             meta.value.base_id!,
@@ -738,7 +780,15 @@ export function useInfiniteData(args: {
     }
 
     try {
-      const response = !isPublic?.value
+      const response = interfaceDataApi
+        ? await interfaceDataApi.fetchList({
+            offset: params.offset,
+            limit: params.limit,
+            where: whereFilter,
+            sortsArr: sorts.value,
+            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+          })
+        : !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
@@ -1375,14 +1425,16 @@ export function useInfiniteData(args: {
         currentRow.rowMeta.saveError = undefined
       }
 
-      const insertedData = await $api.dbViewRow.create(
-        NOCO,
-        metaValue?.base_id ?? (base?.value.id as string),
-        metaValue?.id as string,
-        viewMetaValue?.id as string,
-        { ...insertObj, ...(ltarState || {}) },
-        { before: beforeRowID },
-      )
+      const insertedData = interfaceDataApi
+        ? await interfaceDataApi.insertRow({ ...insertObj, ...(ltarState || {}) })
+        : await $api.dbViewRow.create(
+            NOCO,
+            metaValue?.base_id ?? (base?.value.id as string),
+            metaValue?.id as string,
+            viewMetaValue?.id as string,
+            { ...insertObj, ...(ltarState || {}) },
+            { before: beforeRowID },
+          )
 
       currentRow.rowMeta.new = false
 
@@ -1459,17 +1511,19 @@ export function useInfiniteData(args: {
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
-      const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
-        NOCO,
-        metaValue?.base_id ?? (base?.value.id as string),
-        metaValue?.id as string,
-        viewMetaValue?.id as string,
-        encodeURIComponent(id),
-        {
-          [property]: toUpdate.row[property] ?? null,
-        },
-        { typecast: 'true' },
-      )
+      const updatedRowData: Record<string, any> = interfaceDataApi
+        ? await interfaceDataApi.updateRow(id, { [property]: toUpdate.row[property] ?? null })
+        : await $api.dbViewRow.update(
+            NOCO,
+            metaValue?.base_id ?? (base?.value.id as string),
+            metaValue?.id as string,
+            viewMetaValue?.id as string,
+            encodeURIComponent(id),
+            {
+              [property]: toUpdate.row[property] ?? null,
+            },
+            { typecast: 'true' },
+          )
 
       // Update specific columns based on their types.
       // Only sync back types that can be changed server-side as a side effect
@@ -1733,13 +1787,15 @@ export function useInfiniteData(args: {
     }
 
     try {
-      const res: any = await $api.dbViewRow.delete(
-        'noco',
-        metaValue?.base_id ?? (base.value.id as string),
-        metaValue?.id as string,
-        viewMetaValue?.id as string,
-        encodeURIComponent(id),
-      )
+      const res: any = interfaceDataApi
+        ? await interfaceDataApi.deleteRow(id)
+        : await $api.dbViewRow.delete(
+            'noco',
+            metaValue?.base_id ?? (base.value.id as string),
+            metaValue?.id as string,
+            viewMetaValue?.id as string,
+            encodeURIComponent(id),
+          )
 
       callbacks?.reloadAggregate?.({ path })
 
@@ -1783,7 +1839,12 @@ export function useInfiniteData(args: {
     const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
-      const { count } = isPublic?.value
+      const { count } = interfaceDataApi
+        ? await interfaceDataApi.fetchCount({
+            where: whereFilter,
+            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+          })
+        : isPublic?.value
         ? await fetchCount({
             filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
             where: whereFilter,
@@ -1796,7 +1857,12 @@ export function useInfiniteData(args: {
           })
 
       if (fetchTotalRowsWithSearchQuery.value) {
-        const { count: _count } = isPublic?.value
+        const { count: _count } = interfaceDataApi
+          ? await interfaceDataApi.fetchCount({
+              where: whereQueryFromUrl.value as string,
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+            })
+          : isPublic?.value
           ? await fetchCount({
               filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
               where: whereQueryFromUrl.value as string,

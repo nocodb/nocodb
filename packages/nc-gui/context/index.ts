@@ -1,6 +1,7 @@
 import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import type { InterfacePageDataApi } from '../lib/interfaceData'
 import type { PageSidebarNode } from '#imports'
 
 export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
@@ -196,6 +197,14 @@ export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; col
  */
 export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId: string } | null>> =
   Symbol('public-doc-share-injection')
+
+/**
+ * Data adapter for smartsheet components mounted inside an interface page.
+ * Provided by the interface-page wrappers (EE); when present, the smartsheet
+ * data composables route list/count/CRUD calls through it instead of the
+ * view / shared-view endpoints. Undefined in normal dashboard contexts.
+ */
+export const InterfacePageDataInj: InjectionKey<InterfacePageDataApi | undefined> = Symbol('interface-page-data')
 
 /**
  * Resolved download context for an attachment rendered under a Lookup cell.

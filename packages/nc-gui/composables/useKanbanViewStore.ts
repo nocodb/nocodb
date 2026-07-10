@@ -12,6 +12,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
+import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -20,6 +21,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     meta: Ref<TableType | KanbanType | undefined>,
     viewMeta: Ref<ViewType | KanbanType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
     shared = false,
+    providedInterfaceDataApi?: InterfacePageDataApi,
   ) => {
     if (!meta) {
       throw new Error('Table meta is not available')
@@ -55,6 +57,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
      * component level, so the inject doesn't see the provided value.
      */
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
+
+    /**
+     * Present when mounted inside an interface page — grouped/list/CRUD calls
+     * are routed through the adapter and view-meta writes are kept local-only
+     * (the synthetic interface view is never persisted). Like `shared` above,
+     * the interface wrapper provides the adapter at the SAME component level
+     * it calls this provider, so inject can't see it — it passes the adapter
+     * as an argument instead.
+     */
+    const interfaceDataApi = providedInterfaceDataApi ?? inject(InterfacePageDataInj, undefined)
 
     const password = ref<string | null>(null)
 
@@ -185,7 +197,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         })
 
         // Try to persist if user has permissions (fire and forget)
-        if (!isPublic.value && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
+        if (!isPublic.value && !interfaceDataApi && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
           nextTick(() => {
             updateKanbanMeta({
               meta: {
@@ -242,7 +254,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       // Persist changes if needed and allowed
-      if (needsSync && !isPublic.value && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
+      if (needsSync && !isPublic.value && !interfaceDataApi && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
         nextTick(() => {
           updateKanbanMeta({
             meta: {
@@ -278,7 +290,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
 
     async function loadKanbanData() {
-      if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
+      if (
+        (!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) &&
+        !isPublic.value &&
+        !interfaceDataApi
+      )
         return
 
       const newFormattedData = new Map<string | null, Row[]>()
@@ -286,7 +302,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       let groupData
 
-      if (isPublic.value) {
+      if (interfaceDataApi) {
+        // Stacking column is resolved server-side from the viz config
+        groupData = await interfaceDataApi.fetchGroupedData({
+          sortsArr: sorts.value,
+          filtersArr: nestedFilters.value,
+          where: xWhere.value,
+        })
+      } else if (isPublic.value) {
         groupData = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
           sortsArr: sorts.value,
           filtersArr: nestedFilters.value,
@@ -334,7 +357,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value && !interfaceDataApi) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
         where = `(${groupingField.value},is,blank)`
@@ -344,7 +367,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         where = `${where} and ${xWhere.value}`
       }
 
-      const response = !isPublic.value
+      const response = interfaceDataApi
+        ? await interfaceDataApi.fetchList({
+            offset: params.offset,
+            where,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+          })
+        : !isPublic.value
         ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
@@ -379,7 +409,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const canUpdate = isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }) || isPersonalViewOwner
 
       await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj, {
-        skipNetworkCall: isPublic.value || !canUpdate,
+        // interface mode: the synthetic view is not persisted — keep meta updates local-only
+        skipNetworkCall: isPublic.value || !!interfaceDataApi || !canUpdate,
       })
     }
 
@@ -424,13 +455,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           return o
         }, {})
 
-        const insertedData = await $api.dbViewRow.create(
-          NOCO,
-          metaValue?.base_id ?? (base?.value.id as string),
-          meta.value?.id as string,
-          viewMeta?.value?.id as string,
-          insertObj,
-        )
+        const insertedData = interfaceDataApi
+          ? await interfaceDataApi.insertRow(insertObj)
+          : await $api.dbViewRow.create(
+              NOCO,
+              metaValue?.base_id ?? (base?.value.id as string),
+              meta.value?.id as string,
+              viewMeta?.value?.id as string,
+              insertObj,
+            )
 
         formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
           row: insertedData,
@@ -451,20 +484,22 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
 
-        const updatedRowData = await $api.dbViewRow.update(
-          NOCO,
-          meta.value?.base_id ?? (base?.value.id as string),
-          meta.value?.id as string,
-          viewMeta?.value?.id as string,
-          encodeURIComponent(id),
-          {
-            [property]: toUpdate.row[property],
-          },
-          // todo:
-          // {
-          //   query: { ignoreWebhook: !saved }
-          // }
-        )
+        const updatedRowData = interfaceDataApi
+          ? await interfaceDataApi.updateRow(id, { [property]: toUpdate.row[property] })
+          : await $api.dbViewRow.update(
+              NOCO,
+              meta.value?.base_id ?? (base?.value.id as string),
+              meta.value?.id as string,
+              viewMeta?.value?.id as string,
+              encodeURIComponent(id),
+              {
+                [property]: toUpdate.row[property],
+              },
+              // todo:
+              // {
+              //   query: { ignoreWebhook: !saved }
+              // }
+            )
 
         /** update row data(to sync formula and other related columns) */
         Object.assign(toUpdate.row, updatedRowData)
@@ -606,7 +641,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     function removeRowFromUncategorizedStack() {
-      if (isPublic.value) return
+      // interface adapter mode supports CRUD — only bail in plain public shared views
+      if (isPublic.value && !interfaceDataApi) return
       // remove the last record
       formattedData.value.get(null)!.pop()
       // decrease total count by 1
@@ -636,13 +672,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         throw new Error("Delete not allowed for table which doesn't have primary Key")
       }
 
-      const res: any = await $api.dbViewRow.delete(
-        'noco',
-        meta.value?.base_id ?? (base.value.id as string),
-        meta.value?.id as string,
-        viewMeta.value?.id as string,
-        encodeURIComponent(id),
-      )
+      const res: any = interfaceDataApi
+        ? await interfaceDataApi.deleteRow(id)
+        : await $api.dbViewRow.delete(
+            'noco',
+            meta.value?.base_id ?? (base.value.id as string),
+            meta.value?.id as string,
+            viewMeta.value?.id as string,
+            encodeURIComponent(id),
+          )
 
       if (res.message) {
         message.info(

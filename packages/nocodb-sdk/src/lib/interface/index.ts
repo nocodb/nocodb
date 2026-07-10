@@ -95,6 +95,9 @@ export function getDefaultInterfacePageConfig<
     [InterfacePageLayoutTypes.RECORD_DETAIL]: {
       groups: [],
     },
+    [InterfacePageLayoutTypes.CUSTOM]: {
+      sources: [],
+    },
   };
 
   return defaults[layout];

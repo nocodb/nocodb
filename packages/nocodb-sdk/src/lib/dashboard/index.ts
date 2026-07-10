@@ -98,12 +98,18 @@ export enum TextWidgetTypes {
   Text = 'text',
 }
 
+/** Optional tinted-card treatment for text widgets; absence renders plain */
+export type TextWidgetCallout = 'info' | 'success' | 'warning' | 'accent';
+
 interface TextWidgetConfigMarkdown {
   content: string;
   type: TextWidgetTypes.Markdown;
   formatting: {
     horizontalAlign: 'flex-start' | 'center' | 'flex-end';
     verticalAlign: 'flex-start' | 'center' | 'flex-end';
+  };
+  appearance?: {
+    callout?: TextWidgetCallout;
   };
 }
 
@@ -126,6 +132,7 @@ interface TextWidgetConfigText {
       lineHeight: number;
     };
     color: string;
+    callout?: TextWidgetCallout;
   };
 }
 

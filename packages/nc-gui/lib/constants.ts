@@ -79,23 +79,11 @@ export const NC_CLOUD_URL = 'https://app.nocodb.com'
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 
 // Curated palettes keyed by the chart appearance.colorSchema enum value.
-// 'default' is the NocoDB brand palette (current product default).
+// 'default' is a CVD-validated categorical cycle — the fixed slot order is
+// the colorblind-safety mechanism, so never resort or skip slots.
 // 'custom' is reserved — when wired, it consumes appearance.customColorSchema.
 export const CHART_PALETTES: Record<string, string[]> = {
-  default: [
-    '#3366FF',
-    '#36BFFF',
-    '#22C7C9',
-    '#22C55E',
-    '#FFCD56',
-    '#FFA94D',
-    '#FF6B6B',
-    '#FF6B9D',
-    '#B388EB',
-    '#7C8FFF',
-    '#94A3B8',
-    '#67E8F9',
-  ],
+  default: ['#2A78D6', '#1BAF7A', '#EDA100', '#008300', '#4A3AA7', '#E34948', '#E87BA4', '#EB6834'],
   classic: ['#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F', '#EDC948', '#B07AA1', '#9C755F', '#FF9DA7', '#BAB0AC'],
   vibrant: ['#7C3AED', '#EC4899', '#F59E0B', '#10B981', '#0EA5E9', '#EF4444', '#14B8A6', '#A855F7', '#F97316', '#22D3EE'],
   pastel: ['#A5B4FC', '#FCA5A5', '#FCD34D', '#86EFAC', '#67E8F9', '#F9A8D4', '#FDBA74', '#C4B5FD', '#FECACA', '#BBF7D0'],

@@ -430,6 +430,8 @@ onMounted(() => {
             :data-testid="`nc-annotation-marker-${m.label}`"
             @mouseenter="emit('hoverAnnotation', m.commentId)"
             @mouseleave="emit('hoverAnnotation', null)"
+            @mousedown.stop
+            @touchstart.stop
             @click.stop="emit('selectAnnotation', m.commentId)"
           >
             <div class="nc-annotation-badge" :class="{ 'nc-annotation-badge-active': activeId === m.commentId }">
@@ -445,6 +447,8 @@ onMounted(() => {
             :data-testid="`nc-annotation-marker-${m.label}`"
             @mouseenter="emit('hoverAnnotation', m.commentId)"
             @mouseleave="emit('hoverAnnotation', null)"
+            @mousedown.stop
+            @touchstart.stop
             @click.stop="emit('selectAnnotation', m.commentId)"
           >
             <div class="nc-annotation-badge" :class="{ 'nc-annotation-badge-active': activeId === m.commentId }">

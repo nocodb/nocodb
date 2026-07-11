@@ -21,8 +21,15 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
   }): Promise<{ value: any }> {
     const value = (await super.parseUserInput(params))?.value;
     if (typeof value === 'number') {
+      if (!Number.isFinite(value)) {
+        NcError.invalidValueForField({
+          value: value.toString(),
+          column: params.column.title,
+          type: params.column.uidt,
+        });
+      }
       const max = parseFloat(parseProp(params.column.meta)?.max);
-      if (value < 0 || value > max) {
+      if (value < 0 || (!isNaN(max) && value > max)) {
         NcError.invalidValueForField({
           value: value.toString(),
           column: params.column.title,

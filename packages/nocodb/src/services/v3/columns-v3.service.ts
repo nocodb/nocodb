@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  enumColors,
   isLinksOrLTAR,
   LinksVersion,
   NcApiVersion,
@@ -281,6 +282,24 @@ export class ColumnsV3Service {
     return { current, choices };
   }
 
+  // A choice added without an explicit `color` is persisted with `color: null`.
+  // On the NEXT options mutation, that choice is read back and re-fed to
+  // `columnUpdate`, whose FieldOptions_Select schema requires `color` to be a
+  // string — so the second add/delete would fail with "'color' must be a
+  // string". Assign a palette color to any choice missing one (matching how the
+  // UI colors new select options) before the choices are persisted, so colors
+  // are never null and repeated add/remove stays retry-safe. Existing string
+  // colors are preserved.
+  private ensureChoiceColors(choices: SelectChoiceV3[]): SelectChoiceV3[] {
+    return choices.map((choice, index) => ({
+      ...choice,
+      color:
+        typeof choice.color === 'string' && choice.color
+          ? choice.color
+          : enumColors.get('light', index),
+    }));
+  }
+
   async columnOptionsAdd(
     context: NcContext,
     param: {
@@ -338,7 +357,10 @@ export class ColumnsV3Service {
       return current;
     }
 
-    const mergedChoices = [...existingChoices, ...choicesToAdd];
+    const mergedChoices = this.ensureChoiceColors([
+      ...existingChoices,
+      ...choicesToAdd,
+    ]);
 
     return this.columnUpdate(
       context,
@@ -386,8 +408,10 @@ export class ColumnsV3Service {
 
     // Idempotent delete: ignore ids that aren't present on the field.
     const idsToRemove = new Set(param.choices.map((choice) => choice.id));
-    const mergedChoices = existingChoices.filter(
-      (choice) => !choice.id || !idsToRemove.has(choice.id),
+    const mergedChoices = this.ensureChoiceColors(
+      existingChoices.filter(
+        (choice) => !choice.id || !idsToRemove.has(choice.id),
+      ),
     );
 
     // No id matched an existing choice — idempotent no-op, return as-is.

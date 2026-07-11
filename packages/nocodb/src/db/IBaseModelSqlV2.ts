@@ -43,6 +43,7 @@ export interface IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      excludeVirtualColumns?: boolean;
     },
   ): Promise<any>;
   execAndParse(
@@ -124,6 +125,7 @@ export interface IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      excludeVirtualColumns?: boolean;
     },
   ): Promise<any>;
 
@@ -360,7 +362,9 @@ export interface IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: any;
     extractOnlyPrimaries?: boolean;
+    excludeVirtualColumns?: boolean;
     deletedOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   }): Promise<any[]>;
 
   list(
@@ -384,6 +388,7 @@ export interface IBaseModelSqlV2 {
       throwErrorIfInvalidParams?: boolean;
       limitOverride?: number;
       skipSubstitutingColumnIds?: boolean;
+      excludeVirtualColumns?: boolean;
     },
   ): Promise<any>;
   selectObject(params: {

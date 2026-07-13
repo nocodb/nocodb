@@ -406,15 +406,17 @@ export class ColumnsV3Service {
       column,
     );
 
-    // Idempotent delete: ignore ids that aren't present on the field.
-    const idsToRemove = new Set(param.choices.map((choice) => choice.id));
+    // Idempotent delete: ignore titles that aren't present on the field.
+    // Titles are matched exactly (no trim / case-folding) — the caller passes
+    // back verbatim whatever title the read response returned. If a column
+    // somehow holds duplicate titles (the v3 add path forbids them, but the v2
+    // API / UI can create them), every choice matching the title is removed.
+    const titlesToRemove = new Set(param.choices.map((choice) => choice.title));
     const mergedChoices = this.ensureChoiceColors(
-      existingChoices.filter(
-        (choice) => !choice.id || !idsToRemove.has(choice.id),
-      ),
+      existingChoices.filter((choice) => !titlesToRemove.has(choice.title)),
     );
 
-    // No id matched an existing choice — idempotent no-op, return as-is.
+    // No title matched an existing choice — idempotent no-op, return as-is.
     if (mergedChoices.length === existingChoices.length) {
       return current;
     }

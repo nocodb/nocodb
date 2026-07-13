@@ -174,6 +174,10 @@ const STACK_WIDTH_WITH_GAP = STACK_WIDTH + STACK_GAP
 const horizontalScrollLeft = ref(0)
 const horizontalContainerWidth = ref(0)
 
+// Tracks a card being dragged anywhere on the kanban — used to enable hover-to-expand on collapsed
+// stacks and to force every stack to render so off-screen stacks remain valid drop targets.
+const isCardDragInProgress = ref(false)
+
 // Track which stacks are visible horizontally
 const stackSlice = reactive({
   start: 0,
@@ -234,6 +238,11 @@ const calculateStackSlice = () => {
 
 // Check if a stack is visible horizontally
 const isStackVisible = (index: number): boolean => {
+  // While a card is being dragged, render every stack so off-screen stacks (which the user can
+  // auto-scroll to mid-drag) still exist in the DOM as valid drop targets. Without this, dropping
+  // a card onto a not-yet-rendered stack silently fails because vuedraggable has no target there.
+  if (isCardDragInProgress.value) return true
+
   if (!stackSlice.end) {
     // If slice not calculated, show initial stacks
     return index < 5
@@ -1185,9 +1194,6 @@ const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.
 
 // Session-only override: user-expanded auto-collapsed empty stacks for this view mount
 const userExpandedEmptyStacks = ref<Set<string>>(new Set())
-
-// Tracks a card being dragged anywhere on the kanban — used to enable hover-to-expand on collapsed stacks
-const isCardDragInProgress = ref(false)
 
 // Stacks temporarily expanded because a dragged card is hovering over them
 const tempExpandedStacks = ref<Set<string>>(new Set())

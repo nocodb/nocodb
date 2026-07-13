@@ -316,7 +316,16 @@ const loadVisibleStacks = async (reset = false) => {
 const debouncedLoadVisibleStacks = useDebounceFn(() => loadVisibleStacks(), 100)
 
 watch(visibleStackOptions, () => {
-  if (useWindowedKanbanLoad.value) debouncedLoadVisibleStacks()
+  if (!useWindowedKanbanLoad.value) return
+
+  // During a drag the container auto-scrolls continuously, so the debounce never settles — load the
+  // window's stacks immediately instead, so cards drag-scrolled into view get their real content and
+  // land among loaded rows rather than an empty placeholder.
+  if (isCardDragInProgress.value || isStackDragInProgress.value) {
+    loadVisibleStacks()
+  } else {
+    debouncedLoadVisibleStacks()
+  }
 })
 
 // Field height mapping for card height calculation
@@ -510,10 +519,16 @@ async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
     ele.row[groupingField.value] = stackKey
-    countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
+    // The target stack may not have been loaded yet (windowed loading) — its Draggable list was an
+    // empty fallback, so seed formattedData with the dropped card so it shows instead of vanishing.
+    // `|| 0` guards the count for the same not-yet-loaded case.
+    if (!formattedData.value.get(stackKey)) {
+      formattedData.value.set(stackKey, [ele])
+    }
+    countByStack.value.set(stackKey, (countByStack.value.get(stackKey) || 0) + 1)
     await updateOrSaveRow(ele)
   } else if (event.removed) {
-    countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
+    countByStack.value.set(stackKey, Math.max(0, (countByStack.value.get(stackKey) || 0) - 1))
   }
 }
 
@@ -1694,9 +1709,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           height: '100%',
                         }"
                       >
-                        <!-- Draggable Record Card - full list for drag functionality, but only render visible items -->
+                        <!-- Draggable Record Card - full list for drag functionality, but only render visible items.
+                             Also render during a card drag even if this stack's rows haven't loaded yet, so a stack
+                             scrolled into view mid-drag still exists as a valid drop target. -->
                         <Draggable
-                          v-if="formattedData.get(stack.title)"
+                          v-if="formattedData.get(stack.title) || isCardDragInProgress"
                           v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
                           :list="formattedData.get(stack.title) || []"
                           item-key="row.id"

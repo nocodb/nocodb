@@ -1604,8 +1604,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     paddingBottom: '0rem !important',
                   }"
                 >
-                  <!-- Skeleton -->
-                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
+                  <!-- Skeleton. Suppressed while a card is being dragged: loading is paused during the
+                       drag, so an unloaded stack would stay stuck on the skeleton and never expose its
+                       card list as a drop target — render the (empty) stack body instead. -->
+                  <div
+                    v-if="(!formattedData.get(stack.title) || !countByStack) && !isCardDragInProgress"
+                    class="mt-2.5 px-3 !w-full"
+                  >
                     <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
                   </div>
 
@@ -1851,7 +1856,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           group="kanban-card"
                           class="flex flex-col"
                           :style="{
-                            minHeight: formattedData.get(stack.title)?.length ? `${getTotalScrollHeight(stack.title)}px` : '100%',
+                            // At least the virtual scroll height (keeps the scrollbar honest) but never
+                            // shorter than the column, so the blank space below the last card is still a
+                            // valid drop area — without this a drop only registers when hovering a card.
+                            minHeight: `max(${getTotalScrollHeight(stack.title)}px, 100%)`,
                             height: formattedData.get(stack.title)?.length ? 'auto' : '100%',
                           }"
                           :disabled="isMobileMode"
@@ -2116,9 +2124,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           </template>
                         </Draggable>
 
-                        <!-- Empty state -->
+                        <!-- Empty state. Requires loaded data: an unloaded stack rendered mid-drag (skeleton
+                             suppressed) isn't known to be empty, so show a plain droppable column instead. -->
                         <div
-                          v-if="!formattedData.get(stack.title)?.length"
+                          v-if="formattedData.get(stack.title) && !formattedData.get(stack.title)?.length"
                           class="w-full flex flex-col gap-4 items-center justify-center absolute inset-0"
                           :style="{
                             minHeight: '100%',

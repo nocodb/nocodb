@@ -184,10 +184,14 @@ const isCardDragInProgress = ref(false)
 // position currently held by an off-screen (not-yet-rendered) stack.
 const isStackDragInProgress = ref(false)
 
-// Absolute index of the stack a card drag started from. Kept mounted for the whole drag so Sortable
-// can still complete the move after the user auto-scrolls far away (its source list must stay in the
-// DOM, otherwise the drop silently does nothing).
-const dragSourceStackIdx = ref<number | null>(null)
+// Frozen render window for the duration of a card drag. Sortable breaks if stacks mount/unmount
+// mid-drag (the drag silently fails to complete), so on drag start we pin a bounded span of stacks
+// and keep it fixed until drop — the user can auto-scroll and drop anywhere within it.
+const cardDragWindow = ref<{ start: number; end: number } | null>(null)
+
+// How many stacks to keep rendered during a card drag. Large enough to cover a long auto-scroll,
+// bounded so drag start doesn't mount thousands of columns on a high-cardinality board.
+const CARD_DRAG_SPAN = 120
 
 // Track which stacks are visible horizontally
 const stackSlice = reactive({
@@ -260,6 +264,14 @@ const stackWindow = computed(() => {
   const total = groupingFieldColOptions.value.length
   if (!total) return { start: 0, end: 0 }
 
+  // Card drag: return the window frozen at drag start so nothing mounts/unmounts mid-drag.
+  if (cardDragWindow.value) {
+    return {
+      start: Math.max(0, Math.min(cardDragWindow.value.start, total)),
+      end: Math.max(0, Math.min(cardDragWindow.value.end, total)),
+    }
+  }
+
   let start: number
   let end: number
 
@@ -273,20 +285,10 @@ const stackWindow = computed(() => {
     end = Math.min(total, stackSlice.end + EXTRA_BUFFER)
   }
 
-  if (isCardDragInProgress.value || isStackDragInProgress.value) {
+  // Stack reorder still uses a small buffer so a stack can be dropped just off-screen.
+  if (isStackDragInProgress.value) {
     start = Math.max(0, start - STACK_DRAG_BUFFER)
     end = Math.min(total, end + STACK_DRAG_BUFFER)
-
-    // Keep the card-drag's source stack mounted so Sortable can complete the move even after the user
-    // auto-scrolls far. Extend the window outward toward it, but cap the total span so an extreme
-    // cross-board drag can't mount thousands of stacks (beyond the cap the source unmounts — a rare
-    // edge far past any normal drag distance).
-    const src = dragSourceStackIdx.value
-    if (src != null) {
-      const MAX_DRAG_SPAN = 150
-      if (src < start) start = Math.max(src, end - MAX_DRAG_SPAN)
-      else if (src >= end) end = Math.min(src + 1, start + MAX_DRAG_SPAN)
-    }
   }
 
   return { start, end }
@@ -1331,18 +1333,37 @@ const handleCollapsedStackClick = (stack: { id: string; title: string | null; co
 const handleCardDragStart = (e: any) => {
   isCardDragInProgress.value = true
 
-  // Record which stack the drag started from so the window keeps it mounted for the whole drag.
+  // Freeze a bounded window of stacks for the whole drag. It's centred on the current view, always
+  // includes the source stack, and stays fixed until drop so Sortable's tracked DOM never changes.
+  const total = groupingFieldColOptions.value.length
+  const viewStart = stackSlice.end ? stackSlice.start : 0
+  const viewEnd = stackSlice.end ? stackSlice.end : Math.min(total, 6)
+
+  let start = Math.max(0, Math.floor((viewStart + viewEnd) / 2 - CARD_DRAG_SPAN / 2))
+  let end = Math.min(total, start + CARD_DRAG_SPAN)
+  start = Math.max(0, end - CARD_DRAG_SPAN)
+
   const rawTitle = e?.from?.closest?.('.nc-kanban-list')?.dataset?.stackTitle
   const sourceTitle = rawTitle == null || rawTitle === '' ? null : rawTitle
-  const idx = groupingFieldColOptions.value.findIndex((s) => (s.title ?? null) === sourceTitle)
-  dragSourceStackIdx.value = idx >= 0 ? idx : null
+  const srcIdx = groupingFieldColOptions.value.findIndex((s) => (s.title ?? null) === sourceTitle)
+  if (srcIdx >= 0) {
+    if (srcIdx < start) {
+      start = srcIdx
+      end = Math.min(total, start + CARD_DRAG_SPAN)
+    } else if (srcIdx >= end) {
+      end = Math.min(total, srcIdx + 1)
+      start = Math.max(0, end - CARD_DRAG_SPAN)
+    }
+  }
+
+  cardDragWindow.value = { start, end }
 
   e.target.classList.add('grabbing')
 }
 
 const handleCardDragEnd = (e: any) => {
   isCardDragInProgress.value = false
-  dragSourceStackIdx.value = null
+  cardDragWindow.value = null
   tempExpandedStacks.value.clear()
   e.target.classList.remove('grabbing')
 

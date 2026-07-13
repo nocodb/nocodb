@@ -57,7 +57,6 @@ const {
   loadKanbanData,
   loadKanbanDataForStacks,
   useWindowedKanbanLoad,
-  loadedStacks,
   loadMoreKanbanData,
   kanbanMetaData,
   formattedData,
@@ -204,9 +203,18 @@ const CARD_DRAG_SPAN = 120
 const STACK_DRAG_SPAN = 60
 
 // A card drop persists the moved row asynchronously (onMove → updateOrSaveRow). We hold that promise
-// so drag end can wait for the write to commit before reloading; otherwise the reload reads a
-// pre-commit snapshot and the moved card briefly vanishes from the target stack.
+// so drag end can wait for the write to commit before reloading.
 const pendingCardMove = ref<Promise<unknown> | null>(null)
+
+// The last cross-stack card move (source, target, row), captured across the two separate `change`
+// events sortable fires (removed on the source list, added on the target list). Used by drag end to
+// reconcile the move into the reloaded data — the grouped-data read can briefly lag a just-committed
+// write, so a reload may return the target without this row (or the source still holding it).
+const lastCardMove = ref<{ row: any; fromKey: string | null; toKey: string | null }>({
+  row: null,
+  fromKey: null,
+  toKey: null,
+})
 
 // Track which stacks are visible horizontally
 const stackSlice = reactive({
@@ -552,15 +560,14 @@ async function onMove(event: any, stackKey: string) {
       formattedData.value.set(stackKey, [ele])
     }
     countByStack.value.set(stackKey, (countByStack.value.get(stackKey) || 0) + 1)
-    // The rows/count set above are optimistic — invalidate so the drag-end reload refetches this
-    // stack fresh once the write below has committed (keeps count and ordering authoritative).
-    loadedStacks.value.delete(stackKey)
+    // Remember the move so drag end can reconcile it against the reloaded data: the grouped-data read
+    // can briefly lag a just-committed move, so a reload of the target may come back without this row.
+    lastCardMove.value = { row: ele, toKey: stackKey, fromKey: lastCardMove.value.fromKey }
     pendingCardMove.value = updateOrSaveRow(ele)
     await pendingCardMove.value
   } else if (event.removed) {
     countByStack.value.set(stackKey, Math.max(0, (countByStack.value.get(stackKey) || 0) - 1))
-    // Source stack count is now optimistic too — refetch it on drag end.
-    loadedStacks.value.delete(stackKey)
+    lastCardMove.value = { row: lastCardMove.value.row, toKey: lastCardMove.value.toKey, fromKey: stackKey }
   }
 }
 
@@ -1384,15 +1391,48 @@ const handleCardDragStart = (e: any) => {
   e.target.classList.add('grabbing')
 }
 
+// Ensure the moved row is present in its target stack and absent from its source stack, fixing the
+// counts. A no-op when the reloaded data already reflects the move.
+const reconcileCardMove = (move: { row: any; fromKey: string | null; toKey: string | null }) => {
+  if (!move?.row || !meta.value?.columns) return
+  const pk = extractPkFromRow(move.row.row, meta.value.columns as ColumnType[])
+  if (pk === undefined || pk === null) return
+
+  const hasRow = (key: string | null) =>
+    (formattedData.value.get(key) || []).some((r) => extractPkFromRow(r.row, meta.value!.columns as ColumnType[]) === pk)
+
+  // Target: add the moved row if the reload didn't include it yet.
+  if (move.toKey !== null && move.toKey !== undefined && !hasRow(move.toKey)) {
+    const next = new Map(formattedData.value)
+    next.set(move.toKey, [move.row, ...(next.get(move.toKey) || [])])
+    formattedData.value = next
+    countByStack.value.set(move.toKey, (countByStack.value.get(move.toKey) || 0) + 1)
+  }
+
+  // Source: drop the moved row if a stale reload re-added it.
+  if (move.fromKey !== null && move.fromKey !== undefined && hasRow(move.fromKey)) {
+    const next = new Map(formattedData.value)
+    next.set(
+      move.fromKey,
+      (next.get(move.fromKey) || []).filter((r) => extractPkFromRow(r.row, meta.value!.columns as ColumnType[]) !== pk),
+    )
+    formattedData.value = next
+    countByStack.value.set(move.fromKey, Math.max(0, (countByStack.value.get(move.fromKey) || 0) - 1))
+  }
+}
+
 const handleCardDragEnd = async (e: any) => {
   isCardDragInProgress.value = false
   cardDragWindow.value = null
   tempExpandedStacks.value.clear()
   e.target.classList.remove('grabbing')
 
-  // The drop's row-persist (onMove → updateOrSaveRow) runs concurrently with this handler. Wait for
-  // it to commit before reloading so the windowed reload below reads the post-move server state
-  // rather than a pre-commit snapshot (which would momentarily drop the moved card from its stack).
+  const move = lastCardMove.value
+  lastCardMove.value = { row: null, fromKey: null, toKey: null }
+
+  // Wait for the drop's persist to commit before reloading, then load the window the user ended on
+  // (loading was suppressed during the drag). Already-loaded stacks keep their optimistic state; only
+  // genuinely-unloaded stacks (e.g. a not-yet-loaded drop target) are fetched.
   try {
     await pendingCardMove.value
   } catch {
@@ -1400,9 +1440,13 @@ const handleCardDragEnd = async (e: any) => {
   }
   pendingCardMove.value = null
 
-  // Loading was suppressed during the drag — load the window the user ended on (plus the source/target
-  // stacks, invalidated in onMove) now that the DOM is stable again.
-  loadVisibleStacks()
+  await loadVisibleStacks()
+
+  // The grouped-data read can lag a just-committed move by a moment, so a freshly-fetched drop target
+  // may come back without the moved row (and the source still holding it). Reconcile the known move
+  // so the card lands in its new stack regardless of read-after-write lag; it self-corrects to the
+  // authoritative server state on the next natural reload.
+  reconcileCardMove(move)
 }
 
 const handleStackDragStart = (e: any) => {

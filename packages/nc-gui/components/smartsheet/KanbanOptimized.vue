@@ -55,6 +55,8 @@ const { isMounted } = useIsMounted()
 
 const {
   loadKanbanData,
+  loadKanbanDataForStacks,
+  useWindowedKanbanLoad,
   loadMoreKanbanData,
   kanbanMetaData,
   formattedData,
@@ -289,6 +291,34 @@ const rightStackSpacerWidth = computed(() =>
 // groupingFieldColOptions, which the stack mutation handlers rely on.
 const getAbsStackIdx = (relIndex: number) => stackWindow.value.start + relIndex
 
+// Load grouped data one visible window at a time so high-cardinality boards don't fetch every stack
+// upfront. Public/shared views keep the original full load (the shared-view endpoint can't filter
+// groups), so windowed mode is enabled only for non-public boards.
+useWindowedKanbanLoad.value = !isPublic.value
+
+const currentWindowStackTitles = () => visibleStackOptions.value.map((stack) => stack.title ?? null)
+
+const loadVisibleStacks = async (reset = false) => {
+  if (!useWindowedKanbanLoad.value) {
+    await loadKanbanData()
+    return
+  }
+
+  try {
+    await loadKanbanDataForStacks(currentWindowStackTitles(), { reset })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+// Fetch the data for stacks scrolled into view. Debounced so fast horizontal scrolling doesn't fire
+// a request per intermediate window — loadKanbanDataForStacks already skips already-loaded stacks.
+const debouncedLoadVisibleStacks = useDebounceFn(() => loadVisibleStacks(), 100)
+
+watch(visibleStackOptions, () => {
+  if (useWindowedKanbanLoad.value) debouncedLoadVisibleStacks()
+})
+
 // Field height mapping for card height calculation
 const FIELD_HEIGHT = {
   [UITypes.LongText]: 150,
@@ -324,7 +354,9 @@ const stackCardSlices = shallowRef<Map<string | null, { start: number; end: numb
 const slicesVersion = ref(0)
 
 const reloadViewDataListener = withLoading(async () => {
-  await loadKanbanData()
+  // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
+  // as they scroll back into view).
+  await loadVisibleStacks(true)
 })
 
 reloadViewDataHook?.on(reloadViewDataListener)
@@ -1049,6 +1081,9 @@ const handleHorizontalScroll = () => {
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
 onBeforeUnmount(() => {
+  // Reset so a store instance reused by the legacy Kanban falls back to its full load.
+  useWindowedKanbanLoad.value = false
+
   openNewRecordFormHook.off(openNewRecordFormHookHandler)
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)
@@ -1198,7 +1233,7 @@ watch(containerWidth, () => {
 onMounted(async () => {
   try {
     isViewDataLoading.value = true
-    await loadKanbanData()
+    await loadVisibleStacks()
 
     nextTick(() => {
       if (kanbanContainerRef.value) {

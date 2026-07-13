@@ -202,13 +202,23 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       // Valid stack meta exists - sync with column options
+      // Use Map/Set lookups instead of findIndex/includes so this stays O(n) — high-cardinality
+      // grouping fields (e.g. a SingleSelect with thousands of options) would otherwise make this
+      // computed O(n²) and freeze the main thread on every recompute.
       const syncedOptions = [...stackMeta]
       let needsSync = false
 
+      const idxById = new Map<string, number>()
+      let maxOrder = 0
+      syncedOptions.forEach((stack, idx) => {
+        idxById.set(stack.id, idx)
+        if ((stack.order || 0) > maxOrder) maxOrder = stack.order || 0
+      })
+
       // Update existing options with latest column data
       for (const option of columnOptions) {
-        const idx = syncedOptions.findIndex((stack) => stack.id === option.id)
-        if (idx !== -1) {
+        const idx = idxById.get(option.id)
+        if (idx !== undefined) {
           // Check if select option properties changed
           const existing = syncedOptions[idx]
           if (existing.title !== option.title || existing.color !== option.color) {
@@ -221,20 +231,21 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           }
         } else {
           // New option - add with proper order
-          const maxOrder = Math.max(...syncedOptions.map((s) => s.order || 0), 0)
+          maxOrder += 1
           syncedOptions.push({
             ...option,
-            order: maxOrder + 1,
+            order: maxOrder,
             collapsed: false,
           })
+          idxById.set(option.id, syncedOptions.length - 1)
           needsSync = true
         }
       }
 
       // Remove deleted options (except uncategorized)
-      const columnOptionIds = columnOptions.map((opt) => opt.id)
+      const columnOptionIds = new Set(columnOptions.map((opt) => opt.id))
       const filteredOptions = syncedOptions.filter(
-        (stack) => stack.id === uncategorizedStackId || columnOptionIds.includes(stack.id),
+        (stack) => stack.id === uncategorizedStackId || columnOptionIds.has(stack.id),
       )
 
       if (filteredOptions.length !== syncedOptions.length) {

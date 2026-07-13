@@ -240,21 +240,54 @@ const calculateStackSlice = () => {
   }
 }
 
-// Check if a stack is visible horizontally
-const isStackVisible = (index: number): boolean => {
-  // While a card or stack is being dragged, render every stack so off-screen stacks (which the user
-  // can auto-scroll to mid-drag) still exist in the DOM as valid drop targets. Without this, dropping
-  // onto a not-yet-rendered stack silently fails because vuedraggable has no target there.
-  if (isCardDragInProgress.value || isStackDragInProgress.value) return true
+// Extra stacks to keep mounted on each side of a drag, so a card/stack dragged toward an off-screen
+// stack (auto-scrolling mid-drag) finds it already in the DOM as a valid drop target. Bounded so that
+// high-cardinality grouping (thousands of stacks) never tries to mount them all and crash the tab.
+const STACK_DRAG_BUFFER = 8
+
+// The window of stacks actually rendered. Only this slice is passed to the Draggable; everything
+// outside it is represented by left/right spacer divs that preserve scroll width. This keeps the
+// stack v-for at ~window-size iterations instead of O(total stacks) on every render — without it a
+// board grouped by a high-cardinality field (e.g. a SingleSelect with thousands of options) freezes.
+const stackWindow = computed(() => {
+  const total = groupingFieldColOptions.value.length
+  if (!total) return { start: 0, end: 0 }
+
+  let start: number
+  let end: number
 
   if (!stackSlice.end) {
-    // If slice not calculated, show initial stacks
-    return index < 5
+    // Slice not calculated yet — show the first few stacks
+    start = 0
+    end = Math.min(total, 6)
+  } else {
+    const EXTRA_BUFFER = 1
+    start = Math.max(0, stackSlice.start - EXTRA_BUFFER)
+    end = Math.min(total, stackSlice.end + EXTRA_BUFFER)
   }
-  // Add small buffer for edge cases
-  const EXTRA_BUFFER = 1
-  return index >= Math.max(0, stackSlice.start - EXTRA_BUFFER) && index < stackSlice.end + EXTRA_BUFFER
-}
+
+  if (isCardDragInProgress.value || isStackDragInProgress.value) {
+    start = Math.max(0, start - STACK_DRAG_BUFFER)
+    end = Math.min(total, end + STACK_DRAG_BUFFER)
+  }
+
+  return { start, end }
+})
+
+const visibleStackOptions = computed(() => groupingFieldColOptions.value.slice(stackWindow.value.start, stackWindow.value.end))
+
+// Spacer widths approximate off-screen stacks at a uniform width (matching calculateStackSlice's
+// assumption). Collapsed/hidden stacks make this slightly imprecise, but it keeps the horizontal
+// scrollbar proportional, which is all that matters for high stack counts.
+const leftStackSpacerWidth = computed(() => stackWindow.value.start * STACK_WIDTH_WITH_GAP)
+
+const rightStackSpacerWidth = computed(() =>
+  Math.max(0, groupingFieldColOptions.value.length - stackWindow.value.end) * STACK_WIDTH_WITH_GAP,
+)
+
+// Map a Draggable slot index (relative to the rendered window) back to the absolute index into
+// groupingFieldColOptions, which the stack mutation handlers rely on.
+const getAbsStackIdx = (relIndex: number) => stackWindow.value.start + relIndex
 
 // Field height mapping for card height calculation
 const FIELD_HEIGHT = {
@@ -408,14 +441,19 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 
 /** Block dragging the stack to first index (reserved for uncategorized) **/
 function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
-  if (event.draggedContext.futureIndex === 0) {
+  // futureIndex is relative to the rendered window — map to absolute so we still forbid dropping a
+  // stack before the uncategorized stack (absolute index 0).
+  if (stackWindow.value.start + event.draggedContext.futureIndex === 0) {
     return false
   }
 }
 
 async function onMoveStack(event: any) {
   if (event.moved) {
-    const { oldIndex, newIndex } = event.moved
+    // event indices are relative to the rendered window (visibleStackOptions); shift to absolute
+    // indices into the full groupingFieldColOptions list.
+    const oldIndex = stackWindow.value.start + event.moved.oldIndex
+    const newIndex = stackWindow.value.start + event.moved.newIndex
 
     // Create a copy of the current stack metadata
     const stackMeta = [...groupingFieldColOptions.value]
@@ -1331,9 +1369,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
         overlay-class-name="nc-dropdown-kanban-context-menu"
       >
         <div class="flex gap-3">
+          <!-- Left spacer standing in for off-screen stacks (horizontal virtual scroll) -->
+          <div v-if="leftStackSpacerWidth" class="flex-none" :style="{ width: `${leftStackSpacerWidth}px` }" aria-hidden="true" />
           <!-- Draggable Stack -->
           <Draggable
-            v-model="groupingFieldColOptions"
+            :list="visibleStackOptions"
             v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
             class="flex gap-3"
             item-key="id"
@@ -1356,9 +1396,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             "
             @change="onMoveStack($event)"
           >
-            <template #item="{ element: stack, index: stackIdx }">
+            <template #item="{ element: stack, index: relStackIdx }">
               <div
-                v-if="isStackVisible(stackIdx)"
                 class="nc-kanban-stack"
                 :class="{
                   'w-[44px]': isStackCollapsed(stack),
@@ -1371,7 +1410,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 <!-- Non Collapsed Stacks -->
                 <a-card
                   v-if="!isStackCollapsed(stack)"
-                  :key="`${stack.id}-${stackIdx}`"
+                  :key="stack.id"
                   class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
@@ -1435,7 +1474,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <SmartsheetKanbanEditOrAddStack
                                 :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                                 :option-id="isRenameOrNewStack.id"
-                                @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, stackIdx)"
+                                @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, getAbsStackIdx(relStackIdx))"
                               />
                             </template>
                             <a-tag
@@ -1544,7 +1583,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <NcMenuItem
                                 v-e="['c:kanban:collapse-stack']"
                                 data-testid="nc-kanban-context-menu-collapse-stack"
-                                @click="handleCollapseStack(stackIdx)"
+                                @click="handleCollapseStack(getAbsStackIdx(relStackIdx))"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
@@ -1578,7 +1617,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   v-e="['c:kanban:delete-stack']"
                                   danger
                                   data-testid="nc-kanban-context-menu-delete-stack"
-                                  @click="handleDeleteStackClick(stack.title, stackIdx)"
+                                  @click="handleDeleteStackClick(stack.title, getAbsStackIdx(relStackIdx))"
                                 >
                                   <div class="flex gap-2 items-center">
                                     <component :is="iconMap.delete" class="flex-none w-4 h-4" />
@@ -1639,7 +1678,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           :fallback-tolerance="0"
                           @start="handleCardDragStart"
                           @end="handleCardDragEnd"
-                          @change="onMoveAndPersistExpand($event, stack.title, stackIdx)"
+                          @change="onMoveAndPersistExpand($event, stack.title, getAbsStackIdx(relStackIdx))"
                         >
                           <template #item="{ element: record, index }">
                             <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
@@ -1990,7 +2029,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   @mouseenter="handleCollapsedStackDragEnter(stack)"
                   @dragenter="handleCollapsedStackDragEnter(stack)"
                 >
-                  <div class="h-full flex items-center justify-between" @click="handleCollapsedStackClick(stack, stackIdx)">
+                  <div class="h-full flex items-center justify-between" @click="handleCollapsedStackClick(stack, getAbsStackIdx(relStackIdx))">
                     <div
                       v-if="!formattedData.get(stack.title) || !countByStack"
                       class="!w-full !h-full flex items-center justify-center"
@@ -2072,21 +2111,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   </div>
                 </a-card>
               </div>
-
-              <!-- Placeholder for non-visible stacks - maintains layout but doesn't render content -->
-              <div
-                v-else
-                class="nc-kanban-stack"
-                :style="{
-                  width: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
-                  flexShrink: 0,
-                  height: '100%',
-                  minWidth: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
-                  maxWidth: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
-                }"
-              />
             </template>
           </Draggable>
+
+          <!-- Right spacer standing in for off-screen stacks (horizontal virtual scroll) -->
+          <div v-if="rightStackSpacerWidth" class="flex-none" :style="{ width: `${rightStackSpacerWidth}px` }" aria-hidden="true" />
 
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->

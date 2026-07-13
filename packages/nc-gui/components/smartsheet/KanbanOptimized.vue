@@ -184,6 +184,11 @@ const isCardDragInProgress = ref(false)
 // position currently held by an off-screen (not-yet-rendered) stack.
 const isStackDragInProgress = ref(false)
 
+// Absolute index of the stack a card drag started from. Kept mounted for the whole drag so Sortable
+// can still complete the move after the user auto-scrolls far away (its source list must stay in the
+// DOM, otherwise the drop silently does nothing).
+const dragSourceStackIdx = ref<number | null>(null)
+
 // Track which stacks are visible horizontally
 const stackSlice = reactive({
   start: 0,
@@ -271,6 +276,17 @@ const stackWindow = computed(() => {
   if (isCardDragInProgress.value || isStackDragInProgress.value) {
     start = Math.max(0, start - STACK_DRAG_BUFFER)
     end = Math.min(total, end + STACK_DRAG_BUFFER)
+
+    // Keep the card-drag's source stack mounted so Sortable can complete the move even after the user
+    // auto-scrolls far. Extend the window outward toward it, but cap the total span so an extreme
+    // cross-board drag can't mount thousands of stacks (beyond the cap the source unmounts — a rare
+    // edge far past any normal drag distance).
+    const src = dragSourceStackIdx.value
+    if (src != null) {
+      const MAX_DRAG_SPAN = 150
+      if (src < start) start = Math.max(src, end - MAX_DRAG_SPAN)
+      else if (src >= end) end = Math.min(src + 1, start + MAX_DRAG_SPAN)
+    }
   }
 
   return { start, end }
@@ -1315,11 +1331,19 @@ const handleCollapsedStackClick = (stack: { id: string; title: string | null; co
 
 const handleCardDragStart = (e: any) => {
   isCardDragInProgress.value = true
+
+  // Record which stack the drag started from so the window keeps it mounted for the whole drag.
+  const rawTitle = e?.from?.closest?.('.nc-kanban-list')?.dataset?.stackTitle
+  const sourceTitle = rawTitle == null || rawTitle === '' ? null : rawTitle
+  const idx = groupingFieldColOptions.value.findIndex((s) => (s.title ?? null) === sourceTitle)
+  dragSourceStackIdx.value = idx >= 0 ? idx : null
+
   e.target.classList.add('grabbing')
 }
 
 const handleCardDragEnd = (e: any) => {
   isCardDragInProgress.value = false
+  dragSourceStackIdx.value = null
   tempExpandedStacks.value.clear()
   e.target.classList.remove('grabbing')
 }

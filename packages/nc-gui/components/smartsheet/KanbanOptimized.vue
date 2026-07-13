@@ -334,14 +334,13 @@ const debouncedLoadVisibleStacks = useDebounceFn(() => loadVisibleStacks(), 100)
 watch(visibleStackOptions, () => {
   if (!useWindowedKanbanLoad.value) return
 
-  // During a drag the container auto-scrolls continuously, so the debounce never settles — load the
-  // window's stacks immediately instead, so cards drag-scrolled into view get their real content and
-  // land among loaded rows rather than an empty placeholder.
-  if (isCardDragInProgress.value || isStackDragInProgress.value) {
-    loadVisibleStacks()
-  } else {
-    debouncedLoadVisibleStacks()
-  }
+  // Never load while a drag is in progress: replacing formattedData mid-drag re-renders the card
+  // lists and destroys the DOM nodes Sortable is tracking, which breaks the drag entirely. Stacks
+  // scrolled into view during a drag still render an empty Draggable (valid drop target); their real
+  // data is loaded on drag end.
+  if (isCardDragInProgress.value || isStackDragInProgress.value) return
+
+  debouncedLoadVisibleStacks()
 })
 
 // Field height mapping for card height calculation
@@ -1346,6 +1345,10 @@ const handleCardDragEnd = (e: any) => {
   dragSourceStackIdx.value = null
   tempExpandedStacks.value.clear()
   e.target.classList.remove('grabbing')
+
+  // Loading was suppressed during the drag — load the window the user ended on (and the drop target,
+  // which may only hold the seeded card) now that the DOM is stable again.
+  loadVisibleStacks()
 }
 
 const handleCollapsedStackDragEnter = (stack: { id: string; collapsed?: boolean }) => {

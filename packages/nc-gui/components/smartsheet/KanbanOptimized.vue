@@ -178,6 +178,10 @@ const horizontalContainerWidth = ref(0)
 // stacks and to force every stack to render so off-screen stacks remain valid drop targets.
 const isCardDragInProgress = ref(false)
 
+// Tracks a stack being reordered — forces every stack to render so a stack can be dropped at a
+// position currently held by an off-screen (not-yet-rendered) stack.
+const isStackDragInProgress = ref(false)
+
 // Track which stacks are visible horizontally
 const stackSlice = reactive({
   start: 0,
@@ -238,10 +242,10 @@ const calculateStackSlice = () => {
 
 // Check if a stack is visible horizontally
 const isStackVisible = (index: number): boolean => {
-  // While a card is being dragged, render every stack so off-screen stacks (which the user can
-  // auto-scroll to mid-drag) still exist in the DOM as valid drop targets. Without this, dropping
-  // a card onto a not-yet-rendered stack silently fails because vuedraggable has no target there.
-  if (isCardDragInProgress.value) return true
+  // While a card or stack is being dragged, render every stack so off-screen stacks (which the user
+  // can auto-scroll to mid-drag) still exist in the DOM as valid drop targets. Without this, dropping
+  // onto a not-yet-rendered stack silently fails because vuedraggable has no target there.
+  if (isCardDragInProgress.value || isStackDragInProgress.value) return true
 
   if (!stackSlice.end) {
     // If slice not calculated, show initial stacks
@@ -1338,8 +1342,18 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             handle=".nc-kanban-stack-drag-handler"
             :filter="draggableStackFilter"
             :move="onMoveCallback"
-            @start="(e) => e.target.classList.add('grabbing')"
-            @end="(e) => e.target.classList.remove('grabbing')"
+            @start="
+              (e) => {
+                isStackDragInProgress = true
+                e.target.classList.add('grabbing')
+              }
+            "
+            @end="
+              (e) => {
+                isStackDragInProgress = false
+                e.target.classList.remove('grabbing')
+              }
+            "
             @change="onMoveStack($event)"
           >
             <template #item="{ element: stack, index: stackIdx }">

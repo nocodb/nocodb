@@ -1,4 +1,12 @@
-import { BaseVersion, type IntegrationType, type SerializedAiViewType, type TableType } from 'nocodb-sdk'
+import {
+  BaseVersion,
+  type ColumnType,
+  type IntegrationType,
+  SelectFieldAgentMetaProp,
+  type SerializedAiViewType,
+  type TableType,
+  isFieldAgentCol,
+} from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -523,6 +531,84 @@ export const useNocoAi = createSharedComposable(() => {
     ((columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) => Promise<any>) | null
   >(null)
 
+  // ── Field Agent Dirty Row Tracking ──────────────────────────────────
+  // Tracks which rows need re-generation because a dependent field changed.
+  // Session-scoped: resets on page reload.
+
+  // Reverse dependency map: columnTitle → [fieldAgentColumnId, ...]
+  const fieldAgentDependencyMap = ref<Map<string, string[]>>(new Map())
+
+  // Dirty rows: fieldAgentColumnId → Set<rowPk>
+  const dirtyFieldAgentRows = ref<Map<string, Set<string>>>(new Map())
+
+  /**
+   * Build reverse dependency map from field agent prompts.
+   * Call whenever table columns change.
+   */
+  const buildFieldAgentDependencyMap = (columns: ColumnType[]) => {
+    const newMap = new Map<string, string[]>()
+
+    for (const col of columns) {
+      if (!isFieldAgentCol(col) || !col.id) continue
+
+      const colMeta = parseProp(col.meta)
+      const promptRaw = colMeta?.[SelectFieldAgentMetaProp]?.prompt_raw
+      if (!promptRaw) continue
+
+      // Extract all {FieldName} tokens
+      const matches = promptRaw.match(/\{([^}]+)\}/g)
+      if (!matches) continue
+
+      for (const match of matches) {
+        const fieldName = match.slice(1, -1) // Remove { }
+        const existing = newMap.get(fieldName) ?? []
+        if (!existing.includes(col.id)) {
+          existing.push(col.id)
+        }
+        newMap.set(fieldName, existing)
+      }
+    }
+
+    fieldAgentDependencyMap.value = newMap
+  }
+
+  /**
+   * Called after a cell update. Marks dependent field agent rows as dirty.
+   */
+  const onFieldAgentCellUpdate = (property: string, rowPk: string) => {
+    const dependentColIds = fieldAgentDependencyMap.value.get(property)
+    if (!dependentColIds?.length) return
+
+    for (const colId of dependentColIds) {
+      let dirtySet = dirtyFieldAgentRows.value.get(colId)
+      if (!dirtySet) {
+        dirtySet = new Set()
+        dirtyFieldAgentRows.value.set(colId, dirtySet)
+      }
+      dirtySet.add(rowPk)
+    }
+
+    // Trigger reactivity
+    dirtyFieldAgentRows.value = new Map(dirtyFieldAgentRows.value)
+  }
+
+  const getFieldAgentDirtyCount = (colId: string): number => {
+    return dirtyFieldAgentRows.value.get(colId)?.size ?? 0
+  }
+
+  const getFieldAgentDirtyRowIds = (colId: string): string[] => {
+    return [...(dirtyFieldAgentRows.value.get(colId) ?? [])]
+  }
+
+  const clearFieldAgentDirty = (colId: string) => {
+    dirtyFieldAgentRows.value.delete(colId)
+    dirtyFieldAgentRows.value = new Map(dirtyFieldAgentRows.value)
+  }
+
+  const clearAllFieldAgentDirty = () => {
+    dirtyFieldAgentRows.value = new Map()
+  }
+
   return {
     aiIntegrationAvailable,
     isNocoAiAvailable,
@@ -553,5 +639,13 @@ export const useNocoAi = createSharedComposable(() => {
     isAiFeaturesEnabled,
     isAiBetaFeaturesEnabled,
     canvasBulkAiGeneration,
+    // Field agent dirty tracking
+    buildFieldAgentDependencyMap,
+    onFieldAgentCellUpdate,
+    getFieldAgentDirtyCount,
+    getFieldAgentDirtyRowIds,
+    clearFieldAgentDirty,
+    clearAllFieldAgentDirty,
+    dirtyFieldAgentRows,
   }
 })

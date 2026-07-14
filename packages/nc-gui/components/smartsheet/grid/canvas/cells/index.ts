@@ -343,6 +343,8 @@ export function useGridCellHandler(params: {
         column,
         setCursor,
         readonly,
+        getColor,
+        isDark,
       })
     }
 

@@ -535,6 +535,17 @@ export const useNocoAi = createSharedComposable(() => {
   // Tracks which rows need re-generation because a dependent field changed.
   // Session-scoped: resets on page reload.
 
+  /** Mutate a reactive Map ref and trigger Vue reactivity. */
+  function reactiveMapSet<K, V>(mapRef: Ref<Map<K, V>>, key: K, value: V) {
+    mapRef.value.set(key, value)
+    triggerRef(mapRef)
+  }
+
+  function reactiveMapDelete<K, V>(mapRef: Ref<Map<K, V>>, key: K) {
+    mapRef.value.delete(key)
+    triggerRef(mapRef)
+  }
+
   // Reverse dependency map: columnTitle → [fieldAgentColumnId, ...]
   const fieldAgentDependencyMap = ref<Map<string, string[]>>(new Map())
 
@@ -574,8 +585,9 @@ export const useNocoAi = createSharedComposable(() => {
 
   /**
    * Called after a cell update. Marks dependent field agent rows as dirty.
+   * Also triggers a debounced server-side re-fetch for persistent tracking.
    */
-  const onFieldAgentCellUpdate = (property: string, rowPk: string) => {
+  const onFieldAgentCellUpdate = (property: string, rowPk: string, modelId?: string) => {
     const dependentColIds = fieldAgentDependencyMap.value.get(property)
     if (!dependentColIds?.length) return
 
@@ -586,31 +598,96 @@ export const useNocoAi = createSharedComposable(() => {
         dirtyFieldAgentRows.value.set(colId, dirtySet)
       }
       dirtySet.add(rowPk)
+
+      // Debounced server re-fetch for persistent tracking
+      if (modelId) {
+        debouncedFetchDirty(modelId, colId)
+      }
     }
 
-    // Trigger reactivity
-    dirtyFieldAgentRows.value = new Map(dirtyFieldAgentRows.value)
+    triggerRef(dirtyFieldAgentRows)
   }
 
-  /** Number of dirty (stale) rows for a given field agent column. */
+  // ── Server-Side Dirty Tracking (persistent via nc_row_meta) ──────────
+  // Queries the backend for dirty rows; survives page reloads.
+
+  const serverDirtyCounts = ref<Map<string, { count: number; rowIds: string[] }>>(new Map())
+  const dirtyCountLoading = ref<Map<string, boolean>>(new Map())
+
+  const fetchFieldAgentDirtyCount = async (modelId: string, colId: string) => {
+    if (!modelId || !colId) return { count: 0, rowIds: [] }
+
+    reactiveMapSet(dirtyCountLoading, colId, true)
+
+    try {
+      const data = (await $api.internal.getOperation(workspaceStore.activeWorkspaceId, activeProjectId.value!, {
+        operation: 'fieldAgentDirtyRows',
+        tableId: modelId,
+        columnId: colId,
+      })) as { count: number; rowIds: string[] }
+      reactiveMapSet(serverDirtyCounts, colId, data)
+      return data
+    } catch (_e) {
+      return { count: 0, rowIds: [] }
+    } finally {
+      reactiveMapSet(dirtyCountLoading, colId, false)
+    }
+  }
+
+  const debouncedFetchDirty = useDebounceFn((modelId: string, colId: string) => {
+    fetchFieldAgentDirtyCount(modelId, colId)
+  }, 2000)
+
+  /** Number of dirty (stale) rows for a given field agent column. Prefers server-side data. */
   const getFieldAgentDirtyCount = (colId: string): number => {
+    const serverData = serverDirtyCounts.value.get(colId)
+    if (serverData !== undefined) return serverData.count
     return dirtyFieldAgentRows.value.get(colId)?.size ?? 0
   }
 
-  /** Row PKs that need re-generation for a given field agent column. */
+  /** Row PKs that need re-generation for a given field agent column. Prefers server-side data. */
   const getFieldAgentDirtyRowIds = (colId: string): string[] => {
+    const serverData = serverDirtyCounts.value.get(colId)
+    if (serverData !== undefined) return serverData.rowIds
     return [...(dirtyFieldAgentRows.value.get(colId) ?? [])]
+  }
+
+  /** Whether a dirty count fetch is in progress for a column. */
+  const isDirtyCountLoading = (colId: string): boolean => {
+    return dirtyCountLoading.value.get(colId) ?? false
   }
 
   /** Clear dirty state for a single field agent column (e.g. after successful generation). */
   const clearFieldAgentDirty = (colId: string) => {
-    dirtyFieldAgentRows.value.delete(colId)
-    dirtyFieldAgentRows.value = new Map(dirtyFieldAgentRows.value)
+    reactiveMapDelete(dirtyFieldAgentRows, colId)
+    reactiveMapDelete(serverDirtyCounts, colId)
   }
 
   /** Reset all dirty state (e.g. on table switch). */
   const clearAllFieldAgentDirty = () => {
     dirtyFieldAgentRows.value = new Map()
+    serverDirtyCounts.value = new Map()
+  }
+
+  /**
+   * Dispatch a background job for bulk field agent generation.
+   * Returns the job ID. Caller should subscribe via $poller.
+   */
+  const dispatchFieldAgentJob = async (
+    modelId: string,
+    params: {
+      columnId: string
+      mode: 'all' | 'unmodified' | 'modified'
+      viewId?: string
+    },
+  ): Promise<{ id: string } | undefined> => {
+    try {
+      const res = await $api.instance.post<{ id: string }>(`/api/v2/ai/tables/${modelId}/field-agent/generate`, params)
+      return res.data
+    } catch (e: any) {
+      const error = await extractSdkResponseErrorMsg(e)
+      message.error(error || 'Failed to start field agent job')
+    }
   }
 
   return {
@@ -650,5 +727,11 @@ export const useNocoAi = createSharedComposable(() => {
     getFieldAgentDirtyRowIds,
     clearFieldAgentDirty,
     clearAllFieldAgentDirty,
+    // Server-side dirty tracking (persistent)
+    fetchFieldAgentDirtyCount,
+    isDirtyCountLoading,
+    serverDirtyCounts,
+    // Bulk job dispatch
+    dispatchFieldAgentJob,
   }
 })

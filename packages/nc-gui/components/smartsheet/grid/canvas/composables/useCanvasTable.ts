@@ -301,6 +301,22 @@ export function useCanvasTable({
     { immediate: true },
   )
 
+  // Wire up realtime agent status callback from useInfiniteData → ActionManager
+  const onAgentStatus = inject<Ref<((columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void) | undefined>>(
+    'onAgentStatus',
+    ref(),
+  )
+
+  onAgentStatus.value = (columnId: string, status: 'generating' | 'idle', rowIds: string[]) => {
+    for (const rowId of rowIds) {
+      if (status === 'generating') {
+        actionManager.setRemoteGenerating(rowId, columnId)
+      } else {
+        actionManager.clearRemoteGenerating(rowId, columnId)
+      }
+    }
+  }
+
   // Expose bulk AI generation to toolbar via shared composable
   canvasBulkAiGeneration.value = (columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) =>
     actionManager.executeBulkAiGeneration(columnId, rowIds, rows, path)

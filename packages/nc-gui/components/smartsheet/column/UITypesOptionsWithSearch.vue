@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { FIELD_AGENT_SUPPORTED_TYPES, UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -26,17 +26,8 @@ const searchQuery = ref('')
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
 
-// Field Agent submenu: all 8 supported field agent types
-const FIELD_AGENT_SUBMENU_TYPES = [
-  UITypes.SingleLineText,
-  UITypes.Number,
-  UITypes.Decimal,
-  UITypes.Percent,
-  UITypes.Currency,
-  UITypes.JSON,
-  UITypes.SingleSelect,
-  UITypes.MultiSelect,
-]
+// Field Agent submenu: use SDK single source of truth
+const FIELD_AGENT_SUBMENU_TYPES = FIELD_AGENT_SUPPORTED_TYPES
 
 const filteredOptions = computed(() => {
   searchBasisInfoMap.value = {}

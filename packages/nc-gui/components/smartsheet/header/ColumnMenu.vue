@@ -56,7 +56,7 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $poller } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -74,11 +74,27 @@ const { isUIAllowed, isMetaReadOnly, isDataReadOnly, sandboxRestrictionReason } 
 
 const { showEEFeatures } = useEeConfig()
 
-const { generateRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+const {
+  generateRows,
+  isAiFeaturesEnabled,
+  aiIntegrationAvailable,
+  getFieldAgentDirtyCount,
+  clearFieldAgentDirty,
+  fetchFieldAgentDirtyCount,
+  isDirtyCountLoading,
+  dispatchFieldAgentJob,
+} = useNocoAi()
 
 const isFieldAgentRunning = ref(false)
 
 const showFieldAgentSubmenu = ref(false)
+
+// Fetch dirty count when submenu becomes visible
+watch(showFieldAgentSubmenu, (visible) => {
+  if (visible && meta.value?.id && column.value?.id && isFieldAgentCol(column.value)) {
+    fetchFieldAgentDirtyCount(meta.value.id, column.value.id)
+  }
+})
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -507,58 +523,60 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   isOpen.value = false
 }
 
-const runFieldAgentBulk = async (mode: 'all' | 'unmodified') => {
+const runFieldAgentBulk = async (mode: 'all' | 'unmodified' | 'modified') => {
   if (!meta.value?.id || !column.value?.id || !column.value?.title) return
 
   isFieldAgentRunning.value = true
   isOpen.value = false
 
   try {
-    const queryParams: Record<string, any> = {
-      limit: 25,
+    // Dispatch backend job — the backend handles row fetching and batching
+    const jobData = await dispatchFieldAgentJob(meta.value.id, {
+      columnId: column.value.id,
+      mode,
+      viewId: view.value?.id,
+    })
+
+    if (!jobData?.id) {
+      isFieldAgentRunning.value = false
+      return
     }
 
-    // 'unmodified' = only blank/empty cells (never manually edited)
-    // 'all' = all cells in the current view
-    if (mode === 'unmodified') {
-      queryParams.where = `(${column.value.title},blank)`
-    }
+    message.toast(`AI agent started for "${column.value.title}"...`)
 
-    const response = await $api.dbViewRow.list(
-      'noco',
-      meta.value.base_id!,
-      meta.value.id!,
-      view.value?.id!,
-      queryParams,
+    // Subscribe to job progress via poller
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: { message: string }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            isFieldAgentRunning.value = false
+
+            const result = data.data?.result || {}
+            const processed = result.processed ?? 0
+
+            clearFieldAgentDirty(column.value!.id!)
+            reloadDataHook?.trigger()
+
+            message.toast(`AI agent processed ${processed} row${processed !== 1 ? 's' : ''}`)
+          } else if (data.status === JobStatus.FAILED) {
+            isFieldAgentRunning.value = false
+            message.error(data.data?.error?.message || 'Field agent job failed')
+          }
+        }
+      },
     )
-
-    const rows = (response as any)?.list || []
-    if (!rows.length) {
-      message.info(mode === 'unmodified' ? 'No unmodified rows found for this field' : 'No rows found in this view')
-      return
-    }
-
-    // Extract PKs from the rows
-    const rowIds = rows
-      .map((row: Record<string, any>) => extractPkFromRow(row, meta.value?.columns as ColumnType[]))
-      .filter(Boolean) as string[]
-
-    if (!rowIds.length) {
-      message.info(mode === 'unmodified' ? 'No unmodified rows found for this field' : 'No rows found in this view')
-      return
-    }
-
-    // Run the field agent on matched rows
-    await generateRows(meta.value.id!, column.value.id!, rowIds, false)
-
-    // Reload data to reflect changes
-    reloadDataHook?.trigger()
-
-    message.toast(`AI agent processed ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}`)
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     isFieldAgentRunning.value = false
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -1008,21 +1026,42 @@ const onDeleteColumn = () => {
             <div class="nc-header-menu-item w-full">
               <GeneralLoader v-if="isFieldAgentRunning" size="regular" />
               <GeneralIcon v-else icon="ncAutoAwesome" class="opacity-80 !w-4 !h-4" />
-              <span class="flex-1">Run AI Agent</span>
+              <span class="flex-1">{{ t('labels.fieldAgent.runAiAgent') }}</span>
               <GeneralIcon icon="ncChevronRight" class="!opacity-60 !w-3.5 !h-3.5" />
             </div>
           </NcMenuItem>
           <div v-if="showFieldAgentSubmenu && !isFieldAgentRunning" class="nc-field-agent-submenu">
             <NcMenuItem @click="runFieldAgentBulk('all')">
               <div class="nc-header-menu-item">
-                All cells in view
+                {{ t('labels.fieldAgent.allCellsInView') }}
               </div>
             </NcMenuItem>
             <NcMenuItem @click="runFieldAgentBulk('unmodified')">
               <div class="nc-header-menu-item">
-                Cells never modified
+                {{ t('labels.fieldAgent.cellsNeverModified') }}
               </div>
             </NcMenuItem>
+            <template v-if="isDirtyCountLoading(column.id!) || getFieldAgentDirtyCount(column.id!) > 0">
+              <NcDivider />
+              <NcMenuItem
+                v-if="isDirtyCountLoading(column.id!)"
+                disabled
+                class="!cursor-default"
+              >
+                <div class="nc-header-menu-item text-nc-content-gray-muted">
+                  <GeneralLoader size="regular" />
+                  <span>{{ t('labels.fieldAgent.checkingModifiedRows') }}</span>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
+                v-else
+                @click="runFieldAgentBulk('modified')"
+              >
+                <div class="nc-header-menu-item">
+                  {{ t('labels.fieldAgent.reRunModified', { count: getFieldAgentDirtyCount(column.id!) }) }}
+                </div>
+              </NcMenuItem>
+            </template>
           </div>
         </div>
       </template>

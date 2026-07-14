@@ -138,6 +138,7 @@ export enum PlanFeatureTypes {
   FEATURE_WHITE_LABEL = 'feature_white_label',
   /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
   FEATURE_SCHEDULED_SNAPSHOTS = 'feature_scheduled_snapshots',
+  FEATURE_FIELD_AGENT = 'feature_field_agent',
 }
 
 export enum PlanAddonTypes {
@@ -509,6 +510,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to white-label this instance with your own logo, product name, and brand color.',
   [PlanFeatureTypes.FEATURE_SCHEDULED_SNAPSHOTS]:
     'to schedule automatic snapshots.',
+  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use AI field agents.',
 };
 
 export const getUpgradeMessage = (

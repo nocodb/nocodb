@@ -1,16 +1,9 @@
-import { isFieldAgentCol } from 'nocodb-sdk'
 import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
-import { AISelectCellRenderer } from './AISelect'
 
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, formula, column } = props
     const text = (Array.isArray(value) ? value.join(',') : value?.toString()) ?? ''
-
-    // Field Agent: render the "Run Agent" button when cell is empty
-    if (!text && isFieldAgentCol(column)) {
-      return AISelectCellRenderer.render(ctx, props)
-    }
 
     if (!text) {
       return {
@@ -40,11 +33,6 @@ export const SingleLineTextCellRenderer: CellRenderer = {
     }
   },
   async handleClick(props) {
-    const { column, row, makeCellEditable, selected, value } = props
-    // Field Agent: delegate click to AISelectCellRenderer for empty cells
-    if (isFieldAgentCol(column?.columnObj) && !value) {
-      return AISelectCellRenderer.handleClick!(props)
-    }
     return false
   },
   async handleKeyDown(ctx) {

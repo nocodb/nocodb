@@ -40,6 +40,8 @@ const COMPACT_FORMAT_HINT_UIDTS = new Set<string>([UITypes.Date, UITypes.DateTim
 //   Button     → button label / icon
 const COMPACT_ALWAYS_SKIP_UIDTS = new Set<string>([UITypes.Attachment, UITypes.Rating, UITypes.Checkbox, UITypes.Button])
 
+const { t } = useI18n()
+
 const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
@@ -349,7 +351,7 @@ const runFieldAgent = async (col: ColumnType) => {
 
               <!-- Field Agent: Run Agent button for non-select field agent columns -->
               <NcTooltip v-if="isFieldAgentVisible(col) && isAllowed">
-                <template #title>Run agent</template>
+                <template #title>{{ t('labels.fieldAgent.runAgent') }}</template>
                 <NcButton
                   size="xs"
                   type="text"

@@ -51,6 +51,9 @@ export function useGridViewData(
     syncVisibleData,
   })
 
+  // Deferred callback: set by useCanvasTable once ActionManager is ready
+  const onAgentStatus = ref<((columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void) | undefined>()
+
   const {
     insertRow,
     updateRowProperty,
@@ -96,6 +99,9 @@ export function useGridViewData(
       reloadAggregate: triggerAggregateReload,
       findGroupByPath: (path?: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
+      },
+      onAgentStatus: (columnId, status, rowIds) => {
+        onAgentStatus.value?.(columnId, status, rowIds)
       },
     },
     groupByColumns,
@@ -364,7 +370,7 @@ export function useGridViewData(
       for (const { pk } of pksIndex) {
         if (pk) {
           for (const prop of props) {
-            onFieldAgentCellUpdate(prop, pk)
+            onFieldAgentCellUpdate(prop, pk, meta.value?.id)
           }
         }
       }
@@ -488,7 +494,7 @@ export function useGridViewData(
         const pk = getPk(row)
         if (pk) {
           for (const prop of props) {
-            onFieldAgentCellUpdate(prop, String(pk))
+            onFieldAgentCellUpdate(prop, String(pk), meta.value?.id)
           }
         }
       }
@@ -740,6 +746,7 @@ export function useGridViewData(
     getRows,
     getDataCache,
     groupDataCache,
+    onAgentStatus,
     // Groupby
     cachedGroups,
     totalGroups,

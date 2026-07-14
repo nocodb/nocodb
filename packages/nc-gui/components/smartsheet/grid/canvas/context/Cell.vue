@@ -636,7 +636,7 @@ const execFieldAgent = async (path: Array<number>) => {
     >
       <div class="flex gap-2 items-center">
         <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-        Run AI Agent
+        {{ $t('labels.fieldAgent.runAiAgent') }}
       </div>
     </NcMenuItem>
 

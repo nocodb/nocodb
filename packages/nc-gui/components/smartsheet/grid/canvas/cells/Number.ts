@@ -1,16 +1,11 @@
-import { parseIntValue, isFieldAgentCol } from 'nocodb-sdk'
+import { parseIntValue } from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
-import { AISelectCellRenderer } from './AISelect'
 
 export const FloatCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, column } = props
 
     const numericValue = parseIntValue(value, column)
-    // Field Agent: render the "Run Agent" button when cell has no valid value
-    if (!isValidValue(numericValue) && isFieldAgentCol(column)) {
-      return AISelectCellRenderer.render(ctx, props)
-    }
     if (!isValidValue(numericValue)) {
       return {
         x,
@@ -40,11 +35,6 @@ export const FloatCellRenderer: CellRenderer = {
     }
   },
   async handleClick(props) {
-    const { column, row, value } = props
-    // Field Agent: delegate click to AISelectCellRenderer for empty cells
-    if (isFieldAgentCol(column?.columnObj) && !isValidValue(value)) {
-      return AISelectCellRenderer.handleClick!(props)
-    }
     return false
   },
   async handleKeyDown(ctx) {

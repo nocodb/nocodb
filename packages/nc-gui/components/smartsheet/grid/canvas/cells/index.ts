@@ -328,7 +328,25 @@ export function useGridCellHandler(params: {
       })
     }
 
-    // Skip spinner overlay for AI-driven columns — they render their own spinner via AISelectCellRenderer
+    // Field agent columns: show "Run Agent" button for empty cells + "Running..." for loading cells
+    if (isFieldAgentCol(column) && (actionManager?.isLoading(pk, column.id!) || !isValidValue(value))) {
+      return AISelectCellRenderer.render(ctx, {
+        x,
+        y,
+        width,
+        height,
+        spriteLoader,
+        disabled,
+        mousePosition,
+        actionManager,
+        pk,
+        column,
+        setCursor,
+        readonly,
+      })
+    }
+
+    // Skip spinner overlay for AI prompt/button columns — they render their own spinner
     if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column) && !isFieldAgentCol(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
@@ -498,10 +516,9 @@ export function useGridCellHandler(params: {
       getColor,
     }
 
-    // Field Agent: for empty field-agent cells, delegate to AISelectCellRenderer which
-    // performs button bounds-checking — only triggers the agent when the "Run Agent" button
-    // is clicked, not when clicking anywhere in the cell (allows normal cell selection).
-    if (isFieldAgentCol(ctx.column.columnObj) && !isValidValue(ctx.value)) {
+    // Field Agent: delegate to AISelectCellRenderer for empty cells (button click)
+    // and for any loading cells (prevents normal cell interaction during generation)
+    if (isFieldAgentCol(ctx.column.columnObj) && (!isValidValue(ctx.value) || actionManager?.isLoading(ctx.pk, ctx.column.columnObj.id!))) {
       return await AISelectCellRenderer.handleClick!(clickProps)
     }
 

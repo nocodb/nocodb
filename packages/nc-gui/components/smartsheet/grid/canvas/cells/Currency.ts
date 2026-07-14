@@ -1,15 +1,9 @@
-import { roundUpToPrecision, isFieldAgentCol } from 'nocodb-sdk'
+import { roundUpToPrecision } from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
-import { AISelectCellRenderer } from './AISelect'
 
 export const CurrencyRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor } = props
-
-    // Field Agent: render the "Run Agent" button when cell has no valid value
-    if ((!isValidValue(value) || isNaN(value)) && isFieldAgentCol(column)) {
-      return AISelectCellRenderer.render(ctx, props)
-    }
 
     if (!isValidValue(value) || isNaN(value)) {
       return {
@@ -68,11 +62,6 @@ export const CurrencyRenderer: CellRenderer = {
     }
   },
   async handleClick(props) {
-    const { column, row, value } = props
-    // Field Agent: delegate click to AISelectCellRenderer for empty cells
-    if (isFieldAgentCol(column?.columnObj) && (!isValidValue(value) || isNaN(value))) {
-      return AISelectCellRenderer.handleClick!(props)
-    }
     return false
   },
   async handleKeyDown(ctx) {

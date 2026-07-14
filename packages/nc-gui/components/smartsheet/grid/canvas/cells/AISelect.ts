@@ -1,9 +1,5 @@
 import { defaultOffscreen2DContext, isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
-
-const AI_PURPLE = '#7D26CD'
-const AI_PURPLE_DARK = '#641EA4'
-const AI_PURPLE_LIGHT_BG = '#F3ECFA'
-const DISABLED_TEXT = '#9AA2AF'
+import { getButtonColors } from './Button/utils'
 
 const BUTTON_LABEL = 'Run Agent'
 const BUTTON_LABEL_LOADING = 'Running...'
@@ -108,22 +104,19 @@ const renderFieldAgentButton = (
     ctx.globalAlpha = 0.5
   }
 
-  const themeColor = isHovered ? AI_PURPLE_DARK : AI_PURPLE
-  const textColor = disabled ? DISABLED_TEXT : themeColor
+  const colors = getButtonColors('light', 'purple', !!isHovered, !!disabled)
 
-  // Draw text-only button with hover background
-  if (isHovered && !disabled) {
-    ctx.beginPath()
-    ctx.roundRect(startX, startY, dims.buttonWidth, dims.buttonHeight, 6)
-    ctx.fillStyle = AI_PURPLE_LIGHT_BG
-    ctx.fill()
-  }
+  // Draw button background
+  ctx.beginPath()
+  ctx.roundRect(startX, startY, dims.buttonWidth, dims.buttonHeight, 6)
+  ctx.fillStyle = colors.background
+  ctx.fill()
 
   let contentX = startX + (dims.buttonWidth - dims.contentWidth) / 2
   const contentY = startY + (dims.buttonHeight - dims.iconSize) / 2
 
   if (isLoading && loadingStartTime) {
-    renderSpinner(ctx, contentX, contentY, dims.iconSize, themeColor, loadingStartTime, 1.5)
+    renderSpinner(ctx, contentX, contentY, dims.iconSize, colors.loader, loadingStartTime, 1.5)
     contentX += dims.iconSize + dims.iconSpacing
   } else if (spriteLoader) {
     spriteLoader.renderIcon(ctx, {
@@ -131,12 +124,12 @@ const renderFieldAgentButton = (
       size: dims.iconSize,
       x: contentX,
       y: contentY,
-      color: textColor,
+      color: colors.text,
     })
     contentX += dims.iconSize + dims.iconSpacing
   }
 
-  ctx.fillStyle = textColor
+  ctx.fillStyle = colors.text
   ctx.textBaseline = 'middle'
   ctx.fillText(dims.truncatedLabel, contentX, startY + 13)
 

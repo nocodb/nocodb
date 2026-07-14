@@ -37,6 +37,8 @@ export class ActionManager {
 
   private eventBus?: any
 
+  private checkFieldAgentBlocked?: () => boolean
+
   // Consolidated state maps
   private loadingColumns = new Map<string, number>()
   private afterActionStatus = new Map<string, Omit<ActionState, 'startTime'>>()
@@ -79,6 +81,14 @@ export class ActionManager {
 
   setBaseInfo(baseId: string, workspaceId: string) {
     this.baseInfo = { baseId, workspaceId }
+  }
+
+  setFieldAgentBlockedCheck(check: () => boolean) {
+    this.checkFieldAgentBlocked = check
+  }
+
+  isFieldAgentBlocked(): boolean {
+    return this.checkFieldAgentBlocked?.() ?? false
   }
 
   private eventMap = {
@@ -401,6 +411,9 @@ export class ActionManager {
         }
 
         case 'ai': {
+          // Block field-agent cells when feature is payment-gated
+          if (extra.isAiPromptCol && this.isFieldAgentBlocked()) return
+
           const outputColumnIds = extra.isAiPromptCol
             ? [column.id]
             : colOptions.output_column_ids?.split(',').filter(Boolean) || []
@@ -447,6 +460,8 @@ export class ActionManager {
     rows?: Row[],
     path?: Array<number>,
   ): Promise<any> {
+    if (this.isFieldAgentBlocked()) return
+
     const column = this.meta.value?.columnsById?.[columnId]
 
     return this.executeAction(rowIds, columnId, [columnId], async () => {

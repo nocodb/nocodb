@@ -99,6 +99,10 @@ const permissionScopes = {
     'upload',
     'uploadViaURL',
     'genericGPT',
+
+    // Shared base access requests (applicant side)
+    'sharedBaseAccessRequestCreate',
+    'sharedBaseAccessRequestGetMine',
   ],
   workspace: [
     // Base operations (workspace scope — unified CE/EE model)
@@ -323,6 +327,11 @@ const permissionScopes = {
 
     // Generic batch envelope (per-sub-op ACL runs inside the handler).
     'batch',
+
+    // Shared base access requests (owner/creator side)
+    'sharedBaseAccessRequestList',
+    'sharedBaseAccessRequestApprove',
+    'sharedBaseAccessRequestReject',
   ],
 };
 
@@ -380,6 +389,10 @@ const rolePermissions:
       bookmarkGroupCreate: true,
       bookmarkGroupUpdate: true,
       bookmarkGroupDelete: true,
+
+      // Shared base access requests
+      sharedBaseAccessRequestCreate: true,
+      sharedBaseAccessRequestGetMine: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -1074,6 +1087,14 @@ const permissionDescriptions: Record<string, string> = {
   bookmarkGroupCreate: 'create a new bookmark group',
   bookmarkGroupUpdate: 'update a bookmark group',
   bookmarkGroupDelete: 'delete a bookmark group',
+
+  sharedBaseAccessRequestCreate:
+    'request editor access to a publicly shared base',
+  sharedBaseAccessRequestGetMine:
+    'view own access request status for a shared base',
+  sharedBaseAccessRequestList: 'list pending shared base access requests',
+  sharedBaseAccessRequestApprove: 'approve a shared base access request',
+  sharedBaseAccessRequestReject: 'reject a shared base access request',
 };
 
 // Human-readable descriptions for roles

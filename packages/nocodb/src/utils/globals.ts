@@ -147,6 +147,7 @@ export enum MetaTable {
   DOC_REVISIONS = 'nc_doc_revisions_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',
   TRASH = 'nc_trash',
+  SHARED_BASE_ACCESS_REQUESTS = 'nc_shared_base_access_requests',
 }
 
 export const BaseRelatedMetaTables = [
@@ -218,6 +219,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.DOC_CONTENT,
   MetaTable.DOC_REVISIONS,
   MetaTable.TRASH,
+  MetaTable.SHARED_BASE_ACCESS_REQUESTS,
 ];
 
 export enum MetaTableOldV2 {
@@ -578,6 +580,7 @@ export enum CacheScope {
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
   TRASH = 'trash',
+  SHARED_BASE_ACCESS_REQUEST = 'sharedBaseAccessRequest',
 }
 
 export enum CacheGetType {

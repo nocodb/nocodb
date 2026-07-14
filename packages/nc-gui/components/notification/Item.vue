@@ -17,6 +17,13 @@ const { toggleRead } = notificationStore
   <div class="select-none" @click="toggleRead(item, item.is_read)">
     <NotificationItemWelcome v-if="item.type === AppEvents.WELCOME" :item="item" />
     <NotificationItemProjectInvite v-else-if="item.type === AppEvents.PROJECT_INVITE" :item="item" />
+    <NotificationItemBaseAccessRequest v-else-if="item.type === AppEvents.BASE_ACCESS_REQUEST" :item="item" />
+    <NotificationItemBaseAccessRequestResolved
+      v-else-if="
+        item.type === AppEvents.BASE_ACCESS_REQUEST_APPROVED || item.type === AppEvents.BASE_ACCESS_REQUEST_REJECTED
+      "
+      :item="item"
+    />
     <NotificationItemWorkspaceInvite v-else-if="item.type === AppEvents.WORKSPACE_USER_INVITE" :item="item" />
     <NotificationItemMentionEvent v-else-if="['mention'].includes(item.type)" :item="item" />
     <NotificationItemRowMentionEvent v-else-if="AppEvents.ROW_USER_MENTION === item.type" :item="item" />

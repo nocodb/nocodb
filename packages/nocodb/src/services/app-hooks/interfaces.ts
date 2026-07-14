@@ -35,6 +35,33 @@ export interface ProjectInviteEvent extends NcBaseEvent {
   role: ProjectRoles | string;
 }
 
+export interface BaseAccessRequestEvent extends NcBaseEvent {
+  base: BaseType;
+  request: {
+    id?: string;
+    base_id?: string;
+    fk_user_id?: string;
+    requested_role?: string;
+    status?: string;
+    message?: string | null;
+  };
+  requester: UserType | any;
+}
+
+export interface BaseAccessRequestResolvedEvent extends NcBaseEvent {
+  base: BaseType;
+  request: {
+    id?: string;
+    base_id?: string;
+    fk_user_id?: string;
+    requested_role?: string;
+    status?: string;
+    message?: string | null;
+  };
+  requester: UserType | any;
+  reviewedBy: UserType | any;
+}
+
 export interface RowCommentEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
@@ -535,6 +562,8 @@ export interface RecordsPermanentDeleteEvent extends NcBaseEvent {
 
 export type AppEventPayload =
   | ProjectInviteEvent
+  | BaseAccessRequestEvent
+  | BaseAccessRequestResolvedEvent
   | ProjectCreateEvent
   | ProjectUpdateEvent
   | ProjectDeleteEvent

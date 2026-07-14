@@ -1,17 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, getCircularReplacer } from 'nocodb-sdk';
+import {
+  AppEvents,
+  getCircularReplacer,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+} from 'nocodb-sdk';
 import type {
+  BaseAccessRequestEvent,
+  BaseAccessRequestResolvedEvent,
   ProjectInviteEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import type { Response } from 'express';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Notification } from '~/models';
+import { BaseUser, Notification } from '~/models';
 import { PubSubRedis } from '~/redis/pubsub-redis';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
@@ -189,7 +196,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     data,
   }: {
     event: AppEvents;
-    data: ProjectInviteEvent | WelcomeEvent;
+    data:
+      | ProjectInviteEvent
+      | WelcomeEvent
+      | BaseAccessRequestEvent
+      | BaseAccessRequestResolvedEvent;
   }) {
     const { req } = data;
     switch (event) {
@@ -233,7 +244,107 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           );
         }
         break;
+      case AppEvents.BASE_ACCESS_REQUEST:
+        {
+          const { base, request, requester, context } =
+            data as BaseAccessRequestEvent;
+          const recipients = await this.getBaseOwnerCreatorIds(
+            context,
+            base.id!,
+          );
+
+          for (const recipientId of recipients) {
+            if (!recipientId || recipientId === requester?.id) continue;
+            await this.insertNotification(
+              {
+                fk_user_id: recipientId,
+                type: AppEvents.BASE_ACCESS_REQUEST,
+                body: {
+                  base: {
+                    id: base.id,
+                    title: base.title,
+                    type: base.type,
+                    fk_workspace_id: (base as any).fk_workspace_id,
+                  },
+                  request: {
+                    id: request?.id,
+                    requested_role: request?.requested_role || 'editor',
+                    status: request?.status || 'pending',
+                    message: request?.message || null,
+                  },
+                  user: {
+                    id: requester?.id,
+                    email: requester?.email,
+                    displayName: requester?.display_name,
+                    meta: requester?.meta,
+                  },
+                },
+              },
+              req,
+            );
+          }
+        }
+        break;
+      case AppEvents.BASE_ACCESS_REQUEST_APPROVED:
+      case AppEvents.BASE_ACCESS_REQUEST_REJECTED:
+        {
+          const { base, request, requester, reviewedBy } =
+            data as BaseAccessRequestResolvedEvent;
+          if (!requester?.id) break;
+
+          await this.insertNotification(
+            {
+              fk_user_id: requester.id,
+              type: event,
+              body: {
+                base: {
+                  id: base.id,
+                  title: base.title,
+                  type: base.type,
+                  fk_workspace_id: (base as any).fk_workspace_id,
+                },
+                request: {
+                  id: request?.id,
+                  requested_role: request?.requested_role || 'editor',
+                  status: request?.status,
+                },
+                user: {
+                  id: reviewedBy?.id,
+                  email: reviewedBy?.email,
+                  displayName: reviewedBy?.display_name,
+                  meta: reviewedBy?.meta,
+                },
+              },
+            },
+            req,
+          );
+        }
+        break;
     }
+  }
+
+  protected async getBaseOwnerCreatorIds(
+    context: NcContext,
+    baseId: string,
+  ): Promise<string[]> {
+    const users = await BaseUser.getUsersList(context, { base_id: baseId });
+    const ids = new Set<string>();
+
+    for (const user of users) {
+      const baseRole =
+        (user as any).roles ||
+        WorkspaceRolesToProjectRoles[(user as any).workspace_roles] ||
+        null;
+      if (
+        baseRole &&
+        (String(baseRole).includes(ProjectRoles.OWNER) ||
+          String(baseRole).includes(ProjectRoles.CREATOR))
+      ) {
+        if ((user as any).id) ids.add((user as any).id);
+      }
+    }
+
+    return [...ids];
   }
 
   protected listenerUnsubs: (() => void)[] = [];
@@ -254,6 +365,27 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     this.listenerUnsubs.push(
       this.appHooks.on(AppEvents.WELCOME, (data) =>
         this.hookHandler({ event: AppEvents.WELCOME, data }),
+      ),
+    );
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.BASE_ACCESS_REQUEST, (data) =>
+        this.hookHandler({ event: AppEvents.BASE_ACCESS_REQUEST, data }),
+      ),
+    );
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.BASE_ACCESS_REQUEST_APPROVED, (data) =>
+        this.hookHandler({
+          event: AppEvents.BASE_ACCESS_REQUEST_APPROVED,
+          data,
+        }),
+      ),
+    );
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.BASE_ACCESS_REQUEST_REJECTED, (data) =>
+        this.hookHandler({
+          event: AppEvents.BASE_ACCESS_REQUEST_REJECTED,
+          data,
+        }),
       ),
     );
   }

@@ -6,7 +6,7 @@ const router = useRouter()
 const route = router.currentRoute
 
 const baseStore = useBase()
-const { base, sources, isSharedBase } = storeToRefs(baseStore)
+const { base, sources, isSharedBase, isLoading } = storeToRefs(baseStore)
 
 const tablesStore = useTablesStore()
 const { openTable } = tablesStore
@@ -125,9 +125,23 @@ const hideProjectViewPage = computed(() => {
 })
 
 const showEmptySkeleton = ref(true)
+const hasAttemptedAutoOpen = ref(false)
 
 const showProjectViewPage = computed(() => {
   return activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab')
+})
+
+const showSharedBaseLoading = computed(() => {
+  return isSharedBase.value && (isLoading.value || (!base.value?.id && !hasAttemptedAutoOpen.value))
+})
+
+const showSharedBaseEmpty = computed(() => {
+  return (
+    isSharedBase.value &&
+    !showSharedBaseLoading.value &&
+    !!base.value?.id &&
+    activeTables.value.length === 0
+  )
 })
 
 const hideEmptySkeleton = () => {
@@ -144,10 +158,15 @@ watch(
     () => activeTables.value.length,
     () => isUIAllowed('projectOverviewTab'),
     () => route.value.query.openTable === 'true',
+    () => base.value?.id,
+    () => isLoading.value,
   ],
-  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newOpenTable]) => {
+  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newOpenTable, baseId, loading]) => {
+    if (loading) return
+
     // If no tables are active or if new sidebar is not enabled then return
     if (!newActiveTablesLength || !activeTables.value[0]?.base_id) {
+      hasAttemptedAutoOpen.value = !!baseId
       hideEmptySkeleton()
       return
     }
@@ -158,6 +177,7 @@ watch(
       return
     }
 
+    hasAttemptedAutoOpen.value = true
     openTable(activeTables.value[0]!, true)
   },
   {
@@ -168,5 +188,32 @@ watch(
 </script>
 
 <template>
-  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" show-overview-tab />
+  <div v-if="showSharedBaseLoading" class="h-full w-full flex items-center justify-center">
+    <div class="flex flex-col items-center gap-3 text-nc-content-gray-subtle">
+      <GeneralLoader size="xlarge" />
+      <div class="text-sm">{{ $t('msg.info.loadingSharedBase') }}</div>
+    </div>
+  </div>
+
+  <div
+    v-else-if="showSharedBaseEmpty"
+    class="h-full w-full flex items-center justify-center px-6"
+    data-testid="nc-shared-base-empty"
+  >
+    <div class="max-w-md text-center flex flex-col items-center gap-3">
+      <GeneralIcon icon="ncTable" class="h-10 w-10 text-nc-content-gray-muted" />
+      <h2 class="text-lg font-semibold text-nc-content-gray m-0">
+        {{ $t('title.sharedBaseNoVisibleContent') }}
+      </h2>
+      <p class="text-sm text-nc-content-gray-subtle2 m-0">
+        {{ $t('msg.info.sharedBaseNoVisibleContent') }}
+      </p>
+    </div>
+  </div>
+
+  <ProjectView
+    v-else-if="!hideProjectViewPage"
+    :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton"
+    show-overview-tab
+  />
 </template>

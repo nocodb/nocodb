@@ -10,6 +10,7 @@ import {
   Extension,
   FileReference,
   MCPToken,
+  SharedBaseAccessRequest,
   Source,
 } from '~/models';
 import Noco from '~/Noco';
@@ -436,6 +437,12 @@ export default class Base implements BaseType {
     await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
 
     await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
+
+    await SharedBaseAccessRequest.bulkDeleteByBase(baseId, ncMeta).catch(() => {
+      logger.error(
+        `Failed to delete shared base access requests of baseId: ${baseId}`,
+      );
+    });
 
     await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
 

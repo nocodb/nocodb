@@ -1,6 +1,6 @@
-const isFullUrl = (url: string) => {
-  return /^(https?:)?\/\//.test(url)
-}
+import { isSafeContinuePath } from '~/utils/continueAfterSignIn'
+
+export { isSafeContinuePath }
 
 // this plugin is used to redirect user to the page they were trying to access before they were redirected to the login page
 export default defineNuxtPlugin(function (nuxtApp) {
@@ -13,7 +13,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
   watch(
     () => route.value.query?.continueAfterSignIn,
     (continueAfterSignIn) => {
-      if (continueAfterSignIn) {
+      if (continueAfterSignIn && isSafeContinuePath(continueAfterSignIn as string)) {
         localStorage.setItem('continueAfterSignIn', continueAfterSignIn as string)
       }
     },
@@ -34,9 +34,8 @@ export default defineNuxtPlugin(function (nuxtApp) {
           // 2. If signin happened in current tab which can be detected by `isTokenUpdatedTab` flag
           if (newToken && newToken !== oldToken && (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)) {
             try {
-              // prevent redirect to full url (outside domain)
               const getNavigateTo = (continueAfterSignIn: string) => {
-                return isFullUrl(continueAfterSignIn) ? '/' : continueAfterSignIn
+                return isSafeContinuePath(continueAfterSignIn) ? continueAfterSignIn : '/'
               }
               if (route.value.query?.continueAfterSignIn) {
                 const target = getNavigateTo(route.value.query.continueAfterSignIn as string)

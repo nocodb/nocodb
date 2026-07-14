@@ -60,6 +60,7 @@ import { OrgUsersController } from '~/controllers/org-users.controller';
 import { PluginsController } from '~/controllers/plugins.controller';
 import { PublicMetasController } from '~/controllers/public-metas.controller';
 import { SharedBasesController } from '~/controllers/shared-bases.controller';
+import { SharedBaseAccessRequestsController } from '~/controllers/shared-base-access-requests.controller';
 import { SortsController } from '~/controllers/sorts.controller';
 import { SourcesController } from '~/controllers/sources.controller';
 import { SyncController } from '~/controllers/sync.controller';
@@ -104,6 +105,7 @@ import { OrgUsersService } from '~/services/org-users.service';
 import { PluginsService } from '~/services/plugins.service';
 import { PublicMetasService } from '~/services/public-metas.service';
 import { SharedBasesService } from '~/services/shared-bases.service';
+import { SharedBaseAccessRequestsService } from '~/services/shared-base-access-requests.service';
 import { SortsService } from '~/services/sorts.service';
 import { SourcesService } from '~/services/sources.service';
 import { SyncService } from '~/services/sync.service';
@@ -232,6 +234,7 @@ export const nocoModuleMetadata = {
           SyncController,
           SortsController,
           SharedBasesController,
+          SharedBaseAccessRequestsController,
           NotificationsController,
           CommandPaletteController,
           ExtensionsController,
@@ -321,6 +324,7 @@ export const nocoModuleMetadata = {
     SyncService,
     SortsService,
     SharedBasesService,
+    SharedBaseAccessRequestsService,
     NotificationsService,
     CommandPaletteService,
     ExtensionsService,

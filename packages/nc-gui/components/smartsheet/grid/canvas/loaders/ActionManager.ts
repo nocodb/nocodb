@@ -406,6 +406,16 @@ export class ActionManager {
     return this.executeAction(...args)
   }
 
+  /**
+   * Public method for running bulk AI field-agent generation with proper
+   * loading-state management (spinner in each cell while generating).
+   */
+  async executeBulkAiGeneration(columnId: string, rowIds: string[]): Promise<any> {
+    return this.executeAction(rowIds, columnId, [columnId], async () => {
+      return this.generateRows(columnId, rowIds)
+    })
+  }
+
   // Public state query methods
   isLoading(rowId: string, columnId: string): boolean {
     const key = this.getKey(rowId, columnId)

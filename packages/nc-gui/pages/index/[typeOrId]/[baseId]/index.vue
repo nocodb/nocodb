@@ -37,20 +37,26 @@ onBeforeMount(async () => {
   try {
     await loadProject()
   } catch (e: any) {
+    const isSharedRoute = route.params.typeOrId === 'base'
+
     if (e.response?.status === 403) {
       // Base is not accessible
       message.error(t('msg.error.projectNotAccessible'))
-      router.replace('/')
+      router.replace(isSharedRoute ? '/error/404' : '/')
       return
     }
 
     const error = await extractSdkResponseErrorMsgv2(e)
 
-    message.error(error.message)
+    message.error(error.message || t('msg.error.sharedBaseLoadFailed'))
 
-    if (error.error === NcErrorType.ERR_BASE_NOT_FOUND) {
-      navigateTo({ name: 'index-typeOrId', params: { typeOrId: 'nc' } })
+    if (error.error === NcErrorType.ERR_BASE_NOT_FOUND || e?.response?.status === 404) {
+      navigateTo(isSharedRoute ? '/error/404' : { name: 'index-typeOrId', params: { typeOrId: 'nc' } })
       return
+    }
+
+    if (isSharedRoute) {
+      navigateTo('/error/404')
     }
   }
 

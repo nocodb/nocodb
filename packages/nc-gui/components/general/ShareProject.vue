@@ -38,6 +38,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
+const requestEditAccess = async () => {
+  const sharedUuid = route.params.baseId
+  if (!sharedUuid) return
+  // Leave shared route so JWT auth is active again.
+  await navigateTo(`/request-base-access?base=${sharedUuid}`)
+}
+
 const copySharedBase = async () => {
   const baseUrl = getMainUrl()
   window.open(`${baseUrl || ''}/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
@@ -82,17 +89,32 @@ const copySharedBase = async () => {
   <template v-else-if="isSharedBase && !hideSharedBaseBtn">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
-      <div class="flex flex-row items-center w-full">
+      <div class="flex flex-row items-center w-full gap-2">
         <NcButton
-          class="z-10 !rounded-lg !px-2 !bg-[#ff133e]"
+          class="z-10 !rounded-lg !px-2"
           size="small"
           type="primary"
           :disabled="disabled"
-          @click="copySharedBase"
+          data-testid="nc-request-edit-access"
+          @click="requestEditAccess"
         >
-          <GeneralIcon class="mr-1" icon="duplicate" />
-          Copy Base
+          <GeneralIcon class="mr-1" icon="edit" />
+          {{ $t('activity.requestEditAccess') }}
         </NcButton>
+
+        <NcDropdown>
+          <NcButton class="z-10 !rounded-lg !px-2" size="small" type="secondary" :disabled="disabled">
+            <GeneralIcon icon="threeDotVertical" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu variant="small">
+              <NcMenuItem data-testid="nc-copy-shared-base" @click="copySharedBase">
+                <GeneralIcon class="mr-2" icon="duplicate" />
+                {{ $t('activity.copyBaseToMySpace') }}
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
       </div>
     </div>
   </template>

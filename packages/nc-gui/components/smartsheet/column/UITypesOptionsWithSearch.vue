@@ -56,8 +56,13 @@ const isDisabledUIType = (type: UITypes) => {
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
-  // AIFieldAgent has a submenu — don't emit on direct click
-  if (uidt === AIFieldAgent) return
+  // AIFieldAgent has a hover submenu for picking the underlying type, but direct
+  // click / keyboard Enter must still work — fall back to the first supported type
+  // (the type stays editable in the field dialog afterwards)
+  if (uidt === AIFieldAgent) {
+    onFieldAgentSubTypeClick(FIELD_AGENT_SUBMENU_TYPES[0])
+    return
+  }
 
   if (uidt === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
     return
@@ -85,7 +90,7 @@ const onClick = (uidt: UITypes) => {
 }
 
 // Field Agent submenu: emit composite string so EditOrAdd can preload field_agent meta
-const onFieldAgentSubTypeClick = (subType: UITypes) => {
+function onFieldAgentSubTypeClick(subType: UITypes) {
   emits('selected', `${AIFieldAgent}:${subType}` as any)
 }
 
@@ -170,7 +175,9 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           placement="rightTop"
           trigger="hover"
           overlay-class-name="nc-field-agent-submenu-popover"
-          :get-popup-container="(triggerNode) => triggerNode.closest('[data-testid=nc-column-uitypes-options-list-wrapper]') || triggerNode.parentNode"
+          :get-popup-container="
+            (triggerNode) => triggerNode.closest('[data-testid=nc-column-uitypes-options-list-wrapper]') || triggerNode.parentNode
+          "
           :align="{ offset: [4, -8] }"
         >
           <template #content>
@@ -187,13 +194,11 @@ const { isSystem } = useColumnCreateStoreOrThrow()
             </div>
           </template>
           <div
-            class="flex w-full py-2 items-center justify-between px-2 rounded-md"
+            class="flex w-full py-2 items-center justify-between px-2 rounded-md hover:bg-nc-bg-gray-light cursor-pointer !text-nc-content-purple-dark"
             :class="[
               `nc-column-list-option-${index}`,
               {
-                'hover:bg-nc-bg-gray-light cursor-pointer': true,
                 'bg-nc-bg-gray-light nc-column-list-option-active': activeFieldIndex === index,
-                '!text-nc-content-purple-dark': true,
               },
             ]"
             :data-testid="option.name"
@@ -273,11 +278,11 @@ const { isSystem } = useColumnCreateStoreOrThrow()
   z-index: 1050;
 
   .ant-popover-inner {
-    @apply !rounded-lg !shadow-lg !border-1 !border-nc-border-gray-medium !bg-white;
+    @apply !rounded-lg !shadow-lg !border-1 !border-nc-border-gray-medium !bg-nc-bg-default;
   }
 
   .ant-popover-inner-content {
-    @apply !p-1 !bg-white !rounded-lg;
+    @apply !p-1 !bg-nc-bg-default !rounded-lg;
   }
 
   .ant-popover-arrow {

@@ -64,7 +64,9 @@ const { getMeta } = useMetas()
 
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
-const { generateRows, generatingRows, generatingColumnRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+const { generateRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+
+const { showUpgradeToUseFieldAgent } = useEeConfig()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
@@ -200,6 +202,8 @@ const isFieldAgentGenerating = (colId: string) => {
 
 const runFieldAgent = async (col: ColumnType) => {
   if (!meta.value?.id || !col.id || !rowPk.value) return
+  if (isFieldAgentGenerating(col.id)) return
+  if (showUpgradeToUseFieldAgent()) return
 
   fieldAgentGeneratingCols.value.add(col.id)
 
@@ -317,7 +321,9 @@ const runFieldAgent = async (col: ColumnType) => {
                 ]"
               >
                 <span
-                  v-if="compactMode && col.title && isBlankFieldValue(_row.row[col.title]) && showCompactEmptyHint(col, isAllowed)"
+                  v-if="
+                    compactMode && col.title && isBlankFieldValue(_row.row[col.title]) && showCompactEmptyHint(col, isAllowed)
+                  "
                   class="nc-compact-empty-placeholder absolute left-1 inset-y-0 z-10 flex items-center text-nc-content-gray-muted text-[13px] pointer-events-none select-none"
                 >
                   --
@@ -349,8 +355,9 @@ const runFieldAgent = async (col: ColumnType) => {
 
               <!-- Field Agent: Run Agent button for non-select field agent columns -->
               <NcTooltip v-if="isFieldAgentVisible(col) && isAllowed">
-                <template #title>{{ t('labels.fieldAgent.runAgent') }}</template>
+                <template #title>{{ t('labels.fieldAgent.runAiAgent') }}</template>
                 <NcButton
+                  v-e="['a:field-agent:cell:generate', { source: 'expanded-record' }]"
                   size="xs"
                   type="text"
                   theme="ai"

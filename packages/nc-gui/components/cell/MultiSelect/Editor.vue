@@ -478,7 +478,7 @@ onMounted(() => {
       :title="$t('labels.fieldAgent.runAiAgent')"
     >
       <NcButton
-        v-e="['a:field-agent:cell:generate']"
+        v-e="['a:field-agent:cell:generate', { source: 'cell' }]"
         size="xs"
         type="text"
         theme="ai"

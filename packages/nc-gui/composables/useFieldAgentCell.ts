@@ -16,6 +16,7 @@ export function useFieldAgentCell({
 }) {
   const smartsheetRowStore = useSmartsheetRowStore()
   const { generateRows, generatingRows, generatingColumnRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+  const { showUpgradeToUseFieldAgent } = useEeConfig()
 
   const isFieldAgent = computed(() => {
     return isAiFeaturesEnabled.value && aiIntegrationAvailable.value && isFieldAgentCol(column.value)
@@ -34,6 +35,7 @@ export function useFieldAgentCell({
   const runFieldAgent = async () => {
     if (!meta.value?.id || !column.value?.id || !rowPk.value) return
     if (isAiGenerating.value) return
+    if (showUpgradeToUseFieldAgent()) return
 
     generatingRows.value.push(rowPk.value)
     generatingColumnRows.value.push(column.value.id)

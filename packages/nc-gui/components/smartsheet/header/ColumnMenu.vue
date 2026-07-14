@@ -56,7 +56,7 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const { $api, $e, $poller } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -72,27 +72,15 @@ const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByO
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly, sandboxRestrictionReason } = useRoles()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { showEEFeatures } = useEeConfig()
 
-const { showEEFeatures, showUpgradeToUseFieldAgent } = useEeConfig()
+const { isAiFeaturesEnabled, aiIntegrationAvailable, getFieldAgentDirtyCount, fetchFieldAgentDirtyCount, isDirtyCountLoading } =
+  useNocoAi()
 
-const {
-  generateRows,
-  isAiFeaturesEnabled,
-  aiIntegrationAvailable,
-  getFieldAgentDirtyCount,
-  clearFieldAgentDirty,
-  fetchFieldAgentDirtyCount,
-  isDirtyCountLoading,
-  dispatchFieldAgentJob,
-} = useNocoAi()
+const { isColumnRunning: isFieldAgentColumnRunning, runFieldAgentBulk } = useFieldAgentBulkRun()
 
-const isFieldAgentRunning = ref(false)
-
-const showFieldAgentSubmenu = ref(false)
-
-// Fetch dirty count when submenu becomes visible
-watch(showFieldAgentSubmenu, (visible) => {
+// Fetch the server-side dirty count when the menu opens on a field agent column
+watch(isOpen, (visible) => {
   if (visible && meta.value?.id && column.value?.id && isFieldAgentCol(column.value)) {
     fetchFieldAgentDirtyCount(meta.value.id, column.value.id)
   }
@@ -525,62 +513,18 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   isOpen.value = false
 }
 
-const runFieldAgentBulk = async (mode: 'all' | 'unmodified' | 'modified') => {
-  if (!meta.value?.id || !column.value?.id || !column.value?.title) return
-  if (showUpgradeToUseFieldAgent()) return
+function runFieldAgentBulkForColumn(mode: 'all' | 'unmodified' | 'modified') {
+  if (!meta.value?.id || !column.value?.id) return
 
-  isFieldAgentRunning.value = true
   isOpen.value = false
 
-  try {
-    // Dispatch backend job — the backend handles row fetching and batching
-    const jobData = await dispatchFieldAgentJob(meta.value.id, {
-      columnId: column.value.id,
-      mode,
-      viewId: view.value?.id,
-    })
-
-    if (!jobData?.id) {
-      isFieldAgentRunning.value = false
-      return
-    }
-
-    message.toast(t('msg.info.aiAgentStarted', { title: column.value.title }))
-
-    // Subscribe to job progress via poller
-    $poller.subscribe(
-      { id: jobData.id },
-      async (data: {
-        id: string
-        status?: string
-        data?: {
-          error?: { message: string }
-          message?: string
-          result?: any
-        }
-      }) => {
-        if (data.status !== 'close') {
-          if (data.status === JobStatus.COMPLETED) {
-            isFieldAgentRunning.value = false
-
-            const result = data.data?.result || {}
-            const processed = result.processed ?? 0
-
-            clearFieldAgentDirty(column.value!.id!)
-            reloadDataHook?.trigger()
-
-            message.toast(t('msg.info.aiAgentProcessed', { count: processed }))
-          } else if (data.status === JobStatus.FAILED) {
-            isFieldAgentRunning.value = false
-            message.error(data.data?.error?.message || t('msg.error.fieldAgentJobFailed'))
-          }
-        }
-      },
-    )
-  } catch (e: any) {
-    isFieldAgentRunning.value = false
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+  runFieldAgentBulk({
+    modelId: meta.value.id,
+    viewId: view.value?.id,
+    column: column.value,
+    mode,
+    source: 'column-menu',
+  })
 }
 
 const isColumnUpdateAllowed = computed(() => {
@@ -1010,63 +954,43 @@ const onDeleteColumn = () => {
 
       <!-- Field Agent Bulk Run (EE only — select columns with field agent enabled) -->
       <template
-        v-if="
-          isEeUI &&
-          isAiFeaturesEnabled &&
-          aiIntegrationAvailable &&
-          isFieldAgentCol(column) &&
-          !isLocked &&
-          !isDataReadOnly
-        "
+        v-if="isEeUI && isAiFeaturesEnabled && aiIntegrationAvailable && isFieldAgentCol(column) && !isLocked && !isDataReadOnly"
       >
         <NcDivider />
-        <div
-          class="nc-field-agent-submenu-wrapper"
-          @mouseenter="showFieldAgentSubmenu = true"
-          @mouseleave="showFieldAgentSubmenu = false"
-        >
-          <NcMenuItem v-e="['a:field:field-agent:run']" class="nc-column-field-agent-run" :disabled="isFieldAgentRunning">
-            <div class="nc-header-menu-item w-full">
-              <GeneralLoader v-if="isFieldAgentRunning" size="regular" />
+        <NcSubMenu class="nc-column-field-agent-run" :disabled="isFieldAgentColumnRunning(column.id)">
+          <template #title>
+            <div class="nc-header-menu-item">
+              <GeneralLoader v-if="isFieldAgentColumnRunning(column.id)" size="regular" />
               <GeneralIcon v-else icon="ncAutoAwesome" class="opacity-80 !w-4 !h-4" />
-              <span class="flex-1">{{ t('labels.fieldAgent.runAiAgent') }}</span>
-              <GeneralIcon icon="ncChevronRight" class="!opacity-60 !w-3.5 !h-3.5" />
+              {{ t('labels.fieldAgent.runAiAgent') }}
+            </div>
+          </template>
+
+          <NcMenuItem @click="runFieldAgentBulkForColumn('all')">
+            <div class="nc-header-menu-item">
+              {{ t('labels.fieldAgent.allCellsInView') }}
             </div>
           </NcMenuItem>
-          <div v-if="showFieldAgentSubmenu && !isFieldAgentRunning" class="nc-field-agent-submenu">
-            <NcMenuItem @click="runFieldAgentBulk('all')">
-              <div class="nc-header-menu-item">
-                {{ t('labels.fieldAgent.allCellsInView') }}
+          <NcMenuItem @click="runFieldAgentBulkForColumn('unmodified')">
+            <div class="nc-header-menu-item">
+              {{ t('labels.fieldAgent.cellsNeverModified') }}
+            </div>
+          </NcMenuItem>
+          <template v-if="isDirtyCountLoading(column.id!) || getFieldAgentDirtyCount(column.id!) > 0">
+            <NcDivider />
+            <NcMenuItem v-if="isDirtyCountLoading(column.id!)" disabled class="!cursor-default">
+              <div class="nc-header-menu-item text-nc-content-gray-muted">
+                <GeneralLoader size="regular" />
+                <span>{{ t('labels.fieldAgent.checkingModifiedRows') }}</span>
               </div>
             </NcMenuItem>
-            <NcMenuItem @click="runFieldAgentBulk('unmodified')">
+            <NcMenuItem v-else @click="runFieldAgentBulkForColumn('modified')">
               <div class="nc-header-menu-item">
-                {{ t('labels.fieldAgent.cellsNeverModified') }}
+                {{ t('labels.fieldAgent.reRunModified', { count: getFieldAgentDirtyCount(column.id!) }) }}
               </div>
             </NcMenuItem>
-            <template v-if="isDirtyCountLoading(column.id!) || getFieldAgentDirtyCount(column.id!) > 0">
-              <NcDivider />
-              <NcMenuItem
-                v-if="isDirtyCountLoading(column.id!)"
-                disabled
-                class="!cursor-default"
-              >
-                <div class="nc-header-menu-item text-nc-content-gray-muted">
-                  <GeneralLoader size="regular" />
-                  <span>{{ t('labels.fieldAgent.checkingModifiedRows') }}</span>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-else
-                @click="runFieldAgentBulk('modified')"
-              >
-                <div class="nc-header-menu-item">
-                  {{ t('labels.fieldAgent.reRunModified', { count: getFieldAgentDirtyCount(column.id!) }) }}
-                </div>
-              </NcMenuItem>
-            </template>
-          </div>
-        </div>
+          </template>
+        </NcSubMenu>
       </template>
 
       <template v-if="!isSqlView && !isMobileMode">
@@ -1162,27 +1086,5 @@ const onDeleteColumn = () => {
 
 :deep(.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled .nc-icon) {
   @apply text-current;
-}
-
-.nc-field-agent-submenu-wrapper {
-  @apply relative mx-1 rounded-md;
-
-  &:hover {
-    @apply bg-nc-bg-gray-light;
-  }
-
-  .nc-field-agent-submenu {
-    @apply absolute left-full top-0 z-50 py-1.5 min-w-[180px];
-    @apply rounded-lg border-1 border-nc-border-gray-extralight bg-white;
-    @apply shadow-lg;
-
-    :deep(.ant-dropdown-menu-item) {
-      @apply !text-small !leading-5 font-weight-550;
-
-      &:not(.ant-dropdown-menu-item-disabled) {
-        @apply text-nc-content-gray-subtle hover:text-nc-content-gray-extreme;
-      }
-    }
-  }
 }
 </style>

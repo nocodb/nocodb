@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, type TableType, type ViewType, isAIPromptCol, isFieldAgentCol, isLinksOrLTAR } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  type TableType,
+  type ViewType,
+  isAIPromptCol,
+  isFieldAgentCol,
+  isLinksOrLTAR,
+} from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
@@ -637,7 +645,7 @@ const execFieldAgent = async (path: Array<number>) => {
       theme="ai"
       @click="execFieldAgent(contextMenuPath || [])"
     >
-      <div class="flex gap-2 items-center">
+      <div v-e="['a:field-agent:cell:generate', { source: 'context-menu' }]" class="flex gap-2 items-center">
         <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
         {{ $t('labels.fieldAgent.runAiAgent') }}
       </div>

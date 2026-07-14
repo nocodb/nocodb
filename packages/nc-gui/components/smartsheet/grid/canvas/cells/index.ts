@@ -498,20 +498,11 @@ export function useGridCellHandler(params: {
       getColor,
     }
 
-    // Field Agent: for empty field-agent cells, bypass the per-type handleClick and
-    // directly trigger the AI generation via executeButtonAction. This is the centralized
-    // entry point — individual cell renderers (SingleLineText, Number, etc.) only delegate
-    // to AISelectCellRenderer for render/hover; click execution is handled here.
+    // Field Agent: for empty field-agent cells, delegate to AISelectCellRenderer which
+    // performs button bounds-checking — only triggers the agent when the "Run Agent" button
+    // is clicked, not when clicking anywhere in the cell (allows normal cell selection).
     if (isFieldAgentCol(ctx.column.columnObj) && !isValidValue(ctx.value)) {
-      const isReadOnlyCol = !!(ctx.column.readonly || ctx.column.columnObj?.readonly)
-      if (!isReadOnlyCol && !actionManager.isLoading(ctx.pk, ctx.column.id!)) {
-        await actionManager.executeButtonAction([ctx.pk], ctx.column, {
-          row: [ctx.row],
-          isAiPromptCol: true,
-          path: ctx.path ?? [],
-        })
-        return true
-      }
+      return await AISelectCellRenderer.handleClick!(clickProps)
     }
 
     if (cellHandler?.handleClick) {

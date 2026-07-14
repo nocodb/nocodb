@@ -842,6 +842,12 @@ defineExpose({
         </NcButton>
       </NcTooltip>
     </div>
+
+    <!-- Field Agent Config (EE only, conditionally loaded) -->
+    <LazySmartsheetColumnFieldAgentConfig
+      v-if="!isKanbanStack && isAiFeaturesEnabled"
+      v-model:value="vModel"
+    />
   </div>
 </template>
 

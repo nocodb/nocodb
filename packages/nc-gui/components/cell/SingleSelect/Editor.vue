@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
+import type { ColumnType } from 'nocodb-sdk'
+import { isFieldAgentCol } from 'nocodb-sdk'
 import { type LocalSelectOptionType, getOptions } from './utils'
 
 interface Props {
@@ -53,6 +55,48 @@ const searchVal = ref()
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()
+
+// Field Agent support
+const smartsheetRowStore = useSmartsheetRowStore()
+const { generateRows, generatingRows, generatingColumnRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+
+const isFieldAgent = computed(() => {
+  return isAiFeaturesEnabled.value && aiIntegrationAvailable.value && isFieldAgentCol(column.value)
+})
+
+const rowPk = computed(() => {
+  if (!smartsheetRowStore?.currentRow?.value?.row || !meta.value?.columns) return null
+  return extractPkFromRow(smartsheetRowStore.currentRow.value.row, meta.value.columns as ColumnType[])
+})
+
+const isAiGenerating = computed(() => {
+  if (!rowPk.value || !column.value?.id) return false
+  return generatingRows.value.includes(rowPk.value) && generatingColumnRows.value.includes(column.value.id)
+})
+
+const runFieldAgent = async () => {
+  if (!meta.value?.id || !column.value?.id || !rowPk.value) return
+
+  generatingRows.value.push(rowPk.value)
+  generatingColumnRows.value.push(column.value.id)
+
+  try {
+    const res = await generateRows(meta.value.id, column.value.id, [rowPk.value])
+
+    if (res?.length) {
+      const value = res[0]?.[column.value.title!]
+      emit('update:modelValue', value || null)
+
+      if (smartsheetRowStore?.currentRow?.value?.row) {
+        smartsheetRowStore.changedColumns.value.add(column.value.title!)
+        smartsheetRowStore.currentRow.value.row[column.value.title!] = value
+      }
+    }
+  } finally {
+    generatingRows.value = generatingRows.value.filter((id) => id !== rowPk.value)
+    generatingColumnRows.value = generatingColumnRows.value.filter((id) => id !== column.value?.id)
+  }
+}
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
@@ -388,6 +432,26 @@ onMounted(() => {
         </div>
       </a-select-option>
     </NcSelect>
+
+    <!-- Field Agent Run Button -->
+    <NcTooltip
+      v-if="isFieldAgent && rowPk && !isEditColumn && !isForm && editAllowed && !readOnly"
+      title="Run AI Agent"
+    >
+      <NcButton
+        size="xs"
+        type="text"
+        theme="ai"
+        class="nc-field-agent-run-btn !px-1 flex-none"
+        :loading="isAiGenerating"
+        :disabled="isAiGenerating"
+        @click.stop="runFieldAgent"
+      >
+        <template #icon>
+          <GeneralIcon icon="ncAutoAwesome" class="h-3.5 w-3.5" />
+        </template>
+      </NcButton>
+    </NcTooltip>
   </div>
 </template>
 

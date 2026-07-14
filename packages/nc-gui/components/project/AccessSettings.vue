@@ -86,6 +86,9 @@ const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const collaborators = ref<Collaborators[]>([])
 const userSearchText = ref('')
+const pendingAccessRequests = ref<any[]>([])
+const isLoadingRequests = ref(false)
+const processingRequestIds = ref<Set<string>>(new Set())
 
 const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
@@ -180,6 +183,44 @@ const loadCollaborators = async () => {
         // ignore
       })
     }
+  }
+}
+
+const loadPendingAccessRequests = async () => {
+  if (!currentBase.value?.id || !isOwnerOrCreator.value) {
+    pendingAccessRequests.value = []
+    return
+  }
+
+  isLoadingRequests.value = true
+  try {
+    const { data } = await $api.instance.get(`/api/v2/meta/bases/${currentBase.value.id}/shared-access-requests`, {
+      params: { status: 'pending' },
+    })
+    pendingAccessRequests.value = Array.isArray(data) ? data : []
+  } catch (e: any) {
+    // Non-critical: older backends without this endpoint should not break the page.
+    console.error(e)
+    pendingAccessRequests.value = []
+  } finally {
+    isLoadingRequests.value = false
+  }
+}
+
+const reviewAccessRequest = async (requestId: string, action: 'approve' | 'reject') => {
+  if (!currentBase.value?.id || processingRequestIds.value.has(requestId)) return
+
+  processingRequestIds.value = new Set(processingRequestIds.value).add(requestId)
+  try {
+    await $api.instance.post(`/api/v2/meta/bases/${currentBase.value.id}/shared-access-requests/${requestId}/${action}`)
+    message.success(action === 'approve' ? t('msg.success.accessRequestApproved') : t('msg.success.accessRequestRejected'))
+    await Promise.all([loadCollaborators(), loadPendingAccessRequests()])
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    const next = new Set(processingRequestIds.value)
+    next.delete(requestId)
+    processingRequestIds.value = next
   }
 }
 
@@ -308,6 +349,7 @@ onMounted(async () => {
   isLoading.value = true
   try {
     await loadCollaborators()
+    await loadPendingAccessRequests()
     const currentRoleIndex = OrderedProjectRoles.findIndex(
       (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
@@ -672,6 +714,85 @@ onBeforeUnmount(() => {
                 <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
               </div>
             </NcButton>
+          </div>
+        </div>
+
+        <div
+          v-if="isOwnerOrCreator && (pendingAccessRequests.length || isLoadingRequests)"
+          class="w-full max-w-full rounded-xl border border-nc-border-gray-medium bg-nc-bg-gray-extralight p-4"
+          data-testid="nc-pending-access-requests"
+        >
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-nc-content-gray m-0">
+                {{ $t('title.pendingAccessRequests') }}
+              </h3>
+              <NcBadge v-if="pendingAccessRequests.length" :border="false" color="orange" class="!px-2">
+                {{ pendingAccessRequests.length }}
+              </NcBadge>
+            </div>
+            <NcButton
+              size="xsmall"
+              type="secondary"
+              :loading="isLoadingRequests"
+              @click="loadPendingAccessRequests"
+            >
+              {{ $t('general.refresh') }}
+            </NcButton>
+          </div>
+
+          <div v-if="isLoadingRequests && !pendingAccessRequests.length" class="text-sm text-nc-content-gray-subtle2">
+            {{ $t('general.loading') }}
+          </div>
+
+          <div v-else class="flex flex-col gap-2">
+            <div
+              v-for="request in pendingAccessRequests"
+              :key="request.id"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg bg-nc-bg-default border border-nc-border-gray-medium px-3 py-2.5"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <GeneralUserIcon
+                  size="base"
+                  :user="{ email: request.email, display_name: request.display_name, meta: request.user_meta }"
+                  class="flex-none"
+                />
+                <div class="min-w-0">
+                  <div class="truncate font-semibold text-nc-content-gray capitalize">
+                    {{ request.display_name || request.email?.slice(0, request.email?.indexOf('@')) || request.email }}
+                  </div>
+                  <div class="truncate text-xs text-nc-content-gray-subtle2">
+                    {{ request.email }}
+                  </div>
+                  <div v-if="request.message" class="mt-1 text-xs text-nc-content-gray-subtle">
+                    {{ request.message }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 flex-none">
+                <NcButton
+                  size="small"
+                  type="secondary"
+                  :disabled="processingRequestIds.has(request.id)"
+                  :loading="processingRequestIds.has(request.id)"
+                  data-testid="nc-access-request-reject"
+                  @click="reviewAccessRequest(request.id, 'reject')"
+                >
+                  {{ $t('general.reject') }}
+                </NcButton>
+                <NcButton
+                  size="small"
+                  type="primary"
+                  :disabled="processingRequestIds.has(request.id)"
+                  :loading="processingRequestIds.has(request.id)"
+                  data-testid="nc-access-request-approve"
+                  @click="reviewAccessRequest(request.id, 'approve')"
+                >
+                  {{ $t('general.approve') }}
+                </NcButton>
+              </div>
+            </div>
           </div>
         </div>
 

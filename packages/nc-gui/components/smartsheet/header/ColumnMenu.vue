@@ -78,6 +78,8 @@ const { generateRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi(
 
 const isFieldAgentRunning = ref(false)
 
+const showFieldAgentSubmenu = ref(false)
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -505,28 +507,34 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   isOpen.value = false
 }
 
-const runFieldAgentBulk = async () => {
+const runFieldAgentBulk = async (mode: 'all' | 'unmodified') => {
   if (!meta.value?.id || !column.value?.id || !column.value?.title) return
 
   isFieldAgentRunning.value = true
   isOpen.value = false
 
   try {
-    // Fetch up to 25 rows where this field agent column is empty/null
+    const queryParams: Record<string, any> = {
+      limit: 25,
+    }
+
+    // 'unmodified' = only blank/empty cells (never manually edited)
+    // 'all' = all cells in the current view
+    if (mode === 'unmodified') {
+      queryParams.where = `(${column.value.title},blank)`
+    }
+
     const response = await $api.dbViewRow.list(
       'noco',
       meta.value.base_id!,
       meta.value.id!,
       view.value?.id!,
-      {
-        limit: 25,
-        where: `(${column.value.title},blank)`,
-      },
+      queryParams,
     )
 
     const rows = (response as any)?.list || []
     if (!rows.length) {
-      message.info('No empty rows found for this field')
+      message.info(mode === 'unmodified' ? 'No unmodified rows found for this field' : 'No rows found in this view')
       return
     }
 
@@ -536,17 +544,17 @@ const runFieldAgentBulk = async () => {
       .filter(Boolean) as string[]
 
     if (!rowIds.length) {
-      message.info('No empty rows found for this field')
+      message.info(mode === 'unmodified' ? 'No unmodified rows found for this field' : 'No rows found in this view')
       return
     }
 
-    // Run the field agent on empty rows
+    // Run the field agent on matched rows
     await generateRows(meta.value.id!, column.value.id!, rowIds, false)
 
     // Reload data to reflect changes
     reloadDataHook?.trigger()
 
-    message.success(`AI agent processed ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}`)
+    message.toast(`AI agent processed ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -991,13 +999,32 @@ const onDeleteColumn = () => {
         "
       >
         <NcDivider />
-        <NcMenuItem :disabled="isFieldAgentRunning" @click="runFieldAgentBulk">
-          <div v-e="['a:field:field-agent:run']" class="nc-column-field-agent-run nc-header-menu-item">
-            <GeneralLoader v-if="isFieldAgentRunning" size="regular" />
-            <GeneralIcon v-else icon="ncAutoAwesome" class="opacity-80 !w-4 !h-4" />
-            Run AI Agent
+        <div
+          class="nc-field-agent-submenu-wrapper"
+          @mouseenter="showFieldAgentSubmenu = true"
+          @mouseleave="showFieldAgentSubmenu = false"
+        >
+          <NcMenuItem v-e="['a:field:field-agent:run']" class="nc-column-field-agent-run" :disabled="isFieldAgentRunning">
+            <div class="nc-header-menu-item w-full">
+              <GeneralLoader v-if="isFieldAgentRunning" size="regular" />
+              <GeneralIcon v-else icon="ncAutoAwesome" class="opacity-80 !w-4 !h-4" />
+              <span class="flex-1">Run AI Agent</span>
+              <GeneralIcon icon="ncChevronRight" class="!opacity-60 !w-3.5 !h-3.5" />
+            </div>
+          </NcMenuItem>
+          <div v-if="showFieldAgentSubmenu && !isFieldAgentRunning" class="nc-field-agent-submenu">
+            <NcMenuItem @click="runFieldAgentBulk('all')">
+              <div class="nc-header-menu-item">
+                All cells in view
+              </div>
+            </NcMenuItem>
+            <NcMenuItem @click="runFieldAgentBulk('unmodified')">
+              <div class="nc-header-menu-item">
+                Cells never modified
+              </div>
+            </NcMenuItem>
           </div>
-        </NcMenuItem>
+        </div>
       </template>
 
       <template v-if="!isSqlView && !isMobileMode">
@@ -1093,5 +1120,27 @@ const onDeleteColumn = () => {
 
 :deep(.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled .nc-icon) {
   @apply text-current;
+}
+
+.nc-field-agent-submenu-wrapper {
+  @apply relative mx-1 rounded-md;
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
+
+  .nc-field-agent-submenu {
+    @apply absolute left-full top-0 z-50 py-1.5 min-w-[180px];
+    @apply rounded-lg border-1 border-nc-border-gray-extralight bg-white;
+    @apply shadow-lg;
+
+    :deep(.ant-dropdown-menu-item) {
+      @apply !text-small !leading-5 font-weight-550;
+
+      &:not(.ant-dropdown-menu-item-disabled) {
+        @apply text-nc-content-gray-subtle hover:text-nc-content-gray-extreme;
+      }
+    }
+  }
 }
 </style>

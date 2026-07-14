@@ -64,8 +64,6 @@ const { getMeta } = useMetas()
 
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
-const { t } = useI18n()
-
 const { generateRows, generatingRows, generatingColumnRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)

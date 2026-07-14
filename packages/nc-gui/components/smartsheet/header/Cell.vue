@@ -66,6 +66,8 @@ const isAllowedToEditField = computed(() => {
 
 const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
+const isFieldAgent = computed(() => isFieldAgentCol(column.value))
+
 const columnTypeName = computed(() => {
   if (column.value.uidt === UITypes.LongText) {
     if (parseProp(column.value?.meta)?.richMode) {
@@ -180,9 +182,11 @@ const onClick = (e: Event) => {
 
 <template>
   <div
-    class="flex items-center w-full text-xs text-nc-content-gray-muted font-weight-medium group"
+    class="flex items-center w-full text-xs font-weight-medium group"
     :class="{
       'h-full': column,
+      'text-nc-content-purple-dark': isFieldAgent,
+      'text-nc-content-gray-muted': !isFieldAgent,
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMenuHidden && !isExpandedBulkUpdateForm,
       'nc-cell-expanded-form-header cursor-pointer hover:bg-nc-bg-gray-light':
         isExpandedForm &&

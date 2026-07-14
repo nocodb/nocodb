@@ -66,6 +66,9 @@ export enum AppEvents {
   PROJECT_DELETE = 'base.delete',
   PROJECT_UPDATE = 'base.update',
   PROJECT_CLONE = 'base.clone',
+  BASE_ACCESS_REQUEST = 'base.access.request',
+  BASE_ACCESS_REQUEST_APPROVED = 'base.access.request.approved',
+  BASE_ACCESS_REQUEST_REJECTED = 'base.access.request.rejected',
 
   WELCOME = 'app.welcome',
 

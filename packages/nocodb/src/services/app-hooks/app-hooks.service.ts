@@ -40,6 +40,8 @@ import type {
   ProjectCreateEvent,
   ProjectDeleteEvent,
   ProjectInviteEvent,
+  BaseAccessRequestEvent,
+  BaseAccessRequestResolvedEvent,
   ProjectUpdateEvent,
   ProjectUserDeleteEvent,
   ProjectUserResendInviteEvent,
@@ -112,6 +114,16 @@ export class AppHooksService {
   on(
     event: AppEvents.PROJECT_INVITE,
     listener: (data: ProjectInviteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.BASE_ACCESS_REQUEST,
+    listener: (data: BaseAccessRequestEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.BASE_ACCESS_REQUEST_APPROVED
+      | AppEvents.BASE_ACCESS_REQUEST_REJECTED,
+    listener: (data: BaseAccessRequestResolvedEvent) => void,
   ): () => void;
   on(
     event: AppEvents.PROJECT_CREATE,
@@ -234,6 +246,15 @@ export class AppHooksService {
   }
 
   emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEvent): void;
+  emit(event: AppEvents.BASE_ACCESS_REQUEST, data: BaseAccessRequestEvent): void;
+  emit(
+    event: AppEvents.BASE_ACCESS_REQUEST_APPROVED,
+    data: BaseAccessRequestResolvedEvent,
+  ): void;
+  emit(
+    event: AppEvents.BASE_ACCESS_REQUEST_REJECTED,
+    data: BaseAccessRequestResolvedEvent,
+  ): void;
   emit(event: AppEvents.PROJECT_CREATE, data: ProjectCreateEvent): void;
   emit(event: AppEvents.PROJECT_DELETE, data: ProjectDeleteEvent): void;
   emit(event: AppEvents.PROJECT_UPDATE, data: ProjectUpdateEvent): void;

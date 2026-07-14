@@ -1,5 +1,5 @@
 import { defaultOffscreen2DContext, isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
-import { getButtonColors } from './Button/utils'
+import { getButtonColors } from '~/utils/buttonUtils'
 
 const BUTTON_LABEL = 'Run Agent'
 const BUTTON_LABEL_LOADING = 'Running...'

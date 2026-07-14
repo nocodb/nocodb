@@ -369,6 +369,7 @@ export enum AppEvents {
   CHAT_TOOL_EXECUTE = 'chat.tool.execute',
 
   DOC_AI_COMPLETION = 'doc.ai.completion',
+  FIELD_AGENT_ROWS_UPDATE = 'field.agent.rows.update',
 
   DOCUMENT_CREATE = 'document.create',
   DOCUMENT_UPDATE = 'document.update',

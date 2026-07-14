@@ -11,7 +11,7 @@ import {
 const aiIntegrationNotFound = 'AI integration not found'
 
 export const useNocoAi = createSharedComposable(() => {
-  const { $api, $poller } = useNuxtApp()
+  const { $api, $e, $poller } = useNuxtApp()
 
   const workspaceStore = useWorkspace()
 
@@ -683,6 +683,7 @@ export const useNocoAi = createSharedComposable(() => {
   ): Promise<{ id: string } | undefined> => {
     try {
       const res = await $api.instance.post<{ id: string }>(`/api/v2/ai/tables/${modelId}/field-agent/generate`, params)
+      $e('a:field-agent:bulk:dispatch', { mode: params.mode })
       return res.data
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsg(e)

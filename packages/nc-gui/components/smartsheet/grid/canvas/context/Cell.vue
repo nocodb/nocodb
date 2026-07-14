@@ -88,6 +88,7 @@ const isDeleteAllRecordsModalOpen = ref(false)
 
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
+const { showUpgradeToUseFieldAgent } = useEeConfig()
 const { aiIntegrations, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
@@ -299,6 +300,8 @@ const showRunFieldAgent = computed(() => {
 })
 
 const execFieldAgent = async (path: Array<number>) => {
+  if (showUpgradeToUseFieldAgent()) return
+
   const column = columns.value[selection.value.start.col]
   const colObj = column?.columnObj
 

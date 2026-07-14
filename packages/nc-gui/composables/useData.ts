@@ -32,8 +32,15 @@ export function useData(args: {
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
-  // Field agent dirty tracking: rebuild dependency map when columns change
-  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap } = useNocoAi()
+  // Field agent dirty tracking: rebuild dependency map when columns change, clear stale dirty state on table switch
+  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap, clearAllFieldAgentDirty } = useNocoAi()
+
+  watch(
+    () => meta.value?.id,
+    () => {
+      clearAllFieldAgentDirty()
+    },
+  )
 
   watch(
     () => meta.value?.columns,

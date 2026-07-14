@@ -408,9 +408,29 @@ export function isAIPromptCol(col: ColumnReqType | ColumnType) {
   );
 }
 
+/**
+ * Field types that support the "Field Agent" feature (AI-powered cell value generation).
+ * This is the single source of truth — used by frontend (cell renderers, EditOrAdd.vue)
+ * and backend (ai-data.service.ts) to gate field agent functionality.
+ */
+export const FIELD_AGENT_SUPPORTED_TYPES = [
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.SingleLineText,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Percent,
+  UITypes.Currency,
+  UITypes.JSON,
+];
+
+/**
+ * Returns true if the column has field agent enabled in its metadata
+ * AND the column type is in the supported list.
+ */
 export function isFieldAgentCol(col: ColumnReqType | ColumnType) {
   return (
-    (col.uidt === UITypes.SingleSelect || col.uidt === UITypes.MultiSelect) &&
+    FIELD_AGENT_SUPPORTED_TYPES.includes(col.uidt as UITypes) &&
     parseProp((col as any)?.meta)?.[SelectFieldAgentMetaProp]?.enabled === true
   );
 }

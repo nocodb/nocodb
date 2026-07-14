@@ -128,7 +128,9 @@ export const UrlCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, selected, isDoubleClick, getCellPosition, mousePosition }) {
+  async handleClick(props) {
+    const { value, row, column, selected, isDoubleClick, getCellPosition, mousePosition } = props
+
     if (!selected && !isDoubleClick) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)

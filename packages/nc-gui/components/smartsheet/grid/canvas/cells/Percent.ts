@@ -1,8 +1,10 @@
-import { ColumnHelper, UITypes, ncIsNaN } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, ncIsNaN, isFieldAgentCol } from 'nocodb-sdk'
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
+import { AISelectCellRenderer } from './AISelect'
 
 export const PercentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, pv, column, padding, textColor = themeV4Colors.gray['600'], getColor }) => {
+  render: (ctx, props) => {
+    const { value, x, y, width, height, pv, column, padding, textColor = themeV4Colors.gray['600'], getColor } = props
     ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -10,6 +12,13 @@ export const PercentCellRenderer: CellRenderer = {
     const meta = {
       ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
       ...parseProp(column?.meta),
+    }
+
+    // Field Agent: render the "Run Agent" button when cell is empty
+    if (value === null || value === undefined || value === '') {
+      if (isFieldAgentCol(column)) {
+        return AISelectCellRenderer.render(ctx, props)
+      }
     }
 
     if (meta.is_progress && value !== null && value !== undefined) {
@@ -109,6 +118,14 @@ export const PercentCellRenderer: CellRenderer = {
       fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
       height,
     })
+  },
+  async handleClick(props) {
+    const { column, row, value } = props
+    // Field Agent: delegate click to AISelectCellRenderer for empty cells
+    if (isFieldAgentCol(column?.columnObj) && (value === null || value === undefined || value === '')) {
+      return AISelectCellRenderer.handleClick!(props)
+    }
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

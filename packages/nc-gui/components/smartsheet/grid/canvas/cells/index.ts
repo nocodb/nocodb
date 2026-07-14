@@ -7,6 +7,7 @@ import {
   isAIPromptCol,
   isBtLikeV2Junction,
   isFieldAgentCol,
+  isValidValue,
 } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
@@ -49,6 +50,7 @@ import { UUIDCellRenderer } from './UUID'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
+import { AISelectCellRenderer } from './AISelect'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -312,6 +314,7 @@ export function useGridCellHandler(params: {
 
     const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
+    // Skip "Updating ..." overlay for AI-driven columns — they show their own loading state
     if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column) && !isFieldAgentCol(column)) {
       return renderSingleLineText(ctx, {
         x: x + padding,
@@ -325,6 +328,7 @@ export function useGridCellHandler(params: {
       })
     }
 
+    // Skip spinner overlay for AI-driven columns — they render their own spinner via AISelectCellRenderer
     if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column) && !isFieldAgentCol(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
@@ -472,28 +476,46 @@ export function useGridCellHandler(params: {
     canvasCellEvents.keyboardKey = ''
     canvasCellEvents.event = undefined
 
+    const clickProps = {
+      ...ctx,
+      cellRenderStore,
+      isDoubleClick: ctx.event.detail === 2,
+      getCellPosition: (...args: any[]) => params?.getCellPosition?.(...args, ctx.path),
+      readonly: !params.hasEditPermission.value,
+      updateOrSaveRow: params?.updateOrSaveRow,
+      actionManager,
+      markdownLoader: params.markdownLoader,
+      makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip = ctx.event.detail === 2) =>
+        makeCellEditable(row, clickedColumn, showEditCellRestrictionTooltip),
+      isPublic: isPublic.value,
+      openDetachedExpandedForm,
+      openDetachedLongText,
+      openSmartText,
+      path: ctx.path ?? [],
+      allowLocalUrl: appInfo.value?.allowLocalUrl,
+      baseRoles: baseRoles.value,
+      t,
+      getColor,
+    }
+
+    // Field Agent: for empty field-agent cells, bypass the per-type handleClick and
+    // directly trigger the AI generation via executeButtonAction. This is the centralized
+    // entry point — individual cell renderers (SingleLineText, Number, etc.) only delegate
+    // to AISelectCellRenderer for render/hover; click execution is handled here.
+    if (isFieldAgentCol(ctx.column.columnObj) && !isValidValue(ctx.value)) {
+      const isReadOnlyCol = !!(ctx.column.readonly || ctx.column.columnObj?.readonly)
+      if (!isReadOnlyCol && !actionManager.isLoading(ctx.pk, ctx.column.id!)) {
+        await actionManager.executeButtonAction([ctx.pk], ctx.column, {
+          row: [ctx.row],
+          isAiPromptCol: true,
+          path: ctx.path ?? [],
+        })
+        return true
+      }
+    }
+
     if (cellHandler?.handleClick) {
-      return await cellHandler.handleClick({
-        ...ctx,
-        cellRenderStore,
-        isDoubleClick: ctx.event.detail === 2,
-        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
-        readonly: !params.hasEditPermission.value,
-        updateOrSaveRow: params?.updateOrSaveRow,
-        actionManager,
-        markdownLoader: params.markdownLoader,
-        makeCellEditable: (row, clickedColumn, showEditCellRestrictionTooltip = ctx.event.detail === 2) =>
-          makeCellEditable(row, clickedColumn, showEditCellRestrictionTooltip),
-        isPublic: isPublic.value,
-        openDetachedExpandedForm,
-        openDetachedLongText,
-        openSmartText,
-        path: ctx.path ?? [],
-        allowLocalUrl: appInfo.value?.allowLocalUrl,
-        baseRoles: baseRoles.value,
-        t,
-        getColor,
-      })
+      return await cellHandler.handleClick(clickProps)
     }
     return false
   }
@@ -515,6 +537,17 @@ export function useGridCellHandler(params: {
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
     canvasCellEvents.keyboardKey = ctx.e.key
     canvasCellEvents.event = ctx.e
+
+    // Field Agent: Enter key on an empty field-agent cell triggers AI generation
+    if (
+      ctx.e.key === 'Enter' &&
+      isFieldAgentCol(ctx.column.columnObj!) &&
+      !isValidValue(ctx.value)
+    ) {
+      actionManager.executeButtonAction([ctx.pk], ctx.column, { row: [ctx.row], isAiPromptCol: true, path: ctx.path ?? [] })
+      return true
+    }
+
     if (cellHandler?.handleKeyDown) {
       return await cellHandler.handleKeyDown({
         ...ctx,

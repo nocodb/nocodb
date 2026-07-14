@@ -285,15 +285,24 @@ export class ActionManager {
       allowLocalUrl?: boolean
     } = {},
   ) {
-    const colOptions = column?.columnObj.colOptions as ButtonType
-    if (!colOptions || column.isInvalidColumn?.isInvalid) return
+    let colOptions = column?.columnObj.colOptions as ButtonType
+    if (column.isInvalidColumn?.isInvalid) return
 
     extra.path = extra.path || []
     const { cachedRows } = this.getDataCache(extra.path)
 
+    // Field agent columns (e.g. SingleLineText, Number) are not Button columns,
+    // so they don't have colOptions. Synthesize a minimal ButtonType with type: 'ai'
+    // to route them into the existing 'ai' case in the switch below.
     if (extra.isAiPromptCol) {
-      colOptions.type = 'ai'
+      if (!colOptions) {
+        colOptions = { type: 'ai' } as ButtonType
+      } else {
+        colOptions.type = 'ai'
+      }
     }
+
+    if (!colOptions) return
 
     const { runScript, activeExecutions } = useScriptExecutor()
     const { addScriptExecution } = useActionPane()

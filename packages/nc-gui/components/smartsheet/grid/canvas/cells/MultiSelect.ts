@@ -213,6 +213,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
   async handleClick(props) {
     const { row, column, makeCellEditable, selected, value } = props
 
+    // Field Agent: delegate click to AISelectCellRenderer for empty cells
     if (isFieldAgentCol(column?.columnObj) && !value) {
       return AISelectCellRenderer.handleClick!(props)
     }
@@ -225,6 +226,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable, value } = ctx
 
+    // Field Agent: delegate keydown to AISelectCellRenderer for empty cells
     if (isFieldAgentCol(column?.columnObj) && !value) {
       return AISelectCellRenderer.handleKeyDown!(ctx)
     }

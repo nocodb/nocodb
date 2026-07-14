@@ -1,4 +1,6 @@
+import { isFieldAgentCol } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { AISelectCellRenderer } from './AISelect'
 
 export const JsonCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -16,6 +18,7 @@ export const JsonCellRenderer: CellRenderer = {
       spriteLoader,
       selected,
       setCursor,
+      column,
     } = props
 
     const renderExpandIcon = () => {
@@ -48,6 +51,11 @@ export const JsonCellRenderer: CellRenderer = {
 
     // skip rendering text if undefined/null
     if (ncIsUndefined(value) || ncIsNull(value)) {
+      // Field Agent: render the "Run Agent" button when cell is empty
+      if (isFieldAgentCol(column)) {
+        return AISelectCellRenderer.render(ctx, props)
+      }
+
       renderExpandIcon()
 
       return {
@@ -99,7 +107,14 @@ export const JsonCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, selected }) {
+  async handleClick(props) {
+    const { row, column, getCellPosition, mousePosition, makeCellEditable, selected, value } = props
+
+    // Field Agent: delegate click to AISelectCellRenderer for empty cells
+    if (isFieldAgentCol(column?.columnObj) && (ncIsUndefined(value) || ncIsNull(value))) {
+      return AISelectCellRenderer.handleClick!(props)
+    }
+
     const rowIndex = row?.rowMeta?.rowIndex
     if (typeof rowIndex !== 'number' || !selected) return false
     const { x, y, width } = getCellPosition(column, rowIndex)

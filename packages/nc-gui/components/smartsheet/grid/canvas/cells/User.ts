@@ -315,7 +315,9 @@ export const UserFieldCellRenderer: CellRenderer = {
     })
   },
 
-  async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable, selected }) {
+  async handleClick(props) {
+    const { row, column, mousePosition, getCellPosition, makeCellEditable, selected, value } = props
+
     if (
       column.readonly ||
       column.isSyncedColumn ||

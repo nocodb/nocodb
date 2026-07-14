@@ -2,6 +2,7 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  FIELD_AGENT_SUPPORTED_TYPES,
   PlanFeatureTypes,
   PlanTitles,
   UITypesSearchTerms,
@@ -1475,6 +1476,7 @@ const unique = computed({
           @on-submit="onSubmit"
         />
       </template>
+
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
@@ -1641,6 +1643,12 @@ const unique = computed({
             </Transition>
           </template>
         </template>
+
+        <!-- Field Agent Config - shown as last section before description/buttons for all supported types -->
+        <LazySmartsheetColumnFieldAgentConfig
+          v-if="isAiFeaturesEnabled && FIELD_AGENT_SUPPORTED_TYPES.includes(formState.uidt)"
+          v-model:value="formState"
+        />
 
         <a-form-item
           v-if="enableDescription && !aiAutoSuggestMode"

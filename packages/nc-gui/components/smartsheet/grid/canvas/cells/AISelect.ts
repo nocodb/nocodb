@@ -65,6 +65,7 @@ const renderFieldAgentButton = (
     loadingStartTime,
     isLoading,
     setCursor,
+    isDark,
   }: {
     x: number
     y: number
@@ -75,6 +76,7 @@ const renderFieldAgentButton = (
     spriteLoader?: any
     loadingStartTime?: number
     setCursor: SetCursorType
+    isDark?: boolean
   },
 ) => {
   const dims = getFieldAgentButtonDimensions({
@@ -104,7 +106,13 @@ const renderFieldAgentButton = (
     ctx.globalAlpha = 0.5
   }
 
-  const colors = getButtonColors('light', 'purple', !!isHovered, !!disabled)
+  const colors = isDark
+    ? {
+        background: isHovered && !disabled ? 'rgba(125, 38, 205, 0.15)' : 'transparent',
+        text: disabled ? '#6A7184' : '#B583E0',
+        loader: '#B583E0',
+      }
+    : getButtonColors('light', 'purple', !!isHovered, !!disabled)
 
   // Draw button background
   ctx.beginPath()
@@ -149,7 +157,7 @@ const renderFieldAgentButton = (
 
 export const AISelectCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
-    const { x, y, width, spriteLoader, disabled, mousePosition, actionManager, pk, column, setCursor, readonly } = props
+    const { x, y, width, spriteLoader, disabled, mousePosition, actionManager, pk, column, setCursor, readonly, isDark } = props
 
     const horizontalPadding = 12
     const isReadonlyCol = !!(readonly || column.readonly)
@@ -171,6 +179,7 @@ export const AISelectCellRenderer: CellRenderer = {
       isLoading,
       loadingStartTime: startTime!,
       setCursor,
+      isDark,
     })
 
     return {

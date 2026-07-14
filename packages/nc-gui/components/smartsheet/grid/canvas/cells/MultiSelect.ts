@@ -1,6 +1,8 @@
+import { isFieldAgentCol } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
+import { AISelectCellRenderer } from './AISelect'
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -19,6 +21,11 @@ export const MultiSelectCellRenderer: CellRenderer = {
     width = width - padding * 2
 
     const selectedOptions = MultiSelectCellRenderer.getSelectedOptions(props)
+
+    // Field Agent: show Generate button when empty
+    if (!selectedOptions.length && isFieldAgentCol(column)) {
+      return AISelectCellRenderer.render(ctx, props)
+    }
 
     if (!selectedOptions.length) return
 
@@ -203,13 +210,25 @@ export const MultiSelectCellRenderer: CellRenderer = {
     })
   },
 
-  async handleClick({ row, column, makeCellEditable, selected }) {
+  async handleClick(props) {
+    const { row, column, makeCellEditable, selected, value } = props
+
+    if (isFieldAgentCol(column?.columnObj) && !value) {
+      return AISelectCellRenderer.handleClick!(props)
+    }
+
     if (column.columnObj?.readonly || !column?.isCellEditable || !selected || column.isSyncedColumn) return false
     makeCellEditable(row, column)
     return true
   },
 
-  async handleKeyDown({ e, row, column, makeCellEditable }) {
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable, value } = ctx
+
+    if (isFieldAgentCol(column?.columnObj) && !value) {
+      return AISelectCellRenderer.handleKeyDown!(ctx)
+    }
+
     if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)

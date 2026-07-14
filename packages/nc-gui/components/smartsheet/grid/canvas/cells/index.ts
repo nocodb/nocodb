@@ -6,6 +6,7 @@ import {
   type ViewType,
   isAIPromptCol,
   isBtLikeV2Junction,
+  isFieldAgentCol,
 } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
@@ -311,7 +312,7 @@ export function useGridCellHandler(params: {
 
     const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
-    if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+    if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column) && !isFieldAgentCol(column)) {
       return renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -324,7 +325,7 @@ export function useGridCellHandler(params: {
       })
     }
 
-    if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+    if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column) && !isFieldAgentCol(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
         renderSpinner(ctx, x + width / 2, y + 8, 16, getColor(themeV4Colors.brand['500']), loadingStartTime, 1.5)

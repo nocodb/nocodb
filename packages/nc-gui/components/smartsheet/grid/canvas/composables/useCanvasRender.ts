@@ -503,18 +503,6 @@ export function useCanvasRender({
           y: _headerRowHeight / 2 - 7,
         })
 
-        // Field Agent AI sparkle (same position/size/color as cellAi icon sparkle)
-        if (isFieldAgentCol(column.columnObj)) {
-          ctx.save()
-          ctx.translate(xOffset + 8 - scrollLeft.value, headerRowHeight.value / 2 - 7)
-          ctx.scale(13 / 16, 13 / 16)
-          const sparklePath = new Path2D(
-            'M12 15C11.9103 15 11.8243 14.9753 11.7419 14.9259C11.6596 14.8765 11.5974 14.8069 11.5554 14.7172L10.8437 13.1563L9.28276 12.4446C9.19306 12.4026 9.12351 12.3404 9.07411 12.2581C9.0247 12.1757 9 12.0897 9 12C9 11.9103 9.0247 11.8243 9.07411 11.7419C9.12351 11.6596 9.19306 11.5974 9.28276 11.5554L10.8437 10.8437L11.5554 9.28276C11.5974 9.19306 11.6596 9.12351 11.7419 9.07411C11.8243 9.0247 11.9103 9 12 9C12.0897 9 12.1757 9.0247 12.2581 9.07411C12.3404 9.12351 12.4026 9.19306 12.4446 9.28276L13.1563 10.8437L14.7172 11.5554C14.8069 11.5974 14.8765 11.6596 14.9259 11.7419C14.9753 11.8243 15 11.9103 15 12C15 12.0897 14.9753 12.1757 14.9259 12.2581C14.8765 12.3404 14.8069 12.4026 14.7172 12.4446L13.1563 13.1563L12.4446 14.7172C12.4026 14.8069 12.3404 14.8765 12.2581 14.9259C12.1757 14.9753 12.0897 15 12 15Z',
-          )
-          ctx.fillStyle = '#7D26CD'
-          ctx.fill(sparklePath)
-          ctx.restore()
-        }
       }
 
       const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
@@ -774,18 +762,6 @@ export function useCanvasRender({
             y: _headerRowHeight / 2 - 7,
           })
 
-          // Field Agent AI sparkle (same position/size/color as cellAi icon sparkle)
-          if (isFieldAgentCol(column.columnObj)) {
-            ctx.save()
-            ctx.translate(xOffset + 8, headerRowHeight.value / 2 - 7)
-            ctx.scale(13 / 16, 13 / 16)
-            const sparklePath = new Path2D(
-              'M12 15C11.9103 15 11.8243 14.9753 11.7419 14.9259C11.6596 14.8765 11.5974 14.8069 11.5554 14.7172L10.8437 13.1563L9.28276 12.4446C9.19306 12.4026 9.12351 12.3404 9.07411 12.2581C9.0247 12.1757 9 12.0897 9 12C9 11.9103 9.0247 11.8243 9.07411 11.7419C9.12351 11.6596 9.19306 11.5974 9.28276 11.5554L10.8437 10.8437L11.5554 9.28276C11.5974 9.19306 11.6596 9.12351 11.7419 9.07411C11.8243 9.0247 11.9103 9 12 9C12.0897 9 12.1757 9.0247 12.2581 9.07411C12.3404 9.12351 12.4026 9.19306 12.4446 9.28276L13.1563 10.8437L14.7172 11.5554C14.8069 11.5974 14.8765 11.6596 14.9259 11.7419C14.9753 11.8243 15 11.9103 15 12C15 12.0897 14.9753 12.1757 14.9259 12.2581C14.8765 12.3404 14.8069 12.4026 14.7172 12.4446L13.1563 13.1563L12.4446 14.7172C12.4026 14.8069 12.3404 14.8765 12.2581 14.9259C12.1757 14.9753 12.0897 15 12 15Z',
-            )
-            ctx.fillStyle = '#7D26CD'
-            ctx.fill(sparklePath)
-            ctx.restore()
-          }
         }
 
         const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf

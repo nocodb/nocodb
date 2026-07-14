@@ -26,6 +26,18 @@ const searchQuery = ref('')
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
 
+// Field Agent submenu: all 8 supported field agent types
+const FIELD_AGENT_SUBMENU_TYPES = [
+  UITypes.SingleLineText,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Percent,
+  UITypes.Currency,
+  UITypes.JSON,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+]
+
 const filteredOptions = computed(() => {
   searchBasisInfoMap.value = {}
 
@@ -53,6 +65,9 @@ const isDisabledUIType = (type: UITypes) => {
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
+  // AIFieldAgent has a submenu — don't emit on direct click
+  if (uidt === AIFieldAgent) return
+
   if (uidt === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
     return
   }
@@ -76,6 +91,11 @@ const onClick = (uidt: UITypes) => {
   }
 
   emits('selected', uidt)
+}
+
+// Field Agent submenu: emit composite string so EditOrAdd can preload field_agent meta
+const onFieldAgentSubTypeClick = (subType: UITypes) => {
+  emits('selected', `${AIFieldAgent}:${subType}` as any)
 }
 
 const handleAutoScrollOption = () => {
@@ -153,7 +173,57 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         :message="$t('tooltip.typeNotAllowed')"
         :enabled="isDisabledUIType(option.name)"
       >
+        <!-- AI Field Agent item with hover submenu -->
+        <a-popover
+          v-if="option.name === AIFieldAgent"
+          placement="rightTop"
+          trigger="hover"
+          overlay-class-name="nc-field-agent-submenu-popover"
+          :get-popup-container="(triggerNode) => triggerNode.closest('[data-testid=nc-column-uitypes-options-list-wrapper]') || triggerNode.parentNode"
+          :align="{ offset: [4, -8] }"
+        >
+          <template #content>
+            <div class="py-1 min-w-[180px]">
+              <div
+                v-for="subType in FIELD_AGENT_SUBMENU_TYPES"
+                :key="subType"
+                class="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-sm text-nc-content-gray-subtle"
+                @click="onFieldAgentSubTypeClick(subType)"
+              >
+                <component :is="getUIDTIcon(subType)" class="w-4 h-4 text-nc-content-gray-subtle" />
+                <div>{{ UITypesName[subType] }}</div>
+              </div>
+            </div>
+          </template>
+          <div
+            class="flex w-full py-2 items-center justify-between px-2 rounded-md"
+            :class="[
+              `nc-column-list-option-${index}`,
+              {
+                'hover:bg-nc-bg-gray-light cursor-pointer': true,
+                'bg-nc-bg-gray-light nc-column-list-option-active': activeFieldIndex === index,
+                '!text-nc-content-purple-dark': true,
+              },
+            ]"
+            :data-testid="option.name"
+            @click="onClick(option.name)"
+          >
+            <div class="flex flex-1 gap-2 items-center">
+              <component :is="option.icon" class="w-4 h-4 text-nc-content-gray-subtle" />
+              <div class="text-sm flex-1">
+                {{ UITypesName[option.name] }}
+              </div>
+              <span v-if="option.isNew" class="text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md">{{
+                $t('general.new')
+              }}</span>
+            </div>
+            <GeneralIcon icon="ncChevronRight" class="!text-nc-content-gray-muted w-4 h-4" />
+          </div>
+        </a-popover>
+
+        <!-- Regular menu items -->
         <div
+          v-else
           class="flex w-full py-2 items-center justify-between px-2 rounded-md"
           :class="[
             `nc-column-list-option-${index}`,
@@ -202,3 +272,25 @@ const { isSystem } = useColumnCreateStoreOrThrow()
     </div>
   </div>
 </template>
+
+<style lang="scss">
+[data-testid='nc-column-uitypes-options-list-wrapper'] {
+  overflow: visible;
+}
+
+.nc-field-agent-submenu-popover {
+  z-index: 1050;
+
+  .ant-popover-inner {
+    @apply !rounded-lg !shadow-lg !border-1 !border-nc-border-gray-medium !bg-white;
+  }
+
+  .ant-popover-inner-content {
+    @apply !p-1 !bg-white !rounded-lg;
+  }
+
+  .ant-popover-arrow {
+    @apply !hidden;
+  }
+}
+</style>

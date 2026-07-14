@@ -365,7 +365,6 @@ const runFieldAgent = async (col: ColumnType) => {
                 </NcButton>
               </NcTooltip>
             </div>
->>>>>>> 2a2519c85b (expanded record)
           </template>
         </PermissionsTooltip>
       </NcTooltip>

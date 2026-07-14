@@ -302,7 +302,8 @@ export function useCanvasTable({
   )
 
   // Expose bulk AI generation to toolbar via shared composable
-  canvasBulkAiGeneration.value = (columnId: string, rowIds: string[]) => actionManager.executeBulkAiGeneration(columnId, rowIds)
+  canvasBulkAiGeneration.value = (columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) =>
+    actionManager.executeBulkAiGeneration(columnId, rowIds, rows, path)
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 

@@ -519,7 +519,9 @@ export const useNocoAi = createSharedComposable(() => {
 
   // Canvas grid action manager hook: set by canvas grid, used by toolbar for
   // cell-level loading spinners during bulk AI generation.
-  const canvasBulkAiGeneration = ref<((columnId: string, rowIds: string[]) => Promise<any>) | null>(null)
+  const canvasBulkAiGeneration = ref<
+    ((columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) => Promise<any>) | null
+  >(null)
 
   return {
     aiIntegrationAvailable,

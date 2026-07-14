@@ -409,10 +409,38 @@ export class ActionManager {
   /**
    * Public method for running bulk AI field-agent generation with proper
    * loading-state management (spinner in each cell while generating).
+   *
+   * @param rows - Row objects with rowMeta.rowIndex so cached rows can be updated in real-time
+   * @param path - Group-by path for accessing the correct data cache
    */
-  async executeBulkAiGeneration(columnId: string, rowIds: string[]): Promise<any> {
+  async executeBulkAiGeneration(
+    columnId: string,
+    rowIds: string[],
+    rows?: Row[],
+    path?: Array<number>,
+  ): Promise<any> {
+    const column = this.meta.value?.columnsById?.[columnId]
+
     return this.executeAction(rowIds, columnId, [columnId], async () => {
-      return this.generateRows(columnId, rowIds)
+      const res = await this.generateRows(columnId, rowIds)
+
+      // Update cached rows with the generated data so cells refresh in real-time
+      if (res?.length && column?.title && rows?.length) {
+        const { cachedRows } = this.getDataCache(path)
+
+        res.forEach((data, i) => {
+          const rowIndex = rows[i]?.rowMeta?.rowIndex
+          if (rowIndex == null) return
+
+          const row = cachedRows.value.get(rowIndex)
+          if (row) {
+            row.row[column.title!] = data[column.title!]
+            cachedRows.value.set(rowIndex, row)
+          }
+        })
+      }
+
+      return res
     })
   }
 

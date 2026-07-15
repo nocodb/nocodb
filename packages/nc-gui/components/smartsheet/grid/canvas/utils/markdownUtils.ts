@@ -99,7 +99,7 @@ const markers: Marker[] = [
 
       const newStyles: MarkdownStyle[] = [...activeStyles, 'mention']
 
-      const displayValue = displayName && displayName.length > 0 ? displayName : email
+      const displayValue = extractUserDisplayNameOrEmail({ display_name: displayName, email })
 
       return {
         tokens: [

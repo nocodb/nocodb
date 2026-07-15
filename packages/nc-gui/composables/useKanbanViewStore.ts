@@ -137,6 +137,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // }
     const countByStack = ref<Map<string | null, number>>(new Map<string | null, number>())
 
+    // When true (set by the optimised Kanban), the board loads grouped data one visible window of
+    // stacks at a time via loadKanbanDataForStacks() instead of fetching every group upfront. The
+    // legacy Kanban leaves this false and keeps using loadKanbanData() unchanged.
+    const useWindowedKanbanLoad = ref(false)
+
+    // Stack titles whose grouped data (rows + count) has been fetched, so windowed loads can skip them.
+    const loadedStacks = ref<Set<string | null>>(new Set<string | null>())
+
     const groupingFieldColumn = computed(() => {
       if (!meta.value?.columns || !kanbanMetaData.value?.fk_grp_col_id) return undefined
 
@@ -202,13 +210,23 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       // Valid stack meta exists - sync with column options
+      // Use Map/Set lookups instead of findIndex/includes so this stays O(n) — high-cardinality
+      // grouping fields (e.g. a SingleSelect with thousands of options) would otherwise make this
+      // computed O(n²) and freeze the main thread on every recompute.
       const syncedOptions = [...stackMeta]
       let needsSync = false
 
+      const idxById = new Map<string, number>()
+      let maxOrder = 0
+      syncedOptions.forEach((stack, idx) => {
+        idxById.set(stack.id, idx)
+        if ((stack.order || 0) > maxOrder) maxOrder = stack.order || 0
+      })
+
       // Update existing options with latest column data
       for (const option of columnOptions) {
-        const idx = syncedOptions.findIndex((stack) => stack.id === option.id)
-        if (idx !== -1) {
+        const idx = idxById.get(option.id)
+        if (idx !== undefined) {
           // Check if select option properties changed
           const existing = syncedOptions[idx]
           if (existing.title !== option.title || existing.color !== option.color) {
@@ -221,20 +239,21 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           }
         } else {
           // New option - add with proper order
-          const maxOrder = Math.max(...syncedOptions.map((s) => s.order || 0), 0)
+          maxOrder += 1
           syncedOptions.push({
             ...option,
-            order: maxOrder + 1,
+            order: maxOrder,
             collapsed: false,
           })
+          idxById.set(option.id, syncedOptions.length - 1)
           needsSync = true
         }
       }
 
       // Remove deleted options (except uncategorized)
-      const columnOptionIds = columnOptions.map((opt) => opt.id)
+      const columnOptionIds = new Set(columnOptions.map((opt) => opt.id))
       const filteredOptions = syncedOptions.filter(
-        (stack) => stack.id === uncategorizedStackId || columnOptionIds.includes(stack.id),
+        (stack) => stack.id === uncategorizedStackId || columnOptionIds.has(stack.id),
       )
 
       if (filteredOptions.length !== syncedOptions.length) {
@@ -278,6 +297,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
 
     async function loadKanbanData() {
+      // In windowed mode the optimised Kanban drives loading per visible stack window via
+      // loadKanbanDataForStacks(), so the bulk "fetch every group" load is intentionally skipped.
+      if (useWindowedKanbanLoad.value) return
+
       if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
         return
 
@@ -313,6 +336,70 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       formattedData.value = newFormattedData
       countByStack.value = newCountByStack
+    }
+
+    // Optimised Kanban: load grouped data (rows + count) for only the given stacks, merging into the
+    // existing maps. `optionsArrJson` restricts the server-side group-by to just these titles (the
+    // backend already honours it for both data and count under opt=true), so a board with thousands
+    // of stacks fetches a handful at a time as the user scrolls instead of all of them upfront.
+    async function loadKanbanDataForStacks(stackTitles: (string | null)[], { reset = false }: { reset?: boolean } = {}) {
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
+        return
+
+      if (reset) {
+        formattedData.value = new Map<string | null, Row[]>()
+        countByStack.value = new Map<string | null, number>()
+        loadedStacks.value = new Set<string | null>()
+      }
+
+      // De-duplicate and skip stacks already fetched (or in-flight, since we mark them eagerly below).
+      const toLoad = [...new Set(stackTitles)].filter((title) => !loadedStacks.value.has(title))
+      if (!toLoad.length) return
+
+      // Mark eagerly so overlapping scroll-driven calls don't refetch the same stacks.
+      toLoad.forEach((title) => loadedStacks.value.add(title))
+
+      const optionsArrJson = JSON.stringify(toLoad)
+
+      try {
+        let groupData
+
+        if (isPublic.value) {
+          groupData = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            include_row_color: true,
+            where: xWhere.value,
+            optionsArrJson,
+          })
+        } else {
+          groupData = await api.dbViewRow.groupedDataList(
+            'noco',
+            base.value.id!,
+            meta.value!.id!,
+            viewMeta.value!.id!,
+            groupingFieldColumn!.value!.id!,
+            { where: xWhere.value, include_row_color: true, include_button_filter_columns: true, opt: 'true', optionsArrJson },
+            {},
+          )
+        }
+
+        const newFormattedData = new Map(formattedData.value)
+        const newCountByStack = new Map(countByStack.value)
+
+        for (const data of groupData ?? []) {
+          const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
+          newFormattedData.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility))
+          newCountByStack.set(key, data.value.pageInfo.totalRows || 0)
+        }
+
+        formattedData.value = newFormattedData
+        countByStack.value = newCountByStack
+      } catch (e) {
+        // Allow a retry on the next scroll if the fetch failed.
+        toLoad.forEach((title) => loadedStacks.value.delete(title))
+        throw e
+      }
     }
 
     const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {
@@ -884,6 +971,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     return {
       loadKanbanData,
+      loadKanbanDataForStacks,
+      useWindowedKanbanLoad,
+      loadedStacks,
       loadMoreKanbanData,
       updateKanbanMeta,
       kanbanMetaData,

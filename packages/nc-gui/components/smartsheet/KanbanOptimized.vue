@@ -55,6 +55,8 @@ const { isMounted } = useIsMounted()
 
 const {
   loadKanbanData,
+  loadKanbanDataForStacks,
+  useWindowedKanbanLoad,
   loadMoreKanbanData,
   kanbanMetaData,
   formattedData,
@@ -174,6 +176,46 @@ const STACK_WIDTH_WITH_GAP = STACK_WIDTH + STACK_GAP
 const horizontalScrollLeft = ref(0)
 const horizontalContainerWidth = ref(0)
 
+// Tracks a card being dragged anywhere on the kanban — used to enable hover-to-expand on collapsed
+// stacks and to force every stack to render so off-screen stacks remain valid drop targets.
+const isCardDragInProgress = ref(false)
+
+// Tracks a stack being reordered — forces every stack to render so a stack can be dropped at a
+// position currently held by an off-screen (not-yet-rendered) stack.
+const isStackDragInProgress = ref(false)
+
+// Frozen render window for the duration of a card drag. Sortable breaks if stacks mount/unmount
+// mid-drag (the drag silently fails to complete), so on drag start we pin a bounded span of stacks
+// and keep it fixed until drop — the user can auto-scroll and drop anywhere within it.
+const cardDragWindow = ref<{ start: number; end: number } | null>(null)
+
+// Same idea for a stack reorder: freeze the rendered window at drag start so the set of stacks
+// Sortable is tracking can't shift while auto-scrolling, and the relative→absolute index mapping in
+// onMoveStack stays stable for the whole drag.
+const stackDragWindow = ref<{ start: number; end: number } | null>(null)
+
+// How many stacks to keep rendered during a card drag. Large enough to cover a long auto-scroll,
+// bounded so drag start doesn't mount thousands of columns on a high-cardinality board.
+const CARD_DRAG_SPAN = 120
+
+// Window span for a stack reorder. Each rendered stack also renders its card list, so keep this
+// tighter than the card-drag span to bound the work when reordering on a high-cardinality board.
+const STACK_DRAG_SPAN = 60
+
+// A card drop persists the moved row asynchronously (onMove → updateOrSaveRow). We hold that promise
+// so drag end can wait for the write to commit before reloading.
+const pendingCardMove = ref<Promise<unknown> | null>(null)
+
+// The last cross-stack card move (source, target, row), captured across the two separate `change`
+// events sortable fires (removed on the source list, added on the target list). Used by drag end to
+// reconcile the move into the reloaded data — the grouped-data read can briefly lag a just-committed
+// write, so a reload may return the target without this row (or the source still holding it).
+const lastCardMove = ref<{ row: any; fromKey: string | null; toKey: string | null }>({
+  row: null,
+  fromKey: null,
+  toKey: null,
+})
+
 // Track which stacks are visible horizontally
 const stackSlice = reactive({
   start: 0,
@@ -232,16 +274,93 @@ const calculateStackSlice = () => {
   }
 }
 
-// Check if a stack is visible horizontally
-const isStackVisible = (index: number): boolean => {
-  if (!stackSlice.end) {
-    // If slice not calculated, show initial stacks
-    return index < 5
+// The window of stacks actually rendered. Only this slice is passed to the Draggable; everything
+// outside it is represented by left/right spacer divs that preserve scroll width. This keeps the
+// stack v-for at ~window-size iterations instead of O(total stacks) on every render — without it a
+// board grouped by a high-cardinality field (e.g. a SingleSelect with thousands of options) freezes.
+const stackWindow = computed(() => {
+  const total = groupingFieldColOptions.value.length
+  if (!total) return { start: 0, end: 0 }
+
+  // While a card or stack drag is in progress, return the window frozen at drag start so nothing
+  // mounts/unmounts mid-drag (Sortable silently fails to complete the drop otherwise).
+  const frozen = cardDragWindow.value ?? stackDragWindow.value
+  if (frozen) {
+    return {
+      start: Math.max(0, Math.min(frozen.start, total)),
+      end: Math.max(0, Math.min(frozen.end, total)),
+    }
   }
-  // Add small buffer for edge cases
-  const EXTRA_BUFFER = 1
-  return index >= Math.max(0, stackSlice.start - EXTRA_BUFFER) && index < stackSlice.end + EXTRA_BUFFER
+
+  let start: number
+  let end: number
+
+  if (!stackSlice.end) {
+    // Slice not calculated yet — show the first few stacks
+    start = 0
+    end = Math.min(total, 6)
+  } else {
+    const EXTRA_BUFFER = 1
+    start = Math.max(0, stackSlice.start - EXTRA_BUFFER)
+    end = Math.min(total, stackSlice.end + EXTRA_BUFFER)
+  }
+
+  return { start, end }
+})
+
+// Sliced copy passed to the stack Draggable. vuedraggable mutates this array in place on reorder,
+// but that mutation is transient: onMoveStack rebuilds groupingFieldColOptions, which recomputes
+// this slice on the next tick, so the in-place change is never the source of truth.
+const visibleStackOptions = computed(() => groupingFieldColOptions.value.slice(stackWindow.value.start, stackWindow.value.end))
+
+// Spacer widths approximate off-screen stacks at a uniform width (matching calculateStackSlice's
+// assumption). Collapsed/hidden stacks make this slightly imprecise, but it keeps the horizontal
+// scrollbar proportional, which is all that matters for high stack counts.
+const leftStackSpacerWidth = computed(() => stackWindow.value.start * STACK_WIDTH_WITH_GAP)
+
+const rightStackSpacerWidth = computed(() =>
+  Math.max(0, groupingFieldColOptions.value.length - stackWindow.value.end) * STACK_WIDTH_WITH_GAP,
+)
+
+// Map a Draggable slot index (relative to the rendered window) back to the absolute index into
+// groupingFieldColOptions, which the stack mutation handlers rely on.
+const getAbsStackIdx = (relIndex: number) => stackWindow.value.start + relIndex
+
+// Load grouped data one visible window at a time so high-cardinality boards don't fetch every stack
+// upfront. Public/shared views keep the original full load (the shared-view endpoint can't filter
+// groups), so windowed mode is enabled only for non-public boards.
+useWindowedKanbanLoad.value = !isPublic.value
+
+const currentWindowStackTitles = () => visibleStackOptions.value.map((stack) => stack.title ?? null)
+
+const loadVisibleStacks = async (reset = false) => {
+  if (!useWindowedKanbanLoad.value) {
+    await loadKanbanData()
+    return
+  }
+
+  try {
+    await loadKanbanDataForStacks(currentWindowStackTitles(), { reset })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
+
+// Fetch the data for stacks scrolled into view. Debounced so fast horizontal scrolling doesn't fire
+// a request per intermediate window — loadKanbanDataForStacks already skips already-loaded stacks.
+const debouncedLoadVisibleStacks = useDebounceFn(() => loadVisibleStacks(), 100)
+
+watch(visibleStackOptions, () => {
+  if (!useWindowedKanbanLoad.value) return
+
+  // Never load while a drag is in progress: replacing formattedData mid-drag re-renders the card
+  // lists and destroys the DOM nodes Sortable is tracking, which breaks the drag entirely. Stacks
+  // scrolled into view during a drag still render an empty Draggable (valid drop target); their real
+  // data is loaded on drag end.
+  if (isCardDragInProgress.value || isStackDragInProgress.value) return
+
+  debouncedLoadVisibleStacks()
+})
 
 // Field height mapping for card height calculation
 const FIELD_HEIGHT = {
@@ -278,7 +397,9 @@ const stackCardSlices = shallowRef<Map<string | null, { start: number; end: numb
 const slicesVersion = ref(0)
 
 const reloadViewDataListener = withLoading(async () => {
-  await loadKanbanData()
+  // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
+  // as they scroll back into view).
+  await loadVisibleStacks(true)
 })
 
 reloadViewDataHook?.on(reloadViewDataListener)
@@ -395,14 +516,19 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 
 /** Block dragging the stack to first index (reserved for uncategorized) **/
 function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
-  if (event.draggedContext.futureIndex === 0) {
+  // futureIndex is relative to the rendered window — map to absolute so we still forbid dropping a
+  // stack before the uncategorized stack (absolute index 0).
+  if (stackWindow.value.start + event.draggedContext.futureIndex === 0) {
     return false
   }
 }
 
 async function onMoveStack(event: any) {
   if (event.moved) {
-    const { oldIndex, newIndex } = event.moved
+    // event indices are relative to the rendered window (visibleStackOptions); shift to absolute
+    // indices into the full groupingFieldColOptions list.
+    const oldIndex = stackWindow.value.start + event.moved.oldIndex
+    const newIndex = stackWindow.value.start + event.moved.newIndex
 
     // Create a copy of the current stack metadata
     const stackMeta = [...groupingFieldColOptions.value]
@@ -427,10 +553,21 @@ async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
     ele.row[groupingField.value] = stackKey
-    countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
-    await updateOrSaveRow(ele)
+    // The target stack may not have been loaded yet (windowed loading) — its Draggable list was an
+    // empty fallback, so seed formattedData with the dropped card so it shows instead of vanishing.
+    // `|| 0` guards the count for the same not-yet-loaded case.
+    if (!formattedData.value.get(stackKey)) {
+      formattedData.value.set(stackKey, [ele])
+    }
+    countByStack.value.set(stackKey, (countByStack.value.get(stackKey) || 0) + 1)
+    // Remember the move so drag end can reconcile it against the reloaded data: the grouped-data read
+    // can briefly lag a just-committed move, so a reload of the target may come back without this row.
+    lastCardMove.value = { row: ele, toKey: stackKey, fromKey: lastCardMove.value.fromKey }
+    pendingCardMove.value = updateOrSaveRow(ele)
+    await pendingCardMove.value
   } else if (event.removed) {
-    countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
+    countByStack.value.set(stackKey, Math.max(0, (countByStack.value.get(stackKey) || 0) - 1))
+    lastCardMove.value = { row: lastCardMove.value.row, toKey: lastCardMove.value.toKey, fromKey: stackKey }
   }
 }
 
@@ -998,6 +1135,9 @@ const handleHorizontalScroll = () => {
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
 onBeforeUnmount(() => {
+  // Reset so a store instance reused by the legacy Kanban falls back to its full load.
+  useWindowedKanbanLoad.value = false
+
   openNewRecordFormHook.off(openNewRecordFormHookHandler)
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)
@@ -1147,7 +1287,7 @@ watch(containerWidth, () => {
 onMounted(async () => {
   try {
     isViewDataLoading.value = true
-    await loadKanbanData()
+    await loadVisibleStacks()
 
     nextTick(() => {
       if (kanbanContainerRef.value) {
@@ -1186,9 +1326,6 @@ const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.
 // Session-only override: user-expanded auto-collapsed empty stacks for this view mount
 const userExpandedEmptyStacks = ref<Set<string>>(new Set())
 
-// Tracks a card being dragged anywhere on the kanban — used to enable hover-to-expand on collapsed stacks
-const isCardDragInProgress = ref(false)
-
 // Stacks temporarily expanded because a dragged card is hovering over them
 const tempExpandedStacks = ref<Set<string>>(new Set())
 
@@ -1215,14 +1352,115 @@ const handleCollapsedStackClick = (stack: { id: string; title: string | null; co
   return handleCollapseStack(stackIdx)
 }
 
+// A bounded render window centred on the currently-viewed stacks. Frozen for the duration of a drag
+// so the set of stacks Sortable tracks never changes mid-drag (which would break the drop).
+const computeDragWindow = (span: number) => {
+  const total = groupingFieldColOptions.value.length
+  const viewStart = stackSlice.end ? stackSlice.start : 0
+  const viewEnd = stackSlice.end ? stackSlice.end : Math.min(total, 6)
+
+  let start = Math.max(0, Math.floor((viewStart + viewEnd) / 2 - span / 2))
+  const end = Math.min(total, start + span)
+  start = Math.max(0, end - span)
+
+  return { start, end }
+}
+
 const handleCardDragStart = (e: any) => {
   isCardDragInProgress.value = true
+
+  const total = groupingFieldColOptions.value.length
+  let { start, end } = computeDragWindow(CARD_DRAG_SPAN)
+
+  // Always include the source stack, even if the view was scrolled far from it before the grab.
+  const rawTitle = e?.from?.closest?.('.nc-kanban-list')?.dataset?.stackTitle
+  const sourceTitle = rawTitle == null || rawTitle === '' ? null : rawTitle
+  const srcIdx = groupingFieldColOptions.value.findIndex((s) => (s.title ?? null) === sourceTitle)
+  if (srcIdx >= 0) {
+    if (srcIdx < start) {
+      start = srcIdx
+      end = Math.min(total, start + CARD_DRAG_SPAN)
+    } else if (srcIdx >= end) {
+      end = Math.min(total, srcIdx + 1)
+      start = Math.max(0, end - CARD_DRAG_SPAN)
+    }
+  }
+
+  cardDragWindow.value = { start, end }
+
   e.target.classList.add('grabbing')
 }
 
-const handleCardDragEnd = (e: any) => {
+// Ensure the moved row is present in its target stack and absent from its source stack, fixing the
+// counts. A no-op when the reloaded data already reflects the move.
+const reconcileCardMove = (move: { row: any; fromKey: string | null; toKey: string | null }) => {
+  if (!move?.row || !meta.value?.columns) return
+  const pk = extractPkFromRow(move.row.row, meta.value.columns as ColumnType[])
+  if (pk === undefined || pk === null) return
+
+  const hasRow = (key: string | null) =>
+    (formattedData.value.get(key) || []).some((r) => extractPkFromRow(r.row, meta.value!.columns as ColumnType[]) === pk)
+
+  // Target: add the moved row if the reload didn't include it yet.
+  if (move.toKey !== null && move.toKey !== undefined && !hasRow(move.toKey)) {
+    const next = new Map(formattedData.value)
+    next.set(move.toKey, [move.row, ...(next.get(move.toKey) || [])])
+    formattedData.value = next
+    countByStack.value.set(move.toKey, (countByStack.value.get(move.toKey) || 0) + 1)
+  }
+
+  // Source: drop the moved row if a stale reload re-added it.
+  if (move.fromKey !== null && move.fromKey !== undefined && hasRow(move.fromKey)) {
+    const next = new Map(formattedData.value)
+    next.set(
+      move.fromKey,
+      (next.get(move.fromKey) || []).filter((r) => extractPkFromRow(r.row, meta.value!.columns as ColumnType[]) !== pk),
+    )
+    formattedData.value = next
+    countByStack.value.set(move.fromKey, Math.max(0, (countByStack.value.get(move.fromKey) || 0) - 1))
+  }
+}
+
+const handleCardDragEnd = async (e: any) => {
   isCardDragInProgress.value = false
+  cardDragWindow.value = null
   tempExpandedStacks.value.clear()
+  e.target.classList.remove('grabbing')
+
+  const move = lastCardMove.value
+  lastCardMove.value = { row: null, fromKey: null, toKey: null }
+
+  // Wait for the drop's persist to commit before reloading, then load the window the user ended on
+  // (loading was suppressed during the drag). Already-loaded stacks keep their optimistic state; only
+  // genuinely-unloaded stacks (e.g. a not-yet-loaded drop target) are fetched.
+  try {
+    await pendingCardMove.value
+  } catch {
+    // The error is already surfaced by updateOrSaveRow; still reload to resync the view.
+  }
+  pendingCardMove.value = null
+
+  await loadVisibleStacks()
+
+  // The grouped-data read can lag a just-committed move by a moment, so a freshly-fetched drop target
+  // may come back without the moved row (and the source still holding it). Reconcile the known move
+  // so the card lands in its new stack regardless of read-after-write lag; it self-corrects to the
+  // authoritative server state on the next natural reload.
+  reconcileCardMove(move)
+}
+
+const handleStackDragStart = (e: any) => {
+  isStackDragInProgress.value = true
+  // Freeze the rendered window so off-screen stacks stay mounted as valid drop positions while
+  // auto-scrolling. The dragged stack is necessarily already on screen, so a view-centred span
+  // always contains it.
+  stackDragWindow.value = computeDragWindow(STACK_DRAG_SPAN)
+  e.target.classList.add('grabbing')
+}
+
+const handleStackDragEnd = (e: any) => {
+  isStackDragInProgress.value = false
+  stackDragWindow.value = null
   e.target.classList.remove('grabbing')
 }
 
@@ -1321,9 +1559,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
         overlay-class-name="nc-dropdown-kanban-context-menu"
       >
         <div class="flex gap-3">
+          <!-- Left spacer standing in for off-screen stacks (horizontal virtual scroll) -->
+          <div v-if="leftStackSpacerWidth" class="flex-none" :style="{ width: `${leftStackSpacerWidth}px` }" aria-hidden="true" />
           <!-- Draggable Stack -->
           <Draggable
-            v-model="groupingFieldColOptions"
+            :list="visibleStackOptions"
             v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
             class="flex gap-3"
             item-key="id"
@@ -1332,13 +1572,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             handle=".nc-kanban-stack-drag-handler"
             :filter="draggableStackFilter"
             :move="onMoveCallback"
-            @start="(e) => e.target.classList.add('grabbing')"
-            @end="(e) => e.target.classList.remove('grabbing')"
+            @start="handleStackDragStart"
+            @end="handleStackDragEnd"
             @change="onMoveStack($event)"
           >
-            <template #item="{ element: stack, index: stackIdx }">
+            <template #item="{ element: stack, index: relStackIdx }">
               <div
-                v-if="isStackVisible(stackIdx)"
                 class="nc-kanban-stack"
                 :class="{
                   'w-[44px]': isStackCollapsed(stack),
@@ -1351,7 +1590,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 <!-- Non Collapsed Stacks -->
                 <a-card
                   v-if="!isStackCollapsed(stack)"
-                  :key="`${stack.id}-${stackIdx}`"
+                  :key="stack.id"
                   class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
@@ -1365,8 +1604,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     paddingBottom: '0rem !important',
                   }"
                 >
-                  <!-- Skeleton -->
-                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
+                  <!-- Skeleton. Suppressed while a card is being dragged: loading is paused during the
+                       drag, so an unloaded stack would stay stuck on the skeleton and never expose its
+                       card list as a drop target — render the (empty) stack body instead. -->
+                  <div
+                    v-if="(!formattedData.get(stack.title) || !countByStack) && !isCardDragInProgress"
+                    class="mt-2.5 px-3 !w-full"
+                  >
                     <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
                   </div>
 
@@ -1415,7 +1659,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <SmartsheetKanbanEditOrAddStack
                                 :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                                 :option-id="isRenameOrNewStack.id"
-                                @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, stackIdx)"
+                                @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, getAbsStackIdx(relStackIdx))"
                               />
                             </template>
                             <a-tag
@@ -1524,7 +1768,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <NcMenuItem
                                 v-e="['c:kanban:collapse-stack']"
                                 data-testid="nc-kanban-context-menu-collapse-stack"
-                                @click="handleCollapseStack(stackIdx)"
+                                @click="handleCollapseStack(getAbsStackIdx(relStackIdx))"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
@@ -1558,7 +1802,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   v-e="['c:kanban:delete-stack']"
                                   danger
                                   data-testid="nc-kanban-context-menu-delete-stack"
-                                  @click="handleDeleteStackClick(stack.title, stackIdx)"
+                                  @click="handleDeleteStackClick(stack.title, getAbsStackIdx(relStackIdx))"
                                 >
                                   <div class="flex gap-2 items-center">
                                     <component :is="iconMap.delete" class="flex-none w-4 h-4" />
@@ -1600,9 +1844,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           height: '100%',
                         }"
                       >
-                        <!-- Draggable Record Card - full list for drag functionality, but only render visible items -->
+                        <!-- Draggable Record Card - full list for drag functionality, but only render visible items.
+                             Also render during a card drag even if this stack's rows haven't loaded yet, so a stack
+                             scrolled into view mid-drag still exists as a valid drop target. -->
                         <Draggable
-                          v-if="formattedData.get(stack.title)"
+                          v-if="formattedData.get(stack.title) || isCardDragInProgress"
                           v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
                           :list="formattedData.get(stack.title) || []"
                           item-key="row.id"
@@ -1610,7 +1856,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           group="kanban-card"
                           class="flex flex-col"
                           :style="{
-                            minHeight: formattedData.get(stack.title)?.length ? `${getTotalScrollHeight(stack.title)}px` : '100%',
+                            // At least the virtual scroll height (keeps the scrollbar honest) but never
+                            // shorter than the column, so the blank space below the last card is still a
+                            // valid drop area — without this a drop only registers when hovering a card.
+                            minHeight: `max(${getTotalScrollHeight(stack.title)}px, 100%)`,
                             height: formattedData.get(stack.title)?.length ? 'auto' : '100%',
                           }"
                           :disabled="isMobileMode"
@@ -1619,7 +1868,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           :fallback-tolerance="0"
                           @start="handleCardDragStart"
                           @end="handleCardDragEnd"
-                          @change="onMoveAndPersistExpand($event, stack.title, stackIdx)"
+                          @change="onMoveAndPersistExpand($event, stack.title, getAbsStackIdx(relStackIdx))"
                         >
                           <template #item="{ element: record, index }">
                             <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
@@ -1875,9 +2124,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           </template>
                         </Draggable>
 
-                        <!-- Empty state -->
+                        <!-- Empty state. Requires loaded data: an unloaded stack rendered mid-drag (skeleton
+                             suppressed) isn't known to be empty, so show a plain droppable column instead. -->
                         <div
-                          v-if="!formattedData.get(stack.title)?.length"
+                          v-if="formattedData.get(stack.title) && !formattedData.get(stack.title)?.length"
                           class="w-full flex flex-col gap-4 items-center justify-center absolute inset-0"
                           :style="{
                             minHeight: '100%',
@@ -1970,7 +2220,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   @mouseenter="handleCollapsedStackDragEnter(stack)"
                   @dragenter="handleCollapsedStackDragEnter(stack)"
                 >
-                  <div class="h-full flex items-center justify-between" @click="handleCollapsedStackClick(stack, stackIdx)">
+                  <div class="h-full flex items-center justify-between" @click="handleCollapsedStackClick(stack, getAbsStackIdx(relStackIdx))">
                     <div
                       v-if="!formattedData.get(stack.title) || !countByStack"
                       class="!w-full !h-full flex items-center justify-center"
@@ -2052,21 +2302,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   </div>
                 </a-card>
               </div>
-
-              <!-- Placeholder for non-visible stacks - maintains layout but doesn't render content -->
-              <div
-                v-else
-                class="nc-kanban-stack"
-                :style="{
-                  width: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
-                  flexShrink: 0,
-                  height: '100%',
-                  minWidth: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
-                  maxWidth: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
-                }"
-              />
             </template>
           </Draggable>
+
+          <!-- Right spacer standing in for off-screen stacks (horizontal virtual scroll) -->
+          <div v-if="rightStackSpacerWidth" class="flex-none" :style="{ width: `${rightStackSpacerWidth}px` }" aria-hidden="true" />
 
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->

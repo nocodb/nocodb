@@ -108,7 +108,20 @@ const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
 })
 
-useProvideKanbanViewStore(meta, activeView)
+const { useWindowedKanbanLoad } = useProvideKanbanViewStore(meta, activeView)
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+// Enable the optimised Kanban's windowed (per-visible-stack) data loading as early as the store is
+// created. The optimised board (SmartsheetKanbanWrapper → lazy KanbanOptimized) sets this too, but
+// only after its async chunk resolves — by then the store's `watch(groupingFieldColumn)` has already
+// fired a full loadKanbanData() that fetches every stack upfront (the freeze the windowed path
+// exists to avoid). Setting it here, before that watcher can run, lets the bulk load be skipped.
+// This tab is never a public/shared view, so windowed mode is safe whenever the beta flag is on.
+watchEffect(() => {
+  useWindowedKanbanLoad.value = isFeatureEnabled('kanban_opt')
+})
+
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
 useProvideListViewStore(meta, activeView)

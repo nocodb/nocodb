@@ -5188,6 +5188,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
+      // Honored by the EE override (skips the TABLE_RECORD_ADD check for trusted
+      // internal copies — duplication / snapshot / import). No-op in CE.
+      skipPermissionCheck?: boolean;
     },
   ): Promise<void> {
     const { allowSystemColumn = false } = params || {};

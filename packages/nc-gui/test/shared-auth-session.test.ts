@@ -35,12 +35,15 @@ describe('resolveStoredSessionUser', () => {
 
 describe('shared-view authentication controls', () => {
   const sharedLayout = readFileSync(new URL('../layouts/shared-view.vue', import.meta.url), 'utf8')
+  const sharedBaseToolbar = readFileSync(new URL('../components/general/ShareProject.vue', import.meta.url), 'utf8')
   const globalState = readFileSync(new URL('../composables/useGlobal/state.ts', import.meta.url), 'utf8')
   const interceptors = readFileSync(new URL('../composables/useApi/interceptors.ts', import.meta.url), 'utf8')
 
   it('shows the stored session account without enabling the route token', () => {
     expect(sharedLayout).toContain('storedSessionUser')
     expect(sharedLayout).toContain('GeneralUserIcon')
+    expect(sharedBaseToolbar).toContain('storedSessionUser')
+    expect(sharedBaseToolbar).toContain('GeneralUserIcon')
   })
 
   it('offers only this instance sign-in to guests', () => {
@@ -48,6 +51,8 @@ describe('shared-view authentication controls', () => {
     expect(sharedLayout).not.toContain('signUpForFree')
     expect(sharedLayout).not.toContain('https://app.nocodb.com')
     expect(sharedLayout).not.toContain("path: '/signup'")
+    expect(sharedBaseToolbar).toContain("path: '/signin'")
+    expect(sharedBaseToolbar).not.toContain("path: '/signup'")
   })
 
   it('keeps shared-base API requests isolated from the stored JWT', () => {

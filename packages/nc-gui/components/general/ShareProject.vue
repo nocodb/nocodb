@@ -6,7 +6,7 @@ interface Props {
 
 const { disabled, isViewToolbar } = defineProps<Props>()
 
-const { isMobileMode, getMainUrl } = useGlobal()
+const { isMobileMode, getMainUrl, storedSessionUser } = useGlobal()
 
 const { visibility, showShareModal } = storeToRefs(useShare())
 
@@ -21,6 +21,13 @@ const { $e } = useNuxtApp()
 const { isUIAllowed } = useRoles()
 
 const route = useRoute()
+
+const signInRoute = computed(() => ({
+  path: '/signin',
+  query: {
+    continueAfterSignIn: `/request-base-access?base=${encodeURIComponent(route.params.baseId as string)}`,
+  },
+}))
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -90,7 +97,29 @@ const copySharedBase = async () => {
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full gap-2">
+        <NuxtLink
+          v-if="storedSessionUser"
+          to="/"
+          class="flex items-center gap-2 !no-underline text-nc-content-gray xs:hidden"
+          data-testid="nc-shared-base-signed-in-user"
+        >
+          <GeneralUserIcon :user="storedSessionUser" size="base" class="flex-none" />
+          <div class="flex flex-col min-w-0">
+            <span class="text-[10px] leading-3 text-nc-content-gray-subtle2">
+              {{ $t('labels.signedIn') }}
+            </span>
+            <span class="text-xs leading-4 font-medium max-w-32 truncate">
+              {{ storedSessionUser.display_name || storedSessionUser.email }}
+            </span>
+          </div>
+        </NuxtLink>
+
+        <NuxtLink v-else :to="signInRoute" class="!no-underline" data-testid="nc-shared-base-sign-in">
+          <NcButton size="small" type="primary">{{ $t('general.signIn') }}</NcButton>
+        </NuxtLink>
+
         <NcButton
+          v-if="storedSessionUser"
           class="z-10 !rounded-lg !px-2"
           size="small"
           type="primary"
@@ -102,7 +131,7 @@ const copySharedBase = async () => {
           {{ $t('activity.requestEditAccess') }}
         </NcButton>
 
-        <NcDropdown>
+        <NcDropdown v-if="storedSessionUser">
           <NcButton class="z-10 !rounded-lg !px-2" size="small" type="secondary" :disabled="disabled">
             <GeneralIcon icon="threeDotVertical" />
           </NcButton>

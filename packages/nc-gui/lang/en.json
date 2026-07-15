@@ -2122,6 +2122,8 @@
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
     "snapshotDescription": "Create and manage point-in-time snapshots of your base for backup and recovery",
     "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotCooldownRemainingTooltip": "You can create another snapshot in {time}.",
+    "snapshotPendingTooltip": "Finish or discard the current snapshot before creating another.",
     "scheduledSnapshots": "Scheduled snapshots",
     "scheduleSnapshots": "Schedule snapshots",
     "schedule": "Schedule",

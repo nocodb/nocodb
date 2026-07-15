@@ -2508,6 +2508,11 @@ export class ImportService {
             raw: true,
             // this is to avoid skipping autoincrement column
             undo: true,
+            // Junction rows are an internal link copy, not user edits. The null
+            // cookie already makes beforeBulkInsert's permission check inert, but
+            // declare the bypass explicitly (matching the data copy above) so the
+            // guarantee survives if a real cookie is ever threaded here.
+            skipPermissionCheck: true,
           });
           lChunks[k] = [];
         } catch (e) {

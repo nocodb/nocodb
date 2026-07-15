@@ -3,6 +3,7 @@ import type { JwtPayload } from 'jwt-decode'
 import { MapProvider, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
+import { resolveStoredSessionUser } from '~/utils/sharedAuthSession'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -169,6 +170,14 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** reactive token payload */
   const { payload } = useJwt<JwtPayload & User>(token)
 
+  /**
+   * Shared routes intentionally hide `token` so their API calls remain guest
+   * scoped. Decode the persisted token separately for display-only session UI.
+   */
+  const persistedToken = computed(() => storage.value.token || '')
+  const { payload: persistedPayload } = useJwt<JwtPayload & User>(persistedToken)
+  const storedSessionUser = computed(() => resolveStoredSessionUser(persistedPayload.value, timestamp.value))
+
   /** currently running requests */
   const runningRequests = useCounter()
 
@@ -186,6 +195,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     storage,
     token,
     jwtPayload: payload,
+    storedSessionUser,
     timestamp,
     runningRequests,
     error,

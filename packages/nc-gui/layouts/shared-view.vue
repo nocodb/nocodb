@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { PlanTitles } from 'nocodb-sdk'
-
-const { isLoading, appInfo } = useGlobal()
+const { isLoading, storedSessionUser } = useGlobal()
 
 const { isDark } = useTheme()
 
@@ -13,8 +11,6 @@ const { productName, logoUrl, logoDarkUrl, isWhiteLabelled, config } = useBrandi
 
 const { isFullScreen } = storeToRefs(useSidebarStore())
 
-const { activePlanTitle } = useEeConfig()
-
 const router = useRouter()
 
 const route = router.currentRoute
@@ -23,10 +19,18 @@ const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true'
 
 const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
 
-const showSignUpButton = computed(() => {
-  if (appInfo.value.ee) return false
+const signInRoute = computed(() => {
+  const continueAfterSignIn =
+    route.value.params.typeOrId === 'base' && route.value.params.baseId
+      ? `/request-base-access?base=${encodeURIComponent(route.value.params.baseId as string)}`
+      : route.value.fullPath
 
-  return !activePlanTitle.value || activePlanTitle.value === PlanTitles.FREE
+  return {
+    path: '/signin',
+    query: {
+      continueAfterSignIn,
+    },
+  }
 })
 
 onMounted(() => {
@@ -125,15 +129,26 @@ export default {
 
             <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
-            <a
-              v-if="showSignUpButton"
-              href="https://app.nocodb.com/signin"
-              target="_blank"
-              class="!no-underline xs:hidden"
-              rel="noopener"
+            <NuxtLink
+              v-if="storedSessionUser"
+              to="/"
+              class="flex items-center gap-2 !no-underline text-nc-content-gray"
+              data-testid="nc-shared-view-signed-in-user"
             >
-              <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
-            </a>
+              <GeneralUserIcon :user="storedSessionUser" size="base" class="flex-none" />
+              <div class="flex flex-col min-w-0 xs:hidden">
+                <span class="text-[10px] leading-3 text-nc-content-gray-subtle2">
+                  {{ $t('labels.signedIn') }}
+                </span>
+                <span class="text-xs leading-4 font-medium max-w-36 truncate">
+                  {{ storedSessionUser.display_name || storedSessionUser.email }}
+                </span>
+              </div>
+            </NuxtLink>
+
+            <NuxtLink v-else :to="signInRoute" class="!no-underline" data-testid="nc-shared-view-sign-in">
+              <NcButton size="xs">{{ $t('general.signIn') }}</NcButton>
+            </NuxtLink>
           </div>
         </a-layout-header>
         <NcFullScreen v-model="isFullScreen" class="h-full" :page-only="true">

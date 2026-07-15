@@ -107,6 +107,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   user: Ref<User | null>
   token: WritableComputedRef<StoredState['token']>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
+  storedSessionUser: ComputedRef<(JwtPayload & User) | null>
   timestamp: Ref<number>
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>

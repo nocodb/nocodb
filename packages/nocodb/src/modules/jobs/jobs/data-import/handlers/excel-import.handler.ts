@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import { UITypes } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type {
   FileImportColumn,
@@ -23,7 +24,28 @@ type NamedWorksheetReader = ExcelJS.stream.xlsx.WorksheetReader & {
   name?: string;
 };
 
-function resolveCellValue(cell: ExcelJS.Cell): any {
+const DATE_LIKE_UIDTS: ReadonlySet<string> = new Set([
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.Time,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+]);
+
+/**
+ * Excel serial date -> ISO string, mirroring exceljs's own `utils.excelToDate`
+ * (days since 1899-12-30). We can't rely on exceljs to do this for us because
+ * `styles: 'ignore'` above skips parsing styles.xml, so numFmt-based date
+ * detection never fires and date-formatted cells surface as plain numbers.
+ * Assumes the 1900 date system (date1904 = false), which covers the vast
+ * majority of real-world workbooks.
+ */
+function excelSerialToIsoDate(serial: number): string {
+  const millisecondSinceEpoch = Math.round((serial - 25569) * 24 * 3600 * 1000);
+  return new Date(millisecondSinceEpoch).toISOString();
+}
+
+function resolveCellValue(cell: ExcelJS.Cell, uidt?: string): any {
   const value = cell.value;
   if (value === null || value === undefined) return null;
 
@@ -43,6 +65,9 @@ function resolveCellValue(cell: ExcelJS.Cell): any {
   }
   if (value instanceof Date) {
     return value.toISOString();
+  }
+  if (typeof value === 'number' && uidt && DATE_LIKE_UIDTS.has(uidt)) {
+    return excelSerialToIsoDate(value);
   }
   return value;
 }
@@ -141,9 +166,9 @@ export class ExcelImportHandler implements DataImportHandler {
   ): AsyncGenerator<ImportRow, void, undefined> {
     const firstRowAsHeaders = parserConfig.firstRowAsHeaders !== false;
 
-    const colNameByIndex: Record<number, string> = {};
+    const colByIndex: Record<number, FileImportColumn> = {};
     for (const col of columns) {
-      colNameByIndex[col.key] = col.column_name;
+      colByIndex[col.key] = col;
     }
 
     const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(
@@ -169,8 +194,8 @@ export class ExcelImportHandler implements DataImportHandler {
 
         const record: ImportRow = {};
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-          const colName = colNameByIndex[colNumber - 1];
-          if (colName) record[colName] = resolveCellValue(cell);
+          const col = colByIndex[colNumber - 1];
+          if (col) record[col.column_name] = resolveCellValue(cell, col.uidt);
         });
         yield record;
       }

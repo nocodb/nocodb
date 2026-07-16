@@ -965,7 +965,9 @@ export class PublicDatasService {
     });
 
     // Verify parent row is visible in the shared view before fetching relations
-    const parentRow = await baseModel.readByPk(param.rowId);
+    const parentRow = await baseModel.readByPk(param.rowId, false, {}, {
+      enforceViewFilter: true,
+    });
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
@@ -1072,7 +1074,9 @@ export class PublicDatasService {
     });
 
     // Verify parent row is visible in the shared view before fetching relations
-    const parentRow = await baseModel.readByPk(param.rowId);
+    const parentRow = await baseModel.readByPk(param.rowId, false, {}, {
+      enforceViewFilter: true,
+    });
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
@@ -1158,7 +1162,11 @@ export class PublicDatasService {
       source,
     });
 
-    const row = await baseModel.readByPk(rowId, false, query);
+    // Public/anonymous read: enforce the shared view's row filter so a bare PK
+    // lookup can't return (or expose attachments of) rows the view hides.
+    const row = await baseModel.readByPk(rowId, false, query, {
+      enforceViewFilter: true,
+    });
 
     if (!row) {
       NcError.recordNotFound(param.rowId);

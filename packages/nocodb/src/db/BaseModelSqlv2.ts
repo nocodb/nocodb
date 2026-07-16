@@ -343,6 +343,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreRls = false,
       fk_display_value_column_id,
       skipPublicRedaction = false,
+      enforceViewFilter = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -353,6 +354,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreRls?: boolean;
       fk_display_value_column_id?: string | null;
       skipPublicRedaction?: boolean;
+      // Constrain the row to the view's row filter (public shared-view reads).
+      enforceViewFilter?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -398,6 +401,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    // Constrain the row to the view's row filter when the caller opts in
+    // (public shared-view reads). A bare PK lookup otherwise returns rows the
+    // view is configured to hide — harmless for authenticated callers (there the
+    // view filter is a display preference), but on public/anonymous paths the
+    // view filter IS the access boundary. The EE optimized read path
+    // (PG/MSSQL/Oracle) already applies this; this covers the fallback path
+    // (MySQL/SQLite/CE) so the boundary holds on every DB engine.
+    if (enforceViewFilter && !ignoreView && this.viewId) {
+      const viewFilterConditions = await Filter.rootFilterList(this.context, {
+        viewId: this.viewId,
+      });
+      if (viewFilterConditions?.length) {
+        await conditionV2(
+          this,
+          [new Filter({ children: viewFilterConditions, is_group: true })],
+          qb,
+        );
+      }
+    }
+
     // Exclude soft-deleted records
     const softDeleteFilterReadByPk = await this.getSoftDeleteFilter();
     if (softDeleteFilterReadByPk) {
@@ -428,6 +451,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return this.readByPk(id, true, query, {
         apiVersion,
         skipPublicRedaction,
+        // Preserve the view-filter boundary on the formula-retry path — dropping
+        // it here would let a hidden row leak through the second attempt.
+        ignoreView,
+        enforceViewFilter,
       });
     }
 

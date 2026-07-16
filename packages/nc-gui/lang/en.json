@@ -2121,6 +2121,7 @@
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
     "snapshotDescription": "Create and manage point-in-time snapshots of your base for backup and recovery",
+    "snapshotLimitReached": "You've reached the maximum of {limit} snapshots for this workspace. Delete an existing snapshot to create a new one.",
     "snapshotCooldownWarning": "Snapshot cooldown remaining",
     "snapshotCooldownRemainingTooltip": "You can create another snapshot in {time}.",
     "snapshotPendingTooltip": "Finish or discard the current snapshot before creating another.",

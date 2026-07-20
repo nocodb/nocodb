@@ -10,8 +10,9 @@ import { Column } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 
 /**
- * Walks a parsed filter tree and reports whether any leaf references a column
- * outside the allowed (exposed) set.
+ * Reports whether any leaf references a known-but-hidden (non-exposed) column.
+ * Used as a fast guard so the strip/re-serialize below only runs when there is
+ * actually something to strip — otherwise the original `where` is left untouched.
  */
 function filtersReferenceHiddenColumn(
   filters: FilterType[] | undefined,
@@ -35,6 +36,70 @@ function filtersReferenceHiddenColumn(
     }
   }
   return false;
+}
+
+/**
+ * Removes leaves that reference a known-but-hidden (non-exposed) column from a
+ * parsed filter tree, pruning any group left empty. Leaves whose column can't be
+ * resolved (no `fk_column_id`) are kept — they resolve to nothing downstream and
+ * are harmless. Returns the surviving filters.
+ */
+function stripHiddenColumnFilters(
+  filters: FilterType[] | undefined,
+  exposedColumnIds: Set<string>,
+): FilterType[] {
+  const survivors: FilterType[] = [];
+  for (const filter of filters || []) {
+    if (filter.is_group) {
+      const children = stripHiddenColumnFilters(
+        filter.children as FilterType[],
+        exposedColumnIds,
+      );
+      if (children.length) survivors.push({ ...filter, children });
+    } else if (
+      !filter.fk_column_id ||
+      exposedColumnIds.has(filter.fk_column_id)
+    ) {
+      survivors.push(filter);
+    }
+    // else: known-but-hidden column — drop this leaf, keep the rest
+  }
+  return survivors;
+}
+
+/**
+ * Re-serializes a parsed filter tree back to the v2 xwhere string
+ * (`(field,op[,sub_op],value)`, groups wrapped in parens, children joined by
+ * `~and`/`~or`). Used to re-emit a `where` after hidden-column leaves have been
+ * stripped — every downstream consumer re-parses the string, so the surviving
+ * conditions still apply.
+ */
+function serializeFiltersToXwhere(
+  filters: FilterType[],
+  columnById: Map<string, { title?: string }>,
+): string {
+  const one = (filter: FilterType, isFirst: boolean): string => {
+    const prefix = isFirst ? '' : `~${filter.logical_op || 'and'}`;
+    if (filter.is_group) {
+      const inner = ((filter.children as FilterType[]) || [])
+        .map((c, i) => one(c, i === 0))
+        .join('');
+      return `${prefix}(${inner})`;
+    }
+    const field =
+      columnById.get(filter.fk_column_id)?.title ?? filter.fk_column_id;
+    const parts: (string | number)[] = [field, filter.comparison_op];
+    if (filter.comparison_sub_op) parts.push(filter.comparison_sub_op);
+    if (filter.value !== undefined && filter.value !== null) {
+      parts.push(
+        Array.isArray(filter.value)
+          ? filter.value.join(',')
+          : (filter.value as string | number),
+      );
+    }
+    return `${prefix}(${parts.join(',')})`;
+  };
+  return filters.map((f, i) => one(f, i === 0)).join('');
 }
 
 /**
@@ -206,17 +271,31 @@ export async function restrictNestedLinkQuery(
     columns,
   );
 
-  // Drop the whole `where` if it references any hidden (non-exposed) column.
-  // Unknown column references are left as-is — they resolve to nothing downstream
-  // and are harmless, whereas a known-but-hidden reference is the oracle to kill.
+  // Strip only the leaves that reference a known-but-hidden (non-exposed) column
+  // and re-emit the survivors, instead of dropping the whole `where`. The link
+  // picker searches across the display value PLUS the other visible fields, so a
+  // search like `(DisplayValue,like,%q%)~or(OtherField,like,%q%)` would otherwise
+  // lose the entire clause on a restricted (cross-base / visibility-limited /
+  // public) link — where only pk/pv/display are exposed — and silently return
+  // every record. Keeping the exposed clauses preserves search on the display
+  // value. Unknown column references survive the strip and resolve to nothing
+  // downstream, exactly as before.
   if (query.where) {
     const { filters } = extractFilterFromXwhere(
       context,
       query.where,
       aliasColObjMap,
     );
+    // Only touch the `where` when it actually references a hidden column —
+    // otherwise leave the original string as-is (no re-serialization).
     if (filtersReferenceHiddenColumn(filters, exposedColumnIds)) {
-      query.where = undefined;
+      const survivors = stripHiddenColumnFilters(filters, exposedColumnIds);
+      query.where = survivors.length
+        ? serializeFiltersToXwhere(
+            survivors,
+            new Map(columns.map((c) => [c.id, c])),
+          )
+        : undefined;
     }
   }
 

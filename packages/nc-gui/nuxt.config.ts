@@ -8,6 +8,21 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
+
+// Derive app.baseURL from NC_SITE_URL so subpath deployments
+// (e.g. https://host/nocodb/) serve assets at the correct path.
+// Falls back to '/' when NC_SITE_URL is unset or has no meaningful pathname.
+const _ncSiteUrl = process.env.NC_SITE_URL || '/'
+let _appBaseURL = '/'
+try {
+  const _pathname = new URL(_ncSiteUrl).pathname
+  if (_pathname && _pathname !== '/') {
+    _appBaseURL = _pathname.endsWith('/') ? _pathname : `${_pathname}/`
+  }
+} catch {
+  // NC_SITE_URL is not a valid absolute URL (e.g. just '/') — keep default
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   future: {
@@ -37,6 +52,7 @@ export default defineNuxtConfig({
   spaLoadingTemplate: false,
 
   app: {
+    baseURL: _appBaseURL,
     pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
       ? false
       : {

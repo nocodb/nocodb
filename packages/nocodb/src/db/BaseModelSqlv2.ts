@@ -3901,6 +3901,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
+    ignoreRls?: boolean;
     extractOnlyPrimaries?: boolean;
     deletedOnly?: boolean;
     fk_display_value_column_id?: string | null;
@@ -3928,6 +3929,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         {
           limitOverride: chunk.length,
           ignoreViewFilterAndSort: true,
+          ignoreRls: args.ignoreRls,
           deletedOnly: args.deletedOnly,
         },
       );

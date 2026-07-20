@@ -708,10 +708,18 @@ export class DataV3Service {
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // Fetch all records in bulk
+    // Fetch all records in bulk.
+    // ignoreRls: the caller just created these rows and must get them back as the
+    // creation confirmation, even when the new row falls outside the caller's own
+    // RLS policy (e.g. an "Assigned To = me" policy and an unset Assigned-To on
+    // insert). This mirrors every other post-write read-back in BaseModelSqlv2
+    // (single insert / bulkInsert). Without it, a caller subject to RLS — which,
+    // since the owner-exemption removal, now includes base owners — gets an empty
+    // `records: []` and the insert looks like it silently failed.
     const fullRecords = await baseModel.chunkList({
       pks: insertedPks.map((pk) => String(pk)),
       apiVersion: NcApiVersion.V3,
+      ignoreRls: true,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },
@@ -1072,10 +1080,15 @@ export class DataV3Service {
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    // Fetch all records in bulk
+    // Fetch all records in bulk.
+    // ignoreRls: return the just-updated rows as the write confirmation even when
+    // an edit pushes a row outside the caller's own RLS policy. Same rationale as
+    // the insert read-back above; the caller can only update rows already visible
+    // to them, so this exposes nothing new.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
       apiVersion: context.api_version,
+      ignoreRls: true,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },

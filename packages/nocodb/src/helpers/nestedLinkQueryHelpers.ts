@@ -271,15 +271,10 @@ export async function restrictNestedLinkQuery(
     columns,
   );
 
-  // Strip only the leaves that reference a known-but-hidden (non-exposed) column
-  // and re-emit the survivors, instead of dropping the whole `where`. The link
-  // picker searches across the display value PLUS the other visible fields, so a
-  // search like `(DisplayValue,like,%q%)~or(OtherField,like,%q%)` would otherwise
-  // lose the entire clause on a restricted (cross-base / visibility-limited /
-  // public) link — where only pk/pv/display are exposed — and silently return
-  // every record. Keeping the exposed clauses preserves search on the display
-  // value. Unknown column references survive the strip and resolve to nothing
-  // downstream, exactly as before.
+  // Drop only leaves referencing a hidden column and re-emit the survivors,
+  // instead of dropping the whole `where` — otherwise a picker search across
+  // display value + other fields would lose its clause on a restricted link
+  // and return every record.
   if (query.where) {
     const { filters } = extractFilterFromXwhere(
       context,

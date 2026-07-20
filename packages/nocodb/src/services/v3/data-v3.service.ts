@@ -1081,14 +1081,15 @@ export class DataV3Service {
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
     // Fetch all records in bulk.
-    // ignoreRls: return the just-updated rows as the write confirmation even when
-    // an edit pushes a row outside the caller's own RLS policy. Same rationale as
-    // the insert read-back above; the caller can only update rows already visible
-    // to them, so this exposes nothing new.
+    // NOTE: deliberately RLS-applied here (unlike the insert read-back). updatedIds
+    // are the client-supplied ids, not the post-RLS actually-updated set, so an
+    // ignoreRls read-back could echo back a row the caller referenced but cannot
+    // see. Keeping RLS on means a row edited out of the caller's own policy is
+    // omitted from the response, but that is the safe trade-off for an endpoint
+    // whose whole purpose here is not to leak RLS-restricted rows.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
       apiVersion: context.api_version,
-      ignoreRls: true,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },

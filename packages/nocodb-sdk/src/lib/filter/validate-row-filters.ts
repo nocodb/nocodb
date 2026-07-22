@@ -163,6 +163,8 @@ export class RowFilterValidator {
       };
       timezone?: string;
     };
+    /** Internal: input is already a built tree (recursive call). */
+    isTree?: boolean;
   }) {
     const {
       filters: _filters,
@@ -176,7 +178,13 @@ export class RowFilterValidator {
       return true;
     }
 
-    const filters: (FilterType & { meta?: any })[] = buildFilterTree(_filters);
+    // `isTree` marks a recursive call, whose input is a already-built subtree.
+    // Re-running buildFilterTree on it would reset `children` to [] on every
+    // node (it rebuilds purely from id/fk_parent_id), so a group nested two
+    // levels deep would lose its conditions and be skipped as condition-less.
+    const filters: (FilterType & { meta?: any })[] = params.isTree
+      ? _filters
+      : buildFilterTree(_filters);
 
     let isValid: boolean | null = null;
     for (const filter of filters) {
@@ -192,6 +200,8 @@ export class RowFilterValidator {
           client: client,
           metas: metas,
           baseId: baseId,
+          options: params.options,
+          isTree: true,
         });
       } else {
         const column = columns.find((c) => c.id === filter.fk_column_id);
@@ -1030,6 +1040,8 @@ export function validateRowFilters(params: {
     };
     timezone?: string;
   };
+  /** Internal: input is already a built tree (recursive call). */
+  isTree?: boolean;
 }) {
   return new RowFilterValidator().validateSync(params);
 }

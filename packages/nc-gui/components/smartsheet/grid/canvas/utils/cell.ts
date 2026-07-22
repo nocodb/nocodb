@@ -117,19 +117,6 @@ export const getUserColOptions = (column: ColumnType, baseUsers: (Partial<UserTy
   return colOptions
 }
 
-export const NO_EDITABLE_CELL = [
-  UITypes.Rating,
-  UITypes.Checkbox,
-  UITypes.ID,
-  UITypes.Rollup,
-  UITypes.CreatedBy,
-  UITypes.LastModifiedBy,
-  UITypes.LastModifiedTime,
-  UITypes.CreatedTime,
-  UITypes.Formula,
-  UITypes.UUID,
-]
-
 export const renderAsCellLookupOrLtarValue = [
   UITypes.SingleSelect,
   UITypes.MultiSelect,

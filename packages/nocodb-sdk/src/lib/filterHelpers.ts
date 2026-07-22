@@ -29,8 +29,12 @@ export function buildFilterTree(items: FilterType[]) {
     if (item.id) {
       itemMap.set(item.id, { ...item, children: [] });
     } else {
-      // Items without IDs go straight to root level
-      rootItems.push({ ...item, children: [] });
+      // Items without IDs go straight to root level. Such an item was never
+      // persisted, so nothing in `items` can link to it by `fk_parent_id` — its
+      // `children` are already nested and must be kept. Resetting them turns a
+      // synthetic group into a condition-less node, which the evaluator skips:
+      // an RLS deny group built at query time would stop denying.
+      rootItems.push({ ...item, children: item.children ?? [] });
     }
   });
 

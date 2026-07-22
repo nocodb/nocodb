@@ -1935,4 +1935,88 @@ describe('validateRowFilters — User / LTAR / nested resolution', () => {
       ).toBe(false);
     });
   });
+
+  describe('nested filter groups', () => {
+    const run = (filters: FilterType[], data: any) =>
+      validateRowFilters({
+        filters,
+        data,
+        columns: mockColumns,
+        client: mockClient,
+        metas: mockMetas,
+      });
+
+    // Flat list with id/fk_parent_id — the shape Filter.allViewFilterList
+    // returns and what buildFilterTree is designed to consume.
+    const nest = (depth: number): FilterType[] => {
+      const filters: FilterType[] = [];
+      for (let i = 1; i <= depth; i++) {
+        filters.push({
+          id: `g${i}`,
+          is_group: true,
+          logical_op: 'and',
+          fk_parent_id: i === 1 ? null : `g${i - 1}`,
+        } as FilterType);
+      }
+      filters.push({
+        id: 'leaf',
+        fk_parent_id: `g${depth}`,
+        fk_column_id: '1',
+        comparison_op: 'eq',
+        value: 'Alice',
+        logical_op: 'and',
+      } as FilterType);
+      return filters;
+    };
+
+    it('evaluates a leaf one group deep', () => {
+      expect(run(nest(1), { Name: 'Alice' })).toBe(true);
+      expect(run(nest(1), { Name: 'Bob' })).toBe(false);
+    });
+
+    // Regression: the recursive call used to re-run buildFilterTree on an
+    // already-built subtree, which resets `children` to [] on every node. The
+    // inner group lost its conditions, was skipped as condition-less, and the
+    // whole expression collapsed to null instead of a verdict.
+    it('evaluates a leaf two groups deep', () => {
+      expect(run(nest(2), { Name: 'Alice' })).toBe(true);
+      expect(run(nest(2), { Name: 'Bob' })).toBe(false);
+    });
+
+    it('evaluates a leaf four groups deep', () => {
+      expect(run(nest(4), { Name: 'Alice' })).toBe(true);
+      expect(run(nest(4), { Name: 'Bob' })).toBe(false);
+    });
+
+    it('carries options into nested groups so @me still resolves', () => {
+      const filters: FilterType[] = [
+        { id: 'g1', is_group: true, logical_op: 'and', fk_parent_id: null },
+        {
+          id: 'g2',
+          is_group: true,
+          logical_op: 'and',
+          fk_parent_id: 'g1',
+        },
+        {
+          id: 'leaf',
+          fk_parent_id: 'g2',
+          fk_column_id: '5',
+          comparison_op: 'anyof',
+          value: CURRENT_USER_TOKEN,
+          logical_op: 'and',
+        },
+      ] as FilterType[];
+
+      const result = validateRowFilters({
+        filters,
+        data: { CreatedBy: { id: 'usr_me' } },
+        columns: mockColumns,
+        client: mockClient,
+        metas: mockMetas,
+        options: { currentUser: { id: 'usr_me', email: 'me@acme.com' } },
+      });
+
+      expect(result).toBe(true);
+    });
+  });
 });

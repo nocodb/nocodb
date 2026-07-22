@@ -1026,7 +1026,30 @@
         "subjectsRequired": "Please select at least one role, user, or team.",
         "ownerSubjectNote": "Owners can alter RLS rules.",
         "confirmDeleteTitle": "Are you sure you want to delete this policy?",
-        "confirmDeleteContent": "This action cannot be undone."
+        "confirmDeleteContent": "This action cannot be undone.",
+        "dynamicValue": "Dynamic value",
+        "selectDynamicValue": "Select a dynamic value...",
+        "dynamicValueDescription": "Resolved from the signed-in user each time the policy runs.",
+        "placeholders": {
+          "currentUserId": "Current user ID",
+          "currentUserIdDescription": "The signed-in user's ID.",
+          "currentUserEmail": "Current user email",
+          "currentUserEmailDescription": "The signed-in user's email address.",
+          "currentUserName": "Current user name",
+          "currentUserNameDescription": "The signed-in user's display name.",
+          "currentUserRoles": "Current user roles",
+          "currentUserRolesDescription": "The signed-in user's base roles.",
+          "currentUserTeams": "My teams",
+          "currentUserTeamsDescription": "IDs of the teams the user belongs to directly.",
+          "currentUserTeamsWithDescendants": "My teams and sub-teams",
+          "currentUserTeamsWithDescendantsDescription": "IDs of the user's teams plus every team beneath them.",
+          "currentUserTeamNames": "My team names",
+          "currentUserTeamNamesDescription": "Names of the teams the user belongs to directly.",
+          "currentUserTeamNamesWithDescendants": "My team and sub-team names",
+          "currentUserTeamNamesWithDescendantsDescription": "Names of the user's teams plus every team beneath them.",
+          "currentUserTeamWithDescendantMembers": "Members of my teams",
+          "currentUserTeamWithDescendantMembersDescription": "Everyone in the user's teams and sub-teams — use with 'contains any of' to see your reports' records."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",

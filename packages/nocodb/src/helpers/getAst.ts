@@ -67,6 +67,7 @@ const getAst = async (
     includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
     fk_display_value_column_id,
+    allowRequestedHiddenFields = false,
     _depth = 0,
   }: {
     query?: RequestQuery;
@@ -86,6 +87,9 @@ const getAst = async (
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
     fk_display_value_column_id?: string | null;
+    // Return requested fields even if view-hidden. Opt-in; authenticated
+    // link-picker paths only (see ColumnAstContext doc).
+    allowRequestedHiddenFields?: boolean;
     // Internal: recursion depth for nested LTAR expansion. Bounded to
     // GET_AST_MAX_DEPTH (8) to prevent client-controlled `?nested[a][nested]
     // [b][nested]…` payloads or cyclic LTAR/Lookup metadata from blowing
@@ -327,6 +331,7 @@ const getAst = async (
     rowColoringColumnIds,
     buttonFilterColumnIds,
     dependencyFieldsForRangeView,
+    allowRequestedHiddenFields,
   };
 
   for (const col of columns) {

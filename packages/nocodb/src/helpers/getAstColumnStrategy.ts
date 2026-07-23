@@ -65,6 +65,13 @@ export interface ColumnAstContext {
   rowColoringColumnIds: Set<string>;
   buttonFilterColumnIds: Set<string>;
   dependencyFieldsForRangeView?: string[];
+  /**
+   * When true, an explicitly-requested (`fields`) column bypasses the view-
+   * `show` gate and is returned even if hidden. Opt-in; authenticated
+   * link-picker paths only — never public (would leak hidden values; see the
+   * DESIGN NOTE in public-datas.service.ts).
+   */
+  allowRequestedHiddenFields?: boolean;
 }
 
 /** Per-column inputs computed inside the loop before dispatch. */
@@ -208,10 +215,20 @@ const viewVisibilityFieldStrategy: ColumnAstStrategy = {
   match: (ctx, { col }) =>
     !!ctx.allowedCols && (!ctx.includePkByDefault || !col.pk),
   resolve: (ctx, { col, value, isInFields }) => {
-    const { allowedCols, view, fields, dependencyFieldsForRangeView } = ctx;
+    const {
+      allowedCols,
+      view,
+      fields,
+      dependencyFieldsForRangeView,
+      allowRequestedHiddenFields,
+    } = ctx;
+
+    // Opt-in: an explicitly-requested field passes even when view-hidden.
+    const passesViewVisibility =
+      allowedCols[col.id] || (allowRequestedHiddenFields && isInFields);
 
     return (
-      allowedCols[col.id] &&
+      passesViewVisibility &&
       (!isSystemColumn(col) ||
         (!view && isCreatedOrLastModifiedTimeCol(col)) ||
         view?.show_system_fields ||

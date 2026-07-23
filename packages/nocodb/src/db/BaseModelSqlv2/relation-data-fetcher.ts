@@ -1329,10 +1329,13 @@ export const relationDataFetcher = (param: {
       if (refView) {
         const { dependencyFields } = await getAst(refContext, {
           model: refTable,
-          query: {},
+          // Honor explicit `fields` so a view-hidden requested column is still
+          // returned. Limited-access still collapses to pk/pv below.
+          query: { fields: (args as any)?.fields },
           view: hasLimitedAccess ? null : refView,
           throwErrorIfInvalidParams: false,
           extractOnlyPrimaries: hasLimitedAccess,
+          allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
       }
@@ -1659,9 +1662,12 @@ export const relationDataFetcher = (param: {
       if (targetView) {
         const { dependencyFields } = await getAst(refContext, {
           model: isBt ? parentTable : childTable,
-          query: {},
+          // Honor explicit `fields` so a view-hidden requested column is still
+          // returned. Limited-access still collapses to pk/pv below.
+          query: { fields: (args as any)?.fields },
           view: targetView,
           throwErrorIfInvalidParams: false,
+          allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
       }

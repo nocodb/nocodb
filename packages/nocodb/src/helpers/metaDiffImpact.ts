@@ -21,10 +21,13 @@ export type FormulaDependencyResolver = (
 type RemovedColumnChange = {
   type?: RemovedColumnChangeType | string;
   column?: ImpactColumn | null;
+  impacts?: RemovedColumnImpact[];
+  [key: string]: unknown;
 };
 
-type MetaDiffWithDetectedChanges = {
+export type MetaDiffWithDetectedChanges = {
   detectedChanges?: RemovedColumnChange[] | null;
+  [key: string]: unknown;
 };
 
 export type RemovedColumnImpact = {
@@ -50,6 +53,44 @@ const hasRequiredColumnIdentity = (
 ): column is ImpactColumn & { id: string; title: string; uidt: UITypes } =>
   !!column?.id && !!column?.title && !!column?.uidt;
 
+export function attachRemovedColumnImpacts(
+  metaDiffs: MetaDiffWithDetectedChanges[],
+  impacts: RemovedColumnImpact[],
+): MetaDiffWithDetectedChanges[] {
+  const impactsByRemovedColumnId = impacts.reduce((acc, impact) => {
+    const existing = acc.get(impact.removedColumnId);
+
+    if (existing) {
+      existing.push(impact);
+    } else {
+      acc.set(impact.removedColumnId, [impact]);
+    }
+
+    return acc;
+  }, new Map<string, RemovedColumnImpact[]>());
+
+  return metaDiffs.map((metaDiff) => ({
+    ...metaDiff,
+    detectedChanges: Array.isArray(metaDiff.detectedChanges)
+      ? metaDiff.detectedChanges.map((change) => {
+          if (
+            removedColumnChangeTypes.has(change?.type ?? '') &&
+            change.column?.id
+          ) {
+            return {
+              ...change,
+              impacts: [
+                ...(impactsByRemovedColumnId.get(change.column.id) ?? []),
+              ],
+            };
+          }
+
+          return { ...change };
+        })
+      : metaDiff.detectedChanges,
+  }));
+}
+
 export async function collectRemovedColumnImpact(
   context: NcContext,
   {
@@ -58,7 +99,9 @@ export async function collectRemovedColumnImpact(
     resolveFormulaDependencies,
   }: {
     metaDiffs?: MetaDiffWithDetectedChanges[] | null;
-    columnsByModelId?: { get(modelId: string): ImpactColumn[] | undefined } | null;
+    columnsByModelId?: {
+      get(modelId: string): ImpactColumn[] | undefined;
+    } | null;
     resolveFormulaDependencies: FormulaDependencyResolver;
   },
 ): Promise<RemovedColumnImpact[]> {

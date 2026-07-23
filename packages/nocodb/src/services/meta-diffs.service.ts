@@ -29,12 +29,21 @@ import {
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
+import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import {
+  attachRemovedColumnImpacts,
+  collectRemovedColumnImpact,
+} from '~/helpers/metaDiffImpact';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
+import type {
+  ImpactColumn,
+  RemovedColumnImpact,
+} from '~/helpers/metaDiffImpact';
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -59,6 +68,10 @@ const applyChangesPriorityOrder = [
   MetaDiffType.VIEW_COLUMN_REMOVE,
   MetaDiffType.TABLE_RELATION_REMOVE,
 ];
+
+type GetMetaDiffOptions = {
+  includeRemovedColumnImpact?: boolean;
+};
 
 type MetaDiff = {
   title?: string;
@@ -93,15 +106,23 @@ type MetaDiffChange = {
   | {
       type:
         | MetaDiffType.TABLE_COLUMN_TYPE_CHANGE
-        | MetaDiffType.VIEW_COLUMN_TYPE_CHANGE
-        | MetaDiffType.TABLE_COLUMN_REMOVE
-        | MetaDiffType.VIEW_COLUMN_REMOVE;
+        | MetaDiffType.VIEW_COLUMN_TYPE_CHANGE;
       tn?: string;
       model?: Model;
       id?: string;
       cn: string;
       column: Column;
       colId?: string;
+    }
+  | {
+      type: MetaDiffType.TABLE_COLUMN_REMOVE | MetaDiffType.VIEW_COLUMN_REMOVE;
+      tn?: string;
+      model?: Model;
+      id?: string;
+      cn: string;
+      column: Column;
+      colId?: string;
+      impacts?: RemovedColumnImpact[];
     }
   | {
       type: MetaDiffType.TABLE_RELATION_REMOVE;
@@ -165,6 +186,7 @@ export class MetaDiffsService {
     sqlClient,
     base: Base,
     source: Source,
+    options: GetMetaDiffOptions = {},
   ): Promise<Array<MetaDiff>> {
     // if meta base then return empty array
     if (source.isMeta()) {
@@ -180,6 +202,9 @@ export class MetaDiffsService {
 
     const changes: Array<MetaDiff> = [];
     const virtualRelationColumns: Column<LinkToAnotherRecordColumn>[] = [];
+    const columnsByModelId = options.includeRemovedColumnImpact
+      ? new Map<string, Column[]>()
+      : null;
 
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
@@ -261,6 +286,9 @@ export class MetaDiffsService {
       )?.data?.list;
 
       await oldMeta.getColumns(context);
+      if (columnsByModelId && oldMeta.id && Array.isArray(oldMeta.columns)) {
+        columnsByModelId.set(oldMeta.id, [...oldMeta.columns]);
+      }
 
       for (const column of colListRef[table.tn]) {
         const oldColIdx = oldMeta.columns.findIndex(
@@ -744,6 +772,9 @@ export class MetaDiffsService {
       )?.data?.list;
 
       await oldMeta.getColumns(context);
+      if (columnsByModelId && oldMeta.id && Array.isArray(oldMeta.columns)) {
+        columnsByModelId.set(oldMeta.id, [...oldMeta.columns]);
+      }
 
       for (const column of colListRef[view.tn]) {
         const oldColIdx = oldMeta.columns.findIndex(
@@ -831,6 +862,20 @@ export class MetaDiffsService {
       });
     }
 
+    if (options.includeRemovedColumnImpact) {
+      const impacts = await collectRemovedColumnImpact(context, {
+        metaDiffs: changes,
+        columnsByModelId,
+        resolveFormulaDependencies: async (resolverContext, params) =>
+          (await getFormulasReferredTheColumn(resolverContext, {
+            column: params.column as Column,
+            columns: params.columns as Column[],
+          })) as ImpactColumn[],
+      });
+
+      return attachRemovedColumnImpacts(changes, impacts) as Array<MetaDiff>;
+    }
+
     return changes;
   }
 
@@ -845,7 +890,9 @@ export class MetaDiffsService {
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
         changes = changes.concat(
-          await this.getMetaDiff(context, sqlClient, base, source),
+          await this.getMetaDiff(context, sqlClient, base, source, {
+            includeRemovedColumnImpact: true,
+          }),
         );
       } catch (e) {
         console.log(e);
@@ -865,7 +912,9 @@ export class MetaDiffsService {
     let changes = [];
 
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-    changes = await this.getMetaDiff(context, sqlClient, base, source);
+    changes = await this.getMetaDiff(context, sqlClient, base, source, {
+      includeRemovedColumnImpact: true,
+    });
 
     return changes;
   }

@@ -1,8 +1,12 @@
 import { ModelTypes, UITypes } from 'nocodb-sdk';
-import { collectRemovedColumnImpact } from '~/helpers/metaDiffImpact';
+import {
+  attachRemovedColumnImpacts,
+  collectRemovedColumnImpact,
+} from '~/helpers/metaDiffImpact';
 import type {
   FormulaDependencyResolver,
   ImpactColumn,
+  RemovedColumnImpact,
 } from '~/helpers/metaDiffImpact';
 import type { NcContext } from '~/interface/config';
 
@@ -19,10 +23,11 @@ type RemovedColumnMetaDiff = {
   source_id: string;
   type: ModelTypes;
   detectedChanges: Array<{
-    type: 'TABLE_COLUMN_REMOVE' | 'VIEW_COLUMN_REMOVE';
+    type: 'TABLE_COLUMN_REMOVE' | 'VIEW_COLUMN_REMOVE' | 'TABLE_COLUMN_ADD';
     cn: string;
-    column: TestColumn;
+    column?: TestColumn;
     msg?: string;
+    id?: string;
   }>;
 };
 
@@ -184,5 +189,97 @@ describe('Meta Diff removed-column impact discovery', () => {
     expect(JSON.stringify(columns)).toBe(columnsBefore);
     expect(JSON.stringify(metaDiffs)).toBe(diffBefore);
     expect(columnsByModelId.get(modelId)).toBe(columns);
+  });
+});
+
+describe('Meta Diff removed-column impact enrichment', () => {
+  it('attaches matching impacts to removed columns without changing unrelated changes', () => {
+    const firstRemovedColumn = makeColumn();
+    const secondRemovedColumn = makeColumn({
+      id: 'cl_removed_other',
+      title: 'Other Removed',
+      column_name: 'removed_other',
+    });
+    const formulaImpact: RemovedColumnImpact = {
+      dependencyType: 'formula',
+      removedColumnId: firstRemovedColumn.id,
+      resource: {
+        id: 'cl_formula',
+        title: 'Total Label',
+        uidt: UITypes.Formula,
+      },
+    };
+    const buttonImpact: RemovedColumnImpact = {
+      dependencyType: 'button',
+      removedColumnId: secondRemovedColumn.id,
+      resource: {
+        id: 'cl_button',
+        title: 'Open Invoice',
+        uidt: UITypes.Button,
+      },
+    };
+    const unrelatedChange = {
+      type: 'TABLE_COLUMN_ADD' as const,
+      cn: 'new_column',
+      id: modelId,
+      msg: 'New column(new_column)',
+    };
+    const metaDiffs: RemovedColumnMetaDiff[] = [
+      {
+        table_name: 'orders',
+        source_id: 'ds_external',
+        type: ModelTypes.TABLE,
+        detectedChanges: [
+          {
+            type: 'TABLE_COLUMN_REMOVE',
+            cn: firstRemovedColumn.column_name,
+            column: firstRemovedColumn,
+          },
+          unrelatedChange,
+          {
+            type: 'VIEW_COLUMN_REMOVE',
+            cn: secondRemovedColumn.column_name,
+            column: secondRemovedColumn,
+          },
+        ],
+      },
+    ];
+
+    const enriched = attachRemovedColumnImpacts(metaDiffs, [
+      formulaImpact,
+      buttonImpact,
+    ]);
+
+    expect(enriched).not.toBe(metaDiffs);
+    expect(enriched[0]).not.toBe(metaDiffs[0]);
+    expect(enriched[0].detectedChanges).not.toBe(metaDiffs[0].detectedChanges);
+    expect(enriched[0].detectedChanges?.[0]).toEqual({
+      ...metaDiffs[0].detectedChanges[0],
+      impacts: [formulaImpact],
+    });
+    expect(enriched[0].detectedChanges?.[1]).toEqual(unrelatedChange);
+    expect(enriched[0].detectedChanges?.[1]).not.toHaveProperty('impacts');
+    expect(enriched[0].detectedChanges?.[2]).toEqual({
+      ...metaDiffs[0].detectedChanges[2],
+      impacts: [buttonImpact],
+    });
+  });
+
+  it('attaches an empty impact collection and does not mutate inputs', () => {
+    const removedColumn = makeColumn();
+    const metaDiffs = [makeRemovedColumnDiff(removedColumn)];
+    const impacts: RemovedColumnImpact[] = [];
+    const diffBefore = JSON.stringify(metaDiffs);
+    const impactsBefore = JSON.stringify(impacts);
+
+    const enriched = attachRemovedColumnImpacts(metaDiffs, impacts);
+
+    expect(enriched[0].detectedChanges?.[0]).toEqual({
+      ...metaDiffs[0].detectedChanges[0],
+      impacts: [],
+    });
+    expect(JSON.stringify(metaDiffs)).toBe(diffBefore);
+    expect(JSON.stringify(impacts)).toBe(impactsBefore);
+    expect(metaDiffs[0].detectedChanges[0]).not.toHaveProperty('impacts');
   });
 });

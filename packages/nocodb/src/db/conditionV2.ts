@@ -24,6 +24,10 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
+import {
+  ncIsKnexRawOrRef,
+  ncLikePatternForRef,
+} from '~/db/field-handler/utils/handlerUtils';
 
 export default async function conditionV2(
   baseModelSqlv2: IBaseModelSqlV2,
@@ -520,7 +524,21 @@ const parseConditionV2 = async (
               break;
             case 'like':
               // JSON / Attachment route to FieldHandler above.
-              if (!val) {
+              if (ncIsKnexRawOrRef(val)) {
+                // Dynamic field-to-field: val is a column reference. Concatenate
+                // the wildcards in SQL so the reference isn't stringified into a
+                // literal (which would never match).
+                const pattern = ncLikePatternForRef(knex, val);
+                if (knex.clientType() === 'pg') {
+                  qb = qb.where(knex.raw('??::text ilike ?', [field, pattern]));
+                } else if (knex.clientType() === 'oracledb') {
+                  qb = qb.where(
+                    knex.raw('UPPER(??) like UPPER(?)', [field, pattern]),
+                  );
+                } else {
+                  qb = qb.where(knex.raw('?? like ?', [field, pattern]));
+                }
+              } else if (!val) {
                 // val is empty -> all values including empty strings but NULL
                 qb.where(field, '');
                 qb.orWhereNotNull(field);
@@ -547,7 +565,29 @@ const parseConditionV2 = async (
               break;
             case 'nlike':
               // JSON / Attachment route to FieldHandler above.
-              if (!val) {
+              if (ncIsKnexRawOrRef(val)) {
+                // Dynamic field-to-field: val is a column reference. Concatenate
+                // the wildcards in SQL so the reference isn't stringified into a
+                // literal (which would never match).
+                const pattern = ncLikePatternForRef(knex, val);
+                qb.where((nestedQb) => {
+                  if (knex.clientType() === 'pg') {
+                    nestedQb.where(
+                      knex.raw('??::text not ilike ?', [field, pattern]),
+                    );
+                  } else if (knex.clientType() === 'oracledb') {
+                    nestedQb.whereNot(
+                      knex.raw('UPPER(??) like UPPER(?)', [field, pattern]),
+                    );
+                  } else {
+                    nestedQb.whereNot(knex.raw('?? like ?', [field, pattern]));
+                  }
+                  // a non-matching (non-empty) filter should still surface
+                  // empty/null values
+                  nestedQb.orWhere(field, '');
+                  nestedQb.orWhereNull(field);
+                });
+              } else if (!val) {
                 // val is empty -> all values including NULL but empty strings
                 qb.whereNot(field, '');
                 qb.orWhereNull(field);

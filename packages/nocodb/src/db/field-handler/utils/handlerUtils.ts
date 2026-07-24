@@ -31,6 +31,37 @@ export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
 }
 
+/**
+ * Detect a knex raw / ref value. Dynamic (field-to-field) filters set
+ * `filter.value` to a `knex.ref()` / `knex.raw()` column reference instead of
+ * a scalar literal. Such objects carry `isRawInstance === true`.
+ */
+export function ncIsKnexRawOrRef(val: any): val is Knex.Raw {
+  return (
+    !!val && typeof val === 'object' && (val as any).isRawInstance === true
+  );
+}
+
+/**
+ * Build a `%value%` LIKE pattern where `value` is a column reference
+ * (knex raw / ref) rather than a scalar literal.
+ *
+ * The wildcards must be concatenated in SQL — dialect specific — so the
+ * reference stays a reference. Interpolating it in JS (`` `%${ref}%` ``)
+ * stringifies the reference into a literal, which never matches.
+ */
+export function ncLikePatternForRef(knex: CustomKnex, ref: Knex.Raw): Knex.Raw {
+  const client = knex.clientType();
+  if (client === 'mysql' || client === 'mysql2' || client === 'vitess') {
+    return knex.raw("CONCAT('%', ?, '%')", [ref]);
+  }
+  if (client === 'mssql') {
+    return knex.raw("('%' + ? + '%')", [ref]);
+  }
+  // pg, sqlite3, oracledb, databricks and default support `||` concatenation
+  return knex.raw("('%' || ? || '%')", [ref]);
+}
+
 export const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },

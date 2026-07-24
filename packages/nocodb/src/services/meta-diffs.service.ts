@@ -863,17 +863,28 @@ export class MetaDiffsService {
     }
 
     if (options.includeRemovedColumnImpact) {
-      const impacts = await collectRemovedColumnImpact(context, {
-        metaDiffs: changes,
-        columnsByModelId,
-        resolveFormulaDependencies: async (resolverContext, params) =>
-          (await getFormulasReferredTheColumn(resolverContext, {
-            column: params.column as Column,
-            columns: params.columns as Column[],
-          })) as ImpactColumn[],
-      });
+      try {
+        // Optional removed-column impact analysis must not block existing Meta Diff
+        // results.
+        const impacts = await collectRemovedColumnImpact(context, {
+          metaDiffs: changes,
+          columnsByModelId,
+          resolveFormulaDependencies: async (resolverContext, params) =>
+            (await getFormulasReferredTheColumn(resolverContext, {
+              column: params.column as Column,
+              columns: params.columns as Column[],
+            })) as ImpactColumn[],
+        });
 
-      return attachRemovedColumnImpacts(changes, impacts) as Array<MetaDiff>;
+        return attachRemovedColumnImpacts(changes, impacts) as Array<MetaDiff>;
+      } catch (e) {
+        console.warn(
+          `Failed to collect removed-column impacts for source ${
+            source.alias || source.id
+          }`,
+          e,
+        );
+      }
     }
 
     return changes;

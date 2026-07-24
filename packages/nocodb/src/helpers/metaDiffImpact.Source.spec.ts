@@ -76,6 +76,230 @@ const collectImpact = (
   });
 
 describe('Meta Diff removed-column impact discovery', () => {
+  it('keeps impacts isolated and ordered when multiple columns are removed', async () => {
+    const secondModelId = 'md_invoices';
+    const firstRemovedColumn = makeColumn({
+      id: 'cl_removed_first',
+      title: 'First Removed',
+      column_name: 'removed_first',
+    });
+    const secondRemovedColumn = makeColumn({
+      id: 'cl_removed_second',
+      title: 'Second Removed',
+      column_name: 'removed_second',
+      fk_model_id: secondModelId,
+    });
+    const firstFormula = makeColumn({
+      id: 'cl_formula_first',
+      title: 'First Formula',
+      uidt: UITypes.Formula,
+    });
+    const firstButton = makeColumn({
+      id: 'cl_button_first',
+      title: 'First Button',
+      uidt: UITypes.Button,
+    });
+    const secondFormula = makeColumn({
+      id: 'cl_formula_second',
+      title: 'Second Formula',
+      uidt: UITypes.Formula,
+      fk_model_id: secondModelId,
+    });
+    const firstModelColumns = [firstRemovedColumn, firstFormula, firstButton];
+    const secondModelColumns = [secondRemovedColumn, secondFormula];
+    const metaDiffs: RemovedColumnMetaDiff[] = [
+      {
+        table_name: 'orders',
+        source_id: 'ds_external',
+        type: ModelTypes.TABLE,
+        detectedChanges: [
+          {
+            type: 'TABLE_COLUMN_REMOVE',
+            cn: firstRemovedColumn.column_name,
+            column: firstRemovedColumn,
+          },
+        ],
+      },
+      {
+        table_name: 'invoices',
+        source_id: 'ds_external',
+        type: ModelTypes.TABLE,
+        detectedChanges: [
+          {
+            type: 'TABLE_COLUMN_REMOVE',
+            cn: secondRemovedColumn.column_name,
+            column: secondRemovedColumn,
+          },
+        ],
+      },
+    ];
+    const resolveFormulaDependencies = jest
+      .fn<Promise<ImpactColumn[]>, Parameters<FormulaDependencyResolver>>()
+      .mockResolvedValueOnce([firstFormula, firstButton])
+      .mockResolvedValueOnce([secondFormula]);
+
+    const impact = await collectRemovedColumnImpact(context, {
+      metaDiffs,
+      columnsByModelId: new Map([
+        [modelId, firstModelColumns],
+        [secondModelId, secondModelColumns],
+      ]),
+      resolveFormulaDependencies,
+    });
+    const enriched = attachRemovedColumnImpacts(metaDiffs, impact);
+
+    expect(resolveFormulaDependencies).toHaveBeenCalledTimes(2);
+    expect(resolveFormulaDependencies.mock.calls).toEqual([
+      [context, { column: firstRemovedColumn, columns: firstModelColumns }],
+      [context, { column: secondRemovedColumn, columns: secondModelColumns }],
+    ]);
+    expect(impact.map((item) => item.removedColumnId)).toEqual([
+      firstRemovedColumn.id,
+      firstRemovedColumn.id,
+      secondRemovedColumn.id,
+    ]);
+    expect(impact.map((item) => item.resource.id)).toEqual([
+      firstFormula.id,
+      firstButton.id,
+      secondFormula.id,
+    ]);
+    expect(
+      enriched[0].detectedChanges?.[0].impacts?.map((item) => item.resource.id),
+    ).toEqual([firstFormula.id, firstButton.id]);
+    expect(
+      enriched[1].detectedChanges?.[0].impacts?.map((item) => item.resource.id),
+    ).toEqual([secondFormula.id]);
+    expect(enriched[0].detectedChanges?.[0].impacts).not.toContainEqual(
+      expect.objectContaining({ removedColumnId: secondRemovedColumn.id }),
+    );
+    expect(enriched[1].detectedChanges?.[0].impacts).not.toContainEqual(
+      expect.objectContaining({ removedColumnId: firstRemovedColumn.id }),
+    );
+  });
+
+  it('collects and attaches impacts for removed view columns', async () => {
+    const removedColumn = makeColumn({
+      id: 'cl_view_removed',
+      title: 'View Removed',
+      column_name: 'view_removed',
+    });
+    const buttonColumn = makeColumn({
+      id: 'cl_view_button',
+      title: 'Open View URL',
+      uidt: UITypes.Button,
+    });
+    const columns = [removedColumn, buttonColumn];
+    const metaDiffs: RemovedColumnMetaDiff[] = [
+      {
+        table_name: 'orders_view',
+        source_id: 'ds_external',
+        type: ModelTypes.VIEW,
+        detectedChanges: [
+          {
+            type: 'VIEW_COLUMN_REMOVE',
+            cn: removedColumn.column_name,
+            column: removedColumn,
+          },
+        ],
+      },
+    ];
+    const resolveFormulaDependencies = makeResolver([buttonColumn]);
+
+    const impact = await collectImpact(
+      metaDiffs,
+      columns,
+      resolveFormulaDependencies,
+    );
+    const enriched = attachRemovedColumnImpacts(metaDiffs, impact);
+
+    expect(resolveFormulaDependencies).toHaveBeenCalledTimes(1);
+    expect(resolveFormulaDependencies).toHaveBeenCalledWith(context, {
+      column: removedColumn,
+      columns,
+    });
+    expect(impact).toEqual([
+      {
+        dependencyType: 'button',
+        removedColumnId: removedColumn.id,
+        resource: {
+          id: buttonColumn.id,
+          title: buttonColumn.title,
+          uidt: buttonColumn.uidt,
+        },
+      },
+    ]);
+    expect(enriched[0].detectedChanges?.[0]).toEqual({
+      ...metaDiffs[0].detectedChanges[0],
+      impacts: impact,
+    });
+  });
+
+  it('skips removed columns whose model columns are unavailable', async () => {
+    const removedColumn = makeColumn({
+      fk_model_id: 'md_missing',
+    });
+    const metaDiffs = [makeRemovedColumnDiff(removedColumn)];
+    const resolveFormulaDependencies = makeResolver([]);
+
+    await expect(
+      collectRemovedColumnImpact(context, {
+        metaDiffs,
+        columnsByModelId: new Map([[modelId, [removedColumn]]]),
+        resolveFormulaDependencies,
+      }),
+    ).resolves.toEqual([]);
+    expect(resolveFormulaDependencies).not.toHaveBeenCalled();
+
+    const enriched = attachRemovedColumnImpacts(metaDiffs, []);
+    expect(enriched[0].detectedChanges?.[0]).toEqual({
+      ...metaDiffs[0].detectedChanges[0],
+      impacts: [],
+    });
+  });
+
+  it('propagates resolver rejections', async () => {
+    const removedColumn = makeColumn();
+    const expectedError = new Error('formula resolver failed');
+    const resolveFormulaDependencies = jest
+      .fn<Promise<ImpactColumn[]>, Parameters<FormulaDependencyResolver>>()
+      .mockRejectedValue(expectedError);
+
+    await expect(
+      collectImpact(
+        [makeRemovedColumnDiff(removedColumn)],
+        [removedColumn],
+        resolveFormulaDependencies,
+      ),
+    ).rejects.toBe(expectedError);
+  });
+
+  it('ignores non-formula and non-button resolver results', async () => {
+    const removedColumn = makeColumn();
+    const physicalColumn = makeColumn({
+      id: 'cl_physical',
+      title: 'Physical Column',
+      column_name: 'physical',
+      uidt: UITypes.SingleLineText,
+    });
+    const formulaColumn = makeColumn({
+      id: 'cl_formula',
+      title: 'Formula Column',
+      uidt: UITypes.Formula,
+    });
+    const resolveFormulaDependencies = makeResolver([
+      physicalColumn,
+      formulaColumn,
+    ]);
+
+    const impact = await collectImpact(
+      [makeRemovedColumnDiff(removedColumn)],
+      [removedColumn, physicalColumn, formulaColumn],
+      resolveFormulaDependencies,
+    );
+
+    expect(impact.map((item) => item.resource.id)).toEqual([formulaColumn.id]);
+  });
+
   it('maps resolver results, preserves order, and removes duplicate dependencies', async () => {
     const removedColumn = makeColumn();
     const firstFormula = makeColumn({

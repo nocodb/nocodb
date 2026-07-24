@@ -142,6 +142,16 @@ export class UserGeneralHandler extends GenericFieldHandler {
       },
     );
 
+    // Index workspace users by id and email so each per-value lookup below is O(1) instead of a
+    // baseUsers.find scan — the validation runs once per user value in the cell, so the scan was
+    // O(values × workspaceUsers). First occurrence wins, matching find.
+    const baseUserById = new Map<string, (typeof baseUsers)[number]>();
+    const baseUserByEmail = new Map<string, (typeof baseUsers)[number]>();
+    for (const bu of baseUsers) {
+      if (bu.id != null && !baseUserById.has(bu.id)) baseUserById.set(bu.id, bu);
+      if (bu.email != null && !baseUserByEmail.has(bu.email)) baseUserByEmail.set(bu.email, bu);
+    }
+
     if (typeof evalValue === 'object') {
       const users: { id?: string; email?: string }[] = Array.isArray(evalValue)
         ? evalValue
@@ -150,7 +160,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
         const user = extractProps(userObj, ['id', 'email']);
         try {
           if ('id' in user) {
-            const u = baseUsers.find((u) => u.id === user.id);
+            const u = baseUserById.get(user.id);
             if (!u) {
               NcError.invalidValueForField({
                 value: params.value,
@@ -167,7 +177,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
             user.email = user.email.trim();
             // skip empty input
             if (user.email.length === 0) continue;
-            const u = baseUsers.find((u) => u.email === user.email);
+            const u = baseUserByEmail.get(user.email);
             if (!u) {
               NcError.invalidValueForField({
                 value: params.value,
@@ -200,7 +210,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
         try {
           if (user.length === 0) continue;
           if (user.includes('@')) {
-            const u = baseUsers.find((u) => u.email === user);
+            const u = baseUserByEmail.get(user);
             if (!u) {
               NcError.invalidValueForField({
                 value: params.value,
@@ -211,7 +221,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
             }
             userIds.push(u.id);
           } else {
-            const u = baseUsers.find((u) => u.id === user);
+            const u = baseUserById.get(user);
             if (!u) {
               NcError.invalidValueForField({
                 value: params.value,

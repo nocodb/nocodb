@@ -301,7 +301,24 @@
       "ltarCustomDisplayValue": "Bidang Nilai Tampilan Kustom",
       "publicDocShare": "Berbagi Dokumen Publik"
     },
-    "upgradeGenericSubtitle": "Buka lebih banyak kursi, catatan tambahan, lebih banyak penyimpanan, webhook bersyarat, dan masih banyak lagi!"
+    "upgradeGenericSubtitle": "Buka lebih banyak kursi, catatan tambahan, lebih banyak penyimpanan, webhook bersyarat, dan masih banyak lagi!",
+    "upgradeToSortAndLimitLookupValues": "Untuk mengurutkan dan membatasi nilai yang ditampilkan di bidang pencarian, tingkatkan ke paket {plan}.",
+    "upgradeToUseTrashSettings": "Tingkatkan untuk mengonfigurasi pengaturan tempat sampah",
+    "upgradeToUseTrashSettingsSubtitle": "Tingkatkan ke paket {plan} untuk mengonfigurasi pengaturan tempat sampah per-tabel.",
+    "upgradeToAttachFilesToComments": "Tingkatkan untuk melampirkan file ke komentar",
+    "upgradeToAttachFilesToCommentsSubtitle": "Tingkatkan ke paket {plan} untuk melampirkan gambar dan file ke komentar catatan.",
+    "upgradeToUseToggleSort": "Tingkatkan untuk beralih urutan individu",
+    "upgradeToUseToggleSortSubtitle": "Tingkatkan ke paket {plan} untuk mengaktifkan atau menonaktifkan urutan individu tanpa menghapusnya, memberi Anda kontrol lebih besar atas tampilan Anda.",
+    "upgradeToUseCustomSync": "Tingkatkan untuk menggunakan Sinkronisasi Kustom",
+    "upgradeToUseCustomSyncSubtitle": "Tingkatkan ke paket {plan} untuk menyinkronkan data dari sumber data lain.",
+    "upgradeToUseAutomaticSync": "Tingkatkan untuk menggunakan sinkronisasi otomatis",
+    "upgradeToUseAutomaticSyncSubtitle": "Tingkatkan ke paket {plan} untuk menjaga tabel yang dicerminkan tetap sinkron secara otomatis dan real time.",
+    "addonFeatureTitle": "Tersedia sebagai add-on {addon}",
+    "addonFeatureSubtitle": "{addon} tersedia sebagai add-on berbayar pada paket {plan} atau lebih tinggi. Hubungi kami untuk mengaktifkannya.",
+    "toAccessCopyViewConfigFromAnotherView": "untuk mengakses fitur salin konfigurasi tampilan dari tampilan lain.",
+    "toAccessReassignPersonalView": "untuk mengakses fitur penugasan ulang tampilan pribadi.",
+    "toAccessAssignAsPersonalView": "untuk mengakses fitur tetapkan sebagai tampilan pribadi.",
+    "toAccessCardFieldHeaderVisibility": "untuk mengakses fitur visibilitas tajuk bidang kartu."
   },
   "general": {
     "scrollToBottom": "Gulir ke bawah",
@@ -681,7 +698,31 @@
     "downloadAs": "Unduh sebagai",
     "createdBy": "Dibuat oleh",
     "updatedBy": "Diperbarui oleh",
-    "updated": "Diperbarui"
+    "updated": "Diperbarui",
+    "first": "Pertama",
+    "last": "Terakhir",
+    "system": "Sistem",
+    "gotIt": "Mengerti",
+    "leaveComment": "Tinggalkan komentar",
+    "view": "Tampilan",
+    "other": "Lainnya",
+    "connecting": "Menghubungkan ...",
+    "include": "Sertakan",
+    "exclude": "Kecualikan",
+    "addOn": "Add-on",
+    "loadEarlier": "Muat yang lebih awal",
+    "loadingRecords": "Memuat rekaman",
+    "loadMore": "Muat lebih banyak",
+    "example": "Contoh",
+    "here": "di sini",
+    "maximum": "Maksimum",
+    "minimum": "Minimum",
+    "file": "File",
+    "stop": "Berhenti",
+    "run": "Jalankan",
+    "repair": "Perbaiki",
+    "regenerating": "Membuat ulang",
+    "regenerate": "Buat ulang"
   },
   "objects": {
     "script": "Skrip",
@@ -854,7 +895,9 @@
       "ollama": "Ollama",
       "groq": "Groq",
       "freshdesk": "FreshDesk",
-      "nocodb": "NocoDB"
+      "nocodb": "NocoDB",
+      "mssql": "SQL Server",
+      "oracle": "Oracle"
     },
     "integrationCategories": {
       "allIntegrations": "Semua Integrasi",
@@ -896,7 +939,8 @@
       "Enterprise": "Enterprise",
       "Self-hosted Business": "Bisnis",
       "Self-hosted Scale": "Skala",
-      "Self-hosted Enterprise": "Perusahaan"
+      "Self-hosted Enterprise": "Perusahaan",
+      "Scale": "Skala"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -914,7 +958,9 @@
       "usingConditionsDescription": "Warna pada catatan berdasarkan kondisi",
       "colourRecordsByField": "Warna catatan berdasarkan field",
       "rowColorDescription": "Menerapkan warna pada rekaman",
-      "cellColorDescription": "Menerapkan warna ke bidang tertentu"
+      "cellColorDescription": "Menerapkan warna ke bidang tertentu",
+      "title": "Pewarnaan",
+      "usingConditionsDescriptionOss": "Warnai rekaman berdasarkan kondisi"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Pembuatan record dibatasi",
@@ -974,7 +1020,31 @@
         "filterCount": "{count} filter | {count} filter",
         "subjectsRequired": "Pilih setidaknya satu peran, pengguna, atau tim.",
         "confirmDeleteTitle": "Apakah Anda yakin ingin menghapus kebijakan ini?",
-        "confirmDeleteContent": "Tindakan ini tidak dapat dibatalkan."
+        "confirmDeleteContent": "Tindakan ini tidak dapat dibatalkan.",
+        "ownerSubjectNote": "Pemilik dapat mengubah aturan RLS.",
+        "dynamicValue": "Nilai dinamis",
+        "selectDynamicValue": "Pilih nilai dinamis...",
+        "dynamicValueDescription": "Diselesaikan dari pengguna yang masuk setiap kali kebijakan dijalankan.",
+        "placeholders": {
+          "currentUserId": "ID pengguna saat ini",
+          "currentUserIdDescription": "ID pengguna yang masuk.",
+          "currentUserEmail": "Email pengguna saat ini",
+          "currentUserEmailDescription": "Alamat email pengguna yang masuk.",
+          "currentUserName": "Nama pengguna saat ini",
+          "currentUserNameDescription": "Nama tampilan pengguna yang masuk.",
+          "currentUserRoles": "Peran pengguna saat ini",
+          "currentUserRolesDescription": "Peran dasar pengguna yang masuk.",
+          "currentUserTeams": "Tim saya",
+          "currentUserTeamsDescription": "ID tim tempat pengguna bergabung secara langsung.",
+          "currentUserTeamsWithDescendants": "Tim dan sub-tim saya",
+          "currentUserTeamsWithDescendantsDescription": "ID tim pengguna ditambah setiap tim di bawah mereka.",
+          "currentUserTeamNames": "Nama tim saya",
+          "currentUserTeamNamesDescription": "Nama-nama tim tempat pengguna bergabung secara langsung.",
+          "currentUserTeamNamesWithDescendants": "Nama tim dan sub-tim saya",
+          "currentUserTeamNamesWithDescendantsDescription": "Nama-nama tim pengguna ditambah setiap tim di bawah mereka.",
+          "currentUserTeamWithDescendantMembers": "Anggota dari tim saya",
+          "currentUserTeamWithDescendantMembersDescription": "Semua orang di tim dan sub-tim pengguna — gunakan dengan 'contains any of' untuk melihat rekaman laporan Anda."
+        }
       },
       "inlineUserSelector": {
         "noUsersSelected": "Tidak ada {description}",
@@ -1036,7 +1106,18 @@
       "noMoreTeamsToAdd": "Tidak ada lagi tim yang bisa ditambahkan",
       "alreadyAdded": "Sudah ditambahkan",
       "teamCantBeAssignedOwnerRole": "Tim tidak dapat ditugaskan sebagai peran Pemilik"
-    }
+    },
+    "addons": "Add-on",
+    "seatCount": "1 kursi | {count} kursi",
+    "sync": "Sinkronisasi",
+    "threeDay": "3 Hari",
+    "weeks": "Minggu",
+    "subRecord": "Sub Rekaman",
+    "widgets": "Widget",
+    "sorts": "Urutan",
+    "formulas": "Rumus",
+    "video": "Video",
+    "audio": "Audio"
   },
   "datatype": {
     "ID": "Indo",
@@ -1088,7 +1169,30 @@
     "isEmpty": "kosong",
     "isNotEmpty": "tidak kosong",
     "isNull": "adalah null.",
-    "isNotNull": "bukan null."
+    "isNotNull": "bukan null.",
+    "isChecked": "dicentang",
+    "isNotChecked": "tidak dicentang",
+    "is": "adalah",
+    "isNot": "bukan",
+    "filenamesContain": "nama file berisi",
+    "filenamesDoNotContain": "nama file tidak berisi",
+    "containsAllOf": "berisi semua dari",
+    "containsAnyOf": "berisi salah satu dari",
+    "doesNotContainAllOf": "tidak berisi semua dari",
+    "doesNotContainAnyOf": "tidak berisi salah satu dari",
+    "isAfter": "setelah",
+    "isBefore": "sebelum",
+    "isOnOrAfter": "pada atau setelah",
+    "isOnOrBefore": "pada atau sebelum",
+    "isWithin": "dalam rentang",
+    "isBlank": "kosong",
+    "isNotBlank": "tidak kosong",
+    "subOp": {
+      "pastWeek": "seminggu terakhir",
+      "pastMonth": "sebulan terakhir",
+      "pastYear": "setahun terakhir",
+      "nextWeek": "minggu depan"
+    }
   },
   "title": {
     "bookmarks": "Penanda",

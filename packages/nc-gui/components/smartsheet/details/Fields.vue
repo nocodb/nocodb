@@ -2135,7 +2135,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           'opacity-0 !cursor-default': isLocked,
                         }"
                       />
-                      <NcTooltip v-if="field.id && viewFieldsMap[field.id]" :disabled="isLocked">
+                      <NcTooltip v-if="field.id && viewFieldsMap[field.id]" :disabled="isLocked" class="flex">
                         <template #title>
                           {{ isFieldVisible(field) ? $t('tooltip.hideFieldInView') : $t('tooltip.showFieldInView') }}
                         </template>

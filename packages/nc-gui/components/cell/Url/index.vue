@@ -49,10 +49,7 @@ const isValid = computed(() => value && isValidURL(trim(value)))
 const url = computed(() => {
   if (!value || !isValidURL(trim(value))) return ''
 
-  /** add url scheme if missing */
-  if (/^https?:\/\//.test(trim(value))) return trim(value)
-
-  return `https://${trim(value)}`
+  return addMissingUrlSchma(trim(value) ?? '')
 })
 
 const { cellUrlOptions } = useCellUrlConfig(url)

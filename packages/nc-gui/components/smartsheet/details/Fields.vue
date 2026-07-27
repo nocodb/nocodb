@@ -1176,6 +1176,19 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
   stageVisibilityOp(checked, field)
 }
 
+const isFieldVisible = (field: TableExplorerColumn): boolean => {
+  return !!(
+    visibilityOps.value.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap.value[field.id!]?.show
+  )
+}
+
+const toggleFieldVisibility = (field: TableExplorerColumn) => {
+  if (isLocked.value) return
+
+  const viewField = viewFieldsMap.value[field.id!]
+  if (viewField) toggleVisibility(!isFieldVisible(field), viewField)
+}
+
 const showOrHideAllFields = (isAllFieldsVisible = false) => {
   // Bulk path — bypass the per-field hide-required confirmation. Calling
   // toggleVisibility() in a forEach would stack one warning modal per
@@ -2122,23 +2135,22 @@ onBeforeRouteUpdate((_to, from, next) => {
                           'opacity-0 !cursor-default': isLocked,
                         }"
                       />
-                      <NcCheckbox
-                        v-if="field.id && viewFieldsMap[field.id]"
-                        :disabled="isLocked"
-                        :checked="
-                          !!(
-                            visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ??
-                            viewFieldsMap[field.id].show
-                          )
-                        "
-                        data-testid="nc-field-visibility-checkbox"
-                        @change="
-                        (event: any) => {
-                          toggleVisibility(event.target.checked, viewFieldsMap[field.id])
-                        }
-                      "
-                      />
-                      <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
+                      <NcTooltip v-if="field.id && viewFieldsMap[field.id]" :disabled="isLocked">
+                        <template #title>
+                          {{ isFieldVisible(field) ? $t('tooltip.hideFieldInView') : $t('tooltip.showFieldInView') }}
+                        </template>
+                        <GeneralIcon
+                          :icon="isFieldVisible(field) ? 'ncEye' : 'ncEyeOff'"
+                          class="nc-field-visibility-toggle flex-none !w-4 !h-4"
+                          :class="[
+                            isFieldVisible(field) ? 'text-nc-content-brand' : 'text-nc-content-gray-disabled',
+                            isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                          ]"
+                          data-testid="nc-field-visibility-checkbox"
+                          @click.stop="toggleFieldVisibility(field)"
+                        />
+                      </NcTooltip>
+                      <div v-else class="flex-none !w-4 !h-4" />
 
                       <SmartsheetHeaderIcon
                         :column="fieldState(field) || field"
@@ -2159,15 +2171,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                       </NcTooltip>
 
                       <NcTooltip
-                        v-if="
-                          field.id &&
-                          viewFieldsMap[field.id] &&
-                          !(
-                            visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ??
-                            viewFieldsMap[field.id].show
-                          ) &&
-                          isHideBlockingRequired(field)
-                        "
+                        v-if="field.id && viewFieldsMap[field.id] && !isFieldVisible(field) && isHideBlockingRequired(field)"
                         placement="left"
                       >
                         <template #title>
@@ -2367,7 +2371,11 @@ onBeforeRouteUpdate((_to, from, next) => {
                           'opacity-0 !cursor-default': isLocked,
                         }"
                       />
-                      <NcCheckbox :disabled="true" :checked="true" data-testid="nc-field-visibility-checkbox" />
+                      <GeneralIcon
+                        icon="ncEye"
+                        class="nc-field-visibility-toggle flex-none !w-4 !h-4 text-nc-content-brand opacity-50 cursor-not-allowed"
+                        data-testid="nc-field-visibility-checkbox"
+                      />
 
                       <SmartsheetHeaderIcon
                         :column="fieldState(displayColumn) || displayColumn"

@@ -3787,6 +3787,8 @@
     "addComment": "Add a comment"
   },
   "tooltip": {
+    "showFieldInView": "Show this field in the current view.",
+    "hideFieldInView": "Hide this field in the current view.",
     "viewAllEventsInDayView": "View all {count} event in day view | View all {count} events in day view",
     "linkValueDelimiter": "Character separating multiple linked values within a single cell (default ,)",
     "shiftClickWeekStep": "Hold Shift to step by 1 week",

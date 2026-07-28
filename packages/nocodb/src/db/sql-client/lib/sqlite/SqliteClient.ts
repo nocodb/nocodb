@@ -1558,6 +1558,12 @@ class SqliteClient extends KnexClient {
       let upQuery = '';
       let downQuery = '';
 
+      // Columns that will be dropped via `ALTER TABLE ... DROP COLUMN` below —
+      // both the remove path and the change-column path emit a DROP COLUMN.
+      // SQLite refuses to drop a column while a user-created index references it,
+      // so we collect these and drop the dependent indexes first (see below).
+      const droppedColumnNames = new Set<string>();
+
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
@@ -1577,8 +1583,10 @@ class SqliteClient extends KnexClient {
             args.columns[i],
             downQuery,
           );
+          droppedColumnNames.add(oldColumn?.cn ?? args.columns[i].cn);
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
-          // col edit
+          // col edit — alterTableChangeColumn renames the old column and drops it
+          if (oldColumn?.cn) droppedColumnNames.add(oldColumn.cn);
           upQuery += this.alterTableChangeColumn(
             args.table,
             args.columns[i],
@@ -1617,6 +1625,40 @@ class SqliteClient extends KnexClient {
         args.originalColumns,
         upQuery,
       );
+
+      /*
+        SQLite fails an `ALTER TABLE ... DROP COLUMN` with
+        "SQLITE_ERROR: SQL logic error" when a user-created index still
+        references the column being dropped, and `legacy_alter_table` does not
+        relax this (it only relaxes view/trigger references). Postgres and MySQL
+        clients already drop dependent indexes as part of the alter, so mirror
+        that here: drop any explicitly-created index on the columns we are about
+        to drop, before the DROP COLUMN runs.
+      */
+      if (droppedColumnNames.size) {
+        const indexes = await this.sqlClient.raw(`PRAGMA index_list(??)`, [
+          args.table,
+        ]);
+        let dropIndexQuery = '';
+        for (const index of indexes) {
+          // origin 'c' = created via CREATE INDEX (droppable by name);
+          // 'u'/'pk' are implicit UNIQUE/PRIMARY KEY indexes that can only be
+          // removed by rebuilding the table, so leave those untouched.
+          if (index.origin !== 'c') continue;
+          const indexColumns = await this.sqlClient.raw(
+            `PRAGMA index_info(??)`,
+            [index.name],
+          );
+          if (indexColumns.some((col) => droppedColumnNames.has(col.name))) {
+            dropIndexQuery += this.genQuery(
+              `DROP INDEX IF EXISTS ??;`,
+              [index.name],
+              true,
+            );
+          }
+        }
+        upQuery = dropIndexQuery + upQuery;
+      }
 
       const fkCheckEnabled = (
         await this.sqlClient.raw('PRAGMA foreign_keys;')

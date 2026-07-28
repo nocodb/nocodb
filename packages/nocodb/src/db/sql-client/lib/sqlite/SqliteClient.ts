@@ -1626,36 +1626,27 @@ class SqliteClient extends KnexClient {
         upQuery,
       );
 
-      /*
-        SQLite fails an `ALTER TABLE ... DROP COLUMN` with
-        "SQLITE_ERROR: SQL logic error" when a user-created index still
-        references the column being dropped, and `legacy_alter_table` does not
-        relax this (it only relaxes view/trigger references). Postgres and MySQL
-        clients already drop dependent indexes as part of the alter, so mirror
-        that here: drop any explicitly-created index on the columns we are about
-        to drop, before the DROP COLUMN runs.
-      */
+      // SQLite refuses `ALTER TABLE ... DROP COLUMN` (SQLITE_ERROR) while a
+      // user-created index references the column, so drop those indexes first
+      // (mirrors what the Postgres/MySQL clients already do). `origin = 'c'`
+      // keeps implicit UNIQUE/PK autoindexes untouched.
       if (droppedColumnNames.size) {
-        const indexes = await this.sqlClient.raw(`PRAGMA index_list(??)`, [
-          args.table,
-        ]);
+        const dropped = [...droppedColumnNames];
+        const dependentIndexes = await this.sqlClient.raw(
+          `SELECT DISTINCT il.name AS name
+             FROM pragma_index_list(?) il
+             JOIN pragma_index_info(il.name) ii
+            WHERE il.origin = 'c'
+              AND ii.name IN (${dropped.map(() => '?').join(', ')})`,
+          [args.table, ...dropped],
+        );
         let dropIndexQuery = '';
-        for (const index of indexes) {
-          // origin 'c' = created via CREATE INDEX (droppable by name);
-          // 'u'/'pk' are implicit UNIQUE/PRIMARY KEY indexes that can only be
-          // removed by rebuilding the table, so leave those untouched.
-          if (index.origin !== 'c') continue;
-          const indexColumns = await this.sqlClient.raw(
-            `PRAGMA index_info(??)`,
+        for (const index of dependentIndexes) {
+          dropIndexQuery += this.genQuery(
+            `DROP INDEX IF EXISTS ??;`,
             [index.name],
+            true,
           );
-          if (indexColumns.some((col) => droppedColumnNames.has(col.name))) {
-            dropIndexQuery += this.genQuery(
-              `DROP INDEX IF EXISTS ??;`,
-              [index.name],
-              true,
-            );
-          }
         }
         upQuery = dropIndexQuery + upQuery;
       }

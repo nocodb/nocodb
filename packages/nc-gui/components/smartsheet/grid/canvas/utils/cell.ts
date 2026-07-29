@@ -62,8 +62,8 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
   colOptions.options = selectColOptions.options
     .filter((op) => op.title !== '')
     .map((op) => {
-      if (op.order !== null) {
-        op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
+      if (op.order !== null && ncIsString(op.title)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '')
       }
 
       op.value = op.title

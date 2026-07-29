@@ -33,7 +33,7 @@ const options = computed(() => {
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
     if (op.title) {
-      acc[op.title.trim()] = op
+      acc[ncIsString(op.title) ? op.title.trim() : `${op.title}`] = op
     }
     return acc
   }, {} as Record<string, (typeof options.value)[number]>)

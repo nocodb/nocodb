@@ -31,7 +31,7 @@ const indicator = h(LoadingOutlined, {
 
 const shouldShowTab = computed(() => {
   return {
-    field: isUIAllowed('fieldAdd') && !isSqlView.value,
+    field: isUIAllowed('fieldAdd'),
     permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && showEEFeatures.value,
     webhook: isUIAllowed('hookList') && !isSqlView.value,
   }

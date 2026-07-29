@@ -84,7 +84,7 @@ const { internalGet } = useInternalBatch()
 
 const { getMeta } = useMetas()
 
-const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
+const { meta, view, eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isUndoRedoInFlight } = useUndoRedo()
 
@@ -1695,7 +1695,7 @@ onBeforeRouteUpdate((_to, from, next) => {
               </template>
             </NcDropdown>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2" v-if="!isSqlView">
             <template v-if="isAiFeaturesEnabled">
               <div class="nc-fields-add-new-field-btn-wrapper rounded-lg shadow-nc-sm">
                 <NcTooltip>

@@ -62,10 +62,17 @@ export function ncLikePatternForRef(knex: CustomKnex, ref: Knex.Raw): Knex.Raw {
   return knex.raw("('%' || ? || '%')", [ref]);
 }
 
+/**
+ * Lookup / LTAR only: ops that must become `NOT EXISTS (positive op)` instead
+ * of `EXISTS (negative op)` — otherwise a row linked to both a valued and an
+ * unvalued record matches the op and its opposite, and a row with no links
+ * matches neither.
+ */
 export const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
   blank: { comparison_op: 'notblank' },
+  null: { comparison_op: 'notnull' },
   notchecked: { comparison_op: 'checked' },
   nanyof: { comparison_op: 'anyof' },
   nallof: { comparison_op: 'allof' },

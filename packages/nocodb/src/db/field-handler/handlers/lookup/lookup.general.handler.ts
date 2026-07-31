@@ -437,13 +437,20 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         });
         conditionJoinResult.clause(qb);
 
+        // Link conditions on the lookup filter the RELATED records, so they must
+        // resolve against the related table (`parentBaseModel`) at its alias in
+        // this subquery (`childAlias`) — the same pair `nestedConditionJoin` uses
+        // above. Passing `childBaseModel`/`alias` (the filtered base table and the
+        // junction alias) emitted `<junction_alias>.<related_column>`, a column
+        // that does not exist on the junction table -> Postgres 42703. The HM/BT
+        // branches already pass the matched (model, alias) pair.
         await extractLinkRelFiltersAndApply({
           context,
           column: column,
-          table: childBaseModel.model,
-          baseModel: childBaseModel,
+          table: parentBaseModel.model,
+          baseModel: parentBaseModel,
           qb,
-          alias,
+          alias: childAlias,
         });
 
         const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(

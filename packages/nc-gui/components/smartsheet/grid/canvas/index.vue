@@ -681,10 +681,19 @@ const totalHeight = computed(() => {
           }
           // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
           sum += 1
-        } else if (group?.groups) {
+        } else {
+          // Non-leaf (nested) group: reserve its sub-group HEADER band from the
+          // already-known `groupCount` immediately — mirroring the leaf branch
+          // above using the known row `count`. Previously this was gated behind
+          // `group.groups` (the child map), so an expanded outer group added no
+          // height until its sub-groups had been fetched async — the spacer
+          // never grew on expand when that fetch was slow/not-yet-triggered.
           sum += (group?.groupCount ?? 0) * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
-          // Do nested groups check
-          sum += estimateTotalHeight(group.groups)
+          // Add the loaded sub-groups' own expanded contents (rows / deeper
+          // sub-groups) once the child map is present.
+          if (group?.groups) {
+            sum += estimateTotalHeight(group.groups)
+          }
         }
       }
     }

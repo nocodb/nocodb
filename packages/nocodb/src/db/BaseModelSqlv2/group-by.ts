@@ -410,6 +410,21 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             '__nc_sub_group_col__',
           ]),
         );
+      } else if (baseModel.isOracle) {
+        // Oracle counts sub-groups on the OUTER derived table too (see the
+        // `isMssql || isOracle` branch below: COUNT(DISTINCT COALESCE(
+        // __nc_sub_group_col__, '__null__'))), so it must project the sub-group
+        // COLUMN here — NOT the pg-style inline COUNT(DISTINCT) aggregate.
+        // Oracle can't aggregate on this ungrouped inner query (ORA-00937), and
+        // taking the pg branch meant the outer referenced a __nc_sub_group_col__
+        // that was never projected → the sub-group count came back missing/NaN,
+        // so nested group expansion couldn't grow the canvas virtual height.
+        qb.select(
+          baseModel.dbDriver.raw(`TO_CHAR(??) as ??`, [
+            baseModel.dbDriver.raw(subGroupQuery),
+            '__nc_sub_group_col__',
+          ]),
+        );
       } else {
         // The template literal below coerces the wrapped Raw via `.toString()`
         // → `.toQuery()`, whose `formatQuery` step unescapes `\?` back to `?`.

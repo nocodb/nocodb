@@ -374,7 +374,9 @@ export const lookupOrLtarBuilder =
                 table: parentModel,
                 baseModel: parentBaseModel,
                 qb: selectQb,
-                alias,
+                // this nested level's related table is joined as `nestedAlias`,
+                // not the first-level `alias` — see the mm-lookup filter fix.
+                alias: nestedAlias,
               });
 
               const nestedBtSoftDeleteFilter = await getAliasedSoftDeleteFilter(
@@ -424,7 +426,9 @@ export const lookupOrLtarBuilder =
                 table: childModel,
                 baseModel: childBaseModel,
                 qb: selectQb,
-                alias,
+                // this nested level's related table is joined as `nestedAlias`,
+                // not the first-level `alias` — see the mm-lookup filter fix.
+                alias: nestedAlias,
               });
 
               const nestedHmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
@@ -495,7 +499,9 @@ export const lookupOrLtarBuilder =
               table: parentModel,
               baseModel: parentBaseModel,
               qb: selectQb,
-              alias,
+              // this nested level's related table is joined as `nestedAlias`,
+              // not the first-level `alias` — see the mm-lookup filter fix.
+              alias: nestedAlias,
             });
 
             const nestedMmSoftDeleteFilter = await getAliasedSoftDeleteFilter(

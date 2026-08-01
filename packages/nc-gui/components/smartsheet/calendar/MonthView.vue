@@ -247,7 +247,26 @@ const recordsToDisplay = computed<{
   const spaceBetweenRecords = 27
   // Expanded: never cap lanes — every record gets a lane (no "+N more"), and the grid
   // grows to fit (see expandedGridHeightPx). Compact: derive the cap from the row height.
-  const maxLanes = isExpanded.value ? Infinity : Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
+  // Interfaces cap on the REAL render pitch (+4) — the Data tab's +8 reserve
+  // left a whole visible lane unused with the tighter 24px chips.
+  const laneCapPitch = perRecordHeight + (interfacePageDataApi ? 4 : 8)
+  // The "+N more" badge is bottom-anchored inside each day cell (23px xxsmall button +
+  // 4px `bottom-1` inset), while the record overlay renders ~8px lower than the cells
+  // (`mt-8` vs the ~24px weekday header). The Data tab's +8 cap pitch accrues enough
+  // slack under the last lane to keep that band clear, but capping interfaces on the
+  // exact render pitch left zero slack — the last lane and the badge shared the same
+  // vertical band. Reserve the badge row in the interface cap: 23px badge + 8px overlay
+  // downshift (the badge's 4px inset is covered by the last lane's trailing 4px gap).
+  const overflowRowReserve = interfacePageDataApi ? 31 : 0
+  // Always allow at least one lane. `perHeight` is `gridHeight / weeksInMonth`,
+  // so a 6-week month (e.g. Aug 2026 — starts on a Saturday) makes each row
+  // shorter; in the tighter interface layout (larger `overflowRowReserve`) the
+  // floor can hit 0, which sends EVERY record to overflow and renders zero chips
+  // (empty cells behind a "+N more" badge). A day cell must always show its
+  // first record before overflowing.
+  const maxLanes = isExpanded.value
+    ? Infinity
+    : Math.max(1, Math.floor((perHeight - spaceBetweenRecords - overflowRowReserve) / laneCapPitch))
 
   // Track records and lanes for each day
   const recordsInDay: {

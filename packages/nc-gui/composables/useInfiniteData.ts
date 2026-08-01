@@ -85,6 +85,7 @@ export function useInfiniteData(args: {
       path: Array<number>
     }) => void
     findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
+    onAgentStatus?: (columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -155,6 +156,26 @@ export function useInfiniteData(args: {
     : useViewGroupByOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal, blockButtonVisibility } = useEeConfig()
+
+  // Field agent dirty tracking: rebuild dependency map when columns change, clear stale dirty state on table switch
+  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap, clearAllFieldAgentDirty } = useNocoAi()
+
+  watch(
+    () => meta.value?.id,
+    () => {
+      clearAllFieldAgentDirty()
+    },
+  )
+
+  watch(
+    () => meta.value?.columns,
+    (columns) => {
+      if (columns?.length) {
+        buildFieldAgentDependencyMap(columns as ColumnType[])
+      }
+    },
+    { immediate: true },
+  )
 
   const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
     ? {
@@ -1471,6 +1492,11 @@ export function useInfiniteData(args: {
         { typecast: 'true' },
       )
 
+      // Track dirty rows for field agents that depend on this column
+      if (id) {
+        onFieldAgentCellUpdate(property, String(id), meta.value?.id)
+      }
+
       // Update specific columns based on their types.
       // Only sync back types that can be changed server-side as a side effect
       // (computed fields, triggers, on-update defaults).
@@ -2371,6 +2397,15 @@ export function useInfiniteData(args: {
         callbacks?.syncVisibleData?.()
       } catch (e) {
         console.error('Failed to reorder cached row on socket event', e)
+      }
+    } else if (action === 'agent_status') {
+      const { columnId, status, rowIds } = payload as {
+        columnId: string
+        status: 'generating' | 'idle'
+        rowIds: string[]
+      }
+      if (callbacks?.onAgentStatus) {
+        callbacks.onAgentStatus(columnId, status, rowIds)
       }
     }
   }

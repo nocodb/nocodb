@@ -54,6 +54,9 @@ const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()
 
+// Field Agent support
+const { isFieldAgent, rowPk, isAiGenerating, runFieldAgent } = useFieldAgentCell({ column, meta, emit })
+
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
@@ -388,6 +391,27 @@ onMounted(() => {
         </div>
       </a-select-option>
     </NcSelect>
+
+    <!-- Field Agent Run Button -->
+    <NcTooltip
+      v-if="isFieldAgent && rowPk && !isEditColumn && !isForm && editAllowed && !readOnly"
+      :title="$t('labels.fieldAgent.runAiAgent')"
+    >
+      <NcButton
+        v-e="['a:field-agent:cell:generate', { source: 'cell' }]"
+        size="xs"
+        type="text"
+        theme="ai"
+        class="nc-field-agent-run-btn !px-1 flex-none"
+        :loading="isAiGenerating"
+        :disabled="isAiGenerating"
+        @click.stop="runFieldAgent"
+      >
+        <template #icon>
+          <GeneralIcon icon="ncAutoAwesome" class="h-3.5 w-3.5" />
+        </template>
+      </NcButton>
+    </NcTooltip>
   </div>
 </template>
 

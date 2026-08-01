@@ -320,6 +320,8 @@ export const LongTextAiMetaProp = 'ai';
 export const LongTextRichModeMetaProp = 'richMode';
 export const LongTextSmartModeMetaProp = 'smartMode';
 
+export const SelectFieldAgentMetaProp = 'field_agent';
+
 export const NO_SCOPE = 'nc';
 
 export const NON_SEAT_ROLES = [

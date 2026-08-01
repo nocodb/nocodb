@@ -2,6 +2,7 @@ import {
   SeparatorType,
   formatNumberWithSeparator,
   getSeparatorChars,
+  isFieldAgentCol,
   resolveColumnSeparator,
   roundUpToPrecision,
 } from 'nocodb-sdk'
@@ -58,6 +59,9 @@ export const DecimalCellRenderer: CellRenderer = {
         y: yOffset,
       }
     }
+  },
+  async handleClick(props) {
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

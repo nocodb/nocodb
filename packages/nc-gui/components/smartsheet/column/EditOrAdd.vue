@@ -2,6 +2,7 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  FIELD_AGENT_SUPPORTED_TYPES,
   PlanFeatureTypes,
   PlanTitles,
   UITypesSearchTerms,
@@ -182,6 +183,9 @@ const columnUidt = computed({
     return formState.value.uidt
   },
   set: (value: UITypes) => {
+    // AIFieldAgent is handled via its submenu, not direct selection
+    if (value === AIFieldAgent) return
+
     if (value === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
       return
     }
@@ -263,7 +267,7 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name)
+  const showAiFields = [AIPrompt, AIButton, AIFieldAgent].includes(t.name)
     ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
     : true
   const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
@@ -406,7 +410,16 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
     onInit()
   }
 
-  if (uidt === AIButton) {
+  if (typeof uidt === 'string' && uidt.startsWith(AIFieldAgent + ':')) {
+    // AIFieldAgent submenu: extract real UIType and preload field_agent enabled meta
+    const realType = uidt.split(':')[1] as UITypes
+    formState.value.uidt = realType
+    preload = {
+      meta: {
+        field_agent: { enabled: true },
+      },
+    }
+  } else if (uidt === AIButton) {
     formState.value.uidt = UITypes.Button
     preload = {
       type: ButtonActionsType.Ai,
@@ -1475,6 +1488,7 @@ const unique = computed({
           @on-submit="onSubmit"
         />
       </template>
+
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
@@ -1641,6 +1655,12 @@ const unique = computed({
             </Transition>
           </template>
         </template>
+
+        <!-- Field Agent Config - shown as last section before description/buttons for all supported types -->
+        <LazySmartsheetColumnFieldAgentConfig
+          v-if="isAiFeaturesEnabled && FIELD_AGENT_SUPPORTED_TYPES.includes(formState.uidt)"
+          v-model:value="formState"
+        />
 
         <a-form-item
           v-if="enableDescription && !aiAutoSuggestMode"

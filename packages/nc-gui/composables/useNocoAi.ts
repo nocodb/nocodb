@@ -1,9 +1,17 @@
-import { BaseVersion, type IntegrationType, type SerializedAiViewType, type TableType } from 'nocodb-sdk'
+import {
+  BaseVersion,
+  type ColumnType,
+  type IntegrationType,
+  SelectFieldAgentMetaProp,
+  type SerializedAiViewType,
+  type TableType,
+  isFieldAgentCol,
+} from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
 export const useNocoAi = createSharedComposable(() => {
-  const { $api, $poller } = useNuxtApp()
+  const { $api, $e, $poller } = useNuxtApp()
 
   const workspaceStore = useWorkspace()
 
@@ -372,7 +380,7 @@ export const useNocoAi = createSharedComposable(() => {
   ) => {
     try {
       const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
-      const baseId = meta?.baseId || activeProjectId.value
+      const baseId = meta?.baseId || activeProjectId?.value || workspaceStore.activeProjectId?.value
 
       if (!workspaceId || !baseId) return
 
@@ -417,7 +425,7 @@ export const useNocoAi = createSharedComposable(() => {
     meta?: { workspaceId?: string; baseId?: string },
   ) => {
     const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
-    const baseId = meta?.baseId || activeProjectId.value
+    const baseId = meta?.baseId || activeProjectId?.value || workspaceStore.activeProjectId?.value
 
     if (!workspaceId || !baseId) return
 
@@ -517,6 +525,172 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
+  // Canvas grid action manager hook: set by canvas grid, used by toolbar for
+  // cell-level loading spinners during bulk AI generation.
+  const canvasBulkAiGeneration = ref<
+    ((columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) => Promise<any>) | null
+  >(null)
+
+  // ── Field Agent Dirty Row Tracking ──────────────────────────────────
+  // Tracks which rows need re-generation because a dependent field changed.
+  // Session-scoped: resets on page reload.
+
+  /** Mutate a reactive Map ref and trigger Vue reactivity. */
+  function reactiveMapSet<K, V>(mapRef: Ref<Map<K, V>>, key: K, value: V) {
+    mapRef.value.set(key, value)
+    triggerRef(mapRef)
+  }
+
+  function reactiveMapDelete<K, V>(mapRef: Ref<Map<K, V>>, key: K) {
+    mapRef.value.delete(key)
+    triggerRef(mapRef)
+  }
+
+  // Reverse dependency map: columnTitle → [fieldAgentColumnId, ...]
+  const fieldAgentDependencyMap = ref<Map<string, string[]>>(new Map())
+
+  // Dirty rows: fieldAgentColumnId → Set<rowPk>
+  const dirtyFieldAgentRows = ref<Map<string, Set<string>>>(new Map())
+
+  /**
+   * Build reverse dependency map from field agent prompts.
+   * Call whenever table columns change.
+   */
+  const buildFieldAgentDependencyMap = (columns: ColumnType[]) => {
+    const newMap = new Map<string, string[]>()
+
+    for (const col of columns) {
+      if (!isFieldAgentCol(col) || !col.id) continue
+
+      const colMeta = parseProp(col.meta)
+      const promptRaw = colMeta?.[SelectFieldAgentMetaProp]?.prompt_raw
+      if (!promptRaw) continue
+
+      // Extract all {FieldName} tokens
+      const matches = promptRaw.match(/\{([^}]+)\}/g)
+      if (!matches) continue
+
+      for (const match of matches) {
+        const fieldName = match.slice(1, -1) // Remove { }
+        const existing = newMap.get(fieldName) ?? []
+        if (!existing.includes(col.id)) {
+          existing.push(col.id)
+        }
+        newMap.set(fieldName, existing)
+      }
+    }
+
+    fieldAgentDependencyMap.value = newMap
+  }
+
+  /**
+   * Called after a cell update. Marks dependent field agent rows as dirty.
+   * Also triggers a debounced server-side re-fetch for persistent tracking.
+   */
+  const onFieldAgentCellUpdate = (property: string, rowPk: string, modelId?: string) => {
+    const dependentColIds = fieldAgentDependencyMap.value.get(property)
+    if (!dependentColIds?.length) return
+
+    for (const colId of dependentColIds) {
+      let dirtySet = dirtyFieldAgentRows.value.get(colId)
+      if (!dirtySet) {
+        dirtySet = new Set()
+        dirtyFieldAgentRows.value.set(colId, dirtySet)
+      }
+      dirtySet.add(rowPk)
+
+      // Debounced server re-fetch for persistent tracking
+      if (modelId) {
+        debouncedFetchDirty(modelId, colId)
+      }
+    }
+
+    triggerRef(dirtyFieldAgentRows)
+  }
+
+  // ── Server-Side Dirty Tracking (persistent via nc_row_meta) ──────────
+  // Queries the backend for dirty rows; survives page reloads.
+
+  const serverDirtyCounts = ref<Map<string, { count: number; rowIds: string[] }>>(new Map())
+  const dirtyCountLoading = ref<Map<string, boolean>>(new Map())
+
+  const fetchFieldAgentDirtyCount = async (modelId: string, colId: string) => {
+    if (!modelId || !colId) return { count: 0, rowIds: [] }
+
+    reactiveMapSet(dirtyCountLoading, colId, true)
+
+    try {
+      const data = (await $api.internal.getOperation(workspaceStore.activeWorkspaceId, activeProjectId?.value || workspaceStore.activeProjectId?.value || '', {
+        operation: 'fieldAgentDirtyRows',
+        tableId: modelId,
+        columnId: colId,
+      })) as { count: number; rowIds: string[] }
+      reactiveMapSet(serverDirtyCounts, colId, data)
+      return data
+    } catch (_e) {
+      return { count: 0, rowIds: [] }
+    } finally {
+      reactiveMapSet(dirtyCountLoading, colId, false)
+    }
+  }
+
+  const debouncedFetchDirty = useDebounceFn((modelId: string, colId: string) => {
+    fetchFieldAgentDirtyCount(modelId, colId)
+  }, 2000)
+
+  /** Number of dirty (stale) rows for a given field agent column. Prefers server-side data. */
+  const getFieldAgentDirtyCount = (colId: string): number => {
+    const serverData = serverDirtyCounts.value.get(colId)
+    if (serverData !== undefined) return serverData.count
+    return dirtyFieldAgentRows.value.get(colId)?.size ?? 0
+  }
+
+  /** Row PKs that need re-generation for a given field agent column. Prefers server-side data. */
+  const getFieldAgentDirtyRowIds = (colId: string): string[] => {
+    const serverData = serverDirtyCounts.value.get(colId)
+    if (serverData !== undefined) return serverData.rowIds
+    return [...(dirtyFieldAgentRows.value.get(colId) ?? [])]
+  }
+
+  /** Whether a dirty count fetch is in progress for a column. */
+  const isDirtyCountLoading = (colId: string): boolean => {
+    return dirtyCountLoading.value.get(colId) ?? false
+  }
+
+  /** Clear dirty state for a single field agent column (e.g. after successful generation). */
+  const clearFieldAgentDirty = (colId: string) => {
+    reactiveMapDelete(dirtyFieldAgentRows, colId)
+    reactiveMapDelete(serverDirtyCounts, colId)
+  }
+
+  /** Reset all dirty state (e.g. on table switch). */
+  const clearAllFieldAgentDirty = () => {
+    dirtyFieldAgentRows.value = new Map()
+    serverDirtyCounts.value = new Map()
+  }
+
+  /**
+   * Dispatch a background job for bulk field agent generation.
+   * Returns the job ID. Caller should subscribe via $poller.
+   */
+  const dispatchFieldAgentJob = async (
+    modelId: string,
+    params: {
+      columnId: string
+      mode: 'all' | 'unmodified' | 'modified'
+      viewId?: string
+    },
+  ): Promise<{ id: string } | undefined> => {
+    try {
+      const res = await $api.instance.post<{ id: string }>(`/api/v2/ai/tables/${modelId}/field-agent/generate`, params)
+      $e('a:field-agent:bulk:dispatch', { mode: params.mode })
+      return res.data
+    } catch (e: any) {
+      const error = await extractSdkResponseErrorMsg(e)
+      message.error(error || 'Failed to start field agent job')
+    }
+  }
+
   return {
     aiIntegrationAvailable,
     isNocoAiAvailable,
@@ -546,5 +720,19 @@ export const useNocoAi = createSharedComposable(() => {
     completeScript,
     isAiFeaturesEnabled,
     isAiBetaFeaturesEnabled,
+    canvasBulkAiGeneration,
+    // Field agent dirty tracking
+    buildFieldAgentDependencyMap,
+    onFieldAgentCellUpdate,
+    getFieldAgentDirtyCount,
+    getFieldAgentDirtyRowIds,
+    clearFieldAgentDirty,
+    clearAllFieldAgentDirty,
+    // Server-side dirty tracking (persistent)
+    fetchFieldAgentDirtyCount,
+    isDirtyCountLoading,
+    serverDirtyCounts,
+    // Bulk job dispatch
+    dispatchFieldAgentJob,
   }
 })

@@ -203,13 +203,17 @@ export const MultiSelectCellRenderer: CellRenderer = {
     })
   },
 
-  async handleClick({ row, column, makeCellEditable, selected }) {
+  async handleClick(props) {
+    const { row, column, makeCellEditable, selected } = props
+
     if (column.columnObj?.readonly || !column?.isCellEditable || !selected || column.isSyncedColumn) return false
     makeCellEditable(row, column)
     return true
   },
 
-  async handleKeyDown({ e, row, column, makeCellEditable }) {
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+
     if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)

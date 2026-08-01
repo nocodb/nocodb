@@ -242,11 +242,12 @@ export function useCanvasTable({
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
+  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows, canvasBulkAiGeneration } =
+    useNocoAi()
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring, blockFieldAgent } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
@@ -290,6 +291,8 @@ export function useCanvasTable({
     currentUser,
   )
 
+  actionManager.setFieldAgentBlockedCheck(() => blockFieldAgent.value)
+
   watch(
     () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
     ([baseId, workspaceId]) => {
@@ -299,6 +302,26 @@ export function useCanvasTable({
     },
     { immediate: true },
   )
+
+  // Wire up realtime agent status callback from useInfiniteData → ActionManager
+  const onAgentStatus = inject<Ref<((columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void) | undefined>>(
+    'onAgentStatus',
+    ref(),
+  )
+
+  onAgentStatus.value = (columnId: string, status: 'generating' | 'idle', rowIds: string[]) => {
+    for (const rowId of rowIds) {
+      if (status === 'generating') {
+        actionManager.setRemoteGenerating(rowId, columnId)
+      } else {
+        actionManager.clearRemoteGenerating(rowId, columnId)
+      }
+    }
+  }
+
+  // Expose bulk AI generation to toolbar via shared composable
+  canvasBulkAiGeneration.value = (columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) =>
+    actionManager.executeBulkAiGeneration(columnId, rowIds, rows, path)
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -1834,6 +1857,7 @@ export function useCanvasTable({
   onBeforeUnmount(() => {
     actionManager.releaseEventListeners()
     eventBus.off(smartsheetEventHandler)
+    canvasBulkAiGeneration.value = null
   })
 
   // load metas and refresh canvas

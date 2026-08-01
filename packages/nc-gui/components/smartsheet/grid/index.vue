@@ -96,6 +96,7 @@ const {
   clearGroupCache,
   toggleExpandAll,
   groupDataCache,
+  onAgentStatus,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 // SmartText panel row navigation contract.
@@ -195,6 +196,8 @@ provide(RowHeightInj, rowHeight)
 const isPublic = inject(IsPublicInj, ref(false))
 
 provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+provide('onAgentStatus', onAgentStatus)
 
 const skipRowRemovalOnCancel = ref(false)
 

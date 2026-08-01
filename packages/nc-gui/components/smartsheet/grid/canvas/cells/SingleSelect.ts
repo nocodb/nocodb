@@ -6,7 +6,8 @@ const tagHeight = 22
 const topPadding = 4
 
 export const SingleSelectCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, pv, padding, isDark, getColor }) => {
+  render: (ctx, props) => {
+    const { column, value, x, y, width, pv, padding, isDark, getColor } = props
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
@@ -82,7 +83,9 @@ export const SingleSelectCellRenderer: CellRenderer = {
     })
   },
 
-  async handleClick({ row, column, makeCellEditable, selected }) {
+  async handleClick(props) {
+    const { row, column, makeCellEditable, selected } = props
+
     if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn || !selected)
       return false
 
@@ -90,7 +93,9 @@ export const SingleSelectCellRenderer: CellRenderer = {
     return true
   },
 
-  async handleKeyDown({ e, row, column, makeCellEditable }) {
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+
     if (column.readonly || column.columnObj?.readonly || column.isSyncedColumn || !column?.isCellEditable) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)

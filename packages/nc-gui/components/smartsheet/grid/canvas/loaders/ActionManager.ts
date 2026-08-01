@@ -37,6 +37,8 @@ export class ActionManager {
 
   private eventBus?: any
 
+  private checkFieldAgentBlocked?: () => boolean
+
   // Consolidated state maps
   private loadingColumns = new Map<string, number>()
   private afterActionStatus = new Map<string, Omit<ActionState, 'startTime'>>()
@@ -44,7 +46,10 @@ export class ActionManager {
   private cellUpdates = new Map<string, CellUpdate>()
   private activeBulkExecs = new Map<string, boolean>()
   private bulkRowStates = new Map<string, BulkRowState>()
+  private remoteGenerating = new Map<string, number>()
   private rafId: number | null = null
+  private lastFrameTime = 0
+  private static readonly MIN_FRAME_INTERVAL = 66 // ~15fps
 
   constructor(
     api: Api<any>,
@@ -78,6 +83,14 @@ export class ActionManager {
     this.baseInfo = { baseId, workspaceId }
   }
 
+  setFieldAgentBlockedCheck(check: () => boolean) {
+    this.checkFieldAgentBlocked = check
+  }
+
+  isFieldAgentBlocked(): boolean {
+    return this.checkFieldAgentBlocked?.() ?? false
+  }
+
   private eventMap = {
     [SmartsheetScriptActions.BULK_ACTION_START]: (payload: any) => {
       this.activeBulkExecs.set(payload.columnId, true)
@@ -97,7 +110,6 @@ export class ActionManager {
       })
     },
     [SmartsheetScriptActions.BUTTON_ACTION_PROGRESS]: (payload: any) => {
-      console.log('BUTTON_ACTION_PROGRESS', payload)
       const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
       if (rowState) {
         this.setBulkRowState(payload.rowId, payload.columnId, {
@@ -144,6 +156,7 @@ export class ActionManager {
   public releaseEventListeners() {
     if (!this.eventBus) return
     this.eventBus.off(this.eventHandler)
+    this.stopAnimationLoop()
   }
 
   private getKey(rowId: string, columnId: string): string {
@@ -212,43 +225,68 @@ export class ActionManager {
     }
   }
 
+  private cooldownTimeout: number | null = null
+
+  private hasActivity(): boolean {
+    return (
+      this.loadingColumns.size > 0 ||
+      this.afterActionStatus.size > 0 ||
+      this.activeBulkExecs.size > 0 ||
+      this.remoteGenerating.size > 0
+    )
+  }
+
   private startAnimationLoop() {
-    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+    if (this.rafId !== null) {
+      // Already running — if new activity arrived during cooldown, cancel the
+      // cooldown so the loop picks it up on the next frame.
+      if (this.cooldownTimeout && this.hasActivity()) {
+        clearTimeout(this.cooldownTimeout)
+        this.cooldownTimeout = null
+      }
+      return
+    }
 
-    if (this.rafId !== null || !hasActivity) return
-
-    let cooldownTimeout: number | null = null
-    let isCoolingDown = false
+    if (!this.hasActivity()) return
 
     const animate = () => {
-      const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
-
-      if (currentActivity) {
-        if (cooldownTimeout) {
-          clearTimeout(cooldownTimeout)
-          cooldownTimeout = null
-          isCoolingDown = false
+      if (this.hasActivity()) {
+        if (this.cooldownTimeout) {
+          clearTimeout(this.cooldownTimeout)
+          this.cooldownTimeout = null
         }
-        this.triggerRefreshCanvas()
+        const now = performance.now()
+        if (now - this.lastFrameTime >= ActionManager.MIN_FRAME_INTERVAL) {
+          this.triggerRefreshCanvas()
+          this.lastFrameTime = now
+        }
         this.rafId = requestAnimationFrame(animate)
-      } else if (!isCoolingDown) {
-        isCoolingDown = true
+      } else {
+        // No activity — render one last frame, then schedule stop
         this.triggerRefreshCanvas()
 
-        cooldownTimeout = window.setTimeout(() => {
-          if (this.rafId) {
-            cancelAnimationFrame(this.rafId)
-            this.rafId = null
+        this.cooldownTimeout = window.setTimeout(() => {
+          this.stopAnimationLoop()
+          // Re-check: activity may have started during the cooldown window
+          if (this.hasActivity()) {
+            this.startAnimationLoop()
           }
-          cooldownTimeout = null
-          isCoolingDown = false
         }, 1000)
-
-        this.rafId = requestAnimationFrame(() => this.triggerRefreshCanvas())
       }
     }
 
     this.rafId = requestAnimationFrame(animate)
+  }
+
+  private stopAnimationLoop() {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId)
+      this.rafId = null
+    }
+    if (this.cooldownTimeout) {
+      clearTimeout(this.cooldownTimeout)
+      this.cooldownTimeout = null
+    }
   }
 
   private handleUrl(colOptions: any, url: string, allowLocalUrl: boolean = false) {
@@ -285,15 +323,24 @@ export class ActionManager {
       allowLocalUrl?: boolean
     } = {},
   ) {
-    const colOptions = column?.columnObj.colOptions as ButtonType
-    if (!colOptions || column.isInvalidColumn?.isInvalid) return
+    let colOptions = column?.columnObj.colOptions as ButtonType
+    if (column.isInvalidColumn?.isInvalid) return
 
     extra.path = extra.path || []
     const { cachedRows } = this.getDataCache(extra.path)
 
+    // Field agent columns (e.g. SingleLineText, Number) are not Button columns,
+    // so they don't have colOptions. Synthesize a minimal ButtonType with type: 'ai'
+    // to route them into the existing 'ai' case in the switch below.
     if (extra.isAiPromptCol) {
-      colOptions.type = 'ai'
+      if (!colOptions) {
+        colOptions = { type: 'ai' } as ButtonType
+      } else {
+        colOptions.type = 'ai'
+      }
     }
+
+    if (!colOptions) return
 
     const { runScript, activeExecutions } = useScriptExecutor()
     const { addScriptExecution } = useActionPane()
@@ -364,6 +411,9 @@ export class ActionManager {
         }
 
         case 'ai': {
+          // Block field-agent cells when feature is payment-gated
+          if (extra.isAiPromptCol && this.isFieldAgentBlocked()) return
+
           const outputColumnIds = extra.isAiPromptCol
             ? [column.id]
             : colOptions.output_column_ids?.split(',').filter(Boolean) || []
@@ -388,8 +438,8 @@ export class ActionManager {
           break
         }
       }
-    } catch (e: any) {
-      console.error('Error executing button action', e)
+    } catch (_e) {
+      // Error is already surfaced via after-action status on the cell
     }
   }
 
@@ -397,15 +447,55 @@ export class ActionManager {
     return this.executeAction(...args)
   }
 
+  /**
+   * Public method for running bulk AI field-agent generation with proper
+   * loading-state management (spinner in each cell while generating).
+   *
+   * @param rows - Row objects with rowMeta.rowIndex so cached rows can be updated in real-time
+   * @param path - Group-by path for accessing the correct data cache
+   */
+  async executeBulkAiGeneration(
+    columnId: string,
+    rowIds: string[],
+    rows?: Row[],
+    path?: Array<number>,
+  ): Promise<any> {
+    if (this.isFieldAgentBlocked()) return
+
+    const column = this.meta.value?.columnsById?.[columnId]
+
+    return this.executeAction(rowIds, columnId, [columnId], async () => {
+      const res = await this.generateRows(columnId, rowIds)
+
+      // Update cached rows with the generated data so cells refresh in real-time
+      if (res?.length && column?.title && rows?.length) {
+        const { cachedRows } = this.getDataCache(path)
+
+        res.forEach((data, i) => {
+          const rowIndex = rows[i]?.rowMeta?.rowIndex
+          if (rowIndex == null) return
+
+          const row = cachedRows.value.get(rowIndex)
+          if (row) {
+            row.row[column.title!] = data[column.title!]
+            cachedRows.value.set(rowIndex, row)
+          }
+        })
+      }
+
+      return res
+    })
+  }
+
   // Public state query methods
   isLoading(rowId: string, columnId: string): boolean {
     const key = this.getKey(rowId, columnId)
-    return this.loadingColumns.has(key) || this.getBulkRowState(rowId, columnId)?.status === 'loading'
+    return this.loadingColumns.has(key) || this.getBulkRowState(rowId, columnId)?.status === 'loading' || this.remoteGenerating.has(key)
   }
 
   getLoadingStartTime(rowId: string, columnId: string): number | null {
     const key = this.getKey(rowId, columnId)
-    return this.loadingColumns.get(key) ?? this.getBulkRowState(rowId, columnId)?.startTime ?? null
+    return this.loadingColumns.get(key) ?? this.getBulkRowState(rowId, columnId)?.startTime ?? this.remoteGenerating.get(key) ?? null
   }
 
   getAfterActionStatus(rowId: string, columnId: string) {
@@ -425,6 +515,15 @@ export class ActionManager {
 
   isQueued(rowId: string, columnId: string): boolean {
     return this.isBulkExecutionRunning(columnId) && !this.bulkRowStates.has(this.getKey(rowId, columnId))
+  }
+
+  setRemoteGenerating(rowId: string, colId: string) {
+    this.remoteGenerating.set(this.getKey(rowId, colId), Date.now())
+    this.startAnimationLoop()
+  }
+
+  clearRemoteGenerating(rowId: string, colId: string) {
+    this.remoteGenerating.delete(this.getKey(rowId, colId))
   }
 
   getCurrentStepTitle(rowId: string, columnId: string): string | undefined {
@@ -495,6 +594,7 @@ export class ActionManager {
   }
 
   clear() {
+    this.stopAnimationLoop()
     this.loadingColumns.clear()
     this.currentStepTitles.clear()
     this.cellUpdates.clear()

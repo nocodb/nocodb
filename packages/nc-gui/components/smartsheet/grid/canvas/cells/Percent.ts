@@ -2,7 +2,8 @@ import { ColumnHelper, UITypes, ncIsNaN } from 'nocodb-sdk'
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, pv, column, padding, textColor = themeV4Colors.gray['600'], getColor }) => {
+  render: (ctx, props) => {
+    const { value, x, y, width, height, pv, column, padding, textColor = themeV4Colors.gray['600'], getColor } = props
     ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -109,6 +110,9 @@ export const PercentCellRenderer: CellRenderer = {
       fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
       height,
     })
+  },
+  async handleClick(props) {
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

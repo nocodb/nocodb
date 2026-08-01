@@ -72,7 +72,7 @@ export interface ConnectionErrorPayload extends BaseSocketPayload {
 
 export interface DataPayload extends BaseSocketPayload {
   id: string;
-  action: 'add' | 'update' | 'delete' | 'reorder' | 'bulk';
+  action: 'add' | 'update' | 'delete' | 'reorder' | 'bulk' | 'agent_status';
   payload: Record<string, any>;
   before?: string;
   matchedViewIds?: string[];

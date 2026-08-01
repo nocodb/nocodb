@@ -78,6 +78,7 @@ export type InternalGETResponseType = Promise<
       editorCount: number;
     }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
+  | { count: number; rowIds: string[] }
 >;
 
 export type InternalPOSTResponseType = Promise<

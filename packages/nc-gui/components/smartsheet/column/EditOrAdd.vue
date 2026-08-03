@@ -23,7 +23,6 @@ import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#im
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
-import { isEeUI } from '#imports'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -271,9 +270,9 @@ const uiFilters = (t: UiTypesType) => {
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const showAiFields = [AIPrompt, AIButton].includes(t.name)
-    ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+    ? isAiBetaFeaturesEnabled.value && !isEdit.value && showEEFeatures.value
     : true
-  const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
+  const showColourField = t.name === UITypes.Colour ? showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value || isTextToLtar : true
@@ -289,10 +288,10 @@ const uiFilters = (t: UiTypesType) => {
   // existing data would break both invariants; the backend (and the
   // dropdown line 228 above for edit mode) enforces that.
   const isUuidCompatibleSource = isPg(meta.value?.source_id) || isMssql(meta.value?.source_id)
-  const showUUID = t.name !== UITypes.UUID || (isUuidCompatibleSource && isEeUI && showEEFeatures.value && !isEdit.value)
+  const showUUID = t.name !== UITypes.UUID || (isUuidCompatibleSource && showEEFeatures.value && !isEdit.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&
@@ -1509,7 +1508,6 @@ const unique = computed({
                 sqlUi?.isUniqueSupportedField?.(formState.uidt) !== false &&
                 !isUUID(formState) &&
                 !isAutoNumber(formState) &&
-                isEeUI &&
                 showEEFeatures
               "
               class="flex"

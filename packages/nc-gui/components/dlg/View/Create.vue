@@ -258,7 +258,7 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 // Personal views cannot be created on a sandbox — they belong to the master base.
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
-  if (isEeUI) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
+  if (showEEFeatures.value) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
   if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxProduction.value })
   return options
 })
@@ -1108,7 +1108,7 @@ watch(activeBaseId, () => {
                      modal instead of setting lock_type. On a sandbox base, personal
                      views are disabled — they must be created on the master base. -->
                 <NcTooltip
-                  v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
+                  v-if="option.value === ViewLockType.Personal && showEEFeatures"
                   :disabled="!option.disabled"
                   :title="$t('tooltip.personalViewDisabledOnSandbox')"
                 >
@@ -1318,7 +1318,7 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton

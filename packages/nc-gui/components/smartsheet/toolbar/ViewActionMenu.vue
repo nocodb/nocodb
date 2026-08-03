@@ -227,7 +227,6 @@ const isFieldHeaderVisibilityOptionVisible = computed(() => {
     !props.inSidebar &&
     isUIAllowed('viewCreateOrEdit') &&
     [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isEeUI &&
     showEEFeatures.value
   )
 })
@@ -473,7 +472,7 @@ defineOptions({
         </NcMenuItem>
 
         <SmartsheetToolbarViewActionMenuMoveToSection
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           :view="view"
           :table="table"
           :in-sidebar="inSidebar"
@@ -666,7 +665,7 @@ defineOptions({
               <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="disableCollaborativeOption" />
             </NcMenuItem>
           </SmartsheetToolbarNotAllowedTooltip>
-          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
+          <SmartsheetToolbarNotAllowedTooltip v-if="showEEFeatures" :enabled="disablePersonalView">
             <template #title>
               <div class="max-w-80">{{ personalOptionDisabledReason }}</div>
             </template>
@@ -701,7 +700,7 @@ defineOptions({
             </NcMenuItem>
           </SmartsheetToolbarNotAllowedTooltip>
         </NcSubMenu>
-        <template v-if="isEeUI && showEEFeatures">
+        <template v-if="showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
             :enabled="!isUIAllowed('reAssignViewOwner')"
@@ -822,7 +821,7 @@ defineOptions({
       </template>
 
       <BookmarksMenuAction
-        v-if="isEeUI && !isPublicView && view && table && base"
+        v-if="!isPublicView && view && table && base && showEEFeatures"
         target-type="view"
         :target-id="view.id!"
         :meta="{

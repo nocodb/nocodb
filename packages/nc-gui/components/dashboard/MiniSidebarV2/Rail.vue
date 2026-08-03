@@ -203,7 +203,7 @@ const mainItems = computed<NavItem[]>(() => [
     },
   },
   // Interfaces are paid-only and hidden (not badge-gated) below the tier.
-  ...(isEeUI && showEEFeatures.value && !hideInterfaces.value
+  ...(showEEFeatures.value && !hideInterfaces.value
     ? [
         {
           key: 'interfaces',
@@ -218,7 +218,7 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
+  ...(!isMobileMode.value && showEEFeatures.value
     ? [
         {
           key: 'workflows',
@@ -328,7 +328,7 @@ const handleOpenBookmarkPanel = () => {
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
 
     <!-- Bookmarks -->
-    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+    <div v-if="showEEFeatures" ref="bookmarksContainerRef" class="relative">
       <DashboardMiniSidebarV2RailItem
         icon="ncBookmark"
         :tooltip="$t('tooltip.bookmarks')"

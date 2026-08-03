@@ -797,7 +797,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </template>
 
-    <div v-if="isEeUI && !hideAdvancedOptions" class="flex flex-col gap-2">
+    <div v-if="showEEFeatures && !hideAdvancedOptions" class="flex flex-col gap-2">
       <div class="flex gap-2 items-center">
         <a-switch
           v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
@@ -928,7 +928,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <template v-if="isEeUI && showEEFeatures && !hideAdvancedOptions">
+    <template v-if="showEEFeatures && !hideAdvancedOptions">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">

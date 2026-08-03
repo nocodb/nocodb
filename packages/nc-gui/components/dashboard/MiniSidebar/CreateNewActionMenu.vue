@@ -238,7 +238,7 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <template v-if="isEeUI && showEEFeatures">
+          <template v-if="showEEFeatures">
             <NcTooltip
               :title="
                 !isWorkflowsTab
@@ -354,11 +354,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
-                data-testid="mini-sidebar-view-create-map"
-                @click="onOpenModal({ type: ViewTypes.MAP })"
-              >
+              <NcMenuItem v-if="isEeUI" data-testid="mini-sidebar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
               </NcMenuItem>
@@ -385,7 +381,7 @@ const hasDocumentCreateAccess = computed(() => {
                 />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
+                v-if="showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 inner-class="w-full"
                 @click="
@@ -407,7 +403,7 @@ const hasDocumentCreateAccess = computed(() => {
                 />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
+                v-if="showEEFeatures"
                 data-testid="mini-sidebar-view-create-gantt"
                 inner-class="w-full"
                 @click="
@@ -438,7 +434,7 @@ const hasDocumentCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isEeUI && showEEFeatures">
+          <template v-if="showEEFeatures">
             <NcTooltip
               :title="
                 !isDataTab
@@ -469,7 +465,9 @@ const hasDocumentCreateAccess = computed(() => {
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
+          </template>
 
+          <template v-if="isEeUI">
             <NcTooltip
               :title="
                 !isDataTab

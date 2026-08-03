@@ -36,7 +36,7 @@ const {
   availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
@@ -107,8 +107,9 @@ const integrationsMap = computed(() => {
           i.isAvailable &&
           // OSS-only (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem)
           (isEEFeatureBlocked.value || !i.isOssOnly) &&
-          // EE-only (e.g. MSSQL, Oracle) hidden in CE; in EE gated by their paid add-on
-          (isEeUI || !i.isEeOnly) &&
+          // EE-only (e.g. MSSQL, Oracle) hidden in CE and in community mode; in a
+          // normal EE build gated by their paid add-on.
+          (showEEFeatures.value || !i.isEeOnly) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||

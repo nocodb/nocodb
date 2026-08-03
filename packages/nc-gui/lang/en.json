@@ -2082,6 +2082,11 @@
     "manageLicenseOnCloud": "Manage your license, billing, and plan upgrades from your NocoDB Cloud account.",
     "buyLicense": "Buy License",
     "manageLicense": "Manage License",
+    "preferences": "Preferences",
+    "communityEdition": {
+      "showOnly": "Show only community edition features",
+      "hideUpgradesDescription": "Hides paid feature badges across the app."
+    },
     "buyNewLicense": "Buy New License",
     "buyYourFirstLicense": "Buy Your First License",
     "noSelfHostedLicenses": "You don't have any self-hosted licenses yet. Purchase one to activate enterprise features on your instance.",

@@ -155,7 +155,7 @@ const mainItems = computed<NavItem[]>(() => [
     onClick: () => onTabClick('data'),
   },
   // Interfaces are paid-only and hidden (not badge-gated) below the tier.
-  ...(isEeUI && showEEFeatures.value && !hideInterfaces.value
+  ...(showEEFeatures.value && !hideInterfaces.value
     ? [
         {
           key: 'interfaces',
@@ -170,7 +170,7 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
+  ...(!isMobileMode.value && showEEFeatures.value
     ? [
         {
           key: 'workflows',
@@ -413,7 +413,7 @@ const handleOpenBookmarkPanel = () => {
     </div>
 
     <!-- Bookmarks -->
-    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+    <div v-if="showEEFeatures" ref="bookmarksContainerRef" class="relative">
       <div :ref="(el: any) => setItemRef('bookmarks', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('bookmarks')">
         <DashboardMiniSidebarV2DockItem
           icon="ncBookmark"

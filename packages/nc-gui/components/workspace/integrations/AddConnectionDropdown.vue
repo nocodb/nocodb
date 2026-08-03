@@ -18,7 +18,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const isOpen = ref(false)
 
@@ -70,7 +70,8 @@ const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (ty
   if (!i.isAvailable) return false
   if (i.sub_type === SyncDataType.NOCODB) return false
   // EE-only data sources (e.g. MSSQL, Oracle) are hidden in CE; in EE they're gated by their paid add-on.
-  if (!isEeUI && i.isEeOnly) return false
+  // EE-only sources (MSSQL, Oracle) are hidden in CE and in community mode.
+  if (!showEEFeatures.value && i.isEeOnly) return false
   // OSS-only integrations (e.g. SQLite) only on free, self-hosted (CE + unlicensed On-Prem);
   // hidden on licensed On-Prem and Cloud. isEEFeatureBlocked is true exactly for that case.
   if (!isEEFeatureBlocked.value && i.isOssOnly) return false

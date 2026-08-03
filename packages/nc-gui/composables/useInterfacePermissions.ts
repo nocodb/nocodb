@@ -1,7 +1,7 @@
 export const useInterfacePermissions = createSharedComposable(() => {
   const isInterfaceOnlyUser = computed(() => false)
 
-  const maybeNavigateToInterfaceOnlyBase = (_base: NcProject) => false
+  const maybeNavigateToInterfaceOnlyBase = async (_base: NcProject) => false
 
   const navigateToBaseInterface = (_base: NcProject) => {}
 

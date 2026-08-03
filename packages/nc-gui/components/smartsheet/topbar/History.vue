@@ -13,9 +13,11 @@ const { undo, redo, isUndoRedoInFlight, inFlightDirection, isDisabledByEnv } = u
 
 const visible = ref(false)
 
-const canSeeBaseTrash = computed(() => isUIAllowed('baseTrashList'))
+const { showEEFeatures } = useEeConfig()
 
-const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshot'))
+const canSeeBaseTrash = computed(() => isUIAllowed('baseTrashList') && showEEFeatures.value)
+
+const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshot') && showEEFeatures.value)
 
 const canSeeUndoRedo = computed(() => isUIAllowed('undo'))
 

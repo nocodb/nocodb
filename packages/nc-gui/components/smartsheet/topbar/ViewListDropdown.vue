@@ -247,11 +247,7 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
-                <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
-                  data-testid="topbar-view-create-map"
-                  @click="onOpenModal({ type: ViewTypes.MAP })"
-                >
+                <a-menu-item v-if="isEeUI" data-testid="topbar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
@@ -290,7 +286,7 @@ async function onOpenModal({
                   </a-menu-item>
                 </NcTooltip>
                 <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
+                  v-if="showEEFeatures"
                   data-testid="topbar-view-create-timeline"
                   @click="
                     showUpgradeToUseTimelineView({
@@ -314,7 +310,7 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
                 <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
+                  v-if="showEEFeatures"
                   data-testid="topbar-view-create-gantt"
                   @click="
                     showUpgradeToUseGanttView({

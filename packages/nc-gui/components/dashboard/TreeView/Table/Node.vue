@@ -513,7 +513,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                   :class="{ '!rotate-90': isExpanded }"
                 />
               </div>
-              <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
+              <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 h-6 relative" @click.stop>
                 <!-- Desktop: combo chevron overlay -->
                 <NcButton
                   v-e="['c:table:toggle-expand']"

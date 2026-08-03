@@ -25,7 +25,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
+const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions, communityMode } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
 
@@ -93,6 +93,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <NcTooltip
           v-if="
             (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            !communityMode &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&

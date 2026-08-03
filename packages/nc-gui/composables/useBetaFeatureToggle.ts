@@ -275,7 +275,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
     const feature = featureMap.value[id]
 
-    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+    if (feature && 'isEE' in feature && feature.isEE && !showEEFeatures.value) {
       return false
     }
 

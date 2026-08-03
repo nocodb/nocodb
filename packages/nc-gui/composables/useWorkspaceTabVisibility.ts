@@ -35,7 +35,7 @@ export function useWorkspaceTabVisibility(
 
     return {
       collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
-      teams: isEeUI && hasTeamsEditPermission.value && showEEFeatures.value,
+      teams: hasTeamsEditPermission.value && showEEFeatures.value,
       integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),
       billing:
         !isMobileMode.value &&
@@ -45,14 +45,19 @@ export function useWorkspaceTabVisibility(
         isPaymentEnabled.value &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceBilling'),
-      audits: !isMobileMode.value && !isAdmin.value && isEeUI && isBaseRolesLoaded.value && isUIAllowed('workspaceAuditList'),
+      audits:
+        !isMobileMode.value &&
+        !isAdmin.value &&
+        showEEFeatures.value &&
+        isBaseRolesLoaded.value &&
+        isUIAllowed('workspaceAuditList'),
       sso:
         !isMobileMode.value &&
         isWorkspaceSsoAvail.value &&
         !ws.value?.fk_org_id &&
         isBaseRolesLoaded.value &&
         isUIAllowed('workspaceSSO'),
-      settings: showEEFeatures.value,
+      settings: isEeUI,
     }
   })
 

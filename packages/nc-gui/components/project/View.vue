@@ -87,14 +87,13 @@ const userCount = computed(() => {
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(
-  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
+  () => !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
 const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
 
 const isWorkflowsTabVisible = computed(
   () =>
-    isEeUI &&
     appInfo.value?.ee &&
     isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
     isUIAllowed('workflowCreateOrEdit') &&
@@ -186,13 +185,13 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
-      } else if (newVal === 'variables') {
+      } else if (newVal === 'variables' && showEEFeatures.value) {
         projectPageTab.value = 'variables'
-      } else if (newVal === 'interface-members' && isEeUI && !hideInterfaces.value) {
+      } else if (newVal === 'interface-members' && showEEFeatures.value && !hideInterfaces.value) {
         projectPageTab.value = 'interface-members'
-      } else if (newVal === 'snapshots' && isEeUI) {
+      } else if (newVal === 'snapshots' && showEEFeatures.value) {
         projectPageTab.value = 'snapshots'
-      } else if (newVal === 'record-trash' && isEeUI) {
+      } else if (newVal === 'record-trash' && showEEFeatures.value) {
         projectPageTab.value = 'record-trash'
       } else {
         projectPageTab.value = 'collaborator'
@@ -458,9 +457,7 @@ watch(
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
         <a-tab-pane
-          v-if="
-            isEeUI && showEEFeatures && !hideInterfaces && isUIAllowed('interfaceUsersMatrix', { roles: baseRoles }) && base.id
-          "
+          v-if="showEEFeatures && !hideInterfaces && isUIAllowed('interfaceUsersMatrix', { roles: baseRoles }) && base.id"
           key="interface-members"
         >
           <template #tab>
@@ -490,7 +487,7 @@ watch(
           </template>
           <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -504,7 +501,7 @@ watch(
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="docs-permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
               <GeneralIcon icon="ncFileText" />
@@ -546,7 +543,7 @@ watch(
           </template>
           <DashboardSettingsBaseIntegrations :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
@@ -581,7 +578,7 @@ watch(
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && base.id && !isMobileMode" key="variables">
+        <a-tab-pane v-if="showEEFeatures && base.id && !isMobileMode" key="variables">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__variables">
               <GeneralIcon icon="ncSettings" />
@@ -592,10 +589,7 @@ watch(
             <DashboardSettingsBaseVariables />
           </div>
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode"
-          key="record-trash"
-        >
+        <a-tab-pane v-if="showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode" key="record-trash">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__record-trash">
               <GeneralIcon icon="ncTrash2" />
@@ -607,14 +601,7 @@ watch(
           </div>
         </a-tab-pane>
         <a-tab-pane
-          v-if="
-            isEeUI &&
-            isUIAllowed('baseMiscSettings') &&
-            isUIAllowed('manageSnapshot') &&
-            base.id &&
-            !isMobileMode &&
-            showEEFeatures
-          "
+          v-if="isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode && showEEFeatures"
           key="snapshots"
         >
           <template #tab>

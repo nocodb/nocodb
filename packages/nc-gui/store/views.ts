@@ -223,7 +223,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return viewMeta?.is_field_header_visible ?? true
   })
 
-  const isListViewEnabled = computed(() => isEeUI && showEEFeatures.value)
+  const isListViewEnabled = computed(() => showEEFeatures.value)
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
@@ -1199,7 +1199,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
+      isVisible: isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
     }
 
     if (!view) return result

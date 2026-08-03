@@ -43,7 +43,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { sharedView } = storeToRefs(useViewsStore())
 
-  const { blockAddNewRecord, showRecordPlanLimitExceededModal, showEEFeatures } = useEeConfig()
+  const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
 
   provide(SharedViewPasswordInj, password)
 
@@ -61,7 +61,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedViewMeta = ref<SharedViewMeta>({})
 
   const isFormExpired = computed(() => {
-    if (!showEEFeatures.value) return false
+    if (!isEeUI) return false
 
     const expiresAt = (sharedFormView.value as any)?.expires_at
 
@@ -71,7 +71,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   })
 
   const isFormNotStarted = computed(() => {
-    if (!showEEFeatures.value) return false
+    if (!isEeUI) return false
 
     const startsAt = (sharedFormView.value as any)?.starts_at
 

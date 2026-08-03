@@ -28,7 +28,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams } = useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
@@ -166,7 +166,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
+    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && isEeUI) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||

@@ -228,7 +228,7 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && !isMobileMode"
+      v-if="!isMobileMode && showEEFeatures"
       v-e="['c:settings:base:variables']"
       icon="ncSettings"
       data-testid="base-variables"

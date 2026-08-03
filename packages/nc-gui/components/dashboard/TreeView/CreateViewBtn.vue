@@ -205,7 +205,6 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-map"
           @click="
@@ -266,7 +265,7 @@ async function onOpenModal({
           </NcMenuItem>
         </NcTooltip>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-timeline"
           @click="
@@ -301,7 +300,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-gantt"
           @click="
@@ -336,7 +335,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <template v-if="isEeUI && showEEFeatures">
+        <template v-if="showEEFeatures">
           <!-- Section -->
           <NcDivider />
 

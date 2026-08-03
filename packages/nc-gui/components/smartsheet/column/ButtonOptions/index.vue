@@ -61,7 +61,7 @@ const { openedProject } = storeToRefs(bases)
 // opened base (e.g. the interface builder's field editor).
 const scriptsBaseId = openedProject.value?.id ?? meta.value?.base_id
 
-if (showEEFeatures.value) {
+if (isEeUI) {
   await Promise.all([loadHooksList(meta.value), ...(scriptsBaseId ? [loadScripts({ baseId: scriptsBaseId, force: true })] : [])])
 }
 
@@ -110,7 +110,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && showEEFeatures.value
+  ...(showEEFeatures.value
     ? [
         {
           icon: 'ncScript',
@@ -558,7 +558,7 @@ if (isEdit.value) {
       v-model:selected-script="selectedScript"
     />
 
-    <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+    <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">
         <div class="nc-button-filter-section mt-2">
           <div

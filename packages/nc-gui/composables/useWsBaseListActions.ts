@@ -149,7 +149,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
     // Grant-only collaborators (interface grants, no base/workspace role) go
     // straight to the interface consumer shell — the base route would 403.
-    if (maybeNavigateToInterfaceOnlyBase(base)) return
+    if (await maybeNavigateToInterfaceOnlyBase(base)) return
 
     // A base with a published interface the user can open defaults to the
     // interface — the card's "Go to data" button (onOpenData) is the escape

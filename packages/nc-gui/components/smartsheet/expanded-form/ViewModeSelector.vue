@@ -46,7 +46,7 @@ const isViewModeEnabled = computed(() => {
   )
 })
 
-const { handleUpgradePlan, isEEFeatureBlocked } = useEeConfig()
+const { handleUpgradePlan, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const { t } = useI18n()
 
@@ -57,6 +57,7 @@ const items = computed(() => {
       icon: modelValue.value === ExpandedFormMode.ATTACHMENT ? 'ncFileTextSolid' : 'ncFileText',
       value: ExpandedFormMode.ATTACHMENT,
       tooltip: t('labels.filePreview'),
+      hidden: !showEEFeatures.value,
       locked: isEEFeatureBlocked.value,
     },
     {
@@ -66,7 +67,7 @@ const items = computed(() => {
       // Hidden in shared bases: Discussion interleaves comments + audits, and
       // audit reads are blocked there (CVE GHSA-6297-qpqf-235w). Other modes
       // (Fields, Attachment) stay available.
-      hidden: isSqlView.value || isSharedBase.value,
+      hidden: isSqlView.value || isSharedBase.value || !showEEFeatures.value,
       locked: isEEFeatureBlocked.value,
     },
   ].filter((i) => !i.hidden) as ItemType[]
@@ -93,7 +94,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="isViewModeEnabled"
+    v-if="isViewModeEnabled && items.length > 1"
     class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
   >
     <NcTooltip v-for="(item, idx) of items" :key="item.value" :disabled="!item.tooltip">

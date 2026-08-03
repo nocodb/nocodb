@@ -42,7 +42,7 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
-const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations } = useEeConfig()
+const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
@@ -147,7 +147,8 @@ const getIntegrationsByCategory = (category: IntegrationCategoryType, query: str
     if (i.hidden) return false
 
     // EE-only data sources (e.g. MSSQL, Oracle) are hidden in CE; in EE they're gated by their paid add-on.
-    if (!isEeUI && i.isEeOnly) return false
+    // EE-only sources (MSSQL, Oracle) are hidden in CE and in community mode.
+    if (!showEEFeatures.value && i.isEeOnly) return false
 
     return (
       isOssOnlyAllowed &&

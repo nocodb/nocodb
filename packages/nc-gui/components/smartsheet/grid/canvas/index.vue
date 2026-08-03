@@ -281,6 +281,14 @@ let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boo
   path: [],
 }
 
+// Persistent anchor for Shift+Click range selection. Unlike `selectedRowInfo` (reset on mouseUp as
+// part of the drag lifecycle), this survives across clicks so a later Shift+Click can extend the
+// range from the last plainly-clicked row.
+let shiftSelectAnchor: { index: number | null | undefined; path: Array<number> } = {
+  index: null,
+  path: [],
+}
+
 let colAutoScrollTimerId: any = null
 
 const {
@@ -731,6 +739,7 @@ function resetRowSelection() {
 
   vSelectedAllRecords.value = false
   vSelectedAllRecordsSkipPks.value = {}
+  shiftSelectAnchor = { index: null, path: [] }
 }
 
 function clearHeaderSelection() {
@@ -1152,6 +1161,36 @@ const handleRowMetaClick = ({
         resetActiveCell()
 
         if (onlyDrag) {
+          const path = generateGroupPath(group)
+
+          // Shift+Click selects the contiguous range from the persistent anchor (the last plainly
+          // clicked row) to the clicked row, reusing the same range logic as drag-select instead of
+          // toggling a single row.
+          const canShiftSelectRange =
+            e.shiftKey &&
+            ncIsNumber(shiftSelectAnchor.index) &&
+            ncIsNumber(row.rowMeta.rowIndex) &&
+            (isGroupBy.value ? comparePath(shiftSelectAnchor.path, path) : true)
+
+          if (canShiftSelectRange) {
+            const selectionStart = Math.min(shiftSelectAnchor.index!, row.rowMeta.rowIndex!)
+            const selectionEnd = Math.min(
+              selectionStart + (MAX_SELECTED_ROWS - 1),
+              Math.max(shiftSelectAnchor.index!, row.rowMeta.rowIndex!),
+            )
+
+            // Only currently-cached rows in the range are toggled; rows outside the cache window
+            // (large un-loaded gaps) are skipped, matching the drag-select behaviour.
+            getDataCache(path)?.cachedRows.value.forEach((cachedRow) => {
+              if (!ncIsNumber(cachedRow.rowMeta.rowIndex)) return
+              cachedRow.rowMeta.selected =
+                cachedRow.rowMeta.rowIndex >= selectionStart && cachedRow.rowMeta.rowIndex <= selectionEnd
+            })
+
+            // Keep the anchor fixed so repeated shift-clicks re-extend from the same origin.
+            break
+          }
+
           row.rowMeta.selected = !row.rowMeta?.selected
 
           if (vSelectedAllRecords.value && isValidValue(row.rowMeta.rowIndex)) {
@@ -1162,7 +1201,11 @@ const handleRowMetaClick = ({
             }
           }
 
-          const path = generateGroupPath(group)
+          // Remember the last plainly-clicked row as the anchor for a subsequent Shift+Click.
+          if (ncIsNumber(row.rowMeta.rowIndex)) {
+            shiftSelectAnchor = { index: row.rowMeta.rowIndex, path }
+          }
+
           if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
             selectedRowInfo = {
               index: row.rowMeta.rowIndex,

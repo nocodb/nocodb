@@ -1,5 +1,4 @@
 import { customAlphabet } from 'nanoid';
-import oracledb from 'oracledb';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -218,23 +217,6 @@ export function coerceOracleReturnedPk(value: any, column: Column): any {
     return Number(value);
   }
   return value;
-}
-
-/**
- * Make a knex `toSQL().bindings` array safe to ship to the sql-executor for an
- * Oracle `INSERT … RETURNING`. knex serializes the RETURNING out-bind as the
- * placeholder object `{columnName}`; the executor runs the insert via
- * `kn.raw(sql, bindings)`, which hands bindings to node-oracledb verbatim — and
- * it rejects `{columnName}` (NJS-044). Swap each one for a real,
- * JSON-serializable out-bind descriptor (`dir` alone captures the value as a
- * string; {@link coerceOracleReturnedPk} normalizes numeric pks downstream).
- */
-export function toOracleReturningBindings(bindings: readonly any[]): any[] {
-  return bindings.map((b) =>
-    b && typeof b === 'object' && !Array.isArray(b) && 'columnName' in b
-      ? { dir: oracledb.BIND_OUT }
-      : b,
-  );
 }
 
 export function getOppositeRelationType(

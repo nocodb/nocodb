@@ -2,7 +2,7 @@
 import type dayjs from 'dayjs'
 import { CalendarEventTheme, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
-const emit = defineEmits(['newRecord', 'expandRecord'])
+const emit = defineEmits(['newRecord', 'expandRecord', 'recordContextMenu'])
 
 const { isMobileMode } = useGlobal()
 
@@ -22,11 +22,18 @@ const {
   updateFormat,
   timezoneDayjs,
   isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
   weeksInRange,
   isMultiWeekRange,
   recordHeightMode,
   eventDisplayTheme,
+  calendarMetaData,
 } = useCalendarViewStoreOrThrow()
+
+// Interface editor: a date/"+"/dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of highlighting the date or adding a record. Null in
+// the published view and outside interface pages, so the calendar stays live.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
 
 // Flat themes (dot / minimal / pill) render a single text line, so they stack
 // tighter than the bordered / solid chip themes (which keep the taller chip).
@@ -34,9 +41,13 @@ const isCompactRowTheme = computed(() =>
   [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(eventDisplayTheme.value),
 )
 
+// Interface pages render the chips at 24px (12px text) — the lane math follows.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
 // Per-record lane height (px) — drives both stacking offsets and the lane cap.
-// Kept in sync with the card height in RecordCard.vue.
-const perRecordHeightPx = computed(() => (isCompactRowTheme.value ? 22 : 28))
+// Kept in sync with the card height in RecordCard.vue (24px in interfaces —
+// see the VizWrapper gutter overrides).
+const perRecordHeightPx = computed(() => (isCompactRowTheme.value ? 22 : interfacePageDataApi ? 24 : 28))
 
 // The calendar range (start/end date) columns are already represented by the
 // event's time prefix + grid position, so rendering them again in the card body
@@ -58,6 +69,13 @@ const { $e } = useNuxtApp()
 const isMondayFirst = ref(true)
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const meta = inject(MetaInj, ref())
 
@@ -175,6 +193,42 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
+// Interface calendars split card LABELS from tooltip fields: `label_field_ids`
+// picks what renders ON the chip (absent → display value only), while the
+// injected visible fields keep driving the hover tooltip. Data tab: unchanged
+// (chips render the visible fields).
+const interfaceCalendarMeta = computed(() => (interfacePageDataApi ? parseProp(calendarMetaData.value?.meta) : undefined))
+
+const cardFields = computed(() => {
+  if (!interfacePageDataApi) return fields.value ?? []
+
+  const metaColumns = (meta.value?.columns ?? []) as ColumnType[]
+  const labelIds: string[] = interfaceCalendarMeta.value?.label_field_ids ?? []
+  if (labelIds.length) return metaColumns.filter((c) => labelIds.includes(c.id as string))
+
+  const displayValue = metaColumns.find((c) => c.pv)
+  return displayValue ? [displayValue] : []
+})
+
+const labelImageColumn = computed(() => {
+  const id = interfaceCalendarMeta.value?.label_image_field_id
+  return id ? ((meta.value?.columns ?? []) as ColumnType[]).find((c) => c.id === id) : undefined
+})
+
+/** First attachment of the label-image field — the chip's right-edge thumbnail. */
+function recordLabelAttachment(record: Row) {
+  const column = labelImageColumn.value
+  if (!column?.title) return null
+
+  try {
+    const raw = record.row[column.title]
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return Array.isArray(parsed) && parsed.length ? parsed.flat()[0] : null
+  } catch {
+    return null
+  }
+}
+
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
   const firstDayOffset = isMondayFirst.value ? 0 : -1
@@ -244,10 +298,30 @@ const recordsToDisplay = computed<{
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
   const perRecordHeight = perRecordHeightPx.value
 
-  const spaceBetweenRecords = 27
+  // Interfaces run tighter type (12px chips) — the date→first-record inset follows.
+  const spaceBetweenRecords = interfacePageDataApi ? 22 : 27
   // Expanded: never cap lanes — every record gets a lane (no "+N more"), and the grid
   // grows to fit (see expandedGridHeightPx). Compact: derive the cap from the row height.
-  const maxLanes = isExpanded.value ? Infinity : Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
+  // Interfaces cap on the REAL render pitch (+4) — the Data tab's +8 reserve
+  // left a whole visible lane unused with the tighter 24px chips.
+  const laneCapPitch = perRecordHeight + (interfacePageDataApi ? 4 : 8)
+  // The "+N more" badge is bottom-anchored inside each day cell (23px xxsmall button +
+  // 4px `bottom-1` inset), while the record overlay renders ~8px lower than the cells
+  // (`mt-8` vs the ~24px weekday header). The Data tab's +8 cap pitch accrues enough
+  // slack under the last lane to keep that band clear, but capping interfaces on the
+  // exact render pitch left zero slack — the last lane and the badge shared the same
+  // vertical band. Reserve the badge row in the interface cap: 23px badge + 8px overlay
+  // downshift (the badge's 4px inset is covered by the last lane's trailing 4px gap).
+  const overflowRowReserve = interfacePageDataApi ? 31 : 0
+  // Always allow at least one lane. `perHeight` is `gridHeight / weeksInMonth`,
+  // so a 6-week month (e.g. Aug 2026 — starts on a Saturday) makes each row
+  // shorter; in the tighter interface layout (larger `overflowRowReserve`) the
+  // floor can hit 0, which sends EVERY record to overflow and renders zero chips
+  // (empty cells behind a "+N more" badge). A day cell must always show its
+  // first record before overflowing.
+  const maxLanes = isExpanded.value
+    ? Infinity
+    : Math.max(1, Math.floor((perHeight - spaceBetweenRecords - overflowRowReserve) / laneCapPitch))
 
   // Track records and lanes for each day
   const recordsInDay: {
@@ -750,7 +824,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !dragRecord.value) return
+  if (!canEditCalendarData.value || !dragRecord.value) return
 
   calculateNewRow(event, false)
 }
@@ -760,7 +834,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !resizeRecord.value) return
+  if (!canEditCalendarData.value || !resizeRecord.value) return
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
@@ -840,7 +914,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit') || draggingId.value) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value || draggingId.value) return
 
   if (record.rowMeta.range?.is_readonly) return
 
@@ -855,7 +930,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
 const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value)
-  if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
+  if (!canEditCalendarData.value || !dragRecord.value || !isDragging.value) return
   if (dragRecord.value.rowMeta.range?.is_readonly) return
 
   event.preventDefault()
@@ -886,6 +961,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
   if (resizeInProgress.value || !record.rowMeta.id) return
   let target = event.target as HTMLElement
   isDragging.value = false
@@ -893,7 +970,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   // Drag-to-reschedule is only available on editable, non-synced, non-readonly
   // ranges. Click-to-expand (registered via onMouseUp below) must work regardless,
   // otherwise records on synced tables (readonly date column) can't be opened.
-  const canDrag = isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
+  const canDrag = canEditCalendarData.value && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
   if (canDrag) {
     dragTimeout.value = setTimeout(() => {
@@ -930,7 +1007,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {
@@ -961,6 +1038,7 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const selectDate = (date: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   dragRecord.value = null
   draggingId.value = null
   resizeRecord.value = null
@@ -983,7 +1061,8 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -995,7 +1074,8 @@ const addRecord = (date: dayjs.Dayjs) => {
 }
 
 const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || isSyncedTable.value) return
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || isSyncedTable.value) return
   const record = {
     row: {
       [range.fk_from_col!.title!]: date.format(updateFormat.value),
@@ -1028,7 +1108,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
+        class="nc-calendar-weekday-label text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>
@@ -1057,15 +1137,24 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
             @click="selectDate(day.date)"
             @dblclick="addRecord(day.date)"
           >
-            <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
+            <div
+              v-if="canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled)"
+              class="flex justify-between p-1"
+            >
               <span
                 :class="{
-                  'block group-hover:hidden': !isDateSelected(day.date) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
-                  'hidden': isDateSelected(day.date) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'block group-hover:hidden':
+                    isAddDeleteInlineEnabled &&
+                    !isDateSelected(day.date) &&
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'hidden':
+                    isAddDeleteInlineEnabled &&
+                    isDateSelected(day.date) &&
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
                 }"
               ></span>
 
-              <NcDropdown v-if="calendarRange.length > 1 && !isSyncedFromColumn" auto-close>
+              <NcDropdown v-if="isAddDeleteInlineEnabled && calendarRange.length > 1 && !isSyncedFromColumn" auto-close>
                 <NcButton
                   :class="{
                     '!block': isDateSelected(day.date),
@@ -1097,7 +1186,9 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               </NcDropdown>
 
               <PermissionsTooltip
-                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn"
+                v-else-if="
+                  isAddDeleteInlineEnabled && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn
+                "
                 :entity="PermissionEntity.TABLE"
                 :entity-id="meta?.id"
                 :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -1122,12 +1213,17 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 :class="{
                   'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
                 }"
-                class="px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
+                class="nc-calendar-day-label px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
               >
                 {{ day.dayNumber }}
               </span>
             </div>
-            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 text-[13px] p-3">{{ day.dayNumber }}</div>
+            <div
+              v-if="!(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
+              class="leading-3 text-[13px] p-3"
+            >
+              {{ day.dayNumber }}
+            </div>
 
             <NcDropdown
               v-if="
@@ -1140,6 +1236,12 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
                 class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
+                :class="{
+                  // Interfaces can render narrow day columns (collapsed weekends in a
+                  // small viz) — clamp the badge to its own cell so it can't spill
+                  // across the border and collide with the neighbouring day's badge.
+                  'max-w-[calc(100%_-_8px)] overflow-hidden': !!interfacePageDataApi,
+                }"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"
@@ -1210,6 +1312,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"
+          @contextmenu="emit('recordContextMenu', $event, record)"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
@@ -1217,7 +1320,8 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               :position="record.rowMeta.position"
               :record="record"
               :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
-              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
+              :label-attachment="recordLabelAttachment(record)"
               @resize-start="onResizeStart"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
@@ -1235,15 +1339,15 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               <!-- Range (date) columns are shown as the time prefix already, so
                    they're excluded here — the card body stays a clean title line
                    by default across every theme. -->
-              <template v-for="field in fields" :key="field.id">
+              <template v-for="field in cardFields" :key="field.id">
                 <LazySmartsheetPlainCell
                   v-if="!isRowEmpty(record, field!) && !rangeFieldIds.has(field!.id)"
                   v-model="record.row[field!.title!]"
                   class="text-xs"
-                  :bold="fieldStyles[field.id].bold"
+                  :bold="fieldStyles[field.id!]?.bold"
                   :column="field"
-                  :italic="fieldStyles[field.id].italic"
-                  :underline="fieldStyles[field.id].underline"
+                  :italic="fieldStyles[field.id!]?.italic"
+                  :underline="fieldStyles[field.id!]?.underline"
                 />
               </template>
               <template #tooltip>

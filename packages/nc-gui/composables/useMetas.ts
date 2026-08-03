@@ -2,8 +2,6 @@ import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
 
 export const useMetas = createSharedComposable(() => {
-  const { $api } = useNuxtApp()
-
   const { internalGet } = useInternalBatch()
 
   const { ncNavigateTo } = useGlobal()
@@ -146,12 +144,17 @@ export const useMetas = createSharedComposable(() => {
     // return null if cache miss
     if (skipIfCacheMiss) return null
 
+    // Cache hit must return BEFORE touching the reactive loading flag: getMeta runs
+    // inside reactive effects (e.g. computedAsync) that track `loadingState`, and a
+    // write here retriggers every sibling effect tracking the same key — two such
+    // effects then ping-pong each other into "Maximum recursive updates exceeded".
+    if (!force && metas.value[metaKey]) {
+      return metas.value[metaKey]
+    }
+
     loadingState.value[loadingKey] = true
 
     try {
-      if (!force && metas.value[metaKey]) {
-        return metas.value[metaKey]
-      }
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
 
@@ -226,8 +229,21 @@ export const useMetas = createSharedComposable(() => {
     deletedTableIdsByBase.get(baseId)?.delete(tableId)
   }
 
-  // return partial metadata for related table of a meta service
-  const getPartialMeta = async (baseId: string, linkColumnId: string, tableIdOrTitle: string): Promise<TableType | null> => {
+  /**
+   * Partial metadata (pk + display value only) for the related table of a link column.
+   *
+   * `baseId` is the RELATED table's base — used for the cache key and stamped on the model.
+   * `linkColumnScope` is where the LINK COLUMN itself lives; the internal API is base-scoped,
+   * so the request has to be addressed to the column's own workspace/base for the backend to
+   * resolve it (the legacy bypass scope only matched v2 bases). The two differ only for
+   * cross-base links.
+   */
+  const getPartialMeta = async (
+    baseId: string,
+    linkColumnId: string,
+    tableIdOrTitle: string,
+    linkColumnScope?: { workspaceId?: string; baseId?: string },
+  ): Promise<TableType | null> => {
     if (!tableIdOrTitle || !linkColumnId) return null
 
     const deletedSet = deletedTableIdsByBase.get(baseId)
@@ -254,7 +270,18 @@ export const useMetas = createSharedComposable(() => {
 
     try {
       loadingState.value[loadingKey] = true
-      const model = await $api.dbLinks.tableRead(linkColumnId, tableIdOrTitle)
+      // Related-table partial metas fan out one call per link column on grid
+      // mount — always coalesce them into the batch envelope.
+      const model = await internalGet(
+        linkColumnScope?.workspaceId ?? activeWorkspaceId.value!,
+        linkColumnScope?.baseId ?? baseId,
+        {
+          operation: 'refTableGet',
+          columnId: linkColumnId,
+          refTableId: tableIdOrTitle,
+          _batch: true,
+        },
+      )
       model.title = 'Private Table'
 
       // Ensure base_id is set on the model

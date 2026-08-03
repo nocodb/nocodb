@@ -36,6 +36,7 @@ const {
   isWsAuditEnabled,
   isEEFeatureBlocked,
   showEEFeatures,
+  hideInterfaces,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -187,6 +188,8 @@ watch(
         projectPageTab.value = 'mcp'
       } else if (newVal === 'variables') {
         projectPageTab.value = 'variables'
+      } else if (newVal === 'interface-members' && isEeUI && !hideInterfaces.value) {
+        projectPageTab.value = 'interface-members'
       } else if (newVal === 'snapshots' && isEeUI) {
         projectPageTab.value = 'snapshots'
       } else if (newVal === 'record-trash' && isEeUI) {
@@ -213,6 +216,7 @@ const { t } = useI18n()
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.addUserToBase'),
+    'interface-members': t('labels.addUserToInterface'),
     'permissions': t('labels.dataPermissions'),
     'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
@@ -452,6 +456,20 @@ watch(
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="
+            isEeUI && showEEFeatures && !hideInterfaces && isUIAllowed('interfaceUsersMatrix', { roles: baseRoles }) && base.id
+          "
+          key="interface-members"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__interface-members">
+              <GeneralIcon icon="ncUsers" />
+              <div>{{ $t('labels.addUserToInterface') }}</div>
+            </div>
+          </template>
+          <ProjectInterfaceMembers />
         </a-tab-pane>
         <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
           <template #tab>

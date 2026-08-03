@@ -89,6 +89,10 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
 
+// Interface pages hide the row-expand (maximize) icon on the launched page when
+// "Click into record details" is off. Defaults to true for ordinary grids.
+const showInterfaceRowExpand = inject(InterfaceShowRowExpandInj, ref(true))
+
 const route = useRoute()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
@@ -2219,7 +2223,7 @@ onKeyStroke('ArrowDown', onDown)
                                 {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
-                                v-else
+                                v-else-if="showInterfaceRowExpand"
                                 class="cursor-pointer flex items-center border-1 border-nc-border-gray-light active:ring rounded-md p-0.75 hover:(bg-nc-bg-default border-nc-border-gray-medium)"
                               >
                                 <component

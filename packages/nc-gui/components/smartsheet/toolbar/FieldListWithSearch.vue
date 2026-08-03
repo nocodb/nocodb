@@ -23,6 +23,9 @@ const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, sho
 
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
+// Compact hosts (interface toolbar/panel): smaller, subtler field-type icons.
+const isCompact = inject(FieldListCompactInj, ref(false))
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -140,7 +143,11 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     @change="handleSelect"
   >
     <template #listItemExtraLeft="{ option }">
-      <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
+      <SmartsheetHeaderIcon
+        :column="option"
+        :class="isCompact ? '!w-3 !h-3 opacity-75' : '!w-3.5 !h-3.5'"
+        color="text-nc-content-gray-muted"
+      />
     </template>
   </NcList>
 </template>

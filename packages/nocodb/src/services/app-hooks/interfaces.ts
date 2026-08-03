@@ -42,6 +42,12 @@ export interface RowCommentEvent extends NcBaseEvent {
   rowId: string;
   comment: CommentType;
   ip?: string;
+  /**
+   * Source surface when the comment rode an interface-scoped op — mention
+   * notifications stamp it so clicks route back to the interface. Absent =
+   * posted in the data app.
+   */
+  source?: { interfaceId: string; pageId: string };
 }
 
 export interface RowMentionEvent extends NcBaseEvent {

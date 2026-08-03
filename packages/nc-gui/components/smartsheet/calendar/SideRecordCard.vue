@@ -38,10 +38,11 @@ const isSolid = computed(() => sideTheme.value === CalendarEventTheme.SOLID)
 
 const isDot = computed(() => sideTheme.value === CalendarEventTheme.DOT)
 
-// The accent bar belongs to bordered + minimal; dot shows a colour dot, solid fills.
-const showLeftBar = computed(
-  () => sideTheme.value === CalendarEventTheme.BORDERED || sideTheme.value === CalendarEventTheme.MINIMAL,
-)
+const isBordered = computed(() => sideTheme.value === CalendarEventTheme.BORDERED)
+
+// The accent bar belongs to the minimal theme only (bordered shows just its
+// border + tint); dot shows a colour dot, solid fills.
+const showLeftBar = computed(() => sideTheme.value === CalendarEventTheme.MINIMAL)
 
 const { t } = useI18n()
 
@@ -133,7 +134,7 @@ const errorInfo = computed(() => {
         <span class="nc-side-card-dot"></span>
       </span>
       <slot name="image" />
-      <div class="flex gap-1 py-1 flex-col" :class="{ 'pl-2': isSolid }">
+      <div class="flex gap-1 py-1 flex-col" :class="{ 'pl-2': isSolid || isBordered }">
         <NcTooltip
           wrap-child="span"
           :disabled="!$slots.tooltip"

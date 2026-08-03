@@ -486,11 +486,25 @@ export class UsersService {
 
       const refreshToken = randomTokenString();
 
+      // Rotation is a compare-and-swap: 0 rows means this token was already
+      // rotated (concurrent presentation / replay of a single-use token).
+      let rotatedRows: number;
       try {
-        await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+        rotatedRows = await UserRefreshToken.updateOldToken(
+          oldRefreshToken,
+          refreshToken,
+        );
       } catch (error) {
         console.error('Failed to update old refresh token:', error);
         NcError.internalServerError('Failed to update refresh token');
+      }
+
+      if (!rotatedRows) {
+        // Reject without minting a second token. Deliberately not invalidating
+        // the user's whole token set: rows are per-login with no lineage column,
+        // so that would sign them out on every device for what is usually a
+        // benign double-submit.
+        NcError.unauthorized('Invalid refresh token');
       }
 
       setTokenCookie(param.res, refreshToken, param.req);

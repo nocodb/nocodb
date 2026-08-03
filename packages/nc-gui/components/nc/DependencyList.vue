@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DashboardType, TableType, WorkflowType } from 'nocodb-sdk'
+import type { DashboardType, InterfacePageType, TableType, WorkflowType } from 'nocodb-sdk'
 import { DependencyTableType } from 'nocodb-sdk'
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
   hasBreakingChanges?: boolean
   entities?: Array<{
     type: DependencyTableType
-    entity: DashboardType | WorkflowType | TableType
+    entity: DashboardType | WorkflowType | TableType | InterfacePageType
   }>
   action?: 'delete' | 'update' | 'rename' | string
   entityType?: DependencyTableType | string
@@ -33,6 +33,12 @@ const dashboards = computed(() => {
 
 const dateDependencyTables = computed(() => {
   return props.entities?.filter((e) => e.type === DependencyTableType.DateDependency).map((e) => e.entity as TableType) || []
+})
+
+const interfacePages = computed(() => {
+  return (
+    props.entities?.filter((e) => e.type === DependencyTableType.InterfacePage).map((e) => e.entity as InterfacePageType) || []
+  )
 })
 
 const totalCount = computed(() => {
@@ -116,6 +122,22 @@ const dependencyMessage = computed(() => {
               >
                 <GeneralIcon icon="table" class="w-4 h-4 flex-none" />
                 <span class="truncate">{{ table.title }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="interfacePages && interfacePages.length > 0">
+            <div class="text-sm font-medium text-nc-content-gray-emphasis mb-2">
+              {{ $t('objects.pages') }} ({{ interfacePages.length }})
+            </div>
+            <div class="space-y-1.5">
+              <div
+                v-for="page in interfacePages"
+                :key="page.id"
+                class="flex items-center gap-2 text-sm text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors"
+              >
+                <GeneralIcon icon="file" class="w-4 h-4 flex-none" />
+                <span class="truncate">{{ page.title }}</span>
               </div>
             </div>
           </div>

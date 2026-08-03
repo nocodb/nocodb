@@ -62,6 +62,9 @@ export class PublicDataExportController {
         ...(options ?? {}),
         // includeByteOrderMark when export is triggered from controller
         includeByteOrderMark: true,
+        // Anonymous export: the ICS description otherwise builds from all model
+        // columns, including view-hidden ones.
+        isPublicExport: true,
       },
       modelId: view.fk_model_id,
       viewId: view.id,

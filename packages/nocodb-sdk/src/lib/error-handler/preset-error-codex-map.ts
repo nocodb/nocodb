@@ -145,6 +145,18 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_INTERFACE_NOT_FOUND]: {
+    message: (id: string) => `Interface '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND]: {
+    message: (id: string) => `Interface page '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED]: {
+    message: () => 'Writes are disabled while previewing as another user',
+    code: 403,
+  },
   [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
     message: (id: string) => `Chat session '${id}' not found`,
     code: 404,
@@ -230,6 +242,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_SHARED_DASHBOARD_PASSWORD_INVALID]: {
     message: 'Invalid shared dashboard password',
+    code: 403,
+  },
+  [NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID]: {
+    message: 'Invalid shared interface page password',
     code: 403,
   },
   [NcErrorType.ERR_INVALID_ATTACHMENT_JSON]: {

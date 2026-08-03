@@ -75,7 +75,9 @@ const createdBy = computed(() => {
         class="w-[28px] h-[28px] aspect-square"
       />
       <p class="text-small1 mb-0">
-        <span class="font-weight-700">
+        <!-- mr-1: Vue's whitespace condense drops the newline between the two
+             spans, fusing "User" into the action text ("Usercreated a record") -->
+        <span class="font-weight-700 mr-1 rtl:(mr-0 ml-1)">
           {{ createdBy }}
         </span>
         <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-nc-content-gray-subtle2">

@@ -15,6 +15,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
 
 @Injectable()
 export class IntegrationsService {
@@ -290,6 +291,20 @@ export class IntegrationsService {
       );
 
       if (!integrationBody?.id) {
+        NcError.get(context).integrationNotFound(
+          param.integration.copy_from_id,
+        );
+      }
+
+      // A private integration's decrypted config may only be cloned by its
+      // owner.
+      if (
+        isPrivateIntegrationForbidden(
+          integrationBody.is_private,
+          integrationBody.created_by,
+          param.req.user?.id,
+        )
+      ) {
         NcError.get(context).integrationNotFound(
           param.integration.copy_from_id,
         );

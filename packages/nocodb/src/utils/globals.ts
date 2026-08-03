@@ -94,6 +94,8 @@ export enum MetaTable {
   PRINCIPAL_ASSIGNMENTS = 'nc_principal_assignments',
   DASHBOARDS = 'nc_dashboards_v2',
   WIDGETS = 'nc_widgets_v2',
+  INTERFACES = 'nc_interfaces',
+  INTERFACE_PAGES = 'nc_interface_pages',
   OAUTH_CLIENTS = 'nc_oauth_clients',
   OAUTH_AUTHORIZATION_CODES = 'nc_oauth_authorization_codes',
   OAUTH_TOKENS = 'nc_oauth_tokens',
@@ -543,6 +545,8 @@ export enum CacheScope {
   PRINCIPAL_ASSIGNMENT = 'principalAssignment',
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
+  INTERFACE = 'interface',
+  INTERFACE_PAGE = 'interfacePage',
   OAUTH_CLIENT = 'oAuthClient',
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
   OAUTH_TOKEN = 'oAuthToken',
@@ -689,6 +693,8 @@ export enum ResourceType {
   WORKSPACE = 'workspace',
   BASE = 'base',
   TEAM = 'team',
+  INTERFACE = 'interface',
+  INTERFACE_PAGE = 'interfacePage',
 }
 
 export enum PrincipalType {

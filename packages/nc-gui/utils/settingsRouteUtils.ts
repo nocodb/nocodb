@@ -8,6 +8,7 @@
 // Base settings: internal tab name → URL slug
 export const baseSettingsTabToSlug: Record<string, string> = {
   'collaborator': 'members',
+  'interface-members': 'interface-members',
   'data-source': 'data-sources',
   'permissions': 'permissions',
   'docs-permissions': 'docs-permissions',

@@ -51,6 +51,13 @@ export class DependencySlotMapper {
           required: false,
         },
       },
+      [DependencyTableType.InterfacePage]: {
+        path: {
+          id: DependencyFields.META,
+          type: DependencySlotTypes.STRING,
+          required: false,
+        },
+      },
       [DependencyTableType.Workflow]: {
         nodeType: {
           id: DependencyFields.QUERYABLE_FIELD_0, // Indexed - node type (e.g., "core.trigger.cron")

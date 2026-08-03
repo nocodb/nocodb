@@ -270,6 +270,9 @@ type NcProject = BaseType & {
   // Set only for sandbox bases — the production base this sandbox belongs to.
   // Used to decide whether to surface a sandbox base in the base list.
   production_base_id?: string
+  // True when the base has a published interface the current user can open.
+  // Drives the base card default ("Open interface" + a "Go to data" button).
+  has_published_interface?: boolean
 }
 
 interface ImportWorkerPayload {
@@ -313,6 +316,7 @@ interface Users {
 type ProjectPageType =
   | 'overview'
   | 'collaborator'
+  | 'interface-members'
   | 'data-source'
   | 'base-settings'
   | 'syncs'
@@ -468,6 +472,12 @@ interface CellRendererOptions {
   meta?: TableType
   metas?: { [idOrTitle: string]: TableType | any }
   baseRoles?: Record<string, any>
+  // Bound at grid setup and threaded through so cell click handlers can run
+  // permission checks without calling useRoles() outside a component setup.
+  isUIAllowed?: (
+    permission: string,
+    args?: { roles?: string | Record<string, boolean> | string[] | null },
+  ) => boolean
   x: number
   y: number
   width: number
@@ -512,6 +522,8 @@ interface CellRendererOptions {
   }
   sqlUis?: Record<string, any>
   skipRender?: boolean
+  /** interface inline edit (simple link picker): LTAR cells draw a select-style chevron instead of plus/expand icons */
+  isSimpleLinkRecordList?: boolean
   setCursor: SetCursorType
   getColor: GetColorType
   isDark?: boolean
@@ -660,6 +672,8 @@ interface CellRenderer {
     setCursor: SetCursorType
     path: Array<number>
     baseUsers?: (Partial<UserType> | Partial<User>)[]
+    /** Interface pages suppress collaborator-facing hover chrome (user cell name/email/role card). */
+    isInterface?: boolean
     t: Composer['t']
   }) => Promise<void>
   [key: string]: any
@@ -686,6 +700,10 @@ interface CanvasGridColumn {
   }
   readonly: boolean
   isCellEditable?: boolean
+  /** Interface builder: this column's inline-edit was turned off in its Field
+   *  pane. Read-only like a permission denial, but the renderer skips the
+   *  "Edit restricted" tooltip/border — it's an element config choice. */
+  inlineEditDisabled?: boolean
   isSyncedColumn?: boolean
   aggregation: string
   agg_fn: string
@@ -1027,6 +1045,10 @@ interface NcListProps {
 
 // NcList type ends here
 
+/** Which UI the LTAR cells render inside `LinkRecordDropdown` — the classic
+ * card modal or the compact single-list picker used by interface inline edit. */
+type LinkRecordDropdownVariant = 'classic' | 'simple'
+
 type NcDropdownPlacement =
   | 'bottom'
   | 'top'
@@ -1202,6 +1224,7 @@ export type {
   NcListSearchBasisOptionType,
   MultiSelectRawValueType,
   RawValueType,
+  LinkRecordDropdownVariant,
   NcDropdownPlacement,
   MakeCellEditableFn,
   CreateViewForm,

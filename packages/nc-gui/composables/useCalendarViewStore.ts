@@ -4,7 +4,6 @@ import {
   CALENDAR_EVENT_THEMES,
   CalendarEventTheme,
   DEFAULT_CALENDAR_EVENT_THEME,
-  EventType,
   FormulaDataTypes,
   UITypes,
   ViewTypes,
@@ -23,6 +22,9 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import type dayjs from 'dayjs'
+import type { InterfacePageDataApi } from '~/lib/interfaceData'
+import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
+import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -52,6 +54,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         >,
     shared = false,
     where?: ComputedRef<string | undefined>,
+    providedInterfaceDataApi?: InterfacePageDataApi,
   ) => {
     if (!meta) {
       throw new Error('Table meta is not available')
@@ -73,6 +76,26 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
      * component level, so the inject doesn't see the provided value.
      */
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
+
+    /**
+     * Present when mounted inside an interface page — data fetches and row
+     * updates are routed through the adapter and view-meta writes are kept
+     * local-only (the synthetic interface view is never persisted). Like
+     * `shared` above, the interface wrapper provides the adapter at the SAME
+     * component level it calls this provider, so inject can't see it — it
+     * passes the adapter as an argument instead.
+     */
+    const interfaceDataApi = providedInterfaceDataApi ?? inject(InterfacePageDataInj, undefined)
+
+    // Whether the inline "+" add affordance is enabled here: always outside
+    // interface pages, and inside an interface page only when the viz's "add /
+    // delete records inline" toggle is on (`canAddDeleteInline`, also false on
+    // public shares). NOTE: the data-edit PERMISSION is checked by the callers in
+    // their own component scope — NOT here. This store is created inside the
+    // interface wrapper's own setup, where its `ActiveSourceInj` provide isn't
+    // injectable, so a source-scoped `isUIAllowed('dataEdit')` in this scope
+    // would wrongly fail closed and hide the "+" even when the toggle is on.
+    const isAddDeleteInlineEnabled = computed(() => !interfaceDataApi || !!interfaceDataApi.canAddDeleteInline.value)
 
     const calendarMetaData = computed<CalendarType>(() => {
       return isPublic.value ? (sharedView.value?.view as CalendarType) : (viewMeta.value?.view as CalendarType)
@@ -728,7 +751,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         return
       if (isSidebarLoading.value) return
       try {
-        const response = !isPublic.value
+        // Interface pages route through the adapter — the sidebar's
+        // window/blank-date predicates ride as an always-honored narrow-only
+        // filter root (`nestedFiltersArr`), the composed page ∧ viz scope
+        // stays server-side.
+        const response = interfaceDataApi
+          ? await interfaceDataApi.fetchList({
+              limit: queryParams.value.limit,
+              offset: params.offset,
+              where: queryParams.value.where,
+              filtersArr: nestedFilters.value,
+              nestedFiltersArr: sideBarFilter.value,
+            })
+          : !isPublic.value
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id, {
               ...params,
               offset: params.offset,
@@ -804,7 +839,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
 
       try {
-        const res = !isPublic.value
+        const res = interfaceDataApi
+          ? await interfaceDataApi.fetchCalendarActiveDates({
+              from_date: fromDate,
+              to_date: toDate,
+              next_date: nextDate,
+              prev_date: prevDate,
+              where: queryParams.value.where,
+              filtersArr: nestedFilters.value,
+            })
+          : !isPublic.value
           ? await api.dbCalendarViewRowCount.dbCalendarViewRowCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,
               from_date: fromDate,
@@ -858,7 +902,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         activeCalendarView.value = view
 
-        if (isUIAllowed('calendarViewUpdate')) {
+        // Interface pages keep the pick local-only (localStorage above) — the
+        // synthetic interface view is never persisted.
+        if (!interfaceDataApi && isUIAllowed('calendarViewUpdate')) {
           await updateViewMeta(viewMeta.value.id, ViewTypes.CALENDAR, {
             meta: {
               ...viewMetaProperties.value,
@@ -996,7 +1042,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       try {
         if (showLoading) isCalendarDataLoading.value = true
 
-        const res = !isPublic.value
+        const res = interfaceDataApi
+          ? await interfaceDataApi.fetchCalendarData({
+              prev_date: prevDate,
+              next_date: nextDate,
+              to_date: toDate,
+              from_date: fromDate,
+              where: queryParams.value.where,
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+            })
+          : !isPublic.value
           ? await api.dbCalendarViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
               prev_date: prevDate,
               next_date: nextDate,
@@ -1186,7 +1242,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       try {
         if (showLoading) isSidebarLoading.value = true
-        const res = !isPublic.value
+        const res = interfaceDataApi
+          ? await interfaceDataApi.fetchList({
+              limit: queryParams.value.limit,
+              where: queryParams.value.where,
+              filtersArr: nestedFilters.value,
+              nestedFiltersArr: sideBarFilter.value,
+            })
+          : !isPublic.value
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,
               ...{ filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) },
@@ -1232,18 +1295,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           {},
         )
 
-        const updatedRowData = await $api.dbViewRow.update(
-          NOCO,
-          base?.value.id as string,
-          meta.value?.id as string,
-          viewMeta?.value?.id as string,
-          encodeURIComponent(id),
-          updateObj,
-          // todo:
-          // {
-          //   query: { ignoreWebhook: !saved }
-          // }
-        )
+        // Interface pages write through the adapter (`interfaceTableDataUpdate`
+        // — the server enforces the viz's `edit_inline` opt-in).
+        const updatedRowData = interfaceDataApi
+          ? await interfaceDataApi.updateRow(id, updateObj)
+          : await $api.dbViewRow.update(
+              NOCO,
+              base?.value.id as string,
+              meta.value?.id as string,
+              viewMeta?.value?.id as string,
+              encodeURIComponent(id),
+              updateObj,
+              // todo:
+              // {
+              //   query: { ignoreWebhook: !saved }
+              // }
+            )
 
         // Skip local row mutation when the row is being deleted —
         // the row is about to be removed from the view, no point updating it.
@@ -1492,7 +1559,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar
     // search → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
     const recordPassesViewFilter = (data: DataPayload) => {
-      if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+      if (
+        !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
+        Array.isArray(data.matchedViewIds) &&
+        !data.matchedViewIds.includes(viewMeta.value?.id as string)
+      ) {
         return false
       }
       return rowMatchesSearchAndUrl(data.payload)
@@ -1740,10 +1811,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (activeDataListener.value) {
             $ncSocket.offMessage(activeDataListener.value)
           }
-          activeDataListener.value = $ncSocket.onMessage(
-            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
-            handleDataEvent,
-          )
+          activeDataListener.value = $ncSocket.onMessage(dataEventSubscriptionKey(newMeta, interfaceDataApi), handleDataEvent)
         }
       },
       { immediate: true },
@@ -1791,6 +1859,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       timezoneDayjs,
       timezone,
       isSyncedFromColumn,
+      isAddDeleteInlineEnabled,
       weeksInRange,
       isMultiWeekRange,
       customCount,
@@ -1801,7 +1870,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
   },
 )
 
-export { useProvideCalendarViewStore }
+export { useProvideCalendarViewStore, useCalendarViewStore }
 
 export function useCalendarViewStoreOrThrow() {
   const calendarViewStore = useCalendarViewStore()

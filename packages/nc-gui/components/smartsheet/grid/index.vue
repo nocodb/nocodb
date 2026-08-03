@@ -194,6 +194,9 @@ provide(RowHeightInj, rowHeight)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// Interface pages open their record-detail sheet instead of the expanded form.
+const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
+
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
@@ -271,6 +274,8 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
 }
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
+  if (interfaceExpandRecord?.(row)) return
+
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (!isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId && isCanvasRendering.value) {

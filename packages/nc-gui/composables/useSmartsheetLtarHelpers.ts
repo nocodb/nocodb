@@ -1,9 +1,20 @@
 import { RelationTypes, isBtLikeV2Junction, isLinksOrLTAR, isMMOrMMLike } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
 const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjectionState(
-  (meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>) => {
+  (
+    meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
+    // Interface page adapter — unlink-style writes re-route through the
+    // page-scoped ops (interface collaborators may hold no base role, so the
+    // raw endpoints 403 with empty roles). Rides as a PARAM, not inject: the
+    // interface hosts that provide `InterfacePageDataInj` also call this
+    // provider in the SAME instance, and a same-instance `provide()` is
+    // invisible to this composable's own `inject()` (the useProvideViewGroupBy
+    // precedent). CE hosts pass nothing.
+    interfaceDataApi?: InterfacePageDataApi,
+  ) => {
     const { $api } = useNuxtApp()
 
     const { t } = useI18n()
@@ -11,6 +22,22 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     const { base } = storeToRefs(useBase())
 
     const { getMetaByKey } = useMetas()
+
+    const unlinkViaApi = async (rowId: string, column: ColumnType, refRowId: string, relationType: string) => {
+      if (interfaceDataApi?.nestedUnlink) {
+        await interfaceDataApi.nestedUnlink({ rowId, columnId: column.id as string, refRowIds: [refRowId] })
+      } else {
+        await $api.dbTableRow.nestedRemove(
+          NOCO,
+          meta.value?.base_id ?? (base.value.id as string),
+          meta.value?.id as string,
+          encodeURIComponent(rowId),
+          relationType as any,
+          column.id as string,
+          encodeURIComponent(refRowId),
+        )
+      }
+    }
 
     const getRowLtarHelpers = (row: Row) => {
       if (!row.rowMeta) {
@@ -87,26 +114,20 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
         } else {
           if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((<LinkToAnotherRecordType>column.colOptions)?.type)) {
             if (!row.row[column.title!]) return
-            await $api.dbTableRow.nestedRemove(
-              NOCO,
-              meta.value?.base_id ?? (base.value.id as string),
-              meta.value?.id as string,
+            await unlinkViaApi(
               extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
-              (<LinkToAnotherRecordType>column.colOptions)?.type as any,
-              column.id as string,
+              column,
               extractPkFromRow(row.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
+              (<LinkToAnotherRecordType>column.colOptions)?.type,
             )
             row.row[column.title!] = null
           } else {
             for (const link of (row.row[column.title!] as Record<string, any>[]) || []) {
-              await $api.dbTableRow.nestedRemove(
-                NOCO,
-                meta.value?.base_id ?? (base.value.id as string),
-                meta.value?.id as string,
-                encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
-                (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
-                column.id as string,
-                encodeURIComponent(extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[])),
+              await unlinkViaApi(
+                extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+                column,
+                extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
+                (<LinkToAnotherRecordType>column?.colOptions).type,
               )
             }
             row.row[column.title!] = []
@@ -145,27 +166,33 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
           if (isMMOrMMLike(column)) {
             if (!row.row[column.title!]) return
 
-            const result = await $api.internal.postOperation(
-              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-              meta.value?.base_id ?? base.value.id,
+            const deleteAllOps = [
               {
-                operation: 'nestedDataListCopyPasteOrDeleteAll',
-                tableId: meta.value?.id as string,
+                operation: 'deleteAll' as const,
+                rowId: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) as string,
                 columnId: column.id as string,
+                fk_related_model_id: (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
               },
-              [
-                {
-                  operation: 'deleteAll',
-                  rowId: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) as string,
-                  columnId: column.id as string,
-                  fk_related_model_id: (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
-                },
-              ],
-            )
+            ]
+
+            // Interface pages route through the page-scoped op — the raw op
+            // is base-scoped and 403s for interface collaborators.
+            const result = interfaceDataApi?.nestedCopyPaste
+              ? await interfaceDataApi.nestedCopyPaste(deleteAllOps)
+              : await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                  meta.value?.base_id ?? base.value.id,
+                  {
+                    operation: 'nestedDataListCopyPasteOrDeleteAll',
+                    tableId: meta.value?.id as string,
+                    columnId: column.id as string,
+                  },
+                  deleteAllOps,
+                )
 
             row.row[column.title!] = null
 
-            return Array.isArray(result.unlink) ? result.unlink : []
+            return Array.isArray(result?.unlink) ? result.unlink : []
           }
         }
       } catch (e: any) {

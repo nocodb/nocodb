@@ -119,6 +119,34 @@ export const OperationName = {
   workflowPublish: 'workflowPublish',
   workflowDuplicate: 'workflowDuplicate',
 
+  // Interfaces + interface pages
+  interfaceCreate: 'interfaceCreate',
+  interfaceUpdate: 'interfaceUpdate',
+  interfaceDelete: 'interfaceDelete',
+  interfaceDuplicate: 'interfaceDuplicate',
+  interfacePageCreate: 'interfacePageCreate',
+  interfacePageUpdate: 'interfacePageUpdate',
+  interfacePageDelete: 'interfacePageDelete',
+  interfacePageDuplicate: 'interfacePageDuplicate',
+  interfacePageClearDraft: 'interfacePageClearDraft',
+  // Interface sharing grants (PrincipalAssignment upserts/revokes) —
+  // base-scoped.
+  interfaceGrantSet: 'interfaceGrantSet',
+  interfaceGrantDelete: 'interfaceGrantDelete',
+  // Record writes made through a page's visualization or form — same
+  // record semantics as recordInsert/recordUpdate/recordDelete but
+  // scoped to the page's undo stack instead of the table's.
+  interfaceRecordInsert: 'interfaceRecordInsert',
+  interfaceRecordUpdate: 'interfaceRecordUpdate',
+  interfaceRecordDelete: 'interfaceRecordDelete',
+  interfaceRecordBulkDelete: 'interfaceRecordBulkDelete',
+  interfaceRecordBulkUpdate: 'interfaceRecordBulkUpdate',
+  interfaceRecordLinkAdd: 'interfaceRecordLinkAdd',
+  interfaceRecordLinkRemove: 'interfaceRecordLinkRemove',
+  interfaceRecordLinkSwap: 'interfaceRecordLinkSwap',
+  interfaceRecordLinkSwapBulk: 'interfaceRecordLinkSwapBulk',
+  interfaceRecordLinkByDisplay: 'interfaceRecordLinkByDisplay',
+
   // View sections
   viewSectionCreate: 'viewSectionCreate',
   viewSectionUpdate: 'viewSectionUpdate',

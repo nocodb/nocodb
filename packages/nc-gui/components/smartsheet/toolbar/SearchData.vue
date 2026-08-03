@@ -40,6 +40,9 @@ function getTableTitle(tableId?: string) {
 
 const isDropdownOpen = ref(false)
 
+// Compact hosts (interface toolbar): the selected-field chip shows the label only.
+const isFieldListCompact = inject(FieldListCompactInj, ref(false))
+
 const showSearchBox = ref(false)
 
 const globalSearchRef = ref<HTMLInputElement>()
@@ -331,7 +334,7 @@ watch(
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
-                <SmartsheetHeaderIcon :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
+                <SmartsheetHeaderIcon v-if="!isFieldListCompact" :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}
                 </div>

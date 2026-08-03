@@ -2,8 +2,11 @@ import { NC_ERROR_SENTINEL } from 'nocodb-sdk'
 import { isBoxHovered, renderCellError, renderMultiLineText } from '../utils/canvas'
 
 export const QRCodeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore, getColor }) => {
+  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore, getColor, textAlign }) => {
     const { renderAsTag } = tag
+    // The left-anchor opt-in aligns with the header/text cells, which use the
+    // standard cell padding — capture it before the QR-specific 4px override.
+    const cellPadding = padding ?? 10
     padding = 4
     if (parseProp(column.colOptions)?.error) {
       renderCellError(ctx, { x, y, width, height, padding, getColor })
@@ -50,7 +53,9 @@ export const QRCodeCellRenderer: CellRenderer = {
     })
 
     if (qrCanvas) {
-      const xPos = renderAsTag ? x + padding : x + (width - size) / 2
+      // `textAlign: 'left'` is an opt-in left anchor (interface list pages),
+      // sitting at the standard cell padding so it lines up with the header.
+      const xPos = renderAsTag ? x + padding : textAlign === 'left' ? x + cellPadding : x + (width - size) / 2
       const yPos = y + (height - size) / 2
       imageLoader.renderQRCode(ctx, qrCanvas, xPos, yPos, size)
 

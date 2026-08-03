@@ -12,6 +12,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
 
+  const { maybeNavigateToInterfaceOnlyBase, navigateToBaseInterface, baseOpensInterfaceByDefault } = useInterfacePermissions()
+
   // Dialog state - consolidated into single reactive object
   const dialogState = reactive({
     duplicate: {
@@ -145,6 +147,35 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       isProjectsLoaded.value = false
     }
 
+    // Grant-only collaborators (interface grants, no base/workspace role) go
+    // straight to the interface consumer shell — the base route would 403.
+    if (maybeNavigateToInterfaceOnlyBase(base)) return
+
+    // A base with a published interface the user can open defaults to the
+    // interface — the card's "Go to data" button (onOpenData) is the escape
+    // hatch to the data view.
+    if (baseOpensInterfaceByDefault(base)) {
+      navigateToBaseInterface(base)
+      return
+    }
+
+    await navigateToProject({
+      baseId: base.id!,
+      workspaceId: base.fk_workspace_id!,
+    })
+  }
+
+  /** Force-open the data view — the "Go to data" action on an interface-default card. */
+  const onOpenData = async (base: NcProject) => {
+    if (workspaceStore.isWorkspaceCeLocked(base.fk_workspace_id)) return
+
+    $e('a:workspace:base:open-data')
+    closeModal()
+
+    if (isEeUI && base.fk_workspace_id !== activeWorkspaceId.value) {
+      isProjectsLoaded.value = false
+    }
+
     await navigateToProject({
       baseId: base.id!,
       workspaceId: base.fk_workspace_id!,
@@ -179,6 +210,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     onUpdateColor,
     onReorder,
     onSelect,
+    onOpenData,
     closeModal,
     switchWorkspace,
   }

@@ -142,6 +142,19 @@ export class ImportService {
     //  create dashboards
   }
 
+  async importInterfaces(
+    _context: NcContext,
+    _param: {
+      user: User;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    return _param.idMap;
+    //  create interfaces
+  }
+
   async importWorkflows(
     _context: NcContext,
     _param: {
@@ -370,27 +383,11 @@ export class ImportService {
             idMap.set(colRef.id, col.id);
           }
 
-          // setval for auto increment column in pg
-          if (source.type === 'pg') {
-            if (modelData.pgSerialLastVal) {
-              if (col.ai) {
-                const baseModel = await Model.getBaseModelSQL(targetContext, {
-                  id: table.id,
-                  viewId: null,
-                  dbDriver: await NcConnectionMgrv2.get(source),
-                });
-                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-                await sqlClient.raw(
-                  `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
-                  [
-                    baseModel.getTnPath(table.table_name),
-                    col.column_name,
-                    modelData.pgSerialLastVal,
-                  ],
-                );
-              }
-            }
-          }
+          // Auto-increment (serial) sequences are realigned after the data is
+          // imported — see resetPgAutoIncrementSequences() — so the reset works
+          // for every source type, not only pg -> pg. (The old pgSerialLastVal
+          // path only fired when the origin was pg, leaving SQLite/MySQL -> pg
+          // migrations with stale sequences and duplicate-id inserts.)
         }
       }
 
@@ -2324,6 +2321,63 @@ export class ImportService {
     }
   }
 
+  /**
+   * Realign a Postgres target's auto-increment (serial) sequences with the
+   * imported data.
+   *
+   * The importer inserts rows with their original ids (to keep relationships
+   * intact). Postgres only advances a serial's sequence when *it* generates the
+   * value — an explicit id does not bump it — so after an import the sequence
+   * is left at its old position and the next user insert reuses a low id and
+   * fails with a duplicate-key error (the "id increment" issue reported on
+   * SQLite/MySQL -> Postgres migrations). Set each auto-increment column's
+   * sequence to `MAX(id)` so the next generated id is `MAX(id) + 1`.
+   *
+   * Works for any source. No-op for non-pg targets, non-ai columns, and empty
+   * tables. Best-effort: a failure on one column is logged, not fatal.
+   */
+  private async resetPgAutoIncrementSequences(
+    context: NcContext,
+    model: Model,
+    source: Source,
+  ) {
+    if (source.type !== 'pg') return;
+
+    await model.getColumns(context);
+    const aiColumns = model.columns.filter((c) => c.ai);
+    if (!aiColumns.length) return;
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: null,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const tnPath = baseModel.getTnPath(model.table_name);
+
+    for (const col of aiColumns) {
+      try {
+        const maxRes = await sqlClient.raw(`SELECT MAX(??) AS max FROM ??;`, [
+          col.column_name,
+          tnPath,
+        ]);
+        const maxId = maxRes?.rows?.[0]?.max;
+
+        // empty table -> leave the sequence at its default (next id = 1)
+        if (maxId === null || maxId === undefined) continue;
+
+        await sqlClient.raw(
+          `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+          [tnPath, col.column_name, maxId],
+        );
+      } catch (e) {
+        this.logger.warn(
+          `Failed to reset pg sequence for ${model.table_name}.${col.column_name}: ${e.message}`,
+        );
+      }
+    }
+  }
+
   importDataFromCsvStream(
     context: NcContext,
     param: {
@@ -2473,6 +2527,21 @@ export class ImportService {
             }
             chunk = [];
           }
+
+          // Rows were imported with their original ids, which does NOT advance
+          // a pg serial sequence — realign it with the data just written so the
+          // next user insert gets MAX(id)+1 instead of colliding on a low id.
+          // Best-effort; never fail the import over a sequence reset.
+          try {
+            await this.resetPgAutoIncrementSequences(
+              context,
+              destModel,
+              destBase,
+            );
+          } catch (e) {
+            this.debugLog(e);
+          }
+
           resolve(null);
         },
       });

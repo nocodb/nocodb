@@ -12,6 +12,7 @@ import {
   isColumnInError,
   isLinksOrLTAR,
   isNumericCol,
+  isRollupAggregatableColumn,
   isSystemColumn,
   isValidURL,
   isVirtualCol,
@@ -601,18 +602,9 @@ const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
 }
 
 const getValidRollupColumn = (c: ColumnType) => {
-  return (
-    (!isVirtualCol(c.uidt as UITypes) ||
-      [
-        UITypes.CreatedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedTime,
-        UITypes.LastModifiedBy,
-        UITypes.Formula,
-        UITypes.Rollup,
-      ].includes(c.uidt as UITypes)) &&
-    (!isSystemColumn(c) || c.pk)
-  )
+  // shares the aggregatable-type rule with the backend so the picker and
+  // `validateRollupPayload` can't drift apart
+  return isRollupAggregatableColumn(c as { uidt: UITypes }) && (!isSystemColumn(c) || c.pk)
 }
 
 export {

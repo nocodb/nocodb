@@ -3,6 +3,7 @@ import {
   Controller,
   HttpCode,
   Inject,
+  Logger,
   Post,
   Req,
   Res,
@@ -42,6 +43,8 @@ export class JobsController implements OnModuleDestroy {
       });
     });
   }
+
+  private readonly logger = new Logger(JobsController.name);
 
   private jobRooms = {};
   private localJobs = {};
@@ -172,97 +175,119 @@ export class JobsController implements OnModuleDestroy {
 
     const jobId = data.id;
 
-    // clean as it might be taken by another worker
-    if (data.status === JobStatus.REQUEUED) {
+    const isRequeued = data.status === JobStatus.REQUEUED;
+    const isTerminal = [JobStatus.COMPLETED, JobStatus.FAILED].includes(
+      data.status,
+    );
+
+    try {
+      // clean as it might be taken by another worker
+      if (isRequeued) {
+        if (this.jobRooms[jobId]) {
+          this.jobRooms[jobId].listeners.forEach((res) => {
+            if (!res.headersSent) {
+              res.send({
+                status: 'refresh',
+              });
+            }
+          });
+        }
+        // per-job state is freed in the finally block below
+        return;
+      }
+
+      if (this.localJobs[jobId]) {
+        response = {
+          status: 'update',
+          data,
+          _mid: ++this.localJobs[jobId]._mid,
+        };
+        this.localJobs[jobId].messages.push(response);
+
+        // limit to 20 messages
+        if (this.localJobs[jobId].messages.length > 20) {
+          this.localJobs[jobId].messages.shift();
+        }
+
+        await NocoCache.set(
+          'root',
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+          {
+            messages: this.localJobs[jobId].messages,
+          },
+        );
+      } else {
+        response = {
+          status: 'update',
+          data,
+          _mid: 1,
+        };
+
+        this.localJobs[jobId] = {
+          messages: [response],
+          _mid: 1,
+        };
+
+        await NocoCache.set(
+          'root',
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+          {
+            messages: this.localJobs[jobId].messages,
+          },
+        );
+      }
+
       if (this.jobRooms[jobId]) {
         this.jobRooms[jobId].listeners.forEach((res) => {
           if (!res.headersSent) {
-            res.send({
-              status: 'refresh',
-            });
+            res.send(response);
           }
         });
       }
 
-      delete this.jobRooms[jobId];
-      delete this.localJobs[jobId];
-      await NocoCache.del(
-        'root',
-        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-      );
-      return;
-    }
-
-    if (this.localJobs[jobId]) {
-      response = {
-        status: 'update',
-        data,
-        _mid: ++this.localJobs[jobId]._mid,
-      };
-      this.localJobs[jobId].messages.push(response);
-
-      // limit to 20 messages
-      if (this.localJobs[jobId].messages.length > 20) {
-        this.localJobs[jobId].messages.shift();
+      if (JobsRedis.available) {
+        await JobsRedis.publish(jobId, {
+          cmd: JobEvents.STATUS,
+          ...data,
+        });
       }
-
-      await NocoCache.set(
-        'root',
-        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-        {
-          messages: this.localJobs[jobId].messages,
-        },
+    } catch (e) {
+      // This is a fire-and-forget @OnEvent handler: a thrown/rejected error
+      // becomes an unhandledRejection (which crashes the process) AND skips the
+      // per-job state cleanup below — orphaning localJobs/jobRooms entries on
+      // every failure. Under high job-failure churn that is a slow heap leak
+      // (esp. on worker containers). Swallow + log; the finally still frees it.
+      this.logger.error(
+        `Failed to relay status for job ${jobId}: ${(e as Error).message}`,
+        (e as Error).stack,
       );
-    } else {
-      response = {
-        status: 'update',
-        data,
-        _mid: 1,
-      };
-
-      this.localJobs[jobId] = {
-        messages: [response],
-        _mid: 1,
-      };
-
-      await NocoCache.set(
-        'root',
-        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-        {
-          messages: this.localJobs[jobId].messages,
-        },
-      );
-    }
-
-    if (this.jobRooms[jobId]) {
-      this.jobRooms[jobId].listeners.forEach((res) => {
-        if (!res.headersSent) {
-          res.send(response);
-        }
-      });
-    }
-
-    if (JobsRedis.available) {
-      await JobsRedis.publish(jobId, {
-        cmd: JobEvents.STATUS,
-        ...data,
-      });
-    }
-
-    if ([JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)) {
-      this.closedJobs.push(jobId);
-      setTimeout(() => {
-        this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-      }, POLLING_INTERVAL * 2).unref();
-
-      setTimeout(async () => {
+    } finally {
+      // Always free per-job in-memory state on a terminal/requeued status, even
+      // if an awaited cache/publish above threw. A missing Redis round-trip must
+      // never leave localJobs/jobRooms entries (and their retained message
+      // payloads) resident forever.
+      if (isRequeued) {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
         await NocoCache.del(
           'root',
           `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-        );
-      }, POLLING_INTERVAL * 2).unref();
+        ).catch(() => {});
+      } else if (isTerminal) {
+        this.closedJobs.push(jobId);
+        setTimeout(() => {
+          this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
+        }, POLLING_INTERVAL * 2).unref();
+
+        setTimeout(() => {
+          delete this.jobRooms[jobId];
+          delete this.localJobs[jobId];
+          NocoCache.del(
+            'root',
+            `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+          ).catch(() => {});
+        }, POLLING_INTERVAL * 2).unref();
+      }
     }
   }
 
@@ -275,61 +300,70 @@ export class JobsController implements OnModuleDestroy {
 
     const jobId = data.id;
 
-    if (this.localJobs[jobId]) {
-      response = {
-        status: 'update',
-        data,
-        _mid: ++this.localJobs[jobId]._mid,
-      };
+    // Fire-and-forget @OnEvent handler — a rejected cache/publish here would
+    // become an unhandledRejection (process crash). Swallow + log instead.
+    try {
+      if (this.localJobs[jobId]) {
+        response = {
+          status: 'update',
+          data,
+          _mid: ++this.localJobs[jobId]._mid,
+        };
 
-      this.localJobs[jobId].messages.push(response);
+        this.localJobs[jobId].messages.push(response);
 
-      // limit to 20 messages
-      if (this.localJobs[jobId].messages.length > 20) {
-        this.localJobs[jobId].messages.shift();
+        // limit to 20 messages
+        if (this.localJobs[jobId].messages.length > 20) {
+          this.localJobs[jobId].messages.shift();
+        }
+
+        await NocoCache.set(
+          'root',
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+          {
+            messages: this.localJobs[jobId].messages,
+          },
+        );
+      } else {
+        response = {
+          status: 'update',
+          data,
+          _mid: 1,
+        };
+
+        this.localJobs[jobId] = {
+          messages: [response],
+          _mid: 1,
+        };
+
+        await NocoCache.set(
+          'root',
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+          {
+            messages: this.localJobs[jobId].messages,
+          },
+        );
       }
 
-      await NocoCache.set(
-        'root',
-        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-        {
-          messages: this.localJobs[jobId].messages,
-        },
+      if (this.jobRooms[jobId]) {
+        this.jobRooms[jobId].listeners.forEach((res) => {
+          if (!res.headersSent) {
+            res.send(response);
+          }
+        });
+      }
+
+      if (JobsRedis.available) {
+        await JobsRedis.publish(jobId, {
+          cmd: JobEvents.LOG,
+          ...data,
+        });
+      }
+    } catch (e) {
+      this.logger.error(
+        `Failed to relay log for job ${jobId}: ${(e as Error).message}`,
+        (e as Error).stack,
       );
-    } else {
-      response = {
-        status: 'update',
-        data,
-        _mid: 1,
-      };
-
-      this.localJobs[jobId] = {
-        messages: [response],
-        _mid: 1,
-      };
-
-      await NocoCache.set(
-        'root',
-        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-        {
-          messages: this.localJobs[jobId].messages,
-        },
-      );
-    }
-
-    if (this.jobRooms[jobId]) {
-      this.jobRooms[jobId].listeners.forEach((res) => {
-        if (!res.headersSent) {
-          res.send(response);
-        }
-      });
-    }
-
-    if (JobsRedis.available) {
-      await JobsRedis.publish(jobId, {
-        cmd: JobEvents.LOG,
-        ...data,
-      });
     }
   }
 }

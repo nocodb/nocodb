@@ -172,6 +172,13 @@ export class SourcesService {
   }> {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
+    // Unlike baseUpdate, this path never validated the filename — a source could
+    // point at NocoDB's own metadata database (noco.db / nc_data.db).
+    validateAndNormalizeSqliteConfig(
+      param.source.config,
+      (param.source.config as any)?.client ?? param.source.type,
+    );
+
     // type | base | baseId
     const baseBody = param.source;
     baseBody.alias = baseBody.alias?.trim();
@@ -185,6 +192,13 @@ export class SourcesService {
     // if missing integration id, create a new private integration
     // and map the id to the source
     if (!(baseBody as any).fk_integration_id) {
+      // This branch creates the Integration model directly, bypassing
+      // integrationCreate and its guards — mirror the enterprise SQLite block.
+      if (baseBody.config?.client === 'sqlite3' && Noco.isEE()) {
+        NcError.get(context).badRequest(
+          'SQLite connections are only available on the free self-hosted edition',
+        );
+      }
       integration = await Integration.createIntegration({
         title: baseBody.alias,
         type: IntegrationsType.Database,

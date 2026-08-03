@@ -79,8 +79,10 @@ const showAllAttachments = ref(false)
 const { width: sortableRefWidth } = useElementSize(sortableRef)
 
 const maxVisibleCards = computed(() => {
-  // min of total visible items and max cards per row * 2
-  return Math.min(visibleItems.value.length, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2)
+  // min of total visible items and max cards per row * 2 — floored at 1 so a
+  // host narrower than one card (record-review's detail column) still shows
+  // the first attachment instead of only a "+ N more" button
+  return Math.min(visibleItems.value.length, Math.max(1, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2))
 })
 
 const expandedFormVisibelItems = computed(() => {

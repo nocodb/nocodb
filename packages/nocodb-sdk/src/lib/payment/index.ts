@@ -32,6 +32,8 @@ export enum PlanLimitTypes {
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
+  LIMIT_INTERFACE_PER_WORKSPACE = 'limit_interface',
+  LIMIT_INTERFACE_PAGE_PER_INTERFACE = 'limit_interface_page',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
@@ -134,6 +136,21 @@ export enum PlanFeatureTypes {
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
   FEATURE_ORACLE = 'feature_oracle',
+  /** Interfaces (Interface Designer): page-based shareable apps on base data */
+  FEATURE_INTERFACES = 'feature_interfaces',
+  FEATURE_INTERFACE_TABLE_MULTI_VIZ = 'feature_interface_table_multi_viz',
+  FEATURE_INTERFACE_METRIC_COLOR_CONDITIONS = 'feature_interface_metric_color_conditions',
+  FEATURE_INTERFACE_PIVOT_WIDGET = 'feature_interface_pivot_widget',
+  FEATURE_INTERFACE_VIEW_WIDGET = 'feature_interface_view_widget',
+  FEATURE_INTERFACE_IFRAME_WIDGET = 'feature_interface_iframe_widget',
+  FEATURE_INTERFACE_USER_FILTERS = 'feature_interface_user_filters',
+  FEATURE_INTERFACE_TOOLBAR_TOGGLES = 'feature_interface_toolbar_toggles',
+  FEATURE_INTERFACE_DRAFTS = 'feature_interface_drafts',
+  FEATURE_INTERFACE_PREVIEW_AS = 'feature_interface_preview_as',
+  FEATURE_INTERFACE_ACCESS_CONTROL = 'feature_interface_access_control',
+  FEATURE_INTERFACE_RECORD_REVIEW = 'feature_interface_record_review',
+  FEATURE_INTERFACE_OVERVIEW = 'feature_interface_overview',
+  FEATURE_INTERFACE_PAGE_ACCESS_CONTROL = 'feature_interface_page_access_control',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
   /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
@@ -371,6 +388,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more scripts in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
+  [PlanLimitTypes.LIMIT_INTERFACE_PER_WORKSPACE]:
+    'to add more interfaces in a workspace.',
+  [PlanLimitTypes.LIMIT_INTERFACE_PAGE_PER_INTERFACE]:
+    'to add more pages in an interface.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
@@ -509,6 +530,30 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to white-label this instance with your own logo, product name, and brand color.',
   [PlanFeatureTypes.FEATURE_SCHEDULED_SNAPSHOTS]:
     'to schedule automatic snapshots.',
+  [PlanFeatureTypes.FEATURE_INTERFACES]: 'to build interfaces.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_TABLE_MULTI_VIZ]:
+    'to add multiple visualizations to an interface page.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_METRIC_COLOR_CONDITIONS]:
+    'to colour metric widgets by value conditions.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_PIVOT_WIDGET]: 'to use pivot widgets.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_VIEW_WIDGET]:
+    'to embed views in dashboards.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_IFRAME_WIDGET]: 'to embed web pages.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_USER_FILTERS]:
+    'to add filter tabs and dropdowns for interface users.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_TOOLBAR_TOGGLES]:
+    'to let interface users sort, search and filter.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_DRAFTS]:
+    'to stage interface changes as drafts before publishing.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_PREVIEW_AS]:
+    'to preview interfaces as other roles and collaborators.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_ACCESS_CONTROL]:
+    'to manage interface-level member access.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_RECORD_REVIEW]:
+    'to build record review pages.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_OVERVIEW]: 'to build overview pages.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_PAGE_ACCESS_CONTROL]:
+    'to control access per interface page.',
 };
 
 export const getUpgradeMessage = (

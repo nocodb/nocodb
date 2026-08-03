@@ -46,9 +46,20 @@ const {
   dayAnchoredSpan,
   weeksInRange,
   isMultiWeekRange,
+  isAddDeleteInlineEnabled,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+// Interface editor: the side-panel "New record" button selects the calendar
+// element (opens `Page › Calendar`) instead of adding a record. Null in the
+// published view and outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
+// Interface pages: the side panel is the RECORD LIST only — the toolbar's
+// date navigation already covers moving around, so the date/month/year
+// pickers are dropped. Core calendar keeps them.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 // Day-anchored modes ('3day', custom + day-unit) anchor on a single day; the picker
 // selects the first visible day and the window spans that day + (N-1). Mirrors the
@@ -390,6 +401,9 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
 })
 
 const newRecord = () => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value) return
+
   const row = {
     ...rowDefaultData(meta.value?.columns, user.value ?? undefined),
   }
@@ -491,7 +505,7 @@ const selectOption = (option) => {
     class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div class="flex min-w-[288px] flex-col">
+    <div v-if="!interfacePageDataApi" class="flex min-w-[288px] flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"
@@ -545,8 +559,8 @@ const selectOption = (option) => {
 
     <div
       :class="{
-        '!border-t-0 ': height < 700,
-        'pt-6': height >= 700,
+        '!border-t-0 ': height < 700 || !!interfacePageDataApi,
+        'pt-6': height >= 700 && !interfacePageDataApi,
       }"
       class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-1 min-h-0 flex-col gap-y-3"
     >
@@ -628,7 +642,7 @@ const selectOption = (option) => {
         </a-input>
       </div>
       <div
-        v-if="isViewOperationsAllowed || (isUIAllowed('dataEdit') && props.visible && !isSyncedTable)"
+        v-if="isViewOperationsAllowed || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled && props.visible && !isSyncedTable)"
         class="mx-4 gap-2 flex items-center"
       >
         <LazySmartsheetToolbarSortListMenu v-if="isViewOperationsAllowed" />
@@ -636,7 +650,7 @@ const selectOption = (option) => {
         <div class="flex-1" />
 
         <PermissionsTooltip
-          v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
+          v-if="isUIAllowed('dataEdit') && isAddDeleteInlineEnabled && props.visible && !isSyncedTable"
           :entity="PermissionEntity.TABLE"
           :entity-id="meta?.id"
           :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -711,22 +725,47 @@ const selectOption = (option) => {
       <div
         v-else
         :class="{
+          // Interface: no picker above — `h-full` already fills the flexing panel.
           '!h-[calc(100svh-22.15rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            !showSearch,
           '!h-[calc(100svh-24.9rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            showSearch,
           '!h-[calc(100svh-13.85rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            !showSearch,
           '!h-[calc(100svh-16.61rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'month' || activeCalendarView === 'year') &&
+            showSearch,
           '!h-[calc(100svh-30.15rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            !showSearch,
           ' !h-[calc(100svh-32.9rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+            !interfacePageDataApi &&
+            height > 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            showSearch,
           '!h-[calc(100svh-13.8rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            !showSearch,
           '!h-[calc(100svh-16.6rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
+            !interfacePageDataApi &&
+            height <= 700 &&
+            (activeCalendarView === 'day' || activeCalendarView === 'week') &&
+            showSearch,
         }"
         class="flex items-center justify-center h-full"
       >

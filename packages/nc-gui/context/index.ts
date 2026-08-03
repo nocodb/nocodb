@@ -1,6 +1,16 @@
-import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  ColumnType,
+  FilterType,
+  InterfaceGalleryVizTheme,
+  InterfaceKanbanVizTheme,
+  SourceType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import type { InterfacePageDataApi, InterfacePublicPageState, InterfaceRecordSidebarApi } from '../lib/interfaceData'
+import type { LinkRecordDropdownVariant, Row } from '../lib/types'
 import type { PageSidebarNode } from '#imports'
 
 export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
@@ -196,6 +206,180 @@ export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; col
  */
 export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId: string } | null>> =
   Symbol('public-doc-share-injection')
+
+/**
+ * Data adapter for smartsheet components mounted inside an interface page.
+ * Provided by the interface-page wrappers (EE); when present, the smartsheet
+ * data composables route list/count/CRUD calls through it instead of the
+ * view / shared-view endpoints. Undefined in normal dashboard contexts.
+ */
+export const InterfacePageDataInj: InjectionKey<InterfacePageDataApi | undefined> = Symbol('interface-page-data')
+
+/**
+ * Marks an interface surface that sits OUTSIDE the viz tree, so it has no
+ * `InterfacePageDataInj` ancestor to be recognised by — the builder's
+ * properties panel, whose "Edit field" hosts the same column editor the canvas
+ * does. Read it through `useIsInterfaceUi()` rather than injecting directly.
+ */
+export const IsInterfaceUiInj: InjectionKey<Ref<boolean>> = Symbol('is-interface-ui')
+
+/**
+ * Marks a visualization EMBEDDED as a dashboard view widget (a card inside a
+ * group grid) rather than filling its own page — space-constrained renderers
+ * adapt (e.g. kanban auto-collapses empty stacks). Provided by the interface
+ * view-widget host; absent everywhere else.
+ */
+export const IsEmbeddedVizInj: InjectionKey<Ref<boolean>> = Symbol('is-embedded-viz')
+
+/**
+ * Which UI the LTAR cells render inside `LinkRecordDropdown` — `'classic'`
+ * (default; the full card modal) or `'simple'` (the compact single-list
+ * picker). Provided as `'simple'` by the interface grid/list viz hosts (EE);
+ * `useLinkRecordDropdownVariant` additionally keeps forms, expanded records
+ * and lookups on the classic UI regardless of the provided value.
+ */
+export const LinkRecordDropdownVariantInj: InjectionKey<Ref<LinkRecordDropdownVariant>> = Symbol('link-record-dropdown-variant')
+
+/**
+ * Per-column "Click into record details" for Links/LTAR cells — expands a
+ * linked/unlinked record into the LINKED table's record-detail surface.
+ * Provided by the interface viz hosts (EE) which resolve the per-column
+ * config; `null`/absent = no expand affordance (the CE default everywhere).
+ */
+export interface LinkRecordExpandApi {
+  /** Whether the LTAR column has click-into-details configured (with a valid layout). */
+  isEnabled: (column: ColumnType) => boolean
+  /** Open the record's detail surface — the picker passes the linked table's meta it already holds. */
+  expand: (params: { column: ColumnType; row: Record<string, any>; relatedTableMeta: TableType }) => void
+}
+
+export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')
+
+/**
+ * Record-sidebar adapter for the comment + revision-history panels of an
+ * interface record overlay — the record-scoped sibling of `InterfacePageDataInj`.
+ * Provided by the overlay (EE); when present, the base comment/revision
+ * composables (`useRowComments`, `useExpandedFormStore`) route their network
+ * calls through it (the interface-scoped, grant + builder-toggle + record-scope
+ * gated ops) instead of the base ops, so interface-only consumers can use them.
+ * Undefined outside an interface record overlay.
+ */
+export const InterfaceRecordSidebarInj: InjectionKey<InterfaceRecordSidebarApi | undefined> = Symbol('interface-record-sidebar')
+
+/**
+ * Kanban surface theme for interface-mounted kanbans. Provided by the interface
+ * hosts (EE) from the kanban viz config; undefined outside interface pages —
+ * the renderer then keeps the data-app's default (`board`) treatment.
+ */
+export const InterfaceKanbanThemeInj: InjectionKey<Ref<InterfaceKanbanVizTheme> | undefined> = Symbol('interface-kanban-theme')
+
+/**
+ * Gallery surface theme for interface-mounted galleries. Provided by the
+ * interface hosts (EE) from the gallery viz config; undefined outside interface
+ * pages — the renderer then keeps the data-app's default (`card`) treatment.
+ */
+export const InterfaceGalleryThemeInj: InjectionKey<Ref<InterfaceGalleryVizTheme> | undefined> = Symbol('interface-gallery-theme')
+
+/**
+ * Public share-to-web consumer context for interface pages. Provided by the
+ * anonymous shared-page route (EE `interface/consumer/PublicPage.vue`); when
+ * present, the interface page renderers prefer its page/meta over the builder
+ * store and the data adapter routes through the public REST endpoints. Null in
+ * normal (authenticated) contexts.
+ */
+export const InterfacePublicPageInj: InjectionKey<Ref<InterfacePublicPageState | null>> = Symbol(
+  'interface-public-page-injection',
+)
+
+/**
+ * Scoped UI-ACL override for interface preview-as. Provided by the editor's
+ * preview host (EE `interface/editor/AppPreview.vue`) with the previewed
+ * principal's base-role object (`{ editor: true }` …) while a preview-as
+ * target is active; `useRoles().isUIAllowed` then evaluates against it for
+ * every component in the preview subtree, so the canvas gates its UI exactly
+ * as the previewed user/role — while the editor chrome outside the subtree
+ * keeps the builder's real roles. Null when not previewing.
+ */
+export const UiRolesOverrideInj: InjectionKey<Ref<Record<string, boolean> | null>> = Symbol('ui-roles-override')
+
+/**
+ * Interface EDITOR only: a callback that selects the mounted visualization
+ * element — moving the properties panel to its `Page › <Viz>` pane, exactly like
+ * clicking a button element opens its pane. Provided by the interface page
+ * wrapper (EE) while editing, bound to the mounted viz; null in the published
+ * view and outside interface pages. Consumed today by the calendar sub-views so
+ * a date click selects the element instead of highlighting the date / adding a
+ * record.
+ */
+export const InterfaceVizEditSelectInj: InjectionKey<Ref<(() => void) | null>> = Symbol('interface-viz-edit-select')
+
+/**
+ * Interface pages with a "new record" FORM configured (an OPEN_RECORD_FORM
+ * button → RECORD_DETAIL page) route the calendar's inline add through this
+ * handler instead of the default expanded-record form. Provided by the interface
+ * page wrapper (EE) when such a form is set; null otherwise and outside interface
+ * pages. The handler opens the configured form seeded with `prefill` (the clicked
+ * date / filter context) and returns true when it handled the add.
+ */
+export const InterfaceNewRecordFormInj: InjectionKey<Ref<((prefill: Record<string, any>) => boolean) | null>> =
+  Symbol('interface-new-record-form')
+
+/**
+ * Leveled-list rows may belong to a PARENT table, not the page's source table —
+ * the list passes the row's table so the wrapper can open that table's
+ * record-detail page (per-level "Click into record details" config).
+ */
+export interface InterfaceExpandRecordCtx {
+  modelId?: string
+  tableMeta?: TableType
+  /** Pre-resolved primary key (leveled rows carry it; spares a column lookup). */
+  pk?: string
+}
+
+/**
+ * Row-expansion intercept for smartsheet components mounted inside an
+ * interface page. Provided by the interface viz wrapper (EE); the components'
+ * expand handlers call it FIRST — true means the interface handled the click
+ * (record-detail sheet opened, or the viz has "Click into record details"
+ * disabled and the click is inert), false falls through to the classic
+ * expanded-record flow (new-row drafts keep their dialog). Undefined in
+ * normal dashboard contexts.
+ */
+export const InterfaceExpandRecordInj: InjectionKey<((row: Row, ctx?: InterfaceExpandRecordCtx) => boolean) | undefined> =
+  Symbol('interface-expand-record')
+
+/**
+ * Interface pages: whether the active viz opens records (its "Click into
+ * record details" toggle) — context-menu Expand items hide when off.
+ * Non-interface hosts inject the default (true) and are unaffected.
+ */
+export const InterfaceClickIntoDetailsInj: InjectionKey<Ref<boolean>> = Symbol('interface-click-into-details')
+
+/**
+ * Whether smartsheet renderers mounted inside an interface page should show the
+ * row-expand (maximize) affordance. Provided by the interface viz wrapper (EE):
+ * true when "Click into record details" is on, OR while the builder is editing
+ * (a click then surfaces the enable prompt — see InterfaceExpandRecordInj).
+ * False on the launched/published page when the toggle is off, so the otherwise
+ * inert expand arrow is hidden. Defaults to true everywhere else — ordinary
+ * grids always expand.
+ */
+export const InterfaceShowRowExpandInj: InjectionKey<Ref<boolean>> = Symbol('interface-show-row-expand')
+
+/**
+ * Compact presentation for the toolbar field-list dropdown (panel-density
+ * text, no field icons) — provided by side-panel filter/sort hosts.
+ */
+export const FieldListCompactInj: InjectionKey<Ref<boolean>> = Symbol('field-list-compact-injection')
+
+/**
+ * Mark filter rows whose `fk_column_id` no longer resolves to a live column as
+ * "orphaned" (a greyed indicator instead of a blank field picker). Provided by
+ * the interface filter editor so that only interface config filters — where a
+ * table/field delete leaves a stale id in the persisted tree — surface the cue;
+ * grid-view filter rows keep their existing rendering.
+ */
+export const MarkOrphanFilterInj: InjectionKey<Ref<boolean>> = Symbol('mark-orphan-filter-injection')
 
 /**
  * Resolved download context for an attachment rendered under a Lookup cell.

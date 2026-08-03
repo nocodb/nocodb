@@ -6,6 +6,7 @@ import type { NcContext } from '~/interface/config';
 import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
+import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 
 @Injectable()
 export class CalendarDatasService {
@@ -95,7 +96,9 @@ export class CalendarDatasService {
       prev_date: string;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
+    // Strip response-shape keys before forwarding an anonymous caller's query.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
@@ -129,7 +132,9 @@ export class CalendarDatasService {
       prev_date: string;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
+    // Strip response-shape keys before forwarding an anonymous caller's query.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);

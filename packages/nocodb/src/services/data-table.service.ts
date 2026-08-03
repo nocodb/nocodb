@@ -20,7 +20,10 @@ import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -781,6 +784,14 @@ export class DataTableService {
     const { swapEntry, feResponse } =
       await this.computeListCopyPasteOrDeleteAllDiff(context, param);
 
+    // Deposit the computed diff for an OUTER trace scope (the interface
+    // page-scoped swap contract builds its inverse from it — its own params
+    // never carry the diff). No-op when no outer scope is active.
+    captureForTrace(
+      'linkSwapEntry',
+      swapEntry ? { ...swapEntry, rowId: String(swapEntry.rowId) } : null,
+    );
+
     if (swapEntry) {
       await this._traceApplyLinkSwap(context, {
         modelId: param.modelId,
@@ -1189,6 +1200,13 @@ export class DataTableService {
       results.push(feResponse ?? { link: [], unlink: [] });
     }
 
+    // Same deposit as the single-cell path — the interface bulk swap
+    // contract reads it for its page-scoped inverse.
+    captureForTrace(
+      'linkSwapBulkEntries',
+      swapEntries.map((e) => ({ ...e, rowId: String(e.rowId) })),
+    );
+
     if (swapEntries.length) {
       await this._traceApplyLinkSwapBulk(context, {
         modelId: param.modelId,
@@ -1288,6 +1306,14 @@ export class DataTableService {
         linkSwapEntries,
       );
     }
+
+    // Deposit the resolved diffs for an OUTER trace scope (the interface
+    // by-display contract builds its page-scoped inverse from them — its own
+    // params only carry display strings). No-op without an outer scope.
+    captureForTrace(
+      'linkSwapBulkEntries',
+      linkSwapEntries.map((e) => ({ ...e, rowId: String(e.rowId) })),
+    );
 
     if (linkSwapEntries.length) {
       await this._traceApplyLinkByDisplay(context, {

@@ -149,6 +149,11 @@ export function useCopyPaste({
   const { isUIAllowed } = useRoles()
   const { copy, copyMimes } = useCopy()
   const { cleaMMCell, clearLTARCell } = useSmartsheetLtarHelpersOrThrow()
+
+  // Interface page adapter — LTAR structured pastes re-route through the
+  // page-scoped op (the raw internal op is base-scoped and 403s for
+  // interface collaborators without a base role).
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const { isAllowed } = usePermissions()
   const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
@@ -167,7 +172,15 @@ export function useCopyPaste({
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
 
-  const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+  // Interface pages can grant dataEdit while the page keeps cells read-only
+  // (inline editing off) — paste / clear / attachment-drop must no-op at the
+  // UI level then, instead of round-tripping into a server 403. Copy is not
+  // gated by this. Classic grids have no adapter and are unaffected.
+  const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+  const hasEditPermission = computed(
+    () => isUIAllowed('dataEdit') && (!interfacePageDataApi || interfacePageDataApi.canEditInline.value),
+  )
 
   const canPasteCell = computed(() => {
     if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
@@ -258,6 +271,8 @@ export function useCopyPaste({
       isActiveElementInsideExtension() ||
       isActiveElementInsideScriptPane() ||
       isActiveElementInsideSmartTextPanel() ||
+      isActiveElementInsideInterfacePanel() ||
+      isInterfaceRecordSheetOpen() ||
       isCmdJActive() ||
       cmdKActive()
     ) {
@@ -597,16 +612,24 @@ export function useCopyPaste({
         // Execute bulk LTAR paste operations in a single API call
         if (bulkLtarOps.length) {
           try {
-            await $api.internal.postOperation(
-              meta.value?.fk_workspace_id as string,
-              meta.value?.base_id as string,
-              {
-                operation: 'nestedDataBulkCopyPasteOrDeleteAll',
-                tableId: meta.value?.id as string,
-                viewId: view?.value?.id,
-              },
-              bulkLtarOps.map(({ columnId, data }) => ({ columnId, data })),
-            )
+            const bulkPayload = bulkLtarOps.map(({ columnId, data }) => ({ columnId, data }))
+
+            // Interface pages route through the page-scoped op — the raw
+            // internal op 403s for interface collaborators.
+            if (interfaceDataApi?.nestedBulkCopyPaste) {
+              await interfaceDataApi.nestedBulkCopyPaste(bulkPayload as any)
+            } else {
+              await $api.internal.postOperation(
+                meta.value?.fk_workspace_id as string,
+                meta.value?.base_id as string,
+                {
+                  operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+                  tableId: meta.value?.id as string,
+                  viewId: view?.value?.id,
+                },
+                bulkPayload,
+              )
+            }
           } catch (e: any) {
             for (const op of bulkLtarOps) {
               op.rowRef.row[op.columnTitle] = op.oldValue
@@ -628,16 +651,24 @@ export function useCopyPaste({
           try {
             // Chunk into batches to stay within the backend per-request entry cap
             for (let i = 0; i < entries.length; i += LINK_BY_DISPLAY_VALUE_BATCH_SIZE) {
-              await $api.internal.postOperation(
-                meta.value?.fk_workspace_id as string,
-                meta.value?.base_id as string,
-                {
-                  operation: 'nestedDataBulkLinkByDisplayValue',
-                  tableId: meta.value?.id as string,
-                  viewId: view?.value?.id,
-                },
-                entries.slice(i, i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE),
-              )
+              const batch = entries.slice(i, i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE)
+
+              // Interface pages route through the page-scoped op — the raw
+              // internal op 403s for interface collaborators.
+              if (interfaceDataApi?.nestedBulkLinkByDisplay) {
+                await interfaceDataApi.nestedBulkLinkByDisplay(batch)
+              } else {
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  {
+                    operation: 'nestedDataBulkLinkByDisplayValue',
+                    tableId: meta.value?.id as string,
+                    viewId: view?.value?.id,
+                  },
+                  batch,
+                )
+              }
 
               savedCount = Math.min(i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE, entries.length)
             }
@@ -673,7 +704,10 @@ export function useCopyPaste({
             groupPath,
           )
           scrollToCell?.(undefined, undefined, groupPath)
-        } else {
+        } else if (propsToPaste.length) {
+          // An LTAR-only paste leaves no regular props — the bulk-update call
+          // would be a pk-only no-op (and a spurious 403 for interface
+          // collaborators, whose bulk route is page-gated).
           await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, groupPath)
         }
 
@@ -710,16 +744,24 @@ export function useCopyPaste({
             if (!pasteRowPk) return
 
             try {
-              await $api.internal.postOperation(
-                meta.value?.fk_workspace_id as string,
-                meta.value?.base_id as string,
-                {
-                  operation: 'nestedDataBulkLinkByDisplayValue',
-                  tableId: meta.value?.id as string,
-                  viewId: view?.value?.id,
-                },
-                [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
-              )
+              const byDisplayPayload = [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }]
+
+              // Interface pages route through the page-scoped op — the raw
+              // internal op 403s for interface collaborators.
+              if (interfaceDataApi?.nestedBulkLinkByDisplay) {
+                await interfaceDataApi.nestedBulkLinkByDisplay(byDisplayPayload)
+              } else {
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  {
+                    operation: 'nestedDataBulkLinkByDisplayValue',
+                    tableId: meta.value?.id as string,
+                    viewId: view?.value?.id,
+                  },
+                  byDisplayPayload,
+                )
+              }
 
               // Refresh view data so lookup/rollup columns reflect the new links
               reloadViewDataHook?.trigger({ shouldShowLoading: false })
@@ -802,32 +844,38 @@ export function useCopyPaste({
 
             let result
 
+            const copyPasteOps = [
+              {
+                operation: 'copy' as const,
+                rowId: pasteVal.rowId,
+                columnId: pasteVal.columnId,
+                fk_related_model_id: pasteVal.fk_related_model_id,
+              },
+              {
+                operation: 'paste' as const,
+                rowId: pasteRowPk,
+                columnId: columnObj.id as string,
+                fk_related_model_id:
+                  (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
+              },
+            ]
+
             try {
-              result = await $api.internal.postOperation(
-                meta.value?.fk_workspace_id as string,
-                meta.value?.base_id as string,
-                {
-                  operation: 'nestedDataListCopyPasteOrDeleteAll',
-                  tableId: meta.value?.id as string,
-                  columnId: columnObj.id as string,
-                  viewId: view?.value?.id,
-                },
-                [
-                  {
-                    operation: 'copy',
-                    rowId: pasteVal.rowId,
-                    columnId: pasteVal.columnId,
-                    fk_related_model_id: pasteVal.fk_related_model_id,
-                  },
-                  {
-                    operation: 'paste',
-                    rowId: pasteRowPk,
-                    columnId: columnObj.id as string,
-                    fk_related_model_id:
-                      (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
-                  },
-                ],
-              )
+              // Interface pages route through the page-scoped op — the raw
+              // internal op 403s for interface collaborators.
+              result = interfaceDataApi?.nestedCopyPaste
+                ? await interfaceDataApi.nestedCopyPaste(copyPasteOps)
+                : await $api.internal.postOperation(
+                    meta.value?.fk_workspace_id as string,
+                    meta.value?.base_id as string,
+                    {
+                      operation: 'nestedDataListCopyPasteOrDeleteAll',
+                      tableId: meta.value?.id as string,
+                      columnId: columnObj.id as string,
+                      viewId: view?.value?.id,
+                    },
+                    copyPasteOps,
+                  )
             } catch {
               rowObj.row[columnObj.title!] = oldCellValue
               return
@@ -1087,16 +1135,24 @@ export function useCopyPaste({
           // Execute bulk LTAR paste operations in a single API call
           if (rangeBulkLtarOps.length) {
             try {
-              await $api.internal.postOperation(
-                meta.value?.fk_workspace_id as string,
-                meta.value?.base_id as string,
-                {
-                  operation: 'nestedDataBulkCopyPasteOrDeleteAll',
-                  tableId: meta.value?.id as string,
-                  viewId: view?.value?.id,
-                },
-                rangeBulkLtarOps.map(({ columnId, data }) => ({ columnId, data })),
-              )
+              const rangePayload = rangeBulkLtarOps.map(({ columnId, data }) => ({ columnId, data }))
+
+              // Interface pages route through the page-scoped op — the raw
+              // internal op 403s for interface collaborators.
+              if (interfaceDataApi?.nestedBulkCopyPaste) {
+                await interfaceDataApi.nestedBulkCopyPaste(rangePayload as any)
+              } else {
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  {
+                    operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+                    tableId: meta.value?.id as string,
+                    viewId: view?.value?.id,
+                  },
+                  rangePayload,
+                )
+              }
             } catch (e: any) {
               for (const op of rangeBulkLtarOps) {
                 op.rowRef.row[op.columnTitle] = op.oldValue

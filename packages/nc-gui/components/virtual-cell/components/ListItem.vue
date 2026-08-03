@@ -12,14 +12,17 @@ const props = withDefaults(
     isLoading: boolean
     isLinked: boolean
     isSelected?: boolean
+    /** Grid interface: allow expanding this linked record (follows viz inline-edit toggle) */
+    allowExpand?: boolean
   }>(),
   {
     isLoading: false,
     isSelected: false,
+    allowExpand: true,
   },
 )
 
-defineEmits(['expand', 'linkOrUnlink'])
+const emits = defineEmits(['expand', 'linkOrUnlink', 'close'])
 
 const { showExtraFields, relatedTableMeta, meta, isLinkedTableAccessible } = useLTARStoreOrThrow()!
 
@@ -46,6 +49,31 @@ const { isLinked, isLoading, isSelected } = toRefs(props)
 const isPublic = inject(IsPublicInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+// Interface pages hide the expand icon (`isLinkedTableAccessible` is false
+// there) — unless the column's "Click into record details" is configured, in
+// which case expand opens the LINKED record's interface record-detail sheet
+// instead of the classic expanded form.
+const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
+
+const interfaceExpandEnabled = computed(() => !!column?.value && !!linkRecordExpand.value?.isEnabled(column.value))
+
+const showExpandButton = computed(
+  () => (props.allowExpand && !isForm.value && !isPublic.value && isLinkedTableAccessible.value) || interfaceExpandEnabled.value,
+)
+
+function onExpandClick() {
+  if (interfaceExpandEnabled.value) {
+    // The record-detail sheet is an in-canvas layer; this list rides a
+    // body-portaled dropdown and would cover it. Close before expanding —
+    // same order the simple picker uses.
+    emits('close')
+    linkRecordExpand.value?.expand({ column: column.value, row: row.value, relatedTableMeta: relatedTableMeta.value })
+    return
+  }
+
+  emits('expand', row.value)
+}
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -166,7 +194,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic && isLinkedTableAccessible" class="flex-none flex items-center w-7" @click.stop>
+        <div v-if="showExpandButton" class="flex-none flex items-center w-7" @click.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 
@@ -174,7 +202,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
               v-e="['c:row-expand:open']"
               :tabindex="-1"
               class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
-              @click="$emit('expand', row)"
+              @click="onExpandClick"
             >
               <GeneralIcon icon="maximize" class="flex-none w-4 h-4 scale-125" />
             </button>

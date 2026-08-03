@@ -2,6 +2,7 @@ import { Knex, knex } from 'knex';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
 import { CTEGenerator } from './cte-generator';
+import { buildPgLikeRaw } from './conditionV1/pgLikeRaw';
 import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
@@ -471,11 +472,10 @@ const appendWhereCondition = function (
                 const operator = opMapping[matches[3]];
                 const target = matches[4];
                 if (matches[3] == 'like' && clientType === 'pg') {
-                  // handle uuid case
+                  // handle uuid case — `target` (user input) is bound as a `?`
+                  // parameter; only the fixed `operator` is interpolated.
                   knexRef[`${key}`](
-                    knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [
-                      column,
-                    ]),
+                    buildPgLikeRaw(knexRef?.client, column, operator, target),
                   );
                 } else {
                   knexRef[`${key}`](column, operator, target);

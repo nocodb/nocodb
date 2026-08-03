@@ -365,6 +365,8 @@ export default defineNuxtConfig({
         'y-protocols/sync',
         'y-protocols/awareness',
         'lib0/buffer',
+        'nocodb-sdk',
+        '@tiptap/extension-task-item',
       ],
       esbuildOptions: {
         define: {

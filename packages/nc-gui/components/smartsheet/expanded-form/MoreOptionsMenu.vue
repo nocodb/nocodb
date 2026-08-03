@@ -145,19 +145,22 @@ const copyRecordUrl = async () => {
   isRecordLinkCopied.value = false
 }
 
-const onDuplicateRow = () => {
+const onDuplicateRow = async () => {
   if (showRecordPlanLimitExceededModal()) return
+
+  // Resolve the payload before flagging the duplicate as in progress — this may
+  // prompt about links the copy can't share, and the user can still back out
+  // (null), which must not leave the form stuck in the duplicating state.
+  const duplicatedRow = await prepareDuplicateRowData(_row.value.row, meta.value?.columns as ColumnType[])
+  if (!duplicatedRow) return
 
   duplicatingRowInProgress.value = true
   emits('duplicateStart')
 
-  const oldRow = { ..._row.value.row }
-  delete oldRow.ncRecordId
-  delete oldRow.ncRecordHash
   const newRow = Object.assign(
     {},
     {
-      row: oldRow,
+      row: duplicatedRow,
       oldRow: {},
       rowMeta: { new: true },
     },

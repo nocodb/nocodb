@@ -3,6 +3,27 @@ import tippy from 'tippy.js'
 import { ProjectRoles, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
 import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 
+/**
+ * Copy URL builds a base-data deep link — hosts whose consumers have no data
+ * route (interface record sheets) hide it.
+ */
+const props = defineProps<{
+  hideCopyUrl?: boolean
+  hideRoleInfo?: boolean
+  /**
+   * Narrow the feed to a comment kind (the interface discussion panel's
+   * comment filters). When SET, resolved comments are hidden unless
+   * `showResolved` — classic mounts pass nothing and see everything.
+   */
+  commentFilter?: 'all' | 'record' | 'onAttachments' | 'withAttachments'
+  /**
+   * Include resolved comments (the "Show resolved comments" toggle —
+   * offered for the all/record filters only; attachment filters stay
+   * open-comments-only).
+   */
+  showResolved?: boolean
+}>()
+
 const { user, appInfo } = useGlobal()
 
 const { t } = useI18n()
@@ -133,6 +154,27 @@ const annotationRefByCommentId = computed(() => {
     }
   }
   return map
+})
+
+// The rendered list — the caller's filter applied over the loaded comments.
+// Annotation anchoring is inherited by replies (annotationRefByCommentId), so
+// a thread filters as a unit; 'record' is its complement. Resolved comments
+// are hidden unless the toggle is on — the toggle is only offered for the
+// all/record filters, so the attachment filters stay open-comments-only.
+const visibleComments = computed(() => {
+  const filter = props.commentFilter
+  if (!filter) return comments.value
+
+  let list = comments.value
+
+  if (filter === 'record') list = list.filter((c) => !c.id || !annotationRefByCommentId.value[c.id])
+  else if (filter === 'onAttachments') list = list.filter((c) => !!c.id && !!annotationRefByCommentId.value[c.id])
+  else if (filter === 'withAttachments') list = list.filter((c) => !!c.attachments?.length)
+
+  const includeResolved = props.showResolved && (filter === 'all' || filter === 'record')
+  if (!includeResolved) list = list.filter((c) => !c.resolved_by)
+
+  return list
 })
 
 const editCommentValue = ref<CommentType>()
@@ -384,6 +426,15 @@ async function onEditComment() {
   loadComments()
 }
 
+/**
+ * Interfaces route comments through the injected adapter — its presence marks
+ * an interface surface, where the author hover card keeps its avatar +
+ * name + email but drops the base-role footer (backed by the base user
+ * list, which interface-only collaborators can't read — and base
+ * membership is base-scoped info regardless).
+ */
+const isInterfaceSurface = inject(InterfaceRecordSidebarInj, undefined)
+
 const createdBy = (
   comment: CommentType & {
     created_display_name_short?: string
@@ -394,7 +445,12 @@ const createdBy = (
   } else if (comment.created_display_name_short?.trim()) {
     return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.created_by_email) {
-    return comment.created_by_email
+    // Canonical helper — alias when configured, else a name derived from the
+    // email's local part (never the raw address).
+    return extractUserDisplayNameOrEmail({
+      display_name: comment.created_display_name as string,
+      email: comment.created_by_email,
+    })
   } else {
     return t('labels.sharedSource')
   }
@@ -525,9 +581,22 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <!-- Comments exist but the active filter matches none -->
+      <div
+        v-else-if="visibleComments.length === 0"
+        class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin"
+        data-testid="nc-comments-no-filter-match"
+      >
+        <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
+          <GeneralIcon icon="commentHere" />
+        </div>
+        <div class="text-center my-4 px-6 font-medium text-nc-content-gray-muted">
+          {{ $t('labels.noCommentsMatchFilter') }}
+        </div>
+      </div>
       <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
         <div
-          v-for="(commentItem, index) of comments"
+          v-for="(commentItem, index) of visibleComments"
           :key="commentItem.id"
           :class="[
             {
@@ -599,8 +668,11 @@ onBeforeUnmount(() => {
                             </div>
                           </div>
                         </div>
+                        <!-- Base-role footer stays off interface surfaces: interface-only
+                             collaborators have no base user list to resolve the role from
+                             (and the base membership itself is base-scoped info). -->
                         <i18n-t
-                          v-if="isUIAllowed('dataEdit')"
+                          v-if="!props.hideRoleInfo && !isInterfaceSurface && isUIAllowed('dataEdit')"
                           keypath="labels.hasRoleInBase"
                           tag="div"
                           class="px-3 rounded-b-lg !text-[13px] items-center text-nc-content-gray-subtle2 flex gap-1 bg-nc-bg-gray-light py-1.5"
@@ -619,7 +691,10 @@ onBeforeUnmount(() => {
               </div>
               <div class="flex items-center">
                 <NcDropdown
-                  v-if="!editCommentValue"
+                  v-if="
+                    !editCommentValue &&
+                    (!props.hideCopyUrl || (user && commentItem.created_by_email === user.email && hasEditPermission))
+                  "
                   class="nc-comment-more-actions !hidden !group-hover:block"
                   overlay-class-name="!min-w-[160px]"
                   placement="bottomRight"
@@ -643,7 +718,11 @@ onBeforeUnmount(() => {
                           {{ $t('general.edit') }}
                         </div>
                       </NcMenuItem>
-                      <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(commentItem)">
+                      <NcMenuItem
+                        v-if="!props.hideCopyUrl"
+                        v-e="['c:comment-expand:comment:copy']"
+                        @click="copyComment(commentItem)"
+                      >
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.copy" class="cursor-pointer" />
                           {{ $t('activity.copyUrl') }}

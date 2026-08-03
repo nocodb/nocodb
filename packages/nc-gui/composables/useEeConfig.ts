@@ -75,6 +75,26 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewDashboard = computed(() => true)
 
+  // Interfaces are EE-only — every gate stays blocked in CE.
+  const hideInterfaces = computed(() => true)
+
+  const blockAddNewInterface = computed(() => true)
+  const isInterfacePageLimitReached = (_count: number) => true
+  const blockInterfaceMultiViz = computed(() => true)
+  const blockInterfaceMetricColorConditions = computed(() => true)
+  const blockInterfacePivotWidget = computed(() => true)
+  const blockInterfaceViewWidget = computed(() => true)
+  const blockInterfaceIframeWidget = computed(() => true)
+  const blockInterfaceUserFilters = computed(() => true)
+  const blockInterfaceToolbarToggles = computed(() => true)
+  const blockInterfaceDrafts = computed(() => true)
+  const blockInterfacePreviewAs = computed(() => true)
+  const blockInterfaceAccessControl = computed(() => true)
+  const blockInterfacePageAccessControl = computed(() => true)
+  const showUpgradeForInterfaceFeature = (..._args: any[]) => {}
+  const showInterfacePlanLimitExceededModal = (..._args: any[]) => {}
+  const showInterfacePageLimitExceededModal = (..._args: any[]) => {}
+
   const blockCalendarRange = computed(() => true)
 
   const blockTimelineView = computed(() => true)
@@ -483,6 +503,23 @@ export const useEeConfig = createSharedComposable(() => {
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
+    hideInterfaces,
+    blockAddNewInterface,
+    isInterfacePageLimitReached,
+    blockInterfaceMultiViz,
+    blockInterfaceMetricColorConditions,
+    blockInterfacePivotWidget,
+    blockInterfaceViewWidget,
+    blockInterfaceIframeWidget,
+    blockInterfaceUserFilters,
+    blockInterfaceToolbarToggles,
+    blockInterfaceDrafts,
+    blockInterfacePreviewAs,
+    blockInterfaceAccessControl,
+    blockInterfacePageAccessControl,
+    showUpgradeForInterfaceFeature,
+    showInterfacePlanLimitExceededModal,
+    showInterfacePageLimitExceededModal,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
     blockTimelineView,

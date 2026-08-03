@@ -184,6 +184,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
 
+    // Interface page adapter — when present, every base-scoped LTAR call in
+    // this store re-routes through the page-scoped internal ops: interface
+    // collaborators may hold no base role, so the raw endpoints 403 with
+    // empty roles. Builders in the same tree take the identical route (the
+    // ops clear the plain ACL for base roles too).
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
     const type = computed(() => colOptions.value?.type as RelationTypes)
@@ -214,6 +221,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // Check if linked table is accessible based on is_private flag from API response only
     const isLinkedTableAccessible = computed(() => {
+      // Interface pages never surface the data-app expanded form for a linked
+      // record (nor create-related-record): the related table sits outside
+      // the page surface, and its raw reads/comments 403 for interface
+      // collaborators. This also drops the picker's extra-field columns,
+      // which only serve "-" there (responses are pk + display value).
+      if (interfaceDataApi) return false
       if (!colOptions.value?.fk_related_model_id) return true
       // Check if table is marked as private from API response
       return !(relatedTableMeta.value as any)?.is_private
@@ -260,11 +273,20 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           await getMeta(relatedBaseId, tableId, false, false, true)
         } catch {}
       }
-      if (!metas.value[metaKey]) {
-        await getPartialMeta(relatedBaseId, colId, tableId)
+      if (!metas.value[metaKey] && !interfaceDataApi) {
+        await getPartialMeta(relatedBaseId, colId, tableId, {
+          workspaceId: (column.value as any)?.fk_workspace_id,
+          baseId: column.value?.base_id,
+        })
       }
 
       if (isPublic.value) return
+
+      // Interface pages: the projected page meta pre-seeds one level of
+      // related metas, and the target view's column list rides a base-scoped
+      // op (`viewColumnList`) — skip it and render from the related meta's
+      // display value instead.
+      if (interfaceDataApi) return
 
       await nextTick()
 
@@ -631,6 +653,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           if (result.list && ids.size) {
             result.list = result.list.filter((item: Record<string, any>) => !ids.has(item.Id))
           }
+        } else if (interfaceDataApi?.nestedExcludedList) {
+          // Interface pages — the page-scoped picker op (pk + display value,
+          // server-composed display-value search, grant-authorized).
+          result = await interfaceDataApi.nestedExcludedList({
+            rowId: rowId.value,
+            columnId: column.value.id,
+            limit: childrenExcludedListPagination.size,
+            offset,
+            search: childrenExcludedListPagination.query || undefined,
+          })
         } else {
           // extract changed data and include with the api call if any
           let changedRowData
@@ -793,6 +825,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 },
               },
             )
+          } else if (interfaceDataApi?.nestedList) {
+            // Interface pages — page-scoped linked-record list (pk + display
+            // value, server-composed display-value search, grant-authorized).
+            result = await interfaceDataApi.nestedList({
+              rowId: rowId.value,
+              columnId: column.value.id,
+              limit: limit ?? childrenListPagination.size,
+              offset,
+              search: childrenListPagination.query || undefined,
+            })
           } else {
             result = await $api.dbTableRow.nestedList(
               NOCO,
@@ -815,6 +857,24 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // Return the current list (not undefined) to keep a stable return contract.
           if (req.isStale()) return childrenList.value
 
+          // Single-target relations (BT / OO / v2 MO-OO) serve the related ROW
+          // itself — or nothing when the cell is empty — instead of a paged
+          // list. Normalize to the paged shape so the pageInfo/list reads
+          // below hold for every relation type.
+          if (!result || !ncIsArray(result.list)) {
+            const single = result && !ncIsEmptyObject(result) ? [result] : []
+            result = {
+              list: single,
+              pageInfo: {
+                isFirstPage: true,
+                isLastPage: true,
+                page: 1,
+                pageSize: single.length,
+                totalRows: single.length,
+              },
+            }
+          }
+
           childrenList.value = result
         }
         if (ncIsArray(childrenList.value?.list)) {
@@ -825,7 +885,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
 
         if (!childrenListPagination.query) {
-          let total = childrenList.value?.pageInfo.totalRows ?? 0
+          let total = childrenList.value?.pageInfo?.totalRows ?? 0
           // Account for queued (deferred, unsaved) link/unlink so the count doesn't revert
           // to the persisted total when the modal is reopened (#14058).
           if (shouldDefer.value && !isNewRow?.value && rowId.value && pendingLtarOps) {
@@ -1086,15 +1146,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         excludedLoadingState.value.set(index, true)
         childrenCachedLoadingState.value.set(index, true)
-        await $api.dbTableRow.nestedRemove(
-          NOCO,
-          metaValue?.base_id ?? (base.value.id as string),
-          metaValue.id!,
-          encodeURIComponent(rowId.value),
-          type.value as RelationTypes,
-          column?.value?.id,
-          encodeURIComponent(getRelatedTableRowId(row) as string),
-        )
+        // Interface pages route through the page-scoped op — grant-authorized
+        // where the raw endpoint 403s for interface collaborators.
+        if (interfaceDataApi?.nestedUnlink) {
+          await interfaceDataApi.nestedUnlink({
+            rowId: rowId.value,
+            columnId: column.value.id,
+            refRowIds: [getRelatedTableRowId(row) as string],
+          })
+        } else {
+          await $api.dbTableRow.nestedRemove(
+            NOCO,
+            metaValue?.base_id ?? (base.value.id as string),
+            metaValue.id!,
+            encodeURIComponent(rowId.value),
+            type.value as RelationTypes,
+            column?.value?.id,
+            encodeURIComponent(getRelatedTableRowId(row) as string),
+          )
+        }
 
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
@@ -1138,17 +1208,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
 
         if (isNewRow?.value || !rowId.value) {
-          // New row: buffered links drive the cell display via row.row.
+          // New row: addLTARRef buffers the link AND mirrors the buffer into
+          // row.row (the cell display + submit source) — a second manual push
+          // here rendered every staged link twice.
           await addLTARRef(row, column.value as ColumnType)
-          const targetRow = rowStoreCurrentRow.value
-          if (isSingleTargetRelation.value) {
-            targetRow.row[column.value.title!] = row
-          } else {
-            if (!Array.isArray(targetRow.row[column.value.title!])) {
-              targetRow.row[column.value.title!] = []
-            }
-            targetRow.row[column.value.title!].push(row)
-          }
         } else {
           // Existing row in the expanded form: queue the link (reconcile auto-cancels a
           // matching pending unlink), then re-derive the cell value/count from persisted +
@@ -1188,15 +1251,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         childrenListOffsetCount.value = childrenListOffsetCount.value + 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
 
-        await $api.dbTableRow.nestedAdd(
-          NOCO,
-          metaValue?.base_id ?? (base.value.id as string),
-          metaValue.id as string,
-          encodeURIComponent(rowId.value),
-          type.value as RelationTypes,
-          column?.value?.id,
-          encodeURIComponent(getRelatedTableRowId(row) as string) as string,
-        )
+        // Interface pages route through the page-scoped op — grant-authorized
+        // where the raw endpoint 403s for interface collaborators.
+        if (interfaceDataApi?.nestedLink) {
+          await interfaceDataApi.nestedLink({
+            rowId: rowId.value,
+            columnId: column.value.id,
+            refRowIds: [getRelatedTableRowId(row) as string],
+          })
+        } else {
+          await $api.dbTableRow.nestedAdd(
+            NOCO,
+            metaValue?.base_id ?? (base.value.id as string),
+            metaValue.id as string,
+            encodeURIComponent(rowId.value),
+            type.value as RelationTypes,
+            column?.value?.id,
+            encodeURIComponent(getRelatedTableRowId(row) as string) as string,
+          )
+        }
         // await loadChildrenList()
 
         isChildrenExcludedListLinked.value[index] = true
@@ -1273,6 +1346,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           where,
           columnId: column.value.fk_column_id || column.value.id,
           linkRowData: JSON.stringify(linkRowData),
+        })
+      } else if (interfaceDataApi?.nestedExcludedList) {
+        // Interface pages — page-scoped picker chunks (see loadChildrenExcludedList).
+        return await interfaceDataApi.nestedExcludedList({
+          rowId: rowId.value,
+          columnId: column.value.id,
+          limit,
+          offset,
+          search: childrenExcludedListPagination.query || undefined,
         })
       } else {
         let changedRowData
@@ -1403,6 +1485,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           { limit: String(limit), offset: String(offset), where } as any,
           { headers: { 'xc-password': sharedViewPassword.value } },
         )
+      } else if (interfaceDataApi?.nestedList) {
+        // Interface pages — page-scoped linked-record chunks (see loadChildrenList).
+        return await interfaceDataApi.nestedList({
+          rowId: rowId.value,
+          columnId: column.value.id,
+          limit,
+          offset,
+          search: childrenListPagination.query || undefined,
+        })
       } else {
         return await $api.dbTableRow.nestedList(
           NOCO,

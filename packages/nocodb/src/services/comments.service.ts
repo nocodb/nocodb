@@ -29,6 +29,8 @@ export class CommentsService {
       body: CommentReqType;
       user: UserType;
       req: NcRequest;
+      /** Interface-scoped callers stamp their surface — see `RowCommentEvent.source`. */
+      source?: { interfaceId: string; pageId: string };
     },
   ) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
@@ -68,6 +70,7 @@ export class CommentsService {
       rowId: param.body.row_id,
       req: param.req,
       context,
+      ...(param.source ? { source: param.source } : {}),
     });
 
     NocoSocket.broadcastEvent(
@@ -163,6 +166,8 @@ export class CommentsService {
       user: UserType;
       body: CommentUpdateReqType;
       req: NcRequest;
+      /** Interface-scoped callers stamp their surface — see `RowCommentEvent.source`. */
+      source?: { interfaceId: string; pageId: string };
     },
   ) {
     validatePayload(
@@ -217,6 +222,7 @@ export class CommentsService {
       rowId: comment.row_id,
       req: param.req,
       context,
+      ...(param.source ? { source: param.source } : {}),
     });
 
     NocoSocket.broadcastEvent(

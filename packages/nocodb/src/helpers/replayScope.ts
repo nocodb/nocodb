@@ -12,6 +12,7 @@ export interface ReplayBag {
   columnBackupOut: ColumnBackupRef;
   viewSectionRestoreViewIds: ReadonlyArray<string>;
   rowColorFilterIds: ReadonlyArray<string>;
+  interfaceDuplicatePageIds: ReadonlyArray<string>;
 }
 
 export function runInReplay<T>(fn: () => Promise<T>): Promise<T> {

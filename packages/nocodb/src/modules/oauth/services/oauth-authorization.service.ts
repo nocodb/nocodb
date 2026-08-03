@@ -7,12 +7,52 @@ import {
   WorkspaceUser,
 } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import {
+  isHttpRedirectUri,
+  isRegisteredRedirectUri,
+} from '~/modules/oauth/helpers/redirectUri';
 
 @Injectable()
 export class OauthAuthorizationService {
   // Authorization code expires in 10 minutes
   private readonly AUTHORIZATION_CODE_EXPIRES_IN_MS = 10 * 60 * 1000;
+
+  /**
+   * Resolve the client and exact-match `redirectUri` against its registered
+   * list.
+   *
+   * RFC 6749 §4.1.2.1: an unregistered redirect_uri must NOT be redirected to.
+   * That makes this a precondition of *every* redirect the authorize endpoint
+   * builds — the approve path, the user-denied path and the server_error path
+   * alike — not just of minting a code. Callers must invoke it before building
+   * any redirect, and outside any try/catch that would convert the rejection
+   * into a redirect.
+   */
+  async assertRegisteredRedirectUri(clientId: string, redirectUri: string) {
+    const client = await OAuthClient.getByClientId(clientId);
+    if (!client) {
+      NcError.badRequest('invalid_client');
+    }
+
+    // Re-checks the scheme as well as the exact match — `z.string().url()`
+    // accepted opaque schemes at registration time on older clients, so the
+    // stored list isn't trusted.
+    if (!isRegisteredRedirectUri(client.redirect_uris, redirectUri)) {
+      NcError.badRequest('invalid_redirect_uri');
+    }
+
+    return client;
+  }
+
   buildRedirectUrl(redirectUri: string, params: Record<string, string>) {
+    // Single choke point for every caller: deny path, approve path, and the
+    // controller's catch block. Only the scheme is re-checked here — the
+    // registered-URI match happens in `assertRegisteredRedirectUri`, which the
+    // caller must run before it reaches any of those branches.
+    if (!isHttpRedirectUri(redirectUri)) {
+      NcError.badRequest('invalid_redirect_uri');
+    }
+
     const url = new URL(redirectUri);
 
     Object.entries(params).forEach(([key, value]) => {
@@ -49,29 +89,10 @@ export class OauthAuthorizationService {
       resource,
     } = params;
 
-    // Validate client exists
-    const client = await OAuthClient.getByClientId(clientId);
-    if (!client) {
-      NcError.badRequest('invalid_client');
-    }
-
-    // Validate redirect URI inline
-    if (!redirectUri) {
-      NcError.badRequest('invalid_redirect_uri');
-    }
-
-    try {
-      const url = new URL(redirectUri);
-      if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-        NcError.badRequest('invalid_redirect_uri');
-      }
-      // Exact match required
-      if (!client.redirect_uris.includes(redirectUri)) {
-        NcError.badRequest('invalid_redirect_uri');
-      }
-    } catch {
-      NcError.badRequest('invalid_redirect_uri');
-    }
+    // Validate the client and that the redirect URI is one it registered. Also
+    // run by the controller before any redirect is built — kept here too so the
+    // code-minting path is never reachable without it.
+    await this.assertRegisteredRedirectUri(clientId, redirectUri);
 
     // Validate state inline
     if (state) {

@@ -20,10 +20,31 @@ import {
   isSystemColumn,
 } from 'nocodb-sdk'
 import type { CanvasGroup } from '../lib/types'
+import type { InterfacePageDataApi } from '../lib/interfaceData'
+import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
+import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
+
+// Value-equality check for group-by cells. A naive `!==` reports a false change
+// for non-primitive values (Link-to-record, JSON, …) since the socket payload and
+// the cached row are different object references, forcing a needless group reload
+// (~0.5s blank flicker) on every single-cell edit. Coerce to string for primitives
+// to match how group membership is decided elsewhere (`${payload[title]} === ${key}`).
+const isGroupByValueEqual = (a: unknown, b: unknown): boolean => {
+  if (a === b) return true
+  if (a == null || b == null) return a == null && b == null
+  if (typeof a === 'object' || typeof b === 'object') {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b)
+    } catch {
+      return false
+    }
+  }
+  return String(a) === String(b)
+}
 
 const formatData = (
   list: Record<string, any>[],
@@ -104,6 +125,8 @@ export function useInfiniteData(args: {
 
   const { isUIAllowed } = useRoles()
 
+  const { isInterfaceOnlyUser } = useInterfacePermissions()
+
   const tablesStore = useTablesStore()
 
   const baseStore = useBase()
@@ -117,6 +140,12 @@ export function useInfiniteData(args: {
   const { user } = useGlobal()
 
   const { fetchSharedViewData, fetchCount, fetchBulkListData } = useSharedView()
+
+  /**
+   * Present when mounted inside an interface page — list/count/CRUD calls are
+   * routed through the adapter instead of the view / shared-view endpoints.
+   */
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
   const {
     nestedFilters,
@@ -221,7 +250,10 @@ export function useInfiniteData(args: {
             await getMeta(meta.value.base_id, relatedModelId, false, false, true)
           } catch {}
           if (!getMetaByKey(meta.value.base_id, relatedModelId)) {
-            await getPartialMeta(meta.value.base_id, col.id!, relatedModelId)
+            await getPartialMeta(meta.value.base_id, col.id!, relatedModelId, {
+              workspaceId: (meta.value as any)?.fk_workspace_id,
+              baseId: meta.value.base_id,
+            })
           }
         }
       }
@@ -394,7 +426,11 @@ export function useInfiniteData(args: {
   const BATCH_TIMEOUT = 200
 
   async function loadBulkAggCommentsCount(allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }>) {
-    if (!isUIAllowed('commentCount') || isPublic?.value) return
+    // Interface surfaces route through the adapter's interface-scoped op —
+    // base commentCount 403s for interface-only collaborators, and the badge
+    // must follow the page semantics (bound detail layout + Comments toggle).
+    if (isPublic?.value) return
+    if (!interfaceDataApi && (!isUIAllowed('commentCount') || isInterfaceOnlyUser.value)) return
     if (allFormattedRows.length === 0) return
 
     const allIds: string[] = []
@@ -413,11 +449,13 @@ export function useInfiniteData(args: {
     if (allIds.length === 0) return
 
     try {
-      const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-        operation: 'commentCount',
-        fk_model_id: meta.value!.id as string,
-        ids: allIds,
-      })
+      const aggCommentCount = interfaceDataApi
+        ? await interfaceDataApi.commentCounts?.(allIds)
+        : await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+            operation: 'commentCount',
+            fk_model_id: meta.value!.id as string,
+            ids: allIds,
+          })
 
       aggCommentCount?.forEach((commentData: Record<string, any>) => {
         const row = rowIdToRowMap.get(commentData.row_id)
@@ -455,6 +493,38 @@ export function useInfiniteData(args: {
     }
   }
 
+  /**
+   * Interface-page adapter has no bulk list op — emulate the bulk chunk load
+   * with parallel `fetchList` calls, returning the alias-keyed shape the bulk
+   * response consumers expect.
+   */
+  async function fetchInterfaceBulkChunks(
+    dataApi: InterfacePageDataApi,
+    requests: Array<{ alias: string; offset: number; limit: number; where?: string }>,
+    filterArrs: FilterType[][],
+  ) {
+    const chunkResults = await Promise.all(
+      requests.map(async (request, i) => ({
+        alias: request.alias,
+        result: await dataApi.fetchList({
+          offset: request.offset,
+          limit: request.limit,
+          where: request.where,
+          sortsArr: sorts.value,
+          filtersArr: nestedFilters.value ?? [],
+          // group-nesting predicate — must ride apart from `filtersArr` (the
+          // server gates that on the Filter action; nesting always applies)
+          nestedFiltersArr: filterArrs[i] ?? [],
+        }),
+      })),
+    )
+
+    return chunkResults.reduce((acc, { alias, result }) => {
+      acc[alias] = result
+      return acc
+    }, {} as Record<string, { list: Record<string, any>[]; pageInfo: PaginatedType }>)
+  }
+
   async function processBatch() {
     if (pendingChunkRequests.length === 0) return
 
@@ -468,6 +538,9 @@ export function useInfiniteData(args: {
 
     try {
       const bulkRequests = []
+      // Raw per-chunk filter arrays — the interface-page adapter branch needs
+      // arrays rather than the stringified filterArrJson sent to the bulk op.
+      const bulkFilterArrs: FilterType[][] = []
 
       for (let i = 0; i < batch.length; i++) {
         const req = batch[i]
@@ -485,9 +558,12 @@ export function useInfiniteData(args: {
             ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
             : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value ?? []), ...filterArrJson]) }),
         })
+        bulkFilterArrs.push(filterArrJson)
       }
 
-      const bulkResponse = !isPublic?.value
+      const bulkResponse = interfaceDataApi
+        ? await fetchInterfaceBulkChunks(interfaceDataApi, bulkRequests, bulkFilterArrs)
+        : !isPublic?.value
         ? await $api.internal.postOperation(
             (meta.value as any).fk_workspace_id!,
             meta.value.base_id!,
@@ -558,13 +634,29 @@ export function useInfiniteData(args: {
         }
       }
     } catch (error) {
-      console.error('Bulk chunk request failed, falling back to individual requests:', error)
+      // A single out-of-range chunk (offset >= row count) fails the WHOLE bulk
+      // request. That's benign and recoverable — the individual fallback below
+      // handles each chunk gracefully (loadData returns [] for
+      // ERR_INVALID_OFFSET_VALUE) — so only surface unexpected failures loudly.
+      if ((error as any)?.response?.data?.error !== 'ERR_INVALID_OFFSET_VALUE') {
+        console.error('Bulk chunk request failed, falling back to individual requests:', error)
+      }
 
-      const promises = batch.map((request) =>
-        fetchChunkIndividually(request.chunkId, request.path)
+      const promises = batch.map((request) => {
+        const dataCache = getDataCache(request.path)
+
+        // Don't re-issue a request for a chunk already known to be past the data
+        // (it would just fail again) — mark it loaded (empty) and resolve.
+        if (request.chunkId > 0 && dataCache.totalRows.value && request.chunkId * CHUNK_SIZE >= dataCache.totalRows.value) {
+          dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          request.resolve(undefined)
+          return Promise.resolve()
+        }
+
+        return fetchChunkIndividually(request.chunkId, request.path)
           .then(() => request.resolve(undefined))
-          .catch((err) => request.reject(err)),
-      )
+          .catch((err) => request.reject(err))
+      })
 
       await Promise.allSettled(promises)
     }
@@ -574,6 +666,16 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+
+    // Skip chunks past the loaded row count — a viewport taller than the data
+    // (empty slots below e.g. 30 rows) would request an out-of-range offset
+    // (offset 50 on 30 rows), which the backend rejects ("Offset value invalid",
+    // PagedResponse: offset >= count). That fails the whole batch and forces the
+    // individual-request fallback. chunkId 0 (offset 0) always loads — totalRows
+    // is unknown (0) on first load. Mirrors the canvas grid's useDataFetch guard.
+    if (chunkId > 0 && dataCache.totalRows.value && chunkId * CHUNK_SIZE >= dataCache.totalRows.value) {
+      return
+    }
 
     const existingRequest = pendingChunkRequests.find((req) => req.chunkId === chunkId && req.path.join(',') === path.join(','))
 
@@ -663,7 +765,10 @@ export function useInfiniteData(args: {
   }
 
   async function loadAggCommentsCount(formattedData: Array<Row>, path: Array<number> = []) {
-    if (!isUIAllowed('commentCount') || isPublic?.value) return
+    // Same routing as loadBulkAggCommentsCount — interface surfaces use the
+    // adapter's interface-scoped op.
+    if (isPublic?.value) return
+    if (!interfaceDataApi && (!isUIAllowed('commentCount') || isInterfaceOnlyUser.value)) return
 
     const ids = formattedData
       .filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -675,11 +780,13 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     try {
-      const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-        operation: 'commentCount',
-        fk_model_id: meta.value!.id as string,
-        ids,
-      })
+      const aggCommentCount = interfaceDataApi
+        ? await interfaceDataApi.commentCounts?.(ids as string[])
+        : await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+            operation: 'commentCount',
+            fk_model_id: meta.value!.id as string,
+            ids,
+          })
 
       formattedData.forEach((row) => {
         const cachedRow = Array.from(dataCache.cachedRows.value.values()).find(
@@ -710,7 +817,7 @@ export function useInfiniteData(args: {
     _shouldShowLoading?: boolean,
     path: Array<number> = [],
   ): Promise<Row[]> {
-    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
+    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value && !interfaceDataApi) return []
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
     const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
@@ -738,7 +845,18 @@ export function useInfiniteData(args: {
     }
 
     try {
-      const response = !isPublic?.value
+      const response = interfaceDataApi
+        ? await interfaceDataApi.fetchList({
+            offset: params.offset,
+            limit: params.limit,
+            where: whereFilter,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value || [],
+            // group-nesting predicate — must ride apart from `filtersArr` (the
+            // server gates that on the Filter action; nesting always applies)
+            nestedFiltersArr: jsonWhereFilterArr,
+          })
+        : !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
@@ -1270,22 +1388,28 @@ export function useInfiniteData(args: {
           .map((c) => row.row[c.title!])
           .join('___')
 
-        const fullRecord = await $api.dbTableRow.read(
-          NOCO,
-          meta.value?.base_id ?? (base?.value.id as string),
-          meta.value?.id as string,
-          encodeURIComponent(id as string),
-          {
-            getHiddenColumn: true,
-          },
-        )
+        // Interface pages must not touch base-scoped data endpoints — an
+        // interface-only collaborator has no base role and 403s on them.
+        // Route the pre-delete snapshot read through the page-scoped adapter
+        // (projected + grant-authorized server-side) instead.
+        const fullRecord = interfaceDataApi
+          ? await interfaceDataApi.fetchRecord?.(id as string)
+          : await $api.dbTableRow.read(
+              NOCO,
+              meta.value?.base_id ?? (base?.value.id as string),
+              meta.value?.id as string,
+              encodeURIComponent(id as string),
+              {
+                getHiddenColumn: true,
+              },
+            )
 
         const deleted = await deleteRowById(id as string, undefined, path)
         if (!deleted) {
           return
         }
 
-        row.row = fullRecord
+        if (fullRecord) row.row = fullRecord
       }
 
       dataCache.cachedRows.value.delete(rowIndex)
@@ -1375,14 +1499,16 @@ export function useInfiniteData(args: {
         currentRow.rowMeta.saveError = undefined
       }
 
-      const insertedData = await $api.dbViewRow.create(
-        NOCO,
-        metaValue?.base_id ?? (base?.value.id as string),
-        metaValue?.id as string,
-        viewMetaValue?.id as string,
-        { ...insertObj, ...(ltarState || {}) },
-        { before: beforeRowID },
-      )
+      const insertedData = interfaceDataApi
+        ? await interfaceDataApi.insertRow({ ...insertObj, ...(ltarState || {}) }, { before: beforeRowID })
+        : await $api.dbViewRow.create(
+            NOCO,
+            metaValue?.base_id ?? (base?.value.id as string),
+            metaValue?.id as string,
+            viewMetaValue?.id as string,
+            { ...insertObj, ...(ltarState || {}) },
+            { before: beforeRowID },
+          )
 
       currentRow.rowMeta.new = false
 
@@ -1459,17 +1585,19 @@ export function useInfiniteData(args: {
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
-      const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
-        NOCO,
-        metaValue?.base_id ?? (base?.value.id as string),
-        metaValue?.id as string,
-        viewMetaValue?.id as string,
-        encodeURIComponent(id),
-        {
-          [property]: toUpdate.row[property] ?? null,
-        },
-        { typecast: 'true' },
-      )
+      const updatedRowData: Record<string, any> = interfaceDataApi
+        ? await interfaceDataApi.updateRow(id, { [property]: toUpdate.row[property] ?? null })
+        : await $api.dbViewRow.update(
+            NOCO,
+            metaValue?.base_id ?? (base?.value.id as string),
+            metaValue?.id as string,
+            viewMetaValue?.id as string,
+            encodeURIComponent(id),
+            {
+              [property]: toUpdate.row[property] ?? null,
+            },
+            { typecast: 'true' },
+          )
 
       // Update specific columns based on their types.
       // Only sync back types that can be changed server-side as a side effect
@@ -1733,13 +1861,15 @@ export function useInfiniteData(args: {
     }
 
     try {
-      const res: any = await $api.dbViewRow.delete(
-        'noco',
-        metaValue?.base_id ?? (base.value.id as string),
-        metaValue?.id as string,
-        viewMetaValue?.id as string,
-        encodeURIComponent(id),
-      )
+      const res: any = interfaceDataApi
+        ? await interfaceDataApi.deleteRow(id)
+        : await $api.dbViewRow.delete(
+            'noco',
+            metaValue?.base_id ?? (base.value.id as string),
+            metaValue?.id as string,
+            viewMetaValue?.id as string,
+            encodeURIComponent(id),
+          )
 
       callbacks?.reloadAggregate?.({ path })
 
@@ -1775,7 +1905,7 @@ export function useInfiniteData(args: {
   }
 
   async function syncCount(path: Array<number> = [], throwError = false, showToastMessage = true): Promise<void> {
-    if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+    if (!isPublic?.value && !interfaceDataApi && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
 
     const dataCache = getDataCache(path)
 
@@ -1783,7 +1913,13 @@ export function useInfiniteData(args: {
     const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
-      const { count } = isPublic?.value
+      const { count } = interfaceDataApi
+        ? await interfaceDataApi.fetchCount({
+            where: whereFilter,
+            filtersArr: nestedFilters.value || [],
+            nestedFiltersArr: jsonWhereFilterArr,
+          })
+        : isPublic?.value
         ? await fetchCount({
             filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
             where: whereFilter,
@@ -1796,7 +1932,13 @@ export function useInfiniteData(args: {
           })
 
       if (fetchTotalRowsWithSearchQuery.value) {
-        const { count: _count } = isPublic?.value
+        const { count: _count } = interfaceDataApi
+          ? await interfaceDataApi.fetchCount({
+              where: whereQueryFromUrl.value as string,
+              filtersArr: nestedFilters.value || [],
+              nestedFiltersArr: jsonWhereFilterArr,
+            })
+          : isPublic?.value
           ? await fetchCount({
               filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
               where: whereQueryFromUrl.value as string,
@@ -1828,7 +1970,12 @@ export function useInfiniteData(args: {
 
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
-      if (showToastMessage) {
+      // Interface page deleted mid-flight — page-delete navigations race the
+      // debounced count sync, the server rightly 404s, and this canvas is
+      // already unmounting. A toast here is pure noise.
+      const isStaleInterfacePage = !!interfaceDataApi && error?.response?.status === 404
+
+      if (showToastMessage && !isStaleInterfacePage) {
         const errorMessage = await extractSdkResponseErrorMsg(error)
         message.error(`Failed to sync count: ${errorMessage}`)
       }
@@ -1961,7 +2108,11 @@ export function useInfiniteData(args: {
   // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
   // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
   const recordPassesViewFilter = (data: DataPayload) => {
-    if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+    if (
+      !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
+      Array.isArray(data.matchedViewIds) &&
+      !data.matchedViewIds.includes(viewMeta.value?.id as string)
+    ) {
       return false
     }
     return rowMatchesSearchAndUrl(data.payload)
@@ -2148,7 +2299,7 @@ export function useInfiniteData(args: {
         if (isGroupBy.value && groupBy.value.length) {
           const groupColumnChanged = groupBy.value.some((g) => {
             const title = g.column?.title
-            return title && title in (payload ?? {}) && payload[title] !== cachedRow.row[title]
+            return title && title in (payload ?? {}) && !isGroupByValueEqual(payload[title], cachedRow.row[title])
           })
           if (groupColumnChanged) {
             eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
@@ -2389,10 +2540,7 @@ export function useInfiniteData(args: {
           $ncSocket.offMessage(activeCommentListener.value)
         }
 
-        activeDataListener.value = $ncSocket.onMessage(
-          `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
-          handleDataEvent,
-        )
+        activeDataListener.value = $ncSocket.onMessage(dataEventSubscriptionKey(newMeta, interfaceDataApi), handleDataEvent)
 
         activeCommentListener.value = $ncSocket.onMessage(
           `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,

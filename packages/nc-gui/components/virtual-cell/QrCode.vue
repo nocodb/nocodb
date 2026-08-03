@@ -57,12 +57,19 @@ const qrCode = useQRCode(compressedQrValue, {
   width: 150,
 })
 
-const qrCodeLarge = useQRCode(compressedQrValue, {
+const modalVisible = ref(false)
+
+// The 600px QR renders only inside the click-to-open modal (download + preview).
+// Computing it for every inline cell rasterizes a 600px canvas (`toDataURL`) per
+// cell, which pins the main thread when many QR cells mount at once (e.g. an
+// interface list preview over a table with a QR field). Defer it until the modal
+// is actually open.
+const qrCodeLargeValue = computed(() => (modalVisible.value ? compressedQrValue.value : ''))
+
+const qrCodeLarge = useQRCode(qrCodeLargeValue, {
   ...qrCodeOptions,
   width: 600,
 })
-
-const modalVisible = ref(false)
 
 const showQrModal = (ev?: Event) => {
   if (!showQrCode.value) return

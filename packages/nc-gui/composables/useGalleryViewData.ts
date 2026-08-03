@@ -23,6 +23,7 @@ export function useGalleryViewData(
     syncCount,
     clearCache,
     deleteRow,
+    insertRow,
     loadData,
     navigateToSiblingRow,
     totalRows,
@@ -43,6 +44,7 @@ export function useGalleryViewData(
   return {
     cachedRows,
     deleteRow,
+    insertRow,
     loadData,
     navigateToSiblingRow,
     viewData,

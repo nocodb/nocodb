@@ -31,6 +31,12 @@ const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEv
 
 const cellEventHook = inject(CellEventHookInj, null)
 
+// In a grid interface the LTAR modal follows the viz inline-edit / add-record
+// toggles; outside an interface (undefined adapter) both default to allowed so
+// normal grids, forms and shared views are unchanged. Passed down as props
+// because provide/inject doesn't cross the dropdown teleport boundary.
+const interfacePageData = inject(InterfacePageDataInj, undefined)
+
 const colTitle = computed(() => column.value?.title || '')
 
 const listItemsDlg = ref(false)
@@ -47,12 +53,8 @@ const { t } = useI18n()
 
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, meta } = useProvideLTARStore(
-  column as Ref<Required<ColumnType>>,
-  row,
-  isNew,
-  reloadRowTrigger.trigger,
-)
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, meta, isLinkedTableAccessible } =
+  useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
 const relatedTableDisplayColumn = computed(
   () =>
     relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
@@ -60,12 +62,30 @@ const relatedTableDisplayColumn = computed(
 
 loadRelatedTableMeta()
 
+const allowRecordExpand = computed(() => interfacePageData?.canEditInline.value ?? true)
+
+// "+ New record" additionally needs the related table to be reachable: interface
+// pages never surface create-related-record (`isLinkedTableAccessible` is false
+// there), and a private related table blocks it too. Without this the button
+// showed but silently no-op'd (addNewRecord early-returns on inaccessible tables).
+const allowNewRecord = computed(
+  () =>
+    isLinkedTableAccessible.value &&
+    (interfacePageData?.canEditInline.value ?? true) &&
+    (interfacePageData?.canAddDeleteInline.value ?? true),
+)
+
 const hasEditPermission = computed(() => {
   return (
     ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
     !(column.value?.readonly && meta.value?.synced)
   )
 })
+
+// Interface grid/list viz provide 'simple' — one compact combined list replaces
+// both the linked and the search-to-link classic surfaces. Readonly cells get
+// the same list in browse mode (linked records only, nothing checkable).
+const { isSimpleLinkRecordList, isSimpleLinkRecordListReadonly } = useLinkRecordDropdownVariant(hasEditPermission)
 
 const textVal = computed(() => {
   if (isForm.value || isNew.value) {
@@ -199,7 +219,7 @@ onUnmounted(() => {
 
 <template>
   <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
-    <VirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+    <VirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen" :variant="isSimpleLinkRecordList ? 'simple' : 'classic'">
       <div class="flex w-full group items-center min-h-4">
         <div class="block flex-shrink truncate">
           <component
@@ -218,36 +238,49 @@ onUnmounted(() => {
         <div class="flex-grow" />
 
         <div
-          v-if="hasEditPermission"
+          v-if="hasEditPermission || isSimpleLinkRecordList"
           :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
           class="flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
-          @keydown.enter.stop="openListDlg"
+          @keydown.enter.stop="hasEditPermission ? openListDlg() : openChildList()"
         >
-          <MdiPlus
+          <GeneralIcon
+            :icon="isSimpleLinkRecordList ? 'chevronDown' : 'plus'"
             class="select-none !text-md text-nc-content-gray-subtle nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
-            @click.stop="openListDlg"
+            :class="{ '!text-nc-content-gray-muted': isSimpleLinkRecordList }"
+            @click.stop="hasEditPermission ? openListDlg() : openChildList()"
           />
         </div>
       </div>
 
       <template #overlay>
+        <LazyVirtualCellComponentsLinkRecordSimpleList
+          v-if="isSimpleLinkRecordList && (childListDlg || listItemsDlg)"
+          :model-value="childListDlg || listItemsDlg"
+          :column="relatedTableDisplayColumn"
+          :readonly="isSimpleLinkRecordListReadonly"
+          @update:model-value="isOpen = $event"
+          @escape="isOpen = false"
+        />
         <VirtualCellComponentsLinkedItems
-          v-if="childListDlg"
+          v-if="!isSimpleLinkRecordList && childListDlg"
           v-model="childListDlg"
           :items="toatlRecordsLinked"
           :column="relatedTableDisplayColumn"
           :cell-value="localCellValue"
           :parent-breadcrumbs="parentBreadcrumbs"
+          :allow-record-expand="allowRecordExpand"
+          :allow-new-record="allowNewRecord"
           @attach-record="onAttachRecord"
           @escape="isOpen = false"
         />
         <VirtualCellComponentsUnLinkedItems
-          v-if="listItemsDlg"
+          v-if="!isSimpleLinkRecordList && listItemsDlg"
           v-model="listItemsDlg"
           :column="relatedTableDisplayColumn"
           :hide-back-btn="hideBackBtn"
           :parent-breadcrumbs="parentBreadcrumbs"
+          :allow-new-record="allowNewRecord"
           @attach-linked-record="onAttachLinkedRecord"
           @escape="isOpen = false"
         />

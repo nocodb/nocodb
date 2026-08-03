@@ -27,6 +27,7 @@ import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { sanitizeBase } from '~/helpers/sanitizeBase';
 import syncMigration from '~/helpers/syncMigration';
 import { Base, BaseUser, Integration, IntegrationLink } from '~/models';
 import Noco from '~/Noco';
@@ -70,7 +71,10 @@ export class BasesService {
           workspaceId: Noco.ncDefaultWorkspaceId,
         });
 
-    return bases;
+    // `getProjectsList` selects `nc_bases.*`, so the row carries `password`
+    // (a legacy stored value — no shared-base password feature exists). Strip it
+    // here too, not just on baseGet.
+    return bases.map((base) => sanitizeBase(base));
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {
@@ -88,11 +92,8 @@ export class BasesService {
   }
 
   sanitizeProject(base: any) {
-    const sanitizedProject = { ...base };
-    sanitizedProject.sources?.forEach((b: any) => {
-      ['config'].forEach((k) => delete b[k]);
-    });
-    return sanitizedProject;
+    // Returns a NEW object — callers must use the return value.
+    return sanitizeBase(base);
   }
 
   async baseUpdate(

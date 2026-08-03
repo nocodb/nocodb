@@ -69,7 +69,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
               <GeneralIcon icon="inbox" class="!text-40px !text-nc-content-gray-muted" />
             </template>
             <template v-else>
-              <NotificationItem v-for="item in unreadNotifications" :key="item.id" :item="item" />
+              <NotificationItem v-for="item in unreadNotifications" :key="item.id" :item="item" @close="emits('close')" />
 
               <InfiniteLoading
                 v-if="unreadNotifications && unreadPageInfo && unreadPageInfo.totalRows > unreadNotifications.length"
@@ -103,7 +103,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
               <GeneralIcon icon="inbox" class="!text-40px text-nc-content-gray-muted" />
             </template>
             <template v-else>
-              <NotificationItem v-for="item in readNotifications" :key="item.id" :item="item" />
+              <NotificationItem v-for="item in readNotifications" :key="item.id" :item="item" @close="emits('close')" />
 
               <InfiniteLoading
                 v-if="readNotifications && readPageInfo && readPageInfo.totalRows > readNotifications.length"

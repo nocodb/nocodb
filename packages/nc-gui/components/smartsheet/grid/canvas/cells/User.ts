@@ -226,11 +226,15 @@ export const UserFieldCellRenderer: CellRenderer = {
     }
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers, isInterface }) {
     const { hideTooltip, tryShowTooltip } = useTooltipStore()
     hideTooltip()
 
     if (!selected) return
+
+    // Interface pages: the chip already names the user — the name/email/base-role
+    // hover card is collaborator-facing chrome (and leaks roles to consumers).
+    if (isInterface) return
 
     const getUserRole = (email: string) => {
       const user = (baseUsers || []).find((user) => user.email === email)

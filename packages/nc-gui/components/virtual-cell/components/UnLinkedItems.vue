@@ -4,13 +4,20 @@ import { PermissionEntity, PermissionKey, isBtLikeV2Junction, isDateOrDateTimeCo
 import { computeLtarNewRowState } from '~/utils/dataUtils'
 import InboxIcon from '~icons/nc-icons/inbox'
 
-const props = defineProps<{
-  modelValue: boolean
-  column: any
-  hideBackBtn?: boolean
-  /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
-  parentBreadcrumbs?: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    column: any
+    hideBackBtn?: boolean
+    /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
+    parentBreadcrumbs?: string[]
+    /** Grid interface: allow the "+ New record" button (follows viz add-record toggle) */
+    allowNewRecord?: boolean
+  }>(),
+  {
+    allowNewRecord: true,
+  },
+)
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord', 'escape'])
 
@@ -74,6 +81,7 @@ const {
   isPendingLink,
   isPendingUnlink,
   pendingUnlinkRows,
+  getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -103,8 +111,6 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
-const injectedRow = inject(RowInj)!
-
 const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
 })
@@ -113,22 +119,38 @@ const isSingleTargetLink = computed(() => {
   return isBtLikeV2Junction(injectedColumn!.value) || relation.value === 'oo' || relation.value === 'bt'
 })
 
+/**
+ * The NEW-row staged buffer, always as an array. A single-target link (oo / bt)
+ * stores a BARE OBJECT in `rowState`, multi-target stores an array, and `?? []`
+ * only guards null/undefined — reading it as an array unconditionally threw
+ * "staged.map is not a function" on one-to-one fields, crashing the picker.
+ */
+function stagedRows(): Record<string, any>[] {
+  const colTitle = injectedColumn?.value?.title
+  const raw = colTitle ? rowState.value?.[colTitle] : undefined
+
+  return Array.isArray(raw) ? raw : raw ? [raw] : []
+}
+
+/**
+ * Pk-set of the NEW-row staged links — drives the picker's link markers (the
+ * per-index flags don't survive list reloads/reopens) and resolves a picker
+ * row (a fresh server fetch) back to its staged buffer object for unlink.
+ */
+const stagedLinkIds = computed(() => {
+  if (!isNew.value) return new Set<string>()
+
+  return new Set(stagedRows().map((r) => String(getRelatedTableRowId(r))))
+})
+
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
+    // addLTARRef buffers the link AND mirrors the buffer into row.row (the
+    // parent cell's display + submit source) — a second manual append here
+    // rendered every staged link twice.
     await addLTARRef(row, injectedColumn?.value as ColumnType)
 
-    // Update the cell value directly on the row so the parent template re-renders
-    const colTitle = injectedColumn?.value?.title
-    if (colTitle && injectedRow.value) {
-      if (isSingleTargetLink.value) {
-        injectedRow.value.row[colTitle] = row
-      } else {
-        if (!Array.isArray(injectedRow.value.row[colTitle])) {
-          injectedRow.value.row[colTitle] = []
-        }
-        injectedRow.value.row[colTitle] = [...(injectedRow.value.row[colTitle] || []), row]
-      }
-    }
+    excludedLinkedState.value.set(id, true)
 
     if (isSingleTargetLink.value) {
       isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
@@ -153,8 +175,14 @@ const linkRow = async (row: Record<string, any>, id: number) => {
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
-    removeLTARRef(row, injectedColumn?.value as ColumnType)
+    // The picker row is a fresh server fetch — removeLTARRef locates the
+    // staged entry by comparison, so resolve it back to the BUFFER object by
+    // pk (identity match, immune to compare quirks).
+    const target = stagedRows().find((r) => String(getRelatedTableRowId(r)) === String(getRelatedTableRowId(row))) ?? row
+
+    await removeLTARRef(target, injectedColumn?.value as ColumnType)
     isChildrenExcludedListLinked.value[id] = false
+    excludedLinkedState.value.set(id, false)
     saveRow!()
     $e('a:links:unlink')
   } else {
@@ -253,7 +281,12 @@ watch(filterQueryRef, () => {
 
 const onClick = (refRow: any, id: string) => {
   if (isSharedBase.value) return
-  if (isChildrenExcludedListLinked.value[Number.parseInt(id)]) {
+  // New rows route by the staged buffer — the per-index flags don't survive
+  // list reloads/reopens, and the click must match the rendered − marker.
+  const linked = isNew.value
+    ? stagedLinkIds.value.has(String(getRelatedTableRowId(refRow)))
+    : isChildrenExcludedListLinked.value[Number.parseInt(id)]
+  if (linked) {
     unlinkRow(refRow, Number.parseInt(id))
   } else {
     linkRow(refRow, Number.parseInt(id))
@@ -400,6 +433,11 @@ const visibleRows = computed(() => {
       if (isPendingLink(row)) isLinked = true
       else if (isPendingUnlink(row)) isLinked = false
     }
+    // New rows: the staged buffer is the whole truth — a linked record flips
+    // its + to − so it stays unlinkable from the picker.
+    if (isNew.value) {
+      isLinked = stagedLinkIds.value.has(String(getRelatedTableRowId(row)))
+    }
     return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
   })
 })
@@ -526,6 +564,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               expandedFormDlg = true
             }
           "
+          @close="vModel = false"
           @keydown.space.prevent.stop="() => relinkRow(uItem)"
           @keydown.enter.prevent.stop="() => relinkRow(uItem)"
         />
@@ -593,6 +632,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                     expandedFormDlg = true
                   }
                 "
+                @close="vModel = false"
                 @keydown.space.prevent.stop="() => onClick(item, String(item._index))"
                 @keydown.enter.prevent.stop="() => onClick(item, String(item._index))"
               />
@@ -615,6 +655,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
           <div class="flex">
             <PermissionsTooltip
               v-if="
+                allowNewRecord &&
+                isLinkedTableAccessible &&
                 !isPublic &&
                 !isDataReadOnly &&
                 !isTemplateMode &&
@@ -646,6 +688,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         <div class="flex">
           <PermissionsTooltip
             v-if="
+              allowNewRecord &&
+              isLinkedTableAccessible &&
               !isPublic &&
               !isDataReadOnly &&
               !isTemplateMode &&

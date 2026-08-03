@@ -56,6 +56,17 @@ export class OAuthController {
   @Post('/api/v2/oauth/authorize')
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async authorize(@Body() body, @Req() req: NcRequest) {
+    // GlobalGuard is authentication-OPTIONAL and this route has no @Acl, so
+    // without this an anonymous caller reaches createAuthorizationCode with an
+    // undefined user id. `isAuthorized` is set at runtime by the auth strategies
+    // (see aclFn in extract-ids.middleware) and is not on the base user type.
+    if (
+      !(req.user as (typeof req.user & { isAuthorized?: boolean }) | undefined)
+        ?.isAuthorized
+    ) {
+      NcError.unauthorized('Invalid token');
+    }
+
     const {
       client_id,
       redirect_uri,
@@ -74,6 +85,16 @@ export class OAuthController {
         'Missing required parameters: client_id, redirect_uri',
       );
     }
+
+    // Per RFC 6749 §4.1.2.1 an invalid redirect_uri must NOT be redirected to —
+    // and "invalid" covers unregistered, not just a bad scheme. Validate before
+    // building ANY redirect (deny and server_error included) and surface the
+    // error on-site. Deliberately outside the try below, which would otherwise
+    // turn the rejection into the very redirect we are refusing to make.
+    await this.oauthAuthorizationService.assertRegisteredRedirectUri(
+      client_id,
+      redirect_uri,
+    );
 
     try {
       if (!approved) {

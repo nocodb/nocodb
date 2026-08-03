@@ -157,6 +157,14 @@ export interface Actions {
     dashboardTitle?: string
     workflowId?: string
     workflowTitle?: string
+    interfaceId?: string
+    interfacePageId?: string
+    /** Append `/edit` — the interface builder. Omit for the viewer. */
+    interfaceEdit?: boolean
+    /** Append `/preview` — the builder's in-place consumer rendering (EE; ignored when interfaceEdit is set). */
+    interfacePreview?: boolean
+    /** Navigate to the interfaces list (no specific interface). */
+    interfaces?: boolean
     replace?: boolean
     newTab?: boolean
   }) => void

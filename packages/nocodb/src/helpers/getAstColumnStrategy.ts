@@ -152,11 +152,16 @@ const createdModifiedByFieldStrategy: ColumnAstStrategy = {
   resolve: () => false,
 };
 
-// 7. Order system column — only when explicitly asked (order/hidden extraction).
+// 7. Order system column — only when explicitly asked: order/hidden
+//    extraction, or named in a `fields` projection (a curated field
+//    allow-list that wants row order — e.g. interface page lists whose
+//    client caches place realtime inserts by it — must be able to opt in;
+//    v3 exclusion still wins via the earlier v3SystemField strategy).
 const orderFieldStrategy: ColumnAstStrategy = {
   name: 'orderField',
   match: (_ctx, { col }) => isOrderCol(col) && col.system,
-  resolve: (ctx) => ctx.extractOrderColumn || ctx.getHiddenColumn,
+  resolve: (ctx, { isInFields }) =>
+    ctx.extractOrderColumn || ctx.getHiddenColumn || isInFields,
 };
 
 // 8. Soft-delete system column — excluded.

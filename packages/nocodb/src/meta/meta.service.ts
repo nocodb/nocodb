@@ -203,6 +203,8 @@ export class MetaService {
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
+      [MetaTable.INTERFACES]: 'itf',
+      [MetaTable.INTERFACE_PAGES]: 'pag',
       [MetaTable.WORKSPACE]: 'w',
       [MetaTable.LIST_VIEW]: 'lv',
       [MetaTable.LIST_VIEW_COLUMNS]: 'lvc',

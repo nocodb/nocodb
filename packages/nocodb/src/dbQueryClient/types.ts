@@ -26,7 +26,12 @@ export interface AggregateCtx {
   model: Model;
   view?: View;
   source: Source;
-  args: { filterArr?: Filter[]; where?: string };
+  args: {
+    filterArr?: Filter[];
+    where?: string;
+    /** Explicit `(column, type)` pairs — REQUIRED when no view is passed. */
+    aggregation?: Array<{ field: string; type: string }>;
+  };
 }
 
 /** Caller payload for `client.bulkAggregate()` — N filter sets. */

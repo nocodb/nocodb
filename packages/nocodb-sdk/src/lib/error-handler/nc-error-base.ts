@@ -98,6 +98,37 @@ export class NcErrorBase {
     });
   }
 
+  interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_INTERFACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  /**
+   * Write op attempted while previewing an interface as another USER — the
+   * dedicated type lets the UI tell "you are previewing" apart from a real
+   * permission denial.
+   */
+  interfacePreviewWriteBlocked(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED,
+      {
+        ...args,
+      }
+    );
+  }
+
   chatSessionNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_CHAT_SESSION_NOT_FOUND,
@@ -356,6 +387,15 @@ export class NcErrorBase {
   invalidSharedDashboardPassword(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_SHARED_DASHBOARD_PASSWORD_INVALID,
+      {
+        ...args,
+      }
+    );
+  }
+
+  invalidSharedInterfacePagePassword(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID,
       {
         ...args,
       }

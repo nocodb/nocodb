@@ -2084,7 +2084,8 @@
     "manageLicense": "Manage License",
     "preferences": "Preferences",
     "communityEdition": {
-      "hideUpgradesDescription": "Hide upgrade badges and Enterprise-only menu items across the app."
+      "showOnly": "Show only community edition features",
+      "hideUpgradesDescription": "Hides paid feature badges across the app."
     },
     "buyNewLicense": "Buy New License",
     "buyYourFirstLicense": "Buy Your First License",

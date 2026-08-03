@@ -43,6 +43,13 @@ export const useInfiniteGroups = (
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
+  /**
+   * Present when mounted inside an interface page — group header/count loads
+   * are routed through the adapter (interface-scoped ops) instead of the
+   * view / shared-view endpoints, and group aggregations are skipped.
+   */
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
   const columnsById = computed(() => {
@@ -123,7 +130,10 @@ export const useInfiniteGroups = (
     const level = parentGroup ? findGroupLevel(parentGroup) : 0
     const groupCol = groupByColumns.value[level]
 
-    if (!groupCol || !view.value?.id || !base.value?.id) return
+    // Interface pages fetch through the adapter (page/viz-scoped, incl. public
+    // share) — it carries its own context, so `base.value.id` (unset on the
+    // anonymous public route) must not gate the group-chunk load there.
+    if (!groupCol || !view.value?.id || (!interfaceDataApi && !base.value?.id)) return
 
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
@@ -133,7 +143,22 @@ export const useInfiniteGroups = (
       let response: Awaited<ReturnType<typeof $api.dbViewRow.groupBy>> | undefined
       for (let attempt = 0; attempt <= GROUPBY_MAX_RETRIES; attempt++) {
         try {
-          response = isPublic.value
+          response = interfaceDataApi
+            ? await interfaceDataApi.fetchGroupBy({
+                offset,
+                limit: GROUP_CHUNK_SIZE,
+                where: effectiveWhere,
+                sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}`,
+                column_name: groupCol.column.title!,
+                subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+                sortsArr: sorts.value,
+                filtersArr: nestedFilters.value ?? [],
+                // group-nesting predicate — must ride apart from `filtersArr`
+                // (the server gates that on the Filter action; nesting always
+                // applies)
+                nestedFiltersArr: nestedGrpWhereArr,
+              })
+            : isPublic.value
             ? await $api.public.dataGroupBy(
                 sharedView.value!.uuid!,
                 {
@@ -314,7 +339,12 @@ export const useInfiniteGroups = (
         groups.push(group)
       }
 
-      if (groups.length && !appInfo.value.disableGroupByAggregation) {
+      // Interface pages route group aggregations through the adapter's bulk op.
+      if (
+        groups.length &&
+        !appInfo.value.disableGroupByAggregation &&
+        (!interfaceDataApi || interfaceDataApi.fetchBulkAggregate)
+      ) {
         const aggregationAliasMapper = new AliasMapper()
 
         const aggregation = Object.values(gridViewCols.value)
@@ -332,7 +362,14 @@ export const useInfiniteGroups = (
         let aggResponse = {}
 
         if (aggregation.length) {
-          aggResponse = !isPublic.value
+          aggResponse = interfaceDataApi
+            ? await interfaceDataApi.fetchBulkAggregate!({
+                aggregation,
+                where: where?.value,
+                filtersArr: nestedFilters.value,
+                bulkFilterList: aggregationParams,
+              })
+            : !isPublic.value
             ? await $api.internal.postOperation(
                 (meta.value as any)!.fk_workspace_id!,
                 meta.value!.base_id!,
@@ -566,7 +603,18 @@ export const useInfiniteGroups = (
 
         const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
 
-        totalGroups.value = isPublic.value
+        totalGroups.value = interfaceDataApi
+          ? // no dedicated count op — the group-by op's `pageInfo.totalRows` is
+            // the exact `groupByCount` result, so a limit-1 fetch doubles as one
+            (
+              await interfaceDataApi.fetchGroupBy({
+                limit: 1,
+                where: effectiveWhere,
+                column_name: groupCol.column.title!,
+                filtersArr: nestedFilters.value ?? [],
+              })
+            ).pageInfo.totalRows ?? 0
+          : isPublic.value
           ? await $api.public.dataGroupByCount(
               sharedView.value!.uuid!,
               {
@@ -592,7 +640,19 @@ export const useInfiniteGroups = (
         const groupFilterArr = buildNestedFilterArr(group) ?? []
         const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
 
-        group.groupCount = isPublic.value
+        group.groupCount = interfaceDataApi
+          ? (
+              await interfaceDataApi.fetchGroupBy({
+                limit: 1,
+                where: effectiveWhere,
+                column_name: groupCol.column.title!,
+                filtersArr: nestedFilters.value ?? [],
+                // nesting predicate — apart from `filtersArr` (Filter-action
+                // gated); nesting always applies
+                nestedFiltersArr: groupFilterArr,
+              })
+            ).pageInfo.totalRows ?? 0
+          : isPublic.value
           ? await $api.public.dataGroupByCount(
               sharedView.value!.uuid!,
               {
@@ -613,7 +673,10 @@ export const useInfiniteGroups = (
             })
       }
     } catch (e: any) {
-      if (showToastMessage) {
+      // Interface page deleted mid-flight — see useInfiniteData.syncCount.
+      const isStaleInterfacePage = !!interfaceDataApi && e?.response?.status === 404
+
+      if (showToastMessage && !isStaleInterfacePage) {
         const errorMessage = await extractSdkResponseErrorMsg(e)
         message.error(`Failed to sync count: ${errorMessage}`)
       }
@@ -631,7 +694,8 @@ export const useInfiniteGroups = (
       aggregation?: string
     }>,
   ) {
-    if (appInfo.value.disableGroupByAggregation) return
+    // Interface pages route through the adapter's bulk op when available.
+    if (appInfo.value.disableGroupByAggregation || (interfaceDataApi && !interfaceDataApi.fetchBulkAggregate)) return
 
     const BATCH_SIZE = 100
     const aggregationAliasMapper = new AliasMapper()
@@ -677,7 +741,14 @@ export const useInfiniteGroups = (
       }))
 
       try {
-        const aggResponse = !isPublic.value
+        const aggResponse = interfaceDataApi
+          ? await interfaceDataApi.fetchBulkAggregate!({
+              aggregation: aggregation as Array<{ field: string; type: string }>,
+              where: where?.value,
+              filtersArr: nestedFilters.value,
+              bulkFilterList: aggregationParams,
+            })
+          : !isPublic.value
           ? await $api.internal.postOperation(
               (meta.value as any)!.fk_workspace_id!,
               meta.value!.base_id!,

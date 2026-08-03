@@ -205,6 +205,45 @@ export const serializeImportValue = (raw: any, col: ColumnType) => {
   }
 };
 
+/**
+ * Convert an Excel date *serial* into the string a date column expects.
+ *
+ * Excel stores dates as numbers — days since 1899-12-30 (the epoch includes the
+ * historical 1900 leap-year bug). When a spreadsheet cell holding a date is NOT
+ * formatted as a date (General / numeric format), the xlsx parser hands us the
+ * raw serial instead of a `Date`. Forwarding that integer to a typed date
+ * column then fails at the DB (`column ... is of type date but expression is of
+ * type integer`).
+ *
+ * This is Excel-specific and intentionally NOT wired into `serializeImportValue`
+ * (which stays format-agnostic and is shared with the CSV-upload extension). It
+ * is invoked only from the Excel import path — see `DataImportProcessor`. Only a
+ * numeric `value` is treated as a serial; anything else (a Date, an already-
+ * formatted date string) is returned untouched for the normal path to handle.
+ *
+ * The importer bulk-inserts with `raw: true`, so `_convertDateFormat` is skipped
+ * — the returned string must already be DB-ready:
+ *   - `Date`     → `YYYY-MM-DD`
+ *   - `DateTime` → `YYYY-MM-DD HH:mm:ssZ` (UTC; Excel serials carry no timezone)
+ */
+export const serializeExcelDateValue = (value: any, col: ColumnType) => {
+  if (value === null || value === undefined || value === '') return null;
+
+  // Only numeric Excel serials need conversion; leave everything else alone.
+  if (!ncIsNumber(value)) return value;
+
+  // 25569 = the serial of 1970-01-01 in the Excel 1900 date system.
+  const ms = Math.round((value - 25569) * 86400000);
+  const date = new Date(ms);
+  if (ncIsNaN(date.getTime())) return null;
+
+  const iso = date.toISOString(); // YYYY-MM-DDTHH:mm:ss.sssZ (UTC)
+
+  return (col?.uidt as UITypes) === UITypes.DateTime
+    ? `${iso.slice(0, 10)} ${iso.slice(11, 19)}+00:00`
+    : iso.slice(0, 10);
+};
+
 export const serializeJsonValue = (value: any) => {
   try {
     return ncIsString(value)

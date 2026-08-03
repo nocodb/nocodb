@@ -41,6 +41,7 @@ export class DuplicateService {
         excludeHooks?: boolean;
         excludeScripts?: boolean;
         excludeDashboards?: boolean;
+        excludeInterfaces?: boolean;
         excludeWorkflows?: boolean;
         excludeDocuments?: boolean;
       };

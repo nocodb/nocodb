@@ -24,6 +24,10 @@ export function useGridViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  // Interface pages route bulk row ops through the page-scoped adapter — the
+  // synthetic view id is unknown to the plain data ops.
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const { base } = storeToRefs(useBase())
@@ -278,28 +282,32 @@ export function useGridViewData(
     if (!removedRowsData.length) return
 
     try {
-      const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-        operation: 'dataList',
-        tableId: meta.value?.id as string,
-        pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
-        getHiddenColumns: true,
-        limit: removedRowsData.length,
-      })
-
-      removedRowsData = removedRowsData.map((row) => {
-        const rowObj = row.row
-        const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
-
-        const fullRecord = list.find((r: Record<string, any>) => {
-          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+      // Full-record enrichment uses the PLAIN data ops — interface pages skip
+      // it (cached rows already hold every field the page may serve).
+      if (!interfaceDataApi) {
+        const { list = [] } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'dataList',
+          tableId: meta.value?.id as string,
+          pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+          getHiddenColumns: true,
+          limit: removedRowsData.length,
         })
 
-        if (!fullRecord) return { ...row }
-        return {
-          ...row,
-          row: { ...fullRecord },
-        }
-      })
+        removedRowsData = removedRowsData.map((row) => {
+          const rowObj = row.row
+          const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
+
+          const fullRecord = list.find((r: Record<string, any>) => {
+            return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+          })
+
+          if (!fullRecord) return { ...row }
+          return {
+            ...row,
+            row: { ...fullRecord },
+          }
+        })
+      }
 
       await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
     } catch (e: any) {
@@ -347,13 +355,29 @@ export function useGridViewData(
     })
 
     try {
-      const newRows = (await $api.dbTableRow.bulkUpdate(
-        NOCO,
-        metaValue?.base_id as string,
-        metaValue?.id as string,
-        updateArray,
-        { typecast: 'true' },
-      )) as Record<string, any>
+      let newRows: Record<string, any>
+
+      if (interfaceDataApi?.bulkUpdateRows) {
+        // Interface pages — the page-scoped bulk update (grant-authorized;
+        // the raw bulk endpoint 403s for interface collaborators). It
+        // returns no rows; local optimistic values stand and the page-scoped
+        // realtime updates reconcile.
+        const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
+        await interfaceDataApi.bulkUpdateRows(
+          rows.map((row) => ({
+            rowId: extractPkFromRow(row.row, metaValue?.columns as ColumnType[]) as string,
+            data: props.reduce(
+              (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
+              {} as Record<string, any>,
+            ),
+          })),
+        )
+        newRows = []
+      } else {
+        newRows = (await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray, {
+          typecast: 'true',
+        })) as Record<string, any>
+      }
 
       triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
@@ -586,30 +610,33 @@ export function useGridViewData(
 
     if (!rowsToDelete.length) return
 
-    const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-      operation: 'dataList',
-      tableId: meta.value?.id as string,
-      pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
-      getHiddenColumns: 'true',
-      limit: rowsToDelete.length,
-    })
-
     try {
-      rowsToDelete = rowsToDelete.map((row) => {
-        const rowObj = row.row
-        const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
-
-        const fullRecord = list.find((r: Record<string, any>) => {
-          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+      // Same interface skip as `deleteSelectedRows` — plain-op enrichment only.
+      if (!interfaceDataApi) {
+        const { list = [] } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'dataList',
+          tableId: meta.value?.id as string,
+          pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
+          getHiddenColumns: 'true',
+          limit: rowsToDelete.length,
         })
 
-        if (!fullRecord) {
-          console.warn(`Full record not found for row with index ${row.rowMeta.rowIndex}`)
+        rowsToDelete = rowsToDelete.map((row) => {
+          const rowObj = row.row
+          const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
+
+          const fullRecord = list.find((r: Record<string, any>) => {
+            return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+          })
+
+          if (!fullRecord) {
+            console.warn(`Full record not found for row with index ${row.rowMeta.rowIndex}`)
+            return row
+          }
+          row.row = fullRecord
           return row
-        }
-        row.row = fullRecord
-        return row
-      })
+        })
+      }
 
       await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
     } catch (e: any) {
@@ -633,6 +660,17 @@ export function useGridViewData(
       viewMetaValue?: ViewType
     } = {},
   ): Promise<any> {
+    // Let adapter failures propagate — the callers toast and leave the row
+    // cache intact (the shared catch below swallows, which would evict rows
+    // that were never deleted).
+    if (interfaceDataApi) {
+      await interfaceDataApi.bulkDeleteRows(rows.map((pkData) => Object.values(pkData).join('___')))
+
+      triggerAggregateReload({ path: [] })
+
+      return rows
+    }
+
     try {
       const bulkDeletedRowsData = await $api.internal.postOperation(
         (metaValue as any).fk_workspace_id!,

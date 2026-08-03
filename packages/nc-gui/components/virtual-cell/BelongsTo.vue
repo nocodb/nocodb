@@ -53,6 +53,10 @@ const hasEditPermission = computed(() => {
   return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
+// Interface grid/list viz provide 'simple' — the compact single-list picker
+// (checkmark + clear-selection) replaces the classic search-to-link modal.
+const { isSimpleLinkRecordList, isSimpleLinkRecordListReadonly } = useLinkRecordDropdownVariant(hasEditPermission)
+
 const value = computed(() => {
   if (cellValue?.value) {
     return cellValue?.value
@@ -155,7 +159,10 @@ onUnmounted(() => {
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-    <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+    <LazyVirtualCellComponentsLinkRecordDropdown
+      v-model:is-open="isOpen"
+      :variant="isSimpleLinkRecordList ? 'simple' : 'classic'"
+    >
       <div class="nc-cell-field flex items-center w-full">
         <div class="chips flex items-center flex-1 min-h-7" :class="{ 'max-w-[calc(100%_-_16px)]': !isUnderLookup }">
           <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
@@ -180,10 +187,12 @@ onUnmounted(() => {
           @keydown.enter.stop="listItemsDlg = true"
         >
           <GeneralIcon
-            icon="plus"
+            :icon="isSimpleLinkRecordList ? 'chevronDown' : 'plus'"
             class="flex-none select-none !text-md text-nc-content-gray-subtle nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
             :class="{
-              '!visible !text-nc-content-gray-subtle2': isCanvasInjected && active,
+              '!visible !text-nc-content-gray-subtle2': isCanvasInjected && active && !isSimpleLinkRecordList,
+              '!text-nc-content-gray-muted': isSimpleLinkRecordList,
+              '!visible': isCanvasInjected && active,
             }"
             @click.stop="listItemsDlg = true"
           />
@@ -191,8 +200,16 @@ onUnmounted(() => {
       </div>
 
       <template #overlay>
+        <LazyVirtualCellComponentsLinkRecordSimpleList
+          v-if="isSimpleLinkRecordList && listItemsDlg"
+          v-model="listItemsDlg"
+          :column="belongsToColumn"
+          :linked-record="value"
+          :readonly="isSimpleLinkRecordListReadonly"
+          @escape="isOpen = false"
+        />
         <LazyVirtualCellComponentsUnLinkedItems
-          v-if="listItemsDlg"
+          v-if="!isSimpleLinkRecordList && listItemsDlg"
           v-model="listItemsDlg"
           :column="belongsToColumn"
           hide-back-btn

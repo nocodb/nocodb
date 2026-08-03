@@ -19,6 +19,12 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
   const { $e, $state, $api } = useNuxtApp()
 
+  // When mounted inside an interface record overlay, route comment ops through
+  // the injected record-sidebar adapter (the interface-scoped, grant +
+  // builder-toggle + record-scope gated ops) so interface-only consumers can
+  // use them. Absent → normal base ops.
+  const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
+
   const basesStore = useBases()
 
   const { basesUser } = storeToRefs(basesStore)
@@ -51,7 +57,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   })
 
   const loadComments = async (_rowId?: string, ignoreLoadingIndicator = true) => {
-    if (!isUIAllowed('commentList') || (!row.value && !_rowId)) return
+    // Interface consumers lack base ACL — the adapter's op is grant/toggle gated.
+    if ((!ifaceSidebar && !isUIAllowed('commentList')) || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -61,11 +68,13 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       if (!ignoreLoadingIndicator) isCommentsLoading.value = true
 
       const res = ((
-        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-          operation: 'commentList',
-          row_id: rowId,
-          fk_model_id: meta.value.id as string,
-        })
+        ifaceSidebar
+          ? await ifaceSidebar.commentList(rowId)
+          : await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'commentList',
+              row_id: rowId,
+              fk_model_id: meta.value.id as string,
+            })
       ).list || []) as Array<CommentTypeExtended>
 
       comments.value = res.map((comment) => {
@@ -97,7 +106,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   }
 
   const deleteComment = async (commentId: string) => {
-    if (!isUIAllowed('commentDelete')) return
+    if (!ifaceSidebar && !isUIAllowed('commentDelete')) return
     const tempC = comments.value.find((c) => c.id === commentId)
 
     if (!tempC) return
@@ -105,16 +114,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     try {
       comments.value = comments.value.filter((c) => c.id !== commentId)
 
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'commentDelete',
-        },
-        {
-          commentId,
-        },
-      )
+      if (ifaceSidebar) {
+        await ifaceSidebar.commentDelete(commentId)
+      } else {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'commentDelete' },
+          { commentId },
+        )
+      }
 
       // update comment count in rowMeta
       Object.assign(row.value, {
@@ -137,7 +146,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   }
 
   const resolveComment = async (commentId: string) => {
-    if (!isUIAllowed('commentResolve')) return
+    if (!ifaceSidebar && !isUIAllowed('commentResolve')) return
     const tempC = comments.value.find((c) => c.id === commentId)
 
     if (!tempC) return
@@ -156,16 +165,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
         return c
       })
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'commentResolve',
-        },
-        {
-          commentId,
-        },
-      )
+      if (ifaceSidebar) {
+        await ifaceSidebar.commentResolve(commentId)
+      } else {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'commentResolve' },
+          { commentId },
+        )
+      }
     } catch (e: unknown) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {
@@ -199,21 +208,26 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
       if (!rowId) return
 
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'commentRow',
-        },
-        {
-          fk_model_id: meta.value?.id as string,
-          row_id: rowId,
+      if (ifaceSidebar) {
+        await ifaceSidebar.commentRow(rowId, {
           comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
           ...(attachments?.length ? { attachments } : {}),
-          ...(commentMeta !== undefined ? { meta: commentMeta } : {}),
-          ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}),
-        },
-      )
+        })
+      } else {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'commentRow' },
+          {
+            fk_model_id: meta.value?.id as string,
+            row_id: rowId,
+            comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
+            ...(attachments?.length ? { attachments } : {}),
+            ...(commentMeta !== undefined ? { meta: commentMeta } : {}),
+            ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}),
+          },
+        )
+      }
 
       // Increase Comment Count in rowMeta
       Object.assign(row.value, {
@@ -254,17 +268,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
         return c
       })
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'commentUpdate',
-        },
-        {
-          commentId,
-          ...comment,
-        },
-      )
+      if (ifaceSidebar) {
+        await ifaceSidebar.commentUpdate(commentId, { ...comment })
+      } else {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'commentUpdate' },
+          { commentId, ...comment },
+        )
+      }
     } catch (e: any) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {

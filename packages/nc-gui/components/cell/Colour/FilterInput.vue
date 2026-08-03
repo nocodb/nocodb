@@ -12,6 +12,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj, ref())
 
+// Interface pages get the redesigned colour panel (NcColorPanel); the classic
+// data app keeps the legacy picker.
+const isInterfaceContext = useIsInterfaceUi()
+
 const colourMeta = computed(() => {
   const meta = column.value?.meta ? parseProp(column.value.meta) : {}
   return {
@@ -91,7 +95,14 @@ const onTextInput = (e: Event) => {
       <div class="sr-only w-5 h-5"></div>
       <template #overlay>
         <div>
-          <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />
+          <NcColorPanel
+            v-if="isInterfaceContext"
+            :key="pickerKey"
+            :model-value="tempColor"
+            @update:model-value="onColorChange"
+            @escape="close"
+          />
+          <GeneralAdvanceColorPicker v-else :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />
           <div
             class="flex items-center justify-end gap-2 mt-3 p-2 border-t border-nc-border-gray-medium"
             @click.stop

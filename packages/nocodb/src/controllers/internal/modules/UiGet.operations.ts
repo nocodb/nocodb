@@ -44,6 +44,7 @@ export class UiGetOperations
   operations = [
     'nestedDataList' as const,
     'tableGet' as const,
+    'refTableGet' as const,
     'columnsHash' as const,
     'viewList' as const,
     'viewColumnList' as const,
@@ -102,6 +103,19 @@ export class UiGetOperations
       case 'tableGet':
         return await this.tablesService.getTableWithAccessibleViews(context, {
           tableId: req.query.tableId,
+          user: req.user,
+        });
+      // Partial meta (pk + display value only) of a table reached through a
+      // link column — used when the caller can't read the related table
+      // directly. Base-scoped so the link column resolves against its own
+      // base; `getRelContext` then hops to the related base for cross-base
+      // links. The related table rides on `refTableId`, NOT `tableId`:
+      // extract-ids resolves a `tableId` against the request base, which
+      // 404s for a cross-base related table.
+      case 'refTableGet':
+        return await this.columnsService.getLinkColumnRefTable(context, {
+          columnId: req.query.columnId as string,
+          tableId: req.query.refTableId as string,
           user: req.user,
         });
       case 'columnsHash':

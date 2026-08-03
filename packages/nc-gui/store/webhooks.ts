@@ -1,5 +1,5 @@
 import { pickFields } from 'nocodb-sdk'
-import type { FilterReqType, FilterType, HookReqType, HookType } from 'nocodb-sdk'
+import type { FilterReqType, FilterType, HookReqType, HookType, TableType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 const HOOK_API_FIELDS = [
@@ -39,13 +39,23 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hooks.value.some((hook) => hook.version === 'v2')
   })
 
-  async function loadHooksList() {
+  async function loadHooksList(table?: Pick<TableType, 'id' | 'base_id' | 'fk_workspace_id'>) {
+    // Hosts without a route-level active table (e.g. the interface builder's
+    // field editor) pass their own table; a missing table is an empty list,
+    // not a crash.
+    const targetTable = table ?? activeTable.value
+
+    if (!targetTable?.id) {
+      hooks.value = []
+      return
+    }
+
     isHooksLoading.value = true
     try {
       const hookList = (
-        await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+        await $api.internal.getOperation(targetTable.fk_workspace_id!, targetTable.base_id!, {
           operation: 'hookList',
-          tableId: activeTable.value?.id as string,
+          tableId: targetTable.id,
         })
       ).list
 

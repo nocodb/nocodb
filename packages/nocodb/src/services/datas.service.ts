@@ -41,6 +41,7 @@ export class DatasService {
       ignoreViewFilterAndSort?: boolean;
       baseModel?: BaseModelSqlv2;
       skipSortBasedOnOrderCol?: boolean;
+      customConditions?: Filter[];
     },
   ) {
     let { model, view } = param as { view?: View; model?: Model };
@@ -90,6 +91,7 @@ export class DatasService {
       includeButtonFilterColumns: param.includeButtonFilterColumns,
       ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       baseModel: param.baseModel,
+      customConditions: param.customConditions,
     });
   }
 
@@ -244,6 +246,8 @@ export class DatasService {
       includeRowColorColumns?: boolean;
       includeButtonFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      /** Serve the system order column (client caches sort live inserts by it). */
+      extractOrderColumn?: boolean;
     },
   ) {
     const {
@@ -277,6 +281,7 @@ export class DatasService {
       includeSortAndFilterColumns: includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
       includeButtonFilterColumns: param.includeButtonFilterColumns,
+      extractOrderColumn: param.extractOrderColumn,
       skipSubstitutingColumnIds:
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
@@ -366,7 +371,7 @@ export class DatasService {
 
   async getDataGroupBy(
     context: NcContext,
-    param: { model: Model; view: View; query?: any },
+    param: { model: Model; view?: View; query?: any },
   ) {
     const { model, view, query = {} } = param;
 
@@ -491,7 +496,8 @@ export class DatasService {
     context: NcContext,
     param: {
       model;
-      view: View;
+      /** Optional — view-less callers (interface pages) scope via query.filterArrJson. */
+      view?: View;
       query: any;
       columnId: string;
     },

@@ -980,7 +980,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (isExpandedCellInputExist() || isLinkDropdownExist()) {
+    if (isExpandedCellInputExist() || isLinkDropdownExist() || isInterfaceRecordSheetOpen()) {
       return
     }
 
@@ -1065,7 +1065,7 @@ export function useMultiSelect(
       return
     }
 
-    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist()) {
+    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist() || isInterfaceRecordSheetOpen()) {
       return
     }
 

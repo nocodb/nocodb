@@ -343,6 +343,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreRls = false,
       fk_display_value_column_id,
       skipPublicRedaction = false,
+      applyViewFilters = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -353,6 +354,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreRls?: boolean;
       fk_display_value_column_id?: string | null;
       skipPublicRedaction?: boolean;
+      // Also apply the view's row filters, so the record is only returned when
+      // visible in the view. Opt-in: the public shared-view checks rely on it as
+      // the anonymous caller's access boundary.
+      applyViewFilters?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -398,6 +403,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    // Mirrors list()/count(): a record filtered out of the view is not visible.
+    if (applyViewFilters && !ignoreView && this.viewId) {
+      await conditionV2(
+        this,
+        [
+          new Filter({
+            children:
+              (await Filter.rootFilterList(this.context, {
+                viewId: this.viewId,
+              })) || [],
+            is_group: true,
+          }),
+        ],
+        qb,
+      );
+    }
+
     // Exclude soft-deleted records
     const softDeleteFilterReadByPk = await this.getSoftDeleteFilter();
     if (softDeleteFilterReadByPk) {
@@ -428,6 +450,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return this.readByPk(id, true, query, {
         apiVersion,
         skipPublicRedaction,
+        // Must be re-forwarded: it is the caller's row-visibility boundary, so
+        // dropping it here would make the retry fail open.
+        applyViewFilters,
       });
     }
 
@@ -985,6 +1010,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // if limitOverride is provided, use it as limit for the query (for internal usage eg. calendar, export)
+    // NOTE: an explicit `limitOverride: 0` is treated the same as "not provided"
+    // here (falls through to the default page size) — every current caller
+    // passes a positive length (chunk/batch sizes), so this hasn't mattered,
+    // but it's pinned by a test in interface-data-viz.test.ts
+    // (tableGanttDataList's `limit=0` case) that depends on this behavior.
     if (!ignorePagination) {
       if (!limitOverride) {
         applyPaginate(qb, rest);

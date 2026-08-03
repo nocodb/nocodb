@@ -62,6 +62,14 @@ export const rowHeightInPx: Record<string, number> = {
 export const pxToRowHeight: Record<number, number> = {
   32: 1,
   60: 2,
+  // Interface list presets (INTERFACE_ROW_HEIGHTS; Short renders through the
+  // grid's 32px box) — the canvas media renderers (Attachment/GeoData/QR) size
+  // by this enum: 64 must stay on the 32px item tier (the 64px tier + its 8px
+  // padding doesn't fit a 64px row), 86 fits one 64px-item row like the grid.
+  36: 1,
+  48: 2,
+  64: 2,
+  86: 4,
   90: 4,
   120: 6,
 }
@@ -77,6 +85,16 @@ export const rowHeightTruncateLines = (rowHeightOrHeighInPx?: number, isSelectOp
     case 6:
     case 120:
       return isSelectOption ? 4 : 6
+    // Interface list presets (INTERFACE_ROW_HEIGHTS: 48/64/86 — Short renders
+    // through the grid's 32px box): a tighter scale than the grid's, so the
+    // taller presets carry their own line counts (max that fits 16px lines /
+    // 22px select chips within the row).
+    case 48:
+      return isSelectOption ? 1 : 2
+    case 64:
+      return isSelectOption ? 2 : 3
+    case 86:
+      return isSelectOption ? 3 : 4
     default:
       return 1
   }

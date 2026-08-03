@@ -95,6 +95,7 @@ export function useCanvasRender({
   t,
   readOnly,
   isFieldEditAllowed,
+  interfaceActiveHeaderFieldId,
   setCursor,
   totalColumnsWidth,
   groupByColumns,
@@ -168,6 +169,7 @@ export function useCanvasRender({
   readOnly: Ref<boolean>
   isFillHandleDisabled: ComputedRef<boolean>
   isFieldEditAllowed: ComputedRef<boolean>
+  interfaceActiveHeaderFieldId: Ref<string | null>
   isDataEditAllowed: ComputedRef<boolean>
   setCursor: SetCursorType
   totalColumnsWidth: ComputedRef<number>
@@ -203,6 +205,11 @@ export function useCanvasRender({
   groupSelectionAggregations: ComputedRef<Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
+
+  // Interface grids swap the header chevron for a 3-dot BUTTON (brand-filled
+  // rounded rect, white glyph) drawn only on the clicked (ACTIVE) header —
+  // a first click activates the field, a second on the button opens its menu.
+  const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
   const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
@@ -210,6 +217,11 @@ export function useCanvasRender({
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
   const isPublic = inject(IsPublicInj, ref(false))
+
+  // Interface pages hide the row-expand (maximize) icon on the launched page
+  // when "Click into record details" is off — the click would be inert there.
+  // Defaults to true, so ordinary grids always show it.
+  const showInterfaceRowExpand = inject(InterfaceShowRowExpandInj, ref(true))
 
   const expandedFormPanelStore = useExpandedFormPanel()
   const expandedPanelRowIndex = computed(() => {
@@ -226,6 +238,37 @@ export function useCanvasRender({
   })
 
   const { isDark, getColor } = useTheme()
+
+  function renderInterfaceFieldMenuButton(ctx: CanvasRenderingContext2D, x: number, centerY: number) {
+    const w = 22
+    const h = 16
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.roundRect(x, centerY - h / 2, w, h, 6)
+    ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'])
+    ctx.fill()
+    ctx.restore()
+
+    spriteLoader.renderIcon(ctx, {
+      icon: 'ncMoreHorizontal',
+      size: 14,
+      color: '#ffffff',
+      x: x + (w - 14) / 2,
+      y: centerY - 7,
+    })
+  }
+
+  /** 1px brand outline around the active header cell (interface builder). */
+  function renderInterfaceActiveHeaderBorder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.roundRect(x + 1.5, y + 1.5, w - 3, h - 3, 6)
+    ctx.strokeStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'])
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.restore()
+  }
 
   // Canvas can't read CSS vars; when a white-label brand colour is set, tint the
   // row/column selection from it instead of the hardcoded NocoDB blue.
@@ -490,42 +533,59 @@ export function useCanvasRender({
         iconSpace += 18
       }
 
-      const iconConfig = (
-        column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, column.abstractType)
-      ) as any
-      if (column.uidt) {
-        spriteLoader.renderIcon(ctx, {
-          icon: column?.virtual ? iconConfig?.icon : iconConfig,
-          size: 13,
-          color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
-          x: xOffset + 8 - _scrollLeft,
-          y: _headerRowHeight / 2 - 7,
-        })
+      // Interface grids drop the field-type icon — the title starts at the
+      // cell padding instead of clearing the icon slot
+      const titleLeft = interfacePageDataApi ? 8 : 26
+
+      if (!interfacePageDataApi) {
+        const iconConfig = (
+          column?.virtual
+            ? renderVIcon(column.columnObj, column.relatedColObj)
+            : renderIcon(column.columnObj, column.abstractType)
+        ) as any
+        if (column.uidt) {
+          spriteLoader.renderIcon(ctx, {
+            icon: column?.virtual ? iconConfig?.icon : iconConfig,
+            size: 13,
+            color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
+            x: xOffset + 8 - _scrollLeft,
+            y: _headerRowHeight / 2 - 7,
+          })
+        }
       }
 
       const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
-      const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
-      const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-      ctx.fillText(truncatedText, xOffset + 26 - _scrollLeft, _headerRowHeight / 2)
+      const availableTextWidth = width - (titleLeft + iconSpace + (isRequired ? 4 : 0))
+      // Interface builder: a per-column label override renames the header only
+      // (the column title stays the data key). Falls back to the column title.
+      const headerText = (colObj?.id && interfacePageDataApi?.fieldConfigs?.value?.[colObj.id]?.label) || column.title!
+      const truncatedText = truncateText(ctx, headerText, availableTextWidth)
+      ctx.fillText(truncatedText, xOffset + titleLeft - _scrollLeft, _headerRowHeight / 2)
       if (isRequired) {
         ctx.save()
         ctx.fillStyle = getColor(themeV4Colors.red['500'])
-        ctx.fillText('*', xOffset + 28 - _scrollLeft + ctx.measureText(truncatedText).width, _headerRowHeight / 2)
+        ctx.fillText('*', xOffset + titleLeft + 2 - _scrollLeft + ctx.measureText(truncatedText).width, _headerRowHeight / 2)
         ctx.restore()
       }
 
       let rightOffset = xOffset + width - rightPadding
 
       if (isFieldEditAllowed.value && (!colObj?.readonly || isAutoGeneratedColumn(colObj))) {
-        rightOffset -= 16
-        spriteLoader.renderIcon(ctx, {
-          icon: 'chevronDown',
-          size: 14,
-          color: getColor(themeV4Colors.gray['500']),
-          x: rightOffset - _scrollLeft,
-          y: _headerRowHeight / 2 - 7,
-        })
+        if (!interfacePageDataApi) {
+          rightOffset -= 16
+          spriteLoader.renderIcon(ctx, {
+            icon: 'chevronDown',
+            size: 14,
+            color: getColor(themeV4Colors.gray['500']),
+            x: rightOffset - _scrollLeft,
+            y: _headerRowHeight / 2 - 7,
+          })
+        } else if (colObj?.id && interfaceActiveHeaderFieldId.value === colObj.id) {
+          renderInterfaceActiveHeaderBorder(ctx, xOffset - _scrollLeft, 0, width, _headerRowHeight)
+          rightOffset -= 22
+          renderInterfaceFieldMenuButton(ctx, rightOffset - _scrollLeft, _headerRowHeight / 2)
+        }
       } else if (meta.value?.synced && colObj?.readonly && !isAutoGeneratedColumn(colObj) && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
@@ -746,27 +806,35 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
-        const iconConfig = (
-          column?.virtual
-            ? renderVIcon(column.columnObj, column.relatedColObj)
-            : renderIcon(column.columnObj, column.abstractType)
-        ) as any
-        if (column.uidt) {
-          spriteLoader.renderIcon(ctx, {
-            icon: column?.virtual ? iconConfig?.icon : iconConfig,
-            size: 13,
-            color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
-            x: xOffset + 8,
-            y: _headerRowHeight / 2 - 7,
-          })
+        // Interface grids drop the field-type icon (title shifts to the padding)
+        if (!interfacePageDataApi) {
+          const iconConfig = (
+            column?.virtual
+              ? renderVIcon(column.columnObj, column.relatedColObj)
+              : renderIcon(column.columnObj, column.abstractType)
+          ) as any
+          if (column.uidt) {
+            spriteLoader.renderIcon(ctx, {
+              icon: column?.virtual ? iconConfig?.icon : iconConfig,
+              size: 13,
+              color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
+              x: xOffset + 8,
+              y: _headerRowHeight / 2 - 7,
+            })
+          }
         }
 
         const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
-        const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
+        const titleLeft = interfacePageDataApi ? 8 : 26
 
-        const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-        const x = xOffset + (column.uidt ? 26 : 10)
+        const availableTextWidth = width - (titleLeft + iconSpace + (isRequired ? 4 : 0))
+
+        // Interface builder: the per-column label override applies to fixed
+        // (sticky) headers too — same as the scrollable-columns pass.
+        const headerText = (colObj?.id && interfacePageDataApi?.fieldConfigs?.value?.[colObj.id]?.label) || column.title!
+        const truncatedText = truncateText(ctx, headerText, availableTextWidth)
+        const x = xOffset + (column.uidt ? titleLeft : 10)
         const y = _headerRowHeight / 2
 
         if (column.id === 'row_number') {
@@ -807,15 +875,21 @@ export function useCanvasRender({
         let rightOffset = xOffset + width - rightPadding
 
         if (column.uidt && isFieldEditAllowed.value && (!colObj?.readonly || isAutoGeneratedColumn(colObj))) {
-          // Chevron down
-          rightOffset -= 16
-          spriteLoader.renderIcon(ctx, {
-            icon: 'chevronDown',
-            size: 14,
-            color: getColor(themeV4Colors.gray['500']),
-            x: rightOffset,
-            y: y - 7,
-          })
+          // Header field-menu trigger (chevron; selected-only 3-dot button inside interface pages)
+          if (!interfacePageDataApi) {
+            rightOffset -= 16
+            spriteLoader.renderIcon(ctx, {
+              icon: 'chevronDown',
+              size: 14,
+              color: getColor(themeV4Colors.gray['500']),
+              x: rightOffset,
+              y: y - 7,
+            })
+          } else if (colObj?.id && interfaceActiveHeaderFieldId.value === colObj.id) {
+            renderInterfaceActiveHeaderBorder(ctx, xOffset, 0, width, _headerRowHeight)
+            rightOffset -= 22
+            renderInterfaceFieldMenuButton(ctx, rightOffset, y)
+          }
         } else if (meta.value?.synced && colObj?.readonly && !isAutoGeneratedColumn(colObj) && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
@@ -975,7 +1049,10 @@ export function useCanvasRender({
 
       const isHovered = isBoxHovered(boxRect, mousePosition)
 
-      if (isHovered && activeState.col.id !== editEnabled.value?.column?.id) {
+      // `inlineEditDisabled` is an interface element config choice, NOT a
+      // permission denial — keep the read-only gray border but skip the
+      // "Edit restricted" tooltip.
+      if (isHovered && activeState.col.id !== editEnabled.value?.column?.id && !activeState.col.inlineEditDisabled) {
         tryShowTooltip({
           mousePosition,
           text: t('objects.permissions.editFieldTooltipTitle'),
@@ -1364,7 +1441,7 @@ export function useCanvasRender({
           },
         })
       }
-    } else if (isHover || isRowCellSelected) {
+    } else if ((isHover || isRowCellSelected) && showInterfaceRowExpand.value) {
       const box = {
         x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - 20) / 2,

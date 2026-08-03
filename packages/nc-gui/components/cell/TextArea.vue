@@ -29,6 +29,8 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isInterfaceUi = useIsInterfaceUi()
+
 const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -324,8 +326,14 @@ if (props.isAi) {
   })
 }
 
+// Click-to-edit (grid / expanded record / interface list viz) jumps rich & AI
+// cells straight to the expanded modal. The interface record form is excluded:
+// there `editEnabled` is a capability binding — a config flip (e.g. record
+// review `edit_fields` off → inline) transitions it without user intent — and
+// rich text edits inline. Scoped to interface form surfaces only so classic
+// product behavior is untouched.
 watch(editEnabled, () => {
-  if (editEnabled.value && (isRichMode.value || props.isAi)) {
+  if (editEnabled.value && (isRichMode.value || props.isAi) && !(isForm.value && isInterfaceUi.value)) {
     isVisible.value = true
   }
 })

@@ -2,7 +2,9 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isLinksOrLTAR,
   isMMOrMMLike,
+  isRollupAggregatableColumn,
   OperationSource,
   RelationTypes,
   UITypes,
@@ -415,16 +417,29 @@ export async function validateRollupPayload(
     colId: (payload as RollupColumnReqType).fk_relation_column_id,
   });
 
+  if (!column) {
+    NcError.get(context).relationFieldNotFound(
+      (payload as RollupColumnReqType).fk_relation_column_id,
+    );
+  }
+
+  if (!isLinksOrLTAR(column)) {
+    NcError.get(context).badRequest(
+      `A rollup must aggregate through a link field, but "${column.title}" is ${column.uidt}.`,
+    );
+  }
+
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
     context,
   );
-  const { refContext } = relation.getRelContext(context);
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(
       (payload as RollupColumnReqType).fk_relation_column_id,
     );
   }
+
+  const { refContext } = relation.getRelContext(context);
 
   let relatedColumn: Column;
   const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
@@ -443,13 +458,34 @@ export async function validateRollupPayload(
   }
 
   const relatedTable = await relatedColumn.getModel(refContext);
+  const relatedTableColumns = await relatedTable.getColumns(refContext);
 
-  const rollupColumn = (await relatedTable.getColumns(refContext)).find(
+  const rollupColumn = relatedTableColumns.find(
     (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
   );
 
   if (!rollupColumn)
     NcError.get(context).badRequest('Rollup column not found in related table');
+
+  // Rolling up a link/lookup/barcode-style column would build SQL against a
+  // column that doesn't physically exist, breaking every read of the table.
+  if (!isRollupAggregatableColumn(rollupColumn)) {
+    const aggregatable = relatedTableColumns
+      .filter(
+        (c) =>
+          !c.system &&
+          isRollupAggregatableColumn(c) &&
+          getAvailableRollupForUiType(c.uidt).length,
+      )
+      .map((c) => c.title);
+
+    NcError.get(context).badRequest(
+      `Field "${rollupColumn.title}" (${rollupColumn.uidt}) in "${relatedTable.title}" cannot be aggregated by a rollup.` +
+        (aggregatable.length
+          ? ` Aggregatable fields are: ${aggregatable.join(', ')}.`
+          : ''),
+    );
+  }
 
   if (
     !getAvailableRollupForUiType(rollupColumn.uidt).includes(
@@ -459,7 +495,7 @@ export async function validateRollupPayload(
     NcError.get(context).badRequest(
       `Rollup function (${
         (payload as RollupColumnReqType).rollup_function
-      }) not available for type (${relatedColumn.uidt})`,
+      }) not available for type (${rollupColumn.uidt})`,
     );
   }
 }

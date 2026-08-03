@@ -32,6 +32,7 @@ const {
   blockBaseVariables,
   isEEFeatureBlocked,
   showEEFeatures,
+  hideInterfaces,
 } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
@@ -101,6 +102,16 @@ onMounted(() => {
       @click="navigateToBaseSettings('collaborator')"
     >
       {{ $t('labels.addUserToBase') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('interfaceUsersMatrix', { roles: effectiveRoles }) && showEEFeatures && !hideInterfaces"
+      v-e="['c:settings:base:interface-members']"
+      icon="ncUsers"
+      data-testid="base-interface-members"
+      :active="activeBaseSettingsTab === 'interface-members'"
+      @click="navigateToBaseSettings('interface-members')"
+    >
+      {{ $t('labels.addUserToInterface') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && showEEFeatures"

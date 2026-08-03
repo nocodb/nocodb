@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { type ColumnType, PermissionEntity, PermissionKey, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type InterfaceKanbanVizTheme, PermissionEntity, PermissionKey, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -27,6 +27,14 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// Interface pages open their record-detail sheet instead of the expanded form.
+const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
+
+// Interface pages route the "+ New record" affordances through the configured
+// record form / create card (mirrors the calendar viz) rather than the classic
+// expanded-record form, which was intentionally removed on interface pages.
+const interfaceNewRecordForm = inject(InterfaceNewRecordFormInj, ref<((prefill: Record<string, any>) => boolean) | null>(null))
+
 const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref<RowType>()
@@ -50,6 +58,10 @@ const { isDark, getColor } = useTheme()
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
+
+const { copy } = useCopy()
+
+const { t } = useI18n()
 
 const { isMounted } = useIsMounted()
 
@@ -96,13 +108,56 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+// Whether the interface viz opens records — gates the context-menu Expand item.
+const interfaceClickIntoDetails = inject(InterfaceClickIntoDetailsInj, ref(true))
+
+// Pointer affordance — cards drop the pointer cursor when a click neither
+// opens the record nor (builder) prompts to enable click-into-details.
+const interfaceShowRowExpand = inject(InterfaceShowRowExpandInj, ref(true))
+
+const isReadonly = inject(ReadonlyInj, ref(false))
+
 const hasEditPermission = computed(
-  () => isUIAllowed('dataEdit') && (!isSyncedTable.value || !groupingFieldColumn.value?.readonly),
+  () =>
+    isUIAllowed('dataEdit') &&
+    (!interfacePageDataApi || !isReadonly.value) &&
+    (!isSyncedTable.value || !groupingFieldColumn.value?.readonly),
+)
+
+/** Interface pages gate add/delete on the viz opt-in (legacy Kanban parity). */
+const canAddDeleteRows = computed(
+  () => isUIAllowed('dataEdit') && (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
 )
 
 const fields = inject(FieldsInj, ref([]))
 
 const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+
+// Interface boards get FLIP drag animation (cards part to make room)
+/**
+ * Kanban surface theme (interface pages only). `board` — the default and the
+ * data-app look — fills cards with the record color; the other themes keep a
+ * neutral card surface and surface the raw record color instead.
+ */
+const interfaceKanbanTheme = inject(InterfaceKanbanThemeInj, undefined)
+
+// Resolved card theme — `board` outside interface pages keeps the data-app
+// treatment untouched. Surface-only: never fields, ordering or color meaning.
+const kanbanCardTheme = computed<InterfaceKanbanVizTheme>(() =>
+  interfacePageDataApi ? interfaceKanbanTheme?.value ?? 'board' : 'board',
+)
+
+// columns/compact swap the record-color fill/left bar for an 8px dot before
+// the display value.
+const showRecordColorDot = computed(() => kanbanCardTheme.value === 'columns' || kanbanCardTheme.value === 'compact')
+
+const cardBodyPadding = computed(() => {
+  if (!interfacePageDataApi) return '12px !important'
+
+  return kanbanCardTheme.value === 'compact' ? '4px 8px !important' : '8px !important'
+})
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
@@ -162,6 +217,24 @@ const getCellColorClass = (record: Row, columnId: string) => {
 const getCellColorBgVar = (record: Row, columnId: string) => {
   const bgStyle = getCellColorStyle(record, columnId)
   return bgStyle?.backgroundColor ? { '--cell-bg-color': bgStyle.backgroundColor } : {}
+}
+
+// The row-color left bar stays for the fill/wash themes (board/tint); the dot
+// themes (columns/compact) replace it with the display-value dot.
+const showRecordColorLeftBar = computed(() => isRowColouringEnabled.value && !showRecordColorDot.value)
+
+function getCardColorStyle(record: RowType): Record<string, string> {
+  const colorStyle = extractRowBackgroundColorStyle(record)
+
+  if (kanbanCardTheme.value === 'board') {
+    return { ...colorStyle.rowBgColor, ...colorStyle.rowBorderColor }
+  }
+
+  // Non-fill themes keep the neutral card surface — the raw record color is
+  // handed to the host CSS (tint wash / accent bar) via a custom property.
+  const rawColor = record.rowMeta?.rowLeftBorderColor
+
+  return rawColor ? { '--nc-record-color': rawColor } : {}
 }
 
 const kanbanContainerRef = ref()
@@ -318,8 +391,8 @@ const visibleStackOptions = computed(() => groupingFieldColOptions.value.slice(s
 // scrollbar proportional, which is all that matters for high stack counts.
 const leftStackSpacerWidth = computed(() => stackWindow.value.start * STACK_WIDTH_WITH_GAP)
 
-const rightStackSpacerWidth = computed(() =>
-  Math.max(0, groupingFieldColOptions.value.length - stackWindow.value.end) * STACK_WIDTH_WITH_GAP,
+const rightStackSpacerWidth = computed(
+  () => Math.max(0, groupingFieldColOptions.value.length - stackWindow.value.end) * STACK_WIDTH_WITH_GAP,
 )
 
 // Map a Draggable slot index (relative to the rendered window) back to the absolute index into
@@ -328,7 +401,10 @@ const getAbsStackIdx = (relIndex: number) => stackWindow.value.start + relIndex
 
 // Load grouped data one visible window at a time so high-cardinality boards don't fetch every stack
 // upfront. Public/shared views keep the original full load (the shared-view endpoint can't filter
-// groups), so windowed mode is enabled only for non-public boards.
+// groups), so windowed mode is enabled only for non-public boards. Interface pages ride the
+// InterfacePageDataInj adapter, which carries the same per-window restriction (`stackTitles`) —
+// including public interface shares, which reach the adapter rather than the shared-view endpoint
+// (`VizWrapper` provides `IsPublicInj = false` for every interface mount).
 useWindowedKanbanLoad.value = !isPublic.value
 
 const currentWindowStackTitles = () => visibleStackOptions.value.map((stack) => stack.title ?? null)
@@ -446,7 +522,26 @@ const reloadViewMetaListener = async () => {
 
 reloadViewMetaHook?.on(reloadViewMetaListener)
 
+/** Card picked by an inert click (interface, click-into-details off) — pure visual feedback. */
+const selectedCardId = ref<string | null>(null)
+
+function isCardSelected(record: RowType) {
+  if (!selectedCardId.value || !meta.value?.columns) return false
+
+  return selectedCardId.value === extractPkFromRow(record.row, meta.value.columns)
+}
+
 const expandForm = (row: RowType, state?: Record<string, any>) => {
+  if (interfaceExpandRecord?.(row)) {
+    // Click-into-details off — the swallowed click still lands visibly by
+    // selecting the card.
+    if (!interfaceClickIntoDetails.value && !row.rowMeta?.new) {
+      selectedCardId.value = extractPkFromRow(row.row, meta.value!.columns!) || null
+    }
+
+    return
+  }
+
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
@@ -466,16 +561,31 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
 
 const _contextMenu = ref(false)
 
+const contextMenuTarget = ref<RowType | null>(null)
+
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (hasEditPermission.value) {
+    // Every item is a record operation — a right-click that didn't land on a
+    // card (empty stack area) must not open the menu at all: without the
+    // capture-phase target reset below it would show the PREVIOUS card's ops.
+    if (val && !contextMenuTarget.value) return
+
+    // Interface pages keep the menu for permission-free items (expand, copy URL).
+    if (hasEditPermission.value || interfacePageDataApi) {
       _contextMenu.value = val
     }
   },
 })
 
-const contextMenuTarget = ref<RowType | null>(null)
+/**
+ * Capture-phase reset for every right-click on the board: a card's own
+ * @contextmenu (bubble phase) re-sets the target BEFORE ant's dropdown
+ * trigger opens the menu, so only card clicks ever have one.
+ */
+function resetContextMenuTarget() {
+  contextMenuTarget.value = null
+}
 
 const showSendRecordModal = ref(false)
 
@@ -484,11 +594,62 @@ const contextMenuRowId = computed(() => {
   return extractPkFromRow(contextMenuTarget.value.row, meta.value?.columns)
 })
 
+/** Interface-only: duplicate rides the add/delete opt-in like the grid record menu. */
+const canDuplicateRow = computed(
+  () => !!interfacePageDataApi && canAddDeleteRows.value && isUIAllowed('dataEdit') && !isSyncedTable.value,
+)
+
 const showContextMenu = (e: MouseEvent, target?: RowType) => {
   e.preventDefault()
   if (target) {
     contextMenuTarget.value = target
   }
+}
+
+/** Interface: duplicate the right-clicked card into its stack, directly below it. */
+async function interfaceDuplicateRow() {
+  const target = contextMenuTarget.value
+  if (!target || !canDuplicateRow.value || !interfacePageDataApi) return
+
+  // Clone the record's values (identity markers + system columns stripped) — the
+  // stacking field value rides along, so the copy lands in the same stack. Prompts
+  // when the record holds links the copy can't share (null = prompt dismissed).
+  const clonedData = await prepareDuplicateRowData(target.row, meta.value?.columns as ColumnType[])
+  if (!clonedData) return
+
+  // `before` is the pk of the next card in the source's stack, so the copy
+  // lands right below the original (grid/gallery record-menu parity).
+  const pk = extractPkFromRow(target.row, meta.value?.columns as ColumnType[])
+  let beforeRowId: string | undefined
+  for (const rows of formattedData.value.values()) {
+    const idx = rows.findIndex((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk)
+    if (idx !== -1) {
+      const next = rows[idx + 1]
+      beforeRowId = next ? extractPkFromRow(next.row, meta.value?.columns as ColumnType[]) : undefined
+      break
+    }
+  }
+
+  try {
+    await interfacePageDataApi.insertRow(clonedData, { before: beforeRowId })
+    message.toast(t('msg.success.rowDuplicated'))
+    await loadVisibleStacks()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+/** Interface: deep link to this record — the current page URL with its rowId. */
+async function interfaceCopyRecordUrl() {
+  if (!contextMenuRowId.value) return
+
+  const [origin, hash = ''] = window.location.href.split('#')
+  const [hashPath, hashQuery = ''] = hash.split('?')
+  const params = new URLSearchParams(hashQuery)
+  params.set('rowId', contextMenuRowId.value)
+
+  await copy(`${origin}#${hashPath}?${params.toString()}`)
+  message.toast(t('msg.info.copiedToClipboard'))
 }
 
 const expandedFormOnRowIdDlg = computed({
@@ -1366,6 +1527,17 @@ const computeDragWindow = (span: number) => {
   return { start, end }
 }
 
+/**
+ * Interface boards: dotted residue that holds the SOURCE spot during a drag.
+ * Cross-list hovers make vuedraggable sync its arrays and re-render the source
+ * list, which sweeps foreign DOM — a drag-scoped keeper re-inserts the residue
+ * at its recorded index until drop.
+ */
+let dragResidueEl: HTMLElement | null = null
+let dragResidueList: HTMLElement | null = null
+let dragResidueIndex = 0
+let dragResidueKeeper: ReturnType<typeof setInterval> | null = null
+
 const handleCardDragStart = (e: any) => {
   isCardDragInProgress.value = true
 
@@ -1389,6 +1561,22 @@ const handleCardDragStart = (e: any) => {
   cardDragWindow.value = { start, end }
 
   e.target.classList.add('grabbing')
+
+  if (interfacePageDataApi && e.item) {
+    const cardHeight = e.item.querySelector('.ant-card')?.offsetHeight ?? e.item.offsetHeight
+    dragResidueEl = document.createElement('div')
+    dragResidueEl.className = 'nc-kanban-drag-residue'
+    dragResidueEl.style.height = `${cardHeight}px`
+    dragResidueList = e.from ?? e.item.parentElement
+    dragResidueIndex = e.oldIndex ?? 0
+    e.item.parentElement?.insertBefore(dragResidueEl, e.item)
+
+    dragResidueKeeper = setInterval(() => {
+      if (!dragResidueEl || dragResidueEl.isConnected || !dragResidueList?.isConnected) return
+      const anchor = dragResidueList.querySelectorAll(':scope > .nc-kanban-item')[dragResidueIndex] ?? null
+      dragResidueList.insertBefore(dragResidueEl, anchor)
+    }, 120)
+  }
 }
 
 // Ensure the moved row is present in its target stack and absent from its source stack, fixing the
@@ -1426,6 +1614,21 @@ const handleCardDragEnd = async (e: any) => {
   cardDragWindow.value = null
   tempExpandedStacks.value.clear()
   e.target.classList.remove('grabbing')
+
+  // Height-collapse the source residue, then drop it from the DOM. Runs before the awaits
+  // below so the placeholder clears the moment the card lands, not after the persist +
+  // reload round-trip.
+  if (dragResidueKeeper) {
+    clearInterval(dragResidueKeeper)
+    dragResidueKeeper = null
+  }
+  if (dragResidueEl) {
+    const el = dragResidueEl
+    dragResidueEl = null
+    dragResidueList = null
+    el.classList.add('nc-collapsing')
+    setTimeout(() => el.remove(), 220)
+  }
 
   const move = lastCardMove.value
   lastCardMove.value = { row: null, fromKey: null, toKey: null }
@@ -1529,6 +1732,16 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 
   selectedStackTitle.value = stackTitle ?? ''
 
+  // Interface pages: create via the configured record form / create card
+  // (mirrors the calendar viz), prefilled with the stack's grouping value. The
+  // classic expanded-record form is intentionally not used on interface pages.
+  if (interfacePageDataApi) {
+    interfaceNewRecordForm.value?.({
+      [groupingField.value]: stackTitle && stackTitle !== '' ? stackTitle : null,
+    })
+    return
+  }
+
   openNewRecordFormHook.trigger()
 }
 
@@ -1558,7 +1771,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
         :trigger="['contextmenu']"
         overlay-class-name="nc-dropdown-kanban-context-menu"
       >
-        <div class="flex gap-3">
+        <div class="flex gap-3" @contextmenu.capture="resetContextMenuTarget">
           <!-- Left spacer standing in for off-screen stacks (horizontal virtual scroll) -->
           <div v-if="leftStackSpacerWidth" class="flex-none" :style="{ width: `${leftStackSpacerWidth}px` }" aria-hidden="true" />
           <!-- Draggable Stack -->
@@ -1576,11 +1789,18 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             @end="handleStackDragEnd"
             @change="onMoveStack($event)"
           >
+            <!-- Collapsed strips are 52px on interfaces (matching the expanded
+                 header height); the classic board keeps its 44px rail.
+                 Comment stays OUTSIDE #item: vuedraggable counts the comment
+                 vnode as a second child and throws "Item slot must have only
+                 one child" (dev builds only — prod strips comments). -->
             <template #item="{ element: stack, index: relStackIdx }">
               <div
                 class="nc-kanban-stack"
                 :class="{
-                  'w-[44px]': isStackCollapsed(stack),
+                  'w-[52px]': isStackCollapsed(stack) && !!interfacePageDataApi,
+                  'w-[44px]': isStackCollapsed(stack) && !interfacePageDataApi,
+                  'nc-kanban-stack-interface-collapsed': !!interfacePageDataApi && isStackCollapsed(stack),
                   'hidden':
                     (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
                     (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
@@ -1635,7 +1855,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           }"
                         >
                           <NcButton
-                            v-if="!(isLocked || isPublic || !hasEditPermission)"
+                            v-if="!(isLocked || isPublic || !hasEditPermission || interfacePageDataApi)"
                             :disabled="
                               !stack.title || compareStack(stack, isSavingStack) || compareStack(stack, isRenameOrNewStack)
                             "
@@ -1659,7 +1879,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <SmartsheetKanbanEditOrAddStack
                                 :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
                                 :option-id="isRenameOrNewStack.id"
-                                @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, getAbsStackIdx(relStackIdx))"
+                                @submit="
+                                  (loadMeta, payload) =>
+                                    handleSubmitRenameOrNewStack(loadMeta, payload, getAbsStackIdx(relStackIdx))
+                                "
                               />
                             </template>
                             <a-tag
@@ -1675,7 +1898,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               "
                               @dblclick="
                                 () => {
-                                  if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
+                                  if (
+                                    stack.title !== null &&
+                                    isUIAllowed('fieldAdd') &&
+                                    hasEditPermission &&
+                                    !isPublic &&
+                                    !isLocked
+                                  ) {
                                     isRenameOrNewStack = stack
                                   }
                                 }
@@ -1710,8 +1939,29 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                 </NcTooltip>
                               </span>
                             </a-tag>
+                            <!-- Interface: the stack footer is removed, so the total count rides the header -->
+                            <span
+                              v-if="interfacePageDataApi && !compareStack(stack, isRenameOrNewStack)"
+                              class="nc-kanban-stack-header-count self-center flex-none ml-2 text-[12px] font-weight-500 text-nc-content-gray-muted"
+                              data-testid="nc-kanban-stack-header-count"
+                            >
+                              {{ countByStack.get(stack.title) ?? 0 }}
+                            </span>
                           </div>
                         </div>
+                        <NcTooltip :title="$t('activity.kanban.collapseStack')" placement="top">
+                          <NcButton
+                            v-e="['c:kanban:collapse-stack']"
+                            :disabled="compareStack(stack, isSavingStack)"
+                            type="text"
+                            size="xs"
+                            class="!px-1.5 mt-0.5"
+                            data-testid="nc-kanban-stack-collapse-btn"
+                            @click="handleCollapseStack(getAbsStackIdx(relStackIdx))"
+                          >
+                            <GeneralIcon icon="minimize" class="h-3.5 w-3.5 opacity-75" />
+                          </NcButton>
+                        </NcTooltip>
                         <NcDropdown
                           placement="bottomRight"
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
@@ -1728,9 +1978,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           </NcButton>
 
                           <template #overlay>
-                            <NcMenu variant="small">
+                            <NcMenu :variant="interfacePageDataApi ? 'medium' : 'small'">
                               <PermissionsTooltip
-                                v-if="hasEditPermission && !isPublic && !isSyncedTable"
+                                v-if="hasEditPermission && !isPublic && !isSyncedTable && canAddDeleteRows"
                                 :entity="PermissionEntity.TABLE"
                                 :entity-id="meta?.id"
                                 :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -1751,7 +2001,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                 </template>
                               </PermissionsTooltip>
                               <NcMenuItem
-                                v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
+                                v-if="
+                                  stack.title !== null && isUIAllowed('fieldAdd') && hasEditPermission && !isPublic && !isLocked
+                                "
                                 v-e="['c:kanban:rename-stack']"
                                 data-testid="nc-kanban-context-menu-rename-stack"
                                 @click="
@@ -1765,17 +2017,6 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   {{ $t('activity.kanban.renameStack') }}
                                 </div>
                               </NcMenuItem>
-                              <NcMenuItem
-                                v-e="['c:kanban:collapse-stack']"
-                                data-testid="nc-kanban-context-menu-collapse-stack"
-                                @click="handleCollapseStack(getAbsStackIdx(relStackIdx))"
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.kanban.collapseStack') }}
-                                </div>
-                              </NcMenuItem>
-
                               <NcMenuItem
                                 v-e="['c:kanban:collapse-all-stack']"
                                 data-testid="nc-kanban-context-menu-collapse-all-stack"
@@ -1796,7 +2037,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   {{ $t('activity.kanban.expandAll') }}
                                 </div>
                               </NcMenuItem>
-                              <template v-if="stack.title !== null && !isPublic && hasEditPermission && !isLocked">
+                              <template
+                                v-if="
+                                  stack.title !== null && isUIAllowed('fieldAdd') && !isPublic && hasEditPermission && !isLocked
+                                "
+                              >
                                 <NcDivider />
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"
@@ -1864,8 +2109,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           }"
                           :disabled="isMobileMode"
                           :filter="draggableCardFilter"
-                          :force-fallback="false"
-                          :fallback-tolerance="0"
+                          :animation="interfacePageDataApi ? 150 : 0"
                           @start="handleCardDragStart"
                           @end="handleCardDragEnd"
                           @change="onMoveAndPersistExpand($event, stack.title, getAbsStackIdx(relStackIdx))"
@@ -1877,7 +2121,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   :key="`${getRowId(record)}-${index}`"
                                   class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
                                   :body-style="{
-                                    padding: '12px !important',
+                                    padding: cardBodyPadding,
                                     flex: 1,
                                     display: 'flex',
                                   }"
@@ -1885,12 +2129,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
                                     'not-draggable': !hasEditPermission || isPublic,
-                                    '!cursor-default': !hasEditPermission || isPublic,
+                                    '!cursor-default': !hasEditPermission || isPublic || !interfaceShowRowExpand,
+                                    'nc-interface-card-selected': isCardSelected(record),
                                   }"
-                                  :style="{
-                                    ...extractRowBackgroundColorStyle(record).rowBgColor,
-                                    ...extractRowBackgroundColorStyle(record).rowBorderColor,
-                                  }"
+                                  :style="getCardColorStyle(record)"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
@@ -1958,15 +2200,15 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   </template>
                                   <div class="flex-1 flex content-stretch gap-3 w-full">
                                     <div
-                                      v-if="isRowColouringEnabled"
-                                      class="w-1 flex-none min-h-4 rounded-sm"
+                                      v-if="showRecordColorLeftBar"
+                                      class="nc-kanban-card-color-bar w-1 flex-none min-h-4 rounded-sm"
                                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                                     ></div>
                                     <div
                                       class="flex-1 flex flex-col !children:pointer-events-none"
                                       :class="{
-                                        'w-[calc(100%_-_16px)]': isRowColouringEnabled,
-                                        'w-full': !isRowColouringEnabled,
+                                        'w-[calc(100%_-_16px)]': showRecordColorLeftBar,
+                                        'w-full': !showRecordColorLeftBar,
                                         'gap-3': isActiveViewFieldHeaderVisible,
                                       }"
                                     >
@@ -1976,6 +2218,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                         :class="getCellColorClass(record, displayField.id)"
                                         :style="getCellColorBgVar(record, displayField.id)"
                                       >
+                                        <span
+                                          v-if="showRecordColorDot && record.rowMeta?.rowLeftBorderColor"
+                                          class="nc-kanban-card-color-dot mt-1.5 h-2 w-2 flex-none rounded-full"
+                                          :style="{ backgroundColor: record.rowMeta.rowLeftBorderColor }"
+                                        ></span>
                                         <div
                                           v-if="getCellLeftBorderStyle(record, displayField.id)"
                                           class="w-1 flex-none min-h-4 rounded-sm"
@@ -2068,14 +2315,24 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                                 v-if="isActiveViewFieldHeaderVisible"
                                                 class="flex flex-row w-full justify-start"
                                               >
-                                                <div class="nc-card-col-header w-full !children:text-nc-content-gray-muted">
+                                                <div
+                                                  class="nc-card-col-header w-full !children:text-nc-content-gray-muted"
+                                                  :class="{ 'nc-card-col-header-no-icon': !!interfacePageDataApi }"
+                                                >
+                                                  <!-- Interface cards label with the field NAME only — no type icon -->
                                                   <LazySmartsheetHeaderVirtualCell
                                                     v-if="isVirtualCol(col)"
                                                     :column="col"
                                                     :hide-menu="true"
+                                                    :hide-icon="!!interfacePageDataApi"
                                                   />
 
-                                                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                                  <LazySmartsheetHeaderCell
+                                                    v-else
+                                                    :column="col"
+                                                    :hide-menu="true"
+                                                    :hide-icon="!!interfacePageDataApi"
+                                                  />
                                                 </div>
                                               </div>
 
@@ -2143,7 +2400,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             </span>
                           </div>
                           <PermissionsTooltip
-                            v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+                            v-if="isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows"
                             :entity="PermissionEntity.TABLE"
                             :entity-id="meta?.id"
                             :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -2167,10 +2424,16 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </div>
                       </div>
                     </a-layout-content>
-                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-nc-border-gray-light">
+                    <a-layout-footer
+                      v-if="
+                        formattedData.get(stack.title) &&
+                        (!interfacePageDataApi || (isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows))
+                      "
+                      class="border-t-1 border-nc-border-gray-light"
+                    >
                       <div class="flex items-center justify-between">
                         <PermissionsTooltip
-                          v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+                          v-if="isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows"
                           :entity="PermissionEntity.TABLE"
                           :entity-id="meta?.id"
                           :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -2192,8 +2455,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </PermissionsTooltip>
                         <div v-else>&nbsp;</div>
 
-                        <!-- Record Count -->
-                        <div class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1">
+                        <!-- Record Count — on interface pages the total rides the stack header instead. -->
+                        <div
+                          v-if="!interfacePageDataApi"
+                          class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1"
+                        >
                           {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
                           {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                         </div>
@@ -2206,9 +2472,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 <a-card
                   v-else
                   :key="`${stack.id}-collapsed`"
-                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
+                  class="nc-kanban-collapsed-stack flex items-center w-68.5 !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
+                    'nc-kanban-collapsed-stack-reading-down': !!interfacePageDataApi,
+                    'h-[52px]': !!interfacePageDataApi,
+                    'h-[44px]': !interfacePageDataApi,
                   }"
                   :body-style="{
                     padding: '0px !important',
@@ -2220,7 +2489,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   @mouseenter="handleCollapsedStackDragEnter(stack)"
                   @dragenter="handleCollapsedStackDragEnter(stack)"
                 >
-                  <div class="h-full flex items-center justify-between" @click="handleCollapsedStackClick(stack, getAbsStackIdx(relStackIdx))">
+                  <div
+                    class="h-full flex items-center justify-between"
+                    @click="handleCollapsedStackClick(stack, getAbsStackIdx(relStackIdx))"
+                  >
                     <div
                       v-if="!formattedData.get(stack.title) || !countByStack"
                       class="!w-full !h-full flex items-center justify-center"
@@ -2230,7 +2502,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
                       <div class="flex items-center gap-1">
                         <NcButton
-                          v-if="!(isLocked || isPublic || !hasEditPermission)"
+                          v-if="!(isLocked || isPublic || !hasEditPermission || interfacePageDataApi)"
                           :disabled="!stack.title"
                           type="text"
                           size="xs"
@@ -2240,7 +2512,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           <GeneralIcon icon="ncDrag" class="font-weight-800 flex-none" />
                         </NcButton>
 
-                        <div class="flex-1 flex max-w-[115px]">
+                        <!-- Interfaces show a bare count, freeing most of the bar for the title. -->
+                        <div class="flex-1 flex" :class="interfacePageDataApi ? 'max-w-[170px]' : 'max-w-[115px]'">
                           <a-tag
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
                             :color="
@@ -2289,9 +2562,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           class="nc-kanban-data-count px-1 rounded bg-nc-bg-gray-medium text-nc-content-gray text-sm font-weight-500 truncate"
                           :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                         >
-                          <!-- Record Count -->
+                          <!-- Record Count (interfaces: bare number) -->
                           {{ formattedData.get(stack.title)!.length }}
-                          {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                          <template v-if="!interfacePageDataApi">
+                            {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                          </template>
                         </div>
 
                         <NcButton type="text" size="xs" class="!px-1.5">
@@ -2306,13 +2581,24 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
           </Draggable>
 
           <!-- Right spacer standing in for off-screen stacks (horizontal virtual scroll) -->
-          <div v-if="rightStackSpacerWidth" class="flex-none" :style="{ width: `${rightStackSpacerWidth}px` }" aria-hidden="true" />
+          <div
+            v-if="rightStackSpacerWidth"
+            class="flex-none"
+            :style="{ width: `${rightStackSpacerWidth}px` }"
+            aria-hidden="true"
+          />
 
-          <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
+          <!-- Adding a stack writes a new select option onto the stacking FIELD
+               (columnUpdate — creator+ server-side), not a record -->
+          <div
+            v-if="isUIAllowed('fieldAdd') && hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id"
+            class="nc-kanban-add-new-stack"
+          >
             <!-- Add New Stack -->
             <a-card
-              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-nc-border-gray-medium nc-kanban-stack-header-new-stack"
+              class="flex flex-col !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-nc-border-gray-medium nc-kanban-stack-header-new-stack"
               :class="[
+                compareStack(addNewStackObj, isRenameOrNewStack) ? 'w-68.5' : 'w-fit',
                 {
                   '!cursor-default': isLocked || !hasEditPermission,
                   '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
@@ -2352,17 +2638,19 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                       }
                     "
                   >
-                    <NcButton
+                    <NcTooltip
                       v-if="!compareStack(addNewStackObj, isRenameOrNewStack)"
-                      type="secondary"
-                      class="add-new-stack-btn w-full !rounded-xl min-h-11"
+                      :title="`${$t('general.new')} ${$t('general.stack').toLowerCase()}`"
+                      placement="top"
                     >
-                      <div class="flex items-center gap-2">
-                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
-
-                        {{ $t('general.new') }} {{ $t('general.stack').toLowerCase() }}
-                      </div>
-                    </NcButton>
+                      <NcButton
+                        type="secondary"
+                        class="add-new-stack-btn !rounded-xl !w-11 !h-11 !min-h-11 !px-0"
+                        data-testid="nc-kanban-add-new-stack-btn"
+                      >
+                        <component :is="iconMap.plus" class="w-4 h-4" />
+                      </NcButton>
+                    </NcTooltip>
 
                     <div
                       v-else
@@ -2389,17 +2677,36 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
           </div>
         </div>
         <!-- Drop down Menu -->
-        <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
-          <NcMenu variant="small" @click="contextMenu = false">
-            <NcMenuItem v-if="contextMenuTarget" v-e="['a:kanban:expand-record']" @click="expandForm(contextMenuTarget)">
+        <template v-if="!isLocked && !isPublic && (hasEditPermission || interfacePageDataApi)" #overlay>
+          <NcMenu
+            :class="interfacePageDataApi ? '!rounded-lg nc-interface-card-context-menu' : ''"
+            :variant="interfacePageDataApi ? 'medium' : 'small'"
+            @click="contextMenu = false"
+          >
+            <NcMenuItem
+              v-if="contextMenuTarget && canDuplicateRow"
+              data-testid="nc-interface-kanban-menu-duplicate"
+              @click="interfaceDuplicateRow"
+            >
+              <div v-e="['c:interface:kanban:record:duplicate']" class="flex items-center gap-2 nc-kanban-context-menu-item">
+                <GeneralIcon icon="duplicate" class="flex" />
+                {{ $t('labels.duplicateRecord') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="contextMenuTarget && interfaceClickIntoDetails"
+              v-e="['a:kanban:expand-record']"
+              @click="expandForm(contextMenuTarget)"
+            >
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.maximize" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
+            <!-- Send record is collaborator/data-app vocabulary — hidden on interface pages -->
             <NcMenuItem
-              v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee"
+              v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee && !interfacePageDataApi"
               @click="showSendRecordModal = true"
             >
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">
@@ -2407,9 +2714,18 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 {{ $t('activity.sendRecord') }}
               </div>
             </NcMenuItem>
-            <NcDivider />
+            <template v-if="interfacePageDataApi && contextMenuRowId">
+              <NcDivider v-if="contextMenuTarget && (canDuplicateRow || interfaceClickIntoDetails)" />
+              <NcMenuItem data-testid="nc-interface-kanban-menu-copy-url" @click="interfaceCopyRecordUrl">
+                <div v-e="['c:interface:kanban:record:copy-url']" class="flex items-center gap-2 nc-kanban-context-menu-item">
+                  <GeneralIcon icon="ncLink" class="flex" />
+                  {{ $t('labels.copyRecordURL') }}
+                </div>
+              </NcMenuItem>
+            </template>
+            <NcDivider v-if="canAddDeleteRows" />
             <PermissionsTooltip
-              v-if="contextMenuTarget"
+              v-if="contextMenuTarget && canAddDeleteRows"
               :entity="PermissionEntity.TABLE"
               :entity-id="meta?.id"
               :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -2484,6 +2800,18 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 </template>
 
 <style lang="scss" scoped>
+.nc-interface-card-context-menu {
+  // Target the inner wrapper — it carries its own `text-sm`, so a size set on
+  // the item element would lose to it via inheritance.
+  :deep(.nc-menu-item-inner) {
+    @apply text-[13px];
+
+    svg {
+      @apply w-3.5 h-3.5;
+    }
+  }
+}
+
 // override ant design style
 .a-layout,
 .ant-layout-header,
@@ -2505,6 +2833,34 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   transform: rotate(-90deg) translateX(-100%);
   transform-origin: left top 0px;
   transition: left 0.2s ease-in-out 0s;
+}
+
+// Interfaces read collapsed stacks TOP-TO-BOTTOM (reference design) — the
+// +90deg/translateY pair occupies the exact same 52px strip as the base.
+// The strip itself is a flat gray column: tinted fill, no border, square
+// corners (the base keeps its white bordered card look).
+.nc-kanban-collapsed-stack-reading-down {
+  transform: rotate(90deg) translateY(-100%);
+  @apply !bg-nc-bg-gray-light !border-none !rounded-none;
+}
+
+// Adjacent interface collapsed strips sit 2px apart with a gray divider
+// filling the seam (reference design). The divider is a box-shadow — NOT a
+// border — so it occupies no layout space and leaves the bar's content
+// centering untouched; it rotates with the card, so the pre-transform
+// "below the bar" offset renders at the strip's LEFT edge.
+// Every interface collapsed strip draws the 1.5px divider on its RIGHT edge —
+// the card is rotated 90°, so a shadow above the bar's TOP renders there.
+// Between strips it fills the seam; on the last strip it closes the cluster.
+.nc-kanban-stack-interface-collapsed .nc-kanban-collapsed-stack-reading-down {
+  box-shadow: 0 -1.5px 0 0 var(--nc-border-gray-medium) !important;
+}
+
+// NOTE: the interface kanban themes zero the stacks container's flex gap
+// (.nc-kanban-theme-* { gap: 0 }), so this margin IS the seam — it does not
+// net against gap-3 like the classic board would.
+.nc-kanban-stack-interface-collapsed + .nc-kanban-stack-interface-collapsed {
+  margin-left: 1.5px;
 }
 
 :deep(.slick-dots li button) {
@@ -2598,6 +2954,15 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   :deep(.nc-cell-icon),
   :deep(.nc-virtual-cell-icon) {
     @apply ml-0 !w-3.5 !h-3.5;
+  }
+}
+
+// Icon hidden (interface) — drop the name's icon-gap padding (left in LTR,
+// right in RTL) so the label aligns with the value rendered below it.
+.nc-card-col-header-no-icon {
+  :deep(.name) {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -2742,5 +3107,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
     @apply absolute inset-0 -left-1 rounded-lg -z-1;
     background-color: var(--cell-bg-color);
   }
+}
+// Compound + :hover so the selection outlives the card's own hover styling.
+.ant-card.nc-interface-card-selected,
+.ant-card.nc-interface-card-selected:hover {
+  border-color: var(--nc-border-brand) !important;
 }
 </style>

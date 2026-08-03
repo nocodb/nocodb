@@ -72,6 +72,11 @@ export class MigrateService {
       req,
     );
 
+    const exportedInterfaces = await this.exportService.serializeInterfaces(
+      context,
+      { idMap: exportModelMap, req },
+    );
+
     const stream = new Readable({
       read() {},
     });
@@ -132,6 +137,13 @@ export class MigrateService {
       pushStream({
         type: 'dashboards',
         data: exportedDashboards,
+      });
+    }
+
+    if (exportedInterfaces?.length) {
+      pushStream({
+        type: 'interfaces',
+        data: exportedInterfaces,
       });
     }
 

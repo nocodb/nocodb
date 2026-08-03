@@ -37,3 +37,23 @@ export function isSafeRedirectUrl(rawUrl: unknown): boolean {
     return false
   }
 }
+
+/**
+ * Stricter variant for OAuth `redirect_uri`, which RFC 6749 §3.1.2 requires to
+ * be an absolute http(s) URI.
+ *
+ * `isSafeRedirectUrl` deliberately allows scheme-less (relative) URLs — safe to
+ * assign to `window.location`, but `new URL(relative)` throws, so a caller that
+ * parses the value needs this instead. Mirrors the backend's `isHttpRedirectUri`
+ * (`nocodb/src/modules/oauth/helpers/redirectUri.ts`) — keep the two in sync.
+ */
+export function isHttpRedirectUri(rawUrl: unknown): boolean {
+  if (!isSafeRedirectUrl(rawUrl)) return false
+
+  try {
+    const { protocol } = new URL((rawUrl as string).trim())
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
+}

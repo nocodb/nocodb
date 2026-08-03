@@ -14,16 +14,10 @@ import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
 import { nocoExecute } from '~/utils';
-import {
-  Base,
-  Column,
-  FormView,
-  Model,
-  Source,
-  View,
-} from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
+import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
@@ -46,16 +40,13 @@ export function sanitizeUrlPath(paths) {
 // emit every non-system column's VALUES; `nested` drives caller-controlled
 // nested-LTAR expansion. Stripping these keeps hidden columns out of the
 // default response payload — see the DESIGN NOTE below, boundary (1).
-const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
-
-function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
-  if (!query) return query;
-  const sanitized = { ...query };
-  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
-    delete sanitized[key];
-  }
-  return sanitized;
-}
+// Re-exported from a dependency-light helper so calendar/other public services
+// can strip the same keys without importing this heavy service graph, and so
+// the logic stays unit-testable in isolation.
+export {
+  PUBLIC_QUERY_BLOCKED_KEYS,
+  sanitizePublicQuery,
+} from '~/helpers/publicQuerySanitizer';
 
 /**
  * DESIGN NOTE — view-hidden columns are intentionally queryable.
@@ -965,7 +956,15 @@ export class PublicDatasService {
     });
 
     // Verify parent row is visible in the shared view before fetching relations
-    const parentRow = await baseModel.readByPk(param.rowId);
+    // — a filtered-out row must not be visible for its relations either.
+    const parentRow = await baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      {
+        applyViewFilters: true,
+      },
+    );
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
@@ -1072,7 +1071,15 @@ export class PublicDatasService {
     });
 
     // Verify parent row is visible in the shared view before fetching relations
-    const parentRow = await baseModel.readByPk(param.rowId);
+    // — a filtered-out row must not be visible for its relations either.
+    const parentRow = await baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      {
+        applyViewFilters: true,
+      },
+    );
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
@@ -1129,7 +1136,10 @@ export class PublicDatasService {
       query: any;
     },
   ) {
-    const { sharedViewUuid, rowId, password, query = {} } = param;
+    const { sharedViewUuid, rowId, password } = param;
+    // Strip response-shape keys so an anonymous caller cannot force hidden
+    // values into the single-record payload.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
@@ -1158,7 +1168,11 @@ export class PublicDatasService {
       source,
     });
 
-    const row = await baseModel.readByPk(rowId, false, query);
+    // Powers both the public single-record read and the public
+    // attachment-download route, which use this as their visibility check.
+    const row = await baseModel.readByPk(rowId, false, query, {
+      applyViewFilters: true,
+    });
 
     if (!row) {
       NcError.recordNotFound(param.rowId);
@@ -1222,7 +1236,8 @@ export class PublicDatasService {
         const acc = await accPromise;
 
         const result = await this.datasService.dataList(context, {
-          query: dF,
+          // each caller-supplied filter object is a query — sanitize per element
+          query: sanitizePublicQuery(dF),
           model,
           view,
         });
@@ -1268,7 +1283,8 @@ export class PublicDatasService {
 
     let bulkFilterList = param.body;
 
-    const listArgs: any = { ...param.query };
+    // Strip response-shape keys from the public query.
+    const listArgs: any = sanitizePublicQuery({ ...param.query });
 
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
@@ -1281,6 +1297,11 @@ export class PublicDatasService {
     try {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
+
+    // each caller-supplied filter object is a query — sanitize per element too
+    if (Array.isArray(bulkFilterList)) {
+      bulkFilterList = bulkFilterList.map((dF: any) => sanitizePublicQuery(dF));
+    }
 
     const source = await Source.get(context, model.source_id);
 

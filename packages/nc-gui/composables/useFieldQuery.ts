@@ -1,7 +1,9 @@
 import {
+  ClientType,
   ColumnHelper,
   type ColumnType,
   FormulaDataTypes,
+  SqlUiFactory,
   type TableType,
   UITypes,
   isNumericCol,
@@ -110,7 +112,15 @@ export function useFieldQuery() {
 
     if (!params.getWhereQueryAs) return searchQuery ?? ''
 
-    const sqlUi = (tableMeta?.source_id && sqlUis.value[tableMeta.source_id]) || Object.values(sqlUis.value)[0]
+    // The base store normally resolves a SqlUi per source; on public/interface-only
+    // surfaces it seeds one from the shared-interface meta's real client (see
+    // `sqlUis` in ee/store/base.ts). The MySQL default is a last resort for the
+    // narrow window before that meta loads — without any SqlUi the abstract-type
+    // check below fails and every text column falls through to `eq` instead of `like`.
+    const sqlUi =
+      (tableMeta?.source_id && sqlUis.value[tableMeta.source_id]) ||
+      Object.values(sqlUis.value)[0] ||
+      SqlUiFactory.create({ client: ClientType.MYSQL })
 
     if (
       (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&

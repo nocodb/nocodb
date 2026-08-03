@@ -4,6 +4,7 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
+  serializeExcelDateValue,
   serializeImportValue,
   UITypes,
 } from 'nocodb-sdk';
@@ -107,8 +108,26 @@ function splitDisplayValues(raw: any, delimiter: string): string[] {
  * Delegates to the SDK's `serializeImportValue` — the single source of truth
  * shared with the client-side CSV-upload extension so both import paths produce
  * identical rows.
+ *
+ * Excel-only pre-step: Excel stores dates as numeric serials. When a date cell
+ * isn't date-*formatted* (General / numeric format), the xlsx parser yields the
+ * raw serial integer rather than a Date; a date-typed destination then receives
+ * a bare number and the DB rejects it (`… is of type date but expression is of
+ * type integer`). Convert the serial here — gated on Excel + a date column, so
+ * CSV/JSON date strings are untouched and flow straight through.
  */
-function coerceValue(raw: any, mapping: ColumnMapEntry): any {
+function coerceValue(
+  raw: any,
+  mapping: ColumnMapEntry,
+  importType: FileImportType,
+): any {
+  if (
+    importType === 'excel' &&
+    typeof raw === 'number' &&
+    (mapping.uidt === UITypes.Date || mapping.uidt === UITypes.DateTime)
+  ) {
+    return serializeExcelDateValue(raw, mapping.col);
+  }
   return serializeImportValue(raw, mapping.col);
 }
 
@@ -865,7 +884,11 @@ export class DataImportProcessor {
       // Map source columns to dest columns + type coercion
       const dbRow: Record<string, any> = {};
       for (const [srcCol, mapping] of Object.entries(colMap)) {
-        dbRow[mapping.destCn] = coerceValue(sourceRow[srcCol], mapping);
+        dbRow[mapping.destCn] = coerceValue(
+          sourceRow[srcCol],
+          mapping,
+          importType,
+        );
       }
 
       // Extract link display values for the post-insert link phase.

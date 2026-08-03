@@ -55,6 +55,13 @@ export enum TeamUserRoles {
   OWNER = 'owner',
 }
 
+export enum InterfaceRoles {
+  EDITOR = 'interface-editor',
+  COMMENTER = 'interface-commenter',
+  VIEWER = 'interface-viewer',
+  NO_ACCESS = 'interface-no-access',
+}
+
 export enum AppEvents {
   PROJECT_CREATE = 'base.create',
   PROJECT_INVITE = 'base.invite',
@@ -327,6 +334,27 @@ export enum AppEvents {
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
 
+  INTERFACE_CREATE = 'interface.create',
+  INTERFACE_UPDATE = 'interface.update',
+  INTERFACE_DELETE = 'interface.delete',
+  INTERFACE_DUPLICATE = 'interface.duplicate',
+  INTERFACE_PUBLISH = 'interface.publish',
+
+  INTERFACE_PAGE_CREATE = 'interface.page.create',
+  INTERFACE_PAGE_UPDATE = 'interface.page.update',
+  INTERFACE_PAGE_DELETE = 'interface.page.delete',
+  INTERFACE_PAGE_DUPLICATE = 'interface.page.duplicate',
+
+  SHARED_INTERFACE_PAGE_CREATE = 'shared.interface.page.create',
+  SHARED_INTERFACE_PAGE_UPDATE = 'shared.interface.page.update',
+  SHARED_INTERFACE_PAGE_DELETE = 'shared.interface.page.delete',
+
+  INTERFACE_DATA_EXPORT = 'interface.data.export',
+
+  INTERFACE_USER_INVITE = 'interface.user.invite',
+  INTERFACE_USER_UPDATE = 'interface.user.update',
+  INTERFACE_USER_DELETE = 'interface.user.delete',
+
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
   PERMISSION_DELETE = 'permission.delete',
@@ -570,6 +598,29 @@ export const OrderedProjectRoles = [
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
   ProjectRoles.NO_ACCESS,
+];
+
+export const InterfaceRolesToProjectRoles = {
+  [InterfaceRoles.EDITOR]: ProjectRoles.EDITOR,
+  [InterfaceRoles.COMMENTER]: ProjectRoles.COMMENTER,
+  [InterfaceRoles.VIEWER]: ProjectRoles.VIEWER,
+  [InterfaceRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
+};
+
+// Base roles below creator map onto interface roles for base-role-derived
+// interface access; owner/creator are builders and are handled separately.
+export const ProjectRolesToInterfaceRoles = {
+  [ProjectRoles.EDITOR]: InterfaceRoles.EDITOR,
+  [ProjectRoles.COMMENTER]: InterfaceRoles.COMMENTER,
+  [ProjectRoles.VIEWER]: InterfaceRoles.VIEWER,
+  [ProjectRoles.NO_ACCESS]: InterfaceRoles.NO_ACCESS,
+};
+
+export const OrderedInterfaceRoles = [
+  InterfaceRoles.EDITOR,
+  InterfaceRoles.COMMENTER,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.NO_ACCESS,
 ];
 
 export enum APIContext {

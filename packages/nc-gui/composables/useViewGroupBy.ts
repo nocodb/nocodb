@@ -13,6 +13,7 @@ import {
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { Group } from '../lib/types'
+import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -23,6 +24,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
     where?: ComputedRef<string | undefined>,
     isPublic = false,
+    /**
+     * Interface-page data adapter. Normally resolved via `InterfacePageDataInj`,
+     * but the interface wrapper both provides that token AND calls this
+     * provider from the same component instance — and `inject()` can't see a
+     * same-instance `provide()` — so it must pass the adapter explicitly.
+     */
+    interfaceDataApiParam?: InterfacePageDataApi,
   ) => {
     const groupByLimit = 3
 
@@ -49,6 +57,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const { getMeta, getPartialMeta } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
+
+    /**
+     * Present when mounted inside an interface page — group/row loads are
+     * routed through the adapter (interface-scoped ops) instead of the view /
+     * shared-view endpoints, and view-scoped extras (aggregations, comment
+     * counts) are skipped.
+     */
+    const interfaceDataApi = interfaceDataApiParam ?? inject(InterfacePageDataInj, undefined)
 
     const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
     const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
@@ -107,7 +123,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
     const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -176,6 +192,37 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           ...getEvaluatedRowMetaRowColorInfo(row),
         },
       }))
+
+    // Date-axis bars (Timeline / Gantt) read the colour stamped onto `rowMeta`
+    // at load time, so a colour-config change must re-stamp the loaded grouped
+    // rows — the flat stores do the same on these events. No-op when the tree
+    // is empty (e.g. the canvas grid).
+    function reStampGroupRowColors(group: Group) {
+      if (group.rows?.length) {
+        group.rows = group.rows.map((row) => {
+          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+          return row
+        })
+      }
+
+      for (const child of group.children ?? []) {
+        reStampGroupRowColors(child)
+      }
+    }
+
+    function onGroupRowColorEvent(event: SmartsheetStoreEvents) {
+      if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+        return
+      }
+
+      reStampGroupRowColors(rootGroup.value)
+    }
+
+    eventBus.on(onGroupRowColorEvent)
+
+    onBeforeUnmount(() => {
+      eventBus.off(onGroupRowColorEvent)
+    })
 
     const colors = ref(enumColor.light)
 
@@ -349,7 +396,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             : nestedWhere
         if (!groupby || !groupby.column.title) return
 
-        if (isPublic && !sharedView.value?.uuid) {
+        if (!interfaceDataApi && isPublic && !sharedView.value?.uuid) {
           return
         }
 
@@ -371,7 +418,17 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
 
         // if (!options?.triggerChildOnly) {
-        const response = !isPublic
+        const response = interfaceDataApi
+          ? await interfaceDataApi.fetchGroupBy({
+              offset: params.offset ?? ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
+              limit: groupByGroupLimit.value,
+              where: `${effectiveWhere}`,
+              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+              column_name: groupby.column.title,
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+            })
+          : !isPublic
           ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
               limit: groupByGroupLimit.value,
@@ -404,7 +461,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group = await processGroupData(response, group)
         // }
 
-        if (group?.children?.length && !appInfo.value.disableGroupByAggregation) {
+        // Interface pages have no view-scoped aggregation endpoint — group
+        // aggregations are intentionally skipped there (groups render without
+        // aggregate footers instead of erroring).
+        if (group?.children?.length && !appInfo.value.disableGroupByAggregation && !interfaceDataApi) {
           const aggregationAliasMapper = new AliasMapper()
 
           const aggregation = Object.values(gridViewCols.value)
@@ -477,7 +537,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           where: `${nestedWhere}`,
         }
 
-        const response = !isPublic
+        const response = interfaceDataApi
+          ? await interfaceDataApi.fetchList({
+              offset: query.offset,
+              limit: query.limit,
+              // search rides `where` (Search-action gated server-side); the
+              // group-nesting predicate rides `nestedWhere` (always applied).
+              where: where?.value,
+              nestedWhere: calculateNestedWhere(group.nestedIn),
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+            })
+          : !isPublic
           ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               ...query,
               ...params,
@@ -505,6 +576,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }>,
     ) {
       try {
+        // Skipped inside interface pages — no view-scoped aggregation endpoint.
+        if (interfaceDataApi) return
+
         if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id || appInfo.value.disableGroupByAggregation) return
 
         let filteredFields = fields
@@ -736,7 +810,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             try {
               relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, undefined, undefined, undefined, true)
             } catch {
-              relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation?.id, relatedTableId)
+              relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation?.id, relatedTableId, {
+                workspaceId: (lookupRelation as any)?.fk_workspace_id,
+                baseId: lookupRelation.base_id ?? currentBaseId,
+              })
             }
 
             nextCol = relatedTableMeta?.columns?.find(
@@ -766,7 +843,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     }
 
     async function loadAggCommentsCount(formattedData: Array<Row>) {
-      if (!isUIAllowed('commentCount') || isPublic) return
+      if (!isUIAllowed('commentCount') || isPublic || interfaceDataApi) return
 
       const ids = formattedData
         .filter(({ rowMeta: { new: isNew } }) => !isNew)

@@ -524,7 +524,12 @@ const parseConditionV2 = async (
               break;
             case 'like':
               // JSON / Attachment route to FieldHandler above.
-              if (ncIsKnexRawOrRef(val)) {
+              // `!customWhereClause` — on the computed-column (Formula/Rollup)
+              // pass `val` holds the compiled expression, not a dynamic
+              // field-to-field reference. Without this guard the dynamic branch
+              // shadows the Formula operand swap below and inverts the
+              // comparison into `'<term>' like '%<formula>%'`.
+              if (!customWhereClause && ncIsKnexRawOrRef(val)) {
                 // Dynamic field-to-field: val is a column reference. Concatenate
                 // the wildcards in SQL so the reference isn't stringified into a
                 // literal (which would never match).
@@ -565,7 +570,8 @@ const parseConditionV2 = async (
               break;
             case 'nlike':
               // JSON / Attachment route to FieldHandler above.
-              if (ncIsKnexRawOrRef(val)) {
+              // See the `like` branch for why customWhereClause is excluded.
+              if (!customWhereClause && ncIsKnexRawOrRef(val)) {
                 // Dynamic field-to-field: val is a column reference. Concatenate
                 // the wildcards in SQL so the reference isn't stringified into a
                 // literal (which would never match).

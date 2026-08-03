@@ -1,5 +1,10 @@
 import { ColumnType, FilterType } from './Api';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import {
+  InterfaceRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 import { OnPremPlanTitles, PlanTitles } from './payment';
 
 export const enumColors = {
@@ -232,12 +237,16 @@ export enum NcErrorType {
   ERR_TRASH_NOT_FOUND = 'ERR_TRASH_NOT_FOUND',
   ERR_PARENT_IN_TRASH = 'ERR_PARENT_IN_TRASH',
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
+  ERR_INTERFACE_NOT_FOUND = 'ERR_INTERFACE_NOT_FOUND',
+  ERR_INTERFACE_PAGE_NOT_FOUND = 'ERR_INTERFACE_PAGE_NOT_FOUND',
+  ERR_INTERFACE_PREVIEW_WRITE_BLOCKED = 'ERR_INTERFACE_PREVIEW_WRITE_BLOCKED',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
   ERR_CHAT_SESSION_NOT_FOUND = 'ERR_CHAT_SESSION_NOT_FOUND',
   ERR_CHAT_MESSAGE_NOT_FOUND = 'ERR_CHAT_MESSAGE_NOT_FOUND',
   ERR_VIEW_SECTION_NOT_FOUND = 'ERR_VIEW_SECTION_NOT_FOUND',
   ERR_SHARED_DASHBOARD_PASSWORD_INVALID = 'ERR_SHARED_DASHBOARD_PASSWORD_INVALID',
+  ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID = 'ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID',
   ERR_DUPLICATE_IN_ALIAS = 'ERR_DUPLICATE_IN_ALIAS',
   ERR_OUT_OF_SYNC = 'ERR_OUT_OF_SYNC',
   ERR_FILTER_VERIFICATION_FAILED = 'ERR_FILTER_VERIFICATION_FAILED',
@@ -331,6 +340,9 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
+  InterfaceRoles.NO_ACCESS,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.COMMENTER,
 ];
 
 export const DURATION_TYPE_MAP = {
@@ -380,6 +392,11 @@ export type RowColoringInfoFilter = {
 export type RowColoringInfo = {
   fk_model_id: string;
   fk_view_id: string;
+  /**
+   * Background tint strength when colouring is set as background.
+   * Absent = 'light' (the historical tint).
+   */
+  background_intensity?: 'light' | 'medium' | 'bold';
 } & (RowColoringInfoSelect | RowColoringInfoFilter);
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
@@ -425,6 +442,7 @@ export enum DependencyTableType {
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
   Bookmark = 'bookmark',
+  InterfacePage = 'interface_page',
 }
 
 export enum BaseVersion {

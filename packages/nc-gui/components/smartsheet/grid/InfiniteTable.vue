@@ -108,6 +108,12 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+// Interface pages hide the row-expand (maximize) icon on the launched page when
+// "Click into record details" is off. Defaults to true for ordinary grids.
+const showInterfaceRowExpand = inject(InterfaceShowRowExpandInj, ref(true))
+
 const route = useRoute()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
@@ -587,7 +593,22 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const isAddingEmptyRowAllowed = computed(
-  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !meta.value?.mm,
+  () =>
+    hasEditPermission.value &&
+    !isSqlView.value &&
+    !isPublicView.value &&
+    !meta.value?.synced &&
+    !meta.value?.mm &&
+    // interface pages gate inline record creation behind the viz's
+    // add_delete_inline option — mirrors the canvas renderer (useCanvasTable)
+    (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
+)
+
+// Row-level delete gates on the interface add_delete_inline opt-in (like the
+// canvas renderer's `canAddDeleteRows` — the two flags are orthogonal to
+// isDataReadOnly). No-op for base grids (interfacePageDataApi undefined).
+const canAddDeleteRows = computed(
+  () => hasEditPermission.value && (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
 )
 
 const visibleColLength = computed(() => fields.value?.length)
@@ -1932,7 +1953,11 @@ watch(
   view,
   async (next, old) => {
     try {
-      if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
+      if (
+        next &&
+        next.id !== old?.id &&
+        (next.fk_model_id === route.params.viewId || isPublicView.value || !!interfacePageDataApi)
+      ) {
         await until(isViewColumnsLoading).toMatch((c) => !c)
 
         switchingTab.value = true
@@ -2059,9 +2084,11 @@ const duplicateRow = async (context: { row: number; col: number }) => {
   const sourceRow = cachedRows.value.get(context.row)
   if (!sourceRow) return
 
-  // Clone the record's values (identity markers + system columns stripped, link
-  // values kept) so the insert creates a brand-new record (see getDuplicateRowData).
-  const clonedRow = getDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+  // Clone the record's values (identity markers + system columns stripped) so the
+  // insert creates a brand-new record. Prompts when the record holds links the copy
+  // can't share, and returns null if that prompt was dismissed.
+  const clonedRow = await prepareDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+  if (!clonedRow) return
 
   // Insert immediately below the source row. `before` is the pk of the row
   // currently one position down, so the copy lands right after the original
@@ -2640,7 +2667,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                                 {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
-                                v-else
+                                v-else-if="showInterfaceRowExpand"
                                 class="cursor-pointer nc-expand flex items-center border-1 border-nc-border-gray-light active:ring rounded-md p-0.75 hover:(bg-nc-bg-default border-nc-border-gray-medium)"
                               >
                                 <component
@@ -3137,11 +3164,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
               </NcMenuItem>
             </template>
 
-            <template v-if="hasEditPermission && !isDataReadOnly">
+            <template v-if="canAddDeleteRows && !isDataReadOnly">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 class="nc-base-menu-item"
+                data-testid="nc-grid-context-menu-delete"
                 damger
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >

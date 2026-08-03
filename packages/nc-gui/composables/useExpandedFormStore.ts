@@ -21,6 +21,7 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
+import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -44,6 +45,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
+
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
+    // Interface record overlay: route revision history through the injected
+    // record-sidebar adapter (grant + revision_history-toggle + record-scope
+    // gated) so consumers without base ACL can view it.
+    const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
 
     const audits = ref<Array<AuditTypeExtended>>([])
 
@@ -246,7 +254,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       // No audit in public/shared bases — the backend 403s recordAuditList
       // there, and the audit tab + discussion entries are hidden accordingly.
       if (!isAuditEnabled.value) return
-      if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
+      // Interface consumers lack base ACL — the adapter's op is grant/toggle gated.
+      if ((!ifaceSidebar && !isUIAllowed('recordAuditList')) || (!row.value && !_rowId)) return
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -257,16 +266,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           isAuditLoading.value = true
         }
 
-        const response = await internalGet(
-          base.value.fk_workspace_id ?? NO_SCOPE,
-          (meta.value.base_id as string) ?? (base.value.id as string),
-          {
-            operation: 'recordAuditList',
-            fk_model_id: meta.value.id as string,
-            row_id: rowId,
-            cursor: currentAuditCursor.value,
-          },
-        )
+        const response = ifaceSidebar
+          ? await ifaceSidebar.recordAuditList(rowId, currentAuditCursor.value)
+          : await internalGet(
+              base.value.fk_workspace_id ?? NO_SCOPE,
+              (meta.value.base_id as string) ?? (base.value.id as string),
+              {
+                operation: 'recordAuditList',
+                fk_model_id: meta.value.id as string,
+                row_id: rowId,
+                cursor: currentAuditCursor.value,
+              },
+            )
 
         const lastRecord = response.list?.[response.list.length - 1]
 
@@ -837,7 +848,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           }
 
           activeDataListener.value = $ncSocket.onMessage(
-            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            dataEventSubscriptionKey(newMeta, interfaceDataApi),
             (data: DataPayload) => {
               const { id, action, payload } = data
 

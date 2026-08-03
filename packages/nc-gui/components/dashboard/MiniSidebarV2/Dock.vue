@@ -49,7 +49,7 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks, hideInterfaces } = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -122,6 +122,8 @@ const onTabClick = async (tabKey: string) => {
 
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
+  } else if (tabKey === 'interfaces') {
+    await navigateTo(`${basePath}/interfaces`)
   } else {
     await navigateTo(basePath)
   }
@@ -152,6 +154,22 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
+  // Interfaces are paid-only and hidden (not badge-gated) below the tier.
+  ...(isEeUI && showEEFeatures.value && !hideInterfaces.value
+    ? [
+        {
+          key: 'interfaces',
+          icon: 'ncLayout',
+          label: t('general.interfaces'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('interfaceList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('interfaces'),
+        },
+      ]
+    : []),
   ...(isEeUI && !isMobileMode.value && showEEFeatures.value
     ? [
         {

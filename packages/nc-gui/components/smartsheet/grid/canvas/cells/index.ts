@@ -75,6 +75,14 @@ export function useGridCellHandler(params: {
 }) {
   const isPublic = inject(IsPublicInj, ref(false))
 
+  // Interface pages trim collaborator-facing chrome (e.g. the user-cell
+  // name/email/role hover card) — presence of the api token is the signal.
+  const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+  // Interface inline edit opens the compact single-list link picker — LTAR
+  // painters draw a select-style chevron instead of the plus/expand icons.
+  const linkRecordDropdownVariant = inject(LinkRecordDropdownVariantInj, ref<LinkRecordDropdownVariant>('classic'))
+
   const { t } = useI18n()
   const { metas } = useMetas()
   const { user } = useGlobal()
@@ -94,8 +102,36 @@ export function useGridCellHandler(params: {
 
   const { basesUser, baseRoles } = storeToRefs(useBases())
 
-  const { open: openDetachedExpandedForm } = useExpandedFormDetached()
+  // Bind isUIAllowed here (component setup) so cell click handlers can call it.
+  // Calling useRoles() inside a cell's handleClick would run outside any setup
+  // context, where inject() returns undefined and the composable throws.
+  const { isUIAllowed } = useRoles()
+
+  const { open: openDetachedExpandedFormRaw } = useExpandedFormDetached()
   const { open: openDetachedLongText } = useDetachedLongText()
+
+  // Per-column "Click into record details" — LTAR chip clicks route to the
+  // interface record-detail sheet when configured (provided by the viz host).
+  const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
+
+  // Interface pages never open the data-app expanded form for a LINKED record
+  // (a chip click): the related table sits outside the page surface, and its
+  // raw reads/comments 403 for interface collaborators. Gated at this single
+  // choke point so every canvas LTAR cell inherits it; the page's OWN record
+  // expansion routes through InterfaceExpandRecordInj, not this. The one
+  // exception: a chip whose column has "Click into record details" configured
+  // opens the LINKED record's interface record-detail sheet (call sites pass
+  // their LTAR column).
+  const openDetachedExpandedForm = (state: Parameters<typeof openDetachedExpandedFormRaw>[0], ltarColumn?: ColumnType) => {
+    if (interfacePageDataApi) {
+      const api = linkRecordExpand.value
+      if (ltarColumn && state.row?.row && state.meta?.id && api?.isEnabled(ltarColumn)) {
+        api.expand({ column: ltarColumn, row: state.row.row, relatedTableMeta: state.meta })
+      }
+      return
+    }
+    return openDetachedExpandedFormRaw(state)
+  }
 
   const smartTextStore = useSmartText()
   const openSmartText = smartTextStore?.openEditor
@@ -397,6 +433,7 @@ export function useGridCellHandler(params: {
         user: user.value,
         isUnderLookup,
         isPublic: isPublic.value,
+        isSimpleLinkRecordList: linkRecordDropdownVariant.value === 'simple',
         path,
         fontFamily,
         isRowHovered,
@@ -490,6 +527,7 @@ export function useGridCellHandler(params: {
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
+        isUIAllowed,
         t,
         getColor,
       })
@@ -569,6 +607,7 @@ export function useGridCellHandler(params: {
         setCursor,
         path: ctx.path ?? [],
         baseUsers: baseUsers.value,
+        isInterface: !!interfacePageDataApi,
         t,
       })
     }

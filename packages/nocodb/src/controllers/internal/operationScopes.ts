@@ -25,6 +25,7 @@ export const OPERATION_SCOPES = {
 
   // UI Get Operations
   tableGet: 'base',
+  refTableGet: 'base',
   columnsHash: 'base',
   viewList: 'base',
   viewColumnList: 'base',

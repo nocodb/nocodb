@@ -313,13 +313,32 @@ const isFilterUpdated = computed(() => {
   return _isFilterUpdated.value || localNestedFilters.value.some((filter) => filter?.isFilterUpdated)
 })
 
+// Interface pages: the "view" is synthetic — pin/reorder persist view state
+// that does not exist there, so both affordances are hidden.
+const isInterfacePage = !!inject(InterfacePageDataInj, undefined)
+
+// Interface filter editors flag rows whose stored column id no longer resolves
+// (a deleted field/table) so the builder shows a greyed "orphan" cue instead of
+// a blank picker. Off (default) everywhere else — grid-view filters unaffected.
+const markOrphanFilter = inject(MarkOrphanFilterInj, ref(false))
+
 const isReorderEnabled = computed(() => {
-  return appInfo.value.ee && isViewFilter.value && !isMobileMode.value
+  return appInfo.value.ee && isViewFilter.value && !isMobileMode.value && !isInterfacePage
 })
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value.find((col: ColumnType) => col.id === filter.fk_column_id)
+}
+
+/**
+ * An interface config filter row whose stored `fk_column_id` no longer resolves
+ * to a live column — the field (or its table) was deleted, leaving a stale id in
+ * the tree. Only flagged when `markOrphanFilter` is provided (interface editors);
+ * a draft row without a column, or any grid-view filter, is never flagged.
+ */
+const isFilterFieldOrphaned = (filter: Filter) => {
+  return markOrphanFilter.value && !filter.is_group && !!filter.fk_column_id && !getColumn(filter)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -1477,8 +1496,19 @@ defineExpose({
                   {{ $t('title.fieldInaccessible') }}
                 </NcTooltip>
 
+                <NcTooltip
+                  v-if="isFilterFieldOrphaned(filter)"
+                  class="xs:col-span-9 flex-1 flex items-center gap-2 px-2 !text-nc-content-gray-muted cursor-default"
+                >
+                  <template #title>{{ $t('msg.info.interfaceFilterFieldOrphaned') }}</template>
+                  <span class="flex items-center gap-2 min-w-0" data-testid="nc-filter-orphan-field">
+                    <GeneralIcon icon="alertTriangle" class="flex-none opacity-70" />
+                    <span class="truncate">{{ $t('labels.multiField.deletedField') }}</span>
+                  </span>
+                </NcTooltip>
+
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
-                  v-if="!isFormFieldInaccessible(filter)"
+                  v-if="!isFormFieldInaccessible(filter) && !isFilterFieldOrphaned(filter)"
                   :key="`${i}_6`"
                   v-model="filter.fk_column_id"
                   :class="{
@@ -1495,7 +1525,7 @@ defineExpose({
                 />
 
                 <NcSelect
-                  v-if="!isFormFieldInaccessible(filter)"
+                  v-if="!isFormFieldInaccessible(filter) && !isFilterFieldOrphaned(filter)"
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
@@ -1532,12 +1562,18 @@ defineExpose({
 
               <NcWrap :wrap="!!isMobileMode" class="grid grid-cols-12 gap-x-0 flex-1 min-h-8 nc-filter-wrapper">
                 <div
-                  v-if="!isFormFieldInaccessible(filter) && ['blank', 'notblank'].includes(filter.comparison_op)"
+                  v-if="
+                    !isFormFieldInaccessible(filter) &&
+                    !isFilterFieldOrphaned(filter) &&
+                    ['blank', 'notblank'].includes(filter.comparison_op)
+                  "
                   class="xs:col-span-3 sm:(flex flex-grow)"
                 ></div>
 
                 <NcSelect
-                  v-else-if="!isFormFieldInaccessible(filter) && isDateType(types[filter.fk_column_id])"
+                  v-else-if="
+                    !isFormFieldInaccessible(filter) && !isFilterFieldOrphaned(filter) && isDateType(types[filter.fk_column_id])
+                  "
                   v-model:value="filter.comparison_sub_op"
                   v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
@@ -1575,6 +1611,7 @@ defineExpose({
                   </template>
                 </NcSelect>
                 <div
+                  v-if="!isFilterFieldOrphaned(filter)"
                   class="flex items-center flex-grow min-w-0 empty:!hidden"
                   :class="{
                     'xs:(col-span-6)':
@@ -1796,7 +1833,8 @@ defineExpose({
                     !webHook &&
                     !link &&
                     !widget &&
-                    !isList
+                    !isList &&
+                    !isInterfacePage
                   "
                 >
                   <template #title>

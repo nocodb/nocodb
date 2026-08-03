@@ -5,6 +5,7 @@ import type {
   ChatContentBlock,
   ChatMessageType,
   ChatSessionType,
+  ChatToolProgress,
 } from '~/lib/chat';
 
 export enum EventType {
@@ -23,6 +24,7 @@ export enum EventType {
   TEAM_EVENT = 'event-team',
   WORKFLOW_EVENT = 'event-workflow',
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
+  INTERFACE_EVENT = 'event-interface',
   PRESENCE_EVENT = 'event-presence',
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
@@ -267,6 +269,8 @@ export interface ChatEventPayload extends BaseSocketPayload {
   toolCallId?: string;
   name?: string;
   args?: any;
+  // action: 'tool-progress' — live step update from a long-running tool
+  progress?: ChatToolProgress;
   // action: 'tool-result'
   output?: any;
   isError?: boolean;

@@ -95,6 +95,7 @@ watch(picked, (n, _o) => {
         </button>
       </div>
       <div
+        v-if="props.advanced"
         class="p-1 rounded-lg h-8"
         :class="{
           'hover:bg-nc-bg-gray-medium': isNewDesign,

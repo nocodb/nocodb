@@ -12736,13 +12736,13 @@
       "FieldOptionDeleteItem": {
         "type": "object",
         "properties": {
-          "id": {
+          "title": {
             "type": "string",
-            "description": "Identifier of the choice to remove."
+            "description": "Title of the choice to remove. Must match an existing choice title exactly."
           }
         },
         "required": [
-          "id"
+          "title"
         ],
         "additionalProperties": false
       },
@@ -12766,7 +12766,7 @@
       },
       "FieldOptionsDeleteReq": {
         "type": "object",
-        "description": "Remove choices (options) from a SingleSelect/MultiSelect field by id. Ids not present on the field are ignored (idempotent).",
+        "description": "Remove choices (options) from a SingleSelect/MultiSelect field by title. Titles not present on the field are ignored (idempotent).",
         "properties": {
           "choices": {
             "type": "array",

@@ -71,4 +71,6 @@ export type OperationLogScopeType =
   | 'view'
   | 'dashboard'
   | 'workflow'
-  | 'script';
+  | 'script'
+  | 'interface'
+  | 'interfacePage';

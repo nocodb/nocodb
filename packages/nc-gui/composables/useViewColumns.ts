@@ -10,6 +10,7 @@ import type {
 } from 'nocodb-sdk'
 import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { InterfacePageDataApi } from '../lib/interfaceData'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -17,6 +18,13 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
     reloadData?: (params?: { shouldShowLoading?: boolean }) => void,
     isPublic = false,
+    /**
+     * Interface-page data adapter. Normally resolved via `InterfacePageDataInj`,
+     * but the interface wrapper both provides that token AND calls this
+     * provider from the same component instance — and `inject()` can't see a
+     * same-instance `provide()` — so it must pass the adapter explicitly.
+     */
+    interfaceDataApiParam?: InterfacePageDataApi,
   ) => {
     const rootFields = ref<ColumnType[]>([])
 
@@ -47,6 +55,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const { isUIAllowed } = useRoles()
 
     const { isSharedBase } = storeToRefs(useBase())
+
+    /**
+     * Present when mounted inside an interface page. The view is synthetic (no
+     * persisted view columns), so header resize / drag-reorder persist into the
+     * viz config through the adapter instead — the source table's own grid
+     * views are never written.
+     */
+    const interfaceDataApi = interfaceDataApiParam ?? inject(InterfacePageDataInj, undefined)
 
     const viewStore = useViewsStore()
 
@@ -632,6 +648,30 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const resizingColOldWith = ref('180px')
 
+    /**
+     * Interface mount: the synthetic view has no view-column rows to write, so a
+     * header resize / drag-reorder is persisted into the viz config instead.
+     * Builder edit mode only — a viewer's gesture stays session-local, like the
+     * runtime row-height pick.
+     */
+    function persistInterfaceGridColumn(id: string, props: Partial<GridColumnReqType>) {
+      if (!interfaceDataApi?.canConfigureFields?.value) return
+
+      if (props.width) interfaceDataApi.setFieldWidth?.(id, props.width)
+
+      // The dragged column's `order` is fractional (dropped between its two new
+      // neighbours) and lives only on the in-memory columns — resolve it to the
+      // shown ids in their new order, which is what the config stores.
+      if ('order' in props) {
+        interfaceDataApi.setFieldOrder?.(
+          Object.values(gridViewCols.value)
+            .filter((col) => col.show && col.fk_column_id)
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            .map((col) => col.fk_column_id!),
+        )
+      }
+    }
+
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>) => {
       try {
         // sync with server if allowed
@@ -660,6 +700,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           // fallback to reload
           await loadViewColumns()
         }
+
+        persistInterfaceGridColumn(id, props)
       } catch (e) {
         // this could happen if user doesn't have permission to update view columns
         // todo: find out root cause and handle with isUIAllowed

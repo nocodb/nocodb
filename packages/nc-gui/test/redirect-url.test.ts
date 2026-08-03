@@ -10,7 +10,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { isSafeRedirectUrl } from '~/utils/redirectUrl'
+import { isHttpRedirectUri, isSafeRedirectUrl } from '~/utils/redirectUrl'
 
 describe('isSafeRedirectUrl', () => {
   it('allows http(s) absolute URLs', () => {
@@ -56,5 +56,29 @@ describe('isSafeRedirectUrl', () => {
     expect(isSafeRedirectUrl(smuggle(13))).toBe(false) // carriage return
     expect(isSafeRedirectUrl(smuggle(0))).toBe(false) // null
     expect(isSafeRedirectUrl(' javascript:alert(1)')).toBe(false) // leading space
+  })
+})
+
+// The OAuth authorize page parses redirect_uri with `new URL()`, which throws on
+// the relative URLs isSafeRedirectUrl permits. RFC 6749 requires absolute http(s).
+describe('isHttpRedirectUri', () => {
+  it('allows absolute http(s) URLs', () => {
+    expect(isHttpRedirectUri('https://app.example.com/cb')).toBe(true)
+    expect(isHttpRedirectUri('http://localhost:3000/cb')).toBe(true)
+  })
+
+  it('rejects relative URLs that isSafeRedirectUrl allows', () => {
+    for (const u of ['/dashboard', 'thanks?id=1', '']) {
+      expect(isHttpRedirectUri(u), u).toBe(false)
+    }
+    // the divergence between the two predicates is the point of this helper
+    expect(isSafeRedirectUrl('/dashboard')).toBe(true)
+  })
+
+  it('still rejects everything isSafeRedirectUrl rejects', () => {
+    expect(isHttpRedirectUri('javascript:alert(1)')).toBe(false)
+    expect(isHttpRedirectUri('data:text/html,<script>alert(1)</script>')).toBe(false)
+    expect(isHttpRedirectUri(`java${String.fromCharCode(9)}script:alert(1)`)).toBe(false)
+    expect(isHttpRedirectUri(undefined)).toBe(false)
   })
 })

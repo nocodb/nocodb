@@ -95,6 +95,31 @@ export const isActiveElementInsideExtension = () =>
 export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
 export const isActiveElementInsideSmartTextPanel = () =>
   document.querySelector('.nc-smart-text-panel')?.contains(document.activeElement)
+export const isActiveElementInsideInterfacePanel = () =>
+  ['.nc-interface-properties-panel', '.nc-interface-page-description'].some((selector) =>
+    document.querySelector(selector)?.contains(document.activeElement),
+  )
+/** Interface record-detail sheet overlays the viz — while it is open the grid
+ *  behind it must not react to keyboard at all (presence, not focus: the sheet
+ *  only exists inside interface contexts, so classic grids are unaffected). */
+export const isInterfaceRecordSheetOpen = () => !!document.querySelector('.nc-interface-record-form-sheet')
+/** Interface builder chrome: the right-side config panel, the topbars, a page
+ *  toolbar (the user-filter tab strip lives inside it) and the page sidebar.
+ *  Clicking any of it is a context switch, so the mounted grid/list drops its
+ *  cell selection — which in turn hands Tab back to native focus traversal.
+ *
+ *  Deliberately a `closest` test on the CLICK TARGET rather than an outside-click:
+ *  cell editors portal their dropdowns and modals to `<body>`, so an outside-click
+ *  test counts those as "outside" and would deselect mid-edit. */
+export const INTERFACE_CONFIG_CHROME_SELECTOR = [
+  '.nc-interface-properties-panel',
+  '.nc-interface-editor-topbar',
+  '.nc-interface-table-topbar',
+  '.nc-interface-table-toolbar',
+  '.nc-interface-app-sidebar',
+].join(',')
+export const isInterfaceConfigChromeTarget = (target: EventTarget | null) =>
+  !!(target as HTMLElement | null)?.closest?.(INTERFACE_CONFIG_CHROME_SELECTOR)
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }

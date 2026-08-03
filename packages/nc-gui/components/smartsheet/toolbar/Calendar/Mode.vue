@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
+import { INTERFACE_VIEW_ID_PREFIX } from '~/lib/interfaceData'
 
 const props = defineProps<{
   tab?: boolean
@@ -123,10 +124,16 @@ type WeekendDisplay = 'show' | 'collapse' | 'hide'
 // custom + day-unit is day-anchored (like 3day) and has no weekend options.
 const weekendSupportedModes = ['week', '2week', 'month', '6week']
 
+// Weekend display persists through `calendarViewUpdate`, but the synthetic
+// interface view is never persisted — the interface builder configures
+// weekends from the visualization pane instead, so the section is hidden.
+const isInterfaceSyntheticView = computed(() => !!activeView.value?.id?.startsWith(INTERFACE_VIEW_ID_PREFIX))
+
 const supportsWeekendOptions = computed(
   () =>
-    weekendSupportedModes.includes(activeCalendarView.value) ||
-    (activeCalendarView.value === 'custom' && customUnit.value === 'week'),
+    !isInterfaceSyntheticView.value &&
+    (weekendSupportedModes.includes(activeCalendarView.value) ||
+      (activeCalendarView.value === 'custom' && customUnit.value === 'week')),
 )
 
 const weekendDisplay = computed<WeekendDisplay>(() => {

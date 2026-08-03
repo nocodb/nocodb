@@ -29,6 +29,12 @@ const { isUIAllowed } = useRoles()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// Interface page adapter — webhook triggers re-route through the page-scoped
+// op there (the raw hookTrigger op is base-scoped and 403s for interface
+// collaborators without a base role; the interface op also resolves the hook
+// id server-side from the column instead of trusting this cell's value).
+const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
 const { $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -224,16 +230,20 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.internal.postOperation(
-        meta.value!.fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'hookTrigger',
-          hookId: cellValue.value?.fk_webhook_id,
-          rowId: rowId!.value,
-        },
-        {},
-      )
+      if (interfaceDataApi?.triggerButtonHook) {
+        await interfaceDataApi.triggerButtonHook({ rowId: rowId!.value, columnId: column.value.id as string })
+      } else {
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'hookTrigger',
+            hookId: cellValue.value?.fk_webhook_id,
+            rowId: rowId!.value,
+          },
+          {},
+        )
+      }
 
       afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {

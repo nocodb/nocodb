@@ -40,6 +40,10 @@ const props = defineProps<{
   editDescription?: boolean
   readonly?: boolean
   disableTitleFocus?: boolean
+  // Force the interface "edits the whole base" footer when the editor mounts
+  // outside a viz (the InterfacePageDataInj signal doesn't reach e.g. the
+  // interface properties panel).
+  interfaceNote?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
@@ -142,6 +146,9 @@ const workspaceStore = useWorkspace()
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
 const meta = inject(MetaInj, ref())
+
+// Interface pages: schema edits from an interface warn about base-wide scope
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -1748,6 +1755,20 @@ const unique = computed({
     </a-form>
 
     <LazyDlgConvertLinkV2 v-model:visible="isConvertLinkV2ModalOpen" :column="column" @converted="emit('cancel')" />
+
+    <!-- Interface builders edit the REAL base field — the card says so. Full
+         bleed via negative margins (card mode is p-5 with !pb-0 when a type
+         is set, which is always true while editing). -->
+    <div
+      v-if="isEdit && !embedMode && (interfacePageDataApi || props.interfaceNote)"
+      class="nc-interface-field-edit-note -mx-5 mt-4 px-5 py-3 flex items-start gap-2 bg-nc-bg-gray-light rounded-b-2xl border-t border-nc-border-gray-medium text-bodySm text-nc-content-gray-subtle"
+    >
+      <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5 mt-0.5" />
+      <div>
+        <div class="font-semibold">{{ $t('msg.info.interfaceFieldEditShared') }}</div>
+        <div>{{ $t('msg.info.interfaceFieldEditSharedDetail') }}</div>
+      </div>
+    </div>
   </div>
 </template>
 

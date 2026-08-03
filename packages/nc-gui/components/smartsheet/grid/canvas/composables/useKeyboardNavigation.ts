@@ -92,6 +92,9 @@ export function useKeyboardNavigation({
     if ((e.target as HTMLElement)?.closest?.('.nc-smart-text-panel')) return
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
       return
+    // Interface editor: keystrokes belong to the properties panel's inputs,
+    // not the grid canvas mounted in the page preview.
+    if (isActiveElementInsideInterfacePanel() || isInterfaceRecordSheetOpen()) return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
@@ -371,6 +374,13 @@ export function useKeyboardNavigation({
       }
 
       case 'Tab': {
+        // No active cell — nothing to walk from, so let the browser move focus
+        // instead of stepping onto a phantom cell and scrolling to it. This is
+        // what makes Tab behave after an interface-config click deselects: the
+        // grid stands down and native focus traversal takes over. Mirrors the
+        // `case 'c'` precondition above.
+        if (activeCell.value.row === -1 || activeCell.value.column === -1) return
+
         let isAdded = false
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {

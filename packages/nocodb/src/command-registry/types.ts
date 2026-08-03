@@ -272,6 +272,26 @@ export interface CaptureBag {
    *  inner filter tree).
    */
   rowColorFilterIds: ReadonlyArray<string>;
+  /** Link diff computed by a single-cell LTAR copy/paste/deleteAll — the
+   *  page-scoped interface swap contract builds its inverse from it. */
+  linkSwapEntry: {
+    columnId: string;
+    rowId: string;
+    link: ReadonlyArray<string | number>;
+    unlink: ReadonlyArray<string | number>;
+  } | null;
+  /** Bulk twin of `linkSwapEntry` — one diff per (column, row). */
+  linkSwapBulkEntries: ReadonlyArray<{
+    columnId: string;
+    rowId: string;
+    link: ReadonlyArray<string | number>;
+    unlink: ReadonlyArray<string | number>;
+  }>;
+  /** New page ids minted by `interfaceDuplicate`, in source-page order —
+   *  replayed positionally so a duplicated interface keeps its page ids
+   *  across sandbox merge and undo→redo (the interface id rides
+   *  `replayDuplicateId`). */
+  interfaceDuplicatePageIds: ReadonlyArray<string>;
   /** Recorded child operations of a macro op — populated by the
    *  decorator's auto-instrument branch when the parent contract has
    *  `macro: true`. The macro's registered handler iterates this on
@@ -420,7 +440,9 @@ export type ScopeType =
   | 'view'
   | 'dashboard'
   | 'workflow'
-  | 'script';
+  | 'script'
+  | 'interface'
+  | 'interfacePage';
 
 export interface ScopeRef {
   type: ScopeType;

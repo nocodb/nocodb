@@ -47,6 +47,16 @@ export const scopeScript = (id: string | undefined | null): ScopeRef => ({
   type: 'script',
   id: requireScopeId(id, 'Script'),
 });
+export const scopeInterface = (id: string | undefined | null): ScopeRef => ({
+  type: 'interface',
+  id: requireScopeId(id, 'Interface'),
+});
+export const scopeInterfacePage = (
+  id: string | undefined | null,
+): ScopeRef => ({
+  type: 'interfacePage',
+  id: requireScopeId(id, 'InterfacePage'),
+});
 
 /**
  * Used by `recordCommand` to discard undone rows a future redo could
@@ -87,6 +97,10 @@ export const SIDEBAR_FIELDS = {
   dashboardUpdate: new Set<string>(['title', 'order']),
   workflowUpdate: new Set<string>(['title', 'order']),
   scriptUpdate: new Set<string>(['title', 'order']),
+  // Sidebar-class edits (rename / reorder / nav toggle) land on the base
+  // stack; content edits (page config etc.) land on the entity stack.
+  interfaceUpdate: new Set<string>(['title', 'order', 'hidden']),
+  interfacePageUpdate: new Set<string>(['title', 'order', 'show_in_nav']),
 } as const;
 
 export type DynamicScopeOp = keyof typeof SIDEBAR_FIELDS;

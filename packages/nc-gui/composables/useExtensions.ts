@@ -74,11 +74,13 @@ export const useExtensions = createSharedComposable(() => {
 
   const { isSharedBase } = storeToRefs(useWorkspace())
 
+  const { isInterfaceOnlyUser } = useInterfacePermissions()
+
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionAccess = computed(() => {
     return {
-      list: isUIAllowed('extensionList') && !isSharedBase.value,
+      list: isUIAllowed('extensionList') && !isSharedBase.value && !isInterfaceOnlyUser.value,
       create: isUIAllowed('extensionCreate'),
       delete: isUIAllowed('extensionDelete'),
       update: isUIAllowed('extensionUpdate'),

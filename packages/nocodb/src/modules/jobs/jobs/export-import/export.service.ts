@@ -103,6 +103,13 @@ export class ExportService {
     return [];
   }
 
+  async serializeInterfaces(
+    _context: NcContext,
+    _param: { idMap: Map<string, string>; req: NcRequest },
+  ) {
+    return [];
+  }
+
   async serializeDashboards(context: NcContext, param: any, req: NcRequest) {
     const { idMap } = param;
     const serializedDashboards = [];
@@ -212,8 +219,6 @@ export class ExportService {
     for (const modelId of modelIds) {
       const model = await Model.get(context, modelId);
 
-      let pgSerialLastVal;
-
       if (!model) return NcError.tableNotFound(modelId);
 
       const fndProject = bases.find((p) => p.id === model.base_id);
@@ -260,39 +265,6 @@ export class ExportService {
 
       for (const column of model.columns) {
         await column.getColOptions(context);
-
-        // if data is not excluded, get currval for ai column (pg)
-        if (!excludeData) {
-          if (source.type === 'pg') {
-            if (column.ai) {
-              try {
-                const baseModel = await Model.getBaseModelSQL(context, {
-                  id: model.id,
-                  viewId: null,
-                  dbDriver: await NcConnectionMgrv2.get(source),
-                });
-                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-                const seq = await sqlClient.raw(
-                  `SELECT pg_get_serial_sequence('??', ?) as seq;`,
-                  [baseModel.getTnPath(model.table_name), column.column_name],
-                );
-                if (seq.rows.length > 0 && seq.rows[0].seq) {
-                  const seqName = seq.rows[0].seq;
-
-                  const res = await sqlClient.raw(
-                    `SELECT last_value as last FROM ${seqName};`,
-                  );
-
-                  if (res.rows.length > 0) {
-                    pgSerialLastVal = res.rows[0].last;
-                  }
-                }
-              } catch (e) {
-                this.debugLog(e);
-              }
-            }
-          }
-        }
 
         if (column.colOptions) {
           for (const [k, v] of Object.entries(column.colOptions)) {
@@ -763,7 +735,6 @@ export class ExportService {
           title: model.title,
           table_name: clearPrefix(model.table_name, base.prefix),
           description: model.description,
-          pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => {
             // Exclude constraints field from export (internal field)
@@ -875,14 +846,34 @@ export class ExportService {
       modelId: string;
       viewId?: string;
       handledMmList?: string[];
+      /**
+       * Column projection for the export, in the caller's own order. This is
+       * a SERVER-COMPOSED list — it must never be forwarded straight from a
+       * request payload, since it bypasses the ref view's column visibility.
+       * Current callers both derive it internally:
+       *  - `DuplicateProcessor` — columns of the model being duplicated.
+       *  - `InterfaceDataExportProcessor` — `scope.exportColumnIds`, resolved
+       *    by `InterfaceDatasService.tableDataExport` from the stored viz
+       *    config (`viz.visible_field_ids`) after grant/env resolution; the
+       *    client only supplies `pageId`/`vizId`/`env`.
+       * Ids are additionally intersected with `model.columns` below, so an
+       * id from another model resolves to nothing rather than leaking.
+       */
       _fieldIds?: string[];
       ncSiteUrl?: string;
       delimiter?: string;
       excludeUsers?: boolean;
       includeCrossBaseColumns?: boolean;
+      /**
+       * Junctions to stream even though the link is cross-base. Empty by
+       * default — such rows reference a table outside the export. Consolidation
+       * passes the junctions whose endpoints both landed in its target.
+       */
+      crossBaseLinkMmModelIds?: string[];
       filterArrJson?: any;
       sortArrJson?: any;
       locale?: string;
+      customConditions?: Filter[];
     },
   ) {
     context = { ...context, cache: true };
@@ -959,33 +950,47 @@ export class ExportService {
 
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
-      const hideSystemFields = refView.show_system_fields
-        ? // at minimum filter mm fields used in Links field
-          model.columns
-            .filter(
-              (c) =>
-                isSystemColumn(c) &&
-                c.uidt === UITypes.LinkToAnotherRecord &&
-                c.colOptions?.fk_related_model_id !== model.id,
-            )
-            .map((c) => c.id)
-        : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+      if (param._fieldIds?.length) {
+        // Caller-curated export columns (interface-page exports) — keep the
+        // caller's order instead of the ref view's column visibility/order.
+        fields = param._fieldIds
+          .map((id) => model.columns.find((c) => c.id === id)?.title)
+          .filter(Boolean);
+      } else {
+        const hideSystemFields = refView.show_system_fields
+          ? // at minimum filter mm fields used in Links field
+            model.columns
+              .filter(
+                (c) =>
+                  isSystemColumn(c) &&
+                  c.uidt === UITypes.LinkToAnotherRecord &&
+                  c.colOptions?.fk_related_model_id !== model.id,
+              )
+              .map((c) => c.id)
+          : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
 
-      fields = viewCols
-        .sort((a, b) => a.order - b.order)
-        .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
-        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
-        // to filter out undefined values(cross base link)
-        .filter(Boolean);
+        fields = viewCols
+          .sort((a, b) => a.order - b.order)
+          .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+          .map(
+            (vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title,
+          )
+          // to filter out undefined values(cross base link)
+          .filter(Boolean);
+      }
     }
+
+    const crossBaseMmAllowList = new Set(param.crossBaseLinkMmModelIds ?? []);
+    const isExportableMm = (col: Column) =>
+      isMMOrMMLike(col) &&
+      (!isCrossBaseLink(col) ||
+        crossBaseMmAllowList.has(col.colOptions?.fk_mm_model_id));
 
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isMMOrMMLike(col) && !isCrossBaseLink(col))
-      : model.columns.filter(
-          (col) => isMMOrMMLike(col) && !isCrossBaseLink(col),
-        );
+          .filter(isExportableMm)
+      : model.columns.filter(isExportableMm);
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 
@@ -1090,6 +1095,10 @@ export class ExportService {
       return { data };
     };
 
+    const fieldIdOrder = param._fieldIds?.length
+      ? new Map(param._fieldIds.map((id, index) => [id, index]))
+      : null;
+
     const formatAndSerialize = async (data: any) => {
       const includedColumns: {
         col: Column;
@@ -1107,9 +1116,10 @@ export class ExportService {
             });
             includedColumns.push({
               col,
-              viewOrder:
-                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
-                includedColumns.length + 1,
+              viewOrder: fieldIdOrder
+                ? fieldIdOrder.get(col.id) ?? includedColumns.length + 1
+                : viewCols.find((vCol) => vCol.fk_column_id === col.id)
+                    ?.order ?? includedColumns.length + 1,
             });
           }
         }
@@ -1153,6 +1163,7 @@ export class ExportService {
         {
           filterArrJson: param.filterArrJson,
           sortArrJson: param.sortArrJson,
+          customConditions: param.customConditions,
         },
       );
     } catch (e) {
@@ -1168,9 +1179,21 @@ export class ExportService {
       for (const mm of mmColumns) {
         if (handledMmList.includes(mm.colOptions?.fk_mm_model_id)) continue;
 
-        const mmModel = await Model.get(context, mm.colOptions?.fk_mm_model_id);
+        // A cross-base junction lives in whichever base owns it, not
+        // necessarily the one holding the link column being read.
+        const mmColOptions = mm.colOptions as LinkToAnotherRecordColumn;
+        const mmContext =
+          mmColOptions.fk_mm_base_id &&
+          mmColOptions.fk_mm_base_id !== context.base_id
+            ? mmColOptions.getRelContext(context).mmContext
+            : context;
 
-        await mmModel.getColumns(context);
+        const mmModel = await Model.get(
+          mmContext,
+          mm.colOptions?.fk_mm_model_id,
+        );
+
+        await mmModel.getColumns(mmContext);
 
         mmModel.columns = this.filterOutCrossBaseColumns(mmModel);
 
@@ -1207,16 +1230,16 @@ export class ExportService {
         const mmBase =
           mmModel.source_id === source.id
             ? source
-            : await Source.get(context, mmModel.source_id);
+            : await Source.get(mmContext, mmModel.source_id);
 
-        const mmBaseModel = await Model.getBaseModelSQL(context, {
+        const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
           id: mmModel.id,
           dbDriver: await NcConnectionMgrv2.get(mmBase),
         });
 
         try {
-          await this.recursiveLinkRead(
-            context,
+          const wrote = await this.recursiveLinkRead(
+            mmContext,
             mmFormatData,
             mmBaseModel,
             linkStream,
@@ -1229,7 +1252,7 @@ export class ExportService {
           );
 
           // avoid writing headers for same model multiple times
-          streamedHeaders = true;
+          if (wrote) streamedHeaders = true;
         } catch (e) {
           this.debugLog(e);
           throw e;
@@ -1395,6 +1418,7 @@ export class ExportService {
       filterArrJson?: any;
       sortArrJson?: any;
       locale?: string;
+      restrictToViewVisibleColumns?: boolean;
     },
   ) {
     context = { ...context, cache: true };
@@ -1452,12 +1476,24 @@ export class ExportService {
 
     const pkColumn = model.columns.find((c) => c.pk);
 
+    // Anonymous (public) export path only: narrow the description to the columns
+    // the shared view actually shows, so a view-hidden column's values can't be
+    // read out of the ICS feed. Stays null for authenticated exports.
+    let visibleColumnIds: Set<string> | null = null;
+    if (param.restrictToViewVisibleColumns) {
+      const viewColumns = await View.getColumns(context, view.id);
+      visibleColumnIds = new Set(
+        viewColumns.filter((vc) => vc.show).map((vc) => vc.fk_column_id),
+      );
+    }
+
     // Non-system, non-virtual data columns (in field order) used to build the
     // event description so the exported event keeps the row's context. The
     // range fields and the display value are excluded — they map to dedicated
-    // ICS properties. Calendar views usually hide every non-date field, so the
-    // description is built from the model columns (fetched via getHiddenColumns)
-    // rather than the view's visible columns.
+    // ICS properties. Calendar views usually hide every non-date field, so for
+    // authenticated exports the description is built from the model columns
+    // (fetched via getHiddenColumns) rather than the view's visible ones; the
+    // public path above narrows it back down.
     const descriptionColumns = model.columns.filter(
       (c) =>
         !isSystemColumn(c) &&
@@ -1465,7 +1501,8 @@ export class ExportService {
         !isVirtualCol(c) &&
         c.id !== fromColumn.id &&
         (!toColumn || c.id !== toColumn.id) &&
-        (!displayColumn || c.id !== displayColumn.id),
+        (!displayColumn || c.id !== displayColumn.id) &&
+        (!visibleColumnIds || visibleColumnIds.has(c.id)),
     );
 
     dataStream.setEncoding('utf8');
@@ -1964,6 +2001,7 @@ export class ExportService {
     param?: {
       filterArrJson: any;
       sortArrJson: any;
+      customConditions?: Filter[];
     },
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -1983,6 +2021,7 @@ export class ExportService {
           ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,
           skipSortBasedOnOrderCol: true,
+          customConditions: param?.customConditions,
         })
         .then((result) => {
           if (result.list.length === 0 && offset === 0) {
@@ -2096,7 +2135,7 @@ export class ExportService {
     limit: number,
     fields: string[],
     header = false,
-  ): Promise<void> {
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.datasService
         .getDataList(context, {
@@ -2111,13 +2150,21 @@ export class ExportService {
         })
         .then((result) => {
           try {
-            if (!header) {
-              linkStream.push('\r\n');
-            }
             const { data } = formatter(result.list);
-            if (data) linkStream.push(unparse(data, { header }));
+            // `unparse([])` yields '' — no header row. Claiming a header the
+            // stream never wrote would leave the next junction appending
+            // headerless rows, whose first row papaparse then eats as a header.
+            const wrote = !!data?.length;
+
+            if (wrote) {
+              if (!header) {
+                linkStream.push('\r\n');
+              }
+              linkStream.push(unparse(data, { header }));
+            }
+
             if (result.pageInfo.isLastPage) {
-              resolve();
+              resolve(wrote);
             } else {
               this.recursiveLinkRead(
                 context,
@@ -2129,8 +2176,10 @@ export class ExportService {
                 offset + limit,
                 limit,
                 fields,
+                // An empty page has not spent the header yet.
+                header && !wrote,
               )
-                .then(resolve)
+                .then((laterWrote) => resolve(wrote || laterWrote))
                 .catch(reject);
             }
           } catch (e) {

@@ -25,6 +25,7 @@ export enum WidgetTypes {
   TEXT = 'text',
   TABLE = 'table',
   IFRAME = 'iframe',
+  PIVOT = 'pivot',
 }
 
 export const WidgetChartLabelMap = {
@@ -33,6 +34,7 @@ export const WidgetChartLabelMap = {
   [ChartTypes.PIE]: 'Pie Chart',
   [ChartTypes.DONUT]: 'Donut Chart',
   [ChartTypes.SCATTER]: 'Scatter Plot',
+  [ChartTypes.TREEMAP]: 'Treemap',
   [WidgetTypes.TABLE]: 'Table',
   [WidgetTypes.METRIC]: 'Metric',
   [WidgetTypes.GAUGE]: 'Gauge',
@@ -98,12 +100,18 @@ export enum TextWidgetTypes {
   Text = 'text',
 }
 
+/** Optional tinted-card treatment for text widgets; absence renders plain */
+export type TextWidgetCallout = 'info' | 'success' | 'warning' | 'accent';
+
 interface TextWidgetConfigMarkdown {
   content: string;
   type: TextWidgetTypes.Markdown;
   formatting: {
     horizontalAlign: 'flex-start' | 'center' | 'flex-end';
     verticalAlign: 'flex-start' | 'center' | 'flex-end';
+  };
+  appearance?: {
+    callout?: TextWidgetCallout;
   };
 }
 
@@ -126,6 +134,7 @@ interface TextWidgetConfigText {
       lineHeight: number;
     };
     color: string;
+    callout?: TextWidgetCallout;
   };
 }
 
@@ -136,13 +145,31 @@ export interface IframeWidgetConfig {
   allowFullscreen?: boolean;
 }
 
+/** One pivot axis — the field it groups by plus optional client-side ordering. */
+export interface PivotAxisConfig {
+  fieldId?: string;
+  sortBy?: 'group' | 'value';
+  sortOrder?: 'asc' | 'desc';
+  showTotals?: boolean;
+}
+
+export interface PivotWidgetConfig {
+  /** Row dimension (required to render). */
+  rows?: PivotAxisConfig;
+  /** Optional column dimension — omit for a single-column count list. */
+  columns?: PivotAxisConfig;
+  /** Cell click-through to the underlying records (builders can disable). */
+  clickThrough?: boolean;
+}
+
 export type WidgetConfig =
   | ChartWidgetConfig
   | TableWidgetConfig
   | MetricWidgetConfig
   | GaugeWidgetConfig
   | TextWidgetConfig
-  | IframeWidgetConfig;
+  | IframeWidgetConfig
+  | PivotWidgetConfig;
 
 export interface CommonWidgetType {
   id: string;
@@ -200,6 +227,11 @@ export interface IframeWidgetType extends CommonWidgetType {
   config: IframeWidgetConfig;
 }
 
+export interface PivotWidgetType extends CommonWidgetType {
+  type: WidgetTypes.PIVOT;
+  config: PivotWidgetConfig;
+}
+
 export type WidgetType<T extends WidgetTypes = WidgetTypes> =
   T extends WidgetTypes.CHART
     ? ChartWidgetType
@@ -213,6 +245,8 @@ export type WidgetType<T extends WidgetTypes = WidgetTypes> =
     ? TextWidgetType
     : T extends WidgetTypes.IFRAME
     ? IframeWidgetType
+    : T extends WidgetTypes.PIVOT
+    ? PivotWidgetType
     : never;
 
 export type AnyWidgetType =
@@ -221,7 +255,8 @@ export type AnyWidgetType =
   | MetricWidgetType
   | GaugeWidgetType
   | TextWidgetType
-  | IframeWidgetType;
+  | IframeWidgetType
+  | PivotWidgetType;
 
 export type Widget<
   T extends WidgetType = WidgetType,

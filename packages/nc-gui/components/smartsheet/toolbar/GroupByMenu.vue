@@ -14,6 +14,12 @@ import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 interface Props {
   hideReorder?: boolean
+  /**
+   * Keep the "Group" text label on mobile. Interface toolbars hide the icon
+   * (plain-text controls), so the default mobile icon-only collapse would
+   * leave the button empty.
+   */
+  keepLabelOnMobile?: boolean
 }
 
 const props = defineProps<Props>()
@@ -360,7 +366,9 @@ const updateHideEmptyGroups = async (v: boolean) => {
 
   hideEmptyGroups.value = v
 
-  if (canSyncGroupBy.value) {
+  // Local-mode hosts (public shares, interface synthetic views) keep the
+  // toggle session-local — the server has no real view row to update.
+  if (canSyncGroupBy.value && !isPublic.value && !isSharedBase.value) {
     try {
       const currentMeta = parseProp((view.value?.view as GridType)?.meta)
       const payload = { ...currentMeta, hide_empty_groups: v }
@@ -404,7 +412,10 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     :trigger="['click']"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
-    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
+    <NcTooltip
+      :disabled="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
+      :class="{ 'nc-active-btn': groupedByColumnIds?.length }"
+    >
       <template #title>
         {{ $t('activity.group') }}
       </template>
@@ -420,9 +431,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
             <component :is="iconMap.group" class="h-4 w-4" />
 
             <!-- Group By -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-              $t('activity.group')
-            }}</span>
+            <span
+              v-if="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
+              class="text-capitalize !text-[13px] font-medium"
+            >
+              {{ $t('activity.group') }}
+            </span>
           </div>
           <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
             groupedByColumnIds.length
@@ -602,7 +616,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
             </NcDropdown>
 
             <LazyGeneralCopyFromAnotherViewActionBtn
-              v-if="view"
+              v-if="view && !isPublic && !isSharedBase"
               :view="view"
               :default-options="[ViewSettingOverrideOptions.GROUP]"
               @open="open = false"
@@ -619,6 +633,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               v-e="['c:group-by:hide-empty-groups']"
               size="xsmall"
               class="nc-switch"
+              data-testid="nc-group-by-hide-empty-groups"
               :loading="isHideEmptyGroupsLoading"
               :disabled="isLocked"
             >

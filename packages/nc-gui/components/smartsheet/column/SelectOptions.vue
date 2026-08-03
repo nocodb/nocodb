@@ -38,6 +38,10 @@ const { isAiFeaturesEnabled, aiIntegrationAvailable, predictSelectOptions } = us
 
 const { isAiModeFieldModal } = usePredictFields()
 
+// Interface pages get the redesigned colour panel (NcColorPanel); the classic
+// data app keeps the legacy picker.
+const isInterfaceContext = useIsInterfaceUi()
+
 const meta = inject(MetaInj, ref())
 
 const optionsWrapperDomRef = ref<HTMLElement>()
@@ -238,6 +242,20 @@ const removeRenderedOption = (index: number) => {
       defaultOption.value = defaultOption.value.filter((o) => o.id !== optionId)
       vModel.value.cdf = defaultOption.value.map((o) => o.title).join(',')
     }
+  }
+}
+
+/** Enter saves the stack, Escape cancels the edit - single handler so a-input's onKeydown prop stays a function. */
+function onKanbanStackInputKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Enter' && e.key !== 'Escape') return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (e.key === 'Enter') {
+    syncOptions(true, true, kanbanStackOption.value ?? undefined)
+  } else {
+    emit('saveChanges', true, false)
   }
 }
 
@@ -606,7 +624,18 @@ defineExpose({
 
               <template #overlay>
                 <div>
+                  <LazyNcColorPanel
+                    v-if="isInterfaceContext"
+                    :model-value="kanbanStackOption.color"
+                    :preview-label="kanbanStackOption.title"
+                    @escape="colorMenus[kanbanStackOption.index!] = false"
+                    @update:model-value="(el: string) => {
+                      kanbanStackOption!.color = el
+                      optionChanged(kanbanStackOption!)
+                    }"
+                  />
                   <LazyGeneralAdvanceColorPicker
+                    v-else
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
                     invert-in-dark-mode
@@ -626,7 +655,7 @@ defineExpose({
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
               :disabled="isLoadingPredictOptions || isSyncedField"
-              @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
+              @keydown="onKanbanStackInputKeydown"
               @change="() => {
                   kanbanStackOption!.status = undefined
                   optionChanged(kanbanStackOption!)
@@ -689,7 +718,18 @@ defineExpose({
 
                   <template #overlay>
                     <div>
+                      <LazyNcColorPanel
+                        v-if="isInterfaceContext"
+                        :model-value="element.color"
+                        :preview-label="element.title"
+                        @escape="colorMenus[index] = false"
+                        @update:model-value="(el: string) => {
+                          element.color = el
+                          optionChanged(element)
+                        }"
+                      />
                       <LazyGeneralAdvanceColorPicker
+                        v-else
                         v-model="element.color"
                         :is-open="colorMenus[index]"
                         invert-in-dark-mode
@@ -790,14 +830,10 @@ defineExpose({
 
         {{ $t('labels.addOption') }}
       </NcButton>
-      <NcTooltip v-if="isAiFeaturesEnabled" class="w-1/2">
+      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-1/2">
         <template #title>
           {{
-            aiIntegrationAvailable
-              ? !vModel.title?.trim()
-                ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions')
-                : $t('tooltip.autoSuggestSelectOptions')
-              : $t('title.noAiIntegrationAvailable')
+            !vModel.title?.trim() ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions') : $t('tooltip.autoSuggestSelectOptions')
           }}
         </template>
 
@@ -807,7 +843,7 @@ defineExpose({
           class="nc-add-select-option-auto-suggest w-full caption"
           size="small"
           :bordered="false"
-          :disabled="isLoadingPredictOptions || !vModel.title?.trim() || !aiIntegrationAvailable"
+          :disabled="isLoadingPredictOptions || !vModel.title?.trim()"
           :loading="isLoadingPredictOptions"
           @click.stop="predictOptions()"
         >
@@ -820,9 +856,9 @@ defineExpose({
       </NcTooltip>
     </div>
     <div v-else-if="!kanbanStackOption?.id && !isSyncedField" class="mt-2 pl-1">
-      <NcTooltip v-if="isAiFeaturesEnabled" class="w-full" placement="bottom">
+      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-full" placement="bottom">
         <template #title>
-          {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}
+          {{ $t('tooltip.autoSuggestSelectOptions') }}
         </template>
 
         <NcButton
@@ -830,7 +866,7 @@ defineExpose({
           theme="ai"
           class="nc-add-select-option-auto-suggest caption w-full"
           size="small"
-          :disabled="isLoadingPredictOptions || !aiIntegrationAvailable"
+          :disabled="isLoadingPredictOptions"
           :loading="isLoadingPredictOptions"
           @click.stop="predictOptions()"
         >

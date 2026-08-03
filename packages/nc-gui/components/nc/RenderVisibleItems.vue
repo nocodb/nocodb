@@ -55,9 +55,16 @@ onMounted(() => {
   calculateVisibleItems()
 })
 
-watch(items, () => {
-  calculateVisibleItems()
-})
+// Recompute only when the item CONTENT changes — NOT on every re-render that
+// hands us a fresh-but-equal array. `calculateVisibleItems` reads
+// `offsetWidth` (a forced synchronous reflow); doing that per-render across the
+// many chip cells a wide list/grid mounts thrashes layout and can pin the main
+// thread. Keying on the labels (which drive the fit calculation) collapses the
+// redundant recalcs.
+watch(
+  () => JSON.stringify((items.value ?? []).map((i) => i?.[props.labelKey] ?? '')),
+  () => calculateVisibleItems(),
+)
 </script>
 
 <template>

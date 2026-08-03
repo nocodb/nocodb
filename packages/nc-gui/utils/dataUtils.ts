@@ -18,6 +18,8 @@ import {
   isSystemColumn,
   isValidValue,
   isVirtualCol,
+  ncIsArray,
+  ncIsNumber,
   resolveCurrentUserToken,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
@@ -217,24 +219,74 @@ export async function populateInsertObject({
   return { missingRequiredColumns, insertObj }
 }
 
+// Relation types whose linked record can belong to only ONE parent record.
+// Copying such a link onto a duplicated record REASSIGNS the linked record to the
+// copy and silently detaches it from the original — a data-integrity hazard.
+//  - has-many / one-to-many: the related rows carry the FK pointing here, so
+//    copying moves those rows onto the duplicate.
+//  - one-to-one: a single record on each side, so copying steals it.
+// belongs-to / many-to-one own their own FK (the parent keeps its other children)
+// and many-to-many is additive, so those relationships copy safely.
+const SINGLE_PARENT_RELATION_TYPES: RelationTypes[] = [
+  RelationTypes.HAS_MANY,
+  RelationTypes.ONE_TO_ONE,
+  RelationTypes.ONE_TO_MANY,
+]
+
+export const isSingleParentLinkColumn = (col: ColumnType) => {
+  if (!isLinksOrLTAR(col)) return false
+  const type = (col.colOptions as LinkToAnotherRecordType | undefined)?.type as RelationTypes | undefined
+  return !!type && SINGLE_PARENT_RELATION_TYPES.includes(type)
+}
+
+const hasLinkValue = (val: any) => {
+  if (ncIsNumber(val)) return val > 0
+
+  if (ncIsArray(val)) return val.length > 0
+
+  return val !== null && val !== undefined && val !== ''
+}
+
+// The single-parent link columns (see `isSingleParentLinkColumn`) that actually
+// hold a link in `row` — i.e. the links `getDuplicateRowData` drops *because of
+// the link rule*. Callers use this to tell the user which relationships the copy
+// can't share.
+//
+export const getSkippedDuplicateLinks = (row: Record<string, any> = {}, columns: ColumnType[] = []) => {
+  return columns.filter(
+    (col) => !isSystemColumn(col) && isSingleParentLinkColumn(col) && hasLinkValue(row?.[col.title as string]),
+  )
+}
+
 // Build the row payload for duplicating an existing record. Clones the source
 // values but drops:
 //  - the client-side identity markers (`ncRecordId`/`ncRecordHash`)
 //  - system columns (auto pk, raw foreign keys, created/updated by/at, order)
+//  - single-parent links (has-many / one-to-one / one-to-many) — copying them
+//    would reassign the linked record to the copy and detach it from the
+//    original (see `isSingleParentLinkColumn`). Shareable links (belongs-to /
+//    many-to-one / many-to-many) are kept so those relationships are duplicated.
+//
+// `keepSingleParentLinks` opts into carrying those links over anyway, accepting
+// that the linked records move to the copy — the user picks this explicitly in
+// the duplicate-links modal (see `prepareDuplicateRowData`).
 //
 // System columns are auto-managed and must never be carried into the insert. In
 // particular a self-referencing LTAR keeps a raw FK column (e.g. `Sheet11_id`)
 // in the cached row after an in-place link edit; re-inserting it verbatim trips
-// a unique-constraint violation (a freshly fetched row doesn't carry it). The
-// LTAR/link cell values themselves are kept so relationships are duplicated.
-export const getDuplicateRowData = (row: Record<string, any> = {}, columns: ColumnType[] = []) => {
+// a unique-constraint violation (a freshly fetched row doesn't carry it).
+export const getDuplicateRowData = (
+  row: Record<string, any> = {},
+  columns: ColumnType[] = [],
+  { keepSingleParentLinks = false }: { keepSingleParentLinks?: boolean } = {},
+) => {
   const clonedRow = { ...row }
 
   delete clonedRow.ncRecordId
   delete clonedRow.ncRecordHash
 
   for (const col of columns) {
-    if (col.title && isSystemColumn(col)) {
+    if (col.title && (isSystemColumn(col) || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))) {
       delete clonedRow[col.title]
     }
   }

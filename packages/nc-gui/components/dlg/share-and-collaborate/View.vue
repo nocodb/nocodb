@@ -8,6 +8,8 @@ const { isViewToolbar } = defineProps<{
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const route = useRoute()
+
 const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
@@ -158,7 +160,8 @@ watch(showShareModal, (val) => {
         <DlgShareAndCollaborateShareDashboard />
       </div>
 
-      <div v-if="isUIAllowed('baseShare')" class="share-base">
+      <DlgShareAndCollaborateShareInterface />
+      <div v-if="isUIAllowed('baseShare') && !route.params.interfaceId" class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <GeneralProjectIcon
             :color="parseProp(base.meta).iconColor"
@@ -193,8 +196,9 @@ watch(showShareModal, (val) => {
         <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false">
           {{ $t('general.close') }}
         </NcButton>
+        <DlgShareAndCollaborateShareInterfaceActions v-if="isEeUI" />
         <NcButton
-          v-if="isUIAllowed('baseShare')"
+          v-if="isUIAllowed('baseShare') && !route.params.interfaceId"
           data-testid="docs-share-manage-access"
           type="secondary"
           :loading="isOpeningManageAccess"
@@ -225,6 +229,7 @@ watch(showShareModal, (val) => {
   .share-view,
   .share-dashboard,
   .share-doc,
+  .share-interface,
   .share-base {
     @apply !border-1 border-nc-border-gray-medium mx-3 rounded-lg mt-3 px-1 py-1;
   }

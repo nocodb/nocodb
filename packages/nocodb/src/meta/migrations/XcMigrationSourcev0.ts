@@ -86,6 +86,9 @@ import * as nc_202607030001_ltar_order_columns from './v0/nc_202607030001_ltar_o
 import * as nc_202607071200_comment_attachments from './v0/nc_202607071200_comment_attachments';
 import * as nc_202607090505_snapshot_schedule from './v0/nc_202607090505_snapshot_schedule';
 import * as nc_202607091000_comments_meta from './v0/nc_202607091000_comments_meta';
+import * as nc_202607251200_interfaces from './v0/nc_202607251200_interfaces';
+import * as nc_202607271818_composite_pk_missing_tables_2 from './v0/nc_202607271818_composite_pk_missing_tables_2';
+import * as nc_202607281200_snapshot_schedule_daily_floor from './v0/nc_202607281200_snapshot_schedule_daily_floor';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -183,6 +186,9 @@ export default class XcMigrationSourcev0 {
       'nc_202607071200_comment_attachments',
       'nc_202607090505_snapshot_schedule',
       'nc_202607091000_comments_meta',
+      'nc_202607251200_interfaces',
+      'nc_202607271818_composite_pk_missing_tables_2',
+      'nc_202607281200_snapshot_schedule_daily_floor',
     ]);
   }
 
@@ -368,6 +374,12 @@ export default class XcMigrationSourcev0 {
         return nc_202607090505_snapshot_schedule;
       case 'nc_202607091000_comments_meta':
         return nc_202607091000_comments_meta;
+      case 'nc_202607251200_interfaces':
+        return nc_202607251200_interfaces;
+      case 'nc_202607271818_composite_pk_missing_tables_2':
+        return nc_202607271818_composite_pk_missing_tables_2;
+      case 'nc_202607281200_snapshot_schedule_daily_floor':
+        return nc_202607281200_snapshot_schedule_daily_floor;
     }
   }
 }

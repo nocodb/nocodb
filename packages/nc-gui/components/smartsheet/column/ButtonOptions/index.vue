@@ -57,8 +57,12 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
+// The injected table meta covers hosts without a route-level active table /
+// opened base (e.g. the interface builder's field editor).
+const scriptsBaseId = openedProject.value?.id ?? meta.value?.base_id
+
 if (showEEFeatures.value) {
-  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+  await Promise.all([loadHooksList(meta.value), ...(scriptsBaseId ? [loadScripts({ baseId: scriptsBaseId, force: true })] : [])])
 }
 
 const { activeBaseScripts } = toRefs(scriptStore)

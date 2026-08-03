@@ -1,5 +1,6 @@
-import { serializeDecimalValue } from './serializer';
+import { serializeDecimalValue, serializeExcelDateValue } from './serializer';
 import { SeparatorType } from './common';
+import UITypes from '~/lib/UITypes';
 
 function makeParams(separator: SeparatorType) {
   return {
@@ -199,6 +200,75 @@ describe('serializeDecimalValue', () => {
         },
       } as any;
       expect(serializeDecimalValue('1.23', undefined, params)).toBe(1.23);
+    });
+  });
+});
+
+describe('serializeExcelDateValue', () => {
+  const dateCol = { uidt: UITypes.Date } as any;
+  const dateTimeCol = { uidt: UITypes.DateTime } as any;
+
+  describe('empty values', () => {
+    it('returns null for null', () => {
+      expect(serializeExcelDateValue(null, dateCol)).toBeNull();
+    });
+
+    it('returns null for undefined', () => {
+      expect(serializeExcelDateValue(undefined, dateCol)).toBeNull();
+    });
+
+    it('returns null for empty string', () => {
+      expect(serializeExcelDateValue('', dateCol)).toBeNull();
+    });
+  });
+
+  describe('non-numeric values are passed through untouched', () => {
+    it('returns a Date instance as-is', () => {
+      const d = new Date('2023-01-01T00:00:00Z');
+      expect(serializeExcelDateValue(d, dateCol)).toBe(d);
+    });
+
+    it('returns an already-formatted date string as-is', () => {
+      expect(serializeExcelDateValue('2023-01-01', dateCol)).toBe('2023-01-01');
+    });
+  });
+
+  describe('Date column — serial → YYYY-MM-DD', () => {
+    it('converts the Excel epoch serial (25569) to 1970-01-01', () => {
+      expect(serializeExcelDateValue(25569, dateCol)).toBe('1970-01-01');
+    });
+
+    it('converts a modern serial (44927) to 2023-01-01', () => {
+      expect(serializeExcelDateValue(44927, dateCol)).toBe('2023-01-01');
+    });
+
+    it('drops the time component for a fractional serial', () => {
+      expect(serializeExcelDateValue(44927.5, dateCol)).toBe('2023-01-01');
+    });
+
+    it('handles pre-1970 serials (positive integers below the epoch)', () => {
+      // serial 1 = 1899-12-31 in the Excel 1900 date system
+      expect(serializeExcelDateValue(1, dateCol)).toBe('1899-12-31');
+    });
+  });
+
+  describe('DateTime column — serial → YYYY-MM-DD HH:mm:ss+00:00', () => {
+    it('converts a whole-day serial at midnight UTC', () => {
+      expect(serializeExcelDateValue(44927, dateTimeCol)).toBe(
+        '2023-01-01 00:00:00+00:00'
+      );
+    });
+
+    it('converts a fractional serial to the matching UTC time', () => {
+      expect(serializeExcelDateValue(44927.5, dateTimeCol)).toBe(
+        '2023-01-01 12:00:00+00:00'
+      );
+    });
+
+    it('converts a three-quarter-day serial (18:00 UTC)', () => {
+      expect(serializeExcelDateValue(45658.75, dateTimeCol)).toBe(
+        '2025-01-01 18:00:00+00:00'
+      );
     });
   });
 });

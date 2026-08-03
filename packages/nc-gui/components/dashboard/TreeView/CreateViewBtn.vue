@@ -205,6 +205,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
+          v-if="isEeUI"
           inner-class="w-full"
           data-testid="sidebar-view-create-map"
           @click="

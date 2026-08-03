@@ -354,7 +354,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <NcMenuItem data-testid="mini-sidebar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
+              <NcMenuItem v-if="isEeUI" data-testid="mini-sidebar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
               </NcMenuItem>

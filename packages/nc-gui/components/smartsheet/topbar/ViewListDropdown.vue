@@ -247,7 +247,7 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
-                <a-menu-item data-testid="topbar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
+                <a-menu-item v-if="isEeUI" data-testid="topbar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}

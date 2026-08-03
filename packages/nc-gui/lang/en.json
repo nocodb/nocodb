@@ -4294,6 +4294,8 @@
       "functionNotAvailable": "{function} function is not available",
       "firstParamWeekDayHaveDate": "The first parameter of WEEKDAY() should have date value",
       "secondParamWeekDayHaveDate": "The second parameter of WEEKDAY() should have the value either \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" or \"saturday\"",
+      "firstParamWeekNumHaveDate": "The first parameter of WEEKNUM() should have date value",
+      "secondParamWeekNumHaveDate": "The second parameter of WEEKNUM() should have the value either \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" or \"saturday\"",
       "firstParamDateAddHaveDate": "The first parameter of DATEADD() should have date value",
       "secondParamDateAddHaveNumber": "The second parameter of DATEADD() should have numeric value",
       "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",

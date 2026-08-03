@@ -10,7 +10,10 @@ import commonFns, {
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
 import { NcError } from '~/helpers/ncError';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
@@ -226,6 +229,24 @@ const pg = {
         }) - 1 - ${getWeekdayByText(
           pt?.arguments[1]?.value,
         )} % 7 + 7) ::INTEGER % 7`,
+      ),
+    };
+  },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. DOW is 0 (Sunday) .. 6 (Saturday); DOY is 1-based.
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
+            'YYYY-MM-DD',
+          )}'`
+        : `(${(await fn(pt.arguments[0])).builder})::TIMESTAMP`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `EXTRACT(DOY FROM ${source})::INTEGER`;
+    const dow = `EXTRACT(DOW FROM ${source})::INTEGER`;
+    return {
+      builder: knex.raw(
+        `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7.0) + 1)::INTEGER`,
       ),
     };
   },

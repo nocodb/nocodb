@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { GalleryType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, PlanFeatureTypes, PlanTitles, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
@@ -31,14 +31,8 @@ const table = computed(() => props.table)
 
 const viewsStore = useViewsStore()
 
-const {
-  navigateToView,
-  duplicateView,
-  updateView,
-  updateViewMeta,
-  onOpenCopyViewConfigFromAnotherViewModal,
-  getCopyViewConfigBtnAccessStatus,
-} = viewsStore
+const { navigateToView, duplicateView, updateView, onOpenCopyViewConfigFromAnotherViewModal, getCopyViewConfigBtnAccessStatus } =
+  viewsStore
 
 // Reactive views map for the whole store. We look up by the action target's
 // own (baseId, tableId) rather than relying on the active-table view list,
@@ -222,53 +216,8 @@ const onClickCopyViewConfig = () => {
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
 }
 
-const isFieldHeaderVisibilityOptionVisible = computed(() => {
-  return (
-    !props.inSidebar &&
-    isUIAllowed('viewCreateOrEdit') &&
-    [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isEeUI &&
-    showEEFeatures.value
-  )
-})
-
-const isFieldHeaderVisible = computed(() => {
-  return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
-})
-
-const onToggleFieldHeaderVisibility = async () => {
-  if (!view.value) {
-    emits('closeModal')
-
-    return
-  }
-
-  const payload = {
-    ...parseProp((view.value?.view as GalleryType | KanbanType)?.meta),
-    is_field_header_visible: !isFieldHeaderVisible.value,
-  }
-
-  view.value.meta = payload
-
-  emits('closeModal')
-
-  try {
-    await updateViewMeta(view.value.id!, view.value.type, {
-      meta: payload,
-    })
-  } catch (e: any) {
-    // revert local changes on error
-    view.value.meta = {
-      ...payload,
-      is_field_header_visible: !payload.is_field_header_visible,
-    }
-
-    const errorInfo = await extractSdkResponseErrorMsgv2(e)
-    message.error(t('msg.error.fieldHeaderVisibilityUpdateFailed'), undefined, {
-      copyText: errorInfo.message,
-    })
-  }
-}
+// Field-header visibility was moved to the Edit Cards menu (FieldsMenu) so all
+// gallery/kanban card-appearance options live together.
 
 // View ownership, personal/locked state and derived permission checks all
 // come from usePersonalViewPermissions to avoid drift with other components.
@@ -791,34 +740,6 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
-        <PaymentUpgradeBadgeProvider
-          v-if="isFieldHeaderVisibilityOptionVisible"
-          :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
-        >
-          <template #default="{ click }">
-            <NcMenuItem
-              inner-class="w-full"
-              @click="click(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY, () => onToggleFieldHeaderVisibility())"
-            >
-              <GeneralIcon :icon="isFieldHeaderVisible ? 'eye' : 'eyeSlash'" class="!w-4 !h-4 opacity-80" />
-
-              {{ isFieldHeaderVisible ? $t('labels.hideFieldHeader') : $t('labels.showFieldHeader') }}
-
-              <div class="flex-1 w-full" />
-              <LazyPaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
-                :limit-or-feature="$t('upgrade.toAccessCardFieldHeaderVisibility') as PlanFeatureTypes"
-                :content="
-                  $t('upgrade.upgradeToAccessCardFieldHeaderVisibilitySubtitle', {
-                    plan: getPlanTitle(PlanTitles.PLUS),
-                  })
-                "
-                :on-click-callback="() => emits('closeModal')"
-                show-as-lock
-              />
-            </NcMenuItem>
-          </template>
-        </PaymentUpgradeBadgeProvider>
       </template>
 
       <BookmarksMenuAction

@@ -196,6 +196,45 @@ export enum CoverImageObjectFit {
   COVER = 'cover',
 }
 
+// Gallery card width (drives grid column min-width + columns-per-row).
+export enum GalleryCardSize {
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
+}
+
+// Gallery cover-image height — independent of card width.
+export enum GalleryCoverSize {
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
+}
+
+export const DEFAULT_GALLERY_CARD_SIZE = GalleryCardSize.MEDIUM
+
+export const DEFAULT_GALLERY_COVER_SIZE = GalleryCoverSize.MEDIUM
+
+// Card min-width (px) per size — feeds the CSS grid minmax + columns-per-row math.
+export const GALLERY_CARD_MIN_WIDTH: Record<GalleryCardSize, number> = {
+  [GalleryCardSize.SMALL]: 200,
+  [GalleryCardSize.MEDIUM]: 250,
+  [GalleryCardSize.LARGE]: 320,
+}
+
+// Cover-image height (px) per size. MEDIUM = 208 (the original h-52).
+export const GALLERY_COVER_HEIGHT: Record<GalleryCoverSize, number> = {
+  [GalleryCoverSize.SMALL]: 140,
+  [GalleryCoverSize.MEDIUM]: 208,
+  [GalleryCoverSize.LARGE]: 280,
+}
+
+// Card max-width (px) per size — cap for the 1-column / wide-container case.
+export const GALLERY_CARD_MAX_WIDTH: Record<GalleryCardSize, number> = {
+  [GalleryCardSize.SMALL]: 380,
+  [GalleryCardSize.MEDIUM]: 450,
+  [GalleryCardSize.LARGE]: 600,
+}
+
 export enum AuditLogsDateRange {
   Last24H = 'last24H',
   PastWeek = 'pastWeek',

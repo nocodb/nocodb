@@ -44,6 +44,7 @@ import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-job
 import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
 import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
 import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
+import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -111,6 +112,7 @@ export const JobsModuleMetadata = {
     RecordTrashBackfillMigration,
     CleanupOrphanCrossBaseLinksMigration,
     CleanupOrphanViewColumnsMigration,
+    PgSourceSearchPathBackfillMigration,
   ],
   exports: ['JobsService', JobsLogService, DuplicateProcessor],
 };

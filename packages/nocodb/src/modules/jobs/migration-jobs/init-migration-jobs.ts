@@ -23,6 +23,7 @@ import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-job
 import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
 import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
 import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
+import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -98,6 +99,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.CleanupOrphanViewColumns,
       service: this.cleanupOrphanViewColumnsMigration,
     },
+    {
+      version: '15',
+      job: MigrationJobTypes.PgSourceSearchPathBackfill,
+      service: this.pgSourceSearchPathBackfillMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -119,6 +125,7 @@ export class InitMigrationJobs {
     private readonly recordTrashBackfillMigration: RecordTrashBackfillMigration,
     private readonly cleanupOrphanCrossBaseLinksMigration: CleanupOrphanCrossBaseLinksMigration,
     private readonly cleanupOrphanViewColumnsMigration: CleanupOrphanViewColumnsMigration,
+    private readonly pgSourceSearchPathBackfillMigration: PgSourceSearchPathBackfillMigration,
   ) {}
 
   log = (...msgs: string[]) => {

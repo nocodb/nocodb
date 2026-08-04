@@ -51,18 +51,23 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
  * Effective schema for metadata introspection (tableList / columnList /
  * relationListAll / viewList).
  *
- * External PG / MSSQL sources carry the schema under `searchPath` (see
- * `Model.ts` and `PgClient.get schema()`); meta sources — and every other
- * client type — keep it on `.schema`. Reading `.schema` for an external PG
- * source returns undefined, so introspection silently falls back to `public`
- * and ignores the configured schema. Mirror `Model.ts` so the sync reads the
- * right schema.
+ * External (non-meta, non-local) PG / MSSQL sources carry the schema under
+ * `searchPath` (see `Model.ts` and `PgClient.get schema()`); meta / local
+ * sources — and every other client type — keep it on `.schema`. Reading
+ * `.schema` for an external PG source returns undefined, so introspection
+ * silently falls back to `public` and ignores the configured schema.
+ *
+ * Gate on `isMeta()` (`is_meta || is_local`), NOT `isMeta(true, 1)` (which is
+ * `is_local` only): an `is_meta` pg/mssql source (e.g. NC_DISABLE_PG_DATA_
+ * REFLECTION) has `getConfig()` return the META db config, whose schema lives
+ * on `.schema` (from `NC_DB ?schema=`), not `searchPath` — so it must take the
+ * `.schema` branch, exactly as it did before this change.
  */
 export function getSourceIntrospectionSchema(
   source: Source,
 ): string | undefined {
   if (
-    !source?.isMeta?.(true, 1) &&
+    !source?.isMeta?.() &&
     (source?.type === 'pg' || source?.type === 'mssql')
   ) {
     return source.getConfig()?.searchPath?.[0];

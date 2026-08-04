@@ -679,8 +679,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           <!-- Schema name -->
                           <a-form-item
                             v-if="
-                              ([ClientType.PG].includes(formState.dataSource.client) ||
-                                [ClientType.PG].includes(selectedIntegration?.sub_type)) &&
+                              ([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client) ||
+                                [ClientType.PG, ClientType.MSSQL].includes(selectedIntegration?.sub_type)) &&
                               formState.dataSource.searchPath
                             "
                             :label="$t('labels.schemaName')"

@@ -34,10 +34,6 @@ const isAdminRoute = computed(() => {
   return isWsAdminRoute(route.value)
 })
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isWsLandingRedesign = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKSPACE_LANDING_REDESIGN))
-
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
 const wsHomeSearchQuery = useState<string>('ws-home-search', () => '')
@@ -174,23 +170,14 @@ watch(
     </NuxtLayout>
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>
-        <template v-if="isHomeSidebarRoute">
-          <DashboardHomeSidebarV2 v-if="isWsLandingRedesign" />
-          <DashboardHomeSidebar v-else />
-        </template>
+        <DashboardHomeSidebar v-if="isHomeSidebarRoute" />
         <DashboardSidebar v-else />
       </template>
       <template #content>
         <!-- Workspace home: stable header + tabs + dynamic page content -->
-        <div
-          v-if="isHomeSidebarRoute"
-          class="flex flex-col h-full w-full"
-          :style="isWsLandingRedesign ? { '--topbar-height': '3.5rem' } : undefined"
-        >
-          <WorkspaceViewTopbarV2 v-if="isWsLandingRedesign" />
-          <WorkspaceViewTopbar v-else />
-          <WorkspaceAdminTabs v-if="isWsLandingRedesign && isAdminRoute" />
-          <WorkspaceViewTabs v-if="!isWsLandingRedesign" />
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full" :style="{ '--topbar-height': '3.5rem' }">
+          <WorkspaceViewTopbar />
+          <WorkspaceAdminTabs v-if="isAdminRoute" />
           <div class="flex-1 overflow-auto">
             <NuxtPage :transition="false" />
           </div>

@@ -68,12 +68,18 @@ export class PgSourceSearchPathBackfillMigration {
     PgSourceSearchPathBackfillMigration.name,
   );
 
+  // Read the candidate set in keyset-paginated pages. Loading every row up
+  // front is an unbounded memory load on instances with many (10k+) external
+  // sources, so we page by `id` and process each page before fetching the
+  // next. Keyset (`id > lastId`) — not OFFSET — keeps every page a flat index
+  // scan instead of re-walking all skipped rows.
+  static readonly BATCH_SIZE = 500;
+
   async job() {
     const ncMeta = Noco.ncMeta;
 
-    // External (non-meta, non-local) pg/mssql sources that aren't deleted. Read
-    // ids only — decryption + integration-config inheritance are handled via the
-    // model.
+    // Candidate filter for external (non-meta, non-local, non-deleted) pg/mssql
+    // sources backed by an integration.
     //
     // The is_meta/is_local filter mirrors grandfatherSearchPath's `isMeta()`
     // guard (which is `is_meta || is_local`): a local source reads from the
@@ -86,74 +92,121 @@ export class PgSourceSearchPathBackfillMigration {
     // its effective schema is the DB default and it's skipped. Filtering to
     // `fk_integration_id IS NOT NULL` keeps this cheap on instances with many
     // (10k+) external sources without missing any source that would be pinned.
-    const rows = await ncMeta
-      .knexConnection(MetaTable.SOURCES)
-      .whereIn('type', ['pg', 'mssql'])
-      .whereNotNull('fk_integration_id')
-      .where(function () {
-        this.where('is_meta', false).orWhereNull('is_meta');
-      })
-      .where(function () {
-        this.where('is_local', false).orWhereNull('is_local');
-      })
-      .where(function () {
-        this.where('deleted', false).orWhereNull('deleted');
-      })
-      .select('id', 'base_id', 'fk_workspace_id', 'type');
+    const applyCandidateFilter = (qb: any) =>
+      qb
+        .whereIn(`${MetaTable.SOURCES}.type`, ['pg', 'mssql'])
+        .whereNotNull(`${MetaTable.SOURCES}.fk_integration_id`)
+        .where(function () {
+          this.where(`${MetaTable.SOURCES}.is_meta`, false).orWhereNull(
+            `${MetaTable.SOURCES}.is_meta`,
+          );
+        })
+        .where(function () {
+          this.where(`${MetaTable.SOURCES}.is_local`, false).orWhereNull(
+            `${MetaTable.SOURCES}.is_local`,
+          );
+        })
+        .where(function () {
+          this.where(`${MetaTable.SOURCES}.deleted`, false).orWhereNull(
+            `${MetaTable.SOURCES}.deleted`,
+          );
+        });
+
+    const total = await applyCandidateFilter(
+      ncMeta.knexConnection(MetaTable.SOURCES),
+    )
+      .count(`${MetaTable.SOURCES}.id as count`)
+      .first()
+      .then((r) => Number(r?.count ?? 0));
 
     this.logger.log(
-      `Found ${rows.length} candidate source(s) (external integration-backed pg/mssql) to evaluate`,
+      `Found ${total} candidate source(s) (external integration-backed pg/mssql) to evaluate`,
     );
 
     let pinned = 0;
+    let evaluated = 0;
+    let lastId = '';
 
-    for (const row of rows) {
-      try {
-        const context = {
-          workspace_id: row.fk_workspace_id,
-          base_id: row.base_id,
-        };
-
-        // Source.get joins the integration config, so getConfig() reflects the
-        // POST-fix effective searchPath (source override, else integration).
-        const source = await Source.get(context, row.id, false, ncMeta);
-        if (!source) continue;
-
-        const searchPath = grandfatherSearchPath(source);
-        if (!searchPath) continue;
-
-        await Source.update(
-          context,
-          source.id,
-          {
-            config: { ...(source.getSourceConfig() || {}), searchPath },
-          },
-          ncMeta,
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      // One join per page pulls each source's own config AND its integration
+      // config in a single round-trip, so grandfatherSearchPath runs entirely
+      // in memory — no per-source Source.get() round-trip (the old N+1). The
+      // join + selected columns mirror Source.extendQb/castType so the
+      // in-memory Source behaves identically to Source.get().
+      const rows = await applyCandidateFilter(
+        ncMeta.knexConnection(MetaTable.SOURCES),
+      )
+        .leftJoin(
+          MetaTable.INTEGRATIONS,
+          `${MetaTable.SOURCES}.fk_integration_id`,
+          `${MetaTable.INTEGRATIONS}.id`,
+        )
+        .where(`${MetaTable.SOURCES}.id`, '>', lastId)
+        .orderBy(`${MetaTable.SOURCES}.id`, 'asc')
+        .limit(PgSourceSearchPathBackfillMigration.BATCH_SIZE)
+        .select(
+          `${MetaTable.SOURCES}.*`,
+          `${MetaTable.INTEGRATIONS}.config as integration_config`,
         );
 
-        // Source.update only bumps the Redis version — it does NOT tear down
-        // this instance's cached knex connection (its own comment says config
-        // changing callers must resetSource() themselves). Without this, the
-        // instance running the job keeps serving the pre-pin (integration,
-        // non-default) schema connection until restart, because its local
-        // version already equals the bumped one so the staleness check never
-        // fires. resetSource() deletes the local ref then bumps, so this
-        // instance rebuilds against the pinned schema on the next connection
-        // and every other instance invalidates via the version bump.
-        await NcConnectionMgrv2.resetSource(source.id);
-        pinned++;
+      if (!rows.length) break;
+      lastId = rows[rows.length - 1].id;
 
-        // Per-pin audit line — this migration mutates source config, so record
-        // exactly which sources were changed and to what.
-        this.logger.log(
-          `Pinned source ${source.id} (base ${row.base_id}) searchPath -> [${searchPath[0]}]`,
-        );
-      } catch (e) {
-        this.logger.error(
-          `Failed to backfill searchPath for source ${row.id}: ${e.message}`,
-          e.stack,
-        );
+      for (const row of rows) {
+        evaluated++;
+        try {
+          // Hydrate a Source from the joined row (source config +
+          // integration_config). getConfig()/getSourceConfig() decrypt and
+          // merge in memory, so this reflects the POST-fix effective searchPath
+          // (source override, else integration) with no extra query.
+          const source = new Source(row);
+
+          const searchPath = grandfatherSearchPath(source);
+          if (!searchPath) continue;
+
+          const context = {
+            workspace_id: row.fk_workspace_id,
+            base_id: row.base_id,
+          };
+
+          await Source.update(
+            context,
+            source.id,
+            {
+              config: { ...(source.getSourceConfig() || {}), searchPath },
+            },
+            ncMeta,
+          );
+
+          // Source.update only bumps the Redis version — it does NOT tear down
+          // this instance's cached knex connection (its own comment says config
+          // changing callers must resetSource() themselves). Without this, the
+          // instance running the job keeps serving the pre-pin (integration,
+          // non-default) schema connection until restart, because its local
+          // version already equals the bumped one so the staleness check never
+          // fires. resetSource() deletes the local ref then bumps, so this
+          // instance rebuilds against the pinned schema on the next connection
+          // and every other instance invalidates via the version bump.
+          await NcConnectionMgrv2.resetSource(source.id);
+          pinned++;
+
+          // Per-pin audit line — this migration mutates source config, so
+          // record exactly which sources were changed and to what.
+          this.logger.log(
+            `Pinned source ${source.id} (base ${row.base_id}) searchPath -> [${searchPath[0]}]`,
+          );
+        } catch (e) {
+          this.logger.error(
+            `Failed to backfill searchPath for source ${row.id}: ${e.message}`,
+            e.stack,
+          );
+        }
       }
+
+      this.logger.log(
+        `searchPath backfill progress: evaluated ${evaluated}/${total}, pinned ${pinned} so far`,
+      );
     }
 
     this.logger.log(

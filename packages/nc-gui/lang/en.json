@@ -2259,8 +2259,6 @@
     "tryAgain": "Try again",
     "goToBase": "Go to Base",
     "goToData": "Go to data",
-    "openInterface": "Open interface",
-    "openData": "Open data",
     "errorMessage": "Error message:",
     "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
     "duplicateBaseSuccessfull": "Base Duplication Successfull",

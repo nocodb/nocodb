@@ -294,7 +294,10 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
+          <div
+            class="nc-integrations-layout nc-content-max-w mx-auto"
+            :class="isNewWsPage ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
+          >
             <!-- Main integrations page -->
             <template v-if="integrationsViewMode === 'main'">
               <div class="h-full">
@@ -378,7 +381,7 @@ if (!props.isNewWsPage) {
               </div>
             </template>
 
-            <WorkspaceSso class="!h-[calc(100vh-92px)]" />
+            <WorkspaceSso :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>

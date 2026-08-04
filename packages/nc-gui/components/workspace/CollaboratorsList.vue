@@ -451,7 +451,7 @@ watch(inviteDlg, (newVal) => {
     </div>
 
     <div
-      class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-4 md:py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0"
+      class="nc-collaborator-table-wrapper h-full nc-content-max-w mx-auto pt-4 pb-4 md:pb-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0"
     >
       <div class="w-full flex items-center justify-between gap-3">
         <a-input
@@ -901,11 +901,13 @@ watch(inviteDlg, (newVal) => {
     }
   }
 
+  // Workspace home: Members is not an Admin route, so no sub-tab bar is on screen
+  // and there is nothing to subtract beyond the topbar.
   &.nc-is-ws-members-list {
-    @apply h-[calc(100vh-var(--topbar-height)-44px)];
+    @apply h-[calc(100vh-var(--topbar-height))];
 
     @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 

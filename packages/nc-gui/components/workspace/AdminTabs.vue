@@ -9,13 +9,10 @@ const { t } = useI18n()
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
-const { loadCollaborators } = workspaceStore
 
-const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+const { isWsAuditEnabled, handleUpgradePlan } = useEeConfig()
 
-const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams, blockTeamsManagement } = useEeConfig()
-
-const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
+const { wsTabVisibility, hasAdminTabBar } = useWorkspaceTabVisibility(activeWorkspace)
 
 // Tab definitions
 interface TabItem {
@@ -27,26 +24,8 @@ interface TabItem {
 }
 
 const tabItems = computed<TabItem[]>(() => {
-  // Ensure re-evaluation when roles load
-  // eslint-disable-next-line no-unused-expressions
-  isBaseRolesLoaded.value
-
   return [
-    { key: 'bases', icon: 'ncDatabase', label: t('objects.projects') },
-    { key: 'collaborators', icon: 'users', label: t('labels.members'), hidden: !wsTabVisibility.value.collaborators },
-    {
-      key: 'teams',
-      icon: 'ncBuilding',
-      label: t('general.teams'),
-      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, blocked: blockTeamsManagement.value },
-      hidden: !wsTabVisibility.value.teams,
-    },
-    {
-      key: 'integrations',
-      icon: 'integration',
-      label: t('general.integrations'),
-      hidden: !wsTabVisibility.value.integrations,
-    },
+    { key: 'settings', icon: 'ncSettings', label: t('general.general'), hidden: !wsTabVisibility.value.settings },
     {
       key: 'billing',
       icon: 'ncDollarSign',
@@ -66,13 +45,12 @@ const tabItems = computed<TabItem[]>(() => {
       label: t('title.sso'),
       hidden: !wsTabVisibility.value.sso,
     },
-    { key: 'settings', icon: 'ncSettings', label: t('labels.settings'), hidden: !wsTabVisibility.value.settings },
   ].filter((item) => !item.hidden)
 })
 
 const activeTab = computed({
   get() {
-    return routeNameToWsTab[route.value.name as string] || 'bases'
+    return routeNameToWsTab[route.value.name as string] || 'settings'
   },
   set(tabKey: string) {
     if (!isWsAuditEnabled.value && tabKey === 'audits') {
@@ -80,26 +58,19 @@ const activeTab = computed({
         title: t('upgrade.upgradeToAccessWsAudit'),
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-        triggerSource: 'ws-tabs-audit',
+        triggerSource: 'ws-admin-tabs-audit',
       })
       return
     }
 
-    if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-tabs-teams' }))
-      return
-
-    if (['collaborators', 'teams'].includes(tabKey) && isUIAllowed('workspaceCollaborators')) {
-      loadCollaborators({}, activeWorkspaceId.value)
-    }
-
     const typeOrId = route.value.params.typeOrId || activeWorkspaceId.value || 'nc'
-    router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId', params: { typeOrId } })
+    router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId-settings', params: { typeOrId } })
   },
 })
 </script>
 
 <template>
-  <NcTabs :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-view-tabs">
+  <NcTabs v-if="hasAdminTabBar" :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-admin-tabs">
     <template #leftExtra>
       <div class="w-2 sm:w-4"></div>
     </template>
@@ -123,7 +94,7 @@ const activeTab = computed({
 </template>
 
 <style lang="scss" scoped>
-.nc-ws-view-tabs {
+.nc-ws-admin-tabs {
   @apply flex-none w-full;
 
   :deep(.ant-tabs-content-holder) {

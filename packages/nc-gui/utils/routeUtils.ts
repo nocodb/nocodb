@@ -96,6 +96,25 @@ export const wsTabToRouteName: Record<string, string> = Object.fromEntries(
 )
 
 /**
+ * Route names grouped under the "Admin" sidebar item on the workspace home page.
+ * Billing / Audits / SSO / SCIM render as sub-tabs of the Admin section while
+ * keeping their flat routes (deep links stay valid).
+ */
+export const wsAdminRouteNames = new Set([
+  'index-typeOrId-settings',
+  'index-typeOrId-billing',
+  'index-typeOrId-audits',
+  'index-typeOrId-sso',
+  'index-typeOrId-scim',
+])
+
+export const isWsAdminRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+  if (!route) return false
+
+  return wsAdminRouteNames.has(route.name as string)
+}
+
+/**
  * Route names that correspond to workspace settings pages.
  * Used to detect whether the current route is a workspace settings page.
  */

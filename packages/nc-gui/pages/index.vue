@@ -30,6 +30,10 @@ const isHomeSidebarRoute = computed(() => {
   return isWsHomeRoute(route.value)
 })
 
+const isAdminRoute = computed(() => {
+  return isWsAdminRoute(route.value)
+})
+
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
 const wsHomeSearchQuery = useState<string>('ws-home-search', () => '')
@@ -171,9 +175,9 @@ watch(
       </template>
       <template #content>
         <!-- Workspace home: stable header + tabs + dynamic page content -->
-        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full" :style="{ '--topbar-height': '3.5rem' }">
           <WorkspaceViewTopbar />
-          <WorkspaceViewTabs />
+          <WorkspaceAdminTabs v-if="isAdminRoute" />
           <div class="flex-1 overflow-auto">
             <NuxtPage :transition="false" />
           </div>

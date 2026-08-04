@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import Source from '~/models/Source';
@@ -78,6 +79,16 @@ export class PgSourceSearchPathBackfillMigration {
   async job() {
     const ncMeta = Noco.ncMeta;
 
+    // Snapshot the start time and only grandfather sources that already exist.
+    // Unlike the previous single snapshot-`select`, the keyset walk can reach a
+    // page for a source created WHILE the migration runs (ids are random
+    // nanoids, so a new row may land in an unvisited page). Such a source is
+    // brand-new user config, not legacy pre-fix data — pinning it to `public`
+    // would clobber the schema the user just set. Bounding by `created_at`
+    // closes that window; the count uses the same filter so `total` stays
+    // consistent with what's iterated.
+    const startedAt = new Date();
+
     // Candidate filter for external (non-meta, non-local, non-deleted) pg/mssql
     // sources backed by an integration.
     //
@@ -92,10 +103,11 @@ export class PgSourceSearchPathBackfillMigration {
     // its effective schema is the DB default and it's skipped. Filtering to
     // `fk_integration_id IS NOT NULL` keeps this cheap on instances with many
     // (10k+) external sources without missing any source that would be pinned.
-    const applyCandidateFilter = (qb: any) =>
+    const applyCandidateFilter = (qb: Knex.QueryBuilder) =>
       qb
         .whereIn(`${MetaTable.SOURCES}.type`, ['pg', 'mssql'])
         .whereNotNull(`${MetaTable.SOURCES}.fk_integration_id`)
+        .where(`${MetaTable.SOURCES}.created_at`, '<', startedAt)
         .where(function () {
           this.where(`${MetaTable.SOURCES}.is_meta`, false).orWhereNull(
             `${MetaTable.SOURCES}.is_meta`,

@@ -125,6 +125,21 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     }
   }
 
+  const onUpdateIcon = async (base: NcProject, icon: string) => {
+    try {
+      const newMeta = {
+        ...parseProp(base.meta),
+        icon,
+      }
+      updateBaseInWorkspace(base, { meta: newMeta as any })
+      await $api.base.update(base.id!, { meta: JSON.stringify(newMeta) })
+      $e('a:base:icon:modal', { icon })
+    } catch (e: any) {
+      updateBaseInWorkspace(base, { meta: base.meta })
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   const onReorder = async (base: NcProject, newOrder: number) => {
     try {
       updateBaseInWorkspace(base, { order: newOrder })
@@ -208,6 +223,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     onOpenSettings,
     onDelete,
     onUpdateColor,
+    onUpdateIcon,
     onReorder,
     onSelect,
     onOpenData,

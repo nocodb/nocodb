@@ -47,7 +47,7 @@ const navItems = computed<NavItem[]>(() => {
   return [
     {
       key: 'bases',
-      icon: 'ncDatabase',
+      icon: 'ncBaseOutline',
       label: t('objects.projects'),
       count: isProjectsLoaded.value ? basesList.value.length : undefined,
     },
@@ -89,9 +89,14 @@ function onNavClick(item: NavItem) {
 </script>
 
 <template>
-  <div class="nc-home-sidebar flex flex-col h-full bg-nc-bg-gray-sidebar border-r-1 border-nc-border-gray-light select-none">
+  <div
+    class="nc-home-sidebar nc-home-sidebar-v2 flex flex-col h-full bg-nc-bg-default select-none"
+    style="--topbar-height: 3.5rem"
+  >
     <!-- Brand header -->
-    <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
+    <div
+      class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-light"
+    >
       <div class="pl-1">
         <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/full-logo.png" class="h-9" />
         <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" class="h-9" />
@@ -180,6 +185,13 @@ function onNavClick(item: NavItem) {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+// Match the pane splitter to the topbar's bottom border on the redesigned ws-home
+.nc-sidebar-content-resizable-wrapper:has(.nc-home-sidebar-v2) > .splitpanes__splitter:before {
+  @apply !bg-nc-border-gray-light;
+}
+</style>
 
 <style lang="scss" scoped>
 .nc-home-sidebar {

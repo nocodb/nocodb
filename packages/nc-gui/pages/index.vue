@@ -182,7 +182,11 @@ watch(
       </template>
       <template #content>
         <!-- Workspace home: stable header + tabs + dynamic page content -->
-        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
+        <div
+          v-if="isHomeSidebarRoute"
+          class="flex flex-col h-full w-full"
+          :style="isWsLandingRedesign ? { '--topbar-height': '3.5rem' } : undefined"
+        >
           <WorkspaceViewTopbarV2 v-if="isWsLandingRedesign" />
           <WorkspaceViewTopbar v-else />
           <WorkspaceAdminTabs v-if="isWsLandingRedesign && isAdminRoute" />

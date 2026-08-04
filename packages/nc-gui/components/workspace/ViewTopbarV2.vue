@@ -74,7 +74,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 px-2 sm:px-4 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
+  <div class="flex items-center gap-2 px-2 sm:px-4 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-light">
     <div class="flex-1 flex items-center gap-2 min-w-0">
       <GeneralOpenLeftSidebarBtn />
       <div class="flex items-center gap-1.5 min-w-0 text-bodyDefaultSm" data-testid="nc-ws-home-topbar-breadcrumb">
@@ -96,7 +96,7 @@ onMounted(() => {
       <a-input
         v-model:value="searchQuery"
         type="text"
-        class="nc-input-border-on-value nc-ws-home-search !h-8 !pl-1.5 !pr-1 !py-1 !rounded-lg"
+        class="nc-ws-home-search nc-input-shadow !h-9 !pl-2 !pr-1.5 !py-1 !rounded-lg"
         :placeholder="$t('placeholder.searchBasesInWorkspace', { workspace: workspaceTitle })"
         data-testid="nc-ws-home-topbar-search"
         allow-clear

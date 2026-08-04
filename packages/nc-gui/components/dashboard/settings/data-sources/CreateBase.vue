@@ -121,7 +121,9 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-      clientValidations['dataSource.searchPath.0'] = selectedIntegration.value ? [] : [fieldRequiredValidator()]
+      // Schema is optional for PG — an empty value is treated as undefined on
+      // submit and the source inherits the integration / DB default (public).
+      clientValidations['dataSource.searchPath.0'] = []
       break
   }
 

@@ -167,7 +167,9 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      // Schema is optional for PG — an empty value is treated as undefined on
+      // submit and the connection uses the DB default (public).
+      clientValidations['dataSource.searchPath.0'] = []
       break
   }
 
@@ -308,6 +310,12 @@ const createOrUpdateIntegration = async () => {
     const connection = getConnectionConfig()
 
     const config = { ...formState.value.dataSource, connection }
+
+    // Schema is optional for PG — an empty value means "use the DB default"
+    // (public). Strip it so we don't persist a meaningless [''].
+    if (config.searchPath?.[0] === '') {
+      config.searchPath = undefined
+    }
 
     if (!isEditMode.value) {
       await saveIntegration(

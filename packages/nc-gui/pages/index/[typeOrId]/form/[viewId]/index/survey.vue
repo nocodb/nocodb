@@ -442,7 +442,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             readonly: field?.read_only,
                           }"
                           :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-                          :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                          :data-testid="`nc-survey-form__input-${field.title.replace(/ /g, '')}`"
                           :column="field"
                           :read-only="field?.read_only"
                           @update:model-value="validateField(field.title)"
@@ -453,7 +453,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           v-model="formState[field.title]"
                           class="nc-input h-auto"
                           :class="{ 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only }"
-                          :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                          :data-testid="`nc-survey-form__input-${field.title.replace(/ /g, '')}`"
                           :column="field"
                           :edit-enabled="!field?.read_only"
                           :read-only="field?.read_only"

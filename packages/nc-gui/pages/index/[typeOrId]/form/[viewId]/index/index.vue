@@ -252,7 +252,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :model-value="null"
                               class="mt-0 nc-input nc-cell"
                               :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :class="[`nc-form-input-${field.title?.replace(/ /g, '')}`, { readonly: field?.read_only }]"
                               :column="field"
                               :read-only="field?.read_only"
                             />
@@ -263,7 +263,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="nc-input truncate"
                               :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                               :class="[
-                                `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                                `nc-form-input-${field.title?.replace(/ /g, '')}`,
                                 { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
                               ]"
                               :column="field"

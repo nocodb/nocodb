@@ -321,6 +321,8 @@ export function useCanvasTable({
   // Interface pages flag row add/delete separately from cell editing.
   const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
+  actionManager.setInterfaceDataApi(interfacePageDataApi)
+
   // Interface builder: the clicked header field (blue border + 3-dot button) —
   // deliberately separate from selectedHeaderColumnIds so no cell range selects.
   const interfaceActiveHeaderFieldId = ref<string | null>(null)
@@ -478,6 +480,7 @@ export function useCanvasTable({
           isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
+          isInterfaceUi: !!interfacePageDataApi,
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
@@ -882,6 +885,8 @@ export function useCanvasTable({
   })
 
   const isSelectedOnlyScript = computed(() => {
+    if (interfacePageDataApi) return { enabled: false, disabled: false }
+
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
       const column = columns.value[selection.value.start.col]

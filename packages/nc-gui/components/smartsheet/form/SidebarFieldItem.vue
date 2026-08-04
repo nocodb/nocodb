@@ -26,7 +26,7 @@ const isActive = computed(() => activeRow.value === props.field.id)
   <div
     class="w-full px-2 flex flex-row items-center border-b-1 last:border-none border-nc-border-gray-medium"
     :class="[
-      `nc-form-field-item-${field.title.replaceAll(' ', '')}`,
+      `nc-form-field-item-${toSafeClassName(field.title)}`,
       `${isActive ? 'bg-nc-bg-brand font-medium' : 'hover:bg-nc-bg-gray-extralight'}`,
     ]"
     :data-testid="`nc-form-field-item-${field.title}`"

@@ -470,7 +470,7 @@ const isMmTable = computed(() => !!table.value?.mm)
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"
-    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title?.replaceAll(' ', '')}`]"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${toSafeClassName(table.title)}`]"
     :data-active="openedTableId === table.id"
   >
     <div class="flex items-center py-0.5">

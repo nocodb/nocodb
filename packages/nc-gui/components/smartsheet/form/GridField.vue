@@ -29,7 +29,7 @@ const hasVisibilityCondition = computed(() => !!allViewFilters.value?.[props.fie
   <div
     class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-2 flex-1 basis-0 min-w-0"
     :class="[
-      `nc-form-drag-${field.title.replaceAll(' ', '')}`,
+      `nc-form-drag-${toSafeClassName(field.title)}`,
       {
         'nc-form-field-drag-handler rounded-xl border-2 border-transparent my-1 cursor-move': isEditable,
       },

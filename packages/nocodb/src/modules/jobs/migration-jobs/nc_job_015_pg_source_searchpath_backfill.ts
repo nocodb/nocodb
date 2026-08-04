@@ -87,7 +87,14 @@ export class PgSourceSearchPathBackfillMigration {
     // would clobber the schema the user just set. Bounding by `created_at`
     // closes that window; the count uses the same filter so `total` stays
     // consistent with what's iterated.
-    const startedAt = new Date();
+    //
+    // Use ncMeta.now() (client-aware), NOT `new Date()`: `created_at` is stored
+    // as a string in ncMeta.now()'s format, and on a SQLite meta DB a bound
+    // Date binds as a numeric (node-sqlite3), so `TEXT < numeric` is ALWAYS
+    // false (SQLite storage-class ordering) — the job would find 0 candidates
+    // and grandfather nothing. MySQL has an analogous timezone-offset bug. Only
+    // PG (Cloud) tolerates a raw Date. Matching the stored format fixes all.
+    const startedAt = ncMeta.now();
 
     // Candidate filter for external (non-meta, non-local, non-deleted) pg/mssql
     // sources backed by an integration.

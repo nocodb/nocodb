@@ -370,7 +370,13 @@ const changeIntegration = (triggerTestConnection = false) => {
       connection: {
         database: selectedIntegrationDb.value,
       },
-      searchPath: selectedIntegration.value.config?.searchPath,
+      // Always surface an (editable) schema field for schema-aware clients, even
+      // when the integration has no searchPath stored — otherwise the input is
+      // hidden and the schema can't be set. Empty means "use the integration
+      // default" (stripped to undefined on submit).
+      searchPath:
+        selectedIntegration.value.config?.searchPath ??
+        ([ClientType.PG, ClientType.MSSQL].includes(selectedIntegration.value.sub_type) ? [''] : undefined),
     }
   } else {
     onClientChange()

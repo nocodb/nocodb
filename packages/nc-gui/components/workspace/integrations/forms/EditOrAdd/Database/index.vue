@@ -566,6 +566,16 @@ onMounted(async () => {
       is_private: activeIntegration.value?.is_private,
     }
 
+    // Ensure a schema-aware connection always exposes an (editable) schema field
+    // when editing — a stored config with no searchPath would otherwise hide it,
+    // leaving no way to set/change the schema on an existing connection.
+    if (
+      [ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) &&
+      !formState.value.dataSource.searchPath
+    ) {
+      formState.value.dataSource.searchPath = ['']
+    }
+
     if (formState.value.dataSource?.connection?.password === null) {
       maskedPassword.value = true
       formState.value.dataSource.connection.password = '*'.repeat(8)

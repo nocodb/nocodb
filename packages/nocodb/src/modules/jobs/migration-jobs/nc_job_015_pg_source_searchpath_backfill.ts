@@ -71,8 +71,14 @@ export class PgSourceSearchPathBackfillMigration {
   async job() {
     const ncMeta = Noco.ncMeta;
 
-    // External (non-meta) pg/mssql sources that aren't deleted. Read ids only —
-    // decryption + integration-config inheritance are handled via the model.
+    // External (non-meta, non-local) pg/mssql sources that aren't deleted. Read
+    // ids only — decryption + integration-config inheritance are handled via the
+    // model.
+    //
+    // The is_meta/is_local filter mirrors grandfatherSearchPath's `isMeta()`
+    // guard (which is `is_meta || is_local`): a local source reads from the
+    // meta/data DB, not an external integration schema, so it's never pinned.
+    // Filtering here keeps the query and the guard in agreement.
     //
     // Only integration-backed sources can need pinning: grandfatherSearchPath
     // skips a source that carries its own searchPath, and a source with no
@@ -86,6 +92,9 @@ export class PgSourceSearchPathBackfillMigration {
       .whereNotNull('fk_integration_id')
       .where(function () {
         this.where('is_meta', false).orWhereNull('is_meta');
+      })
+      .where(function () {
+        this.where('is_local', false).orWhereNull('is_local');
       })
       .where(function () {
         this.where('deleted', false).orWhereNull('deleted');

@@ -977,7 +977,7 @@ watch(
                           :label="$t('labels.schemaName')"
                           v-bind="validateInfos['dataSource.searchPath.0']"
                         >
-                          <a-input v-model:value="formState.dataSource.searchPath[0]" />
+                          <a-input v-model:value="formState.dataSource.searchPath[0]" data-testid="nc-extdb-schema-name" />
                         </a-form-item>
                       </a-col>
                     </a-row>

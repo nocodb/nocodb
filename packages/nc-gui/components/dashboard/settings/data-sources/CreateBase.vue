@@ -686,6 +686,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           >
                             <a-input
                               v-model:value="formState.dataSource.searchPath[0]"
+                              data-testid="nc-extdb-schema-name"
                               :placeholder="selectedIntegrationSchema && `${selectedIntegrationSchema} (default)`"
                             />
                           </a-form-item>

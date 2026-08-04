@@ -47,6 +47,29 @@ import {
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
+/**
+ * Effective schema for metadata introspection (tableList / columnList /
+ * relationListAll / viewList).
+ *
+ * External PG / MSSQL sources carry the schema under `searchPath` (see
+ * `Model.ts` and `PgClient.get schema()`); meta sources — and every other
+ * client type — keep it on `.schema`. Reading `.schema` for an external PG
+ * source returns undefined, so introspection silently falls back to `public`
+ * and ignores the configured schema. Mirror `Model.ts` so the sync reads the
+ * right schema.
+ */
+export function getSourceIntrospectionSchema(
+  source: Source,
+): string | undefined {
+  if (
+    !source?.isMeta?.(true, 1) &&
+    (source?.type === 'pg' || source?.type === 'mssql')
+  ) {
+    return source.getConfig()?.searchPath?.[0];
+  }
+  return source?.getConfig()?.schema;
+}
+
 export type QueryWithCte = {
   builder: string | Knex.QueryBuilder;
   applyCte: (qb: Knex.QueryBuilder) => void;

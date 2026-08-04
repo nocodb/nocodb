@@ -98,6 +98,9 @@ function onNavClick(item: NavItem) {
         <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/full-logo.png" class="h-9" />
         <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" class="h-9" />
       </div>
+
+      <!-- Only in the collapsed (peek) state, where it re-docks the sidebar. -->
+      <GeneralHideLeftSidebarBtn v-if="!isLeftSidebarOpen" show-always />
     </div>
 
     <!-- Navigation section -->

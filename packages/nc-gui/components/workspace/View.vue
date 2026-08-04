@@ -381,7 +381,7 @@ if (!props.isNewWsPage) {
               </div>
             </template>
 
-            <WorkspaceSso class="!h-[calc(100vh-92px)]" />
+            <WorkspaceSso :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>

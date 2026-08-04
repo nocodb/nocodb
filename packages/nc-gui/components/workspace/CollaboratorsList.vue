@@ -901,11 +901,13 @@ watch(inviteDlg, (newVal) => {
     }
   }
 
+  // Workspace home: Members is not an Admin route, so no sub-tab bar is on screen
+  // and there is nothing to subtract beyond the topbar.
   &.nc-is-ws-members-list {
-    @apply h-[calc(100vh-var(--topbar-height)-44px)];
+    @apply h-[calc(100vh-var(--topbar-height))];
 
     @supports (height: 100dvh) {
-      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 

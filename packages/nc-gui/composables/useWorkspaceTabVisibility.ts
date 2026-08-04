@@ -61,9 +61,29 @@ export function useWorkspaceTabVisibility(
     }
   })
 
+  /**
+   * Tabs that render under the "Admin" section on the workspace home, in display order.
+   * Single source of truth for the Admin nav item, its sub-tab bar, and any page that
+   * needs to know whether that 44px bar is on screen.
+   */
+  const visibleAdminTabKeys = computed(() => {
+    const visibility = wsTabVisibility.value
+
+    return (['settings', 'billing', 'audits', 'sso'] as const).filter((key) => visibility[key])
+  })
+
+  /**
+   * The Admin sub-tab bar only renders when there's more than one tab to switch between —
+   * with a single tab, landing on the Admin page already *is* the destination. Pages sized
+   * against the viewport must not reserve its height when it's absent.
+   */
+  const hasAdminTabBar = computed(() => visibleAdminTabKeys.value.length > 1)
+
   return {
     isWorkspaceSsoAvail,
     hasTeamsEditPermission,
     wsTabVisibility,
+    visibleAdminTabKeys,
+    hasAdminTabBar,
   }
 }

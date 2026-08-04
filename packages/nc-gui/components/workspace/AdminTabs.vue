@@ -12,7 +12,7 @@ const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { isWsAuditEnabled, handleUpgradePlan } = useEeConfig()
 
-const { wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
+const { wsTabVisibility, hasAdminTabBar } = useWorkspaceTabVisibility(activeWorkspace)
 
 // Tab definitions
 interface TabItem {
@@ -70,7 +70,7 @@ const activeTab = computed({
 </script>
 
 <template>
-  <NcTabs v-if="tabItems.length > 1" :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-admin-tabs">
+  <NcTabs v-if="hasAdminTabBar" :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-admin-tabs">
     <template #leftExtra>
       <div class="w-2 sm:w-4"></div>
     </template>

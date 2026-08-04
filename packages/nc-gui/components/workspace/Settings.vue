@@ -13,6 +13,16 @@ const { isUIAllowed } = useRoles()
 
 const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
+const { hasAdminTabBar } = useWorkspaceTabVisibility(activeWorkspace)
+
+// Workspace home Admin route: the sub-tab bar (44px) only sits above this page when
+// there are 2+ admin tabs to switch between.
+const containerHeightClass = computed(() => {
+  if (isSettingsSidebar.value) return 'h-[calc(100vh-var(--topbar-height))]'
+
+  return hasAdminTabBar.value ? 'h-[calc(100vh-var(--topbar-height)-44px)]' : 'h-[calc(100vh-var(--topbar-height))]'
+})
+
 const formValidator = ref()
 const isErrored = ref(false)
 const isWorkspaceUpdating = ref(false)
@@ -96,10 +106,7 @@ watch(
 </script>
 
 <template>
-  <div
-    class="nc-workspace-settings-container overflow-auto nc-scrollbar-thin"
-    :class="isSettingsSidebar ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
-  >
+  <div class="nc-workspace-settings-container overflow-auto nc-scrollbar-thin" :class="containerHeightClass">
     <div v-if="currentWorkspace" class="flex flex-col items-start nc-content-max-w mx-auto w-full pb-6 md:pb-10 px-4 md:px-6">
       <div class="nc-settings-item-card-wrapper mt-4">
         <div class="nc-settings-item-heading text-nc-content-gray-emphasis">

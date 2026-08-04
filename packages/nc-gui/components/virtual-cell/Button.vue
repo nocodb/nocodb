@@ -35,6 +35,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 // id server-side from the column instead of trusting this cell's value).
 const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
+const isInterfaceUi = useIsInterfaceUi()
+
 const { $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -175,6 +177,7 @@ const componentProps = computed(() => {
       disabled:
         filterDisabled ||
         isPublic.value ||
+        (isInterfaceUi.value && !interfaceDataApi?.triggerButtonHook) ||
         !isUIAllowed('hookTrigger') ||
         isLoading.value ||
         !column.value.colOptions.fk_webhook_id ||
@@ -182,7 +185,13 @@ const componentProps = computed(() => {
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Script) {
     return {
-      disabled: filterDisabled || isPublic.value || isExecuting.value || !isUIAllowed('dataEdit') || isLoading.value,
+      disabled:
+        filterDisabled ||
+        isPublic.value ||
+        isInterfaceUi.value ||
+        isExecuting.value ||
+        !isUIAllowed('dataEdit') ||
+        isLoading.value,
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {

@@ -330,12 +330,14 @@ const isColumnInvalid = ({
   isReadOnly = false,
   isNocoAiAvailable = false,
   columns = [],
+  isInterfaceUi = false,
 }: {
   col: ColumnType
   aiIntegrations?: Partial<IntegrationType>[]
   isReadOnly?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
+  isInterfaceUi?: boolean
 }): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
@@ -359,7 +361,7 @@ const isColumnInvalid = ({
       if (isAiButton(col) && isReadOnly) {
         result.isInvalid = true
         result.ignoreTooltip = true
-      } else if (colOptions.type === ButtonActionsType.Script && isReadOnly) {
+      } else if (colOptions.type === ButtonActionsType.Script && (isReadOnly || isInterfaceUi)) {
         result.isInvalid = true
         result.ignoreTooltip = true
       } else if (colOptions.type === ButtonActionsType.Webhook) {

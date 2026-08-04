@@ -1146,6 +1146,8 @@ const isSelectedOnlyAI = computed(() => {
 })
 
 const isSelectedOnlyScript = computed(() => {
+  if (interfacePageDataApi) return { enabled: false, disabled: false }
+
   // selectedRange
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]

@@ -28,6 +28,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isFilterDropdownOpen = ref(false)
 
+const isWsLandingRedesign = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKSPACE_LANDING_REDESIGN))
+
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const filterOptions = computed<NcListItemType[]>(() => {
@@ -93,11 +95,19 @@ const clearFilter = () => {
       </a-input>
 
       <!-- Bases count (desktop only) -->
-      <div class="hidden md:flex flex-1 items-center gap-1.5 text-xs font-medium tracking-wide min-w-0 truncate overflow-hidden">
+      <div
+        class="hidden md:flex flex-1 gap-1.5 min-w-0 truncate overflow-hidden"
+        :class="isWsLandingRedesign ? 'items-baseline' : 'items-center text-xs font-medium tracking-wide'"
+      >
         <slot name="label">
-          <span class="text-nc-content-gray-muted">{{ $t('objects.projects') }}</span>
+          <h2 v-if="isWsLandingRedesign" class="text-subHeading1 text-nc-content-gray-extreme mb-0 truncate">
+            {{ $t('objects.projects') }}
+          </h2>
+          <span v-else class="text-nc-content-gray-muted">{{ $t('objects.projects') }}</span>
         </slot>
-        <span class="flex-shrink-0 font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
+        <span class="flex-shrink-0 text-nc-content-gray-muted" :class="isWsLandingRedesign ? 'text-bodyDefaultSm' : 'font-normal'"
+          >({{ baseCount }})</span
+        >
       </div>
 
       <div class="flex items-center gap-2 flex-shrink-0">

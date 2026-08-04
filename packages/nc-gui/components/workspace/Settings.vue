@@ -100,8 +100,8 @@ watch(
     class="nc-workspace-settings-container overflow-auto nc-scrollbar-thin"
     :class="isSettingsSidebar ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
   >
-    <div v-if="currentWorkspace" class="flex flex-col items-center pb-6 md:pb-10 px-4 md:px-6">
-      <div class="nc-settings-item-card-wrapper mt-6 md:mt-10">
+    <div v-if="currentWorkspace" class="flex flex-col items-start nc-content-max-w mx-auto w-full pb-6 md:pb-10 px-4 md:px-6">
+      <div class="nc-settings-item-card-wrapper mt-4">
         <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
           {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
         </div>

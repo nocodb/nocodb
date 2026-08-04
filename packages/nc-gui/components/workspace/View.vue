@@ -30,6 +30,10 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isWsLandingRedesign = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKSPACE_LANDING_REDESIGN))
+
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
 // Local ref for integrations view mode (main page vs all-connections page).
@@ -294,7 +298,14 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
+          <div
+            class="nc-integrations-layout nc-content-max-w mx-auto"
+            :class="
+              isNewWsPage && isWsLandingRedesign
+                ? 'h-[calc(100vh-var(--topbar-height))]'
+                : 'h-[calc(100vh-var(--topbar-height)-44px)]'
+            "
+          >
             <!-- Main integrations page -->
             <template v-if="integrationsViewMode === 'main'">
               <div class="h-full">

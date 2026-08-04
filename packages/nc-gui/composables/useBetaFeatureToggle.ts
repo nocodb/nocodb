@@ -195,6 +195,14 @@ const FEATURES = [
     version: 3,
     isEngineering: false,
   },
+  {
+    id: 'workspace_landing_redesign',
+    title: 'Workspace page redesign',
+    description: 'New workspace landing page with workspace dropdown, sidebar navigation and top search.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

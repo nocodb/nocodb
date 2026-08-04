@@ -27,7 +27,6 @@ import {
   deepMerge,
   encryptPropIfRequired,
   isEncryptionRequired,
-  partialExtract,
 } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
 
@@ -444,13 +443,22 @@ export default class Source implements SourceType {
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
-    let mergedConfig = deepMerge(
-      integrationConfig,
-      partialExtract(config || {}, [
-        ['connection', 'database'],
-        ['searchPath'],
-      ]),
-    );
+    //
+    // IMPORTANT: apply ONLY keys the source config actually defines. The old
+    // `partialExtract(config, [['connection','database'],['searchPath']])`
+    // emitted the requested keys even when absent (as `undefined`), and
+    // `deepMerge` then overwrote the integration's real `searchPath` /
+    // `connection.database` with `undefined` — erasing the integration's
+    // configured schema so the source silently bound to `public`. Only a
+    // source-level value that is actually set should override the integration.
+    const sourceOverride: Record<string, any> = {};
+    if (config?.searchPath !== undefined) {
+      sourceOverride.searchPath = config.searchPath;
+    }
+    if (config?.connection?.database !== undefined) {
+      sourceOverride.connection = { database: config.connection.database };
+    }
+    let mergedConfig = deepMerge(integrationConfig, sourceOverride);
 
     // if searchPath is not array/string or if an empty array, remove it
     if (
